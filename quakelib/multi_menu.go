@@ -1,0 +1,91 @@
+package quakelib
+
+import (
+	kc "quake/keycode"
+	"quake/keys"
+	"quake/menu"
+)
+
+func enterMultiPlayerMenu() {
+	IN_Deactivate()
+	keyDestination = keys.Menu
+	qmenu.state = menu.MultiPlayer
+	qmenu.playEnterSound = true
+}
+
+var (
+	multiPlayerMenu = qMultiPlayerMenu{
+		items: makeMultiPlayerMenuItems(),
+	}
+)
+
+type qMultiPlayerMenu struct {
+	selectedIndex int
+	items         []MenuItem
+}
+
+func (m *qMultiPlayerMenu) Draw() {
+	drawPic(16, 4, getCachePic("gfx/qplaque.lmp"))
+
+	p := getCachePic("gfx/p_multi.lmp")
+	drawPic((320-p.width)/2, 4, p)
+
+	drawPic(72, 32, getCachePic("gfx/mp_menu.lmp"))
+
+	m.items[m.selectedIndex].DrawCursor()
+
+	if !tcpipAvailable {
+		drawStringWhite((320/2)-((27*8)/2), 148, "No Communications Available")
+	}
+}
+
+func (m *qMultiPlayerMenu) HandleKey(key int) {
+	switch key {
+	case kc.ESCAPE, kc.BBUTTON:
+		enterMenuMain()
+
+	case kc.DOWNARROW:
+		localSound("misc/menu1.wav")
+		m.selectedIndex = (m.selectedIndex + 1) % len(m.items)
+
+	case kc.UPARROW:
+		localSound("misc/menu1.wav")
+		m.selectedIndex = (m.selectedIndex + len(m.items) - 1) % len(m.items)
+
+	case kc.ENTER, kc.KP_ENTER, kc.ABUTTON:
+		qmenu.playEnterSound = true
+		m.items[m.selectedIndex].Enter()
+	}
+}
+
+func makeMultiPlayerMenuItems() []MenuItem {
+	return []MenuItem{
+		&MenuItemNetJoin{qDotMenuItem{qMenuItem{54, 32}}},
+		&MenuItemNetNew{qDotMenuItem{qMenuItem{54, 32 + 20}}},
+		&MenuItemNetSetup{qDotMenuItem{qMenuItem{54, 32 + 20*2}}},
+	}
+}
+
+type MenuItemNetJoin struct{ qDotMenuItem }
+
+func (m *MenuItemNetJoin) Enter() {
+	if !tcpipAvailable {
+		return
+	}
+	enterNetJoinGameMenu()
+}
+
+type MenuItemNetNew struct{ qDotMenuItem }
+
+func (m *MenuItemNetNew) Enter() {
+	if !tcpipAvailable {
+		return
+	}
+	enterNetNewGameMenu()
+}
+
+type MenuItemNetSetup struct{ qDotMenuItem }
+
+func (m *MenuItemNetSetup) Enter() {
+	enterNetSetupMenu()
+}
