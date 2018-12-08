@@ -344,6 +344,9 @@ void CL_KeepaliveMessage(void) {
   // check time
   time = Sys_DoubleTime();
   if (time - lastmsg < 5) return;
+  if (!CLS_NET_CanSendMessage()){
+    return;
+  }
   lastmsg = time;
 
   // write out a nop
@@ -540,15 +543,20 @@ void CL_ParseUpdate(int bits) {
 
   // johnfitz -- PROTOCOL_FITZQUAKE
   if (CL_Protocol() == PROTOCOL_FITZQUAKE || CL_Protocol() == PROTOCOL_RMQ) {
-    if (bits & U_EXTEND1) bits |= CL_MSG_ReadByte() << 16;
-    if (bits & U_EXTEND2) bits |= CL_MSG_ReadByte() << 24;
+    if (bits & U_EXTEND1) {
+      bits |= CL_MSG_ReadByte() << 16;
+    }
+    if (bits & U_EXTEND2) {
+      bits |= CL_MSG_ReadByte() << 24;
+    }
   }
   // johnfitz
 
-  if (bits & U_LONGENTITY)
+  if (bits & U_LONGENTITY) {
     num = CL_MSG_ReadShort();
-  else
+  } else {
     num = CL_MSG_ReadByte();
+  }
 
   ent = CL_EntityNum(num);
 

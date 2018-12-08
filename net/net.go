@@ -345,10 +345,13 @@ func readUDP(c net.Conn, out chan<- msg, acks chan<- uint32) {
 			// we need to pass the information of unreliable forward, add the 2
 			unreliableBuf.WriteByte(2)
 			unreliableBuf.Write(buf.Bytes())
-			out <- msg{data: unreliableBuf.Bytes()}
+			// make sure the data moved out is a different slice
+			o := make([]byte, unreliableBuf.Len())
+			copy(o, unreliableBuf.Bytes())
+			m := msg{data: o}
+			out <- m
 			continue
 		} else if flags&NETFLAG_ACK != 0 {
-			log.Printf("Got Ack %v", sequence)
 			acks <- sequence
 			continue
 		} else if flags&NETFLAG_DATA != 0 {
@@ -366,7 +369,10 @@ func readUDP(c net.Conn, out chan<- msg, acks chan<- uint32) {
 			reliableBuf.Write(buf.Bytes())
 			if flags&NETFLAG_EOM != 0 {
 				// we need to pass the information of reliable forward, add the 1
-				out <- msg{data: reliableBuf.Bytes()}
+				// make sure the data moved out is a different slice
+				o := make([]byte, reliableBuf.Len())
+				copy(o, reliableBuf.Bytes())
+				out <- msg{data: o}
 				reliableBuf.Reset()
 				reliableBuf.WriteByte(1)
 			}
@@ -385,15 +391,12 @@ func writeUDP(c net.Conn, in <-chan msg, acks <-chan uint32, canWrite chan<- boo
 	defer close(canWrite)
 	resendTimer := time.NewTimer(time.Second)
 	if !resendTimer.Stop() {
-		log.Printf("drain")
 		<-resendTimer.C
 	}
 	for {
 		// handle ack
-		log.Printf("Next Write")
 		select {
 		case sequence, ok := <-acks:
-			log.Printf("Processing ACK %v", sequence)
 			if !ok {
 				return
 			}
@@ -419,7 +422,6 @@ func writeUDP(c net.Conn, in <-chan msg, acks <-chan uint32, canWrite chan<- boo
 				<-resendTimer.C
 			}
 			if len(reliableMsg) != 0 {
-				log.Printf("Multipart msg. len %v", len(reliableMsg))
 				// So we got our last reliableMsg acked and the packet was larger than
 				// MAX_DATAGRAM, so send next packet
 				length := MAX_DATAGRAM + 8
@@ -441,7 +443,6 @@ func writeUDP(c net.Conn, in <-chan msg, acks <-chan uint32, canWrite chan<- boo
 				resendTimer.Reset(time.Second)
 				continue
 			} else {
-				log.Printf("ACK.")
 				canWrite <- true
 			}
 
@@ -466,20 +467,17 @@ func writeUDP(c net.Conn, in <-chan msg, acks <-chan uint32, canWrite chan<- boo
 			resendTimer.Reset(time.Second)
 
 		case msg, isOpen := <-in:
-			log.Printf("Sending msg")
 			// first byte of msg indicates reliable/unreliable
 			// 1 is reliable, 2 unreliable
 			// do not send this byte out
 			if isOpen {
 				switch msg.data[0] {
 				case 1:
-					log.Printf("Sending reliable")
 					reliableMsg = msg.data[1:]
 
 					length := MAX_DATAGRAM + 8
 					eom := 0
 					if len(reliableMsg) <= MAX_DATAGRAM {
-						log.Printf("Send EOM")
 						length = len(reliableMsg) + 8
 						eom = NETFLAG_EOM
 					}
@@ -493,9 +491,7 @@ func writeUDP(c net.Conn, in <-chan msg, acks <-chan uint32, canWrite chan<- boo
 						log.Printf("Write failed: %v", err)
 						return
 					}
-					log.Printf("Resetting timer")
 					resendTimer.Reset(time.Second)
-					log.Printf("timer reset")
 				case 2:
 					// 8 byte 'header' + data
 					length := len(msg.data) - 1 /*reliable bit*/ + 8 /*net header*/
