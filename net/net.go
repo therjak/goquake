@@ -34,12 +34,14 @@ const (
 )
 
 type Connection struct {
-	connectTime time.Duration
-	//	con         *net.UDPConn
-	addr string
-	id   int
-	in   <-chan msg
-	out  chan<- msg
+	connectTime  time.Duration
+	con          net.Conn
+	addr         string
+	id           int
+	in           <-chan msg
+	out          chan<- msg
+	canWriteChan <-chan bool
+	canWrite     bool
 }
 
 func (c *Connection) ID() int {
@@ -48,8 +50,6 @@ func (c *Connection) ID() int {
 
 type msg struct {
 	data []byte
-	// TODO: should this be with array length?
-	// data [maxMessage]byte
 }
 
 type QReader struct {
@@ -155,26 +155,33 @@ func udpConnect(host string, port int) (*Connection, error) {
 	addr = net.JoinHostPort(host, fmt.Sprintf("%d", newPort))
 	raddr, err := net.ResolveUDPAddr("udp", addr)
 	if err != nil {
+		log.Printf("Got error resolving: %v", err)
 		return nil, fmt.Errorf("Could not resolve address %v: %v", host, err)
 	}
 	c, err := net.DialUDP("udp", laddr, raddr)
 	if err != nil {
+		log.Printf("Got error connecting: %v", err)
 		return nil, fmt.Errorf("Could not connect to host %v: %v", host, err)
 	}
 
 	clientID := getNextConID()
 	c2s := make(chan msg, chanBufLength)
 	s2c := make(chan msg, chanBufLength)
+	canWrite := make(chan bool)
 	client := &Connection{
-		connectTime: netTime,
-		addr:        c.RemoteAddr().String(),
-		id:          clientID,
-		in:          s2c,
-		out:         c2s,
+		connectTime:  netTime,
+		con:          c,
+		addr:         c.RemoteAddr().String(),
+		id:           clientID,
+		in:           s2c,
+		out:          c2s,
+		canWriteChan: canWrite,
+		canWrite:     true,
 	}
 	cons = append(cons, *client)
-	go readUDP(c, s2c)
-	go writeUDP(c, c2s)
+	acks := make(chan uint32, 1)
+	go readUDP(c, s2c, acks)
+	go writeUDP(c, c2s, acks, canWrite)
 	return client, nil
 }
 
@@ -213,6 +220,17 @@ const (
 	// value string
 
 	NET_PROTOCOL_VERSION = 3
+
+	NETFLAG_LENGTH_MASK = 0x0000ffff
+	NETFLAG_FLAG_MASK   = 0xffff0000
+	NETFLAG_DATA        = 0x00010000
+	NETFLAG_ACK         = 0x00020000
+	NETFLAG_NAK         = 0x00040000
+	NETFLAG_EOM         = 0x00080000
+	NETFLAG_UNRELIABLE  = 0x00100000
+	NETFLAG_CTL         = 0x80000000
+
+	MAX_DATAGRAM = 32000
 )
 
 func handShake(host string) (*net.UDPAddr, int, error) {
@@ -252,8 +270,8 @@ func handShake(host string) (*net.UDPAddr, int, error) {
 	msg = *bytes.NewBuffer(b[:i])
 	var control uint32
 	binary.Read(&msg, binary.BigEndian, &control)
-	if control&0xffff0000 != 0x80000000 ||
-		control&0x0000ffff != uint32(i) {
+	if control&NETFLAG_FLAG_MASK != NETFLAG_CTL ||
+		control&NETFLAG_LENGTH_MASK != uint32(i) {
 		return nil, 0, fmt.Errorf("Error in reply")
 	}
 	ack, err := msg.ReadByte()
@@ -275,100 +293,219 @@ func handShake(host string) (*net.UDPAddr, int, error) {
 	return laddr, int(sockAddr), nil
 }
 
-func readUDP(c net.Conn, out chan<- msg) {
+func readUDP(c net.Conn, out chan<- msg, acks chan<- uint32) {
 	// Read
-	// TODO: weird stuff from Datagram_GetMessage
 	defer c.Close()
+
 	defer close(out)
+	defer close(acks)
+
 	unreliableSequence := uint32(0)
-	ackSequence := uint32(0)
 	receiveSequence := uint32(0)
+	var reliableBuf bytes.Buffer
+	var unreliableBuf bytes.Buffer
+	var ack bytes.Buffer
+	reliableBuf.WriteByte(1)
 	for {
 		b := make([]byte, maxMessage)
 		i, err := c.Read(b)
-		// NETFLAG_LENGTH_MASK = 0x0000ffff
 		if err != nil {
-			log.Printf("Read failed: %v", err)
+			if err != io.EOF {
+				log.Printf("Read failed: %v", err)
+			}
 			return
 		}
-		if i < 8 { /* net header == 2 int */
+		if i < 8 { /* net header == 2 int32 */
 			continue
 		}
-		// first 4 byte are length
+		// first 4 byte are flag|length
 		// second 4 bytes are sequence number
 		// all other is data
 		b = b[:i]
 		var length, sequence uint32
-		buf := bytes.NewReader(b)
-		// We verified the length already. No error possible.
+		buf := bytes.NewBuffer(b)
+		// We verified the length already. No read error possible.
 		binary.Read(buf, binary.BigEndian, &length)
 		binary.Read(buf, binary.BigEndian, &sequence)
-		flags := length & 0xffff0000
-		length = length & 0x0000ffff
+		flags := length & NETFLAG_FLAG_MASK
+		length = length & NETFLAG_LENGTH_MASK
 		if uint32(i) != length {
 			// Just ignore this message. It seems broken.
 			continue
 		}
-		log.Printf("Real: %d, Reported: %d", i, length)
-		switch flags {
-		case 0x80000000 /*NETFLAG_CTL*/ :
+		if flags&NETFLAG_CTL != 0 {
 			continue
-		case 0x00100000 /*NETFLAG_UNRELIABLE*/ :
+		} else if flags&NETFLAG_UNRELIABLE != 0 {
 			if sequence < unreliableSequence {
+				// Got a stale datagram
 				continue
 			}
 			unreliableSequence = sequence + 1
-			out <- msg{data: b[8:]}
-			break
-		case 0x00040000 /*NETFLAG_ACK*/ :
-			ackSequence++
+			unreliableBuf.Reset()
+			// we need to pass the information of unreliable forward, add the 2
+			unreliableBuf.WriteByte(2)
+			unreliableBuf.Write(buf.Bytes())
+			out <- msg{data: unreliableBuf.Bytes()}
 			continue
-		case 0x00020000 /*NETFLAG_DATA*/ :
+		} else if flags&NETFLAG_ACK != 0 {
+			log.Printf("Got Ack %v", sequence)
+			acks <- sequence
+			continue
+		} else if flags&NETFLAG_DATA != 0 {
+			// We may have received this packet already but the ack was not received.
+			ack.Reset()
+			binary.Write(&ack, binary.BigEndian, uint32(8|NETFLAG_ACK))
+			binary.Write(&ack, binary.BigEndian, uint32(sequence))
+			c.Write(ack.Bytes())
+			if sequence != receiveSequence {
+				// not the packet we expect, ignore,
+				// could be a resend because of missed ACK
+				continue
+			}
 			receiveSequence++
-			// Send (8|ACK)(sequence)
-			// if sequence != receiveSequence {
-			//   continue
-			// }
-			// receiveSequence++
-			// if flags & 0x00080000 /*NETFLAG_EOM*/ {
-			// ret = 1
-			// out <- msg{data: b[8:]}
-			// break
-			// }
+			reliableBuf.Write(buf.Bytes())
+			if flags&NETFLAG_EOM != 0 {
+				// we need to pass the information of reliable forward, add the 1
+				out <- msg{data: reliableBuf.Bytes()}
+				reliableBuf.Reset()
+				reliableBuf.WriteByte(1)
+			}
 			continue
 		}
 	}
 }
 
-func writeUDP(c net.Conn, in <-chan msg) {
+func writeUDP(c net.Conn, in <-chan msg, acks <-chan uint32, canWrite chan<- bool) {
 	unreliableSequence := uint32(0)
 	sendSequence := uint32(0)
+	ackSequence := uint32(0)
+	var reliableMsg []byte
+	var sendBuf bytes.Buffer
 	defer c.Close()
+	defer close(canWrite)
+	resendTimer := time.NewTimer(time.Second)
+	if !resendTimer.Stop() {
+		log.Printf("drain")
+		<-resendTimer.C
+	}
 	for {
+		// handle ack
+		log.Printf("Next Write")
 		select {
+		case sequence, ok := <-acks:
+			log.Printf("Processing ACK %v", sequence)
+			if !ok {
+				return
+			}
+			if sequence != sendSequence-1 {
+				log.Printf("Wrong sendSequence")
+				continue
+			}
+			if sequence != ackSequence {
+				log.Printf("Wrong AckSequence")
+				continue
+			}
+			ackSequence++
+			if ackSequence != sendSequence {
+				log.Printf("ack sequencing error")
+			}
+			// remove last message
+			if len(reliableMsg) > MAX_DATAGRAM {
+				reliableMsg = reliableMsg[MAX_DATAGRAM:]
+			} else {
+				reliableMsg = reliableMsg[:0]
+			}
+			if !resendTimer.Stop() {
+				<-resendTimer.C
+			}
+			if len(reliableMsg) != 0 {
+				log.Printf("Multipart msg. len %v", len(reliableMsg))
+				// So we got our last reliableMsg acked and the packet was larger than
+				// MAX_DATAGRAM, so send next packet
+				length := MAX_DATAGRAM + 8
+				eom := 0
+				if len(reliableMsg) <= MAX_DATAGRAM {
+					length = len(reliableMsg) + 8
+					eom = NETFLAG_EOM
+				}
+				sendBuf.Reset()
+				binary.Write(&sendBuf, binary.BigEndian, uint32(length|NETFLAG_DATA|eom))
+				binary.Write(&sendBuf, binary.BigEndian, uint32(sendSequence))
+				sendSequence++
+				sendBuf.Write(reliableMsg[:length-8])
+				_, err := c.Write(sendBuf.Bytes())
+				if err != nil {
+					log.Printf("Write failed: %v", err)
+					return
+				}
+				resendTimer.Reset(time.Second)
+				continue
+			} else {
+				log.Printf("ACK.")
+				canWrite <- true
+			}
+
+		case <-resendTimer.C:
+			log.Printf("ReSending msg")
+			length := MAX_DATAGRAM + 8
+			eom := 0
+			if len(reliableMsg) <= MAX_DATAGRAM {
+				log.Printf("Send EOM")
+				length = len(reliableMsg) + 8
+				eom = NETFLAG_EOM
+			}
+			sendBuf.Reset()
+			binary.Write(&sendBuf, binary.BigEndian, uint32(length|NETFLAG_DATA|eom))
+			binary.Write(&sendBuf, binary.BigEndian, uint32(sendSequence-1))
+			sendBuf.Write(reliableMsg[:length-8])
+			_, err := c.Write(sendBuf.Bytes())
+			if err != nil {
+				log.Printf("Write failed: %v", err)
+				return
+			}
+			resendTimer.Reset(time.Second)
+
 		case msg, isOpen := <-in:
+			log.Printf("Sending msg")
 			// first byte of msg indicates reliable/unreliable
 			// 1 is reliable, 2 unreliable
 			// do not send this byte out
 			if isOpen {
 				switch msg.data[0] {
 				case 1:
+					log.Printf("Sending reliable")
+					reliableMsg = msg.data[1:]
+
+					length := MAX_DATAGRAM + 8
+					eom := 0
+					if len(reliableMsg) <= MAX_DATAGRAM {
+						log.Printf("Send EOM")
+						length = len(reliableMsg) + 8
+						eom = NETFLAG_EOM
+					}
+					sendBuf.Reset()
+					binary.Write(&sendBuf, binary.BigEndian, uint32(length|NETFLAG_DATA|eom))
+					binary.Write(&sendBuf, binary.BigEndian, uint32(sendSequence))
 					sendSequence++
-					_, err := c.Write(msg.data[1:])
+					sendBuf.Write(reliableMsg[:length-8])
+					_, err := c.Write(sendBuf.Bytes())
 					if err != nil {
 						log.Printf("Write failed: %v", err)
 						return
 					}
+					log.Printf("Resetting timer")
+					resendTimer.Reset(time.Second)
+					log.Printf("timer reset")
 				case 2:
 					// 8 byte 'header' + data
 					length := len(msg.data) - 1 /*reliable bit*/ + 8 /*net header*/
-					var buf bytes.Buffer
-					binary.Write(&buf, binary.BigEndian, length|0x00100000)
-					binary.Write(&buf, binary.BigEndian, unreliableSequence)
+					sendBuf.Reset()
+					binary.Write(&sendBuf, binary.BigEndian, uint32(length|NETFLAG_UNRELIABLE))
+					binary.Write(&sendBuf, binary.BigEndian, uint32(unreliableSequence))
 					unreliableSequence++
-					buf.Write(msg.data[1:])
+					sendBuf.Write(msg.data[1:])
 					// keep all in one write operation
-					_, err := c.Write(buf.Bytes())
+					_, err := c.Write(sendBuf.Bytes())
 					if err != nil {
 						log.Printf("Write failed: %v", err)
 						return
@@ -393,6 +530,7 @@ func localConnect() (*Connection, error) {
 		id:          clientID,
 		in:          s2c,
 		out:         c2s,
+		canWrite:    true,
 	}
 	cons = append(cons, *loopClient)
 	serverID := getNextConID()
@@ -402,6 +540,7 @@ func localConnect() (*Connection, error) {
 		id:          serverID,
 		in:          c2s,
 		out:         s2c,
+		canWrite:    true,
 	}
 	cons = append(cons, *loopServer)
 	return loopClient, nil
@@ -429,7 +568,6 @@ func CheckNewConnections() int {
 
 func Close(id int) {
 	SetTime()
-	// TODO: see loop.Close
 	con, err := getCon(id)
 	if err == nil {
 		con.Close()
@@ -439,7 +577,14 @@ func Close(id int) {
 func (c *Connection) Close() {
 	log.Printf("Closing connectiong")
 	SetTime()
-	close(c.out)
+	if c.con != nil {
+		c.con.Close()
+	} else {
+		// loop server/client
+		close(c.out)
+	}
+	c.canWriteChan = nil
+	c.canWrite = false
 	for i, _ := range cons {
 		if cons[i].ID() == c.ID() {
 			cons = append(cons[:i], cons[i+1:]...)
@@ -508,8 +653,9 @@ func (c *Connection) SendMessage(data []byte) int {
 	// there is some mechanism to allow multiple messages into the send buffer
 	// in the original. does this need a larger channel buffer?
 	c.out <- msg{data: buf.Bytes()}
-	for len(c.out) < cap(c.out) {
-		c.out <- msg{data: []byte{svc.Nop}}
+	if c.canWriteChan != nil {
+		// TODO: there should be a better way to handle both loopback and udp
+		c.canWrite = false
 	}
 	return 1
 }
@@ -584,13 +730,26 @@ func CanSendMessage(id int) bool {
 func (c *Connection) CanSendMessage() bool {
 	// if channel is disconnected return false
 	if c.out == nil {
+		log.Printf("CanSend nil false")
 		return false
 	}
-	// TODO
-	// what does it mean to be disconnected?
-	// where does this info come from?
 	SetTime()
-	return len(c.out) < cap(c.out)
+	if c.canWriteChan != nil {
+		select {
+		case can, ok := <-c.canWriteChan:
+			log.Printf("CanSend can: %v", can)
+			c.canWrite = ok && can
+		default:
+		}
+	}
+	if !c.canWrite {
+		log.Printf("CanSend canWrite false")
+		return false
+	}
+
+	r := len(c.out) < cap(c.out)
+	log.Printf("CanSend r %v", r)
+	return r
 }
 
 func Shutdown() {

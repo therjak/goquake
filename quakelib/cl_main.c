@@ -157,6 +157,8 @@ void CL_EstablishConnection(const char *host) {
   CL_Disconnect();
 
   if (!CLS_Connect(host)) {
+    // TODO: this is bad, looks like orig just quits this call without returning
+    // and waits for the next sdl input.
     Host_Error("CLS_Connect: connect failed\n");
   }
   Con_DPrintf("CL_EstablishConnection: connected to %s\n", host);
