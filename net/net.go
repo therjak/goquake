@@ -18,13 +18,6 @@ import (
 
 // qboolean = C.int
 // true = 1, false = 0
-/*
-var (
-	controlAddr net.UDPAddr
-	controlCon  *net.UDPConn
-	serverAddr  net.UDPAddr
-)
-*/
 const (
 	maxMessage = 32008
 	// make the channel buffer larger than 1 as we need to
@@ -70,7 +63,7 @@ var (
 	netMessageBackup   QReader
 	port               = 26000
 	myip               = "127.0.0.1"
-	serverName         = "MyServer"
+	serverName         = "127.0.0.1" //"MyServer"
 )
 
 func Port() int {
@@ -148,26 +141,26 @@ func udpConnect(host string, port int) (*Connection, error) {
 	addr := net.JoinHostPort(host, fmt.Sprintf("%d", port))
 	laddr, newPort, err := handShake(addr)
 	if err != nil {
-		log.Printf("Handshake err: %v", err)
 		return nil, fmt.Errorf("Handshake failed: %v", err)
 	}
 
 	addr = net.JoinHostPort(host, fmt.Sprintf("%d", newPort))
 	raddr, err := net.ResolveUDPAddr("udp", addr)
 	if err != nil {
-		log.Printf("Got error resolving: %v", err)
 		return nil, fmt.Errorf("Could not resolve address %v: %v", host, err)
 	}
 	c, err := net.DialUDP("udp", laddr, raddr)
 	if err != nil {
-		log.Printf("Got error connecting: %v", err)
 		return nil, fmt.Errorf("Could not connect to host %v: %v", host, err)
 	}
 
 	clientID := getNextConID()
 	c2s := make(chan msg, chanBufLength)
 	s2c := make(chan msg, chanBufLength)
-	canWrite := make(chan bool)
+	// canWrite needs to be buffered as the chan is only read from
+	// if a new reliable message should be send. And we do not want
+	// to block the receiving chan.
+	canWrite := make(chan bool, 1)
 	client := &Connection{
 		connectTime:  netTime,
 		con:          c,
@@ -419,7 +412,9 @@ func writeUDP(c net.Conn, in <-chan msg, acks <-chan uint32, canWrite chan<- boo
 				reliableMsg = reliableMsg[:0]
 			}
 			if !resendTimer.Stop() {
-				<-resendTimer.C
+				if len(resendTimer.C) != 0 {
+					<-resendTimer.C
+				}
 			}
 			if len(reliableMsg) != 0 {
 				// So we got our last reliableMsg acked and the packet was larger than
@@ -443,15 +438,21 @@ func writeUDP(c net.Conn, in <-chan msg, acks <-chan uint32, canWrite chan<- boo
 				resendTimer.Reset(time.Second)
 				continue
 			} else {
-				canWrite <- true
+				if len(canWrite) == 0 {
+					// We only need to ensure the next one who asks gets
+					// the right answer. It does not matter how many we
+					// send. And as the channel would never be drained
+					// we better not try to write more than 1 message.
+					// As this is udp we have no guarantee of how many
+					// ACKS we receive for the last reliable msg.
+					canWrite <- true
+				}
 			}
 
 		case <-resendTimer.C:
-			log.Printf("ReSending msg")
 			length := MAX_DATAGRAM + 8
 			eom := 0
 			if len(reliableMsg) <= MAX_DATAGRAM {
-				log.Printf("Send EOM")
 				length = len(reliableMsg) + 8
 				eom = NETFLAG_EOM
 			}
@@ -506,6 +507,8 @@ func writeUDP(c net.Conn, in <-chan msg, acks <-chan uint32, canWrite chan<- boo
 						log.Printf("Write failed: %v", err)
 						return
 					}
+				default:
+					log.Printf("WTF %d", msg.data[0])
 				}
 			} else {
 				log.Printf("c2s is closed")
@@ -671,6 +674,8 @@ func (c *Connection) SendUnreliableMessage(data []byte) int {
 	SetTime()
 
 	if cap(c.out) < (len(c.out) + 1) {
+		log.Printf("Ignored sending as c.out is full? %d, %d",
+			cap(c.out), len(c.out))
 		return 0
 	}
 

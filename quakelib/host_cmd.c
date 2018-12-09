@@ -793,7 +793,6 @@ This is sent just before a server changes levels
 void Host_Reconnect_f(void) {
   if (CLS_IsDemoPlayback())  // cross-map demo playback fix from Baker
     return;
-
   SCR_BeginLoadingPlaque();
   CLS_SetSignon(0);  // need new connection messages
 }

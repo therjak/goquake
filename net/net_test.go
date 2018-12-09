@@ -26,7 +26,7 @@ func TestReadAck(t *testing.T) {
 	}
 }
 
-func TestReadUnreliable(t *testing.T) {
+func TestUDPReadUnreliable(t *testing.T) {
 	c1, c2 := net.Pipe()
 	defer c2.Close()
 	c1.SetDeadline(time.Time{})
@@ -47,7 +47,7 @@ func TestReadUnreliable(t *testing.T) {
 	got := <-out
 	want := []byte{2, 1, 2, 45, 5}
 	if bytes.Compare(got.data, want) != 0 {
-		t.Fatalf("Got wrong unreliable sequence. got %v, want %v", got.data, want)
+		t.Fatalf("Got wrong unreliable sequence. want %v, got %v", want, got.data)
 	}
 
 	// A packet we already know of should not cause a signal
@@ -66,7 +66,7 @@ func TestReadUnreliable(t *testing.T) {
 	got = <-out
 	want = []byte{2, 83, 212, 43}
 	if bytes.Compare(got.data, want) != 0 {
-		t.Fatalf("Got wrong unreliable sequence. got %v, want %v", got.data, want)
+		t.Fatalf("Got wrong unreliable sequence. want %v, got %v", want, got.data)
 	}
 
 	// An old packet should not cause a signal
@@ -85,11 +85,11 @@ func TestReadUnreliable(t *testing.T) {
 	got = <-out
 	want = []byte{2, 25, 11, 53, 62, 62, 66, 67, 68}
 	if bytes.Compare(got.data, want) != 0 {
-		t.Fatalf("Got wrong unreliable sequence. got %v, want %v", got.data, want)
+		t.Fatalf("Got wrong unreliable sequence. want %v, got %v", want, got.data)
 	}
 }
 
-func TestReadReliableSinglePacket(t *testing.T) {
+func TestUDPReadReliableSinglePacket(t *testing.T) {
 	c1, c2 := net.Pipe()
 	defer c2.Close()
 	c1.SetDeadline(time.Time{})
@@ -111,13 +111,13 @@ func TestReadReliableSinglePacket(t *testing.T) {
 	}
 	wantRet := []byte{0, 2, 0, 8, 0, 0, 0, 0} // ACK(2), len(8), seq(0)
 	if bytes.Compare(ret, wantRet) != 0 {
-		t.Errorf("wrong Ack. got %v want %v", ret, wantRet)
+		t.Errorf("wrong Ack. want %v got %v", wantRet, ret)
 	}
 
 	got := <-out
 	want := []byte{1, 1, 2, 45, 5}
 	if bytes.Compare(got.data, want) != 0 {
-		t.Fatalf("Got wrong unreliable sequence. got %v, want %v", got.data, want)
+		t.Fatalf("Got wrong unreliable sequence. want %v, got %v", want, got.data)
 	}
 
 	// A packet we already know of should not cause a signal but still cause an ACK
@@ -131,7 +131,7 @@ func TestReadReliableSinglePacket(t *testing.T) {
 	}
 	wantRet = []byte{0, 2, 0, 8, 0, 0, 0, 0}
 	if bytes.Compare(ret, wantRet) != 0 {
-		t.Errorf("wrong Ack. got %v want %v", ret, wantRet)
+		t.Errorf("wrong Ack. want %v got %v", wantRet, ret)
 	}
 
 	// A new message should still count
@@ -145,17 +145,17 @@ func TestReadReliableSinglePacket(t *testing.T) {
 	}
 	wantRet = []byte{0, 2, 0, 8, 0, 0, 0, 1}
 	if bytes.Compare(ret, wantRet) != 0 {
-		t.Errorf("wrong Ack. got %v want %v", ret, wantRet)
+		t.Errorf("wrong Ack. want %v got %v", wantRet, ret)
 	}
 
 	got = <-out
 	want = []byte{1, 83, 212, 43}
 	if bytes.Compare(got.data, want) != 0 {
-		t.Fatalf("Got wrong unreliable sequence. got %v, want %v", got.data, want)
+		t.Fatalf("Got wrong unreliable sequence. want %v, got %v", want, got.data)
 	}
 }
 
-func TestReadReliableMultiPacket(t *testing.T) {
+func TestUDPReadReliableMultiPacket(t *testing.T) {
 	c1, c2 := net.Pipe()
 	defer c2.Close()
 	c1.SetDeadline(time.Time{})
@@ -177,7 +177,7 @@ func TestReadReliableMultiPacket(t *testing.T) {
 	}
 	wantRet := []byte{0, 2, 0, 8, 0, 0, 0, 0} // ACK(2), len(8), seq(0)
 	if bytes.Compare(ret, wantRet) != 0 {
-		t.Errorf("wrong Ack. got %v want %v", ret, wantRet)
+		t.Errorf("wrong Ack. want %v got %v", wantRet, ret)
 	}
 
 	binary.Write(&buf, binary.BigEndian, uint32(11|NETFLAG_DATA|NETFLAG_EOM))
@@ -190,12 +190,51 @@ func TestReadReliableMultiPacket(t *testing.T) {
 	}
 	wantRet = []byte{0, 2, 0, 8, 0, 0, 0, 1}
 	if bytes.Compare(ret, wantRet) != 0 {
-		t.Errorf("wrong Ack. got %v want %v", ret, wantRet)
+		t.Errorf("wrong Ack. want %v got %v", wantRet, ret)
 	}
 
 	got := <-out
 	want := []byte{1, 1, 2, 45, 5, 83, 212, 43} // 1 + msg1 + msg2
 	if bytes.Compare(got.data, want) != 0 {
-		t.Fatalf("Got wrong unreliable sequence. got %v, want %v", got.data, want)
+		t.Fatalf("Got wrong unreliable sequence. want %v, got %v", want, got.data)
+	}
+}
+
+func TestUDPWriteUnreliable(t *testing.T) {
+	c1, c2 := net.Pipe()
+	defer c2.Close()
+	c1.SetDeadline(time.Time{})
+	c2.SetDeadline(time.Time{})
+	in := make(chan msg, 1)
+	acks := make(chan uint32, 1)
+	canWrite := make(chan bool, 1)
+	//ret := make([]byte, 8) // For the ACK
+	go writeUDP(c1, in, acks, canWrite)
+
+	in <- msg{data: []byte{2, 1, 2, 45, 5}}
+	got := make([]byte, 50)
+	i, err := c2.Read(got)
+	if err != nil {
+		t.Fatalf("Could not read from connection: %v", err)
+	}
+	if i != 4+8 {
+		t.Errorf("Got wrong number of bytes: want %v got %v", 4+8, i)
+	}
+	want := []byte{0, 0x10, 0, 12, 0, 0, 0, 0, 1, 2, 45, 5}
+	if bytes.Compare(want, got[:i]) != 0 {
+		t.Errorf("Got wrong message: want %v, got %v", want, got[:i])
+	}
+
+	in <- msg{data: []byte{2, 84, 212, 43}}
+	i, err = c2.Read(got)
+	if err != nil {
+		t.Fatalf("Could not read from connection: %v", err)
+	}
+	if i != 3+8 {
+		t.Errorf("Got wrong number of bytes: want %v got %v", 3+8, i)
+	}
+	want = []byte{0, 0x10, 0, 11, 0, 0, 0, 1, 84, 212, 43}
+	if bytes.Compare(want, got[:i]) != 0 {
+		t.Errorf("Got wrong message: want %v, got %v", want, got[:i])
 	}
 }
