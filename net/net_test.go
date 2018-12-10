@@ -155,6 +155,54 @@ func TestUDPReadReliableSinglePacket(t *testing.T) {
 	}
 }
 
+func TestUDPReadDualMessage(t *testing.T) {
+	// Verify that we do not reuse the memory of the outgoing message in an invalid way
+	c1, c2 := net.Pipe()
+	defer c2.Close()
+	c1.SetDeadline(time.Time{})
+	c2.SetDeadline(time.Time{})
+	out := make(chan msg, 4)
+	acks := make(chan uint32, 1)
+	go readUDP(c1, out, acks)
+
+	go func() {
+		// For this bug to happen we need to send from a different go routine.
+		var buf bytes.Buffer
+		binary.Write(&buf, binary.BigEndian, uint32(57|NETFLAG_UNRELIABLE))
+		binary.Write(&buf, binary.BigEndian, uint32(0))
+		// I am not sure about the slice internals but this is a real message and
+		// it produced this error.
+		buf.Write([]byte{2, 7, 180, 232, 18, 67, 15, 34, 70, 12, 20, 1, 17, 0, 0,
+			65, 100, 0, 25, 25, 0, 0, 0, 1, 207, 1, 2, 7, 167, 4, 253, 0, 54, 64, 3,
+			128, 46, 128, 47, 128, 59, 128, 65, 128, 81, 128, 82, 128, 83})
+		c2.Write(buf.Bytes())
+		buf.Reset()
+
+		binary.Write(&buf, binary.BigEndian, uint32(58|NETFLAG_UNRELIABLE))
+		binary.Write(&buf, binary.BigEndian, uint32(1))
+		buf.Write([]byte{2, 7, 80, 237, 18, 67, 15, 162, 66, 12, 20, 0, 1, 17, 0,
+			0, 65, 100, 0, 25, 25, 0, 0, 0, 1, 207, 1, 2, 7, 213, 4, 253, 0, 54, 62,
+			3, 128, 46, 128, 47, 128, 59, 128, 65, 128, 81, 128, 82, 128, 83})
+		c2.Write(buf.Bytes())
+		buf.Reset()
+	}()
+
+	got := <-out
+	want := []byte{2, 2, 7, 180, 232, 18, 67, 15, 34, 70, 12, 20, 1, 17, 0, 0,
+		65, 100, 0, 25, 25, 0, 0, 0, 1, 207, 1, 2, 7, 167, 4, 253, 0, 54, 64, 3,
+		128, 46, 128, 47, 128, 59, 128, 65, 128, 81, 128, 82, 128, 83}
+	if bytes.Compare(got.data, want) != 0 {
+		t.Fatalf("Got wrong unreliable message 1. want %v, got %v", want, got.data)
+	}
+	got = <-out
+	want = []byte{2, 2, 7, 80, 237, 18, 67, 15, 162, 66, 12, 20, 0, 1, 17, 0,
+		0, 65, 100, 0, 25, 25, 0, 0, 0, 1, 207, 1, 2, 7, 213, 4, 253, 0, 54, 62,
+		3, 128, 46, 128, 47, 128, 59, 128, 65, 128, 81, 128, 82, 128, 83}
+	if bytes.Compare(got.data, want) != 0 {
+		t.Fatalf("Got wrong unreliable message 2. want %v, got %v", want, got.data)
+	}
+}
+
 func TestUDPReadReliableMultiPacket(t *testing.T) {
 	c1, c2 := net.Pipe()
 	defer c2.Close()
