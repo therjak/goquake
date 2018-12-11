@@ -471,48 +471,47 @@ func writeUDP(c net.Conn, in <-chan msg, acks <-chan uint32, canWrite chan<- boo
 			// first byte of msg indicates reliable/unreliable
 			// 1 is reliable, 2 unreliable
 			// do not send this byte out
-			if isOpen {
-				switch msg.data[0] {
-				case 1:
-					reliableMsg = msg.data[1:]
-
-					length := MAX_DATAGRAM + 8
-					eom := 0
-					if len(reliableMsg) <= MAX_DATAGRAM {
-						length = len(reliableMsg) + 8
-						eom = NETFLAG_EOM
-					}
-					sendBuf.Reset()
-					binary.Write(&sendBuf, binary.BigEndian, uint32(length|NETFLAG_DATA|eom))
-					binary.Write(&sendBuf, binary.BigEndian, uint32(sendSequence))
-					sendSequence++
-					sendBuf.Write(reliableMsg[:length-8])
-					_, err := c.Write(sendBuf.Bytes())
-					if err != nil {
-						log.Printf("Write failed: %v", err)
-						return
-					}
-					resendTimer.Reset(time.Second)
-				case 2:
-					// 8 byte 'header' + data
-					length := len(msg.data) - 1 /*reliable bit*/ + 8 /*net header*/
-					sendBuf.Reset()
-					binary.Write(&sendBuf, binary.BigEndian, uint32(length|NETFLAG_UNRELIABLE))
-					binary.Write(&sendBuf, binary.BigEndian, uint32(unreliableSequence))
-					unreliableSequence++
-					sendBuf.Write(msg.data[1:])
-					// keep all in one write operation
-					_, err := c.Write(sendBuf.Bytes())
-					if err != nil {
-						log.Printf("Write failed: %v", err)
-						return
-					}
-				default:
-					log.Printf("WTF %d", msg.data[0])
-				}
-			} else {
+			if !isOpen {
 				log.Printf("c2s is closed")
 				return
+			}
+			switch msg.data[0] {
+			case 1:
+				reliableMsg = msg.data[1:]
+
+				length := MAX_DATAGRAM + 8
+				eom := 0
+				if len(reliableMsg) <= MAX_DATAGRAM {
+					length = len(reliableMsg) + 8
+					eom = NETFLAG_EOM
+				}
+				sendBuf.Reset()
+				binary.Write(&sendBuf, binary.BigEndian, uint32(length|NETFLAG_DATA|eom))
+				binary.Write(&sendBuf, binary.BigEndian, uint32(sendSequence))
+				sendSequence++
+				sendBuf.Write(reliableMsg[:length-8])
+				_, err := c.Write(sendBuf.Bytes())
+				if err != nil {
+					log.Printf("Write failed: %v", err)
+					return
+				}
+				resendTimer.Reset(time.Second)
+			case 2:
+				// 8 byte 'header' + data
+				length := len(msg.data) - 1 /*reliable bit*/ + 8 /*net header*/
+				sendBuf.Reset()
+				binary.Write(&sendBuf, binary.BigEndian, uint32(length|NETFLAG_UNRELIABLE))
+				binary.Write(&sendBuf, binary.BigEndian, uint32(unreliableSequence))
+				unreliableSequence++
+				sendBuf.Write(msg.data[1:])
+				// keep all in one write operation
+				_, err := c.Write(sendBuf.Bytes())
+				if err != nil {
+					log.Printf("Write failed: %v", err)
+					return
+				}
+			default:
+				log.Printf("WTF %d", msg.data[0])
 			}
 		}
 	}

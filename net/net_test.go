@@ -256,7 +256,6 @@ func TestUDPWriteUnreliable(t *testing.T) {
 	in := make(chan msg, 1)
 	acks := make(chan uint32, 1)
 	canWrite := make(chan bool, 1)
-	//ret := make([]byte, 8) // For the ACK
 	go writeUDP(c1, in, acks, canWrite)
 
 	in <- msg{data: []byte{2, 1, 2, 45, 5}}
@@ -286,3 +285,56 @@ func TestUDPWriteUnreliable(t *testing.T) {
 		t.Errorf("Got wrong message: want %v, got %v", want, got[:i])
 	}
 }
+
+func TestUDPWriteReliable(t *testing.T) {
+	c1, c2 := net.Pipe()
+	defer c2.Close()
+	c1.SetDeadline(time.Time{})
+	c2.SetDeadline(time.Time{})
+	in := make(chan msg, 1)
+	acks := make(chan uint32, 1)
+	canWrite := make(chan bool, 1)
+	go writeUDP(c1, in, acks, canWrite)
+
+	in <- msg{data: []byte{1, 1, 2, 45, 5}}
+	got := make([]byte, 50)
+	i, err := c2.Read(got)
+	if err != nil {
+		t.Fatalf("Could not read from connection: %v", err)
+	}
+	if i != 4+8 {
+		t.Errorf("Got wrong number of bytes: want %v got %v", 4+8, i)
+	}
+	// 0x00 0x09 == NETFLAG_DATA + NETFLAG_EOM
+	want := []byte{0, 0x09, 0, 12, 0, 0, 0, 0, 1, 2, 45, 5}
+	if bytes.Compare(want, got[:i]) != 0 {
+		t.Errorf("Got wrong message: want %v, got %v", want, got[:i])
+	}
+	acks <- 0 // ack the sequence 0,0,0,0
+	next := <-canWrite
+	if !next {
+		t.Fatal("canWrite did return false")
+	}
+
+	in <- msg{data: []byte{1, 84, 212, 43}}
+	i, err = c2.Read(got)
+	if err != nil {
+		t.Fatalf("Could not read from connection: %v", err)
+	}
+	if i != 3+8 {
+		t.Errorf("Got wrong number of bytes: want %v got %v", 3+8, i)
+	}
+	want = []byte{0, 0x09, 0, 11, 0, 0, 0, 1, 84, 212, 43}
+	if bytes.Compare(want, got[:i]) != 0 {
+		t.Errorf("Got wrong message: want %v, got %v", want, got[:i])
+	}
+	acks <- 1 // ack the 0,0,0,1
+	next = <-canWrite
+	if !next {
+		t.Fatal("canWrite did return false")
+	}
+}
+
+// Missing tests:
+// Long UDPWriteReliable with split message (needs message at least 32001 long)
+// Resend case if no ack for UDPWriteReliable (find good way to mock the timer)
