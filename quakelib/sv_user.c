@@ -425,9 +425,9 @@ qboolean SV_ReadClientMessage(int client) {
 
   do {
   nextmsg:
-    ret = NET_GetMessage(GetClientNetConnection(client));
+    ret = ClientGetMessage(client);
     if (ret == -1) {
-      Sys_Print("SV_ReadClientMessage: NET_GetMessage failed\n");
+      Sys_Print("SV_ReadClientMessage: ClientGetMessage failed\n");
       return false;
     }
     if (!ret) return true;

@@ -88,7 +88,7 @@ func getCon(id int) (*Connection, error) {
 			return &c, nil
 		}
 	}
-	fmt.Printf("Go GetCon oob \n")
+	fmt.Printf("Go GetCon oob %v\n", id)
 	return nil, errors.New("Out of bounds connection")
 }
 
@@ -747,14 +747,13 @@ func (c *Connection) CanSendMessage() bool {
 		return false
 	}
 
-	r := len(c.out) < cap(c.out)
-	log.Printf("CanSend r %v", r)
-	return r
+	return len(c.out) < cap(c.out)
 }
 
 func Shutdown() {
 	SetTime()
 	// nothing to do for loopback
+	// otherwise we should close the 'init' connection
 }
 
 func ReadInt8() (int8, error) {

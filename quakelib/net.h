@@ -51,7 +51,6 @@ int NET_CheckNewConnections(void);
 int NET_Connect(char *host);
 // called by client to connect to a host.  Returns -1 if not able to
 
-double NET_QSocketGetTime(int sock);
 const char *NET_QSocketGetAddressString(int sock);
 
 void NET_Poll(void);

@@ -1,6 +1,9 @@
 package quakelib
 
 /*
+#include <stdlib.h>
+#include <string.h>
+
 #ifndef _MOVEDEF_h
 #define _MOVEDEF_h
 typedef struct movecmd_s {
@@ -48,6 +51,8 @@ type SVClient struct {
 	// client known data for deltas
 	oldFrags int
 	id       int // Needed to communicate with the 'c' side
+
+	badRead bool
 }
 
 var (
@@ -168,11 +173,6 @@ func SetClientEdictId(n C.int, v C.int) {
 	sv_clients[int(n)].edictId = int(v)
 }
 
-//export GetClientNetConnection
-func GetClientNetConnection(n C.int) C.int {
-	return C.int(sv_clients[int(n)].netConnection)
-}
-
 //export SetClientNetConnection
 func SetClientNetConnection(n C.int, v C.int) {
 	sv_clients[int(n)].netConnection = int(v)
@@ -269,6 +269,55 @@ func ClientHasMessage(num C.int) C.int {
 	return b2i(sv_clients[int(num)].msg.HasMessage())
 }
 
+//export ClientCanSendMessage
+func ClientCanSendMessage(num C.int) C.int {
+	return b2i(sv_clients[int(num)].CanSendMessage())
+}
+
+func (cl *SVClient) CanSendMessage() bool {
+	return net.CanSendMessage(cl.netConnection)
+}
+
+//export ClientClose
+func ClientClose(num C.int) {
+	sv_clients[int(num)].Close()
+}
+
+func (cl *SVClient) Close() {
+	net.Close(cl.netConnection)
+}
+
+//export ClientConnectTime
+func ClientConnectTime(num C.int) C.double {
+	t, err := sv_clients[int(num)].ConnectTime()
+	if err != nil {
+		return 0
+	}
+	return C.double(t)
+}
+
+func (cl *SVClient) ConnectTime() (float64, error) {
+	return net.ConnectTime(cl.netConnection)
+}
+
+//export ClientAddress
+func ClientAddress(num C.int, ret *C.char, n C.size_t) {
+	s, err := sv_clients[int(num)].Address()
+	if err != nil {
+		s = ""
+	}
+	if len(s) >= int(n) {
+		s = s[:n-1]
+	}
+	sp := C.CString(s)
+	defer C.free(unsafe.Pointer(sp))
+	C.strncpy(ret, sp, n)
+}
+
+func (cl *SVClient) Address() (string, error) {
+	return net.Address(cl.netConnection)
+}
+
 //export ClientClearMessage
 func ClientClearMessage(num C.int) {
 	sv_clients[int(num)].msg.ClearMessage()
@@ -281,6 +330,15 @@ func (cl *SVClient) SendMessage() int {
 //export ClientSendMessage
 func ClientSendMessage(num C.int) C.int {
 	return C.int(sv_clients[int(num)].SendMessage())
+}
+
+//export ClientGetMessage
+func ClientGetMessage(num C.int) C.int {
+	return sv_clients[int(num)].GetMessage()
+}
+
+func (cl *SVClient) GetMessage() C.int {
+	return NET_GetMessage(C.int(cl.netConnection))
 }
 
 //export GetClientOverflowed

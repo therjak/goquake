@@ -1,15 +1,10 @@
 package quakelib
 
-/*
-#include <stdlib.h>
-#include <string.h>
-*/
 import "C"
 
 import (
 	"quake/net"
 	svc "quake/protocol/server"
-	"unsafe"
 )
 
 var (
@@ -29,29 +24,6 @@ func NET_SetTime() {
 //export NET_GetTime
 func NET_GetTime() C.double {
 	return C.double(net.Time())
-}
-
-//export NET_ConnectTime
-func NET_ConnectTime(id C.int) C.double {
-	t, err := net.ConnectTime(int(id - 1))
-	if err != nil {
-		return C.double(0)
-	}
-	return C.double(t)
-}
-
-//export NET_Address
-func NET_Address(id C.int, ret *C.char, n C.size_t) {
-	s, err := net.Address(int(id - 1))
-	if len(s) >= int(n) {
-		s = s[:n-1]
-	}
-	if err != nil {
-		s = ""
-	}
-	sp := C.CString(s)
-	defer C.free(unsafe.Pointer(sp))
-	C.strncpy(ret, sp, n)
 }
 
 //export NET_Listen
@@ -77,38 +49,15 @@ func NET_CheckNewConnections() C.int {
 	return C.int(net.CheckNewConnections())
 }
 
-//export NET_Close
-func NET_Close(id C.int) {
-	net.Close(int(id))
-}
-
 //export NET_GetMessage
 func NET_GetMessage(id C.int) C.int {
 	msg_badread = false
 	return C.int(net.GetMessage(int(id)))
 }
 
-//export NET_SendMessage
-func NET_SendMessage(id C.int, data *C.uchar, size C.int) C.int {
-	return C.int(net.SendMessage(int(id), C.GoBytes(unsafe.Pointer(data), size)))
-}
-
-//export NET_SendUnreliableMessage
-func NET_SendUnreliableMessage(id C.int, data *C.uchar, size C.int) C.int {
-	return C.int(net.SendUnreliableMessage(int(id), C.GoBytes(unsafe.Pointer(data), size)))
-}
-
 //export NET_SendDisconnectToAll
 func NET_SendDisconnectToAll() C.int {
 	return C.int(net.SendToAll([]byte{svc.Disconnect}))
-}
-
-//export NET_CanSendMessage
-func NET_CanSendMessage(id C.int) C.int {
-	if net.CanSendMessage(int(id)) {
-		return 1
-	}
-	return 0
 }
 
 //export NET_Shutdown

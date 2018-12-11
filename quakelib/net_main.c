@@ -75,12 +75,9 @@ int NET_NewQSocket(void) { return -1; }
 // convert
 void NET_FreeQSocket(int sock) {}
 
-// convert
-double NET_QSocketGetTime(int s) { return NET_ConnectTime(s); }
-
 const char *NET_QSocketGetAddressString(int s) {
   static char buffer[NET_NAMELEN];
-  NET_Address(s, &buffer[0], NET_NAMELEN);
+  ClientAddress(s, &buffer[0], NET_NAMELEN);
   return &buffer[0];
 }
 

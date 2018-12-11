@@ -365,7 +365,7 @@ void SV_DropClient(int client, qboolean crash) {
 
   if (!crash) {
     // send any final messages (don't check for errors)
-    if (NET_CanSendMessage(GetClientNetConnection(client))) {
+    if (ClientCanSendMessage(client)) {
       ClientWriteByte(client, svc_disconnect);
       ClientSendMessage(client);
     }
@@ -384,7 +384,7 @@ void SV_DropClient(int client, qboolean crash) {
   }
 
   // break the net connection
-  NET_Close(GetClientNetConnection(client));
+  ClientClose(client);
   SetClientNetConnection(client, -1);
 
   // free the client (the body stays around)
@@ -433,11 +433,11 @@ void Host_ShutdownServer(qboolean crash) {
     count = 0;
     for (i = 0; i < SVS_GetMaxClients(); i++) {
       if (GetClientActive(i) && ClientHasMessage(i)) {
-        if (NET_CanSendMessage(GetClientNetConnection(i))) {
+        if (ClientCanSendMessage(i)) {
           ClientSendMessage(i);
           ClientClearMessage(i);
         } else {
-          NET_GetMessage(GetClientNetConnection(i));
+          ClientGetMessage(i);
           count++;
         }
       }

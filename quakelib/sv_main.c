@@ -347,22 +347,18 @@ void SV_ConnectClient(int clientnum) {
   edict_t *ent;
   int client;
   int edictnum;
-  int netconnection;
   int i;
   float spawn_parms[NUM_SPAWN_PARMS];
 
   client = clientnum;
 
-  Con_DPrintf("Client %s connected\n",
-              NET_QSocketGetAddressString(GetClientNetConnection(client)));
+  Con_DPrintf("Client %s connected\n", NET_QSocketGetAddressString(client));
 
   edictnum = clientnum + 1;
 
   // ent = EDICT_NUM(edictnum);
 
   // set up the client_t
-  netconnection = GetClientNetConnection(client);
-
   if (sv.loadgame) {
     for (i = 0; i < NUM_SPAWN_PARMS; i++) {
       spawn_parms[i] = GetClientSpawnParam(client, i);
@@ -371,7 +367,6 @@ void SV_ConnectClient(int clientnum) {
   memset(GetClient(client), 0, sizeof(*GetClient(client)));
   CleanSVClient(client);
   GetClient(client)->id = client;
-  SetClientNetConnection(client, netconnection);
 
   SetClientName(client, "unconnected");
   SetClientActive(client, true);
@@ -875,8 +870,7 @@ qboolean SV_SendClientDatagram(int client) {
 
   // johnfitz -- if client is nonlocal, use smaller max size so packets aren't
   // fragmented
-  if (Q_strcmp(NET_QSocketGetAddressString(GetClientNetConnection(client)),
-               "LOCAL") != 0)
+  if (Q_strcmp(NET_QSocketGetAddressString(client), "LOCAL") != 0)
     SV_MS_SetMaxLen(DATAGRAM_MTU);
   // johnfitz
 
@@ -955,7 +949,7 @@ void SV_SendClientMessages(void) {
     }
 
     if (ClientHasMessage(i)) {
-      if (!NET_CanSendMessage(GetClientNetConnection(i))) {
+      if (!ClientCanSendMessage(i)) {
         //				I_Printf ("can't write\n");
         continue;
       }

@@ -396,8 +396,7 @@ void Host_Status_f(void) {
            SVS_GetMaxClients());
   for (j = 0; j < SVS_GetMaxClients(); j++) {
     if (!GetClientActive(j)) continue;
-    seconds =
-        (int)(NET_GetTime() - NET_QSocketGetTime(GetClientNetConnection(j)));
+    seconds = (int)(NET_GetTime() - ClientConnectTime(j));
     minutes = seconds / 60;
     if (minutes) {
       seconds -= (minutes * 60);
@@ -409,7 +408,7 @@ void Host_Status_f(void) {
     print_fn("#%-2u %-16.16s  %3i  %2i:%02i:%02i\n", j + 1, name,
              (int)SV_GetEdict(j)->v.frags, hours, minutes, seconds);
     free(name);
-    print_fn("   %s\n", NET_QSocketGetAddressString(GetClientNetConnection(j)));
+    print_fn("   %s\n", NET_QSocketGetAddressString(j));
   }
 }
 
@@ -1391,8 +1390,7 @@ void Host_Spawn_f(void) {
     pr_global_struct->self = EDICT_TO_PROG(sv_player);
     PR_ExecuteProgram(pr_global_struct->ClientConnect);
 
-    if ((Sys_DoubleTime() -
-         NET_QSocketGetTime(GetClientNetConnection(HostClient()))) <= sv.time) {
+    if ((Sys_DoubleTime() - ClientConnectTime(HostClient())) <= sv.time) {
       char *name = GetClientName(HostClient());
       Sys_Print_S("%v entered the game\n", name);
       free(name);
