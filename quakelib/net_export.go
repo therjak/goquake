@@ -29,11 +29,6 @@ func NET_Listen(b C.int) {
 	// nothing to do for loopback
 }
 
-//export NET_CheckNewConnections
-func NET_CheckNewConnections() C.int {
-	return C.int(net.CheckNewConnections())
-}
-
 //export NET_SendDisconnectToAll
 func NET_SendDisconnectToAll() C.int {
 	return C.int(net.SendToAll([]byte{svc.Disconnect}))

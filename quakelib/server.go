@@ -206,7 +206,7 @@ func SV_DG_SendOut(client C.int) C.int {
 		b = append(b, sv.datagram.Bytes()...)
 	}
 	con := sv_clients[int(client)].netConnection
-	if net.SendUnreliableMessage(con, b) == -1 {
+	if con.SendUnreliableMessage(b) == -1 {
 		C.SV_DropClient(client, 1)
 		return 0
 	}

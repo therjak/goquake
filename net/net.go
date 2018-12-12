@@ -109,7 +109,11 @@ func ConnectTime(id int) (float64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return con.connectTime.Seconds(), nil
+	return con.ConnectTime(), nil
+}
+
+func (c *Connection) ConnectTime() float64 {
+	return c.connectTime.Seconds()
 }
 
 func Address(id int) (string, error) {
@@ -117,7 +121,11 @@ func Address(id int) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return con.addr, nil
+	return con.Address(), nil
+}
+
+func (c *Connection) Address() string {
+	return c.addr
 }
 
 func SetTime() {
@@ -544,10 +552,10 @@ func localConnect() (*Connection, error) {
 	return loopClient, nil
 }
 
-func CheckNewConnections() int {
+func CheckNewConnections() *Connection {
 	// loopback only
 	if !loopConnectPending {
-		return 0
+		return nil
 	}
 	loopConnectPending = false
 	// fmt.Printf("Go CheckNewConnections2 %v\n", loopServer.id)
@@ -561,7 +569,7 @@ func CheckNewConnections() int {
 	}
 	// server socket: on the server, connection to the client
 	// return server socket... what should be returned?
-	return loopServer.id
+	return loopServer
 }
 
 func Close(id int) {

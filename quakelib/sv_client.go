@@ -32,7 +32,7 @@ type SVClient struct {
 	// reliable messages must be sent periodically
 	lastMessage float64
 
-	netConnection int // communications handle
+	netConnection *net.Connection // communications handle
 
 	cmd C.movecmd_t // movement
 
@@ -92,7 +92,7 @@ func SV_CheckForNewClients() {
 func CheckForNewClients() {
 	for {
 		con := net.CheckNewConnections()
-		if con == 0 {
+		if con == nil {
 			return
 		}
 		foundFree := false
@@ -298,7 +298,7 @@ func ClientCanSendMessage(num C.int) C.int {
 }
 
 func (cl *SVClient) CanSendMessage() bool {
-	return net.CanSendMessage(cl.netConnection)
+	return cl.netConnection.CanSendMessage()
 }
 
 //export ClientClose
@@ -307,8 +307,8 @@ func ClientClose(num C.int) {
 }
 
 func (cl *SVClient) Close() {
-	net.Close(cl.netConnection)
-	cl.netConnection = -1
+	cl.netConnection.Close()
+	cl.netConnection = nil
 	cl.active = false
 	cl.name = ""
 	cl.oldFrags = -999999
@@ -316,23 +316,16 @@ func (cl *SVClient) Close() {
 
 //export ClientConnectTime
 func ClientConnectTime(num C.int) C.double {
-	t, err := sv_clients[int(num)].ConnectTime()
-	if err != nil {
-		return 0
-	}
-	return C.double(t)
+	return C.double(sv_clients[int(num)].ConnectTime())
 }
 
-func (cl *SVClient) ConnectTime() (float64, error) {
-	return net.ConnectTime(cl.netConnection)
+func (cl *SVClient) ConnectTime() float64 {
+	return cl.netConnection.ConnectTime()
 }
 
 //export ClientAddress
 func ClientAddress(num C.int, ret *C.char, n C.size_t) {
-	s, err := sv_clients[int(num)].Address()
-	if err != nil {
-		s = ""
-	}
+	s := sv_clients[int(num)].Address()
 	if len(s) >= int(n) {
 		s = s[:n-1]
 	}
@@ -341,8 +334,8 @@ func ClientAddress(num C.int, ret *C.char, n C.size_t) {
 	C.strncpy(ret, sp, n)
 }
 
-func (cl *SVClient) Address() (string, error) {
-	return net.Address(cl.netConnection)
+func (cl *SVClient) Address() string {
+	return cl.netConnection.Address()
 }
 
 //export ClientClearMessage
@@ -351,7 +344,7 @@ func ClientClearMessage(num C.int) {
 }
 
 func (cl *SVClient) SendMessage() int {
-	return net.SendMessage(cl.netConnection, cl.msg.Bytes())
+	return cl.netConnection.SendMessage(cl.msg.Bytes())
 }
 
 //export ClientSendMessage
@@ -377,7 +370,7 @@ func SetClientOverflowed(num, v C.int) {
 }
 
 func (cl *SVClient) SendNop() {
-	if net.SendUnreliableMessage(cl.netConnection, []byte{server.Nop}) == -1 {
+	if cl.netConnection.SendUnreliableMessage([]byte{server.Nop}) == -1 {
 		C.SV_DropClient(C.int(cl.id), 1 /* crashed == true */)
 	}
 	cl.lastMessage = host.time
@@ -394,7 +387,7 @@ var (
 
 func (cl *SVClient) GetMessage() int {
 	msg_badread = false
-	return net.GetMessage(cl.netConnection)
+	return net.GetMessage(cl.netConnection.ID())
 }
 
 //export MSG_BadRead

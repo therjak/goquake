@@ -43,9 +43,6 @@ extern cvar_t hostname;
 void NET_Init(void);
 void NET_Shutdown(void);
 
-int NET_CheckNewConnections(void);
-// returns a new connection number if there is one pending, else -1
-
 int NET_Connect(char *host);
 // called by client to connect to a host.  Returns -1 if not able to
 
