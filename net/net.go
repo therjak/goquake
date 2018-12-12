@@ -50,7 +50,6 @@ var (
 	loopClient         *Connection
 	loopServer         *Connection
 	loopConnectPending = false
-	netMessage         QReader
 	port               = 26000
 	myip               = "127.0.0.1"
 	serverName         = "127.0.0.1" //"MyServer"
