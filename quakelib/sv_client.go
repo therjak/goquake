@@ -96,7 +96,7 @@ func CheckForNewClients() {
 			return
 		}
 		foundFree := false
-		for i, c := range sv_clients {
+		for _, c := range sv_clients {
 			if c.active {
 				continue
 			}
