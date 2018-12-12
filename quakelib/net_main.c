@@ -53,8 +53,6 @@ static void Slist_Poll(void *);
 static PollProcedure slistSendProcedure = {NULL, 0.0, Slist_Send};
 static PollProcedure slistPollProcedure = {NULL, 0.0, Slist_Poll};
 
-int net_activeconnections = 0;
-
 int messagesSent = 0;
 int messagesReceived = 0;
 int unreliableMessagesSent = 0;

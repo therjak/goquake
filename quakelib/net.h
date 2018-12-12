@@ -40,8 +40,6 @@ extern int net_hostport;
 
 extern cvar_t hostname;
 
-extern int net_activeconnections;
-
 void NET_Init(void);
 void NET_Shutdown(void);
 

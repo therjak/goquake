@@ -385,13 +385,6 @@ void SV_DropClient(int client, qboolean crash) {
 
   // break the net connection
   ClientClose(client);
-  SetClientNetConnection(client, -1);
-
-  // free the client (the body stays around)
-  SetClientActive(client, false);
-  SetClientName(client, "");
-  SetClientOldFrags(client, -999999);
-  net_activeconnections--;
 
   // send notification to all clients
   for (i = 0; i < SVS_GetMaxClients(); i++) {

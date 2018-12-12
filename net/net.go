@@ -573,7 +573,6 @@ func Close(id int) {
 }
 
 func (c *Connection) Close() {
-	log.Printf("Closing connectiong")
 	SetTime()
 	if c.con != nil {
 		c.con.Close()

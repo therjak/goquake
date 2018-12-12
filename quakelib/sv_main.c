@@ -31,6 +31,8 @@ server_static_t svs;
 client_t *GetClient(int num) {
   client_t *c = svs.clients + num;
   if (c->id != num) {
+    printf("Client id %i, num %i\n", c->id, num);
+    fflush(stdout);
     Go_Error("Client id does not match");
   }
   return c;
@@ -384,38 +386,6 @@ void SV_ConnectClient(int clientnum) {
       SetClientSpawnParam(client, i, (&pr_global_struct->parm1)[i]);
   }
   SV_SendServerinfo(client);
-}
-
-/*
-===================
-SV_CheckForNewClients
-
-===================
-*/
-void SV_CheckForNewClients(void) {
-  int ret;
-  int i;
-
-  //
-  // check for new connections
-  //
-  while (1) {
-    ret = NET_CheckNewConnections();
-    if (!ret) break;
-
-    //
-    // init a new client structure
-    //
-    for (i = 0; i < SVS_GetMaxClients(); i++)
-      if (!GetClientActive(i)) break;
-    if (i == SVS_GetMaxClients())
-      Go_Error("Host_CheckForNewClients: no free clients");
-
-    SetClientNetConnection(i, ret);
-    SV_ConnectClient(i);
-
-    net_activeconnections++;
-  }
 }
 
 /*

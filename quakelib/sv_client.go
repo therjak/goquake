@@ -13,6 +13,7 @@ typedef struct movecmd_s {
 } movecmd_t;
 #endif // _MOVEDEF_h
 void SV_DropClient(int, int);
+void SV_ConnectClient(int);
 */
 import "C"
 
@@ -80,6 +81,33 @@ func CleanSVClient(n C.int) {
 		netConnection: nc,
 		edictId:       ei,
 		id:            id,
+	}
+}
+
+//export SV_CheckForNewClients
+func SV_CheckForNewClients() {
+	CheckForNewClients()
+}
+
+func CheckForNewClients() {
+	for {
+		con := net.CheckNewConnections()
+		if con == 0 {
+			return
+		}
+		foundFree := false
+		for i, c := range sv_clients {
+			if c.active {
+				continue
+			}
+			foundFree = true
+			c.netConnection = con
+			C.SV_ConnectClient(C.int(c.id))
+			break
+		}
+		if !foundFree {
+			Error("Host_CheckForNewClients: no free clients")
+		}
 	}
 }
 
@@ -285,6 +313,10 @@ func ClientClose(num C.int) {
 
 func (cl *SVClient) Close() {
 	net.Close(cl.netConnection)
+	cl.netConnection = -1
+	cl.active = false
+	cl.name = ""
+	cl.oldFrags = -999999
 }
 
 //export ClientConnectTime
@@ -334,11 +366,7 @@ func ClientSendMessage(num C.int) C.int {
 
 //export ClientGetMessage
 func ClientGetMessage(num C.int) C.int {
-	return sv_clients[int(num)].GetMessage()
-}
-
-func (cl *SVClient) GetMessage() C.int {
-	return NET_GetMessage(C.int(cl.netConnection))
+	return C.int(sv_clients[int(num)].GetMessage())
 }
 
 //export GetClientOverflowed
@@ -363,4 +391,133 @@ func (cl *SVClient) SendNop() {
 //export SV_SendNop
 func SV_SendNop(num C.int) {
 	sv_clients[int(num)].SendNop()
+}
+
+var (
+	msg_badread = false
+)
+
+func (cl *SVClient) GetMessage() int {
+	msg_badread = false
+	return net.GetMessage(cl.netConnection)
+}
+
+//export MSG_BadRead
+func MSG_BadRead() C.int {
+	// poor mans error handling :(
+	if msg_badread {
+		return 1
+	}
+	return 0
+}
+
+//export MSG_ReadChar
+func MSG_ReadChar() C.int {
+	i, err := net.ReadInt8()
+	if err != nil {
+		msg_badread = true
+		return -1
+	}
+	return C.int(i)
+}
+
+//export MSG_ReadByte
+func MSG_ReadByte() C.int {
+	i, err := net.ReadByte()
+	if err != nil {
+		msg_badread = true
+		return -1
+	}
+	return C.int(i)
+}
+
+//export MSG_ReadShort
+func MSG_ReadShort() C.int {
+	i, err := net.ReadInt16()
+	if err != nil {
+		msg_badread = true
+		return -1
+	}
+	return C.int(i)
+}
+
+//export MSG_ReadLong
+func MSG_ReadLong() C.int {
+	i, err := net.ReadInt32()
+	if err != nil {
+		msg_badread = true
+		return -1
+	}
+	return C.int(i)
+}
+
+//export MSG_ReadFloat
+func MSG_ReadFloat() C.float {
+	f, err := net.ReadFloat32()
+	if err != nil {
+		msg_badread = true
+		return -1
+	}
+	return C.float(f)
+}
+
+//export MSG_ReadCoord16
+func MSG_ReadCoord16() C.float {
+	f, err := net.ReadCoord16()
+	if err != nil {
+		msg_badread = true
+		return -1
+	}
+	return C.float(f)
+}
+
+//export MSG_ReadCoord24
+func MSG_ReadCoord24() C.float {
+	f, err := net.ReadCoord24()
+	if err != nil {
+		msg_badread = true
+		return -1
+	}
+	return C.float(f)
+}
+
+//export MSG_ReadCoord32f
+func MSG_ReadCoord32f() C.float {
+	f, err := net.ReadCoord32f()
+	if err != nil {
+		msg_badread = true
+		return -1
+	}
+	return C.float(f)
+}
+
+//export MSG_ReadCoord
+func MSG_ReadCoord() C.float {
+	f, err := net.ReadCoord(cl.protocolFlags)
+	if err != nil {
+		msg_badread = true
+		return -1
+	}
+	return C.float(f)
+}
+
+//export MSG_ReadAngle
+func MSG_ReadAngle(flags C.uint) C.float {
+	f, err := net.ReadAngle(uint32(flags))
+	if err != nil {
+		msg_badread = true
+		return -1
+	}
+	return C.float(f)
+}
+
+//export MSG_ReadAngle16
+func MSG_ReadAngle16(flags C.uint) C.float {
+	f, err := net.ReadAngle16(uint32(flags))
+	if err != nil {
+		msg_badread = true
+		return -1
+	}
+	return C.float(f)
+
 }

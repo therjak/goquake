@@ -392,7 +392,13 @@ void Host_Status_f(void) {
   print_fn("version: %4.2f\n", VERSION);
   if (NETtcpipAvailable()) print_fn("tcp/ip:  %s\n", my_tcpip_address);
   print_fn("map:     %s\n", sv.name);
-  print_fn("players: %i active (%i max)\n\n", net_activeconnections,
+  int active = 0;
+  for (j = 0; j < SVS_GetMaxClients(); j++) {
+    if (GetClientActive(j)) {
+      active++;
+    }
+  }
+  print_fn("players: %i active (%i max)\n\n", active,
            SVS_GetMaxClients());
   for (j = 0; j < SVS_GetMaxClients(); j++) {
     if (!GetClientActive(j)) continue;
