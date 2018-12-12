@@ -10,7 +10,6 @@ import (
 	prfl "quake/protocol/flags"
 	svc "quake/protocol/server"
 	"quake/qtime"
-	"sort"
 	"strings"
 	"time"
 )
@@ -29,15 +28,10 @@ type Connection struct {
 	connectTime  time.Duration
 	con          net.Conn
 	addr         string
-	id           int
 	in           <-chan msg
 	out          chan<- msg
 	canWriteChan <-chan bool
 	canWrite     bool
-}
-
-func (c *Connection) ID() int {
-	return c.id
 }
 
 type msg struct {
@@ -53,7 +47,6 @@ func NewQReader(data []byte) *QReader {
 }
 
 var (
-	cons               []Connection
 	netTime            time.Duration
 	loopClient         *Connection
 	loopServer         *Connection
@@ -78,17 +71,6 @@ func MyIP() string {
 
 func ServerName() string {
 	return serverName
-}
-
-func getNextConID() int {
-	sort.Slice(cons, func(i, j int) bool { return cons[i].id < cons[j].id })
-	pos := 1
-	for _, c := range cons {
-		if c.id == pos {
-			pos = pos + 1
-		}
-	}
-	return pos
 }
 
 func (c *Connection) ConnectTime() float64 {
@@ -133,7 +115,6 @@ func udpConnect(host string, port int) (*Connection, error) {
 		return nil, fmt.Errorf("Could not connect to host %v: %v", host, err)
 	}
 
-	clientID := getNextConID()
 	c2s := make(chan msg, chanBufLength)
 	s2c := make(chan msg, chanBufLength)
 	// canWrite needs to be buffered as the chan is only read from
@@ -144,13 +125,11 @@ func udpConnect(host string, port int) (*Connection, error) {
 		connectTime:  netTime,
 		con:          c,
 		addr:         c.RemoteAddr().String(),
-		id:           clientID,
 		in:           s2c,
 		out:          c2s,
 		canWriteChan: canWrite,
 		canWrite:     true,
 	}
-	cons = append(cons, *client)
 	acks := make(chan uint32, 1)
 	go readUDP(c, s2c, acks)
 	go writeUDP(c, c2s, acks, canWrite)
@@ -498,28 +477,22 @@ func writeUDP(c net.Conn, in <-chan msg, acks <-chan uint32, canWrite chan<- boo
 
 func localConnect() (*Connection, error) {
 	loopConnectPending = true
-	clientID := getNextConID()
 	c2s := make(chan msg, chanBufLength)
 	s2c := make(chan msg, chanBufLength)
 	loopClient = &Connection{
 		connectTime: netTime,
 		addr:        "localhost",
-		id:          clientID,
 		in:          s2c,
 		out:         c2s,
 		canWrite:    true,
 	}
-	cons = append(cons, *loopClient)
-	serverID := getNextConID()
 	loopServer = &Connection{
 		connectTime: netTime,
 		addr:        "LOCAL",
-		id:          serverID,
 		in:          c2s,
 		out:         s2c,
 		canWrite:    true,
 	}
-	cons = append(cons, *loopServer)
 	return loopClient, nil
 }
 
@@ -553,12 +526,6 @@ func (c *Connection) Close() {
 	}
 	c.canWriteChan = nil
 	c.canWrite = false
-	for i, _ := range cons {
-		if cons[i].id == c.id {
-			cons = append(cons[:i], cons[i+1:]...)
-			return
-		}
-	}
 	// TODO: see loop.Close
 }
 
