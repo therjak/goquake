@@ -27,7 +27,6 @@ const (
 type Connection struct {
 	connectTime  time.Duration
 	con          net.Conn
-	addr         string
 	in           <-chan msg
 	out          chan<- msg
 	canWriteChan <-chan bool
@@ -78,7 +77,7 @@ func (c *Connection) ConnectTime() float64 {
 }
 
 func (c *Connection) Address() string {
-	return c.addr
+	return c.con.RemoteAddr().String()
 }
 
 func SetTime() {
@@ -124,7 +123,6 @@ func udpConnect(host string, port int) (*Connection, error) {
 	client := &Connection{
 		connectTime:  netTime,
 		con:          c,
-		addr:         c.RemoteAddr().String(),
 		in:           s2c,
 		out:          c2s,
 		canWriteChan: canWrite,
