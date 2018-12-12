@@ -10,6 +10,7 @@ import (
 	"os"
 	"quake/conlog"
 	"quake/qtime"
+	"runtime/debug"
 	"strings"
 	"time"
 	"unsafe"
@@ -44,6 +45,7 @@ func Sys_DoubleTime() C.double {
 }
 
 func Error(format string, v ...interface{}) {
+	debug.PrintStack()
 	C.Host_Shutdown()
 	log.Fatalf(format, v...)
 }
