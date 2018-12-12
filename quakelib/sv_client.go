@@ -201,11 +201,6 @@ func SetClientEdictId(n C.int, v C.int) {
 	sv_clients[int(n)].edictId = int(v)
 }
 
-//export SetClientNetConnection
-func SetClientNetConnection(n C.int, v C.int) {
-	sv_clients[int(n)].netConnection = int(v)
-}
-
 //export GetClientActive
 func GetClientActive(n C.int) C.int {
 	return b2i(sv_clients[int(n)].active)
