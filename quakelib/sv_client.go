@@ -383,25 +383,35 @@ func SV_SendNop(num C.int) {
 
 var (
 	msg_badread = false
+	netMessage  *net.QReader
 )
 
 func (cl *SVClient) GetMessage() int {
 	msg_badread = false
-	return net.GetMessage(cl.netConnection.ID())
+	r, err := cl.netConnection.GetMessage()
+	if err != nil {
+		return -1
+	}
+	if r == nil || r.Len() == 0 {
+		return 0
+	}
+	netMessage = r
+	b, err := r.ReadByte()
+	if err != nil {
+		return -1
+	}
+	return int(b)
 }
 
 //export MSG_BadRead
 func MSG_BadRead() C.int {
 	// poor mans error handling :(
-	if msg_badread {
-		return 1
-	}
-	return 0
+	return b2i(msg_badread)
 }
 
 //export MSG_ReadChar
 func MSG_ReadChar() C.int {
-	i, err := net.ReadInt8()
+	i, err := netMessage.ReadInt8()
 	if err != nil {
 		msg_badread = true
 		return -1
@@ -411,7 +421,7 @@ func MSG_ReadChar() C.int {
 
 //export MSG_ReadByte
 func MSG_ReadByte() C.int {
-	i, err := net.ReadByte()
+	i, err := netMessage.ReadByte()
 	if err != nil {
 		msg_badread = true
 		return -1
@@ -421,7 +431,7 @@ func MSG_ReadByte() C.int {
 
 //export MSG_ReadShort
 func MSG_ReadShort() C.int {
-	i, err := net.ReadInt16()
+	i, err := netMessage.ReadInt16()
 	if err != nil {
 		msg_badread = true
 		return -1
@@ -431,7 +441,7 @@ func MSG_ReadShort() C.int {
 
 //export MSG_ReadLong
 func MSG_ReadLong() C.int {
-	i, err := net.ReadInt32()
+	i, err := netMessage.ReadInt32()
 	if err != nil {
 		msg_badread = true
 		return -1
@@ -441,7 +451,7 @@ func MSG_ReadLong() C.int {
 
 //export MSG_ReadFloat
 func MSG_ReadFloat() C.float {
-	f, err := net.ReadFloat32()
+	f, err := netMessage.ReadFloat32()
 	if err != nil {
 		msg_badread = true
 		return -1
@@ -451,7 +461,7 @@ func MSG_ReadFloat() C.float {
 
 //export MSG_ReadCoord16
 func MSG_ReadCoord16() C.float {
-	f, err := net.ReadCoord16()
+	f, err := netMessage.ReadCoord16()
 	if err != nil {
 		msg_badread = true
 		return -1
@@ -461,7 +471,7 @@ func MSG_ReadCoord16() C.float {
 
 //export MSG_ReadCoord24
 func MSG_ReadCoord24() C.float {
-	f, err := net.ReadCoord24()
+	f, err := netMessage.ReadCoord24()
 	if err != nil {
 		msg_badread = true
 		return -1
@@ -471,7 +481,7 @@ func MSG_ReadCoord24() C.float {
 
 //export MSG_ReadCoord32f
 func MSG_ReadCoord32f() C.float {
-	f, err := net.ReadCoord32f()
+	f, err := netMessage.ReadCoord32f()
 	if err != nil {
 		msg_badread = true
 		return -1
@@ -481,7 +491,7 @@ func MSG_ReadCoord32f() C.float {
 
 //export MSG_ReadCoord
 func MSG_ReadCoord() C.float {
-	f, err := net.ReadCoord(cl.protocolFlags)
+	f, err := netMessage.ReadCoord(cl.protocolFlags)
 	if err != nil {
 		msg_badread = true
 		return -1
@@ -491,7 +501,7 @@ func MSG_ReadCoord() C.float {
 
 //export MSG_ReadAngle
 func MSG_ReadAngle(flags C.uint) C.float {
-	f, err := net.ReadAngle(uint32(flags))
+	f, err := netMessage.ReadAngle(uint32(flags))
 	if err != nil {
 		msg_badread = true
 		return -1
@@ -501,7 +511,7 @@ func MSG_ReadAngle(flags C.uint) C.float {
 
 //export MSG_ReadAngle16
 func MSG_ReadAngle16(flags C.uint) C.float {
-	f, err := net.ReadAngle16(uint32(flags))
+	f, err := netMessage.ReadAngle16(uint32(flags))
 	if err != nil {
 		msg_badread = true
 		return -1

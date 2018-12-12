@@ -3,7 +3,6 @@ package net
 import (
 	"bytes"
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -60,7 +59,6 @@ var (
 	loopServer         *Connection
 	loopConnectPending = false
 	netMessage         QReader
-	netMessageBackup   QReader
 	port               = 26000
 	myip               = "127.0.0.1"
 	serverName         = "127.0.0.1" //"MyServer"
@@ -82,16 +80,6 @@ func ServerName() string {
 	return serverName
 }
 
-func getCon(id int) (*Connection, error) {
-	for _, c := range cons {
-		if c.id == id {
-			return &c, nil
-		}
-	}
-	fmt.Printf("Go GetCon oob %v\n", id)
-	return nil, errors.New("Out of bounds connection")
-}
-
 func getNextConID() int {
 	sort.Slice(cons, func(i, j int) bool { return cons[i].id < cons[j].id })
 	pos := 1
@@ -103,25 +91,8 @@ func getNextConID() int {
 	return pos
 }
 
-func ConnectTime(id int) (float64, error) {
-	fmt.Printf("Go ConnectTime to %v\n", id)
-	con, err := getCon(id)
-	if err != nil {
-		return 0, err
-	}
-	return con.ConnectTime(), nil
-}
-
 func (c *Connection) ConnectTime() float64 {
 	return c.connectTime.Seconds()
-}
-
-func Address(id int) (string, error) {
-	con, err := getCon(id)
-	if err != nil {
-		return "", err
-	}
-	return con.Address(), nil
 }
 
 func (c *Connection) Address() string {
@@ -572,14 +543,6 @@ func CheckNewConnections() *Connection {
 	return loopServer
 }
 
-func Close(id int) {
-	SetTime()
-	con, err := getCon(id)
-	if err == nil {
-		con.Close()
-	}
-}
-
 func (c *Connection) Close() {
 	SetTime()
 	if c.con != nil {
@@ -591,32 +554,12 @@ func (c *Connection) Close() {
 	c.canWriteChan = nil
 	c.canWrite = false
 	for i, _ := range cons {
-		if cons[i].ID() == c.ID() {
+		if cons[i].id == c.id {
 			cons = append(cons[:i], cons[i+1:]...)
 			return
 		}
 	}
 	// TODO: see loop.Close
-}
-
-func GetMessage(id int) int {
-	con, err := getCon(id)
-	if err != nil {
-		return -1
-	}
-	r, err := con.GetMessage()
-	if err != nil {
-		return -1
-	}
-	if r == nil || r.Len() == 0 {
-		return 0
-	}
-	netMessage = *r
-	b, err := r.ReadByte()
-	if err != nil {
-		return -1
-	}
-	return int(b)
 }
 
 func (c *Connection) GetMessage() (*QReader, error) {
@@ -634,14 +577,6 @@ func (c *Connection) GetMessage() (*QReader, error) {
 	default:
 		return nil, nil
 	}
-}
-
-func SendMessage(id int, data []byte) int {
-	con, err := getCon(id)
-	if err != nil {
-		return -1
-	}
-	return con.SendMessage(data)
 }
 
 func (c *Connection) SendMessage(data []byte) int {
@@ -663,14 +598,6 @@ func (c *Connection) SendMessage(data []byte) int {
 		c.canWrite = false
 	}
 	return 1
-}
-
-func SendUnreliableMessage(id int, data []byte) int {
-	con, err := getCon(id)
-	if err != nil {
-		return -1
-	}
-	return con.SendUnreliableMessage(data)
 }
 
 func (c *Connection) SendUnreliableMessage(data []byte) int {
@@ -712,7 +639,7 @@ func SendToAll(data []byte) int {
 	// returns number clients which did not receive
 
 	// loop only
-	SendMessage(loopServer.id, data)
+	loopServer.SendMessage(data)
 	return 0
 }
 
@@ -724,14 +651,6 @@ func SendReconnectToAll() int {
 	buf.WriteByte(svc.StuffText)
 	buf.WriteString(s)
 	return SendToAll(buf.Bytes())
-}
-
-func CanSendMessage(id int) bool {
-	con, err := getCon(id)
-	if err != nil {
-		return false
-	}
-	return con.CanSendMessage()
 }
 
 func (c *Connection) CanSendMessage() bool {
@@ -763,22 +682,10 @@ func Shutdown() {
 	// otherwise we should close the 'init' connection
 }
 
-func ReadInt8() (int8, error) {
-	return netMessage.ReadInt8()
-}
-
 func (q *QReader) ReadInt8() (int8, error) {
 	var r int8
 	err := binary.Read(q.r, binary.LittleEndian, &r)
 	return r, err
-}
-
-func ReadByte() (byte, error) {
-	return netMessage.ReadByte()
-}
-
-func UnreadByte() {
-	netMessage.UnreadByte()
 }
 
 func (q *QReader) UnreadByte() {
@@ -791,18 +698,10 @@ func (q *QReader) ReadByte() (byte, error) {
 	return r, err
 }
 
-func ReadUint8() (uint8, error) {
-	return netMessage.ReadUint8()
-}
-
 func (q *QReader) ReadUint8() (uint8, error) {
 	var r uint8
 	err := binary.Read(q.r, binary.LittleEndian, &r)
 	return r, err
-}
-
-func ReadInt16() (int16, error) {
-	return netMessage.ReadInt16()
 }
 
 func (q *QReader) ReadInt16() (int16, error) {
@@ -811,18 +710,10 @@ func (q *QReader) ReadInt16() (int16, error) {
 	return r, err
 }
 
-func ReadInt32() (int32, error) {
-	return netMessage.ReadInt32()
-}
-
 func (q *QReader) ReadInt32() (int32, error) {
 	var r int32
 	err := binary.Read(q.r, binary.LittleEndian, &r)
 	return r, err
-}
-
-func ReadFloat32() (float32, error) {
-	return netMessage.ReadFloat32()
 }
 
 func (q *QReader) ReadFloat32() (float32, error) {
@@ -831,18 +722,10 @@ func (q *QReader) ReadFloat32() (float32, error) {
 	return r, err
 }
 
-func ReadCoord16() (float32, error) {
-	return netMessage.ReadCoord16()
-}
-
 // 13.3 fixed point coords, max range +-4096
 func (q *QReader) ReadCoord16() (float32, error) {
 	i, err := q.ReadInt16()
 	return float32(i) * (1.0 / 8.0), err
-}
-
-func ReadCoord24() (float32, error) {
-	return netMessage.ReadCoord24()
 }
 
 // 16.8 fixed point coords, max range +-32768
@@ -861,16 +744,8 @@ func (q *QReader) ReadCoord24() (float32, error) {
 	return float32(i16) + (float32(i8) * (1.0 / 255.0)), nil
 }
 
-func ReadCoord32f() (float32, error) {
-	return netMessage.ReadCoord32f()
-}
-
 func (q *QReader) ReadCoord32f() (float32, error) {
 	return q.ReadFloat32()
-}
-
-func ReadCoord(flags uint16) (float32, error) {
-	return netMessage.ReadCoord(flags)
 }
 
 // TODO(therjak):
@@ -888,10 +763,6 @@ func (q *QReader) ReadCoord(flags uint16) (float32, error) {
 	return q.ReadCoord16()
 }
 
-func ReadAngle(flags uint32) (float32, error) {
-	return netMessage.ReadAngle(flags)
-}
-
 func (q *QReader) ReadAngle(flags uint32) (float32, error) {
 	if flags&prfl.ANGLEFLOAT != 0 {
 		return q.ReadFloat32()
@@ -903,10 +774,6 @@ func (q *QReader) ReadAngle(flags uint32) (float32, error) {
 	return float32(i) * (360.0 / 256.0), err
 }
 
-func ReadAngle16(flags uint32) (float32, error) {
-	return netMessage.ReadAngle16(flags)
-}
-
 func (q *QReader) ReadAngle16(flags uint32) (float32, error) {
 	if flags&prfl.ANGLEFLOAT != 0 {
 		return q.ReadFloat32()
@@ -915,33 +782,13 @@ func (q *QReader) ReadAngle16(flags uint32) (float32, error) {
 	return float32(i) * (360.0 / 65536.0), err
 }
 
-func Replace(data []byte) {
-	netMessage = QReader{bytes.NewReader(data)}
-}
-
-func GetCurSize() int {
-	return netMessage.Len()
-}
-
 // Len returns the number of bytes of the unread portion of the slice.
 func (q *QReader) Len() int {
 	return q.r.Len()
-}
-
-func BeginReading() {
-	netMessage.BeginReading()
 }
 
 func (q *QReader) BeginReading() {
 	i, _ := q.r.Seek(0, io.SeekCurrent)
 	log.Printf("BeginReading while at %d", i)
 	q.r.Seek(0, io.SeekStart)
-}
-
-func Backup() {
-	netMessageBackup = netMessage
-}
-
-func Restore() {
-	netMessage = netMessageBackup
 }
