@@ -8,7 +8,6 @@ import (
 	"log"
 	"net"
 	prfl "quake/protocol/flags"
-	svc "quake/protocol/server"
 	"quake/qtime"
 	"strings"
 	"time"
@@ -27,6 +26,7 @@ const (
 type Connection struct {
 	connectTime  time.Duration
 	con          net.Conn
+	addr         string
 	in           <-chan msg
 	out          chan<- msg
 	canWriteChan <-chan bool
@@ -76,7 +76,11 @@ func (c *Connection) ConnectTime() float64 {
 }
 
 func (c *Connection) Address() string {
-	return c.con.RemoteAddr().String()
+	if c.con != nil {
+		return c.con.RemoteAddr().String()
+	}
+	// For the loopback variant
+	return c.addr
 }
 
 func SetTime() {
@@ -585,36 +589,6 @@ func (c *Connection) SendUnreliableMessage(data []byte) int {
 	// in the original. does this need a larger channel buffer?
 	c.out <- msg{data: buf.Bytes()}
 	return 1
-}
-
-func SendToAll(data []byte) int {
-	// blockTime = 5.0
-	// if NET_CanSendMessage
-	//    init = true
-	//    NET_SendMessage
-	// else
-	//    NET_GetMessage
-	// and again to check if message was send
-	// if NET_CanSendMessage
-	//    send = true
-	// else
-	//    NET_GetMessage
-	// until all are init and send or we exceeded blockTime
-	// returns number clients which did not receive
-
-	// loop only
-	loopServer.SendMessage(data)
-	return 0
-}
-
-func SendReconnectToAll() int {
-	// Svc.StuffText,"reconnect\n"
-	s := "reconnect\n\x00"
-	m := make([]byte, 0, len(s)+1)
-	buf := bytes.NewBuffer(m)
-	buf.WriteByte(svc.StuffText)
-	buf.WriteString(s)
-	return SendToAll(buf.Bytes())
 }
 
 func (c *Connection) CanSendMessage() bool {

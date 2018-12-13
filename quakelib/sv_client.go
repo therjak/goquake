@@ -18,9 +18,11 @@ void SV_ConnectClient(int);
 import "C"
 
 import (
+	"bytes"
 	"log"
 	"quake/net"
 	"quake/protocol/server"
+	"time"
 	"unsafe"
 )
 
@@ -381,7 +383,56 @@ func SV_SendNop(num C.int) {
 	sv_clients[int(num)].SendNop()
 }
 
+//export SV_SendDisconnectToAll
+func SV_SendDisconnectToAll() {
+	SendToAll([]byte{server.Disconnect})
+}
+
+func SendReconnectToAll() {
+	s := "reconnect\n\x00"
+	m := make([]byte, 0, len(s)+1)
+	buf := bytes.NewBuffer(m)
+	buf.WriteByte(server.StuffText)
+	buf.WriteString(s)
+	SendToAll(buf.Bytes())
+}
+
+func SendToAll(data []byte) {
+	// We try for 5 seconds to send the message to everyone
+	s := make([]bool, len(sv_clients))
+	start := time.Now()
+TimeoutLoop:
+	for {
+		if time.Now().Sub(start) > 5*time.Second {
+			return
+		}
+		for i, c := range sv_clients {
+			if s[i] {
+				continue
+			}
+			if !c.active {
+				s[i] = true
+				continue
+			}
+			if c.CanSendMessage() {
+				c.netConnection.SendMessage(data)
+				s[i] = true
+			}
+		}
+		for _, c := range s {
+			if !c {
+				// There is no need to spin too fast, we are waiting for
+				// the last ACK of one of the clients.
+				time.Sleep(time.Millisecond)
+				continue TimeoutLoop
+			}
+		}
+		return
+	}
+}
+
 var (
+	// There is only one reader which gets switched for each client
 	msg_badread = false
 	netMessage  *net.QReader
 )

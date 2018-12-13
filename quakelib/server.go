@@ -305,7 +305,7 @@ func SVS_SetMaxClientsLimit(n C.int) {
 
 //export SV_SendReconnect
 func SV_SendReconnect() {
-	net.SendReconnectToAll()
+	SendReconnectToAll()
 	if !cmdl.Dedicated() {
 		execute.Execute("reconnect\n", execute.Command)
 	}

@@ -4,7 +4,6 @@ import "C"
 
 import (
 	"quake/net"
-	svc "quake/protocol/server"
 )
 
 //export NETtcpipAvailable
@@ -27,11 +26,6 @@ func NET_Listen(b C.int) {
 	// fmt.Printf("Go Listen: %v\n", b)
 	// b is a boolean workaround
 	// nothing to do for loopback
-}
-
-//export NET_SendDisconnectToAll
-func NET_SendDisconnectToAll() C.int {
-	return C.int(net.SendToAll([]byte{svc.Disconnect}))
 }
 
 //export NET_Shutdown

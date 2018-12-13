@@ -439,10 +439,7 @@ void Host_ShutdownServer(qboolean crash) {
   } while (count);
 
   // make sure all the clients know we're disconnecting
-  count = NET_SendDisconnectToAll();
-  if (count)
-    Con_Printf("Host_ShutdownServer: NET_SendToAll failed for %u clients\n",
-               count);
+  SV_SendDisconnectToAll();
 
   for (i = 0; i < SVS_GetMaxClients(); i++)
     if (GetClientActive(i)) SV_DropClient(i, crash);
