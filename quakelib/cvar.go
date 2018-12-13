@@ -255,14 +255,11 @@ func CvarInc(args []cmd.QArg) {
 	case 1:
 		arg := args[0].String()
 		CvarSetValue(arg, CvarVariableValue(arg)+1)
-		break
 	case 2:
 		arg := args[0].String()
 		CvarSetValue(arg, CvarVariableValue(arg)+float32(args[1].Float64()))
-		break
 	default:
 		conlog.Printf("inc <cvar> [amount] : increment cvar\n")
-		break
 	}
 }
 
@@ -271,9 +268,7 @@ func CvarReset_f(args []cmd.QArg) {
 	case 1:
 		arg := args[0].String()
 		CvarReset(arg)
-		break
 	default:
 		conlog.Printf("reset <cvar> : reset cvar to default\n")
-		break
 	}
 }

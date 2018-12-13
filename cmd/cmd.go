@@ -75,7 +75,14 @@ func (a QArg) Float64() float64 {
 		return 0
 	}
 	return r
+}
 
+func (a QArg) Bool() bool {
+	r, err := strconv.ParseBool(a.a)
+	if err != nil {
+		return false
+	}
+	return r
 }
 
 type commandArgs struct {

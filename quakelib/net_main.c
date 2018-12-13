@@ -80,73 +80,6 @@ const char *NET_QSocketGetAddressString(int s) {
 }
 
 // convert
-static void NET_Listen_f(void) {
-  if (Cmd_Argc() != 2) {
-    Con_Printf("\"listen\" is \"%d\"\n", listening ? 1 : 0);
-    return;
-  }
-
-  listening = Cmd_ArgvAsInt(1) ? true : false;
-  NET_Listen(listening);
-}
-
-static void MaxPlayers_f(void) {
-  int n;
-
-  if (Cmd_Argc() != 2) {
-    Con_Printf("\"maxplayers\" is \"%d\"\n", SVS_GetMaxClients());
-    return;
-  }
-
-  if (SV_Active()) {
-    Con_Printf("maxplayers can not be changed while a server is running.\n");
-    return;
-  }
-
-  n = Cmd_ArgvAsInt(1);
-  if (n < 1) n = 1;
-  if (n > SVS_GetMaxClientsLimit()) {
-    n = SVS_GetMaxClientsLimit();
-    Con_Printf("\"maxplayers\" set to \"%d\"\n", n);
-  }
-
-  if ((n == 1) && listening) Cbuf_AddText("listen 0\n");
-
-  if ((n > 1) && (!listening)) Cbuf_AddText("listen 1\n");
-
-  SVS_SetMaxClients(n);
-  if (n == 1)
-    Cvar_Set("deathmatch", "0");
-  else
-    Cvar_Set("deathmatch", "1");
-}
-
-// convert
-static void NET_Port_f(void) {
-  int n;
-
-  if (Cmd_Argc() != 2) {
-    Con_Printf("\"port\" is \"%d\"\n", net_hostport);
-    return;
-  }
-
-  n = Cmd_ArgvAsInt(1);
-  if (n < 1 || n > 65534) {
-    Con_Printf("Bad value, must be between 1 and 65534\n");
-    return;
-  }
-
-  DEFAULTnet_hostport = n;
-  net_hostport = n;
-
-  if (listening) {
-    // force a change to the new port
-    Cbuf_AddText("listen 0\n");
-    Cbuf_AddText("listen 1\n");
-  }
-}
-
-// convert
 static void PrintSlistHeader(void) {
   Con_Printf("Server          Map             Users\n");
   Con_Printf("--------------- --------------- -----\n");
@@ -229,9 +162,6 @@ void NET_Init(void) {
   Cvar_FakeRegister(&hostname, "hostname");
 
   Cmd_AddCommand("slist", NET_Slist_f);
-  Cmd_AddCommand("listen", NET_Listen_f);
-  Cmd_AddCommand("maxplayers", MaxPlayers_f);
-  Cmd_AddCommand("port", NET_Port_f);
 
   if (*my_tcpip_address) {
     Con_DPrintf("TCP/IP address %s\n", my_tcpip_address);
