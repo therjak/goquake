@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"quake/qtime"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -162,7 +163,7 @@ const (
 	// rule string
 	// value string
 
-	NET_PROTOCOL_VERSION = 3
+	netProtocolVersion = 3
 
 	NETFLAG_LENGTH_MASK = 0x0000ffff
 	NETFLAG_FLAG_MASK   = 0xffff0000
@@ -174,6 +175,12 @@ const (
 	NETFLAG_CTL         = 0x80000000
 
 	MAX_DATAGRAM = 32000
+	quake        = "QUAKE\x00"
+)
+
+const (
+	// NETFLAG_CTL(0x80000000) | length, CCREQ_CONNECT, QUAKE\0,netProtocolVersion
+	connectRequest = "\x80\x00\x00\x0c\x01QUAKE\x00\x03"
 )
 
 func handShake(host string) (*net.UDPAddr, int, error) {
@@ -187,18 +194,11 @@ func handShake(host string) (*net.UDPAddr, int, error) {
 	}
 	defer c.Close()
 
-	var msg bytes.Buffer
-	// NETFLAG_CTL(0x80000000) | length
-	binary.Write(&msg, binary.BigEndian, uint32(0x8000000C))
-	msg.Write([]byte{CCREQ_CONNECT})
-	msg.Write([]byte("QUAKE\x00"))
-	msg.Write([]byte{NET_PROTOCOL_VERSION})
-
-	i, err := c.Write(msg.Bytes())
+	i, err := c.Write([]byte(connectRequest))
 	if err != nil {
 		return nil, 0, err
 	}
-	if i != msg.Len() {
+	if i != 0x0c {
 		return nil, 0, fmt.Errorf("Did not send full message")
 	}
 
@@ -210,7 +210,7 @@ func handShake(host string) (*net.UDPAddr, int, error) {
 	if i < 9 {
 		return nil, 0, fmt.Errorf("Return to small: %v", i)
 	}
-	msg = *bytes.NewBuffer(b[:i])
+	msg := *bytes.NewBuffer(b[:i])
 	var control uint32
 	binary.Read(&msg, binary.BigEndian, &control)
 	if control&NETFLAG_FLAG_MASK != NETFLAG_CTL ||
@@ -249,8 +249,8 @@ func readUDP(c net.Conn, out chan<- msg, acks chan<- uint32) {
 	var unreliableBuf bytes.Buffer
 	var ack bytes.Buffer
 	reliableBuf.WriteByte(1)
+	b := make([]byte, maxMessage)
 	for {
-		b := make([]byte, maxMessage)
 		i, err := c.Read(b)
 		if err != nil {
 			if err != io.EOF {
@@ -264,12 +264,11 @@ func readUDP(c net.Conn, out chan<- msg, acks chan<- uint32) {
 		// first 4 byte are flag|length
 		// second 4 bytes are sequence number
 		// all other is data
-		b = b[:i]
 		var length, sequence uint32
-		buf := bytes.NewBuffer(b)
+		reader := bytes.NewReader(b[:i])
 		// We verified the length already. No read error possible.
-		binary.Read(buf, binary.BigEndian, &length)
-		binary.Read(buf, binary.BigEndian, &sequence)
+		binary.Read(reader, binary.BigEndian, &length)
+		binary.Read(reader, binary.BigEndian, &sequence)
 		flags := length & NETFLAG_FLAG_MASK
 		length = length & NETFLAG_LENGTH_MASK
 		if uint32(i) != length {
@@ -287,7 +286,7 @@ func readUDP(c net.Conn, out chan<- msg, acks chan<- uint32) {
 			unreliableBuf.Reset()
 			// we need to pass the information of unreliable forward, add the 2
 			unreliableBuf.WriteByte(2)
-			unreliableBuf.Write(buf.Bytes())
+			io.Copy(&unreliableBuf, reader)
 			// make sure the data moved out is a different slice
 			o := make([]byte, unreliableBuf.Len())
 			copy(o, unreliableBuf.Bytes())
@@ -309,7 +308,7 @@ func readUDP(c net.Conn, out chan<- msg, acks chan<- uint32) {
 				continue
 			}
 			receiveSequence++
-			reliableBuf.Write(buf.Bytes())
+			io.Copy(&reliableBuf, reader)
 			if flags&NETFLAG_EOM != 0 {
 				// we need to pass the information of reliable forward, add the 1
 				// make sure the data moved out is a different slice
@@ -607,6 +606,132 @@ func (c *Connection) CanSendMessage() bool {
 
 func Shutdown() {
 	SetTime()
+	StopListen()
 	// nothing to do for loopback
 	// otherwise we should close the 'init' connection
+}
+
+var (
+	listenConn *net.UDPConn
+)
+
+func Listen() {
+	StopListen()
+	addr, err := net.ResolveUDPAddr("udp", ":"+strconv.Itoa(port))
+	if err != nil {
+		log.Printf("Listen could not create addr: %v", err)
+		return
+	}
+	con, err := net.ListenUDP("udp", addr)
+	if err != nil {
+		log.Printf("Listen could not create connection: %v", err)
+		return
+	}
+	listenConn = con
+	go listenToNewClients(listenConn)
+}
+
+func StopListen() {
+	if listenConn != nil {
+		listenConn.Close()
+		listenConn = nil
+	}
+}
+
+const (
+	// CCREP_REJECT | 7+21 = x1c
+	versionError = "\x80\x00\x00\x1d\x82Incompatible version.\n\x00"
+	// CCREP_REJECT | 7+15 = x16
+	serverFullError = "\x80\x00\x00\x17\x82	Server is full.\n\x00"
+)
+
+func listenToNewClients(conn *net.UDPConn) {
+	log.Printf("Start listening")
+	buf := make([]byte, maxMessage)
+	//var sendBuf bytes.Buffer
+	for {
+		n, addr, err := conn.ReadFromUDP(buf)
+		if err != nil {
+			log.Printf("ReadFromUDP error: %v", err)
+			return
+		}
+		if n < 8 {
+			continue
+		}
+		reader := bytes.NewBuffer(buf[:n])
+		var length uint32
+		binary.Read(reader, binary.BigEndian, &length)
+		flags := length & NETFLAG_FLAG_MASK
+		length = length & NETFLAG_LENGTH_MASK
+		if flags != NETFLAG_CTL {
+			continue
+		}
+		if length != uint32(n) {
+			continue
+		}
+		command, err := reader.ReadByte()
+		if err != nil {
+			continue
+		}
+		switch command {
+		default:
+			continue
+		case CCREQ_SERVER_INFO:
+			// TODO
+			continue
+		case CCREQ_PLAYER_INFO:
+			// TODO
+			continue
+		case CCREQ_RULE_INFO:
+			// TODO
+			continue
+		case CCREQ_CONNECT:
+			q, err := reader.ReadString('\x00')
+			if err != nil || q != quake {
+				log.Printf("ReadString: %v, %v", q, err)
+				// If the client does not speak quake no aswer is ok
+				continue
+			}
+			v, err := reader.ReadByte()
+			if err != nil {
+				// message is broken, ignore
+				continue
+			}
+			if v != netProtocolVersion {
+				log.Printf("ProtoVersion: %v", v)
+				conn.WriteToUDP([]byte(versionError), addr)
+				continue
+			}
+			log.Printf("Would connect")
+			// check if already connected
+			// if yes and connect time is under 2sec send CCREP_ACCEPT again
+			// if yes otherwise, close their old connection and let them retry
+			// check for max connections
+			// if full send CCREP_REJECT, reason 'Server is full.\n'
+
+		}
+
+		/*
+			CCREP_ACCEPT = 0x81
+			CCREP_REJECT = 0x82
+			CCREP_SERVER_INFO = 0x83
+			CCREP_PLAYER_INFO = 0x84
+			CCREP_RULE_INFO = 0x85
+			NET_PROTOCOL_VERSION = 3
+
+			NETFLAG_LENGTH_MASK = 0x0000ffff
+			NETFLAG_FLAG_MASK   = 0xffff0000
+			NETFLAG_DATA        = 0x00010000
+			NETFLAG_ACK         = 0x00020000
+			NETFLAG_NAK         = 0x00040000
+			NETFLAG_EOM         = 0x00080000
+			NETFLAG_UNRELIABLE  = 0x00100000
+			NETFLAG_CTL         = 0x80000000
+
+			MAX_DATAGRAM = 32000
+
+				...
+						conn.WriteToUDP(sendBuf.Bytes(), addr)
+		*/
+	}
 }

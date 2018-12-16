@@ -53,10 +53,10 @@ func listenCmd(args []cmd.QArg) {
 }
 
 func listen() {
-	NET_Listen(1)
+	net.Listen()
 }
 func unlisten() {
-	NET_Listen(0)
+	net.StopListen()
 }
 
 func portCmd(args []cmd.QArg) {
