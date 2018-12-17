@@ -488,6 +488,17 @@ func localConnect() (*Connection, error) {
 }
 
 func CheckNewConnections() *Connection {
+	// This needs to get logic for reading from the listenChan
+	// <-listenChan
+	select {
+	case req := <-listenChan:
+		log.Printf("ListenRequest from %v", req.addr.IP)
+		// TODO: needs to handle the request and send a reply
+		// listenConn.WriteToUDP(msg, req.addr)
+	default:
+		break
+	}
+
 	// loopback only
 	if !loopConnectPending {
 		return nil
@@ -613,7 +624,16 @@ func Shutdown() {
 
 var (
 	listenConn *net.UDPConn
+	listenChan chan listenRequest
 )
+
+func init() {
+	listenChan = make(chan listenRequest, 4)
+}
+
+type listenRequest struct {
+	addr *net.UDPAddr
+}
 
 func Listen() {
 	StopListen()
@@ -628,13 +648,22 @@ func Listen() {
 		return
 	}
 	listenConn = con
-	go listenToNewClients(listenConn)
+	go listenToNewClients(listenConn, listenChan)
 }
 
 func StopListen() {
 	if listenConn != nil {
 		listenConn.Close()
 		listenConn = nil
+		// Just drain pending connection requests
+		for {
+			select {
+			case <-listenChan:
+				log.Printf("draining listenChan")
+			default:
+				return
+			}
+		}
 	}
 }
 
@@ -645,7 +674,7 @@ const (
 	serverFullError = "\x80\x00\x00\x17\x82	Server is full.\n\x00"
 )
 
-func listenToNewClients(conn *net.UDPConn) {
+func listenToNewClients(conn *net.UDPConn, listenChan chan<- listenRequest) {
 	log.Printf("Start listening")
 	buf := make([]byte, maxMessage)
 	//var sendBuf bytes.Buffer
@@ -702,7 +731,10 @@ func listenToNewClients(conn *net.UDPConn) {
 				conn.WriteToUDP([]byte(versionError), addr)
 				continue
 			}
-			log.Printf("Would connect")
+			// this is a much as we can verify from within this routine,
+			// everything else must happen in the main routine
+			listenChan <- listenRequest{addr}
+
 			// check if already connected
 			// if yes and connect time is under 2sec send CCREP_ACCEPT again
 			// if yes otherwise, close their old connection and let them retry

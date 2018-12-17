@@ -21,13 +21,6 @@ func NET_GetTime() C.double {
 	return C.double(net.Time())
 }
 
-//export NET_Listen
-func NET_Listen(b C.int) {
-	// fmt.Printf("Go Listen: %v\n", b)
-	// b is a boolean workaround
-	// nothing to do for loopback
-}
-
 //export NET_Shutdown
 func NET_Shutdown() {
 	net.Shutdown()
