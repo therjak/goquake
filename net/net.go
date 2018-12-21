@@ -542,7 +542,8 @@ func CheckNewConnections() *Connection {
 			return nil
 		}
 		out := bytes.NewBuffer([]byte{0x80, 0x00, 0x00, 0x09, CCREP_ACCEPT})
-		binary.Write(out, binary.BigEndian, uint32(i))
+		//Why little? I guess original did the conversion twice...
+		binary.Write(out, binary.LittleEndian, uint32(i))
 		go req.conn.WriteToUDP(out.Bytes(), req.addr)
 
 		s2c := make(chan msg, chanBufLength)
