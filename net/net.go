@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // qboolean = C.int
@@ -31,6 +33,7 @@ type Connection struct {
 	out          chan<- msg
 	canWriteChan <-chan bool
 	canWrite     bool
+	uuid         uuid.UUID
 }
 
 type msg struct {
@@ -122,6 +125,7 @@ func udpConnect(host string, port int) (*Connection, error) {
 		out:          c2s,
 		canWriteChan: canWrite,
 		canWrite:     true,
+		uuid:         uuid.New(),
 	}
 	acks := make(chan uint32, 1)
 	go readUDP(c, s2c, acks)
@@ -466,6 +470,11 @@ func writeUDP(c net.Conn, in <-chan msg, acks <-chan uint32, canWrite chan<- boo
 	}
 }
 
+var (
+	conuuids   = make(map[uuid.UUID]*Connection)
+	maxClients = 4
+)
+
 func localConnect() (*Connection, error) {
 	loopConnectPending = true
 	c2s := make(chan msg, chanBufLength)
@@ -476,25 +485,85 @@ func localConnect() (*Connection, error) {
 		in:          s2c,
 		out:         c2s,
 		canWrite:    true,
+		uuid:        uuid.New(),
 	}
+	// this 'server' is the connection from the server to the client
 	loopServer = &Connection{
 		connectTime: netTime,
 		addr:        "LOCAL",
 		in:          c2s,
 		out:         s2c,
 		canWrite:    true,
+		uuid:        uuid.New(),
 	}
+	conuuids[loopServer.uuid] = loopServer
 	return loopClient, nil
 }
 
 func CheckNewConnections() *Connection {
+	SetTime()
 	// This needs to get logic for reading from the listenChan
 	// <-listenChan
 	select {
 	case req := <-listenChan:
 		log.Printf("ListenRequest from %v", req.addr.IP)
-		// TODO: needs to handle the request and send a reply
-		// listenConn.WriteToUDP(msg, req.addr)
+		for _, c := range conuuids {
+			if c.con != nil && c.con.RemoteAddr() == req.addr {
+				log.Printf("ListenRequest from %v already known", req.addr.IP)
+				if c.connectTime+(2*time.Second) > qtime.QTime() {
+					// TODO: resend CCREP_ACCEPT
+				} else {
+					// let them retry
+					c.Close()
+				}
+				return nil
+			}
+		}
+		if len(conuuids) >= maxClients {
+			go req.conn.WriteToUDP([]byte(serverFullError), req.addr)
+			return nil
+		}
+		// req.conn
+		// Send ACK, return new Connection
+		newConn, err := net.DialUDP("udp", nil, req.addr)
+		if err != nil {
+			log.Printf("Error creating connection to client: %v", err)
+			return nil
+		}
+		_, port, err := net.SplitHostPort(newConn.LocalAddr().String())
+		if err != nil {
+			newConn.Close()
+			return nil
+		}
+		i, err := strconv.Atoi(port)
+		if err != nil {
+			log.Printf("WTF, can not convert port to number: %v", err)
+			newConn.Close()
+			return nil
+		}
+		out := bytes.NewBuffer([]byte{0x80, 0x00, 0x00, 0x09, CCREP_ACCEPT})
+		binary.Write(out, binary.BigEndian, uint32(i))
+		go req.conn.WriteToUDP(out.Bytes(), req.addr)
+
+		s2c := make(chan msg, chanBufLength)
+		c2s := make(chan msg, chanBufLength)
+		canWrite := make(chan bool, 1)
+		client := &Connection{
+			connectTime:  netTime,
+			con:          newConn,
+			in:           c2s,
+			out:          s2c,
+			canWriteChan: canWrite,
+			canWrite:     true,
+			uuid:         uuid.New(),
+		}
+		acks := make(chan uint32, 1)
+		go readUDP(newConn, c2s, acks)
+		go writeUDP(newConn, s2c, acks, canWrite)
+
+		conuuids[client.uuid] = client
+		return client
+
 	default:
 		break
 	}
@@ -505,7 +574,6 @@ func CheckNewConnections() *Connection {
 	}
 	loopConnectPending = false
 	// fmt.Printf("Go CheckNewConnections2 %v\n", loopServer.id)
-	SetTime()
 	//Dangerous chan clear
 	for len(loopServer.in) > 0 {
 		<-loopServer.in
@@ -528,6 +596,7 @@ func (c *Connection) Close() {
 	}
 	c.canWriteChan = nil
 	c.canWrite = false
+	delete(conuuids, c.uuid)
 	// TODO: see loop.Close
 }
 
@@ -633,9 +702,11 @@ func init() {
 
 type listenRequest struct {
 	addr *net.UDPAddr
+	conn *net.UDPConn
 }
 
-func Listen() {
+func Listen(numMaxClients int) {
+	maxClients = numMaxClients
 	StopListen()
 	addr, err := net.ResolveUDPAddr("udp", ":"+strconv.Itoa(port))
 	if err != nil {
@@ -733,7 +804,10 @@ func listenToNewClients(conn *net.UDPConn, listenChan chan<- listenRequest) {
 			}
 			// this is a much as we can verify from within this routine,
 			// everything else must happen in the main routine
-			listenChan <- listenRequest{addr}
+			listenChan <- listenRequest{
+				addr: addr,
+				conn: conn,
+			}
 
 			// check if already connected
 			// if yes and connect time is under 2sec send CCREP_ACCEPT again

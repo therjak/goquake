@@ -53,7 +53,7 @@ func listenCmd(args []cmd.QArg) {
 }
 
 func listen() {
-	net.Listen()
+	net.Listen(svs.maxClients)
 }
 func unlisten() {
 	net.StopListen()

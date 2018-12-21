@@ -1,3 +1,5 @@
+github.com/google/uuid v1.1.0 h1:Jf4mxPC/ziBnoPIdpQdPJ9OeiomAUHLvxmPRSPH9m4s=
+github.com/google/uuid v1.1.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/veandco/go-sdl2 v0.0.0-20180925095440-75ff82abc4e3 h1:S1dvzp6ZDdmz1M4oRQ6ceLwU6ZDCNvIa20zhJRHyKgE=
 github.com/veandco/go-sdl2 v0.0.0-20180925095440-75ff82abc4e3/go.mod h1:FB+kTpX9YTE+urhYiClnRzpOXbiWgaU3+5F2AB78DPg=
 golang.org/x/tools v0.0.0-20181019201213-3e7aa9e59977 h1:gyGiDZZwunzILdKyr2iu0bvDC9KvK4wItjj+aV+sBro=

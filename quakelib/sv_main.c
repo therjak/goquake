@@ -344,6 +344,7 @@ SV_ConnectClient
 Initializes a client_t for a new net connection.  This will only be called
 once for a player each game, not once for each level change.
 ================
+
 */
 void SV_ConnectClient(int clientnum) {
   edict_t *ent;
@@ -368,7 +369,10 @@ void SV_ConnectClient(int clientnum) {
   }
   memset(GetClient(client), 0, sizeof(*GetClient(client)));
   CleanSVClient(client);
-  GetClient(client)->id = client;
+  {
+    client_t *c = svs.clients + clientnum;
+    c->id = client;
+  }
 
   SetClientName(client, "unconnected");
   SetClientActive(client, true);
