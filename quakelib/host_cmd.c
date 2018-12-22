@@ -1183,7 +1183,7 @@ void Host_Say(qboolean teamonly) {
       continue;
     SV_ClientPrintf2(j, "%s", text);
   }
-  host_client = GetClient(save)->id;
+  host_client = save;
 
   if (CLS_GetState() == ca_dedicated) Sys_Print(&text[1]);
 }
@@ -1246,7 +1246,7 @@ void Host_Tell_f(void) {
     SV_ClientPrintf2(j, "%s", text);
     break;
   }
-  host_client = GetClient(save)->id;
+  host_client = save;
 }
 
 /*
@@ -1518,7 +1518,7 @@ void Host_Kick_f(void) {
     i = Cmd_ArgvAsInt(2) - 1;
     if (i < 0 || i >= SVS_GetMaxClients()) return;
     if (!GetClientActive(i)) return;
-    host_client = GetClient(i)->id;
+    host_client = i;
     byNumber = true;
   } else {
     for (i = 0, host_client = 0; i < SVS_GetMaxClients();
@@ -1546,7 +1546,7 @@ void Host_Kick_f(void) {
     }
 
     // can't kick yourself!
-    if (host_client == GetClient(save)->id) return;
+    if (host_client == save) return;
 
     if (Cmd_Argc() > 2) {
       message = COM_Parse(Cmd_Args());
@@ -1566,7 +1566,7 @@ void Host_Kick_f(void) {
   }
   free(name);
 
-  host_client = GetClient(save)->id;
+  host_client = save;
 }
 
 /*
