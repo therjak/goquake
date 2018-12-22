@@ -46,8 +46,8 @@ int host_hunklevel;
 
 int minimum_memory;
 
-client_t *host_client;  // current client
-int HostClient(void) { return host_client->id; }
+int host_client;  // current client
+int HostClient(void) { return host_client; }
 
 jmp_buf host_abortserver;
 

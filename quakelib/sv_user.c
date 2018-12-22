@@ -532,7 +532,7 @@ void SV_RunClients(void) {
   int i;
   movecmd_t move = {0, 0, 0};
 
-  for (i = 0, host_client = svs.clients; i < SVS_GetMaxClients();
+  for (i = 0, host_client = 0; i < SVS_GetMaxClients();
        i++, host_client++) {
     if (!GetClientActive(HostClient())) continue;
 

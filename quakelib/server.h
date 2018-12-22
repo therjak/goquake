@@ -146,7 +146,7 @@ extern cvar_t timelimit;
 extern server_static_t svs;  // persistant server info
 extern server_t sv;          // local server
 
-extern client_t *host_client;
+extern int host_client;
 int HostClient(void);
 extern edict_t *sv_player;
 

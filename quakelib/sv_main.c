@@ -1071,7 +1071,7 @@ void SV_SaveSpawnparms(void) {
 
   SVS_SetServerFlags(pr_global_struct->serverflags);
 
-  for (i = 0, host_client = svs.clients; i < SVS_GetMaxClients();
+  for (i = 0, host_client = 0; i < SVS_GetMaxClients();
        i++, host_client++) {
     if (!GetClientActive(HostClient())) continue;
 
