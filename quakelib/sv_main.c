@@ -506,7 +506,7 @@ SV_WriteEntitiesToClient
 
 =============
 */
-void SV_WriteEntitiesToClient(edict_t *clent, sizebuf_t *msg2) {
+void SV_WriteEntitiesToClient(edict_t *clent) {
   int e, i;
   int bits;
   byte *pvs;
@@ -683,7 +683,7 @@ SV_WriteClientdataToMessage
 
 ==================
 */
-void SV_WriteClientdataToMessage(edict_t *ent, sizebuf_t *msg2) {
+void SV_WriteClientdataToMessage(edict_t *ent) {
   int bits;
   int i;
   edict_t *other;
@@ -852,9 +852,9 @@ qboolean SV_SendClientDatagram(int client) {
   SV_MS_WriteFloat(sv.time);
 
   // add the client specific data to the datagram
-  SV_WriteClientdataToMessage(SV_GetEdict(client), 0);
+  SV_WriteClientdataToMessage(SV_GetEdict(client));
 
-  SV_WriteEntitiesToClient(SV_GetEdict(client), 0);
+  SV_WriteEntitiesToClient(SV_GetEdict(client));
 
   return SV_DG_SendOut(client);
 }

@@ -51,14 +51,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define CLAMP(_minval, x, _maxval) \
   ((x) < (_minval) ? (_minval) : (x) > (_maxval) ? (_maxval) : (x))
 
-typedef struct sizebuf_s {
-  qboolean allowoverflow1;  // if false, do a Sys_Error
-  qboolean overflowed1;     // set to true if the buffer size failed
-  byte *daTa;
-  int maxsize1;
-  int cursize1;
-} sizebuf_t;
-
 //============================================================================
 
 typedef struct link_s {

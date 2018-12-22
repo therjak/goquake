@@ -176,8 +176,6 @@ typedef struct {
   int (*Connect)(const char *host);
   int (*CheckNewConnections)(void);
   int (*QGetMessage)(int sock);
-  int (*QSendMessage)(int sock, sizebuf_t *data);
-  int (*SendUnreliableMessage)(int sock, sizebuf_t *data);
   qboolean (*CanSendMessage)(int sock);
   qboolean (*CanSendUnreliableMessage)(int sock);
   void (*Close)(int sock);

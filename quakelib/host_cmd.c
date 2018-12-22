@@ -1466,10 +1466,9 @@ void Host_Spawn_f(void) {
   {
     SV_MS_Clear();
     SV_MS_SetMaxLen(MAX_DATAGRAM);
-    SV_WriteClientdataToMessage(sv_player, 0);
+    SV_WriteClientdataToMessage(sv_player);
     ClientWriteSVMSG(HostClient());
   }
-  // SV_WriteClientdataToMessage(sv_player, HostClientMessage());
   ClientWriteByte(HostClient(), svc_signonnum);
   ClientWriteByte(HostClient(), 3);
   SetClientSendSignon(HostClient(), true);

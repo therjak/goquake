@@ -58,13 +58,6 @@ typedef struct {
                          // be used to reference the world ent
   server_state_t state;  // some actions are only valid during load
 
-  //  sizebuf_t datagram;
-  //  byte datagram_buf[MAX_DATAGRAM];
-
-  //  sizebuf_t signon;
-  //  byte signon_buf[MAX_MSGLEN - 2];  // johnfitz -- was 8192, now uses
-  //  MAX_MSGLEN
-
   unsigned protocol;  // johnfitz
   unsigned protocolflags;
 } server_t;
@@ -189,7 +182,7 @@ void SV_Physics(void);
 qboolean SV_CheckBottom(edict_t *ent);
 qboolean SV_movestep(edict_t *ent, vec3_t move, qboolean relink);
 
-void SV_WriteClientdataToMessage(edict_t *ent, sizebuf_t *msg);
+void SV_WriteClientdataToMessage(edict_t *ent);
 
 void SV_MoveToGoal(void);
 
