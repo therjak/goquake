@@ -25,10 +25,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // server.h
 
-typedef struct {
-  struct client_s *clients;  // [maxclients]
-} server_static_t;
-
 //=============================================================================
 
 typedef enum { ss_loading, ss_active } server_state_t;
@@ -64,11 +60,7 @@ typedef struct {
 
 #define NUM_PING_TIMES 16
 #define NUM_SPAWN_PARMS 16
-typedef struct client_s {
-  int id;
-} client_t;
 
-client_t *GetClient(int num);
 edict_t *SV_GetEdict(int cl);
 
 int SV_GetEdictNum(int cl);
@@ -143,7 +135,6 @@ extern cvar_t coop;
 extern cvar_t fraglimit;
 extern cvar_t timelimit;
 
-extern server_static_t svs;  // persistant server info
 extern server_t sv;          // local server
 
 extern int host_client;

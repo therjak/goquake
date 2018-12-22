@@ -26,17 +26,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.h"
 
 server_t sv;
-server_static_t svs;
-
-client_t *GetClient(int num) {
-  client_t *c = svs.clients + num;
-  if (c->id != num) {
-    printf("Client id %i, num %i\n", c->id, num);
-    fflush(stdout);
-    Go_Error("Client id does not match");
-  }
-  return c;
-}
 
 static char localmodels[MAX_MODELS][8];  // inline model names for precache
 
@@ -367,12 +356,7 @@ void SV_ConnectClient(int clientnum) {
       spawn_parms[i] = GetClientSpawnParam(client, i);
     }
   }
-  memset(GetClient(client), 0, sizeof(*GetClient(client)));
   CleanSVClient(client);
-  {
-    client_t *c = svs.clients + clientnum;
-    c->id = client;
-  }
 
   SetClientName(client, "unconnected");
   SetClientActive(client, true);

@@ -173,11 +173,6 @@ void Host_FindMaxClients(void) {
 
   SVS_SetMaxClientsLimit(SVS_GetMaxClients());
   if (SVS_GetMaxClientsLimit() < 4) SVS_SetMaxClientsLimit(4);
-  svs.clients = (struct client_s *)Hunk_AllocName(
-      SVS_GetMaxClientsLimit() * sizeof(client_t), "clients");
-  for (int i = 0; i < SVS_GetMaxClientsLimit(); i++) {
-    svs.clients[i].id = i;
-  }
   CreateSVClients();
 
   if (SVS_GetMaxClients() > 1)
@@ -390,13 +385,13 @@ void SV_DropClient(int client, qboolean crash) {
   for (i = 0; i < SVS_GetMaxClients(); i++) {
     if (!GetClientActive(i)) continue;
     ClientWriteByte(i, svc_updatename);
-    ClientWriteByte(i, GetClient(client) - GetClient(0));
+    ClientWriteByte(i, client);
     ClientWriteString(i, "");
     ClientWriteByte(i, svc_updatefrags);
-    ClientWriteByte(i, GetClient(client) - GetClient(0));
+    ClientWriteByte(i, client);
     ClientWriteShort(i, 0);
     ClientWriteByte(i, svc_updatecolors);
-    ClientWriteByte(i, GetClient(client) - GetClient(0));
+    ClientWriteByte(i, client);
     ClientWriteByte(i, 0);
   }
 }
@@ -449,10 +444,6 @@ void Host_ShutdownServer(qboolean crash) {
   //
   //	memset (&sv, 0, sizeof(sv)); // ServerSpawn already do this by
   // Host_ClearMemory
-  memset(svs.clients, 0, SVS_GetMaxClientsLimit() * sizeof(client_t));
-  for (int i = 0; i < SVS_GetMaxClientsLimit(); i++) {
-    svs.clients[i].id = i;
-  }
   CreateSVClients();
 }
 

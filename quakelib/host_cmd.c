@@ -1177,7 +1177,7 @@ void Host_Say(qboolean teamonly) {
   }
 
   for (j = 0; j < SVS_GetMaxClients(); j++) {
-    if (!GetClient(j) || !GetClientActive(j) || !GetClientSpawned(j)) continue;
+    if (!GetClientActive(j) || !GetClientSpawned(j)) continue;
     if (Cvar_GetValue(&teamplay) && teamonly &&
         SV_GetEdict(j)->v.team != SV_GetEdict(save)->v.team)
       continue;

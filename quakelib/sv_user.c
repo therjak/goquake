@@ -373,7 +373,7 @@ SV_ReadClientMove
 ===================
 */
 void SV_ReadClientMove(int client) {
-  movecmd_t move;  // = &GetClient(client)->cmd;
+  movecmd_t move;
   edict_t *player = SV_GetEdict(client);
 
   int i;
