@@ -523,8 +523,7 @@ func CheckNewConnections() *Connection {
 			go req.conn.WriteToUDP([]byte(serverFullError), req.addr)
 			return nil
 		}
-		// req.conn
-		// Send ACK, return new Connection
+
 		newConn, err := net.DialUDP("udp", nil, req.addr)
 		if err != nil {
 			log.Printf("Error creating connection to client: %v", err)
@@ -574,7 +573,6 @@ func CheckNewConnections() *Connection {
 		return nil
 	}
 	loopConnectPending = false
-	// fmt.Printf("Go CheckNewConnections2 %v\n", loopServer.id)
 	//Dangerous chan clear
 	for len(loopServer.in) > 0 {
 		<-loopServer.in
@@ -582,8 +580,6 @@ func CheckNewConnections() *Connection {
 	for len(loopClient.in) > 0 {
 		<-loopClient.in
 	}
-	// server socket: on the server, connection to the client
-	// return server socket... what should be returned?
 	return loopServer
 }
 
@@ -688,8 +684,6 @@ func (c *Connection) CanSendMessage() bool {
 func Shutdown() {
 	SetTime()
 	StopListen()
-	// nothing to do for loopback
-	// otherwise we should close the 'init' connection
 }
 
 var (
@@ -740,16 +734,15 @@ func StopListen() {
 }
 
 const (
-	// CCREP_REJECT | 7+21 = x1c
+	// CCREP_REJECT | 7+21 = x1d
 	versionError = "\x80\x00\x00\x1d\x82Incompatible version.\n\x00"
-	// CCREP_REJECT | 7+15 = x16
+	// CCREP_REJECT | 7+15 = x17
 	serverFullError = "\x80\x00\x00\x17\x82	Server is full.\n\x00"
 )
 
 func listenToNewClients(conn *net.UDPConn, listenChan chan<- listenRequest) {
 	log.Printf("Start listening")
 	buf := make([]byte, maxMessage)
-	//var sendBuf bytes.Buffer
 	for {
 		n, addr, err := conn.ReadFromUDP(buf)
 		if err != nil {
@@ -809,36 +802,6 @@ func listenToNewClients(conn *net.UDPConn, listenChan chan<- listenRequest) {
 				addr: addr,
 				conn: conn,
 			}
-
-			// check if already connected
-			// if yes and connect time is under 2sec send CCREP_ACCEPT again
-			// if yes otherwise, close their old connection and let them retry
-			// check for max connections
-			// if full send CCREP_REJECT, reason 'Server is full.\n'
-
 		}
-
-		/*
-			CCREP_ACCEPT = 0x81
-			CCREP_REJECT = 0x82
-			CCREP_SERVER_INFO = 0x83
-			CCREP_PLAYER_INFO = 0x84
-			CCREP_RULE_INFO = 0x85
-			NET_PROTOCOL_VERSION = 3
-
-			NETFLAG_LENGTH_MASK = 0x0000ffff
-			NETFLAG_FLAG_MASK   = 0xffff0000
-			NETFLAG_DATA        = 0x00010000
-			NETFLAG_ACK         = 0x00020000
-			NETFLAG_NAK         = 0x00040000
-			NETFLAG_EOM         = 0x00080000
-			NETFLAG_UNRELIABLE  = 0x00100000
-			NETFLAG_CTL         = 0x80000000
-
-			MAX_DATAGRAM = 32000
-
-				...
-						conn.WriteToUDP(sendBuf.Bytes(), addr)
-		*/
 	}
 }
