@@ -264,18 +264,18 @@ func ClientWriteString(num C.int, s *C.char) {
 }
 
 //export ClientWriteCoord
-func ClientWriteCoord(num C.int, f C.float, flags C.uint) {
-	sv_clients[int(num)].msg.WriteCoord(float32(f), int(flags))
+func ClientWriteCoord(num C.int, f C.float) {
+	sv_clients[int(num)].msg.WriteCoord(float32(f), int(sv.protocolFlags))
 }
 
 //export ClientWriteAngle
-func ClientWriteAngle(num C.int, f C.float, flags C.uint) {
-	sv_clients[int(num)].msg.WriteAngle(float32(f), int(flags))
+func ClientWriteAngle(num C.int, f C.float) {
+	sv_clients[int(num)].msg.WriteAngle(float32(f), int(sv.protocolFlags))
 }
 
 //export ClientWriteAngle16
-func ClientWriteAngle16(num C.int, f C.float, flags C.uint) {
-	sv_clients[int(num)].msg.WriteAngle16(float32(f), int(flags))
+func ClientWriteAngle16(num C.int, f C.float) {
+	sv_clients[int(num)].msg.WriteAngle16(float32(f), int(sv.protocolFlags))
 }
 
 //export ClientWrite
@@ -551,8 +551,8 @@ func MSG_ReadCoord() C.float {
 }
 
 //export MSG_ReadAngle
-func MSG_ReadAngle(flags C.uint) C.float {
-	f, err := netMessage.ReadAngle(uint32(flags))
+func MSG_ReadAngle() C.float {
+	f, err := netMessage.ReadAngle(uint32(sv.protocolFlags))
 	if err != nil {
 		msg_badread = true
 		return -1
@@ -561,8 +561,8 @@ func MSG_ReadAngle(flags C.uint) C.float {
 }
 
 //export MSG_ReadAngle16
-func MSG_ReadAngle16(flags C.uint) C.float {
-	f, err := netMessage.ReadAngle16(uint32(flags))
+func MSG_ReadAngle16() C.float {
+	f, err := netMessage.ReadAngle16(uint32(sv.protocolFlags))
 	if err != nil {
 		msg_badread = true
 		return -1

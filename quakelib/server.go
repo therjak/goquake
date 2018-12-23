@@ -29,12 +29,25 @@ type Server struct {
 	datagram         net.Message
 	reliableDatagram net.Message
 	signon           net.Message
+
+	protocol      uint16
+	protocolFlags uint16
 }
 
 var (
 	svs = ServerStatic{}
 	sv  = Server{}
 )
+
+//export SV_SetProtocolFlags
+func SV_SetProtocolFlags(flags C.ushort) {
+	sv.protocolFlags = uint16(flags)
+}
+
+//export SV_ProtocolFlags
+func SV_ProtocolFlags() C.ushort {
+	return C.ushort(sv.protocolFlags)
+}
 
 //export SV_Paused
 func SV_Paused() C.int {
@@ -117,13 +130,13 @@ func SV_MS_WriteFloat(f C.float) {
 }
 
 //export SV_MS_WriteAngle
-func SV_MS_WriteAngle(v C.float, flags C.int) {
-	msgBuf.WriteAngle(float32(v), int(flags))
+func SV_MS_WriteAngle(v C.float) {
+	msgBuf.WriteAngle(float32(v), int(sv.protocolFlags))
 }
 
 //export SV_MS_WriteCoord
-func SV_MS_WriteCoord(v C.float, flags C.int) {
-	msgBuf.WriteCoord(float32(v), int(flags))
+func SV_MS_WriteCoord(v C.float) {
+	msgBuf.WriteCoord(float32(v), int(sv.protocolFlags))
 }
 
 //export SV_MS_WriteString
@@ -157,13 +170,13 @@ func SV_SO_WriteLong(v C.int) {
 }
 
 //export SV_SO_WriteAngle
-func SV_SO_WriteAngle(v C.float, flags C.int) {
-	sv.signon.WriteAngle(float32(v), int(flags))
+func SV_SO_WriteAngle(v C.float) {
+	sv.signon.WriteAngle(float32(v), int(sv.protocolFlags))
 }
 
 //export SV_SO_WriteCoord
-func SV_SO_WriteCoord(v C.float, flags C.int) {
-	sv.signon.WriteCoord(float32(v), int(flags))
+func SV_SO_WriteCoord(v C.float) {
+	sv.signon.WriteCoord(float32(v), int(sv.protocolFlags))
 }
 
 //export SV_SO_WriteString
@@ -197,13 +210,13 @@ func SV_DG_WriteLong(v C.int) {
 }
 
 //export SV_DG_WriteAngle
-func SV_DG_WriteAngle(v C.float, flags C.int) {
-	sv.datagram.WriteAngle(float32(v), int(flags))
+func SV_DG_WriteAngle(v C.float) {
+	sv.datagram.WriteAngle(float32(v), int(sv.protocolFlags))
 }
 
 //export SV_DG_WriteCoord
-func SV_DG_WriteCoord(v C.float, flags C.int) {
-	sv.datagram.WriteCoord(float32(v), int(flags))
+func SV_DG_WriteCoord(v C.float) {
+	sv.datagram.WriteCoord(float32(v), int(sv.protocolFlags))
 }
 
 //export SV_DG_WriteString
@@ -257,13 +270,13 @@ func SV_RD_WriteLong(v C.int) {
 }
 
 //export SV_RD_WriteAngle
-func SV_RD_WriteAngle(v C.float, flags C.int) {
-	sv.reliableDatagram.WriteAngle(float32(v), int(flags))
+func SV_RD_WriteAngle(v C.float) {
+	sv.reliableDatagram.WriteAngle(float32(v), int(sv.protocolFlags))
 }
 
 //export SV_RD_WriteCoord
-func SV_RD_WriteCoord(v C.float, flags C.int) {
-	sv.reliableDatagram.WriteCoord(float32(v), int(flags))
+func SV_RD_WriteCoord(v C.float) {
+	sv.reliableDatagram.WriteCoord(float32(v), int(sv.protocolFlags))
 }
 
 //export SV_RD_WriteString

@@ -49,8 +49,8 @@ typedef struct {
                          // be used to reference the world ent
   server_state_t state;  // some actions are only valid during load
 
-  unsigned protocol;  // johnfitz
-  unsigned protocolflags;
+   unsigned protocol;  // johnfitz
+  // unsigned protocolflags;
 } server_t;
 
 #define NUM_PING_TIMES 16

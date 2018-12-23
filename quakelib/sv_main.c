@@ -149,9 +149,9 @@ void SV_StartParticle(vec3_t org, vec3_t dir, int color, int count) {
 
   if (SV_DG_Len() > MAX_DATAGRAM - 16) return;
   SV_DG_WriteByte(svc_particle);
-  SV_DG_WriteCoord(org[0], sv.protocolflags);
-  SV_DG_WriteCoord(org[1], sv.protocolflags);
-  SV_DG_WriteCoord(org[2], sv.protocolflags);
+  SV_DG_WriteCoord(org[0]);
+  SV_DG_WriteCoord(org[1]);
+  SV_DG_WriteCoord(org[2]);
   for (i = 0; i < 3; i++) {
     v = dir[i] * 16;
     if (v > 127)
@@ -248,8 +248,7 @@ void SV_StartSound(edict_t *entity, int channel, const char *sample, int volume,
 
   for (i = 0; i < 3; i++)
     SV_DG_WriteCoord(
-        entity->v.origin[i] + 0.5 * (entity->v.mins[i] + entity->v.maxs[i]),
-        sv.protocolflags);
+        entity->v.origin[i] + 0.5 * (entity->v.mins[i] + entity->v.maxs[i]));
 }
 
 /*
@@ -285,7 +284,7 @@ void SV_SendServerinfo(int client) {
   if (sv.protocol == PROTOCOL_RMQ) {
     // mh - now send protocol flags so that the client knows the protocol
     // features to expect
-    ClientWriteLong(client, sv.protocolflags);
+    ClientWriteLong(client, SV_ProtocolFlags());
   }
 
   ClientWriteByte(client, SVS_GetMaxClients());
@@ -619,12 +618,12 @@ void SV_WriteEntitiesToClient(edict_t *clent) {
     if (bits & U_COLORMAP) SV_MS_WriteByte(ent->v.colormap);
     if (bits & U_SKIN) SV_MS_WriteByte(ent->v.skin);
     if (bits & U_EFFECTS) SV_MS_WriteByte(ent->v.effects);
-    if (bits & U_ORIGIN1) SV_MS_WriteCoord(ent->v.origin[0], sv.protocolflags);
-    if (bits & U_ANGLE1) SV_MS_WriteAngle(ent->v.angles[0], sv.protocolflags);
-    if (bits & U_ORIGIN2) SV_MS_WriteCoord(ent->v.origin[1], sv.protocolflags);
-    if (bits & U_ANGLE2) SV_MS_WriteAngle(ent->v.angles[1], sv.protocolflags);
-    if (bits & U_ORIGIN3) SV_MS_WriteCoord(ent->v.origin[2], sv.protocolflags);
-    if (bits & U_ANGLE3) SV_MS_WriteAngle(ent->v.angles[2], sv.protocolflags);
+    if (bits & U_ORIGIN1) SV_MS_WriteCoord(ent->v.origin[0]);
+    if (bits & U_ANGLE1) SV_MS_WriteAngle(ent->v.angles[0]);
+    if (bits & U_ORIGIN2) SV_MS_WriteCoord(ent->v.origin[1]);
+    if (bits & U_ANGLE2) SV_MS_WriteAngle(ent->v.angles[1]);
+    if (bits & U_ORIGIN3) SV_MS_WriteCoord(ent->v.origin[2]);
+    if (bits & U_ANGLE3) SV_MS_WriteAngle(ent->v.angles[2]);
 
     // johnfitz -- PROTOCOL_FITZQUAKE
     if (bits & U_ALPHA) SV_MS_WriteByte(ent->alpha);
@@ -684,8 +683,7 @@ void SV_WriteClientdataToMessage(edict_t *ent) {
     SV_MS_WriteByte(ent->v.dmg_take);
     for (i = 0; i < 3; i++)
       SV_MS_WriteCoord(
-          other->v.origin[i] + 0.5 * (other->v.mins[i] + other->v.maxs[i]),
-          sv.protocolflags);
+          other->v.origin[i] + 0.5 * (other->v.mins[i] + other->v.maxs[i]));
 
     ent->v.dmg_take = 0;
     ent->v.dmg_save = 0;
@@ -700,7 +698,7 @@ void SV_WriteClientdataToMessage(edict_t *ent) {
   if (ent->v.fixangle) {
     SV_MS_WriteByte(svc_setangle);
     for (i = 0; i < 3; i++)
-      SV_MS_WriteAngle(ent->v.angles[i], sv.protocolflags);
+      SV_MS_WriteAngle(ent->v.angles[i]);
     ent->v.fixangle = 0;
   }
 
@@ -1032,8 +1030,8 @@ void SV_CreateBaseline(void) {
     SV_SO_WriteByte(svent->baseline.colormap);
     SV_SO_WriteByte(svent->baseline.skin);
     for (i = 0; i < 3; i++) {
-      SV_SO_WriteCoord(svent->baseline.origin[i], sv.protocolflags);
-      SV_SO_WriteAngle(svent->baseline.angles[i], sv.protocolflags);
+      SV_SO_WriteCoord(svent->baseline.origin[i]);
+      SV_SO_WriteAngle(svent->baseline.angles[i]);
     }
 
     // johnfitz -- PROTOCOL_FITZQUAKE
@@ -1121,9 +1119,9 @@ void SV_SpawnServer(const char *server) {
     // set up the protocol flags used by this server
     // (note - these could be cvar-ised so that server admins could choose the
     // protocol features used by their servers)
-    sv.protocolflags = PRFL_INT32COORD | PRFL_SHORTANGLE;
+    SV_SetProtocolFlags(PRFL_INT32COORD | PRFL_SHORTANGLE);
   } else {
-    sv.protocolflags = 0;
+    SV_SetProtocolFlags(0);
   }
 
   // load progs to get entity field count

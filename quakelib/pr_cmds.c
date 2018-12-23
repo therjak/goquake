@@ -515,7 +515,7 @@ static void PF_ambientsound(void) {
     SV_SO_WriteByte(svc_spawnstaticsound);
   // johnfitz
 
-  for (i = 0; i < 3; i++) SV_SO_WriteCoord(pos[i], sv.protocolflags);
+  for (i = 0; i < 3; i++) SV_SO_WriteCoord(pos[i]);
 
   // johnfitz -- PROTOCOL_FITZQUAKE
   if (large)
@@ -1348,13 +1348,13 @@ static void PF_WriteAngle(void) {
   int dest = G_FLOAT(OFS_PARM0);
   float msg = G_FLOAT(OFS_PARM1);
   if (dest == MSG_ONE) {
-    ClientWriteAngle(WriteClient(), msg, sv.protocolflags);
+    ClientWriteAngle(WriteClient(), msg);
   } else if (dest == MSG_INIT) {
-    SV_SO_WriteAngle(msg, sv.protocolflags);
+    SV_SO_WriteAngle(msg);
   } else if (dest == MSG_BROADCAST) {
-    SV_DG_WriteAngle(msg, sv.protocolflags);
+    SV_DG_WriteAngle(msg);
   } else if (dest == MSG_ALL) {
-    SV_RD_WriteAngle(msg, sv.protocolflags);
+    SV_RD_WriteAngle(msg);
   } else {
     PR_RunError("WriteDest: bad destination");
   }
@@ -1364,13 +1364,13 @@ static void PF_WriteCoord(void) {
   int dest = G_FLOAT(OFS_PARM0);
   float msg = G_FLOAT(OFS_PARM1);
   if (dest == MSG_ONE) {
-    ClientWriteCoord(WriteClient(), msg, sv.protocolflags);
+    ClientWriteCoord(WriteClient(), msg);
   } else if (dest == MSG_INIT) {
-    SV_SO_WriteCoord(msg, sv.protocolflags);
+    SV_SO_WriteCoord(msg);
   } else if (dest == MSG_BROADCAST) {
-    SV_DG_WriteCoord(msg, sv.protocolflags);
+    SV_DG_WriteCoord(msg);
   } else if (dest == MSG_ALL) {
-    SV_RD_WriteCoord(msg, sv.protocolflags);
+    SV_RD_WriteCoord(msg);
   } else {
     PR_RunError("WriteDest: bad destination");
   }
@@ -1459,8 +1459,8 @@ static void PF_makestatic(void) {
   SV_SO_WriteByte(ent->v.colormap);
   SV_SO_WriteByte(ent->v.skin);
   for (i = 0; i < 3; i++) {
-    SV_SO_WriteCoord(ent->v.origin[i], sv.protocolflags);
-    SV_SO_WriteAngle(ent->v.angles[i], sv.protocolflags);
+    SV_SO_WriteCoord(ent->v.origin[i]);
+    SV_SO_WriteAngle(ent->v.angles[i]);
   }
 
   // johnfitz -- PROTOCOL_FITZQUAKE

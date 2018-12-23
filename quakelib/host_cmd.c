@@ -1461,8 +1461,8 @@ void Host_Spawn_f(void) {
   ent = EDICT_NUM(1 + (HostClient()));
   ClientWriteByte(HostClient(), svc_setangle);
   for (i = 0; i < 2; i++)
-    ClientWriteAngle(HostClient(), ent->v.angles[i], sv.protocolflags);
-  ClientWriteAngle(HostClient(), 0, sv.protocolflags);
+    ClientWriteAngle(HostClient(), ent->v.angles[i]);
+  ClientWriteAngle(HostClient(), 0);
   {
     SV_MS_Clear();
     SV_MS_SetMaxLen(MAX_DATAGRAM);
