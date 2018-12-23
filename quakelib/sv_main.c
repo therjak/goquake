@@ -215,13 +215,13 @@ void SV_StartSound(edict_t *entity, int channel, const char *sample, int volume,
 
   // johnfitz -- PROTOCOL_FITZQUAKE
   if (ent >= 8192) {
-    if (sv.protocol == PROTOCOL_NETQUAKE)
+    if (SV_Protocol() == PROTOCOL_NETQUAKE)
       return;  // don't send any info protocol can't support
     else
       field_mask |= SND_LARGEENTITY;
   }
   if (sound_num >= 256 || channel >= 8) {
-    if (sv.protocol == PROTOCOL_NETQUAKE)
+    if (SV_Protocol() == PROTOCOL_NETQUAKE)
       return;  // don't send any info protocol can't support
     else
       field_mask |= SND_LARGESOUND;
@@ -279,9 +279,9 @@ void SV_SendServerinfo(int client) {
 
   ClientWriteByte(client, svc_serverinfo);
   // johnfitz -- sv.protocol instead of PROTOCOL_VERSION
-  ClientWriteLong(client, sv.protocol);
+  ClientWriteLong(client, SV_Protocol());
 
-  if (sv.protocol == PROTOCOL_RMQ) {
+  if (SV_Protocol() == PROTOCOL_RMQ) {
     // mh - now send protocol flags so that the client knows the protocol
     // features to expect
     ClientWriteLong(client, SV_ProtocolFlags());
@@ -299,12 +299,12 @@ void SV_SendServerinfo(int client) {
   // johnfitz -- only send the first 256 model and sound precaches if protocol
   // is 15
   for (i = 0, s = sv.model_precache + 1; *s; s++, i++)
-    if (sv.protocol != PROTOCOL_NETQUAKE || i < 256)
+    if (SV_Protocol() != PROTOCOL_NETQUAKE || i < 256)
       ClientWriteString(client, *s);
   ClientWriteByte(client, 0);
 
   for (i = 0, s = sv.sound_precache + 1; *s; s++, i++)
-    if (sv.protocol != PROTOCOL_NETQUAKE || i < 256)
+    if (SV_Protocol() != PROTOCOL_NETQUAKE || i < 256)
       ClientWriteString(client, *s);
   ClientWriteByte(client, 0);
   // johnfitz
@@ -503,14 +503,14 @@ void SV_WriteEntitiesToClient(edict_t *clent) {
 
   // send over all entities (excpet the client) that touch the pvs
   ent = NEXT_EDICT(sv.edicts);
-  for (e = 1; e < sv.num_edicts; e++, ent = NEXT_EDICT(ent)) {
+  for (e = 1; e < SV_NumEdicts(); e++, ent = NEXT_EDICT(ent)) {
     if (ent != clent)  // clent is ALLWAYS sent
     {
       // ignore ents without visible models
       if (!ent->v.modelindex || !PR_GetString(ent->v.model)[0]) continue;
 
       // johnfitz -- don't send model>255 entities if protocol is 15
-      if (sv.protocol == PROTOCOL_NETQUAKE && (int)ent->v.modelindex & 0xFF00)
+      if (SV_Protocol() == PROTOCOL_NETQUAKE && (int)ent->v.modelindex & 0xFF00)
         continue;
 
       // ignore if not touching a PV leaf
@@ -582,7 +582,7 @@ void SV_WriteEntitiesToClient(edict_t *clent) {
     // johnfitz
 
     // johnfitz -- PROTOCOL_FITZQUAKE
-    if (sv.protocol != PROTOCOL_NETQUAKE) {
+    if (SV_Protocol() != PROTOCOL_NETQUAKE) {
       if (ent->baseline.alpha != ent->alpha) bits |= U_ALPHA;
       if (bits & U_FRAME && (int)ent->v.frame & 0xFF00) bits |= U_FRAME2;
       if (bits & U_MODEL && (int)ent->v.modelindex & 0xFF00) bits |= U_MODEL2;
@@ -655,7 +655,7 @@ void SV_CleanupEnts(void) {
   edict_t *ent;
 
   ent = NEXT_EDICT(sv.edicts);
-  for (e = 1; e < sv.num_edicts; e++, ent = NEXT_EDICT(ent)) {
+  for (e = 1; e < SV_NumEdicts(); e++, ent = NEXT_EDICT(ent)) {
     ent->v.effects = (int)ent->v.effects & ~EF_MUZZLEFLASH;
   }
 }
@@ -736,7 +736,7 @@ void SV_WriteClientdataToMessage(edict_t *ent) {
   bits |= SU_WEAPON;
 
   // johnfitz -- PROTOCOL_FITZQUAKE
-  if (sv.protocol != PROTOCOL_NETQUAKE) {
+  if (SV_Protocol() != PROTOCOL_NETQUAKE) {
     if (bits & SU_WEAPON &&
         SV_ModelIndex(PR_GetString(ent->v.weaponmodel)) & 0xFF00)
       bits |= SU_WEAPON2;
@@ -961,7 +961,7 @@ void SV_CreateBaseline(void) {
   int entnum;
   int bits;  // johnfitz -- PROTOCOL_FITZQUAKE
 
-  for (entnum = 0; entnum < sv.num_edicts; entnum++) {
+  for (entnum = 0; entnum < SV_NumEdicts(); entnum++) {
     // get the current server version
     svent = EDICT_NUM(entnum);
     if (svent->free) continue;
@@ -986,7 +986,7 @@ void SV_CreateBaseline(void) {
 
     // johnfitz -- PROTOCOL_FITZQUAKE
     bits = 0;
-    if (sv.protocol == PROTOCOL_NETQUAKE)  // still want to send baseline in
+    if (SV_Protocol() == PROTOCOL_NETQUAKE)  // still want to send baseline in
                                            // PROTOCOL_NETQUAKE, so reset these
                                            // values
     {
@@ -1113,9 +1113,9 @@ void SV_SpawnServer(const char *server) {
 
   q_strlcpy(sv.name, server, sizeof(sv.name));
 
-  sv.protocol = sv_protocol;  // johnfitz
+  SV_SetProtocol(sv_protocol);  // johnfitz
 
-  if (sv.protocol == PROTOCOL_RMQ) {
+  if (SV_Protocol() == PROTOCOL_RMQ) {
     // set up the protocol flags used by this server
     // (note - these could be cvar-ised so that server admins could choose the
     // protocol features used by their servers)
@@ -1129,16 +1129,16 @@ void SV_SpawnServer(const char *server) {
 
   // allocate server memory
   /* Host_ClearMemory() called above already cleared the whole sv structure */
-  sv.max_edicts = CLAMP(MIN_EDICTS, (int)Cvar_GetValue(&max_edicts),
-                        MAX_EDICTS);  // johnfitz -- max_edicts cvar
+  SV_SetMaxEdicts(CLAMP(MIN_EDICTS, (int)Cvar_GetValue(&max_edicts),
+                        MAX_EDICTS));  // johnfitz -- max_edicts cvar
   sv.edicts = (edict_t *)malloc(
-      sv.max_edicts *
+      SV_MaxEdicts() *
       pr_edict_size);  // ericw -- sv.edicts switched to use malloc()
 
   // leave slots at start for clients only
-  sv.num_edicts = SVS_GetMaxClients() + 1;
+  SV_SetNumEdicts(SVS_GetMaxClients() + 1);
   memset(sv.edicts, 0,
-         sv.num_edicts *
+         SV_NumEdicts() *
              pr_edict_size);  // ericw -- sv.edicts switched to use malloc()
   for (i = 0; i < SVS_GetMaxClients(); i++) {
     SV_SetEdictNum(i, i + 1);

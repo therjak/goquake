@@ -499,7 +499,7 @@ static void PF_ambientsound(void) {
 
   // johnfitz -- PROTOCOL_FITZQUAKE
   if (soundnum > 255) {
-    if (sv.protocol == PROTOCOL_NETQUAKE)
+    if (SV_Protocol() == PROTOCOL_NETQUAKE)
       return;  // don't send any info protocol can't support
     else
       large = true;
@@ -840,7 +840,7 @@ static void PF_findradius(void) {
   rad = G_FLOAT(OFS_PARM1);
 
   ent = NEXT_EDICT(sv.edicts);
-  for (i = 1; i < sv.num_edicts; i++, ent = NEXT_EDICT(ent)) {
+  for (i = 1; i < SV_NumEdicts(); i++, ent = NEXT_EDICT(ent)) {
     if (ent->free) continue;
     if (ent->v.solid == SOLID_NOT) continue;
     for (j = 0; j < 3; j++)
@@ -917,7 +917,7 @@ static void PF_Find(void) {
   s = G_STRING(OFS_PARM2);
   if (!s) PR_RunError("PF_Find: bad search string");
 
-  for (e++; e < sv.num_edicts; e++) {
+  for (e++; e < SV_NumEdicts(); e++) {
     ed = EDICT_NUM(e);
     if (ed->free) continue;
     t = E_STRING(ed, f);
@@ -1144,7 +1144,7 @@ static void PF_nextent(void) {
   i = G_EDICTNUM(OFS_PARM0);
   while (1) {
     i++;
-    if (i == sv.num_edicts) {
+    if (i == SV_NumEdicts()) {
       RETURN_EDICT(sv.edicts);
       return;
     }
@@ -1198,7 +1198,7 @@ static void PF_aim(void) {
   bestent = NULL;
 
   check = NEXT_EDICT(sv.edicts);
-  for (i = 1; i < sv.num_edicts; i++, check = NEXT_EDICT(check)) {
+  for (i = 1; i < SV_NumEdicts(); i++, check = NEXT_EDICT(check)) {
     if (check->v.takedamage != DAMAGE_AIM) continue;
     if (check == ent) continue;
     if (Cvar_GetValue(&teamplay) && ent->v.team > 0 &&
@@ -1425,7 +1425,7 @@ static void PF_makestatic(void) {
   // johnfitz
 
   // johnfitz -- PROTOCOL_FITZQUAKE
-  if (sv.protocol == PROTOCOL_NETQUAKE) {
+  if (SV_Protocol() == PROTOCOL_NETQUAKE) {
     if (SV_ModelIndex(PR_GetString(ent->v.model)) & 0xFF00 ||
         (int)(ent->v.frame) & 0xFF00) {
       ED_Free(ent);

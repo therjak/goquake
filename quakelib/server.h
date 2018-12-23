@@ -42,15 +42,12 @@ typedef struct {
   struct qmodel_s *models[MAX_MODELS];
   const char *sound_precache[MAX_SOUNDS];  // NULL terminated
   const char *lightstyles[MAX_LIGHTSTYLES];
-  int num_edicts;
-  int max_edicts;
+  //int num_edicts;
+  //int max_edicts;
   edict_t *edicts;       // can NOT be array indexed, because
                          // edict_t is variable sized, but can
                          // be used to reference the world ent
   server_state_t state;  // some actions are only valid during load
-
-   unsigned protocol;  // johnfitz
-  // unsigned protocolflags;
 } server_t;
 
 #define NUM_PING_TIMES 16

@@ -45,7 +45,7 @@ void SV_CheckAllEnts(void) {
 
   // see if any solid entities are inside the final position
   check = NEXT_EDICT(sv.edicts);
-  for (e = 1; e < sv.num_edicts; e++, check = NEXT_EDICT(check)) {
+  for (e = 1; e < SV_NumEdicts(); e++, check = NEXT_EDICT(check)) {
     if (check->free) continue;
     if (check->v.movetype == MOVETYPE_PUSH ||
         check->v.movetype == MOVETYPE_NONE ||
@@ -415,14 +415,14 @@ void SV_PushMove(edict_t *pusher, float movetime) {
 
   // johnfitz -- dynamically allocate
   mark = Hunk_LowMark();
-  moved_edict = (edict_t **)Hunk_Alloc(sv.num_edicts * sizeof(edict_t *));
-  moved_from = (vec3_t *)Hunk_Alloc(sv.num_edicts * sizeof(vec3_t));
+  moved_edict = (edict_t **)Hunk_Alloc(SV_NumEdicts() * sizeof(edict_t *));
+  moved_from = (vec3_t *)Hunk_Alloc(SV_NumEdicts() * sizeof(vec3_t));
   // johnfitz
 
   // see if any solid entities are inside the final position
   num_moved = 0;
   check = NEXT_EDICT(sv.edicts);
-  for (e = 1; e < sv.num_edicts; e++, check = NEXT_EDICT(check)) {
+  for (e = 1; e < SV_NumEdicts(); e++, check = NEXT_EDICT(check)) {
     if (check->free) continue;
     if (check->v.movetype == MOVETYPE_PUSH ||
         check->v.movetype == MOVETYPE_NONE ||
@@ -1076,7 +1076,7 @@ void SV_Physics(void) {
     entity_cap =
         SVS_GetMaxClients() + 1;  // Only run physics on clients and the world
   else
-    entity_cap = sv.num_edicts;
+    entity_cap = SV_NumEdicts();
 
   // for (i=0 ; i<sv.num_edicts ; i++, ent = NEXT_EDICT(ent))
   for (i = 0; i < entity_cap; i++, ent = NEXT_EDICT(ent)) {

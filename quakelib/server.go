@@ -9,16 +9,11 @@ import (
 	"quake/net"
 )
 
-//int maxclients
-//int maxclientslimit
-//int serverflags
-//qboolean changelevel_issued
 type ServerStatic struct {
 	maxClients        int
 	maxClientsLimit   int
 	serverFlags       int // TODO: is int the correct way?
 	changeLevelIssued bool
-	// [maxClients]clients...
 }
 
 type Server struct {
@@ -30,6 +25,9 @@ type Server struct {
 	reliableDatagram net.Message
 	signon           net.Message
 
+	numEdicts int
+	maxEdicts int
+
 	protocol      uint16
 	protocolFlags uint16
 }
@@ -38,6 +36,36 @@ var (
 	svs = ServerStatic{}
 	sv  = Server{}
 )
+
+//export SV_NumEdicts
+func SV_NumEdicts() C.int {
+	return C.int(sv.numEdicts)
+}
+
+//export SV_SetNumEdicts
+func SV_SetNumEdicts(n C.int) {
+	sv.numEdicts = int(n)
+}
+
+//export SV_MaxEdicts
+func SV_MaxEdicts() C.int {
+	return C.int(sv.maxEdicts)
+}
+
+//export SV_SetMaxEdicts
+func SV_SetMaxEdicts(n C.int) {
+	sv.maxEdicts = int(n)
+}
+
+//export SV_SetProtocol
+func SV_SetProtocol(p C.ushort) {
+	sv.protocol = uint16(p)
+}
+
+//export SV_Protocol
+func SV_Protocol() C.ushort {
+	return C.ushort(sv.protocol)
+}
 
 //export SV_SetProtocolFlags
 func SV_SetProtocolFlags(flags C.ushort) {

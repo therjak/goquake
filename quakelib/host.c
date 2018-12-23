@@ -522,7 +522,7 @@ void Host_ServerFrame(void) {
 
   // johnfitz -- devstats
   if (CLS_GetSignon() == SIGNONS) {
-    for (i = 0, active = 0; i < sv.num_edicts; i++) {
+    for (i = 0, active = 0; i < SV_NumEdicts(); i++) {
       ent = EDICT_NUM(i);
       if (!ent->free) active++;
     }

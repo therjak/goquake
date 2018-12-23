@@ -931,7 +931,7 @@ void Host_Savegame_f(void) {
   }
 
   ED_WriteGlobals(f);
-  for (i = 0; i < sv.num_edicts; i++) {
+  for (i = 0; i < SV_NumEdicts(); i++) {
     ED_Write(f, EDICT_NUM(i));
     fflush(f);
   }
@@ -1050,7 +1050,7 @@ void Host_Loadgame_f(void) {
       ED_ParseGlobals(start);
     } else {  // parse an edict
       ent = EDICT_NUM(entnum);
-      if (entnum < sv.num_edicts) {
+      if (entnum < SV_NumEdicts()) {
         ent->free = false;
         memset(&ent->v, 0, progs->entityfields * 4);
       } else {
@@ -1065,7 +1065,7 @@ void Host_Loadgame_f(void) {
     entnum++;
   }
 
-  sv.num_edicts = entnum;
+  SV_SetNumEdicts(entnum);
   sv.time = time;
 
   fclose(f);
@@ -1774,7 +1774,7 @@ edict_t *FindViewthing(void) {
   int i;
   edict_t *e;
 
-  for (i = 0; i < sv.num_edicts; i++) {
+  for (i = 0; i < SV_NumEdicts(); i++) {
     e = EDICT_NUM(i);
     if (!strcmp(PR_GetString(e->v.classname), "viewthing")) return e;
   }

@@ -388,7 +388,7 @@ void SV_ReadClientMove(int client) {
   // read current angles
   for (i = 0; i < 3; i++)
     // johnfitz -- 16-bit angles for PROTOCOL_FITZQUAKE
-    if (sv.protocol == PROTOCOL_NETQUAKE)
+    if (SV_Protocol() == PROTOCOL_NETQUAKE)
       angle[i] = MSG_ReadAngle();
     else
       angle[i] = MSG_ReadAngle16();

@@ -108,7 +108,7 @@ edict_t *ED_Alloc(void) {
   int i;
   edict_t *e;
 
-  for (i = SVS_GetMaxClients() + 1; i < sv.num_edicts; i++) {
+  for (i = SVS_GetMaxClients() + 1; i < SV_NumEdicts(); i++) {
     e = EDICT_NUM(i);
     // the first couple seconds of server time can involve a lot of
     // freeing and allocating, so relax the replacement policy
@@ -118,11 +118,11 @@ edict_t *ED_Alloc(void) {
     }
   }
 
-  if (i == sv.max_edicts)  // johnfitz -- use sv.max_edicts instead of
+  if (i == SV_MaxEdicts())  // johnfitz -- use sv.max_edicts instead of
                            // MAX_EDICTS
-    Host_Error("ED_Alloc: no free edicts (max_edicts is %i)", sv.max_edicts);
+    Host_Error("ED_Alloc: no free edicts (max_edicts is %i)", SV_MaxEdicts());
 
-  sv.num_edicts++;
+  SV_SetNumEdicts(SV_NumEdicts()+1);
   e = EDICT_NUM(i);
   memset(e, 0, pr_edict_size);  // ericw -- switched sv.edicts to malloc(), so
                                 // we are accessing uninitialized memory and
@@ -528,8 +528,8 @@ void ED_PrintEdicts(void) {
 
   if (!SV_Active()) return;
 
-  Con_Printf("%i entities\n", sv.num_edicts);
-  for (i = 0; i < sv.num_edicts; i++) ED_PrintNum(i);
+  Con_Printf("%i entities\n", SV_NumEdicts());
+  for (i = 0; i < SV_NumEdicts(); i++) ED_PrintNum(i);
 }
 
 /*
@@ -545,7 +545,7 @@ static void ED_PrintEdict_f(void) {
   if (!SV_Active()) return;
 
   i = Cmd_ArgvAsInt(1);
-  if (i < 0 || i >= sv.num_edicts) {
+  if (i < 0 || i >= SV_NumEdicts()) {
     Con_Printf("Bad edict number\n");
     return;
   }
@@ -566,7 +566,7 @@ static void ED_Count(void) {
   if (!SV_Active()) return;
 
   active = models = solid = step = 0;
-  for (i = 0; i < sv.num_edicts; i++) {
+  for (i = 0; i < SV_NumEdicts(); i++) {
     ent = EDICT_NUM(i);
     if (ent->free) continue;
     active++;
@@ -575,7 +575,7 @@ static void ED_Count(void) {
     if (ent->v.movetype == MOVETYPE_STEP) step++;
   }
 
-  Con_Printf("num_edicts:%3i\n", sv.num_edicts);
+  Con_Printf("num_edicts:%3i\n", SV_NumEdicts());
   Con_Printf("active    :%3i\n", active);
   Con_Printf("view      :%3i\n", models);
   Con_Printf("touch     :%3i\n", solid);
@@ -1051,7 +1051,7 @@ void PR_Init(void) {
 }
 
 edict_t *EDICT_NUM(int n) {
-  if (n < 0 || n >= sv.max_edicts) Host_Error("EDICT_NUM: bad number %i", n);
+  if (n < 0 || n >= SV_MaxEdicts()) Host_Error("EDICT_NUM: bad number %i", n);
   return (edict_t *)((byte *)sv.edicts + (n)*pr_edict_size);
 }
 
@@ -1061,7 +1061,7 @@ int NUM_FOR_EDICT(edict_t *e) {
   b = (byte *)e - (byte *)sv.edicts;
   b = b / pr_edict_size;
 
-  if (b < 0 || b >= sv.num_edicts) Host_Error("NUM_FOR_EDICT: bad pointer");
+  if (b < 0 || b >= SV_NumEdicts()) Host_Error("NUM_FOR_EDICT: bad pointer");
   return b;
 }
 
