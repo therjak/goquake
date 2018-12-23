@@ -719,13 +719,13 @@ static void PF_checkclient(void) {
   vec3_t view;
 
   // find a new check if on a new frame
-  if (sv.time - sv.lastchecktime >= 0.1) {
-    sv.lastcheck = PF_newcheckclient(sv.lastcheck);
-    sv.lastchecktime = sv.time;
+  if (SV_Time() - SV_LastCheckTime() >= 0.1) {
+    SV_SetLastCheck(PF_newcheckclient(SV_LastCheck()));
+    SV_SetLastCheckTime(SV_Time());
   }
 
   // return check if it might be visible
-  ent = EDICT_NUM(sv.lastcheck);
+  ent = EDICT_NUM(SV_LastCheck());
   if (ent->free || ent->v.health <= 0) {
     RETURN_EDICT(sv.edicts);
     return;

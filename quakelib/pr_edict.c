@@ -112,7 +112,7 @@ edict_t *ED_Alloc(void) {
     e = EDICT_NUM(i);
     // the first couple seconds of server time can involve a lot of
     // freeing and allocating, so relax the replacement policy
-    if (e->free && (e->freetime < 2 || sv.time - e->freetime > 0.5)) {
+    if (e->free && (e->freetime < 2 || SV_Time() - e->freetime > 0.5)) {
       ED_ClearEdict(e);
       return e;
     }
@@ -155,7 +155,7 @@ void ED_Free(edict_t *ed) {
   ed->v.solid = 0;
   ed->alpha = ENTALPHA_DEFAULT;  // johnfitz -- reset alpha for next entity
 
-  ed->freetime = sv.time;
+  ed->freetime = SV_Time();
 }
 
 //===========================================================================
@@ -867,7 +867,7 @@ void ED_LoadFromFile(const char *data) {
   edict_t *ent = NULL;
   int inhibit = 0;
 
-  pr_global_struct->time = sv.time;
+  pr_global_struct->time = SV_Time();
 
   // parse ents
   while (1) {

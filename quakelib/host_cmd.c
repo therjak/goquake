@@ -919,7 +919,7 @@ void Host_Savegame_f(void) {
     fprintf(f, "%f\n", GetClientSpawnParam(0, i));
   fprintf(f, "%d\n", current_skill);
   fprintf(f, "%s\n", sv.name);
-  fprintf(f, "%f\n", sv.time);
+  fprintf(f, "%f\n", SV_Time());
 
   // write the light styles
 
@@ -1066,7 +1066,7 @@ void Host_Loadgame_f(void) {
   }
 
   SV_SetNumEdicts(entnum);
-  sv.time = time;
+  SV_SetTime(time);
 
   fclose(f);
 
@@ -1310,7 +1310,7 @@ void Host_Kill_f(void) {
     return;
   }
 
-  pr_global_struct->time = sv.time;
+  pr_global_struct->time = SV_Time();
   pr_global_struct->self = EDICT_TO_PROG(sv_player);
   PR_ExecuteProgram(pr_global_struct->ClientKill);
 }
@@ -1392,11 +1392,11 @@ void Host_Spawn_f(void) {
     for (i = 0; i < NUM_SPAWN_PARMS; i++)
       (&pr_global_struct->parm1)[i] = GetClientSpawnParam(HostClient(), i);
     // call the spawn function
-    pr_global_struct->time = sv.time;
+    pr_global_struct->time = SV_Time();
     pr_global_struct->self = EDICT_TO_PROG(sv_player);
     PR_ExecuteProgram(pr_global_struct->ClientConnect);
 
-    if ((Sys_DoubleTime() - ClientConnectTime(HostClient())) <= sv.time) {
+    if ((Sys_DoubleTime() - ClientConnectTime(HostClient())) <= SV_Time()) {
       char *name = GetClientName(HostClient());
       Sys_Print_S("%v entered the game\n", name);
       free(name);
@@ -1410,7 +1410,7 @@ void Host_Spawn_f(void) {
 
   // send time of update
   ClientWriteByte(HostClient(), svc_time);
-  ClientWriteFloat(HostClient(), sv.time);
+  ClientWriteFloat(HostClient(), SV_Time());
 
   for (i = 0; i < SVS_GetMaxClients(); i++) {
     ClientWriteByte(HostClient(), svc_updatename);

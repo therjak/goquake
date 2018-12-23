@@ -630,7 +630,7 @@ void SV_WriteEntitiesToClient(edict_t *clent) {
     if (bits & U_FRAME2) SV_MS_WriteByte((int)ent->v.frame >> 8);
     if (bits & U_MODEL2) SV_MS_WriteByte((int)ent->v.modelindex >> 8);
     if (bits & U_LERPFINISH)
-      SV_MS_WriteByte((byte)(Q_rint((ent->v.nextthink - sv.time) * 255)));
+      SV_MS_WriteByte((byte)(Q_rint((ent->v.nextthink - SV_Time()) * 255)));
     // johnfitz
   }
 
@@ -831,7 +831,7 @@ qboolean SV_SendClientDatagram(int client) {
   // johnfitz
 
   SV_MS_WriteByte(svc_time);
-  SV_MS_WriteFloat(sv.time);
+  SV_MS_WriteFloat(SV_Time());
 
   // add the client specific data to the datagram
   SV_WriteClientdataToMessage(SV_GetEdict(client));
@@ -1147,7 +1147,7 @@ void SV_SpawnServer(const char *server) {
   sv.state = ss_loading;
   SV_SetPaused(false);
 
-  sv.time = 1.0;
+  SV_SetTime(1.0);
 
   q_strlcpy(sv.name, server, sizeof(sv.name));
   q_snprintf(sv.modelname, sizeof(sv.modelname), "maps/%s.bsp", server);

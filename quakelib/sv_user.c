@@ -236,7 +236,7 @@ void SV_WaterMove(edict_t *player, movecmd_t *cmd) {
 }
 
 void SV_WaterJump(edict_t *player) {
-  if (sv.time > player->v.teleport_time || !player->v.waterlevel) {
+  if (SV_Time() > player->v.teleport_time || !player->v.waterlevel) {
     player->v.flags = (int)player->v.flags & ~FL_WATERJUMP;
     player->v.teleport_time = 0;
   }
@@ -282,7 +282,7 @@ void SV_AirMove(edict_t *player, movecmd_t *cmd) {
   smove = cmd->sidemove;
 
   // hack to not let you back into teleporter
-  if (sv.time < player->v.teleport_time && fmove < 0) fmove = 0;
+  if (SV_Time() < player->v.teleport_time && fmove < 0) fmove = 0;
 
   for (i = 0; i < 3; i++) wishvel[i] = forward[i] * fmove + right[i] * smove;
 
@@ -382,7 +382,7 @@ void SV_ReadClientMove(int client) {
 
   // read ping time
   SetClientPingTime(client,GetClientNumPings(client) % NUM_PING_TIMES,
-      sv.time - MSG_ReadFloat());
+      SV_Time() - MSG_ReadFloat());
   SetClientNumPings(client, (GetClientNumPings(client) + 1) % NUM_PING_TIMES);
 
   // read current angles

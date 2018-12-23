@@ -100,10 +100,10 @@ qboolean SV_RunThink(edict_t *ent) {
   int i;           // johnfitz
 
   thinktime = ent->v.nextthink;
-  if (thinktime <= 0 || thinktime > sv.time + HostFrameTime()) return true;
+  if (thinktime <= 0 || thinktime > SV_Time() + HostFrameTime()) return true;
 
-  if (thinktime < sv.time)
-    thinktime = sv.time;  // don't let things stay in the past.
+  if (thinktime < SV_Time())
+    thinktime = SV_Time();  // don't let things stay in the past.
                           // it is possible to start that way
                           // by a trigger with a local time.
 
@@ -144,7 +144,7 @@ void SV_Impact(edict_t *e1, edict_t *e2) {
   old_self = pr_global_struct->self;
   old_other = pr_global_struct->other;
 
-  pr_global_struct->time = sv.time;
+  pr_global_struct->time = SV_Time();
   if (e1->v.touch && e1->v.solid != SOLID_NOT) {
     pr_global_struct->self = EDICT_TO_PROG(e1);
     pr_global_struct->other = EDICT_TO_PROG(e2);
@@ -520,7 +520,7 @@ void SV_Physics_Pusher(edict_t *ent) {
 
   if (thinktime > oldltime && thinktime <= ent->v.ltime) {
     ent->v.nextthink = 0;
-    pr_global_struct->time = sv.time;
+    pr_global_struct->time = SV_Time();
     pr_global_struct->self = EDICT_TO_PROG(ent);
     pr_global_struct->other = EDICT_TO_PROG(sv.edicts);
     PR_ExecuteProgram(ent->v.think);
@@ -821,7 +821,7 @@ void SV_Physics_Client(edict_t *ent, int num) {
   //
   // call standard client pre-think
   //
-  pr_global_struct->time = sv.time;
+  pr_global_struct->time = SV_Time();
   pr_global_struct->self = EDICT_TO_PROG(ent);
   PR_ExecuteProgram(pr_global_struct->PlayerPreThink);
 
@@ -870,7 +870,7 @@ void SV_Physics_Client(edict_t *ent, int num) {
   //
   SV_LinkEdict(ent, true);
 
-  pr_global_struct->time = sv.time;
+  pr_global_struct->time = SV_Time();
   pr_global_struct->self = EDICT_TO_PROG(ent);
   PR_ExecuteProgram(pr_global_struct->PlayerPostThink);
 }
@@ -1062,7 +1062,7 @@ void SV_Physics(void) {
   // let the progs know that a new frame has started
   pr_global_struct->self = EDICT_TO_PROG(sv.edicts);
   pr_global_struct->other = EDICT_TO_PROG(sv.edicts);
-  pr_global_struct->time = sv.time;
+  pr_global_struct->time = SV_Time();
   PR_ExecuteProgram(pr_global_struct->StartFrame);
 
   // SV_CheckAllEnts ();
@@ -1107,5 +1107,7 @@ void SV_Physics(void) {
 
   if (pr_global_struct->force_retouch) pr_global_struct->force_retouch--;
 
-  if (!Cvar_GetValue(&sv_freezenonclients)) sv.time += HostFrameTime();
+  if (!Cvar_GetValue(&sv_freezenonclients)) {
+    SV_SetTime(SV_Time() + HostFrameTime());
+  }
 }

@@ -21,6 +21,10 @@ type Server struct {
 	paused   bool
 	loadGame bool
 
+	time          float64
+	lastCheck     int
+	lastCheckTime float64
+
 	datagram         net.Message
 	reliableDatagram net.Message
 	signon           net.Message
@@ -36,6 +40,36 @@ var (
 	svs = ServerStatic{}
 	sv  = Server{}
 )
+
+//export SV_LastCheck
+func SV_LastCheck() C.int {
+	return C.int(sv.lastCheck)
+}
+
+//export SV_SetLastCheck
+func SV_SetLastCheck(c C.int) {
+	sv.lastCheck = int(c)
+}
+
+//export SV_Time
+func SV_Time() C.double {
+	return C.double(sv.time)
+}
+
+//export SV_SetTime
+func SV_SetTime(t C.double) {
+	sv.time = float64(t)
+}
+
+//export SV_LastCheckTime
+func SV_LastCheckTime() C.double {
+	return C.double(sv.lastCheckTime)
+}
+
+//export SV_SetLastCheckTime
+func SV_SetLastCheckTime(t C.double) {
+	sv.lastCheckTime = float64(t)
+}
 
 //export SV_NumEdicts
 func SV_NumEdicts() C.int {

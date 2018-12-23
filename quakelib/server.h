@@ -30,11 +30,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 typedef enum { ss_loading, ss_active } server_state_t;
 
 typedef struct {
-  double time;
-
-  int lastcheck;  // used by PF_checkclient
-  double lastchecktime;
-
   char name[64];       // map name
   char modelname[64];  // maps/<name>.bsp, for model_precache[0]
   struct qmodel_s *worldmodel;
@@ -42,8 +37,6 @@ typedef struct {
   struct qmodel_s *models[MAX_MODELS];
   const char *sound_precache[MAX_SOUNDS];  // NULL terminated
   const char *lightstyles[MAX_LIGHTSTYLES];
-  //int num_edicts;
-  //int max_edicts;
   edict_t *edicts;       // can NOT be array indexed, because
                          // edict_t is variable sized, but can
                          // be used to reference the world ent
