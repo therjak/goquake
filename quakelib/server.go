@@ -22,7 +22,10 @@ type ServerStatic struct {
 }
 
 type Server struct {
-	active           bool
+	active   bool
+	paused   bool
+	loadGame bool
+
 	datagram         net.Message
 	reliableDatagram net.Message
 	signon           net.Message
@@ -32,6 +35,26 @@ var (
 	svs = ServerStatic{}
 	sv  = Server{}
 )
+
+//export SV_Paused
+func SV_Paused() C.int {
+	return b2i(sv.paused)
+}
+
+//export SV_SetPaused
+func SV_SetPaused(b C.int) {
+	sv.paused = (b != 0)
+}
+
+//export SV_LoadGame
+func SV_LoadGame() C.int {
+	return b2i(sv.loadGame)
+}
+
+//export SV_SetLoadGame
+func SV_SetLoadGame(b C.int) {
+	sv.loadGame = (b != 0)
+}
 
 //export SV_Clear
 func SV_Clear() {

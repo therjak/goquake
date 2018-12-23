@@ -550,7 +550,7 @@ void SV_RunClients(void) {
     }
 
     // always pause in single player if in console or menus
-    if (!sv.paused && (SVS_GetMaxClients() > 1 || GetKeyDest() == key_game))
+    if (!SV_Paused() && (SVS_GetMaxClients() > 1 || GetKeyDest() == key_game))
       SV_ClientThink(HostClient());
   }
 }

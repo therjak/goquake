@@ -351,7 +351,7 @@ void SV_ConnectClient(int clientnum) {
   // ent = EDICT_NUM(edictnum);
 
   // set up the client_t
-  if (sv.loadgame) {
+  if (SV_LoadGame()) {
     for (i = 0; i < NUM_SPAWN_PARMS; i++) {
       spawn_parms[i] = GetClientSpawnParam(client, i);
     }
@@ -363,7 +363,7 @@ void SV_ConnectClient(int clientnum) {
   SetClientSpawned(client, false);
   SV_SetEdictNum(client, edictnum);
 
-  if (sv.loadgame) {
+  if (SV_LoadGame()) {
     for (i = 0; i < NUM_SPAWN_PARMS; i++) {
       SetClientSpawnParam(client, i, spawn_parms[i]);
     }
@@ -1147,7 +1147,7 @@ void SV_SpawnServer(const char *server) {
   }
 
   sv.state = ss_loading;
-  sv.paused = false;
+  SV_SetPaused(false);
 
   sv.time = 1.0;
 

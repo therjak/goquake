@@ -1006,8 +1006,8 @@ void Host_Loadgame_f(void) {
     Con_Printf("Couldn't load map\n");
     return;
   }
-  sv.paused = true;  // pause until all clients connect
-  sv.loadgame = true;
+  SV_SetPaused(true);  // pause until all clients connect
+  SV_SetLoadGame(true);
 
   // load the light styles
 
@@ -1335,9 +1335,9 @@ void Host_Pause_f(void) {
   if (!Cvar_GetValue(&pausable))
     SV_ClientPrintf2(HostClient(), "Pause not allowed.\n");
   else {
-    sv.paused ^= 1;
+    SV_SetPaused(!SV_Paused());
 
-    if (sv.paused) {
+    if (SV_Paused()) {
       SV_BroadcastPrintf("%s paused the game\n",
                          PR_GetString(sv_player->v.netname));
     } else {
@@ -1347,7 +1347,7 @@ void Host_Pause_f(void) {
 
     // send notification to all clients
     SV_RD_WriteByte(svc_setpause);
-    SV_RD_WriteByte(sv.paused);
+    SV_RD_WriteByte(SV_Paused());
   }
 }
 
@@ -1373,9 +1373,9 @@ void Host_Spawn_f(void) {
   }
 
   // run the entrance script
-  if (sv.loadgame) {  // loaded games are fully inited allready
+  if (SV_LoadGame()) {  // loaded games are fully inited allready
     // if this is the last client to be connected, unpause
-    sv.paused = false;
+    SV_SetPaused(false);
   } else {
     // set up the edict
     ent = SV_GetEdict(HostClient());
