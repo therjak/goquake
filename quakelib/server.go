@@ -4,9 +4,14 @@ package quakelib
 import "C"
 
 import (
+	"log"
+	"quake/cmd"
 	cmdl "quake/commandline"
 	"quake/execute"
+	"quake/math"
 	"quake/net"
+	"quake/protocol"
+	"quake/protocol/server"
 )
 
 type ServerStatic struct {
@@ -37,9 +42,52 @@ type Server struct {
 }
 
 var (
-	svs = ServerStatic{}
-	sv  = Server{}
+	svs         = ServerStatic{}
+	sv          = Server{}
+	sv_protocol int
 )
+
+func svProtocol(args []cmd.QArg) {
+	switch len(args) {
+	default:
+		conSafePrintStr("usage: sv_protocol <protocol>\n")
+	case 0:
+		conPrintf(`"sv_protocol" is "%v"`+"\n", sv_protocol)
+	case 1:
+		i := args[0].Int()
+		switch i {
+		case protocol.NetQuake, protocol.FitzQuake, protocol.RMQ:
+			sv_protocol = i
+			if sv.active {
+				conPrintf("changes will not take effect until the next level load.\n")
+			}
+		default:
+			conPrintf("sv_protocol must be %v or %v or %v\n",
+				protocol.NetQuake, protocol.FitzQuake, protocol.RMQ)
+		}
+	}
+}
+
+func init() {
+	cmd.AddCommand("sv_protocol", svProtocol)
+}
+
+//export SV_Init_Go
+func SV_Init_Go() {
+	sv_protocol = cmdl.Protocol()
+	switch sv_protocol {
+	case protocol.NetQuake:
+		log.Printf("Server using protocol %v (NetQuake)\n", sv_protocol)
+	case protocol.FitzQuake:
+		log.Printf("Server using protocol %v (FitzQuake)\n", sv_protocol)
+	case protocol.RMQ:
+		log.Printf("Server using protocol %v (RMQ)\n", sv_protocol)
+	default:
+		Error("Bad protocol version request %v. Accepted values: %v, %v, %v.",
+			sv_protocol, protocol.NetQuake, protocol.FitzQuake, protocol.RMQ)
+		log.Printf("Server using protocol %v (Unknown)\n", sv_protocol)
+	}
+}
 
 //export SV_LastCheck
 func SV_LastCheck() C.int {
@@ -92,8 +140,8 @@ func SV_SetMaxEdicts(n C.int) {
 }
 
 //export SV_SetProtocol
-func SV_SetProtocol(p C.ushort) {
-	sv.protocol = uint16(p)
+func SV_SetProtocol() {
+	sv.protocol = uint16(sv_protocol)
 }
 
 //export SV_Protocol
@@ -251,6 +299,36 @@ func SV_SO_Len() C.int {
 	return C.int(sv.signon.Len())
 }
 
+func svStartParticle(org, dir math.Vec3, color, count int) {
+	if sv.datagram.Len()+16 > net.MAX_DATAGRAM {
+		return
+	}
+	sv.datagram.WriteByte(server.Particle)
+	sv.datagram.WriteCoord(org.X, int(sv.protocolFlags))
+	sv.datagram.WriteCoord(org.Y, int(sv.protocolFlags))
+	sv.datagram.WriteCoord(org.Z, int(sv.protocolFlags))
+	df := func(d float32) int {
+		v := d * 16
+		if v > 127 {
+			return 127
+		}
+		if v < -128 {
+			return -128
+		}
+		return int(v)
+	}
+	sv.datagram.WriteChar(df(dir.X))
+	sv.datagram.WriteChar(df(dir.Y))
+	sv.datagram.WriteChar(df(dir.Z))
+	sv.datagram.WriteByte(count)
+	sv.datagram.WriteByte(color)
+}
+
+//export SV_StartParticle
+func SV_StartParticle(org, dir *C.float, color, count C.int) {
+	svStartParticle(cfloatToVec3(org), cfloatToVec3(dir), int(color), int(count))
+}
+
 //export SV_DG_WriteByte
 func SV_DG_WriteByte(v C.int) {
 	sv.datagram.WriteByte(int(v))
@@ -294,6 +372,11 @@ func SV_DG_Len() C.int {
 //export SV_DG_ClearMessage
 func SV_DG_ClearMessage() {
 	sv.datagram.ClearMessage()
+}
+
+//export SV_ClearDatagram
+func SV_ClearDatagram() {
+	SV_DG_ClearMessage()
 }
 
 //export SV_DG_SendOut

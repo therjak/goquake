@@ -180,7 +180,6 @@ func printCvarList(args []cmd.QArg) {
 		return
 	case 0:
 		printFullCvarList()
-		break
 	}
 }
 

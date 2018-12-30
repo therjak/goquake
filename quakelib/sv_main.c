@@ -29,42 +29,9 @@ server_t sv;
 
 static char localmodels[MAX_MODELS][8];  // inline model names for precache
 
-int sv_protocol = PROTOCOL_FITZQUAKE;  // johnfitz
-
 extern qboolean pr_alpha_supported;  // johnfitz
 
 //============================================================================
-
-/*
-===============
-SV_Protocol_f
-===============
-*/
-void SV_Protocol_f(void) {
-  int i;
-
-  switch (Cmd_Argc()) {
-    case 1:
-      Con_Printf("\"sv_protocol\" is \"%i\"\n", sv_protocol);
-      break;
-    case 2:
-      i = Cmd_ArgvAsInt(1);
-      if (i != PROTOCOL_NETQUAKE && i != PROTOCOL_FITZQUAKE &&
-          i != PROTOCOL_RMQ)
-        Con_Printf("sv_protocol must be %i or %i or %i\n", PROTOCOL_NETQUAKE,
-                   PROTOCOL_FITZQUAKE, PROTOCOL_RMQ);
-      else {
-        sv_protocol = i;
-        if (SV_Active())
-          Con_Printf(
-              "changes will not take effect until the next level load.\n");
-      }
-      break;
-    default:
-      Con_SafePrintf("usage: sv_protocol <protocol>\n");
-      break;
-  }
-}
 
 /*
 ===============
@@ -105,28 +72,9 @@ void SV_Init(void) {
   Cvar_FakeRegister(&sv_freezenonclients, "sv_freezenonclients");
   Cvar_FakeRegister(&sv_altnoclip, "sv_altnoclip");
 
-  Cmd_AddCommand("sv_protocol", &SV_Protocol_f);
-
   for (i = 0; i < MAX_MODELS; i++) sprintf(localmodels[i], "*%i", i);
 
-  sv_protocol = CMLProtocol();
-  switch (sv_protocol) {
-    case PROTOCOL_NETQUAKE:
-      p = "NetQuake";
-      break;
-    case PROTOCOL_FITZQUAKE:
-      p = "FitzQuake";
-      break;
-    case PROTOCOL_RMQ:
-      p = "RMQ";
-      break;
-    default:
-      Sys_Error("Bad protocol version request %i. Accepted values: %i, %i, %i.",
-                sv_protocol, PROTOCOL_NETQUAKE, PROTOCOL_FITZQUAKE,
-                PROTOCOL_RMQ);
-      p = "Unknown";
-  }
-  Sys_PrintServerProtocol(sv_protocol, p);
+  SV_Init_Go();
 }
 
 /*
@@ -136,33 +84,6 @@ EVENT MESSAGES
 
 =============================================================================
 */
-
-/*
-==================
-SV_StartParticle
-
-Make sure the event gets sent to all clients
-==================
-*/
-void SV_StartParticle(vec3_t org, vec3_t dir, int color, int count) {
-  int i, v;
-
-  if (SV_DG_Len() > MAX_DATAGRAM - 16) return;
-  SV_DG_WriteByte(svc_particle);
-  SV_DG_WriteCoord(org[0]);
-  SV_DG_WriteCoord(org[1]);
-  SV_DG_WriteCoord(org[2]);
-  for (i = 0; i < 3; i++) {
-    v = dir[i] * 16;
-    if (v > 127)
-      v = 127;
-    else if (v < -128)
-      v = -128;
-    SV_DG_WriteChar(v);
-  }
-  SV_DG_WriteByte(count);
-  SV_DG_WriteByte(color);
-}
 
 /*
 ==================
@@ -382,14 +303,6 @@ FRAME UPDATES
 
 ===============================================================================
 */
-
-/*
-==================
-SV_ClearDatagram
-
-==================
-*/
-void SV_ClearDatagram(void) { SV_DG_ClearMessage(); }
 
 /*
 =============================================================================
@@ -1113,7 +1026,7 @@ void SV_SpawnServer(const char *server) {
 
   q_strlcpy(sv.name, server, sizeof(sv.name));
 
-  SV_SetProtocol(sv_protocol);  // johnfitz
+  SV_SetProtocol(); // Go side knows which protocol to set
 
   if (SV_Protocol() == PROTOCOL_RMQ) {
     // set up the protocol flags used by this server

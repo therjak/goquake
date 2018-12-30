@@ -1,8 +1,8 @@
 package protocol
 
 const (
-	NETQUAKE  = 15
-	FITZQUAKE = 666
+	NetQuake  = 15
+	FitzQuake = 666
 	RMQ       = 999
 
 	PRFL_SHORTANGLE = (1 << 1)

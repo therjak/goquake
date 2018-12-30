@@ -122,7 +122,7 @@ func send(v userView, m userMove) {
 	// MSG_WriteFloat(&buf, CL_MTime());  // so server can get ping time
 	b.WriteFloat(0) // TODO
 
-	if cl.protocol == protocol.NETQUAKE {
+	if cl.protocol == protocol.NetQuake {
 		b.WriteAngle(v.pitch)
 		b.WriteAngle(v.yaw)
 		b.WriteAngle(v.roll)
