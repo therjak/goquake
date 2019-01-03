@@ -412,7 +412,7 @@ void Host_Status_f(void) {
       hours = 0;
     char *name = GetClientName(j);
     print_fn("#%-2u %-16.16s  %3i  %2i:%02i:%02i\n", j + 1, name,
-             (int)SV_GetEdict(j)->v.frags, hours, minutes, seconds);
+             (int)EdictV(SV_GetEdict(j))->frags, hours, minutes, seconds);
     free(name);
     print_fn("   %s\n", NET_QSocketGetAddressString(j));
   }
@@ -436,18 +436,18 @@ void Host_God_f(void) {
   // johnfitz -- allow user to explicitly set god mode to on or off
   switch (Cmd_Argc()) {
     case 1:
-      sv_player->v.flags = (int)sv_player->v.flags ^ FL_GODMODE;
-      if (!((int)sv_player->v.flags & FL_GODMODE))
+      EdictV(sv_player)->flags = (int)EdictV(sv_player)->flags ^ FL_GODMODE;
+      if (!((int)EdictV(sv_player)->flags & FL_GODMODE))
         SV_ClientPrintf2(HostClient(), "godmode OFF\n");
       else
         SV_ClientPrintf2(HostClient(), "godmode ON\n");
       break;
     case 2:
       if (Cmd_ArgvAsInt(1)) {
-        sv_player->v.flags = (int)sv_player->v.flags | FL_GODMODE;
+        EdictV(sv_player)->flags = (int)EdictV(sv_player)->flags | FL_GODMODE;
         SV_ClientPrintf2(HostClient(), "godmode ON\n");
       } else {
-        sv_player->v.flags = (int)sv_player->v.flags & ~FL_GODMODE;
+        EdictV(sv_player)->flags = (int)EdictV(sv_player)->flags & ~FL_GODMODE;
         SV_ClientPrintf2(HostClient(), "godmode OFF\n");
       }
       break;
@@ -474,18 +474,18 @@ void Host_Notarget_f(void) {
   // johnfitz -- allow user to explicitly set notarget to on or off
   switch (Cmd_Argc()) {
     case 1:
-      sv_player->v.flags = (int)sv_player->v.flags ^ FL_NOTARGET;
-      if (!((int)sv_player->v.flags & FL_NOTARGET))
+      EdictV(sv_player)->flags = (int)EdictV(sv_player)->flags ^ FL_NOTARGET;
+      if (!((int)EdictV(sv_player)->flags & FL_NOTARGET))
         SV_ClientPrintf2(HostClient(), "notarget OFF\n");
       else
         SV_ClientPrintf2(HostClient(), "notarget ON\n");
       break;
     case 2:
       if (Cmd_ArgvAsInt(1)) {
-        sv_player->v.flags = (int)sv_player->v.flags | FL_NOTARGET;
+        EdictV(sv_player)->flags = (int)EdictV(sv_player)->flags | FL_NOTARGET;
         SV_ClientPrintf2(HostClient(), "notarget ON\n");
       } else {
-        sv_player->v.flags = (int)sv_player->v.flags & ~FL_NOTARGET;
+        EdictV(sv_player)->flags = (int)EdictV(sv_player)->flags & ~FL_NOTARGET;
         SV_ClientPrintf2(HostClient(), "notarget OFF\n");
       }
       break;
@@ -515,24 +515,24 @@ void Host_Noclip_f(void) {
   // johnfitz -- allow user to explicitly set noclip to on or off
   switch (Cmd_Argc()) {
     case 1:
-      if (sv_player->v.movetype != MOVETYPE_NOCLIP) {
+      if (EdictV(sv_player)->movetype != MOVETYPE_NOCLIP) {
         noclip_anglehack = true;
-        sv_player->v.movetype = MOVETYPE_NOCLIP;
+        EdictV(sv_player)->movetype = MOVETYPE_NOCLIP;
         SV_ClientPrintf2(HostClient(), "noclip ON\n");
       } else {
         noclip_anglehack = false;
-        sv_player->v.movetype = MOVETYPE_WALK;
+        EdictV(sv_player)->movetype = MOVETYPE_WALK;
         SV_ClientPrintf2(HostClient(), "noclip OFF\n");
       }
       break;
     case 2:
       if (Cmd_ArgvAsInt(1)) {
         noclip_anglehack = true;
-        sv_player->v.movetype = MOVETYPE_NOCLIP;
+        EdictV(sv_player)->movetype = MOVETYPE_NOCLIP;
         SV_ClientPrintf2(HostClient(), "noclip ON\n");
       } else {
         noclip_anglehack = false;
-        sv_player->v.movetype = MOVETYPE_WALK;
+        EdictV(sv_player)->movetype = MOVETYPE_WALK;
         SV_ClientPrintf2(HostClient(), "noclip OFF\n");
       }
       break;
@@ -566,33 +566,35 @@ void Host_SetPos_f(void) {
                      "   setpos <x> <y> <z> <pitch> <yaw> <roll>\n");
     SV_ClientPrintf2(HostClient(), "current values:\n");
     SV_ClientPrintf2(HostClient(), "   %i %i %i %i %i %i\n",
-                     (int)sv_player->v.origin[0], (int)sv_player->v.origin[1],
-                     (int)sv_player->v.origin[2], (int)sv_player->v.v_angle[0],
-                     (int)sv_player->v.v_angle[1],
-                     (int)sv_player->v.v_angle[2]);
+                     (int)EdictV(sv_player)->origin[0],
+                     (int)EdictV(sv_player)->origin[1],
+                     (int)EdictV(sv_player)->origin[2],
+                     (int)EdictV(sv_player)->v_angle[0],
+                     (int)EdictV(sv_player)->v_angle[1],
+                     (int)EdictV(sv_player)->v_angle[2]);
     return;
   }
 
-  if (sv_player->v.movetype != MOVETYPE_NOCLIP) {
+  if (EdictV(sv_player)->movetype != MOVETYPE_NOCLIP) {
     noclip_anglehack = true;
-    sv_player->v.movetype = MOVETYPE_NOCLIP;
+    EdictV(sv_player)->movetype = MOVETYPE_NOCLIP;
     SV_ClientPrintf2(HostClient(), "noclip ON\n");
   }
 
   // make sure they're not going to whizz away from it
-  sv_player->v.velocity[0] = 0;
-  sv_player->v.velocity[1] = 0;
-  sv_player->v.velocity[2] = 0;
+  EdictV(sv_player)->velocity[0] = 0;
+  EdictV(sv_player)->velocity[1] = 0;
+  EdictV(sv_player)->velocity[2] = 0;
 
-  sv_player->v.origin[0] = Cmd_ArgvAsDouble(1);
-  sv_player->v.origin[1] = Cmd_ArgvAsDouble(2);
-  sv_player->v.origin[2] = Cmd_ArgvAsDouble(3);
+  EdictV(sv_player)->origin[0] = Cmd_ArgvAsDouble(1);
+  EdictV(sv_player)->origin[1] = Cmd_ArgvAsDouble(2);
+  EdictV(sv_player)->origin[2] = Cmd_ArgvAsDouble(3);
 
   if (Cmd_Argc() == 7) {
-    sv_player->v.angles[0] = Cmd_ArgvAsDouble(4);
-    sv_player->v.angles[1] = Cmd_ArgvAsDouble(5);
-    sv_player->v.angles[2] = Cmd_ArgvAsDouble(6);
-    sv_player->v.fixangle = 1;
+    EdictV(sv_player)->angles[0] = Cmd_ArgvAsDouble(4);
+    EdictV(sv_player)->angles[1] = Cmd_ArgvAsDouble(5);
+    EdictV(sv_player)->angles[2] = Cmd_ArgvAsDouble(6);
+    EdictV(sv_player)->fixangle = 1;
   }
 
   SV_LinkEdict(sv_player, false);
@@ -616,20 +618,20 @@ void Host_Fly_f(void) {
   // johnfitz -- allow user to explicitly set noclip to on or off
   switch (Cmd_Argc()) {
     case 1:
-      if (sv_player->v.movetype != MOVETYPE_FLY) {
-        sv_player->v.movetype = MOVETYPE_FLY;
+      if (EdictV(sv_player)->movetype != MOVETYPE_FLY) {
+        EdictV(sv_player)->movetype = MOVETYPE_FLY;
         SV_ClientPrintf2(HostClient(), "flymode ON\n");
       } else {
-        sv_player->v.movetype = MOVETYPE_WALK;
+        EdictV(sv_player)->movetype = MOVETYPE_WALK;
         SV_ClientPrintf2(HostClient(), "flymode OFF\n");
       }
       break;
     case 2:
       if (Cmd_ArgvAsInt(1)) {
-        sv_player->v.movetype = MOVETYPE_FLY;
+        EdictV(sv_player)->movetype = MOVETYPE_FLY;
         SV_ClientPrintf2(HostClient(), "flymode ON\n");
       } else {
-        sv_player->v.movetype = MOVETYPE_WALK;
+        EdictV(sv_player)->movetype = MOVETYPE_WALK;
         SV_ClientPrintf2(HostClient(), "flymode OFF\n");
       }
       break;
@@ -896,7 +898,7 @@ void Host_Savegame_f(void) {
 
   // (therjak) Why this? SVS_GetMaxClients is 1
   for (i = 0; i < SVS_GetMaxClients(); i++) {
-    if (GetClientActive(i) && (SV_GetEdict(i)->v.health <= 0)) {
+    if (GetClientActive(i) && (EdictV(SV_GetEdict(i))->health <= 0)) {
       Con_Printf("Can't savegame with a dead player\n");
       return;
     }
@@ -1052,7 +1054,7 @@ void Host_Loadgame_f(void) {
       ent = EDICT_NUM(entnum);
       if (entnum < SV_NumEdicts()) {
         ent->free = false;
-        memset(&ent->v, 0, progs->entityfields * 4);
+        memset(EdictV(ent), 0, progs->entityfields * 4);
       } else {
         memset(ent, 0, pr_edict_size);
       }
@@ -1113,7 +1115,7 @@ void Host_Name_f(void) {
   }
   SetClientName(HostClient(), newName);
   free(name);
-  SV_GetEdict(HostClient())->v.netname = PR_SetEngineString(newName);
+  EdictV(SV_GetEdict(HostClient()))->netname = PR_SetEngineString(newName);
 
   // send notification to all clients
 
@@ -1179,7 +1181,7 @@ void Host_Say(qboolean teamonly) {
   for (j = 0; j < SVS_GetMaxClients(); j++) {
     if (!GetClientActive(j) || !GetClientSpawned(j)) continue;
     if (Cvar_GetValue(&teamplay) && teamonly &&
-        SV_GetEdict(j)->v.team != SV_GetEdict(save)->v.team)
+        EdictV(SV_GetEdict(j))->team != EdictV(SV_GetEdict(save))->team)
       continue;
     SV_ClientPrintf2(j, "%s", text);
   }
@@ -1286,7 +1288,7 @@ void Host_Color_f(void) {
   }
 
   SetClientColors(HostClient(), playercolor);
-  SV_GetEdict(HostClient())->v.team = bottom + 1;
+  EdictV(SV_GetEdict(HostClient()))->team = bottom + 1;
 
   // send notification to all clients
   SV_RD_WriteByte(svc_updatecolors);
@@ -1305,7 +1307,7 @@ void Host_Kill_f(void) {
     return;
   }
 
-  if (sv_player->v.health <= 0) {
+  if (EdictV(sv_player)->health <= 0) {
     SV_ClientPrintf2(HostClient(), "Can't suicide -- allready dead!\n");
     return;
   }
@@ -1339,10 +1341,10 @@ void Host_Pause_f(void) {
 
     if (SV_Paused()) {
       SV_BroadcastPrintf("%s paused the game\n",
-                         PR_GetString(sv_player->v.netname));
+                         PR_GetString(EdictV(sv_player)->netname));
     } else {
       SV_BroadcastPrintf("%s unpaused the game\n",
-                         PR_GetString(sv_player->v.netname));
+                         PR_GetString(EdictV(sv_player)->netname));
     }
 
     // send notification to all clients
@@ -1380,13 +1382,13 @@ void Host_Spawn_f(void) {
     // set up the edict
     ent = SV_GetEdict(HostClient());
 
-    memset(&ent->v, 0, progs->entityfields * 4);
-    ent->v.colormap = NUM_FOR_EDICT(ent);
-    ent->v.team = (GetClientColors(HostClient()) & 15) + 1;
+    memset(EdictV(ent), 0, progs->entityfields * 4);
+    EdictV(ent)->colormap = NUM_FOR_EDICT(ent);
+    EdictV(ent)->team = (GetClientColors(HostClient()) & 15) + 1;
     // TODO(therjak): This is a memory leak!!!
     Sys_Print("Memory Leaking");
     char *name = GetClientName(HostClient());
-    ent->v.netname = PR_SetEngineString(name);
+    EdictV(ent)->netname = PR_SetEngineString(name);
 
     // copy spawn parms out of the client_t
     for (i = 0; i < NUM_SPAWN_PARMS; i++)
@@ -1461,7 +1463,7 @@ void Host_Spawn_f(void) {
   ent = EDICT_NUM(1 + (HostClient()));
   ClientWriteByte(HostClient(), svc_setangle);
   for (i = 0; i < 2; i++)
-    ClientWriteAngle(HostClient(), ent->v.angles[i]);
+    ClientWriteAngle(HostClient(), EdictV(ent)->angles[i]);
   ClientWriteAngle(HostClient(), 0);
   {
     SV_MS_Clear();
@@ -1612,20 +1614,24 @@ void Host_Give_f(void) {
       if (CMLHipnotic()) {
         if (t[0] == '6') {
           if (t[1] == 'a')
-            sv_player->v.items = (int)sv_player->v.items | HIT_PROXIMITY_GUN;
+            EdictV(sv_player)->items = 
+              (int)EdictV(sv_player)->items | HIT_PROXIMITY_GUN;
           else
-            sv_player->v.items = (int)sv_player->v.items | IT_GRENADE_LAUNCHER;
+            EdictV(sv_player)->items = 
+              (int)EdictV(sv_player)->items | IT_GRENADE_LAUNCHER;
         } else if (t[0] == '9')
-          sv_player->v.items = (int)sv_player->v.items | HIT_LASER_CANNON;
+          EdictV(sv_player)->items = 
+            (int)EdictV(sv_player)->items | HIT_LASER_CANNON;
         else if (t[0] == '0')
-          sv_player->v.items = (int)sv_player->v.items | HIT_MJOLNIR;
+          EdictV(sv_player)->items = 
+            (int)EdictV(sv_player)->items | HIT_MJOLNIR;
         else if (t[0] >= '2')
-          sv_player->v.items =
-              (int)sv_player->v.items | (IT_SHOTGUN << (t[0] - '2'));
+          EdictV(sv_player)->items =
+              (int)EdictV(sv_player)->items | (IT_SHOTGUN << (t[0] - '2'));
       } else {
         if (t[0] >= '2')
-          sv_player->v.items =
-              (int)sv_player->v.items | (IT_SHOTGUN << (t[0] - '2'));
+          EdictV(sv_player)->items =
+              (int)EdictV(sv_player)->items | (IT_SHOTGUN << (t[0] - '2'));
       }
       break;
 
@@ -1634,7 +1640,7 @@ void Host_Give_f(void) {
         val = GetEdictFieldValue(sv_player, "ammo_shells1");
         if (val) val->_float = v;
       }
-      sv_player->v.ammo_shells = v;
+      EdictV(sv_player)->ammo_shells = v;
       break;
 
     case 'n':
@@ -1642,10 +1648,11 @@ void Host_Give_f(void) {
         val = GetEdictFieldValue(sv_player, "ammo_nails1");
         if (val) {
           val->_float = v;
-          if (sv_player->v.weapon <= IT_LIGHTNING) sv_player->v.ammo_nails = v;
+          if (EdictV(sv_player)->weapon <= IT_LIGHTNING) 
+            EdictV(sv_player)->ammo_nails = v;
         }
       } else {
-        sv_player->v.ammo_nails = v;
+        EdictV(sv_player)->ammo_nails = v;
       }
       break;
 
@@ -1654,7 +1661,8 @@ void Host_Give_f(void) {
         val = GetEdictFieldValue(sv_player, "ammo_lava_nails");
         if (val) {
           val->_float = v;
-          if (sv_player->v.weapon > IT_LIGHTNING) sv_player->v.ammo_nails = v;
+          if (EdictV(sv_player)->weapon > IT_LIGHTNING) 
+            EdictV(sv_player)->ammo_nails = v;
         }
       }
       break;
@@ -1664,11 +1672,11 @@ void Host_Give_f(void) {
         val = GetEdictFieldValue(sv_player, "ammo_rockets1");
         if (val) {
           val->_float = v;
-          if (sv_player->v.weapon <= IT_LIGHTNING)
-            sv_player->v.ammo_rockets = v;
+          if (EdictV(sv_player)->weapon <= IT_LIGHTNING)
+            EdictV(sv_player)->ammo_rockets = v;
         }
       } else {
-        sv_player->v.ammo_rockets = v;
+        EdictV(sv_player)->ammo_rockets = v;
       }
       break;
 
@@ -1677,13 +1685,14 @@ void Host_Give_f(void) {
         val = GetEdictFieldValue(sv_player, "ammo_multi_rockets");
         if (val) {
           val->_float = v;
-          if (sv_player->v.weapon > IT_LIGHTNING) sv_player->v.ammo_rockets = v;
+          if (EdictV(sv_player)->weapon > IT_LIGHTNING) 
+            EdictV(sv_player)->ammo_rockets = v;
         }
       }
       break;
 
     case 'h':
-      sv_player->v.health = v;
+      EdictV(sv_player)->health = v;
       break;
 
     case 'c':
@@ -1691,10 +1700,11 @@ void Host_Give_f(void) {
         val = GetEdictFieldValue(sv_player, "ammo_cells1");
         if (val) {
           val->_float = v;
-          if (sv_player->v.weapon <= IT_LIGHTNING) sv_player->v.ammo_cells = v;
+          if (EdictV(sv_player)->weapon <= IT_LIGHTNING) 
+            EdictV(sv_player)->ammo_cells = v;
         }
       } else {
-        sv_player->v.ammo_cells = v;
+        EdictV(sv_player)->ammo_cells = v;
       }
       break;
 
@@ -1703,7 +1713,8 @@ void Host_Give_f(void) {
         val = GetEdictFieldValue(sv_player, "ammo_plasma");
         if (val) {
           val->_float = v;
-          if (sv_player->v.weapon > IT_LIGHTNING) sv_player->v.ammo_cells = v;
+          if (EdictV(sv_player)->weapon > IT_LIGHTNING) 
+            EdictV(sv_player)->ammo_cells = v;
         }
       }
       break;
@@ -1711,24 +1722,24 @@ void Host_Give_f(void) {
     // johnfitz -- give armour
     case 'a':
       if (v > 150) {
-        sv_player->v.armortype = 0.8;
-        sv_player->v.armorvalue = v;
-        sv_player->v.items = sv_player->v.items -
-                             ((int)(sv_player->v.items) &
+        EdictV(sv_player)->armortype = 0.8;
+        EdictV(sv_player)->armorvalue = v;
+        EdictV(sv_player)->items = EdictV(sv_player)->items -
+                             ((int)(EdictV(sv_player)->items) &
                               (int)(IT_ARMOR1 | IT_ARMOR2 | IT_ARMOR3)) +
                              IT_ARMOR3;
       } else if (v > 100) {
-        sv_player->v.armortype = 0.6;
-        sv_player->v.armorvalue = v;
-        sv_player->v.items = sv_player->v.items -
-                             ((int)(sv_player->v.items) &
+        EdictV(sv_player)->armortype = 0.6;
+        EdictV(sv_player)->armorvalue = v;
+        EdictV(sv_player)->items = EdictV(sv_player)->items -
+                             ((int)(EdictV(sv_player)->items) &
                               (int)(IT_ARMOR1 | IT_ARMOR2 | IT_ARMOR3)) +
                              IT_ARMOR2;
       } else if (v >= 0) {
-        sv_player->v.armortype = 0.3;
-        sv_player->v.armorvalue = v;
-        sv_player->v.items = sv_player->v.items -
-                             ((int)(sv_player->v.items) &
+        EdictV(sv_player)->armortype = 0.3;
+        EdictV(sv_player)->armorvalue = v;
+        EdictV(sv_player)->items = EdictV(sv_player)->items -
+                             ((int)(EdictV(sv_player)->items) &
                               (int)(IT_ARMOR1 | IT_ARMOR2 | IT_ARMOR3)) +
                              IT_ARMOR1;
       }
@@ -1738,33 +1749,33 @@ void Host_Give_f(void) {
 
   // johnfitz -- update currentammo to match new ammo (so statusbar updates
   // correctly)
-  switch ((int)(sv_player->v.weapon)) {
+  switch ((int)(EdictV(sv_player)->weapon)) {
     case IT_SHOTGUN:
     case IT_SUPER_SHOTGUN:
-      sv_player->v.currentammo = sv_player->v.ammo_shells;
+      EdictV(sv_player)->currentammo = EdictV(sv_player)->ammo_shells;
       break;
     case IT_NAILGUN:
     case IT_SUPER_NAILGUN:
     case RIT_LAVA_SUPER_NAILGUN:
-      sv_player->v.currentammo = sv_player->v.ammo_nails;
+      EdictV(sv_player)->currentammo = EdictV(sv_player)->ammo_nails;
       break;
     case IT_GRENADE_LAUNCHER:
     case IT_ROCKET_LAUNCHER:
     case RIT_MULTI_GRENADE:
     case RIT_MULTI_ROCKET:
-      sv_player->v.currentammo = sv_player->v.ammo_rockets;
+      EdictV(sv_player)->currentammo = EdictV(sv_player)->ammo_rockets;
       break;
     case IT_LIGHTNING:
     case HIT_LASER_CANNON:
     case HIT_MJOLNIR:
-      sv_player->v.currentammo = sv_player->v.ammo_cells;
+      EdictV(sv_player)->currentammo = EdictV(sv_player)->ammo_cells;
       break;
     case RIT_LAVA_NAILGUN:  // same as IT_AXE
-      if (CMLRogue()) sv_player->v.currentammo = sv_player->v.ammo_nails;
+      if (CMLRogue()) EdictV(sv_player)->currentammo = EdictV(sv_player)->ammo_nails;
       break;
     case RIT_PLASMA_GUN:  // same as HIT_PROXIMITY_GUN
-      if (CMLRogue()) sv_player->v.currentammo = sv_player->v.ammo_cells;
-      if (CMLHipnotic()) sv_player->v.currentammo = sv_player->v.ammo_rockets;
+      if (CMLRogue()) EdictV(sv_player)->currentammo = EdictV(sv_player)->ammo_cells;
+      if (CMLHipnotic()) EdictV(sv_player)->currentammo = EdictV(sv_player)->ammo_rockets;
       break;
   }
   // johnfitz
@@ -1776,7 +1787,7 @@ edict_t *FindViewthing(void) {
 
   for (i = 0; i < SV_NumEdicts(); i++) {
     e = EDICT_NUM(i);
-    if (!strcmp(PR_GetString(e->v.classname), "viewthing")) return e;
+    if (!strcmp(PR_GetString(EdictV(e)->classname), "viewthing")) return e;
   }
   Con_Printf("No viewthing on map\n");
   return NULL;
@@ -1800,8 +1811,8 @@ void Host_Viewmodel_f(void) {
     return;
   }
 
-  e->v.frame = 0;
-  cl.model_precache[(int)e->v.modelindex] = m;
+  EdictV(e)->frame = 0;
+  cl.model_precache[(int)EdictV(e)->modelindex] = m;
 }
 
 /*
@@ -1816,12 +1827,12 @@ void Host_Viewframe_f(void) {
 
   e = FindViewthing();
   if (!e) return;
-  m = cl.model_precache[(int)e->v.modelindex];
+  m = cl.model_precache[(int)EdictV(e)->modelindex];
 
   f = Cmd_ArgvAsInt(1);
   if (f >= m->numframes) f = m->numframes - 1;
 
-  e->v.frame = f;
+  EdictV(e)->frame = f;
 }
 
 void PrintFrameName(qmodel_t *m, int frame) {
@@ -1846,12 +1857,13 @@ void Host_Viewnext_f(void) {
 
   e = FindViewthing();
   if (!e) return;
-  m = cl.model_precache[(int)e->v.modelindex];
+  m = cl.model_precache[(int)EdictV(e)->modelindex];
 
-  e->v.frame = e->v.frame + 1;
-  if (e->v.frame >= m->numframes) e->v.frame = m->numframes - 1;
+  EdictV(e)->frame = EdictV(e)->frame + 1;
+  if (EdictV(e)->frame >= m->numframes) 
+    EdictV(e)->frame = m->numframes - 1;
 
-  PrintFrameName(m, e->v.frame);
+  PrintFrameName(m, EdictV(e)->frame);
 }
 
 /*
@@ -1866,12 +1878,12 @@ void Host_Viewprev_f(void) {
   e = FindViewthing();
   if (!e) return;
 
-  m = cl.model_precache[(int)e->v.modelindex];
+  m = cl.model_precache[(int)EdictV(e)->modelindex];
 
-  e->v.frame = e->v.frame - 1;
-  if (e->v.frame < 0) e->v.frame = 0;
+  EdictV(e)->frame = EdictV(e)->frame - 1;
+  if (EdictV(e)->frame < 0) EdictV(e)->frame = 0;
 
-  PrintFrameName(m, e->v.frame);
+  PrintFrameName(m, EdictV(e)->frame);
 }
 
 /*

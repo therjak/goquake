@@ -742,14 +742,15 @@ void R_ShowBoundingBoxes(void) {
     //			if (!SV_VisibleToClient (sv_player, ed, sv.worldmodel))
     //				continue; //don't draw if not in pvs
 
-    if (ed->v.mins[0] == ed->v.maxs[0] && ed->v.mins[1] == ed->v.maxs[1] &&
-        ed->v.mins[2] == ed->v.maxs[2]) {
+    if (EdictV(ed)->mins[0] == EdictV(ed)->maxs[0] && 
+        EdictV(ed)->mins[1] == EdictV(ed)->maxs[1] &&
+        EdictV(ed)->mins[2] == EdictV(ed)->maxs[2]) {
       // point entity
-      R_EmitWirePoint(ed->v.origin);
+      R_EmitWirePoint(EdictV(ed)->origin);
     } else {
       // box entity
-      VectorAdd(ed->v.mins, ed->v.origin, mins);
-      VectorAdd(ed->v.maxs, ed->v.origin, maxs);
+      VectorAdd(EdictV(ed)->mins, EdictV(ed)->origin, mins);
+      VectorAdd(EdictV(ed)->maxs, EdictV(ed)->origin, maxs);
       R_EmitWireBox(mins, maxs);
     }
   }

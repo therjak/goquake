@@ -89,7 +89,7 @@ Sets everything to NULL
 =================
 */
 void ED_ClearEdict(edict_t *e) {
-  memset(&e->v, 0, progs->entityfields * 4);
+  memset(EdictV(e), 0, progs->entityfields * 4);
   e->free = false;
 }
 
@@ -143,16 +143,16 @@ void ED_Free(edict_t *ed) {
   SV_UnlinkEdict(ed);  // unlink from world bsp
 
   ed->free = true;
-  ed->v.model = 0;
-  ed->v.takedamage = 0;
-  ed->v.modelindex = 0;
-  ed->v.colormap = 0;
-  ed->v.skin = 0;
-  ed->v.frame = 0;
-  VectorCopy(vec3_origin, ed->v.origin);
-  VectorCopy(vec3_origin, ed->v.angles);
-  ed->v.nextthink = -1;
-  ed->v.solid = 0;
+  EdictV(ed)->model = 0;
+  EdictV(ed)->takedamage = 0;
+  EdictV(ed)->modelindex = 0;
+  EdictV(ed)->colormap = 0;
+  EdictV(ed)->skin = 0;
+  EdictV(ed)->frame = 0;
+  VectorCopy(vec3_origin, EdictV(ed)->origin);
+  VectorCopy(vec3_origin, EdictV(ed)->angles);
+  EdictV(ed)->nextthink = -1;
+  EdictV(ed)->solid = 0;
   ed->alpha = ENTALPHA_DEFAULT;  // johnfitz -- reset alpha for next entity
 
   ed->freetime = SV_Time();
@@ -268,7 +268,7 @@ eval_t *GetEdictFieldValue(edict_t *ed, const char *field) {
 Done:
   if (!def) return NULL;
 
-  return (eval_t *)((char *)&ed->v + def->ofs * 4);
+  return (eval_t *)((char *)EdictV(ed) + def->ofs * 4);
 }
 
 /*
@@ -446,7 +446,7 @@ void ED_Print(edict_t *ed) {
     l = strlen(name);
     if (l > 1 && name[l - 2] == '_') continue;  // skip _x, _y, _z vars
 
-    v = (int *)((char *)&ed->v + d->ofs * 4);
+    v = (int *)((char *)EdictV(ed) + d->ofs * 4);
 
     // if the value is still all 0, skip the field
     type = d->type & ~DEF_SAVEGLOBAL;
@@ -492,7 +492,7 @@ void ED_Write(FILE *f, edict_t *ed) {
     j = strlen(name);
     if (j > 1 && name[j - 2] == '_') continue;  // skip _x, _y, _z vars
 
-    v = (int *)((char *)&ed->v + d->ofs * 4);
+    v = (int *)((char *)EdictV(ed) + d->ofs * 4);
 
     // if the value is still all 0, skip the field
     type = d->type & ~DEF_SAVEGLOBAL;
@@ -570,9 +570,9 @@ static void ED_Count(void) {
     ent = EDICT_NUM(i);
     if (ent->free) continue;
     active++;
-    if (ent->v.solid) solid++;
-    if (ent->v.model) models++;
-    if (ent->v.movetype == MOVETYPE_STEP) step++;
+    if (EdictV(ent)->solid) solid++;
+    if (EdictV(ent)->model) models++;
+    if (EdictV(ent)->movetype == MOVETYPE_STEP) step++;
   }
 
   Con_Printf("num_edicts:%3i\n", SV_NumEdicts());
@@ -772,7 +772,7 @@ const char *ED_ParseEdict(const char *data, edict_t *ent) {
 
   // clear it
   if (ent != sv.edicts)  // hack
-    memset(&ent->v, 0, progs->entityfields * 4);
+    memset(EdictV(ent), 0, progs->entityfields * 4);
 
   // go through all the dictionary pairs
   while (1) {
@@ -838,7 +838,7 @@ const char *ED_ParseEdict(const char *data, edict_t *ent) {
       sprintf(com_token, "0 %s 0", temp);
     }
 
-    if (!ED_ParseEpair((void *)&ent->v, key, com_token))
+    if (!ED_ParseEpair((void *)EdictV(ent), key, com_token))
       Host_Error("ED_ParseEdict: parse error");
   }
 
@@ -885,17 +885,17 @@ void ED_LoadFromFile(const char *data) {
 
     // remove things from different skill levels or deathmatch
     if (Cvar_GetValue(&deathmatch)) {
-      if (((int)ent->v.spawnflags & SPAWNFLAG_NOT_DEATHMATCH)) {
+      if (((int)EdictV(ent)->spawnflags & SPAWNFLAG_NOT_DEATHMATCH)) {
         ED_Free(ent);
         inhibit++;
         continue;
       }
     } else if ((current_skill == 0 &&
-                ((int)ent->v.spawnflags & SPAWNFLAG_NOT_EASY)) ||
+                ((int)EdictV(ent)->spawnflags & SPAWNFLAG_NOT_EASY)) ||
                (current_skill == 1 &&
-                ((int)ent->v.spawnflags & SPAWNFLAG_NOT_MEDIUM)) ||
+                ((int)EdictV(ent)->spawnflags & SPAWNFLAG_NOT_MEDIUM)) ||
                (current_skill >= 2 &&
-                ((int)ent->v.spawnflags & SPAWNFLAG_NOT_HARD))) {
+                ((int)EdictV(ent)->spawnflags & SPAWNFLAG_NOT_HARD))) {
       ED_Free(ent);
       inhibit++;
       continue;
@@ -904,7 +904,7 @@ void ED_LoadFromFile(const char *data) {
     //
     // immediately call spawn function
     //
-    if (!ent->v.classname) {
+    if (!EdictV(ent)->classname) {
       Con_SafePrintf("No classname for:\n");  // johnfitz -- was Con_Printf
       ED_Print(ent);
       ED_Free(ent);
@@ -912,7 +912,7 @@ void ED_LoadFromFile(const char *data) {
     }
 
     // look for the spawn function
-    func = ED_FindFunction(PR_GetString(ent->v.classname));
+    func = ED_FindFunction(PR_GetString(EdictV(ent)->classname));
 
     if (!func) {
       Con_SafePrintf("No spawn function for:\n");  // johnfitz -- was Con_Printf
@@ -1053,6 +1053,10 @@ void PR_Init(void) {
 edict_t *EDICT_NUM(int n) {
   if (n < 0 || n >= SV_MaxEdicts()) Host_Error("EDICT_NUM: bad number %i", n);
   return (edict_t *)((byte *)sv.edicts + (n)*pr_edict_size);
+}
+
+entvars_t* EdictV(edict_t *e) {
+  return &(e->vars);
 }
 
 int NUM_FOR_EDICT(edict_t *e) {

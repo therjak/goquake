@@ -471,7 +471,7 @@ void PR_ExecuteProgram(GoInt32 fnum) {
           pr_xstatement = st - pr_statements;
           PR_RunError("assignment to world entity");
         }
-        OPC->_int = (byte *)((int *)&ed->v + OPB->_int) - (byte *)sv.edicts;
+        OPC->_int = (byte *)((int *)EdictV(ed) + OPB->_int) - (byte *)sv.edicts;
         break;
 
       case OP_LOAD_F:
@@ -483,7 +483,7 @@ void PR_ExecuteProgram(GoInt32 fnum) {
 #ifdef PARANOID
         NUM_FOR_EDICT(ed);  // Make sure it's in range
 #endif
-        OPC->_int = ((eval_t *)((int *)&ed->v + OPB->_int))->_int;
+        OPC->_int = ((eval_t *)((int *)EdictV(ed) + OPB->_int))->_int;
         break;
 
       case OP_LOAD_V:
@@ -491,7 +491,7 @@ void PR_ExecuteProgram(GoInt32 fnum) {
 #ifdef PARANOID
         NUM_FOR_EDICT(ed);  // Make sure it's in range
 #endif
-        ptr = (eval_t *)((int *)&ed->v + OPB->_int);
+        ptr = (eval_t *)((int *)EdictV(ed) + OPB->_int);
         OPC->vector[0] = ptr->vector[0];
         OPC->vector[1] = ptr->vector[1];
         OPC->vector[2] = ptr->vector[2];
@@ -550,9 +550,9 @@ void PR_ExecuteProgram(GoInt32 fnum) {
 
       case OP_STATE:
         ed = PROG_TO_EDICT(pr_global_struct->self);
-        ed->v.nextthink = pr_global_struct->time + 0.1;
-        ed->v.frame = OPA->_float;
-        ed->v.think = OPB->function;
+        EdictV(ed)->nextthink = pr_global_struct->time + 0.1;
+        EdictV(ed)->frame = OPA->_float;
+        EdictV(ed)->think = OPB->function;
         break;
 
       default:

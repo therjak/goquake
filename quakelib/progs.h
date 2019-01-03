@@ -31,10 +31,13 @@ typedef struct edict_s {
                             better lerp timing */
 
   float freetime; /* sv.time when the object was freed */
-  entvars_t v;    /* C exported fields from progs */
+  entvars_t vars;    /* C exported fields from progs */
 
   /* other fields from progs come immediately after */
 } edict_t;
+
+
+entvars_t* EdictV(edict_t* e);
 
 #define EDICT_FROM_AREA(l) STRUCT_FROM_LINK(l, edict_t, area)
 
@@ -87,10 +90,10 @@ int NUM_FOR_EDICT(edict_t *e);
 #define G_STRING(o) (PR_GetString(*(GoInt32 *)&pr_globals[o]))
 #define G_FUNCTION(o) (*(GoInt32 *)&pr_globals[o])
 
-#define E_FLOAT(e, o) (((float *)&e->v)[o])
-#define E_INT(e, o) (*(int *)&((float *)&e->v)[o])
-#define E_VECTOR(e, o) (&((float *)&e->v)[o])
-#define E_STRING(e, o) (PR_GetString(*(GoInt32 *)&((float *)&e->v)[o]))
+#define E_FLOAT(e, o) (((float *)EdictV(e))[o])
+#define E_INT(e, o) (*(int *)&((float *)EdictV(e))[o])
+#define E_VECTOR(e, o) (&((float *)EdictV(e))[o])
+#define E_STRING(e, o) (PR_GetString(*(GoInt32 *)&((float *)EdictV(e))[o]))
 
 extern int type_size[8];
 

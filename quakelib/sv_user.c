@@ -44,16 +44,16 @@ void SV_SetIdealPitch(void) {
   int i, j;
   int step, dir, steps;
 
-  if (!((int)sv_player->v.flags & FL_ONGROUND)) return;
+  if (!((int)EdictV(sv_player)->flags & FL_ONGROUND)) return;
 
-  angleval = sv_player->v.angles[YAW] * M_PI * 2 / 360;
+  angleval = EdictV(sv_player)->angles[YAW] * M_PI * 2 / 360;
   sinval = sin(angleval);
   cosval = cos(angleval);
 
   for (i = 0; i < MAX_FORWARD; i++) {
-    top[0] = sv_player->v.origin[0] + cosval * (i + 3) * 12;
-    top[1] = sv_player->v.origin[1] + sinval * (i + 3) * 12;
-    top[2] = sv_player->v.origin[2] + sv_player->v.view_ofs[2];
+    top[0] = EdictV(sv_player)->origin[0] + cosval * (i + 3) * 12;
+    top[1] = EdictV(sv_player)->origin[1] + sinval * (i + 3) * 12;
+    top[2] = EdictV(sv_player)->origin[2] + EdictV(sv_player)->view_ofs[2];
 
     bottom[0] = top[0];
     bottom[1] = top[1];
@@ -81,12 +81,12 @@ void SV_SetIdealPitch(void) {
   }
 
   if (!dir) {
-    sv_player->v.idealpitch = 0;
+    EdictV(sv_player)->idealpitch = 0;
     return;
   }
 
   if (steps < 2) return;
-  sv_player->v.idealpitch = -dir * Cvar_GetValue(&sv_idealpitchscale);
+  EdictV(sv_player)->idealpitch = -dir * Cvar_GetValue(&sv_idealpitchscale);
 }
 
 /*
@@ -110,7 +110,7 @@ void SV_UserFriction(edict_t *player) {
   // if the leading edge is over a dropoff, increase friction
   start[0] = stop[0] = origin[0] + vel[0] / speed * 16;
   start[1] = stop[1] = origin[1] + vel[1] / speed * 16;
-  start[2] = origin[2] + player->v.mins[2];
+  start[2] = origin[2] + EdictV(player)->mins[2];
   stop[2] = start[2] - 34;
 
   trace = SV_Move(start, vec3_origin, vec3_origin, stop, true, player);
@@ -171,11 +171,11 @@ void SV_AirAccelerate(float wishspeed, vec3_t wishveloc) {
 void DropPunchAngle(edict_t *player) {
   float len;
 
-  len = VectorNormalize(player->v.punchangle);
+  len = VectorNormalize(EdictV(player)->punchangle);
 
   len -= 10 * HostFrameTime();
   if (len < 0) len = 0;
-  VectorScale(player->v.punchangle, len, player->v.punchangle);
+  VectorScale(EdictV(player)->punchangle, len, EdictV(player)->punchangle);
 }
 
 /*
@@ -192,7 +192,7 @@ void SV_WaterMove(edict_t *player, movecmd_t *cmd) {
   //
   // user intentions
   //
-  AngleVectors(player->v.v_angle, forward, right, up);
+  AngleVectors(EdictV(player)->v_angle, forward, right, up);
 
   for (i = 0; i < 3; i++)
     wishvel[i] = forward[i] * cmd->forwardmove + right[i] * cmd->sidemove;
@@ -236,12 +236,12 @@ void SV_WaterMove(edict_t *player, movecmd_t *cmd) {
 }
 
 void SV_WaterJump(edict_t *player) {
-  if (SV_Time() > player->v.teleport_time || !player->v.waterlevel) {
-    player->v.flags = (int)player->v.flags & ~FL_WATERJUMP;
-    player->v.teleport_time = 0;
+  if (SV_Time() > EdictV(player)->teleport_time || !EdictV(player)->waterlevel) {
+    EdictV(player)->flags = (int)EdictV(player)->flags & ~FL_WATERJUMP;
+    EdictV(player)->teleport_time = 0;
   }
-  player->v.velocity[0] = player->v.movedir[0];
-  player->v.velocity[1] = player->v.movedir[1];
+  EdictV(player)->velocity[0] = EdictV(player)->movedir[0];
+  EdictV(player)->velocity[1] = EdictV(player)->movedir[1];
 }
 
 /*
@@ -252,7 +252,7 @@ new, alternate noclip. old noclip is still handled in SV_AirMove
 ===================
 */
 void SV_NoclipMove(edict_t *player, movecmd_t *cmd) {
-  AngleVectors(player->v.v_angle, forward, right, up);
+  AngleVectors(EdictV(player)->v_angle, forward, right, up);
 
   velocity[0] = forward[0] * cmd->forwardmove + right[0] * cmd->sidemove;
   velocity[1] = forward[1] * cmd->forwardmove + right[1] * cmd->sidemove;
@@ -276,17 +276,17 @@ void SV_AirMove(edict_t *player, movecmd_t *cmd) {
   float wishspeed;
   float fmove, smove;
 
-  AngleVectors(player->v.angles, forward, right, up);
+  AngleVectors(EdictV(player)->angles, forward, right, up);
 
   fmove = cmd->forwardmove;
   smove = cmd->sidemove;
 
   // hack to not let you back into teleporter
-  if (SV_Time() < player->v.teleport_time && fmove < 0) fmove = 0;
+  if (SV_Time() < EdictV(player)->teleport_time && fmove < 0) fmove = 0;
 
   for (i = 0; i < 3; i++) wishvel[i] = forward[i] * fmove + right[i] * smove;
 
-  if ((int)player->v.movetype != MOVETYPE_WALK)
+  if ((int)EdictV(player)->movetype != MOVETYPE_WALK)
     wishvel[2] = cmd->upmove;
   else
     wishvel[2] = 0;
@@ -298,7 +298,7 @@ void SV_AirMove(edict_t *player, movecmd_t *cmd) {
     wishspeed = Cvar_GetValue(&sv_maxspeed);
   }
 
-  if (player->v.movetype == MOVETYPE_NOCLIP) {  // noclip
+  if (EdictV(player)->movetype == MOVETYPE_NOCLIP) {  // noclip
     VectorCopy(wishvel, velocity);
   } else if (onground) {
     SV_UserFriction(player);
@@ -321,34 +321,34 @@ void SV_ClientThink(int client) {
   edict_t *player = SV_GetEdict(client);
   vec3_t v_angle;
 
-  if (player->v.movetype == MOVETYPE_NONE) return;
+  if (EdictV(player)->movetype == MOVETYPE_NONE) return;
 
-  onground = (int)player->v.flags & FL_ONGROUND;
+  onground = (int)EdictV(player)->flags & FL_ONGROUND;
 
-  origin = player->v.origin;
-  velocity = player->v.velocity;
+  origin = EdictV(player)->origin;
+  velocity = EdictV(player)->velocity;
 
   DropPunchAngle(player);
 
   //
   // if dead, behave differently
   //
-  if (player->v.health <= 0) return;
+  if (EdictV(player)->health <= 0) return;
 
   //
   // angles
   // show 1/3 the pitch angle and all the roll angle
   cmd = GetClientMoveCmd(client);
-  angles = player->v.angles;
+  angles = EdictV(player)->angles;
 
-  VectorAdd(player->v.v_angle, player->v.punchangle, v_angle);
-  angles[ROLL] = V_CalcRoll(player->v.angles, player->v.velocity) * 4;
-  if (!player->v.fixangle) {
+  VectorAdd(EdictV(player)->v_angle, EdictV(player)->punchangle, v_angle);
+  angles[ROLL] = V_CalcRoll(EdictV(player)->angles, EdictV(player)->velocity) * 4;
+  if (!EdictV(player)->fixangle) {
     angles[PITCH] = -v_angle[PITCH] / 3;
     angles[YAW] = v_angle[YAW];
   }
 
-  if ((int)player->v.flags & FL_WATERJUMP) {
+  if ((int)EdictV(player)->flags & FL_WATERJUMP) {
     SV_WaterJump(player);
     return;
   }
@@ -356,10 +356,10 @@ void SV_ClientThink(int client) {
   // walk
   //
   // johnfitz -- alternate noclip
-  if (player->v.movetype == MOVETYPE_NOCLIP && Cvar_GetValue(&sv_altnoclip)) {
+  if (EdictV(player)->movetype == MOVETYPE_NOCLIP && Cvar_GetValue(&sv_altnoclip)) {
     SV_NoclipMove(player, &cmd);
-  } else if (player->v.waterlevel >= 2 &&
-             player->v.movetype != MOVETYPE_NOCLIP) {
+  } else if (EdictV(player)->waterlevel >= 2 &&
+             EdictV(player)->movetype != MOVETYPE_NOCLIP) {
     SV_WaterMove(player, &cmd);
   } else {
     SV_AirMove(player, &cmd);
@@ -394,7 +394,7 @@ void SV_ReadClientMove(int client) {
       angle[i] = MSG_ReadAngle16();
   // johnfitz
 
-  VectorCopy(angle, player->v.v_angle);
+  VectorCopy(angle, EdictV(player)->v_angle);
 
   // read movement
   move.forwardmove = MSG_ReadShort();
@@ -404,11 +404,11 @@ void SV_ReadClientMove(int client) {
 
   // read buttons
   bits = MSG_ReadByte();
-  player->v.button0 = bits & 1;
-  player->v.button2 = (bits & 2) >> 1;
+  EdictV(player)->button0 = bits & 1;
+  EdictV(player)->button2 = (bits & 2) >> 1;
 
   i = MSG_ReadByte();
-  if (i) player->v.impulse = i;
+  if (i) EdictV(player)->impulse = i;
 }
 
 /*
