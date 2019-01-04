@@ -81,6 +81,15 @@ cvar_t saved2;
 cvar_t saved3;
 cvar_t saved4;
 
+
+void TT_ClearEdict(edict_t* e) {
+  memset(e, 0, pr_edict_size);
+}
+
+void TT_ClearEntVars(entvars_t* e) {
+  memset(e, 0, progs->entityfields * 4);
+}
+
 /*
 =================
 ED_ClearEdict
@@ -89,7 +98,7 @@ Sets everything to NULL
 =================
 */
 void ED_ClearEdict(edict_t *e) {
-  memset(EdictV(e), 0, progs->entityfields * 4);
+  TT_ClearEntVars(EdictV(e));
   e->free = false;
 }
 
@@ -124,9 +133,10 @@ edict_t *ED_Alloc(void) {
 
   SV_SetNumEdicts(SV_NumEdicts()+1);
   e = EDICT_NUM(i);
-  memset(e, 0, pr_edict_size);  // ericw -- switched sv.edicts to malloc(), so
-                                // we are accessing uninitialized memory and
-                                // must fully zero it, not just ED_ClearEdict
+  TT_ClearEdict(e);
+  // ericw -- switched sv.edicts to malloc(), so
+  // we are accessing uninitialized memory and
+  // must fully zero it, not just ED_ClearEdict
 
   return e;
 }
@@ -772,7 +782,7 @@ const char *ED_ParseEdict(const char *data, edict_t *ent) {
 
   // clear it
   if (ent != sv.edicts)  // hack
-    memset(EdictV(ent), 0, progs->entityfields * 4);
+    TT_ClearEntVars(EdictV(ent));
 
   // go through all the dictionary pairs
   while (1) {

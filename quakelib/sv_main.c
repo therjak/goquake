@@ -1023,15 +1023,15 @@ void SV_SpawnServer(const char *server) {
   /* Host_ClearMemory() called above already cleared the whole sv structure */
   SV_SetMaxEdicts(CLAMP(MIN_EDICTS, (int)Cvar_GetValue(&max_edicts),
                         MAX_EDICTS));  // johnfitz -- max_edicts cvar
-  sv.edicts = (edict_t *)malloc(
-      SV_MaxEdicts() *
-      pr_edict_size);  // ericw -- sv.edicts switched to use malloc()
+  sv.edicts = (edict_t *)malloc(SV_MaxEdicts() * pr_edict_size);  
+  // ericw -- sv.edicts switched to use malloc()
 
   // leave slots at start for clients only
   SV_SetNumEdicts(SVS_GetMaxClients() + 1);
-  memset(sv.edicts, 0,
-         SV_NumEdicts() *
-             pr_edict_size);  // ericw -- sv.edicts switched to use malloc()
+  for (i = 0; i < SV_NumEdicts(); i++) {
+    TT_ClearEdict(EDICT_NUM(i));
+  }
+  // ericw -- sv.edicts switched to use malloc()
   for (i = 0; i < SVS_GetMaxClients(); i++) {
     SV_SetEdictNum(i, i + 1);
   }
@@ -1068,7 +1068,7 @@ void SV_SpawnServer(const char *server) {
   // load the rest of the entities
   //
   ent = EDICT_NUM(0);
-  memset(EdictV(ent), 0, progs->entityfields * 4);
+  TT_ClearEntVars(EdictV(ent));
   ent->free = false;
   EdictV(ent)->model = PR_SetEngineString(sv.worldmodel->name);
   EdictV(ent)->modelindex = 1;  // world model

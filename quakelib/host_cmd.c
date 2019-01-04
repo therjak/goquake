@@ -1054,9 +1054,9 @@ void Host_Loadgame_f(void) {
       ent = EDICT_NUM(entnum);
       if (entnum < SV_NumEdicts()) {
         ent->free = false;
-        memset(EdictV(ent), 0, progs->entityfields * 4);
+        TT_ClearEntVars(EdictV(ent));
       } else {
-        memset(ent, 0, pr_edict_size);
+        TT_ClearEdict(ent);
       }
       ED_ParseEdict(start, ent);
 
@@ -1382,7 +1382,7 @@ void Host_Spawn_f(void) {
     // set up the edict
     ent = SV_GetEdict(HostClient());
 
-    memset(EdictV(ent), 0, progs->entityfields * 4);
+    TT_ClearEntVars(EdictV(ent));
     EdictV(ent)->colormap = NUM_FOR_EDICT(ent);
     EdictV(ent)->team = (GetClientColors(HostClient()) & 15) + 1;
     // TODO(therjak): This is a memory leak!!!
