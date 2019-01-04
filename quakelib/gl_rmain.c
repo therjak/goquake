@@ -738,10 +738,6 @@ void R_ShowBoundingBoxes(void) {
        i++, ed = NEXT_EDICT(ed)) {
     if (ed == sv_player) continue;  // don't draw player's own bbox
 
-    //		if (Cvar_GetValue(&r_showbboxes) != 2)
-    //			if (!SV_VisibleToClient (sv_player, ed, sv.worldmodel))
-    //				continue; //don't draw if not in pvs
-
     if (EdictV(ed)->mins[0] == EdictV(ed)->maxs[0] && 
         EdictV(ed)->mins[1] == EdictV(ed)->maxs[1] &&
         EdictV(ed)->mins[2] == EdictV(ed)->maxs[2]) {

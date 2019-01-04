@@ -372,29 +372,6 @@ byte *SV_FatPVS(
   return fatpvs;
 }
 
-/*
-=============
-SV_VisibleToClient -- johnfitz
-
-PVS test encapsulated in a nice function
-=============
-*/
-qboolean SV_VisibleToClient(edict_t *client, edict_t *test,
-                            qmodel_t *worldmodel) {
-  byte *pvs;
-  vec3_t org;
-  int i;
-
-  VectorAdd(EdictV(client)->origin, EdictV(client)->view_ofs, org);
-  pvs = SV_FatPVS(org, worldmodel);
-
-  for (i = 0; i < test->num_leafs; i++)
-    if (pvs[test->leafnums[i] >> 3] & (1 << (test->leafnums[i] & 7)))
-      return true;
-
-  return false;
-}
-
 //=============================================================================
 
 /*
