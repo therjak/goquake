@@ -118,7 +118,7 @@ Offset is filled in to contain the adjustment that must be added to the
 testing object's origin to get a point to use with the returned hull.
 ================
 */
-hull_t *SV_HullForEntity(edict_t *ent, vec3_t mins, vec3_t maxs,
+hull_t *SV_HullForEntity(entvars_t *ent, vec3_t mins, vec3_t maxs,
                          vec3_t offset) {
   qmodel_t *model;
   vec3_t size;
@@ -126,11 +126,11 @@ hull_t *SV_HullForEntity(edict_t *ent, vec3_t mins, vec3_t maxs,
   hull_t *hull;
 
   // decide which clipping hull to use, based on the size
-  if (EdictV(ent)->solid == SOLID_BSP) {  // explicit hulls in the BSP model
-    if (EdictV(ent)->movetype != MOVETYPE_PUSH)
+  if (ent->solid == SOLID_BSP) {  // explicit hulls in the BSP model
+    if (ent->movetype != MOVETYPE_PUSH)
       Go_Error("SOLID_BSP without MOVETYPE_PUSH");
 
-    model = sv.models[(int)EdictV(ent)->modelindex];
+    model = sv.models[(int)ent->modelindex];
 
     if (!model || model->type != mod_brush)
       Go_Error("MOVETYPE_PUSH with a non bsp model");
@@ -145,14 +145,14 @@ hull_t *SV_HullForEntity(edict_t *ent, vec3_t mins, vec3_t maxs,
 
     // calculate an offset value to center the origin
     VectorSubtract(hull->clip_mins, mins, offset);
-    VectorAdd(offset, EdictV(ent)->origin, offset);
+    VectorAdd(offset, ent->origin, offset);
   } else {  // create a temp hull from bounding box sizes
 
-    VectorSubtract(EdictV(ent)->mins, maxs, hullmins);
-    VectorSubtract(EdictV(ent)->maxs, mins, hullmaxs);
+    VectorSubtract(ent->mins, maxs, hullmins);
+    VectorSubtract(ent->maxs, mins, hullmaxs);
     hull = SV_HullForBox(hullmins, hullmaxs);
 
-    VectorCopy(EdictV(ent)->origin, offset);
+    VectorCopy(ent->origin, offset);
   }
 
   return hull;
@@ -649,7 +649,7 @@ trace_t SV_ClipMoveToEntity(edict_t *ent, vec3_t start, vec3_t mins,
   VectorCopy(end, trace.endpos);
 
   // get the clipping hull
-  hull = SV_HullForEntity(ent, mins, maxs, offset);
+  hull = SV_HullForEntity(EdictV(ent), mins, maxs, offset);
 
   VectorSubtract(start, offset, start_l);
   VectorSubtract(end, offset, end_l);

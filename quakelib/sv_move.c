@@ -256,7 +256,7 @@ SV_NewChaseDir
 ================
 */
 #define DI_NODIR -1
-void SV_NewChaseDir(edict_t *actor, edict_t *enemy, float dist) {
+void SV_NewChaseDir(edict_t *actor, entvars_t *enemy, float dist) {
   float deltax, deltay;
   float d[3];
   float tdir, olddir, turnaround;
@@ -264,8 +264,8 @@ void SV_NewChaseDir(edict_t *actor, edict_t *enemy, float dist) {
   olddir = anglemod((int)(EdictV(actor)->ideal_yaw / 45) * 45);
   turnaround = anglemod(olddir - 180);
 
-  deltax = EdictV(enemy)->origin[0] - EdictV(actor)->origin[0];
-  deltay = EdictV(enemy)->origin[1] - EdictV(actor)->origin[1];
+  deltax = enemy->origin[0] - EdictV(actor)->origin[0];
+  deltay = enemy->origin[1] - EdictV(actor)->origin[1];
   if (deltax > 10)
     d[1] = 0;
   else if (deltax < -10)
@@ -334,12 +334,12 @@ SV_CloseEnough
 
 ======================
 */
-qboolean SV_CloseEnough(edict_t *ent, edict_t *goal, float dist) {
+qboolean SV_CloseEnough(entvars_t *ent, entvars_t *goal, float dist) {
   int i;
 
   for (i = 0; i < 3; i++) {
-    if (EdictV(goal)->absmin[i] > EdictV(ent)->absmax[i] + dist) return false;
-    if (EdictV(goal)->absmax[i] < EdictV(ent)->absmin[i] - dist) return false;
+    if (goal->absmin[i] > ent->absmax[i] + dist) return false;
+    if (goal->absmax[i] < ent->absmin[i] - dist) return false;
   }
   return true;
 }
@@ -365,11 +365,11 @@ void SV_MoveToGoal(void) {
 
   // if the next step hits the enemy, return immediately
   if (PROG_TO_EDICT(EdictV(ent)->enemy) != sv.edicts &&
-      SV_CloseEnough(ent, goal, dist))
+      SV_CloseEnough(EdictV(ent), EdictV(goal), dist))
     return;
 
   // bump around...
   if ((rand() & 3) == 1 || !SV_StepDirection(ent, EdictV(ent)->ideal_yaw, dist)) {
-    SV_NewChaseDir(ent, goal, dist);
+    SV_NewChaseDir(ent, EdictV(goal), dist);
   }
 }
