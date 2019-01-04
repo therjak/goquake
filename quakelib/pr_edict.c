@@ -245,7 +245,7 @@ static dfunction_t *ED_FindFunction(const char *fn_name) {
 GetEdictFieldValue
 ============
 */
-eval_t *GetEdictFieldValue(edict_t *ed, const char *field) {
+eval_t *GetEdictFieldValue(entvars_t *ev, const char *field) {
   ddef_t *def = NULL;
   int i;
   static int rep = 0;
@@ -268,7 +268,7 @@ eval_t *GetEdictFieldValue(edict_t *ed, const char *field) {
 Done:
   if (!def) return NULL;
 
-  return (eval_t *)((char *)EdictV(ed) + def->ofs * 4);
+  return (eval_t *)((char *)ev + def->ofs * 4);
 }
 
 /*

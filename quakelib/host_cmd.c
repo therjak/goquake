@@ -1637,7 +1637,7 @@ void Host_Give_f(void) {
 
     case 's':
       if (CMLRogue()) {
-        val = GetEdictFieldValue(sv_player, "ammo_shells1");
+        val = GetEdictFieldValue(EdictV(sv_player), "ammo_shells1");
         if (val) val->_float = v;
       }
       EdictV(sv_player)->ammo_shells = v;
@@ -1645,7 +1645,7 @@ void Host_Give_f(void) {
 
     case 'n':
       if (CMLRogue()) {
-        val = GetEdictFieldValue(sv_player, "ammo_nails1");
+        val = GetEdictFieldValue(EdictV(sv_player), "ammo_nails1");
         if (val) {
           val->_float = v;
           if (EdictV(sv_player)->weapon <= IT_LIGHTNING) 
@@ -1658,7 +1658,7 @@ void Host_Give_f(void) {
 
     case 'l':
       if (CMLRogue()) {
-        val = GetEdictFieldValue(sv_player, "ammo_lava_nails");
+        val = GetEdictFieldValue(EdictV(sv_player), "ammo_lava_nails");
         if (val) {
           val->_float = v;
           if (EdictV(sv_player)->weapon > IT_LIGHTNING) 
@@ -1669,7 +1669,7 @@ void Host_Give_f(void) {
 
     case 'r':
       if (CMLRogue()) {
-        val = GetEdictFieldValue(sv_player, "ammo_rockets1");
+        val = GetEdictFieldValue(EdictV(sv_player), "ammo_rockets1");
         if (val) {
           val->_float = v;
           if (EdictV(sv_player)->weapon <= IT_LIGHTNING)
@@ -1682,7 +1682,7 @@ void Host_Give_f(void) {
 
     case 'm':
       if (CMLRogue()) {
-        val = GetEdictFieldValue(sv_player, "ammo_multi_rockets");
+        val = GetEdictFieldValue(EdictV(sv_player), "ammo_multi_rockets");
         if (val) {
           val->_float = v;
           if (EdictV(sv_player)->weapon > IT_LIGHTNING) 
@@ -1697,7 +1697,7 @@ void Host_Give_f(void) {
 
     case 'c':
       if (CMLRogue()) {
-        val = GetEdictFieldValue(sv_player, "ammo_cells1");
+        val = GetEdictFieldValue(EdictV(sv_player), "ammo_cells1");
         if (val) {
           val->_float = v;
           if (EdictV(sv_player)->weapon <= IT_LIGHTNING) 
@@ -1710,7 +1710,7 @@ void Host_Give_f(void) {
 
     case 'p':
       if (CMLRogue()) {
-        val = GetEdictFieldValue(sv_player, "ammo_plasma");
+        val = GetEdictFieldValue(EdictV(sv_player), "ammo_plasma");
         if (val) {
           val->_float = v;
           if (EdictV(sv_player)->weapon > IT_LIGHTNING) 

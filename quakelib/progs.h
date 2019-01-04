@@ -115,6 +115,6 @@ void PR_RunError(const char *error, ...);
 void ED_PrintEdicts(void);
 void ED_PrintNum(int ent);
 
-eval_t *GetEdictFieldValue(edict_t *ed, const char *field);
+eval_t *GetEdictFieldValue(entvars_t *ev, const char *field);
 
 #endif /* _QUAKE_PROGS_H */
