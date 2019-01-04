@@ -243,10 +243,10 @@ SV_FixCheckBottom
 
 ======================
 */
-void SV_FixCheckBottom(edict_t *ent) {
+void SV_FixCheckBottom(entvars_t *ent) {
   //	Con_Printf ("SV_FixCheckBottom\n");
 
-  EdictV(ent)->flags = (int)EdictV(ent)->flags | FL_PARTIALGROUND;
+  ent->flags = (int)ent->flags | FL_PARTIALGROUND;
 }
 
 /*
@@ -325,7 +325,7 @@ void SV_NewChaseDir(edict_t *actor, edict_t *enemy, float dist) {
   // if a bridge was pulled out from underneath a monster, it may not have
   // a valid standing position at all
 
-  if (!SV_CheckBottom(actor)) SV_FixCheckBottom(actor);
+  if (!SV_CheckBottom(actor)) SV_FixCheckBottom(EdictV(actor));
 }
 
 /*
