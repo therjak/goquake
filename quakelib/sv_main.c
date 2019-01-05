@@ -1023,7 +1023,7 @@ void SV_SpawnServer(const char *server) {
   /* Host_ClearMemory() called above already cleared the whole sv structure */
   SV_SetMaxEdicts(CLAMP(MIN_EDICTS, (int)Cvar_GetValue(&max_edicts),
                         MAX_EDICTS));  // johnfitz -- max_edicts cvar
-  sv.edicts = (edict_t *)malloc(SV_MaxEdicts() * pr_edict_size);  
+  sv.edicts = AllocEdicts();
   // ericw -- sv.edicts switched to use malloc()
 
   // leave slots at start for clients only

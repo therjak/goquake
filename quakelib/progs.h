@@ -49,8 +49,6 @@ extern dstatement_t *pr_statements;
 extern globalvars_t *pr_global_struct;
 extern float *pr_globals; /* same as pr_global_struct */
 
-extern int pr_edict_size; /* in bytes */
-
 void PR_Init(void);
 
 void PR_ExecuteProgram(GoInt32 fnum);
@@ -77,13 +75,16 @@ void ED_ParseGlobals(const char *data);
 
 void ED_LoadFromFile(const char *data);
 
+
+edict_t *AllocEdicts();
 edict_t *EDICT_NUM(int n);
 int NUM_FOR_EDICT(edict_t *e);
 
-#define NEXT_EDICT(e) ((edict_t *)((byte *)e + pr_edict_size))
-
-#define EDICT_TO_PROG(e) ((byte *)e - (byte *)sv.edicts)
-#define PROG_TO_EDICT(e) ((edict_t *)((byte *)sv.edicts + e))
+edict_t *NEXT_EDICT(edict_t *e);
+int EDICT_TO_PROG(edict_t *e);
+edict_t *PROG_TO_EDICT(int e);
+//#define EDICT_TO_PROG(e) ((byte *)e - (byte *)sv.edicts)
+//#define PROG_TO_EDICT(e) ((edict_t *)((byte *)sv.edicts + e))
 
 #define G_FLOAT(o) (pr_globals[o])
 #define G_INT(o) (*(int *)&pr_globals[o])

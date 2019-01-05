@@ -82,14 +82,6 @@ cvar_t saved3;
 cvar_t saved4;
 
 
-void TT_ClearEdict(edict_t* e) {
-  memset(e, 0, pr_edict_size);
-}
-
-void TT_ClearEntVars(entvars_t* e) {
-  memset(e, 0, progs->entityfields * 4);
-}
-
 /*
 =================
 ED_ClearEdict
@@ -1037,6 +1029,45 @@ void PR_LoadProgs(void) {
   pr_edict_size &= ~(sizeof(void *) - 1);
 }
 
+void TT_ClearEdict(edict_t* e) {
+  memset(e, 0, pr_edict_size);
+}
+
+void TT_ClearEntVars(entvars_t* e) {
+  memset(e, 0, progs->entityfields * 4);
+}
+
+edict_t *NEXT_EDICT(edict_t *e) {
+  return ((edict_t *)((byte *)e + pr_edict_size));
+}
+
+edict_t *EDICT_NUM(int n) {
+  if (n < 0 || n >= SV_MaxEdicts()) Host_Error("EDICT_NUM: bad number %i", n);
+  return (edict_t *)((byte *)sv.edicts + (n)*pr_edict_size);
+}
+
+int NUM_FOR_EDICT(edict_t *e) {
+  int b;
+
+  b = (byte *)e - (byte *)sv.edicts;
+  b = b / pr_edict_size;
+
+  if (b < 0 || b >= SV_NumEdicts()) Host_Error("NUM_FOR_EDICT: bad pointer");
+  return b;
+}
+
+edict_t *AllocEdicts() {
+  return (edict_t *)malloc(SV_MaxEdicts() * pr_edict_size);
+}
+
+int EDICT_TO_PROG(edict_t *e) {
+  return ((byte *)e - (byte *)sv.edicts);
+}
+
+edict_t * PROG_TO_EDICT(int e) {
+  return ((edict_t *)((byte *)sv.edicts + e));
+}
+
 /*
 ===============
 PR_Init
@@ -1060,23 +1091,8 @@ void PR_Init(void) {
   Cvar_FakeRegister(&saved4, "saved4");
 }
 
-edict_t *EDICT_NUM(int n) {
-  if (n < 0 || n >= SV_MaxEdicts()) Host_Error("EDICT_NUM: bad number %i", n);
-  return (edict_t *)((byte *)sv.edicts + (n)*pr_edict_size);
-}
-
 entvars_t* EdictV(edict_t *e) {
   return &(e->vars);
-}
-
-int NUM_FOR_EDICT(edict_t *e) {
-  int b;
-
-  b = (byte *)e - (byte *)sv.edicts;
-  b = b / pr_edict_size;
-
-  if (b < 0 || b >= SV_NumEdicts()) Host_Error("NUM_FOR_EDICT: bad pointer");
-  return b;
 }
 
 //===========================================================================
