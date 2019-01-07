@@ -24,20 +24,18 @@ typedef struct edict_s {
   int leafnums[MAX_ENT_LEAFS];
 
   entity_state_t baseline;
-  unsigned char
-      alpha; /* johnfitz -- hack to support alpha since it's not part of
-                entvars_t */
+  unsigned char alpha; /* johnfitz -- hack to support alpha since it's not part
+                          of entvars_t */
   qboolean sendinterval; /* johnfitz -- send time until nextthink to client for
                             better lerp timing */
 
   float freetime; /* sv.time when the object was freed */
-  entvars_t vars;    /* C exported fields from progs */
+  entvars_t vars; /* C exported fields from progs */
 
   /* other fields from progs come immediately after */
 } edict_t;
 
-
-entvars_t* EdictV(edict_t* e);
+entvars_t *EdictV(edict_t *e);
 
 #define EDICT_FROM_AREA(l) STRUCT_FROM_LINK(l, edict_t, area)
 
@@ -60,8 +58,8 @@ int PR_AllocString(int bufferlength, char **ptr);
 
 void PR_Profile_f(void);
 
-void TT_ClearEdict(edict_t* e);
-void TT_ClearEntVars(entvars_t* e);
+void TT_ClearEdict(edict_t *e);
+void TT_ClearEntVars(entvars_t *e);
 
 edict_t *ED_Alloc(void);
 void ED_Free(edict_t *ed);
@@ -75,7 +73,6 @@ void ED_ParseGlobals(const char *data);
 
 void ED_LoadFromFile(const char *data);
 
-
 edict_t *AllocEdicts();
 edict_t *EDICT_NUM(int n);
 int NUM_FOR_EDICT(edict_t *e);
@@ -84,9 +81,10 @@ edict_t *NEXT_EDICT(edict_t *e);
 int EDICT_TO_PROG(edict_t *e);
 edict_t *PROG_TO_EDICT(int e);
 
+edict_t *G_EDICT(int o);
+
 #define G_FLOAT(o) (pr_globals[o])
 #define G_INT(o) (*(int *)&pr_globals[o])
-#define G_EDICT(o) ((edict_t *)((byte *)sv.edicts + *(int *)&pr_globals[o]))
 #define G_EDICTNUM(o) NUM_FOR_EDICT(G_EDICT(o))
 #define G_VECTOR(o) (&pr_globals[o])
 #define G_STRING(o) (PR_GetString(*(GoInt32 *)&pr_globals[o]))

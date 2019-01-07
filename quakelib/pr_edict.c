@@ -81,7 +81,6 @@ cvar_t saved2;
 cvar_t saved3;
 cvar_t saved4;
 
-
 /*
 =================
 ED_ClearEdict
@@ -120,10 +119,10 @@ edict_t *ED_Alloc(void) {
   }
 
   if (i == SV_MaxEdicts())  // johnfitz -- use sv.max_edicts instead of
-                           // MAX_EDICTS
+                            // MAX_EDICTS
     Host_Error("ED_Alloc: no free edicts (max_edicts is %i)", SV_MaxEdicts());
 
-  SV_SetNumEdicts(SV_NumEdicts()+1);
+  SV_SetNumEdicts(SV_NumEdicts() + 1);
   e = EDICT_NUM(i);
   TT_ClearEdict(e);
   // ericw -- switched sv.edicts to malloc(), so
@@ -1029,13 +1028,9 @@ void PR_LoadProgs(void) {
   pr_edict_size &= ~(sizeof(void *) - 1);
 }
 
-void TT_ClearEdict(edict_t* e) {
-  memset(e, 0, pr_edict_size);
-}
+void TT_ClearEdict(edict_t *e) { memset(e, 0, pr_edict_size); }
 
-void TT_ClearEntVars(entvars_t* e) {
-  memset(e, 0, progs->entityfields * 4);
-}
+void TT_ClearEntVars(entvars_t *e) { memset(e, 0, progs->entityfields * 4); }
 
 edict_t *NEXT_EDICT(edict_t *e) {
   return ((edict_t *)((byte *)e + pr_edict_size));
@@ -1060,13 +1055,11 @@ edict_t *AllocEdicts() {
   return (edict_t *)malloc(SV_MaxEdicts() * pr_edict_size);
 }
 
-int EDICT_TO_PROG(edict_t *e) {
-  return ((byte *)e - (byte *)sv.edicts);
-}
+int EDICT_TO_PROG(edict_t *e) { return NUM_FOR_EDICT(e); }
 
-edict_t * PROG_TO_EDICT(int e) {
-  return ((edict_t *)((byte *)sv.edicts + e));
-}
+edict_t *PROG_TO_EDICT(int e) { return EDICT_NUM(e); }
+
+edict_t *G_EDICT(int o) { return EDICT_NUM(*(int *)&pr_globals[o]); }
 
 /*
 ===============
@@ -1091,9 +1084,7 @@ void PR_Init(void) {
   Cvar_FakeRegister(&saved4, "saved4");
 }
 
-entvars_t* EdictV(edict_t *e) {
-  return &(e->vars);
-}
+entvars_t *EdictV(edict_t *e) { return &(e->vars); }
 
 //===========================================================================
 
