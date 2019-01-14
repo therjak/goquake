@@ -30,7 +30,7 @@ typedef struct edict_s {
                             better lerp timing */
 
   float freetime; /* sv.time when the object was freed */
-  entvars_t vars; /* C exported fields from progs */
+  // entvars_t vars; /* C exported fields from progs */
 
   /* other fields from progs come immediately after */
 } edict_t;
@@ -74,6 +74,7 @@ void ED_ParseGlobals(const char *data);
 void ED_LoadFromFile(const char *data);
 
 edict_t *AllocEdicts();
+void FreeEdicts(edict_t *e);
 edict_t *EDICT_NUM(int n);
 int NUM_FOR_EDICT(edict_t *e);
 

@@ -462,7 +462,7 @@ void Host_ClearMemory(void) {
   /* host_hunklevel MUST be set at this point */
   Hunk_FreeToLowMark(host_hunklevel);
   CLS_SetSignon(0);
-  free(sv.edicts);  // ericw -- sv.edicts switched to use malloc()
+  FreeEdicts(sv.edicts);
   SV_Clear();
   CL_Clear();
   memset(&sv, 0, sizeof(sv));

@@ -41,7 +41,6 @@ qboolean pr_alpha_supported;  // johnfitz
 dstatement_t *pr_statements;
 globalvars_t *pr_global_struct;
 float *pr_globals;  // same as pr_global_struct
-int pr_edict_size;  // in bytes
 
 unsigned short pr_crc;
 
@@ -1019,40 +1018,44 @@ void PR_LoadProgs(void) {
 
   for (i = 0; i < progs->numglobals; i++)
     ((int *)pr_globals)[i] = LittleLong(((int *)pr_globals)[i]);
-
-  pr_edict_size = progs->entityfields * 4 + sizeof(edict_t) - sizeof(entvars_t);
-  // round off to next highest whole word address (esp for Alpha)
-  // this ensures that pointers in the engine data area are always
-  // properly aligned
-  pr_edict_size += sizeof(void *) - 1;
-  pr_edict_size &= ~(sizeof(void *) - 1);
 }
 
-void TT_ClearEdict(edict_t *e) { memset(e, 0, pr_edict_size); }
+void TT_ClearEdict(edict_t *e) {
+  memset(e, 0, sizeof(edict_t));
+  TT_ClearEntVars(EdictV(e));
+}
 
 void TT_ClearEntVars(entvars_t *e) { memset(e, 0, progs->entityfields * 4); }
 
 edict_t *NEXT_EDICT(edict_t *e) {
-  return ((edict_t *)((byte *)e + pr_edict_size));
+  return ((edict_t *)((byte *)e + sizeof(edict_t)));
 }
 
 edict_t *EDICT_NUM(int n) {
   if (n < 0 || n >= SV_MaxEdicts()) Host_Error("EDICT_NUM: bad number %i", n);
-  return (edict_t *)((byte *)sv.edicts + (n)*pr_edict_size);
+  return (edict_t *)((byte *)sv.edicts + (n) * sizeof(edict_t));
 }
 
 int NUM_FOR_EDICT(edict_t *e) {
   int b;
 
   b = (byte *)e - (byte *)sv.edicts;
-  b = b / pr_edict_size;
+  b = b / sizeof(edict_t);
 
   if (b < 0 || b >= SV_NumEdicts()) Host_Error("NUM_FOR_EDICT: bad pointer");
   return b;
 }
 
+entvars_t *g_entvars;
+
 edict_t *AllocEdicts() {
-  return (edict_t *)malloc(SV_MaxEdicts() * pr_edict_size);
+  g_entvars = (entvars_t *)malloc(SV_MaxEdicts() * progs->entityfields * 4);
+  return (edict_t *)malloc(SV_MaxEdicts() * sizeof(edict_t));
+}
+
+void FreeEdicts(edict_t *e) {
+  free(g_entvars);
+  free(e);
 }
 
 int EDICT_TO_PROG(edict_t *e) { return NUM_FOR_EDICT(e); }
@@ -1060,6 +1063,12 @@ int EDICT_TO_PROG(edict_t *e) { return NUM_FOR_EDICT(e); }
 edict_t *PROG_TO_EDICT(int e) { return EDICT_NUM(e); }
 
 edict_t *G_EDICT(int o) { return EDICT_NUM(*(int *)&pr_globals[o]); }
+
+entvars_t *EdictV(edict_t *e) {
+  int n = NUM_FOR_EDICT(e);
+  return (entvars_t *)((byte *)g_entvars + (n)*progs->entityfields * 4);
+  // return &(e->vars);
+}
 
 /*
 ===============
@@ -1083,8 +1092,6 @@ void PR_Init(void) {
   Cvar_FakeRegister(&saved3, "saved3");
   Cvar_FakeRegister(&saved4, "saved4");
 }
-
-entvars_t *EdictV(edict_t *e) { return &(e->vars); }
 
 //===========================================================================
 
