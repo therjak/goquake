@@ -9,7 +9,7 @@ static char *PR_GetTempString(void) {
   return pr_string_temp[(STRINGTEMP_BUFFERS - 1) & ++pr_string_tempindex];
 }
 
-#define RETURN_EDICT(e) (((int *)pr_globals)[OFS_RETURN] = EDICT_TO_PROG(e))
+#define RETURN_EDICT(e) (((int *)pr_globals)[OFS_RETURN] = NUM_FOR_EDICT(e))
 
 #define MSG_BROADCAST 0  // unreliable to all
 #define MSG_ONE 1        // reliable to one (msg_entity)
@@ -628,9 +628,9 @@ static void PF_traceline(void) {
   VectorCopy(trace.plane.normal, pr_global_struct->trace_plane_normal);
   pr_global_struct->trace_plane_dist = trace.plane.dist;
   if (trace.ent)
-    pr_global_struct->trace_ent = EDICT_TO_PROG(trace.ent);
+    pr_global_struct->trace_ent = NUM_FOR_EDICT(trace.ent);
   else
-    pr_global_struct->trace_ent = EDICT_TO_PROG(sv.edicts);
+    pr_global_struct->trace_ent = NUM_FOR_EDICT(sv.edicts);
 }
 
 /*
@@ -850,7 +850,7 @@ static void PF_findradius(void) {
                EdictV(ent)->maxs[j]) * 0.5);
     if (VectorLength(eorg) > rad) continue;
 
-    EdictV(ent)->chain = EDICT_TO_PROG(chain);
+    EdictV(ent)->chain = NUM_FOR_EDICT(chain);
     chain = ent;
   }
 
@@ -1060,7 +1060,7 @@ static void PF_droptofloor(void) {
     VectorCopy(trace.endpos, EdictV(ent)->origin);
     SV_LinkEdict(ent, false);
     EdictV(ent)->flags = (int)EdictV(ent)->flags | FL_ONGROUND;
-    EdictV(ent)->groundentity = EDICT_TO_PROG(trace.ent);
+    EdictV(ent)->groundentity = NUM_FOR_EDICT(trace.ent);
     G_FLOAT(OFS_RETURN) = 1;
   }
 }

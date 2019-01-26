@@ -1313,7 +1313,7 @@ void Host_Kill_f(void) {
   }
 
   pr_global_struct->time = SV_Time();
-  pr_global_struct->self = EDICT_TO_PROG(sv_player);
+  pr_global_struct->self = NUM_FOR_EDICT(sv_player);
   PR_ExecuteProgram(pr_global_struct->ClientKill);
 }
 
@@ -1395,7 +1395,7 @@ void Host_Spawn_f(void) {
       (&pr_global_struct->parm1)[i] = GetClientSpawnParam(HostClient(), i);
     // call the spawn function
     pr_global_struct->time = SV_Time();
-    pr_global_struct->self = EDICT_TO_PROG(sv_player);
+    pr_global_struct->self = NUM_FOR_EDICT(sv_player);
     PR_ExecuteProgram(pr_global_struct->ClientConnect);
 
     if ((Sys_DoubleTime() - ClientConnectTime(HostClient())) <= SV_Time()) {

@@ -80,7 +80,6 @@ edict_t *EDICT_NUM(int n);
 int NUM_FOR_EDICT(edict_t *e);
 
 edict_t *NEXT_EDICT(edict_t *e);
-int EDICT_TO_PROG(edict_t *e);
 
 edict_t *G_EDICT(int o);
 

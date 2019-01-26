@@ -191,7 +191,7 @@ qboolean SV_movestep(edict_t *ent, vec3_t move, qboolean relink) {
     //		Con_Printf ("back on ground\n");
     EdictV(ent)->flags = (int)EdictV(ent)->flags & ~FL_PARTIALGROUND;
   }
-  EdictV(ent)->groundentity = EDICT_TO_PROG(trace.ent);
+  EdictV(ent)->groundentity = NUM_FOR_EDICT(trace.ent);
 
   // the move is ok
   if (relink) SV_LinkEdict(ent, true);

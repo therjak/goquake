@@ -950,7 +950,7 @@ void SV_SaveSpawnparms(void) {
     if (!GetClientActive(HostClient())) continue;
 
     // call the progs to get default spawn parms for the new client
-    pr_global_struct->self = EDICT_TO_PROG(SV_GetEdict(HostClient()));
+    pr_global_struct->self = NUM_FOR_EDICT(SV_GetEdict(HostClient()));
     PR_ExecuteProgram(pr_global_struct->SetChangeParms);
     for (j = 0; j < NUM_SPAWN_PARMS; j++) {
       SetClientSpawnParam(HostClient(), j, (&pr_global_struct->parm1)[j]);

@@ -111,8 +111,8 @@ qboolean SV_RunThink(edict_t *ent) {
 
   EdictV(ent)->nextthink = 0;
   pr_global_struct->time = thinktime;
-  pr_global_struct->self = EDICT_TO_PROG(ent);
-  pr_global_struct->other = EDICT_TO_PROG(sv.edicts);
+  pr_global_struct->self = NUM_FOR_EDICT(ent);
+  pr_global_struct->other = NUM_FOR_EDICT(sv.edicts);
   PR_ExecuteProgram(EdictV(ent)->think);
 
   // johnfitz -- PROTOCOL_FITZQUAKE
@@ -146,14 +146,14 @@ void SV_Impact(edict_t *e1, edict_t *e2) {
 
   pr_global_struct->time = SV_Time();
   if (EdictV(e1)->touch && EdictV(e1)->solid != SOLID_NOT) {
-    pr_global_struct->self = EDICT_TO_PROG(e1);
-    pr_global_struct->other = EDICT_TO_PROG(e2);
+    pr_global_struct->self = NUM_FOR_EDICT(e1);
+    pr_global_struct->other = NUM_FOR_EDICT(e2);
     PR_ExecuteProgram(EdictV(e1)->touch);
   }
 
   if (EdictV(e2)->touch && EdictV(e2)->solid != SOLID_NOT) {
-    pr_global_struct->self = EDICT_TO_PROG(e2);
-    pr_global_struct->other = EDICT_TO_PROG(e1);
+    pr_global_struct->self = NUM_FOR_EDICT(e2);
+    pr_global_struct->other = NUM_FOR_EDICT(e1);
     PR_ExecuteProgram(EdictV(e2)->touch);
   }
 
@@ -256,7 +256,7 @@ int SV_FlyMove(edict_t *ent, float time, trace_t *steptrace) {
       blocked |= 1;  // floor
       if (EdictV(trace.ent)->solid == SOLID_BSP) {
         EdictV(ent)->flags = (int)EdictV(ent)->flags | FL_ONGROUND;
-        EdictV(ent)->groundentity = EDICT_TO_PROG(trace.ent);
+        EdictV(ent)->groundentity = NUM_FOR_EDICT(trace.ent);
       }
     }
     if (!trace.plane.normal[2]) {
@@ -478,8 +478,8 @@ void SV_PushMove(edict_t *pusher, float movetime) {
       // if the pusher has a "blocked" function, call it
       // otherwise, just stay in place until the obstacle is gone
       if (EdictV(pusher)->blocked) {
-        pr_global_struct->self = EDICT_TO_PROG(pusher);
-        pr_global_struct->other = EDICT_TO_PROG(check);
+        pr_global_struct->self = NUM_FOR_EDICT(pusher);
+        pr_global_struct->other = NUM_FOR_EDICT(check);
         PR_ExecuteProgram(EdictV(pusher)->blocked);
       }
 
@@ -523,8 +523,8 @@ void SV_Physics_Pusher(edict_t *ent) {
   if (thinktime > oldltime && thinktime <= EdictV(ent)->ltime) {
     EdictV(ent)->nextthink = 0;
     pr_global_struct->time = SV_Time();
-    pr_global_struct->self = EDICT_TO_PROG(ent);
-    pr_global_struct->other = EDICT_TO_PROG(sv.edicts);
+    pr_global_struct->self = NUM_FOR_EDICT(ent);
+    pr_global_struct->other = NUM_FOR_EDICT(sv.edicts);
     PR_ExecuteProgram(EdictV(ent)->think);
     if (ent->free) return;
   }
@@ -800,7 +800,7 @@ void SV_WalkMove(edict_t *ent) {
   if (downtrace.plane.normal[2] > 0.7) {
     if (EdictV(ent)->solid == SOLID_BSP) {
       EdictV(ent)->flags = (int)EdictV(ent)->flags | FL_ONGROUND;
-      EdictV(ent)->groundentity = EDICT_TO_PROG(downtrace.ent);
+      EdictV(ent)->groundentity = NUM_FOR_EDICT(downtrace.ent);
     }
   } else {
     // if the push down didn't end up on good ground, use the move without
@@ -825,7 +825,7 @@ void SV_Physics_Client(edict_t *ent, int num) {
   // call standard client pre-think
   //
   pr_global_struct->time = SV_Time();
-  pr_global_struct->self = EDICT_TO_PROG(ent);
+  pr_global_struct->self = NUM_FOR_EDICT(ent);
   PR_ExecuteProgram(pr_global_struct->PlayerPreThink);
 
   //
@@ -875,7 +875,7 @@ void SV_Physics_Client(edict_t *ent, int num) {
   SV_LinkEdict(ent, true);
 
   pr_global_struct->time = SV_Time();
-  pr_global_struct->self = EDICT_TO_PROG(ent);
+  pr_global_struct->self = NUM_FOR_EDICT(ent);
   PR_ExecuteProgram(pr_global_struct->PlayerPostThink);
 }
 
@@ -999,7 +999,7 @@ void SV_Physics_Toss(edict_t *ent) {
   if (trace.plane.normal[2] > 0.7) {
     if (EdictV(ent)->velocity[2] < 60 || EdictV(ent)->movetype != MOVETYPE_BOUNCE) {
       EdictV(ent)->flags = (int)EdictV(ent)->flags | FL_ONGROUND;
-      EdictV(ent)->groundentity = EDICT_TO_PROG(trace.ent);
+      EdictV(ent)->groundentity = NUM_FOR_EDICT(trace.ent);
       VectorCopy(vec3_origin, EdictV(ent)->velocity);
       VectorCopy(vec3_origin, EdictV(ent)->avelocity);
     }
@@ -1069,8 +1069,8 @@ void SV_Physics(void) {
   edict_t *ent;
 
   // let the progs know that a new frame has started
-  pr_global_struct->self = EDICT_TO_PROG(sv.edicts);
-  pr_global_struct->other = EDICT_TO_PROG(sv.edicts);
+  pr_global_struct->self = 0;
+  pr_global_struct->other = 0;
   pr_global_struct->time = SV_Time();
   PR_ExecuteProgram(pr_global_struct->StartFrame);
 

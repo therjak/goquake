@@ -723,7 +723,7 @@ static qboolean ED_ParseEpair(void *base, ddef_t *key, const char *s) {
       break;
 
     case ev_entity:
-      *(int *)d = EDICT_TO_PROG(EDICT_NUM(atoi(s)));
+      *(int *)d = (atoi(s));
       break;
 
     case ev_field:
@@ -921,7 +921,7 @@ void ED_LoadFromFile(const char *data) {
       continue;
     }
 
-    pr_global_struct->self = EDICT_TO_PROG(ent);
+    pr_global_struct->self = NUM_FOR_EDICT(ent);
     PR_ExecuteProgram(func - pr_functions);
   }
 
@@ -1057,8 +1057,6 @@ void FreeEdicts(edict_t *e) {
   free(g_entvars);
   free(e);
 }
-
-int EDICT_TO_PROG(edict_t *e) { return NUM_FOR_EDICT(e); }
 
 edict_t *G_EDICT(int o) { return EDICT_NUM(*(int *)&pr_globals[o]); }
 
