@@ -119,10 +119,10 @@ qboolean SV_movestep(edict_t *ent, vec3_t move, qboolean relink) {
     // try one move with vertical motion, then one without
     for (i = 0; i < 2; i++) {
       VectorAdd(EdictV(ent)->origin, move, neworg);
-      enemy = PROG_TO_EDICT(EdictV(ent)->enemy);
+      enemy = EDICT_NUM(EdictV(ent)->enemy);
       if (i == 0 && enemy != sv.edicts) {
         dz = EdictV(ent)->origin[2] - 
-          EdictV(PROG_TO_EDICT(EdictV(ent)->enemy))->origin[2];
+          EdictV(EDICT_NUM(EdictV(ent)->enemy))->origin[2];
         if (dz > 40) neworg[2] -= 8;
         if (dz < 30) neworg[2] += 8;
       }
@@ -354,8 +354,8 @@ void SV_MoveToGoal(void) {
   edict_t *ent, *goal;
   float dist;
 
-  ent = PROG_TO_EDICT(pr_global_struct->self);
-  goal = PROG_TO_EDICT(EdictV(ent)->goalentity);
+  ent = EDICT_NUM(pr_global_struct->self);
+  goal = EDICT_NUM(EdictV(ent)->goalentity);
   dist = G_FLOAT(OFS_PARM0);
 
   if (!((int)EdictV(ent)->flags & (FL_ONGROUND | FL_FLY | FL_SWIM))) {
@@ -364,7 +364,7 @@ void SV_MoveToGoal(void) {
   }
 
   // if the next step hits the enemy, return immediately
-  if (PROG_TO_EDICT(EdictV(ent)->enemy) != sv.edicts &&
+  if (EDICT_NUM(EdictV(ent)->enemy) != sv.edicts &&
       SV_CloseEnough(EdictV(ent), EdictV(goal), dist))
     return;
 

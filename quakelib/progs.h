@@ -36,6 +36,7 @@ typedef struct edict_s {
 } edict_t;
 
 entvars_t *EdictV(edict_t *e);
+entvars_t *EVars(int idx);
 
 #define EDICT_FROM_AREA(l) STRUCT_FROM_LINK(l, edict_t, area)
 
@@ -80,7 +81,6 @@ int NUM_FOR_EDICT(edict_t *e);
 
 edict_t *NEXT_EDICT(edict_t *e);
 int EDICT_TO_PROG(edict_t *e);
-edict_t *PROG_TO_EDICT(int e);
 
 edict_t *G_EDICT(int o);
 

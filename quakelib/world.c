@@ -264,10 +264,12 @@ SV_TouchLinks
 void SV_TouchLinks(edict_t *ent, areanode_t *node) {
   link_t *l, *next;
   edict_t *touch;
+  entvars_t *ev, *tv;
   int old_self, old_other;
 
   // touch linked edicts
   sv_link_next = &next;
+  ev = EdictV(ent);
   for (l = node->trigger_edicts.next; l != &node->trigger_edicts; l = next) {
     if (!l) {
       // my area got removed out from under me!
@@ -278,21 +280,22 @@ void SV_TouchLinks(edict_t *ent, areanode_t *node) {
     next = l->next;
     touch = EDICT_FROM_AREA(l);
     if (touch == ent) continue;
-    if (!EdictV(touch)->touch || EdictV(touch)->solid != SOLID_TRIGGER) continue;
-    if (EdictV(ent)->absmin[0] > EdictV(touch)->absmax[0] ||
-        EdictV(ent)->absmin[1] > EdictV(touch)->absmax[1] ||
-        EdictV(ent)->absmin[2] > EdictV(touch)->absmax[2] ||
-        EdictV(ent)->absmax[0] < EdictV(touch)->absmin[0] ||
-        EdictV(ent)->absmax[1] < EdictV(touch)->absmin[1] ||
-        EdictV(ent)->absmax[2] < EdictV(touch)->absmin[2])
+    tv = EdictV(touch);
+    if (!tv->touch || tv->solid != SOLID_TRIGGER) continue;
+    if (ev->absmin[0] > tv->absmax[0] ||
+        ev->absmin[1] > tv->absmax[1] ||
+        ev->absmin[2] > tv->absmax[2] ||
+        ev->absmax[0] < tv->absmin[0] ||
+        ev->absmax[1] < tv->absmin[1] ||
+        ev->absmax[2] < tv->absmin[2])
       continue;
     old_self = pr_global_struct->self;
     old_other = pr_global_struct->other;
 
-    pr_global_struct->self = EDICT_TO_PROG(touch);
-    pr_global_struct->other = EDICT_TO_PROG(ent);
+    pr_global_struct->self = NUM_FOR_EDICT(touch);
+    pr_global_struct->other = NUM_FOR_EDICT(ent);
     pr_global_struct->time = SV_Time();
-    PR_ExecuteProgram(EdictV(touch)->touch);
+    PR_ExecuteProgram(tv->touch);
 
     pr_global_struct->self = old_self;
     pr_global_struct->other = old_other;
@@ -303,9 +306,9 @@ void SV_TouchLinks(edict_t *ent, areanode_t *node) {
   // recurse down both sides
   if (node->axis == -1) return;
 
-  if (EdictV(ent)->absmax[node->axis] > node->dist)
+  if (ev->absmax[node->axis] > node->dist)
     SV_TouchLinks(ent, node->children[0]);
-  if (EdictV(ent)->absmin[node->axis] < node->dist)
+  if (ev->absmin[node->axis] < node->dist)
     SV_TouchLinks(ent, node->children[1]);
 }
 
@@ -320,6 +323,7 @@ void SV_FindTouchedLeafs(edict_t *ent, mnode_t *node) {
   mleaf_t *leaf;
   int sides;
   int leafnum;
+  entvars_t *ev;
 
   if (node->contents == CONTENTS_SOLID) return;
 
@@ -339,7 +343,8 @@ void SV_FindTouchedLeafs(edict_t *ent, mnode_t *node) {
   // NODE_MIXED
 
   splitplane = node->plane;
-  sides = BOX_ON_PLANE_SIDE(EdictV(ent)->absmin, EdictV(ent)->absmax, splitplane);
+  ev = EdictV(ent);
+  sides = BOX_ON_PLANE_SIDE(ev->absmin, ev->absmax, splitplane);
 
   // recurse down the contacted sides
   if (sides & 1) SV_FindTouchedLeafs(ent, node->children[0]);
@@ -355,6 +360,7 @@ SV_LinkEdict
 */
 void SV_LinkEdict(edict_t *ent, qboolean touch_triggers) {
   areanode_t *node;
+  entvars_t *ev;
 
   if (ent->area.prev) SV_UnlinkEdict(ent);  // unlink from old position
 
@@ -362,42 +368,44 @@ void SV_LinkEdict(edict_t *ent, qboolean touch_triggers) {
 
   if (ent->free) return;
 
+  ev = EdictV(ent);
+
   // set the abs box
-  VectorAdd(EdictV(ent)->origin, EdictV(ent)->mins, EdictV(ent)->absmin);
-  VectorAdd(EdictV(ent)->origin, EdictV(ent)->maxs, EdictV(ent)->absmax);
+  VectorAdd(ev->origin, ev->mins, ev->absmin);
+  VectorAdd(ev->origin, ev->maxs, ev->absmax);
 
   //
   // to make items easier to pick up and allow them to be grabbed off
   // of shelves, the abs sizes are expanded
   //
-  if ((int)EdictV(ent)->flags & FL_ITEM) {
-    EdictV(ent)->absmin[0] -= 15;
-    EdictV(ent)->absmin[1] -= 15;
-    EdictV(ent)->absmax[0] += 15;
-    EdictV(ent)->absmax[1] += 15;
+  if ((int)ev->flags & FL_ITEM) {
+    ev->absmin[0] -= 15;
+    ev->absmin[1] -= 15;
+    ev->absmax[0] += 15;
+    ev->absmax[1] += 15;
   } else {  // because movement is clipped an epsilon away from an actual edge,
     // we must fully check even when bounding boxes don't quite touch
-    EdictV(ent)->absmin[0] -= 1;
-    EdictV(ent)->absmin[1] -= 1;
-    EdictV(ent)->absmin[2] -= 1;
-    EdictV(ent)->absmax[0] += 1;
-    EdictV(ent)->absmax[1] += 1;
-    EdictV(ent)->absmax[2] += 1;
+    ev->absmin[0] -= 1;
+    ev->absmin[1] -= 1;
+    ev->absmin[2] -= 1;
+    ev->absmax[0] += 1;
+    ev->absmax[1] += 1;
+    ev->absmax[2] += 1;
   }
 
   // link to PVS leafs
   ent->num_leafs = 0;
-  if (EdictV(ent)->modelindex) SV_FindTouchedLeafs(ent, sv.worldmodel->nodes);
+  if (ev->modelindex) SV_FindTouchedLeafs(ent, sv.worldmodel->nodes);
 
-  if (EdictV(ent)->solid == SOLID_NOT) return;
+  if (ev->solid == SOLID_NOT) return;
 
   // find the first node that the ent's box crosses
   node = sv_areanodes;
   while (1) {
     if (node->axis == -1) break;
-    if (EdictV(ent)->absmin[node->axis] > node->dist)
+    if (ev->absmin[node->axis] > node->dist)
       node = node->children[0];
-    else if (EdictV(ent)->absmax[node->axis] < node->dist)
+    else if (ev->absmax[node->axis] < node->dist)
       node = node->children[1];
     else
       break;  // crosses the node
@@ -405,7 +413,7 @@ void SV_LinkEdict(edict_t *ent, qboolean touch_triggers) {
 
   // link it in
 
-  if (EdictV(ent)->solid == SOLID_TRIGGER)
+  if (ev->solid == SOLID_TRIGGER)
     InsertLinkBefore(&ent->area, &node->trigger_edicts);
   else
     InsertLinkBefore(&ent->area, &node->solid_edicts);
@@ -483,9 +491,11 @@ This could be a lot more efficient...
 */
 edict_t *SV_TestEntityPosition(edict_t *ent) {
   trace_t trace;
+  entvars_t *ev;
+  ev = EdictV(ent);
 
-  trace = SV_Move(EdictV(ent)->origin, EdictV(ent)->mins, 
-          EdictV(ent)->maxs, EdictV(ent)->origin, 0, ent);
+  trace = SV_Move(ev->origin, ev->mins, 
+          ev->maxs, ev->origin, 0, ent);
 
   if (trace.startsolid) return sv.edicts;
 
@@ -680,38 +690,40 @@ void SV_ClipToLinks(areanode_t *node, moveclip_t *clip) {
   link_t *l, *next;
   edict_t *touch;
   trace_t trace;
+  entvars_t *tv;
 
   // touch linked edicts
   for (l = node->solid_edicts.next; l != &node->solid_edicts; l = next) {
     next = l->next;
     touch = EDICT_FROM_AREA(l);
-    if (EdictV(touch)->solid == SOLID_NOT) continue;
+    tv = EdictV(touch);
+    if (tv->solid == SOLID_NOT) continue;
     if (touch == clip->passedict) continue;
-    if (EdictV(touch)->solid == SOLID_TRIGGER) Go_Error("Trigger in clipping list");
+    if (tv->solid == SOLID_TRIGGER) Go_Error("Trigger in clipping list");
 
-    if (clip->type == MOVE_NOMONSTERS && EdictV(touch)->solid != SOLID_BSP) continue;
+    if (clip->type == MOVE_NOMONSTERS && tv->solid != SOLID_BSP) continue;
 
-    if (clip->boxmins[0] > EdictV(touch)->absmax[0] ||
-        clip->boxmins[1] > EdictV(touch)->absmax[1] ||
-        clip->boxmins[2] > EdictV(touch)->absmax[2] ||
-        clip->boxmaxs[0] < EdictV(touch)->absmin[0] ||
-        clip->boxmaxs[1] < EdictV(touch)->absmin[1] ||
-        clip->boxmaxs[2] < EdictV(touch)->absmin[2])
+    if (clip->boxmins[0] > tv->absmax[0] ||
+        clip->boxmins[1] > tv->absmax[1] ||
+        clip->boxmins[2] > tv->absmax[2] ||
+        clip->boxmaxs[0] < tv->absmin[0] ||
+        clip->boxmaxs[1] < tv->absmin[1] ||
+        clip->boxmaxs[2] < tv->absmin[2])
       continue;
 
-    if (clip->passedict && EdictV(clip->passedict)->size[0] && !EdictV(touch)->size[0])
+    if (clip->passedict && EdictV(clip->passedict)->size[0] && !tv->size[0])
       continue;  // points never interact
 
     // might intersect, so do an exact clip
     if (clip->trace.allsolid) return;
     if (clip->passedict) {
-      if (PROG_TO_EDICT(EdictV(touch)->owner) == clip->passedict)
+      if (EDICT_NUM(tv->owner) == clip->passedict)
         continue;  // don't clip against own missiles
-      if (PROG_TO_EDICT(EdictV(clip->passedict)->owner) == touch)
+      if (EDICT_NUM(EdictV(clip->passedict)->owner) == touch)
         continue;  // don't clip against owner
     }
 
-    if ((int)EdictV(touch)->flags & FL_MONSTER)
+    if ((int)tv->flags & FL_MONSTER)
       trace = SV_ClipMoveToEntity(touch, clip->start, clip->mins2, clip->maxs2,
                                   clip->end);
     else

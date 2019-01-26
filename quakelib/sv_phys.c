@@ -433,7 +433,7 @@ void SV_PushMove(edict_t *pusher, float movetime) {
 
     // if the entity is standing on the pusher, it will definately be moved
     if (!(((int)EdictV(check)->flags & FL_ONGROUND) &&
-          PROG_TO_EDICT(EdictV(check)->groundentity) == pusher)) {
+          EDICT_NUM(EdictV(check)->groundentity) == pusher)) {
       if (EdictV(check)->absmin[0] >= maxs[0] || EdictV(check)->absmin[1] >= maxs[1] ||
           EdictV(check)->absmin[2] >= maxs[2] || EdictV(check)->absmax[0] <= mins[0] ||
           EdictV(check)->absmax[1] <= mins[1] || EdictV(check)->absmax[2] <= mins[2])

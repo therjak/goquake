@@ -568,7 +568,7 @@ void SV_WriteClientdataToMessage(edict_t *ent) {
   // send a damage message
   //
   if (EdictV(ent)->dmg_take || EdictV(ent)->dmg_save) {
-    other = PROG_TO_EDICT(EdictV(ent)->dmg_inflictor);
+    other = EDICT_NUM(EdictV(ent)->dmg_inflictor);
     SV_MS_WriteByte(svc_damage);
     SV_MS_WriteByte(EdictV(ent)->dmg_save);
     SV_MS_WriteByte(EdictV(ent)->dmg_take);

@@ -61,7 +61,7 @@ static void PF_error(void) {
   s = PF_VarString(0);
   Con_Printf("======SERVER ERROR in %s:\n%s\n",
              PR_GetString(pr_xfunction->s_name), s);
-  ed = PROG_TO_EDICT(pr_global_struct->self);
+  ed = EDICT_NUM(pr_global_struct->self);
   ED_Print(ed);
 
   Host_Error("Program error");
@@ -84,7 +84,7 @@ static void PF_objerror(void) {
   s = PF_VarString(0);
   Con_Printf("======OBJECT ERROR in %s:\n%s\n",
              PR_GetString(pr_xfunction->s_name), s);
-  ed = PROG_TO_EDICT(pr_global_struct->self);
+  ed = EDICT_NUM(pr_global_struct->self);
   ED_Print(ed);
   ED_Free(ed);
 
@@ -732,7 +732,7 @@ static void PF_checkclient(void) {
   }
 
   // if current entity can't possibly see the check entity, return 0
-  self = PROG_TO_EDICT(pr_global_struct->self);
+  self = EDICT_NUM(pr_global_struct->self);
   VectorAdd(EdictV(self)->origin, EdictV(self)->view_ofs, view);
   leaf = Mod_PointInLeaf(view, sv.worldmodel);
   l = (leaf - sv.worldmodel->leafs) - 1;
@@ -1007,7 +1007,7 @@ static void PF_walkmove(void) {
   dfunction_t *oldf;
   int oldself;
 
-  ent = PROG_TO_EDICT(pr_global_struct->self);
+  ent = EDICT_NUM(pr_global_struct->self);
   yaw = G_FLOAT(OFS_PARM0);
   dist = G_FLOAT(OFS_PARM1);
 
@@ -1045,7 +1045,7 @@ static void PF_droptofloor(void) {
   vec3_t end;
   trace_t trace;
 
-  ent = PROG_TO_EDICT(pr_global_struct->self);
+  ent = EDICT_NUM(pr_global_struct->self);
 
   VectorCopy(EdictV(ent)->origin, end);
   end[2] -= 256;
@@ -1246,7 +1246,7 @@ void PF_changeyaw(void) {
   edict_t *ent;
   float ideal, current, move, speed;
 
-  ent = PROG_TO_EDICT(pr_global_struct->self);
+  ent = EDICT_NUM(pr_global_struct->self);
   current = anglemod(EdictV(ent)->angles[1]);
   ideal = EdictV(ent)->ideal_yaw;
   speed = EdictV(ent)->yaw_speed;
@@ -1279,7 +1279,7 @@ static int WriteClient() {
   int entnum;
   edict_t *ent;
 
-  ent = PROG_TO_EDICT(pr_global_struct->msg_entity);
+  ent = EDICT_NUM(pr_global_struct->msg_entity);
   entnum = NUM_FOR_EDICT(ent);
   if (entnum < 1 || entnum > SVS_GetMaxClients())
     PR_RunError("WriteDest: not a client");

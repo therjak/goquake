@@ -291,7 +291,7 @@ static const char *PR_ValueString(int type, eval_t *val) {
       sprintf(line, "%s", PR_GetString(val->string));
       break;
     case ev_entity:
-      sprintf(line, "entity %i", NUM_FOR_EDICT(PROG_TO_EDICT(val->edict)));
+      sprintf(line, "entity %i", NUM_FOR_EDICT(EDICT_NUM(val->edict)));
       break;
     case ev_function:
       f = pr_functions + val->function;
@@ -343,7 +343,7 @@ static const char *PR_UglyValueString(int type, eval_t *val) {
       sprintf(line, "%s", PR_GetString(val->string));
       break;
     case ev_entity:
-      sprintf(line, "%i", NUM_FOR_EDICT(PROG_TO_EDICT(val->edict)));
+      sprintf(line, "%i", NUM_FOR_EDICT(EDICT_NUM(val->edict)));
       break;
     case ev_function:
       f = pr_functions + val->function;
@@ -1060,14 +1060,15 @@ void FreeEdicts(edict_t *e) {
 
 int EDICT_TO_PROG(edict_t *e) { return NUM_FOR_EDICT(e); }
 
-edict_t *PROG_TO_EDICT(int e) { return EDICT_NUM(e); }
-
 edict_t *G_EDICT(int o) { return EDICT_NUM(*(int *)&pr_globals[o]); }
 
 entvars_t *EdictV(edict_t *e) {
   int n = NUM_FOR_EDICT(e);
-  return (entvars_t *)((byte *)g_entvars + (n)*progs->entityfields * 4);
-  // return &(e->vars);
+  return EVars(n);
+}
+
+entvars_t *EVars(int idx) {
+  return (entvars_t *)((byte *)g_entvars + (idx)*progs->entityfields * 4);
 }
 
 /*
