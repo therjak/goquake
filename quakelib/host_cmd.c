@@ -1640,7 +1640,7 @@ void Host_Give_f(void) {
         val = GetEdictFieldValue(pent, "ammo_shells1");
         if (val) val->_float = v;
       }
-      EdictV(sv_player)->ammo_shells = v;
+      pent->ammo_shells = v;
       break;
 
     case 'n':
@@ -1775,12 +1775,15 @@ void Host_Give_f(void) {
   // johnfitz
 }
 
-edict_t *FindViewthing(void) {
+entvars_t *FindViewthingEV(void) {
   int i;
+  entvars_t *ev;
 
   for (i = 0; i < SV_NumEdicts(); i++) {
-    if (!strcmp(PR_GetString(EVars(i)->classname), "viewthing"))
-      return EDICT_NUM(i);
+    ev = EVars(i);
+    if (!strcmp(PR_GetString(ev->classname), "viewthing")) {
+      return ev;
+    }
   }
   Con_Printf("No viewthing on map\n");
   return NULL;
@@ -1792,10 +1795,10 @@ Host_Viewmodel_f
 ==================
 */
 void Host_Viewmodel_f(void) {
-  edict_t *e;
+  entvars_t *e;
   qmodel_t *m;
 
-  e = FindViewthing();
+  e = FindViewthingEV();
   if (!e) return;
 
   m = Mod_ForName(Cmd_Argv(1), false);
@@ -1804,8 +1807,8 @@ void Host_Viewmodel_f(void) {
     return;
   }
 
-  EdictV(e)->frame = 0;
-  cl.model_precache[(int)EdictV(e)->modelindex] = m;
+  e->frame = 0;
+  cl.model_precache[(int)e->modelindex] = m;
 }
 
 /*
@@ -1814,18 +1817,18 @@ Host_Viewframe_f
 ==================
 */
 void Host_Viewframe_f(void) {
-  edict_t *e;
+  entvars_t *e;
   int f;
   qmodel_t *m;
 
-  e = FindViewthing();
+  e = FindViewthingEV();
   if (!e) return;
-  m = cl.model_precache[(int)EdictV(e)->modelindex];
+  m = cl.model_precache[(int)e->modelindex];
 
   f = Cmd_ArgvAsInt(1);
   if (f >= m->numframes) f = m->numframes - 1;
 
-  EdictV(e)->frame = f;
+  e->frame = f;
 }
 
 void PrintFrameName(qmodel_t *m, int frame) {
@@ -1845,17 +1848,19 @@ Host_Viewnext_f
 ==================
 */
 void Host_Viewnext_f(void) {
-  edict_t *e;
+  entvars_t *e;
   qmodel_t *m;
 
-  e = FindViewthing();
+  e = FindViewthingEV();
   if (!e) return;
-  m = cl.model_precache[(int)EdictV(e)->modelindex];
+  m = cl.model_precache[(int)e->modelindex];
 
-  EdictV(e)->frame = EdictV(e)->frame + 1;
-  if (EdictV(e)->frame >= m->numframes) EdictV(e)->frame = m->numframes - 1;
+  e->frame = e->frame + 1;
+  if (e->frame >= m->numframes) {
+    e->frame = m->numframes - 1;
+  }
 
-  PrintFrameName(m, EdictV(e)->frame);
+  PrintFrameName(m, e->frame);
 }
 
 /*
@@ -1864,18 +1869,18 @@ Host_Viewprev_f
 ==================
 */
 void Host_Viewprev_f(void) {
-  edict_t *e;
+  entvars_t *e;
   qmodel_t *m;
 
-  e = FindViewthing();
+  e = FindViewthingEV();
   if (!e) return;
 
-  m = cl.model_precache[(int)EdictV(e)->modelindex];
+  m = cl.model_precache[(int)e->modelindex];
 
-  EdictV(e)->frame = EdictV(e)->frame - 1;
-  if (EdictV(e)->frame < 0) EdictV(e)->frame = 0;
+  e->frame = e->frame - 1;
+  if (e->frame < 0) e->frame = 0;
 
-  PrintFrameName(m, EdictV(e)->frame);
+  PrintFrameName(m, e->frame);
 }
 
 /*
