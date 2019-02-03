@@ -1025,8 +1025,6 @@ void TT_ClearEdict(edict_t *e) {
   TT_ClearEntVars(EdictV(e));
 }
 
-void TT_ClearEntVars(entvars_t *e) { memset(e, 0, progs->entityfields * 4); }
-
 edict_t *NEXT_EDICT(edict_t *e) {
   return ((edict_t *)((byte *)e + sizeof(edict_t)));
 }
@@ -1046,15 +1044,13 @@ int NUM_FOR_EDICT(edict_t *e) {
   return b;
 }
 
-entvars_t *g_entvars;
-
 edict_t *AllocEdicts() {
-  g_entvars = (entvars_t *)malloc(SV_MaxEdicts() * progs->entityfields * 4);
+  AllocEntvars(SV_MaxEdicts(), progs->entityfields);
   return (edict_t *)malloc(SV_MaxEdicts() * sizeof(edict_t));
 }
 
 void FreeEdicts(edict_t *e) {
-  free(g_entvars);
+  FreeEntvars();
   free(e);
 }
 
@@ -1063,10 +1059,6 @@ edict_t *G_EDICT(int o) { return EDICT_NUM(*(int *)&pr_globals[o]); }
 entvars_t *EdictV(edict_t *e) {
   int n = NUM_FOR_EDICT(e);
   return EVars(n);
-}
-
-entvars_t *EVars(int idx) {
-  return (entvars_t *)((byte *)g_entvars + (idx)*progs->entityfields * 4);
 }
 
 /*

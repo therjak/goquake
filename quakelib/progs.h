@@ -36,7 +36,6 @@ typedef struct edict_s {
 } edict_t;
 
 entvars_t *EdictV(edict_t *e);
-entvars_t *EVars(int idx);
 
 #define EDICT_FROM_AREA(l) STRUCT_FROM_LINK(l, edict_t, area)
 
@@ -60,7 +59,6 @@ int PR_AllocString(int bufferlength, char **ptr);
 void PR_Profile_f(void);
 
 void TT_ClearEdict(edict_t *e);
-void TT_ClearEntVars(entvars_t *e);
 
 edict_t *ED_Alloc(void);
 void ED_Free(edict_t *ed);
