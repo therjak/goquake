@@ -11,14 +11,15 @@ import (
 
 type LoadedProg struct {
 	CRC uint16
-	// The progs.dat expects an edict to have EdictSize bytes
-	EdictSize  uintptr
+	// The progs.dat expects an edict to have EdictSize 32bit values
+	EdictSize  int
 	Header     *Header
 	Functions  []Function
 	Statements []Statement
 	GlobalDefs []Def
 	FieldDefs  []Def
 	Globals    *GlobalVars
+	Alpha      bool
 }
 
 func LoadProgs() (*LoadedProg, error) {
@@ -54,19 +55,21 @@ func LoadProgs() (*LoadedProg, error) {
 		return nil, fmt.Errorf("Could not read global defs: %v", err)
 	}
 	// pr_strings?
+	// alpha
+	a := false
 
-	ez := int(hdr.EntityFields) * 4 /* + sizeof(edict_t) - sizeof(entvars_t) */
-	// TODO?: round to next highest whole word
+	ez := int(hdr.EntityFields)
 
 	return &LoadedProg{
 		CRC:        crcVal,
-		EdictSize:  uintptr(ez),
+		EdictSize:  ez,
 		Header:     hdr,
 		Functions:  fu,
 		Statements: st,
 		GlobalDefs: gd,
 		FieldDefs:  fd,
 		Globals:    gl,
+		Alpha:      a,
 	}, nil
 }
 

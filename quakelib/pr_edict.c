@@ -1118,30 +1118,13 @@ int PR_SetEngineString(const char *s) {
   int i;
 
   if (!s) return 0;
-#if 0 /* can't: sv.model_precache & sv.sound_precache points to pr_strings */
-	if (s >= pr_strings && s <= pr_strings + pr_stringssize)
-		Host_Error("PR_SetEngineString: \"%s\" in pr_strings area\n", s);
-#else
   if (s >= pr_strings && s <= pr_strings + pr_stringssize - 2)
     return (int)(s - pr_strings);
-#endif
   for (i = 0; i < pr_numknownstrings; i++) {
     if (pr_knownstrings[i] == s) return -1 - i;
   }
-// new unknown engine string
-// Con_DPrintf ("PR_SetEngineString: new engine string %p\n", s);
-#if 0
-	for (i = 0; i < pr_numknownstrings; i++)
-	{
-		if (!pr_knownstrings[i])
-			break;
-	}
-#endif
-  //	if (i >= pr_numknownstrings)
-  //	{
   if (i >= pr_maxknownstrings) PR_AllocStringSlots();
   pr_numknownstrings++;
-  //	}
   pr_knownstrings[i] = s;
   return -1 - i;
 }
@@ -1153,11 +1136,8 @@ int PR_AllocString(int size, char **ptr) {
   for (i = 0; i < pr_numknownstrings; i++) {
     if (!pr_knownstrings[i]) break;
   }
-  //	if (i >= pr_numknownstrings)
-  //	{
   if (i >= pr_maxknownstrings) PR_AllocStringSlots();
   pr_numknownstrings++;
-  //	}
   pr_knownstrings[i] = (char *)Hunk_AllocName(size, "string");
   if (ptr) *ptr = (char *)pr_knownstrings[i];
   return -1 - i;

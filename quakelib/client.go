@@ -545,22 +545,34 @@ func CLS_SetSignon(s C.int) {
 
 //export CLSMessageWriteByte
 func CLSMessageWriteByte(c C.int) {
-	cls.outMessage.WriteByte(byte(c))
+	CLSMessageWriteByte2(byte(c))
+}
+
+func CLSMessageWriteByte2(c byte) {
+	cls.outMessage.WriteByte(c)
 }
 
 //export CLSMessageWriteString
 func CLSMessageWriteString(data *C.char) {
 	s := C.GoString(data)
+	CLSMessageWriteString2(s)
+}
+
+func CLSMessageWriteString2(s string) {
 	cls.outMessage.WriteString(s)
 	cls.outMessage.WriteByte(0)
 }
 
 //export CLSMessagePrint
 func CLSMessagePrint(data *C.char) {
+	s := C.GoString(data)
+	CLSMessagePrint2(s)
+}
+
+func CLSMessagePrint2(s string) {
 	// the original would override a trailing 0
 	// changed to not write a trailing 0 so it must be explicitly added by
 	// WriteByte if needed
-	s := C.GoString(data)
 	cls.outMessage.WriteString(s)
 }
 

@@ -254,7 +254,7 @@ func ClientWriteByte(num, c C.int) {
 	sv_clients[int(num)].msg.WriteByte(int(c))
 }
 
-func ClientWriteByte(num, c int) {
+func ClientWriteByte2(num, c int) {
 	sv_clients[num].msg.WriteByte(c)
 }
 

@@ -27,6 +27,7 @@ Cmd_ForwardToServer
 Sends the entire command line over to the server
 ===================
 */
+
 void Cmd_ForwardToServer(void) {
   if (CLS_GetState() != ca_connected) {
     Con_Printf("Can't \"%s\", not connected\n", Cmd_Argv(0));
