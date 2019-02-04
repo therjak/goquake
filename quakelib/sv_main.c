@@ -168,9 +168,8 @@ void SV_StartSound(edict_t *entity, int channel, const char *sample, int volume,
   // johnfitz
 
   for (i = 0; i < 3; i++)
-    SV_DG_WriteCoord(EdictV(entity)->origin[i] + 
-        0.5 * (EdictV(entity)->mins[i] + 
-          EdictV(entity)->maxs[i]));
+    SV_DG_WriteCoord(EdictV(entity)->origin[i] +
+                     0.5 * (EdictV(entity)->mins[i] + EdictV(entity)->maxs[i]));
 }
 
 /*
@@ -398,10 +397,12 @@ void SV_WriteEntitiesToClient(edict_t *clent) {
     if (ent != clent)  // clent is ALLWAYS sent
     {
       // ignore ents without visible models
-      if (!EdictV(ent)->modelindex || !PR_GetString(EdictV(ent)->model)[0]) continue;
+      if (!EdictV(ent)->modelindex || !PR_GetString(EdictV(ent)->model)[0])
+        continue;
 
       // johnfitz -- don't send model>255 entities if protocol is 15
-      if (SV_Protocol() == PROTOCOL_NETQUAKE && (int)EdictV(ent)->modelindex & 0xFF00)
+      if (SV_Protocol() == PROTOCOL_NETQUAKE &&
+          (int)EdictV(ent)->modelindex & 0xFF00)
         continue;
 
       // ignore if not touching a PV leaf
@@ -476,7 +477,8 @@ void SV_WriteEntitiesToClient(edict_t *clent) {
     if (SV_Protocol() != PROTOCOL_NETQUAKE) {
       if (ent->baseline.alpha != ent->alpha) bits |= U_ALPHA;
       if (bits & U_FRAME && (int)EdictV(ent)->frame & 0xFF00) bits |= U_FRAME2;
-      if (bits & U_MODEL && (int)EdictV(ent)->modelindex & 0xFF00) bits |= U_MODEL2;
+      if (bits & U_MODEL && (int)EdictV(ent)->modelindex & 0xFF00)
+        bits |= U_MODEL2;
       if (ent->sendinterval) bits |= U_LERPFINISH;
       if (bits >= 65536) bits |= U_EXTEND1;
       if (bits >= 16777216) bits |= U_EXTEND2;
@@ -521,7 +523,8 @@ void SV_WriteEntitiesToClient(edict_t *clent) {
     if (bits & U_FRAME2) SV_MS_WriteByte((int)EdictV(ent)->frame >> 8);
     if (bits & U_MODEL2) SV_MS_WriteByte((int)EdictV(ent)->modelindex >> 8);
     if (bits & U_LERPFINISH)
-      SV_MS_WriteByte((byte)(Q_rint((EdictV(ent)->nextthink - SV_Time()) * 255)));
+      SV_MS_WriteByte(
+          (byte)(Q_rint((EdictV(ent)->nextthink - SV_Time()) * 255)));
     // johnfitz
   }
 
@@ -574,8 +577,7 @@ void SV_WriteClientdataToMessage(edict_t *ent) {
     SV_MS_WriteByte(EdictV(ent)->dmg_take);
     for (i = 0; i < 3; i++)
       SV_MS_WriteCoord(EdictV(other)->origin[i] +
-          0.5 * (EdictV(other)->mins[i] +
-            EdictV(other)->maxs[i]));
+                       0.5 * (EdictV(other)->mins[i] + EdictV(other)->maxs[i]));
 
     EdictV(ent)->dmg_take = 0;
     EdictV(ent)->dmg_save = 0;
@@ -589,8 +591,7 @@ void SV_WriteClientdataToMessage(edict_t *ent) {
   // a fixangle might get lost in a dropped packet.  Oh well.
   if (EdictV(ent)->fixangle) {
     SV_MS_WriteByte(svc_setangle);
-    for (i = 0; i < 3; i++)
-      SV_MS_WriteAngle(EdictV(ent)->angles[i]);
+    for (i = 0; i < 3; i++) SV_MS_WriteAngle(EdictV(ent)->angles[i]);
     EdictV(ent)->fixangle = 0;
   }
 
@@ -607,7 +608,8 @@ void SV_WriteClientdataToMessage(edict_t *ent) {
   if (val)
     items = (int)EdictV(ent)->items | ((int)val->_float << 23);
   else
-    items = (int)EdictV(ent)->items | ((int)pr_global_struct->serverflags << 28);
+    items =
+        (int)EdictV(ent)->items | ((int)pr_global_struct->serverflags << 28);
 
   bits |= SU_ITEMS;
 
@@ -663,7 +665,8 @@ void SV_WriteClientdataToMessage(edict_t *ent) {
 
   for (i = 0; i < 3; i++) {
     if (bits & (SU_PUNCH1 << i)) SV_MS_WriteChar(EdictV(ent)->punchangle[i]);
-    if (bits & (SU_VELOCITY1 << i)) SV_MS_WriteChar(EdictV(ent)->velocity[i] / 16);
+    if (bits & (SU_VELOCITY1 << i))
+      SV_MS_WriteChar(EdictV(ent)->velocity[i] / 16);
   }
 
   // [always sent]	if (bits & SU_ITEMS)
@@ -701,7 +704,8 @@ void SV_WriteClientdataToMessage(edict_t *ent) {
   if (bits & SU_NAILS2) SV_MS_WriteByte((int)EdictV(ent)->ammo_nails >> 8);
   if (bits & SU_ROCKETS2) SV_MS_WriteByte((int)EdictV(ent)->ammo_rockets >> 8);
   if (bits & SU_CELLS2) SV_MS_WriteByte((int)EdictV(ent)->ammo_cells >> 8);
-  if (bits & SU_WEAPONFRAME2) SV_MS_WriteByte((int)EdictV(ent)->weaponframe >> 8);
+  if (bits & SU_WEAPONFRAME2)
+    SV_MS_WriteByte((int)EdictV(ent)->weaponframe >> 8);
   // for now, weaponalpha = client entity alpha
   if (bits & SU_WEAPONALPHA) SV_MS_WriteByte(ent->alpha);
   // johnfitz
@@ -872,15 +876,16 @@ void SV_CreateBaseline(void) {
       svent->baseline.alpha = ENTALPHA_DEFAULT;  // johnfitz -- alpha support
     } else {
       svent->baseline.colormap = 0;
-      svent->baseline.modelindex = SV_ModelIndex(PR_GetString(EdictV(svent)->model));
+      svent->baseline.modelindex =
+          SV_ModelIndex(PR_GetString(EdictV(svent)->model));
       svent->baseline.alpha = svent->alpha;  // johnfitz -- alpha support
     }
 
     // johnfitz -- PROTOCOL_FITZQUAKE
     bits = 0;
     if (SV_Protocol() == PROTOCOL_NETQUAKE)  // still want to send baseline in
-                                           // PROTOCOL_NETQUAKE, so reset these
-                                           // values
+                                             // PROTOCOL_NETQUAKE, so reset
+                                             // these values
     {
       if (svent->baseline.modelindex & 0xFF00) svent->baseline.modelindex = 0;
       if (svent->baseline.frame & 0xFF00) svent->baseline.frame = 0;
@@ -945,8 +950,7 @@ void SV_SaveSpawnparms(void) {
 
   SVS_SetServerFlags(pr_global_struct->serverflags);
 
-  for (i = 0, host_client = 0; i < SVS_GetMaxClients();
-       i++, host_client++) {
+  for (i = 0, host_client = 0; i < SVS_GetMaxClients(); i++, host_client++) {
     if (!GetClientActive(HostClient())) continue;
 
     // call the progs to get default spawn parms for the new client
@@ -1005,7 +1009,7 @@ void SV_SpawnServer(const char *server) {
 
   q_strlcpy(sv.name, server, sizeof(sv.name));
 
-  SV_SetProtocol(); // Go side knows which protocol to set
+  SV_SetProtocol();  // Go side knows which protocol to set
 
   if (SV_Protocol() == PROTOCOL_RMQ) {
     // set up the protocol flags used by this server
@@ -1018,6 +1022,7 @@ void SV_SpawnServer(const char *server) {
 
   // load progs to get entity field count
   PR_LoadProgs();
+  PR_LoadProgsGo();
 
   // allocate server memory
   /* Host_ClearMemory() called above already cleared the whole sv structure */

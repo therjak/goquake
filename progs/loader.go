@@ -76,7 +76,7 @@ func LoadProgs() (*LoadedProg, error) {
 func readHeader(file io.ReadSeeker) (*Header, error) {
 	var v Header
 	file.Seek(0, io.SeekStart)
-	if err := binary.Read(file, binary.BigEndian, &v); err != nil {
+	if err := binary.Read(file, binary.LittleEndian, &v); err != nil {
 		return nil, fmt.Errorf("Could not read progs %v", err)
 	}
 	if v.Version != ProgVersion {
@@ -94,7 +94,7 @@ func readStatements(pr *Header, file io.ReadSeeker) ([]Statement, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := binary.Read(file, binary.BigEndian, &v); err != nil {
+	if err := binary.Read(file, binary.LittleEndian, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
@@ -106,7 +106,7 @@ func readGlobalDefs(pr *Header, file io.ReadSeeker) ([]Def, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := binary.Read(file, binary.BigEndian, &v); err != nil {
+	if err := binary.Read(file, binary.LittleEndian, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
@@ -118,7 +118,7 @@ func readFieldDefs(pr *Header, file io.ReadSeeker) ([]Def, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := binary.Read(file, binary.BigEndian, &v); err != nil {
+	if err := binary.Read(file, binary.LittleEndian, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
@@ -130,7 +130,7 @@ func readFunctions(pr *Header, file io.ReadSeeker) ([]Function, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := binary.Read(file, binary.BigEndian, &v); err != nil {
+	if err := binary.Read(file, binary.LittleEndian, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
@@ -142,7 +142,7 @@ func readGlobals(pr *Header, file io.ReadSeeker) (*GlobalVars, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := binary.Read(file, binary.BigEndian, &v); err != nil {
+	if err := binary.Read(file, binary.LittleEndian, &v); err != nil {
 		return nil, err
 	}
 	return &v, nil
