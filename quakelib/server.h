@@ -120,7 +120,7 @@ extern cvar_t coop;
 extern cvar_t fraglimit;
 extern cvar_t timelimit;
 
-extern server_t sv;          // local server
+extern server_t sv;  // local server
 
 extern int host_client;
 int HostClient(void);
@@ -147,7 +147,6 @@ void SV_AddUpdates(void);
 
 void SV_AddClientToServer(int ret);
 
-void SV_ClientPrint2(int client, const char *str);
 void SV_ClientPrintf2(int client, const char *fmt, ...);
 //    __attribute__((__format__(__printf__, 1, 2)));
 void SV_BroadcastPrintf(const char *fmt, ...)

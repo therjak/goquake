@@ -91,6 +91,17 @@ func SV_CheckForNewClients() {
 	CheckForNewClients()
 }
 
+//export SV_ClientPrint2
+func SV_ClientPrint2(client C.int, msg *C.char) {
+	ClientWriteByte(client, server.Print)
+	ClientWriteString(client, msg)
+}
+
+func SV_ClientPrint(client int, msg string) {
+	ClientWriteByte2(client, server.Print)
+	ClientWriteString2(client, msg)
+}
+
 func CheckForNewClients() {
 	for {
 		con := net.CheckNewConnections()
@@ -243,6 +254,10 @@ func ClientWriteByte(num, c C.int) {
 	sv_clients[int(num)].msg.WriteByte(int(c))
 }
 
+func ClientWriteByte(num, c int) {
+	sv_clients[num].msg.WriteByte(c)
+}
+
 //export ClientWriteShort
 func ClientWriteShort(num, c C.int) {
 	sv_clients[int(num)].msg.WriteShort(int(c))
@@ -261,6 +276,10 @@ func ClientWriteFloat(num C.int, f C.float) {
 //export ClientWriteString
 func ClientWriteString(num C.int, s *C.char) {
 	sv_clients[int(num)].msg.WriteString(C.GoString(s))
+}
+
+func ClientWriteString2(num int, s string) {
+	sv_clients[num].msg.WriteString(s)
 }
 
 //export ClientWriteCoord

@@ -4,9 +4,10 @@ package quakelib
 //#include "q_stdinc.h"
 //#include "progdefs.h"
 import "C"
-import "unsafe"
-
-// "quake/progs"
+import (
+	"quake/progs"
+	"unsafe"
+)
 
 var (
 	virtmem      []int32
@@ -35,6 +36,13 @@ func EVars(idx C.int) *C.entvars_t {
 	vp := v + uintptr(idx*C.int(entityFields)*4)
 	return (*C.entvars_t)(unsafe.Pointer(vp))
 	//return (*C.entvars_t)(unsafe.Pointer(&virtmem[int(idx)*entityFields]))
+}
+
+func EntVars(idx int) *progs.EntVars {
+	v := uintptr(unsafe.Pointer(g_entvars))
+	vp := v + uintptr(idx*entityFields*4)
+	return (*progs.EntVars)(unsafe.Pointer(vp))
+	//return (*progs.EntVars)(unsafe.Pointer(&virtmem[int(idx)*entityFields]))
 }
 
 //export TT_ClearEntVars

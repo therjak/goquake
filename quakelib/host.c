@@ -289,13 +289,6 @@ Sends text across to be displayed
 FIXME: make this just a stuffed echo?
 =================
 */
-void SV_ClientPrint2(int client, const char *msg) {
-  ClientWriteByte(client, svc_print);
-  ClientWriteString(client, msg);
-}
-
-void SV_ClientPrint(const char *msg) { SV_ClientPrint2(HostClient(), msg); }
-
 void SV_ClientPrintf2(int client, const char *fmt, ...) {
   va_list argptr;
   char string[1024];

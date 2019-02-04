@@ -12,7 +12,7 @@ func decodeGlobalVars(r io.Reader) (*GlobalVars, error) {
 	return &out, nil
 }
 */
-
+/*
 type GlobalVars struct {
 	// progdefs_q1
 	_                 [28]int32
@@ -150,3 +150,5 @@ type EntVars struct {
 	Noise2       int32
 	Noise3       int32
 }
+
+*/
