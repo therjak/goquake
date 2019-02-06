@@ -282,23 +282,20 @@ void SV_TouchLinks(edict_t *ent, areanode_t *node) {
     if (touch == ent) continue;
     tv = EdictV(touch);
     if (!tv->touch || tv->solid != SOLID_TRIGGER) continue;
-    if (ev->absmin[0] > tv->absmax[0] ||
-        ev->absmin[1] > tv->absmax[1] ||
-        ev->absmin[2] > tv->absmax[2] ||
-        ev->absmax[0] < tv->absmin[0] ||
-        ev->absmax[1] < tv->absmin[1] ||
-        ev->absmax[2] < tv->absmin[2])
+    if (ev->absmin[0] > tv->absmax[0] || ev->absmin[1] > tv->absmax[1] ||
+        ev->absmin[2] > tv->absmax[2] || ev->absmax[0] < tv->absmin[0] ||
+        ev->absmax[1] < tv->absmin[1] || ev->absmax[2] < tv->absmin[2])
       continue;
-    old_self = pr_global_struct->self;
-    old_other = pr_global_struct->other;
+    old_self = Pr_global_struct_self();
+    old_other = Pr_global_struct_other();
 
-    pr_global_struct->self = NUM_FOR_EDICT(touch);
-    pr_global_struct->other = NUM_FOR_EDICT(ent);
-    pr_global_struct->time = SV_Time();
+    Set_pr_global_struct_self(NUM_FOR_EDICT(touch));
+    Set_pr_global_struct_other(NUM_FOR_EDICT(ent));
+    Set_pr_global_struct_time(SV_Time());
     PR_ExecuteProgram(tv->touch);
 
-    pr_global_struct->self = old_self;
-    pr_global_struct->other = old_other;
+    Set_pr_global_struct_self(old_self);
+    Set_pr_global_struct_other(old_other);
   }
 
   sv_link_next = NULL;
@@ -494,8 +491,7 @@ edict_t *SV_TestEntityPosition(edict_t *ent) {
   entvars_t *ev;
   ev = EdictV(ent);
 
-  trace = SV_Move(ev->origin, ev->mins, 
-          ev->maxs, ev->origin, 0, ent);
+  trace = SV_Move(ev->origin, ev->mins, ev->maxs, ev->origin, 0, ent);
 
   if (trace.startsolid) return sv.edicts;
 
@@ -703,12 +699,9 @@ void SV_ClipToLinks(areanode_t *node, moveclip_t *clip) {
 
     if (clip->type == MOVE_NOMONSTERS && tv->solid != SOLID_BSP) continue;
 
-    if (clip->boxmins[0] > tv->absmax[0] ||
-        clip->boxmins[1] > tv->absmax[1] ||
-        clip->boxmins[2] > tv->absmax[2] ||
-        clip->boxmaxs[0] < tv->absmin[0] ||
-        clip->boxmaxs[1] < tv->absmin[1] ||
-        clip->boxmaxs[2] < tv->absmin[2])
+    if (clip->boxmins[0] > tv->absmax[0] || clip->boxmins[1] > tv->absmax[1] ||
+        clip->boxmins[2] > tv->absmax[2] || clip->boxmaxs[0] < tv->absmin[0] ||
+        clip->boxmaxs[1] < tv->absmin[1] || clip->boxmaxs[2] < tv->absmin[2])
       continue;
 
     if (clip->passedict && EdictV(clip->passedict)->size[0] && !tv->size[0])

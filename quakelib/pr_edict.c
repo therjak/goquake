@@ -735,7 +735,7 @@ static qboolean ED_ParseEpair(void *base, ddef_t *key, const char *s) {
           Con_DPrintf("Can't find field %s\n", s);
         return false;
       }
-      *(int *)d = G_INT(def->ofs);
+      *(int *)d = Pr_globalsi(def->ofs);
       break;
 
     case ev_function:
@@ -867,7 +867,7 @@ void ED_LoadFromFile(const char *data) {
   edict_t *ent = NULL;
   int inhibit = 0;
 
-  pr_global_struct->time = SV_Time();
+  Set_pr_global_struct_time(SV_Time());
 
   // parse ents
   while (1) {
@@ -921,7 +921,7 @@ void ED_LoadFromFile(const char *data) {
       continue;
     }
 
-    pr_global_struct->self = NUM_FOR_EDICT(ent);
+    Set_pr_global_struct_self(NUM_FOR_EDICT(ent));
     PR_ExecuteProgram(func - pr_functions);
   }
 

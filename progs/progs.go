@@ -89,24 +89,10 @@ type GlobalVars struct {
 	TeamPlay          float32
 	ServerFlags       float32
 	TotalSecrets      float32
+	TotalMonsters     float32
 	FoundSecrets      float32
 	KilledMonsters    float32
-	Parm1             float32
-	Parm2             float32
-	Parm3             float32
-	Parm4             float32
-	Parm5             float32
-	Parm6             float32
-	Parm7             float32
-	Parm8             float32
-	Parm9             float32
-	Parm10            float32
-	Parm11            float32
-	Parm12            float32
-	Parm13            float32
-	Parm14            float32
-	Parm15            float32
-	Parm16            float32
+	Parm              [16]float32
 	VForward          [3]float32
 	VUp               [3]float32
 	VRight            [3]float32

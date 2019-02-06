@@ -70,11 +70,13 @@ void SV_CheckVelocity(edict_t *ent) {
   //
   for (i = 0; i < 3; i++) {
     if (IS_NAN(EdictV(ent)->velocity[i])) {
-      Con_Printf("Got a NaN velocity on %s\n", PR_GetString(EdictV(ent)->classname));
+      Con_Printf("Got a NaN velocity on %s\n",
+                 PR_GetString(EdictV(ent)->classname));
       EdictV(ent)->velocity[i] = 0;
     }
     if (IS_NAN(EdictV(ent)->origin[i])) {
-      Con_Printf("Got a NaN origin on %s\n", PR_GetString(EdictV(ent)->classname));
+      Con_Printf("Got a NaN origin on %s\n",
+                 PR_GetString(EdictV(ent)->classname));
       EdictV(ent)->origin[i] = 0;
     }
     if (EdictV(ent)->velocity[i] > Cvar_GetValue(&sv_maxvelocity))
@@ -104,15 +106,15 @@ qboolean SV_RunThink(edict_t *ent) {
 
   if (thinktime < SV_Time())
     thinktime = SV_Time();  // don't let things stay in the past.
-                          // it is possible to start that way
-                          // by a trigger with a local time.
+                            // it is possible to start that way
+                            // by a trigger with a local time.
 
   oldframe = EdictV(ent)->frame;  // johnfitz
 
   EdictV(ent)->nextthink = 0;
-  pr_global_struct->time = thinktime;
-  pr_global_struct->self = NUM_FOR_EDICT(ent);
-  pr_global_struct->other = NUM_FOR_EDICT(sv.edicts);
+  Set_pr_global_struct_time(thinktime);
+  Set_pr_global_struct_self(NUM_FOR_EDICT(ent));
+  Set_pr_global_struct_other(NUM_FOR_EDICT(sv.edicts));
   PR_ExecuteProgram(EdictV(ent)->think);
 
   // johnfitz -- PROTOCOL_FITZQUAKE
@@ -120,7 +122,8 @@ qboolean SV_RunThink(edict_t *ent) {
   // lerp timing, but only if interval is not 0.1 (which client assumes)
   ent->sendinterval = false;
   if (!ent->free && EdictV(ent)->nextthink &&
-      (EdictV(ent)->movetype == MOVETYPE_STEP || EdictV(ent)->frame != oldframe)) {
+      (EdictV(ent)->movetype == MOVETYPE_STEP ||
+       EdictV(ent)->frame != oldframe)) {
     i = Q_rint((EdictV(ent)->nextthink - thinktime) * 255);
     if (i >= 0 && i < 256 && i != 25 &&
         i != 26)  // 25 and 26 are close enough to 0.1 to not send
@@ -141,24 +144,24 @@ Two entities have touched, so run their touch functions
 void SV_Impact(edict_t *e1, edict_t *e2) {
   int old_self, old_other;
 
-  old_self = pr_global_struct->self;
-  old_other = pr_global_struct->other;
+  old_self = Pr_global_struct_self();
+  old_other = Pr_global_struct_other();
 
-  pr_global_struct->time = SV_Time();
+  Set_pr_global_struct_time(SV_Time());
   if (EdictV(e1)->touch && EdictV(e1)->solid != SOLID_NOT) {
-    pr_global_struct->self = NUM_FOR_EDICT(e1);
-    pr_global_struct->other = NUM_FOR_EDICT(e2);
+    Set_pr_global_struct_self(NUM_FOR_EDICT(e1));
+    Set_pr_global_struct_other(NUM_FOR_EDICT(e2));
     PR_ExecuteProgram(EdictV(e1)->touch);
   }
 
   if (EdictV(e2)->touch && EdictV(e2)->solid != SOLID_NOT) {
-    pr_global_struct->self = NUM_FOR_EDICT(e2);
-    pr_global_struct->other = NUM_FOR_EDICT(e1);
+    Set_pr_global_struct_self(NUM_FOR_EDICT(e2));
+    Set_pr_global_struct_other(NUM_FOR_EDICT(e1));
     PR_ExecuteProgram(EdictV(e2)->touch);
   }
 
-  pr_global_struct->self = old_self;
-  pr_global_struct->other = old_other;
+  Set_pr_global_struct_self(old_self);
+  Set_pr_global_struct_other(old_other);
 }
 
 /*
@@ -227,15 +230,15 @@ int SV_FlyMove(edict_t *ent, float time, trace_t *steptrace) {
   time_left = time;
 
   for (bumpcount = 0; bumpcount < numbumps; bumpcount++) {
-    if (!EdictV(ent)->velocity[0] &&
-        !EdictV(ent)->velocity[1] &&
+    if (!EdictV(ent)->velocity[0] && !EdictV(ent)->velocity[1] &&
         !EdictV(ent)->velocity[2])
       break;
 
     for (i = 0; i < 3; i++)
       end[i] = EdictV(ent)->origin[i] + time_left * EdictV(ent)->velocity[i];
 
-    trace = SV_Move(EdictV(ent)->origin, EdictV(ent)->mins, EdictV(ent)->maxs, end, false, ent);
+    trace = SV_Move(EdictV(ent)->origin, EdictV(ent)->mins, EdictV(ent)->maxs,
+                    end, false, ent);
 
     if (trace.allsolid) {  // entity is trapped in another solid
       VectorCopy(vec3_origin, EdictV(ent)->velocity);
@@ -362,15 +365,16 @@ trace_t SV_PushEntity(edict_t *ent, vec3_t push) {
   VectorAdd(EdictV(ent)->origin, push, end);
 
   if (EdictV(ent)->movetype == MOVETYPE_FLYMISSILE)
-    trace = SV_Move(EdictV(ent)->origin, 
-        EdictV(ent)->mins, EdictV(ent)->maxs, end, MOVE_MISSILE, ent);
-  else if (EdictV(ent)->solid == SOLID_TRIGGER || EdictV(ent)->solid == SOLID_NOT)
+    trace = SV_Move(EdictV(ent)->origin, EdictV(ent)->mins, EdictV(ent)->maxs,
+                    end, MOVE_MISSILE, ent);
+  else if (EdictV(ent)->solid == SOLID_TRIGGER ||
+           EdictV(ent)->solid == SOLID_NOT)
     // only clip against bmodels
-    trace = SV_Move(EdictV(ent)->origin, EdictV(ent)->mins, EdictV(ent)->maxs, end,
-                    MOVE_NOMONSTERS, ent);
+    trace = SV_Move(EdictV(ent)->origin, EdictV(ent)->mins, EdictV(ent)->maxs,
+                    end, MOVE_NOMONSTERS, ent);
   else
-    trace =
-        SV_Move(EdictV(ent)->origin, EdictV(ent)->mins, EdictV(ent)->maxs, end, MOVE_NORMAL, ent);
+    trace = SV_Move(EdictV(ent)->origin, EdictV(ent)->mins, EdictV(ent)->maxs,
+                    end, MOVE_NORMAL, ent);
 
   VectorCopy(trace.endpos, EdictV(ent)->origin);
   SV_LinkEdict(ent, true);
@@ -434,9 +438,12 @@ void SV_PushMove(edict_t *pusher, float movetime) {
     // if the entity is standing on the pusher, it will definately be moved
     if (!(((int)EdictV(check)->flags & FL_ONGROUND) &&
           EDICT_NUM(EdictV(check)->groundentity) == pusher)) {
-      if (EdictV(check)->absmin[0] >= maxs[0] || EdictV(check)->absmin[1] >= maxs[1] ||
-          EdictV(check)->absmin[2] >= maxs[2] || EdictV(check)->absmax[0] <= mins[0] ||
-          EdictV(check)->absmax[1] <= mins[1] || EdictV(check)->absmax[2] <= mins[2])
+      if (EdictV(check)->absmin[0] >= maxs[0] ||
+          EdictV(check)->absmin[1] >= maxs[1] ||
+          EdictV(check)->absmin[2] >= maxs[2] ||
+          EdictV(check)->absmax[0] <= mins[0] ||
+          EdictV(check)->absmax[1] <= mins[1] ||
+          EdictV(check)->absmax[2] <= mins[2])
         continue;
 
       // see if the ent's bbox is inside the pusher's final position
@@ -478,8 +485,8 @@ void SV_PushMove(edict_t *pusher, float movetime) {
       // if the pusher has a "blocked" function, call it
       // otherwise, just stay in place until the obstacle is gone
       if (EdictV(pusher)->blocked) {
-        pr_global_struct->self = NUM_FOR_EDICT(pusher);
-        pr_global_struct->other = NUM_FOR_EDICT(check);
+        Set_pr_global_struct_self(NUM_FOR_EDICT(pusher));
+        Set_pr_global_struct_other(NUM_FOR_EDICT(check));
         PR_ExecuteProgram(EdictV(pusher)->blocked);
       }
 
@@ -522,9 +529,9 @@ void SV_Physics_Pusher(edict_t *ent) {
 
   if (thinktime > oldltime && thinktime <= EdictV(ent)->ltime) {
     EdictV(ent)->nextthink = 0;
-    pr_global_struct->time = SV_Time();
-    pr_global_struct->self = NUM_FOR_EDICT(ent);
-    pr_global_struct->other = NUM_FOR_EDICT(sv.edicts);
+    Set_pr_global_struct_time(SV_Time());
+    Set_pr_global_struct_self(NUM_FOR_EDICT(ent));
+    Set_pr_global_struct_other(NUM_FOR_EDICT(sv.edicts));
     PR_ExecuteProgram(EdictV(ent)->think);
     if (ent->free) return;
   }
@@ -600,8 +607,8 @@ qboolean SV_CheckWater(edict_t *ent) {
   if (cont <= CONTENTS_WATER) {
     EdictV(ent)->watertype = cont;
     EdictV(ent)->waterlevel = 1;
-    point[2] = EdictV(ent)->origin[2] + 
-      (EdictV(ent)->mins[2] + EdictV(ent)->maxs[2]) * 0.5;
+    point[2] = EdictV(ent)->origin[2] +
+               (EdictV(ent)->mins[2] + EdictV(ent)->maxs[2]) * 0.5;
     cont = SV_PointContents(point);
     if (cont <= CONTENTS_WATER) {
       EdictV(ent)->waterlevel = 2;
@@ -824,9 +831,9 @@ void SV_Physics_Client(edict_t *ent, int num) {
   //
   // call standard client pre-think
   //
-  pr_global_struct->time = SV_Time();
-  pr_global_struct->self = NUM_FOR_EDICT(ent);
-  PR_ExecuteProgram(pr_global_struct->PlayerPreThink);
+  Set_pr_global_struct_time(SV_Time());
+  Set_pr_global_struct_self(NUM_FOR_EDICT(ent));
+  PR_ExecuteProgram(Pr_global_struct_PlayerPreThink());
 
   //
   // do a move
@@ -861,12 +868,13 @@ void SV_Physics_Client(edict_t *ent, int num) {
 
     case MOVETYPE_NOCLIP:
       if (!SV_RunThink(ent)) return;
-      VectorMA(EdictV(ent)->origin, HostFrameTime(), 
-          EdictV(ent)->velocity, EdictV(ent)->origin);
+      VectorMA(EdictV(ent)->origin, HostFrameTime(), EdictV(ent)->velocity,
+               EdictV(ent)->origin);
       break;
 
     default:
-      Go_Error_I("SV_Physics_client: bad movetype %v", (int)EdictV(ent)->movetype);
+      Go_Error_I("SV_Physics_client: bad movetype %v",
+                 (int)EdictV(ent)->movetype);
   }
 
   //
@@ -874,9 +882,9 @@ void SV_Physics_Client(edict_t *ent, int num) {
   //
   SV_LinkEdict(ent, true);
 
-  pr_global_struct->time = SV_Time();
-  pr_global_struct->self = NUM_FOR_EDICT(ent);
-  PR_ExecuteProgram(pr_global_struct->PlayerPostThink);
+  Set_pr_global_struct_time(SV_Time());
+  Set_pr_global_struct_self(NUM_FOR_EDICT(ent));
+  PR_ExecuteProgram(Pr_global_struct_PlayerPostThink());
 }
 
 //============================================================================
@@ -904,10 +912,10 @@ void SV_Physics_Noclip(edict_t *ent) {
   // regular thinking
   if (!SV_RunThink(ent)) return;
 
-  VectorMA(EdictV(ent)->angles, HostFrameTime(), 
-      EdictV(ent)->avelocity, EdictV(ent)->angles);
-  VectorMA(EdictV(ent)->origin, HostFrameTime(), 
-      EdictV(ent)->velocity, EdictV(ent)->origin);
+  VectorMA(EdictV(ent)->angles, HostFrameTime(), EdictV(ent)->avelocity,
+           EdictV(ent)->angles);
+  VectorMA(EdictV(ent)->origin, HostFrameTime(), EdictV(ent)->velocity,
+           EdictV(ent)->origin);
 
   SV_LinkEdict(ent, false);
 }
@@ -973,13 +981,13 @@ void SV_Physics_Toss(edict_t *ent) {
   SV_CheckVelocity(ent);
 
   // add gravity
-  if (EdictV(ent)->movetype != MOVETYPE_FLY && 
+  if (EdictV(ent)->movetype != MOVETYPE_FLY &&
       EdictV(ent)->movetype != MOVETYPE_FLYMISSILE)
     SV_AddGravity(ent);
 
   // move angles
-  VectorMA(EdictV(ent)->angles, HostFrameTime(), 
-      EdictV(ent)->avelocity, EdictV(ent)->angles);
+  VectorMA(EdictV(ent)->angles, HostFrameTime(), EdictV(ent)->avelocity,
+           EdictV(ent)->angles);
 
   // move origin
   VectorScale(EdictV(ent)->velocity, HostFrameTime(), move);
@@ -992,12 +1000,13 @@ void SV_Physics_Toss(edict_t *ent) {
   else
     backoff = 1;
 
-  ClipVelocity(EdictV(ent)->velocity, trace.plane.normal, 
-      EdictV(ent)->velocity, backoff);
+  ClipVelocity(EdictV(ent)->velocity, trace.plane.normal, EdictV(ent)->velocity,
+               backoff);
 
   // stop if on ground
   if (trace.plane.normal[2] > 0.7) {
-    if (EdictV(ent)->velocity[2] < 60 || EdictV(ent)->movetype != MOVETYPE_BOUNCE) {
+    if (EdictV(ent)->velocity[2] < 60 ||
+        EdictV(ent)->movetype != MOVETYPE_BOUNCE) {
       EdictV(ent)->flags = (int)EdictV(ent)->flags | FL_ONGROUND;
       EdictV(ent)->groundentity = NUM_FOR_EDICT(trace.ent);
       VectorCopy(vec3_origin, EdictV(ent)->velocity);
@@ -1069,10 +1078,10 @@ void SV_Physics(void) {
   edict_t *ent;
 
   // let the progs know that a new frame has started
-  pr_global_struct->self = 0;
-  pr_global_struct->other = 0;
-  pr_global_struct->time = SV_Time();
-  PR_ExecuteProgram(pr_global_struct->StartFrame);
+  Set_pr_global_struct_self(0);
+  Set_pr_global_struct_other(0);
+  Set_pr_global_struct_time(SV_Time());
+  PR_ExecuteProgram(Pr_global_struct_StartFrame());
 
   // SV_CheckAllEnts ();
 
@@ -1091,7 +1100,7 @@ void SV_Physics(void) {
   for (i = 0; i < entity_cap; i++, ent = NEXT_EDICT(ent)) {
     if (ent->free) continue;
 
-    if (pr_global_struct->force_retouch) {
+    if (Pr_global_struct_force_retouch()) {
       SV_LinkEdict(ent, true);  // force retouch even for stationary
     }
 
@@ -1114,7 +1123,7 @@ void SV_Physics(void) {
       Go_Error_I("SV_Physics: bad movetype %v", (int)EdictV(ent)->movetype);
   }
 
-  if (pr_global_struct->force_retouch) pr_global_struct->force_retouch--;
+  if (Pr_global_struct_force_retouch()) Dec_pr_global_struct_force_retouch();
 
   if (!Cvar_GetValue(&sv_freezenonclients)) {
     SV_SetTime(SV_Time() + HostFrameTime());

@@ -430,7 +430,7 @@ void Host_God_f(void) {
     return;
   }
 
-  if (pr_global_struct->deathmatch) return;
+  if (Pr_global_struct_deathmatch()) return;
   entvars_t *pent = EdictV(sv_player);
   float *flags = &pent->flags;
 
@@ -470,7 +470,7 @@ void Host_Notarget_f(void) {
     return;
   }
 
-  if (pr_global_struct->deathmatch) return;
+  if (Pr_global_struct_deathmatch()) return;
   entvars_t *pent = EdictV(sv_player);
   float *flags = &pent->flags;
 
@@ -513,7 +513,7 @@ void Host_Noclip_f(void) {
     return;
   }
 
-  if (pr_global_struct->deathmatch) return;
+  if (Pr_global_struct_deathmatch()) return;
   entvars_t *pent = EdictV(sv_player);
   float *movetype = &pent->movetype;
 
@@ -562,7 +562,7 @@ void Host_SetPos_f(void) {
     return;
   }
 
-  if (pr_global_struct->deathmatch) return;
+  if (Pr_global_struct_deathmatch()) return;
   entvars_t *pent = EdictV(sv_player);
 
   if (Cmd_Argc() != 7 && Cmd_Argc() != 4) {
@@ -616,7 +616,7 @@ void Host_Fly_f(void) {
     return;
   }
 
-  if (pr_global_struct->deathmatch) return;
+  if (Pr_global_struct_deathmatch()) return;
   entvars_t *pent = EdictV(sv_player);
   float *movetype = &pent->movetype;
 
@@ -1317,9 +1317,9 @@ void Host_Kill_f(void) {
     return;
   }
 
-  pr_global_struct->time = SV_Time();
-  pr_global_struct->self = NUM_FOR_EDICT(sv_player);
-  PR_ExecuteProgram(pr_global_struct->ClientKill);
+  Set_pr_global_struct_time(SV_Time());
+  Set_pr_global_struct_self(NUM_FOR_EDICT(sv_player));
+  PR_ExecuteProgram(Pr_global_struct_ClientKill());
 }
 
 /*
@@ -1398,11 +1398,11 @@ void Host_Spawn_f(void) {
 
     // copy spawn parms out of the client_t
     for (i = 0; i < NUM_SPAWN_PARMS; i++)
-      (&pr_global_struct->parm1)[i] = GetClientSpawnParam(HostClient(), i);
+      Set_pr_global_struct_parm(i, GetClientSpawnParam(HostClient(), i));
     // call the spawn function
-    pr_global_struct->time = SV_Time();
-    pr_global_struct->self = NUM_FOR_EDICT(sv_player);
-    PR_ExecuteProgram(pr_global_struct->ClientConnect);
+    Set_pr_global_struct_time(SV_Time());
+    Set_pr_global_struct_self(NUM_FOR_EDICT(sv_player));
+    PR_ExecuteProgram(Pr_global_struct_ClientConnect());
 
     if ((Sys_DoubleTime() - ClientConnectTime(HostClient())) <= SV_Time()) {
       char *name = GetClientName(HostClient());
@@ -1410,7 +1410,7 @@ void Host_Spawn_f(void) {
       free(name);
     }
 
-    PR_ExecuteProgram(pr_global_struct->PutClientInServer);
+    PR_ExecuteProgram(Pr_global_struct_PutClientInServer());
   }
 
   // send all current names, colors, and frag counts
@@ -1446,19 +1446,19 @@ void Host_Spawn_f(void) {
   //
   ClientWriteByte(HostClient(), svc_updatestat);
   ClientWriteByte(HostClient(), STAT_TOTALSECRETS);
-  ClientWriteLong(HostClient(), pr_global_struct->total_secrets);
+  ClientWriteLong(HostClient(), Pr_global_struct_total_secrets());
 
   ClientWriteByte(HostClient(), svc_updatestat);
   ClientWriteByte(HostClient(), STAT_TOTALMONSTERS);
-  ClientWriteLong(HostClient(), pr_global_struct->total_monsters);
+  ClientWriteLong(HostClient(), Pr_global_struct_total_monsters());
 
   ClientWriteByte(HostClient(), svc_updatestat);
   ClientWriteByte(HostClient(), STAT_SECRETS);
-  ClientWriteLong(HostClient(), pr_global_struct->found_secrets);
+  ClientWriteLong(HostClient(), Pr_global_struct_found_secrets());
 
   ClientWriteByte(HostClient(), svc_updatestat);
   ClientWriteByte(HostClient(), STAT_MONSTERS);
-  ClientWriteLong(HostClient(), pr_global_struct->killed_monsters);
+  ClientWriteLong(HostClient(), Pr_global_struct_killed_monsters());
 
   //
   // send a fixangle
@@ -1517,7 +1517,7 @@ void Host_Kick_f(void) {
       Cmd_ForwardToServer();
       return;
     }
-  } else if (pr_global_struct->deathmatch)
+  } else if (Pr_global_struct_deathmatch())
     return;
 
   save = HostClient();
@@ -1599,7 +1599,7 @@ void Host_Give_f(void) {
     return;
   }
 
-  if (pr_global_struct->deathmatch) return;
+  if (Pr_global_struct_deathmatch()) return;
 
   t = Cmd_Argv(1);
   v = Cmd_ArgvAsInt(2);

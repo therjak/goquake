@@ -121,13 +121,13 @@ qboolean SV_movestep(edict_t *ent, vec3_t move, qboolean relink) {
       VectorAdd(EdictV(ent)->origin, move, neworg);
       enemy = EDICT_NUM(EdictV(ent)->enemy);
       if (i == 0 && enemy != sv.edicts) {
-        dz = EdictV(ent)->origin[2] - 
-          EdictV(EDICT_NUM(EdictV(ent)->enemy))->origin[2];
+        dz = EdictV(ent)->origin[2] -
+             EdictV(EDICT_NUM(EdictV(ent)->enemy))->origin[2];
         if (dz > 40) neworg[2] -= 8;
         if (dz < 30) neworg[2] += 8;
       }
-      trace = SV_Move(EdictV(ent)->origin, EdictV(ent)->mins,
-          EdictV(ent)->maxs, neworg, false, ent);
+      trace = SV_Move(EdictV(ent)->origin, EdictV(ent)->mins, EdictV(ent)->maxs,
+                      neworg, false, ent);
 
       if (trace.fraction == 1) {
         if (((int)EdictV(ent)->flags & FL_SWIM) &&
@@ -150,13 +150,15 @@ qboolean SV_movestep(edict_t *ent, vec3_t move, qboolean relink) {
   VectorCopy(neworg, end);
   end[2] -= STEPSIZE * 2;
 
-  trace = SV_Move(neworg, EdictV(ent)->mins, EdictV(ent)->maxs, end, false, ent);
+  trace =
+      SV_Move(neworg, EdictV(ent)->mins, EdictV(ent)->maxs, end, false, ent);
 
   if (trace.allsolid) return false;
 
   if (trace.startsolid) {
     neworg[2] -= STEPSIZE;
-    trace = SV_Move(neworg, EdictV(ent)->mins, EdictV(ent)->maxs, end, false, ent);
+    trace =
+        SV_Move(neworg, EdictV(ent)->mins, EdictV(ent)->maxs, end, false, ent);
     if (trace.allsolid || trace.startsolid) return false;
   }
   if (trace.fraction == 1) {
@@ -176,9 +178,9 @@ qboolean SV_movestep(edict_t *ent, vec3_t move, qboolean relink) {
   VectorCopy(trace.endpos, EdictV(ent)->origin);
 
   if (!SV_CheckBottom(ent)) {
-    if ((int)EdictV(ent)->flags & FL_PARTIALGROUND) {  // entity had floor mostly
-                                                 // pulled out from underneath
-                                                 // it
+    if ((int)EdictV(ent)->flags & FL_PARTIALGROUND) {  // entity had floor
+                                                       // mostly pulled out from
+                                                       // underneath it
       // and is trying to correct
       if (relink) SV_LinkEdict(ent, true);
       return true;
@@ -354,12 +356,12 @@ void SV_MoveToGoal(void) {
   edict_t *ent, *goal;
   float dist;
 
-  ent = EDICT_NUM(pr_global_struct->self);
+  ent = EDICT_NUM(Pr_global_struct_self());
   goal = EDICT_NUM(EdictV(ent)->goalentity);
-  dist = G_FLOAT(OFS_PARM0);
+  dist = Pr_globalsf(OFS_PARM0);
 
   if (!((int)EdictV(ent)->flags & (FL_ONGROUND | FL_FLY | FL_SWIM))) {
-    G_FLOAT(OFS_RETURN) = 0;
+    Set_pr_globalsf(OFS_RETURN, 0);
     return;
   }
 
@@ -369,7 +371,8 @@ void SV_MoveToGoal(void) {
     return;
 
   // bump around...
-  if ((rand() & 3) == 1 || !SV_StepDirection(ent, EdictV(ent)->ideal_yaw, dist)) {
+  if ((rand() & 3) == 1 ||
+      !SV_StepDirection(ent, EdictV(ent)->ideal_yaw, dist)) {
     SV_NewChaseDir(ent, EdictV(goal), dist);
   }
 }

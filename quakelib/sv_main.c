@@ -289,9 +289,9 @@ void SV_ConnectClient(int clientnum) {
     }
   } else {
     // call the progs to get default spawn parms for the new client
-    PR_ExecuteProgram(pr_global_struct->SetNewParms);
+    PR_ExecuteProgram(Pr_global_struct_SetNewParms());
     for (i = 0; i < NUM_SPAWN_PARMS; i++)
-      SetClientSpawnParam(client, i, (&pr_global_struct->parm1)[i]);
+      SetClientSpawnParam(client, i, Pr_global_struct_parm(i));
   }
   SV_SendServerinfo(client);
 }
@@ -609,7 +609,7 @@ void SV_WriteClientdataToMessage(edict_t *ent) {
     items = (int)EdictV(ent)->items | ((int)val->_float << 23);
   else
     items =
-        (int)EdictV(ent)->items | ((int)pr_global_struct->serverflags << 28);
+        (int)EdictV(ent)->items | ((int)Pr_global_struct_serverflags() << 28);
 
   bits |= SU_ITEMS;
 
@@ -948,16 +948,16 @@ transition to another level
 void SV_SaveSpawnparms(void) {
   int i, j;
 
-  SVS_SetServerFlags(pr_global_struct->serverflags);
+  SVS_SetServerFlags(Pr_global_struct_serverflags());
 
   for (i = 0, host_client = 0; i < SVS_GetMaxClients(); i++, host_client++) {
     if (!GetClientActive(HostClient())) continue;
 
     // call the progs to get default spawn parms for the new client
-    pr_global_struct->self = NUM_FOR_EDICT(SV_GetEdict(HostClient()));
-    PR_ExecuteProgram(pr_global_struct->SetChangeParms);
+    Set_pr_global_struct_self(NUM_FOR_EDICT(SV_GetEdict(HostClient())));
+    PR_ExecuteProgram(Pr_global_struct_SetChangeParms());
     for (j = 0; j < NUM_SPAWN_PARMS; j++) {
-      SetClientSpawnParam(HostClient(), j, (&pr_global_struct->parm1)[j]);
+      SetClientSpawnParam(HostClient(), j, Pr_global_struct_parm(j));
     }
   }
 }
@@ -1081,15 +1081,15 @@ void SV_SpawnServer(const char *server) {
   EdictV(ent)->movetype = MOVETYPE_PUSH;
 
   if (Cvar_GetValue(&coop)) {
-    pr_global_struct->coop = Cvar_GetValue(&coop);
+    Set_pr_global_struct_coop(Cvar_GetValue(&coop));
   } else {
-    pr_global_struct->deathmatch = Cvar_GetValue(&deathmatch);
+    Set_pr_global_struct_deathmatch(Cvar_GetValue(&deathmatch));
   }
 
-  pr_global_struct->mapname = PR_SetEngineString(sv.name);
+  Set_pr_global_struct_mapname(PR_SetEngineString(sv.name));
 
   // serverflags are for cross level information (sigils)
-  pr_global_struct->serverflags = SVS_GetServerFlags();
+  Set_pr_global_struct_serverflags(SVS_GetServerFlags());
 
   ED_LoadFromFile(sv.worldmodel->entities);
 
