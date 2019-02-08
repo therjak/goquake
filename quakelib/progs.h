@@ -82,7 +82,6 @@ edict_t *NEXT_EDICT(edict_t *e);
 edict_t *G_EDICT(int o);
 
 #define G_EDICTNUM(o) NUM_FOR_EDICT(G_EDICT(o))
-#define G_VECTOR(o) (&pr_globals[o])
 
 #define E_FLOAT(e, o) (((float *)EdictV(e))[o])
 #define E_INT(e, o) (*(int *)&((float *)EdictV(e))[o])

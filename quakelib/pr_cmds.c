@@ -9,7 +9,7 @@ static char *PR_GetTempString(void) {
   return pr_string_temp[(STRINGTEMP_BUFFERS - 1) & ++pr_string_tempindex];
 }
 
-#define RETURN_EDICT(e) (((int *)pr_globals)[OFS_RETURN] = NUM_FOR_EDICT(e))
+#define RETURN_EDICT(e) (Set_pr_globalsi(OFS_RETURN, NUM_FOR_EDICT(e)))
 
 #define MSG_BROADCAST 0  // unreliable to all
 #define MSG_ONE 1        // reliable to one (msg_entity)
@@ -102,8 +102,11 @@ makevectors(vector)
 ==============
 */
 static void PF_makevectors(void) {
-  vec3_t f, r, u;
-  AngleVectors(G_VECTOR(OFS_PARM0), f, r, u);
+  vec3_t b, f, r, u;
+  b[0] = Pr_globalsf(OFS_PARM0);
+  b[1] = Pr_globalsf(OFS_PARM0 + 1);
+  b[2] = Pr_globalsf(OFS_PARM0 + 2);
+  AngleVectors(b, f, r, u);
   Set_pr_global_struct_v_forward(f[0], f[1], f[2]);
   Set_pr_global_struct_v_right(r[0], r[1], r[2]);
   Set_pr_global_struct_v_up(u[0], u[1], u[2]);
@@ -124,12 +127,13 @@ setorigin (entity, origin)
 =================
 */
 static void PF_setorigin(void) {
-  edict_t *e;
-  float *org;
+  edict_t *e = G_EDICT(OFS_PARM0);
+  float *origin = EdictV(e)->origin;
 
-  e = G_EDICT(OFS_PARM0);
-  org = G_VECTOR(OFS_PARM1);
-  VectorCopy(org, EdictV(e)->origin);
+  *(origin) = Pr_globalsf(OFS_PARM1);
+  *(origin + 1) = Pr_globalsf(OFS_PARM1 + 1);
+  *(origin + 2) = Pr_globalsf(OFS_PARM1 + 2);
+
   SV_LinkEdict(e, false);
 }
 
@@ -208,11 +212,15 @@ setsize (entity, minvector, maxvector)
 */
 static void PF_setsize(void) {
   edict_t *e;
-  float *minvec, *maxvec;
+  vec3_t minvec, maxvec;
 
   e = G_EDICT(OFS_PARM0);
-  minvec = G_VECTOR(OFS_PARM1);
-  maxvec = G_VECTOR(OFS_PARM2);
+  minvec[0] = Pr_globalsf(OFS_PARM1);
+  minvec[1] = Pr_globalsf(OFS_PARM1 + 1);
+  minvec[2] = Pr_globalsf(OFS_PARM1 + 2);
+  maxvec[0] = Pr_globalsf(OFS_PARM2);
+  maxvec[1] = Pr_globalsf(OFS_PARM2 + 1);
+  maxvec[2] = Pr_globalsf(OFS_PARM2 + 2);
   SetMinMaxSize(e, minvec, maxvec, false);
 }
 
@@ -338,26 +346,30 @@ vector normalize(vector)
 =================
 */
 static void PF_normalize(void) {
-  float *value1;
   vec3_t newvalue;
   float new_temp;
+  float x, y, z;
 
-  value1 = G_VECTOR(OFS_PARM0);
-
-  new_temp =
-      value1[0] * value1[0] + value1[1] * value1[1] + value1[2] * value1[2];
+  x = Pr_globalsf(OFS_PARM0);
+  new_temp = x * x;
+  y = Pr_globalsf(OFS_PARM0 + 1);
+  new_temp += y * y;
+  z = Pr_globalsf(OFS_PARM0 + 2);
+  new_temp += z * z;
   new_temp = sqrt(new_temp);
 
   if (new_temp == 0)
     newvalue[0] = newvalue[1] = newvalue[2] = 0;
   else {
     new_temp = 1 / new_temp;
-    newvalue[0] = value1[0] * new_temp;
-    newvalue[1] = value1[1] * new_temp;
-    newvalue[2] = value1[2] * new_temp;
+    newvalue[0] = x * new_temp;
+    newvalue[1] = y * new_temp;
+    newvalue[2] = z * new_temp;
   }
 
-  VectorCopy(newvalue, G_VECTOR(OFS_RETURN));
+  Set_pr_globalsf(OFS_RETURN, newvalue[0]);
+  Set_pr_globalsf(OFS_RETURN + 1, newvalue[1]);
+  Set_pr_globalsf(OFS_RETURN + 2, newvalue[2]);
 }
 
 /*
@@ -368,13 +380,15 @@ scalar vlen(vector)
 =================
 */
 static void PF_vlen(void) {
-  float *value1;
   float new_temp;
+  float t;
 
-  value1 = G_VECTOR(OFS_PARM0);
-
-  new_temp =
-      value1[0] * value1[0] + value1[1] * value1[1] + value1[2] * value1[2];
+  t = Pr_globalsf(OFS_PARM0);
+  new_temp = t * t;
+  t = Pr_globalsf(OFS_PARM0 + 1);
+  new_temp += t * t;
+  t = Pr_globalsf(OFS_PARM0 + 2);
+  new_temp += t * t;
   new_temp = sqrt(new_temp);
 
   Set_pr_globalsf(OFS_RETURN, new_temp);
@@ -388,15 +402,14 @@ float vectoyaw(vector)
 =================
 */
 static void PF_vectoyaw(void) {
-  float *value1;
   float yaw;
+  float x = Pr_globalsf(OFS_PARM0);
+  float y = Pr_globalsf(OFS_PARM0 + 1);
 
-  value1 = G_VECTOR(OFS_PARM0);
-
-  if (value1[1] == 0 && value1[0] == 0)
+  if (y == 0 && x == 0)
     yaw = 0;
   else {
-    yaw = (int)(atan2(value1[1], value1[0]) * 180 / M_PI);
+    yaw = (int)(atan2(y, x) * 180 / M_PI);
     if (yaw < 0) yaw += 360;
   }
 
@@ -411,24 +424,25 @@ vector vectoangles(vector)
 =================
 */
 static void PF_vectoangles(void) {
-  float *value1;
   float forward;
   float yaw, pitch;
 
-  value1 = G_VECTOR(OFS_PARM0);
+  float x = Pr_globalsf(OFS_PARM0);
+  float y = Pr_globalsf(OFS_PARM0 + 1);
+  float z = Pr_globalsf(OFS_PARM0 + 2);
 
-  if (value1[1] == 0 && value1[0] == 0) {
+  if (y == 0 && x == 0) {
     yaw = 0;
-    if (value1[2] > 0)
+    if (z > 0)
       pitch = 90;
     else
       pitch = 270;
   } else {
-    yaw = (int)(atan2(value1[1], value1[0]) * 180 / M_PI);
+    yaw = (int)(atan2(y, x) * 180 / M_PI);
     if (yaw < 0) yaw += 360;
 
-    forward = sqrt(value1[0] * value1[0] + value1[1] * value1[1]);
-    pitch = (int)(atan2(value1[2], forward) * 180 / M_PI);
+    forward = sqrt(x * x + y * y);
+    pitch = (int)(atan2(z, forward) * 180 / M_PI);
     if (pitch < 0) pitch += 360;
   }
 
@@ -462,12 +476,16 @@ particle(origin, color, count)
 =================
 */
 static void PF_particle(void) {
-  float *org, *dir;
   float color;
   float count;
+  vec3_t org, dir;
 
-  org = G_VECTOR(OFS_PARM0);
-  dir = G_VECTOR(OFS_PARM1);
+  org[0] = Pr_globalsf(OFS_PARM0);
+  org[1] = Pr_globalsf(OFS_PARM0 + 1);
+  org[2] = Pr_globalsf(OFS_PARM0 + 2);
+  dir[0] = Pr_globalsf(OFS_PARM1);
+  dir[1] = Pr_globalsf(OFS_PARM1 + 1);
+  dir[2] = Pr_globalsf(OFS_PARM1 + 2);
   color = Pr_globalsf(OFS_PARM2);
   count = Pr_globalsf(OFS_PARM3);
   SV_StartParticle(org, dir, color, count);
@@ -481,12 +499,14 @@ PF_ambientsound
 */
 static void PF_ambientsound(void) {
   const char *samp, **check;
-  float *pos;
+  vec3_t pos;
   float vol, attenuation;
   int i, soundnum;
   int large = false;  // johnfitz -- PROTOCOL_FITZQUAKE
 
-  pos = G_VECTOR(OFS_PARM0);
+  pos[0] = Pr_globalsf(OFS_PARM0);
+  pos[1] = Pr_globalsf(OFS_PARM0 + 1);
+  pos[2] = Pr_globalsf(OFS_PARM0 + 2);
   samp = PR_GetString(Pr_globalsi(OFS_PARM1));
   vol = Pr_globalsf(OFS_PARM2);
   attenuation = Pr_globalsf(OFS_PARM3);
@@ -597,13 +617,17 @@ traceline (vector1, vector2, tryents)
 =================
 */
 static void PF_traceline(void) {
-  float *v1, *v2;
+  vec3_t v1, v2;
   trace_t trace;
   int nomonsters;
   edict_t *ent;
 
-  v1 = G_VECTOR(OFS_PARM0);
-  v2 = G_VECTOR(OFS_PARM1);
+  v1[0] = Pr_globalsf(OFS_PARM0);
+  v1[1] = Pr_globalsf(OFS_PARM0 + 1);
+  v1[2] = Pr_globalsf(OFS_PARM0 + 2);
+  v2[0] = Pr_globalsf(OFS_PARM1);
+  v2[1] = Pr_globalsf(OFS_PARM1 + 1);
+  v2[2] = Pr_globalsf(OFS_PARM1 + 2);
   nomonsters = Pr_globalsf(OFS_PARM2);
   ent = G_EDICT(OFS_PARM3);
 
@@ -836,13 +860,15 @@ findradius (origin, radius)
 static void PF_findradius(void) {
   edict_t *ent, *chain;
   float rad;
-  float *org;
+  vec3_t org;
   vec3_t eorg;
   int i, j;
 
   chain = (edict_t *)sv.edicts;
 
-  org = G_VECTOR(OFS_PARM0);
+  org[0] = Pr_globalsf(OFS_PARM0);
+  org[1] = Pr_globalsf(OFS_PARM0 + 1);
+  org[2] = Pr_globalsf(OFS_PARM0 + 2);
   rad = Pr_globalsf(OFS_PARM1);
 
   ent = NEXT_EDICT(sv.edicts);
@@ -891,8 +917,8 @@ static void PF_vtos(void) {
   char *s;
 
   s = PR_GetTempString();
-  sprintf(s, "'%5.1f %5.1f %5.1f'", G_VECTOR(OFS_PARM0)[0],
-          G_VECTOR(OFS_PARM0)[1], G_VECTOR(OFS_PARM0)[2]);
+  sprintf(s, "'%5.1f %5.1f %5.1f'", Pr_globalsf(OFS_PARM0),
+          Pr_globalsf(OFS_PARM0 + 1), Pr_globalsf(OFS_PARM0 + 2));
   Set_pr_globalsi(OFS_RETURN, PR_SetEngineString(s));
 }
 
@@ -1134,9 +1160,11 @@ PF_pointcontents
 =============
 */
 static void PF_pointcontents(void) {
-  float *v;
+  vec3_t v;
 
-  v = G_VECTOR(OFS_PARM0);
+  v[0] = Pr_globalsf(OFS_PARM0);
+  v[1] = Pr_globalsf(OFS_PARM0 + 1);
+  v[2] = Pr_globalsf(OFS_PARM0 + 2);
 
   Set_pr_globalsf(OFS_RETURN, SV_PointContents(v));
 }
@@ -1199,8 +1227,11 @@ static void PF_aim(void) {
   if (tr.ent && EdictV(tr.ent)->takedamage == DAMAGE_AIM &&
       (!Cvar_GetValue(&teamplay) || EdictV(ent)->team <= 0 ||
        EdictV(ent)->team != EdictV(tr.ent)->team)) {
-    float *out = G_VECTOR(OFS_RETURN);
-    Pr_global_struct_v_forward(&out[0], &out[1], &out[2]);
+    vec3_t r;
+    Pr_global_struct_v_forward(&r[0], &r[1], &r[2]);
+    Set_pr_globalsf(OFS_RETURN, r[0]);
+    Set_pr_globalsf(OFS_RETURN + 1, r[1]);
+    Set_pr_globalsf(OFS_RETURN + 2, r[2]);
     return;
   }
 
@@ -1240,9 +1271,13 @@ static void PF_aim(void) {
     VectorScale(vforward, dist, end);
     end[2] = dir[2];
     VectorNormalize(end);
-    VectorCopy(end, G_VECTOR(OFS_RETURN));
+    Set_pr_globalsf(OFS_RETURN, end[0]);
+    Set_pr_globalsf(OFS_RETURN + 1, end[1]);
+    Set_pr_globalsf(OFS_RETURN + 2, end[2]);
   } else {
-    VectorCopy(bestdir, G_VECTOR(OFS_RETURN));
+    Set_pr_globalsf(OFS_RETURN, bestdir[0]);
+    Set_pr_globalsf(OFS_RETURN + 1, bestdir[1]);
+    Set_pr_globalsf(OFS_RETURN + 2, bestdir[2]);
   }
 }
 
