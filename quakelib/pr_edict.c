@@ -385,12 +385,15 @@ const char *PR_GlobalString(int ofs) {
   ddef_t *def;
   void *val;
 
-  val = (void *)&pr_globals[ofs];
   def = ED_GlobalAtOfs(ofs);
   if (!def)
     sprintf(line, "%i(?)", ofs);
   else {
-    s = PR_ValueString(def->type, (eval_t *)val);
+    eval_t v;
+    v.vector[0] = Pr_globalsf(ofs);
+    v.vector[1] = Pr_globalsf(ofs+1);
+    v.vector[2] = Pr_globalsf(ofs+2);
+    s = PR_ValueString(def->type, &v);
     sprintf(line, "%i(%s)%s", ofs, PR_GetString(def->s_name), s);
   }
 
@@ -613,8 +616,11 @@ void ED_WriteGlobals(FILE *f) {
 
     name = PR_GetString(def->s_name);
     fprintf(f, "\"%s\" ", name);
-    fprintf(f, "\"%s\"\n",
-            PR_UglyValueString(type, (eval_t *)&pr_globals[def->ofs]));
+    eval_t v;
+    v.vector[0] = Pr_globalsf(def->ofs);
+    v.vector[1] = Pr_globalsf(def->ofs+1);
+    v.vector[2] = Pr_globalsf(def->ofs+2);
+    fprintf(f, "\"%s\"\n", PR_UglyValueString(type, &v));
   }
   fprintf(f, "}\n");
 }
@@ -649,6 +655,7 @@ void ED_ParseGlobals(const char *data) {
       continue;
     }
 
+    Sys_Print("ParseGlobals");
     if (!ED_ParseEpair((void *)pr_globals, key, com_token))
       Host_Error("ED_ParseGlobals: parse error");
   }
@@ -1016,8 +1023,8 @@ void PR_LoadProgs(void) {
     // johnfitz
   }
 
-  for (i = 0; i < progs->numglobals; i++)
-    ((int *)pr_globals)[i] = LittleLong(((int *)pr_globals)[i]);
+//  for (i = 0; i < progs->numglobals; i++)
+//    ((int *)pr_globals)[i] = LittleLong(((int *)pr_globals)[i]);
 }
 
 void TT_ClearEdict(edict_t *e) {
@@ -1054,7 +1061,7 @@ void FreeEdicts(edict_t *e) {
   free(e);
 }
 
-edict_t *G_EDICT(int o) { return EDICT_NUM(*(int *)&pr_globals[o]); }
+edict_t *G_EDICT(int o) { return EDICT_NUM(Pr_globalsi(o)); }
 
 entvars_t *EdictV(edict_t *e) {
   int n = NUM_FOR_EDICT(e);
