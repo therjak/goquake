@@ -261,8 +261,10 @@ static int PR_LeaveFunction(void) {
     PR_RunError("PR_ExecuteProgram: locals stack underflow");
 
   for (i = 0; i < c; i++) {
-    Set_pr_globalsi(pr_xfunction->parm_start + i, localstack[localstack_used + i]);
-    // ((int *)pr_globals)[pr_xfunction->parm_start + i] = localstack[localstack_used + i];
+    Set_pr_globalsi(pr_xfunction->parm_start + i,
+                    localstack[localstack_used + i]);
+    // ((int *)pr_globals)[pr_xfunction->parm_start + i] =
+    // localstack[localstack_used + i];
   }
 
   // up stack
@@ -371,10 +373,10 @@ void PR_ExecuteProgram(GoInt32 fnum) {
         // OPC->_float = OPA->_float * OPB->_float;
         break;
       case OP_MUL_V:
-        SOPCF( OPAV1 * OPBV1 + OPAV2 * OPBV2 + OPAV3 * OPBV3);
-//        OPC->_float = OPA->vector[0] * OPB->vector[0] +
-//                      OPA->vector[1] * OPB->vector[1] +
-//                      OPA->vector[2] * OPB->vector[2];
+        SOPCF(OPAV1 * OPBV1 + OPAV2 * OPBV2 + OPAV3 * OPBV3);
+        //        OPC->_float = OPA->vector[0] * OPB->vector[0] +
+        //                      OPA->vector[1] * OPB->vector[1] +
+        //                      OPA->vector[2] * OPB->vector[2];
         break;
       case OP_MUL_FV:
         SOPCV1(OPAF * OPBV1);
@@ -400,12 +402,12 @@ void PR_ExecuteProgram(GoInt32 fnum) {
 
       case OP_BITAND:
         SOPCF((int)OPAF & (int)OPBF);
-        //OPC->_float = (int)OPA->_float & (int)OPB->_float;
+        // OPC->_float = (int)OPA->_float & (int)OPB->_float;
         break;
 
       case OP_BITOR:
         SOPCF((int)OPAF | (int)OPBF);
-        //OPC->_float = (int)OPA->_float | (int)OPB->_float;
+        // OPC->_float = (int)OPA->_float | (int)OPB->_float;
         break;
 
       case OP_GE:
@@ -439,19 +441,19 @@ void PR_ExecuteProgram(GoInt32 fnum) {
         break;
       case OP_NOT_V:
         SOPCF(!OPAV1 && !OPAV2 && !OPAV3);
-        //OPC->_float = !OPA->vector[0] && !OPA->vector[1] && !OPA->vector[2];
+        // OPC->_float = !OPA->vector[0] && !OPA->vector[1] && !OPA->vector[2];
         break;
       case OP_NOT_S:
         SOPCF(!OPAI || !*PR_GetString(OPAI));
-        //OPC->_float = !OPA->string || !*PR_GetString(OPA->string);
+        // OPC->_float = !OPA->string || !*PR_GetString(OPA->string);
         break;
       case OP_NOT_FNC:
         SOPCF(!OPAI);
-        //OPC->_float = !OPA->function;
+        // OPC->_float = !OPA->function;
         break;
       case OP_NOT_ENT:
         SOPCF((EDICT_NUM(OPAI) == sv.edicts));
-        //OPC->_float = (EDICT_NUM(OPA->edict) == sv.edicts);
+        // OPC->_float = (EDICT_NUM(OPA->edict) == sv.edicts);
         break;
 
       case OP_EQ_F:
@@ -460,14 +462,15 @@ void PR_ExecuteProgram(GoInt32 fnum) {
         break;
       case OP_EQ_V:
         SOPCF((OPAV1 == OPBV1) && (OPAV2 == OPBV2) && (OPAV3 == OPBV3));
-//        OPC->_float = (OPA->vector[0] == OPB->vector[0]) &&
-//                      (OPA->vector[1] == OPB->vector[1]) &&
-//                      (OPA->vector[2] == OPB->vector[2]);
+        //        OPC->_float = (OPA->vector[0] == OPB->vector[0]) &&
+        //                      (OPA->vector[1] == OPB->vector[1]) &&
+        //                      (OPA->vector[2] == OPB->vector[2]);
         break;
       case OP_EQ_S:
         SOPCF(!strcmp(PR_GetString(OPAI), PR_GetString(OPBI)));
-//        OPC->_float =
-//            !strcmp(PR_GetString(OPA->string), PR_GetString(OPB->string));
+        //        OPC->_float =
+        //            !strcmp(PR_GetString(OPA->string),
+        //            PR_GetString(OPB->string));
         break;
       case OP_EQ_E:
         SOPCF(OPAI == OPBI);
@@ -475,7 +478,7 @@ void PR_ExecuteProgram(GoInt32 fnum) {
         break;
       case OP_EQ_FNC:
         SOPCF(OPAI == OPBI);
-        //OPC->_float = OPA->function == OPB->function;
+        // OPC->_float = OPA->function == OPB->function;
         break;
 
       case OP_NE_F:
@@ -484,14 +487,15 @@ void PR_ExecuteProgram(GoInt32 fnum) {
         break;
       case OP_NE_V:
         SOPCF((OPAV1 != OPBV1) || (OPAV2 != OPBV2) || (OPAV3 != OPBV3));
-//        OPC->_float = (OPA->vector[0] != OPB->vector[0]) ||
-//                      (OPA->vector[1] != OPB->vector[1]) ||
-//                      (OPA->vector[2] != OPB->vector[2]);
+        //        OPC->_float = (OPA->vector[0] != OPB->vector[0]) ||
+        //                      (OPA->vector[1] != OPB->vector[1]) ||
+        //                      (OPA->vector[2] != OPB->vector[2]);
         break;
       case OP_NE_S:
         SOPCF(strcmp(PR_GetString(OPAI), PR_GetString(OPBI)));
-//        OPC->_float =
-//            strcmp(PR_GetString(OPA->string), PR_GetString(OPB->string));
+        //        OPC->_float =
+        //            strcmp(PR_GetString(OPA->string),
+        //            PR_GetString(OPB->string));
         break;
       case OP_NE_E:
         SOPCF(OPAI != OPBI);
@@ -499,14 +503,15 @@ void PR_ExecuteProgram(GoInt32 fnum) {
         break;
       case OP_NE_FNC:
         SOPCF(OPAI != OPBI);
-        //OPC->_float = OPA->function != OPB->function;
+        // OPC->_float = OPA->function != OPB->function;
         break;
 
       case OP_STORE_F:
       case OP_STORE_ENT:
       case OP_STORE_FLD:  // integers
       case OP_STORE_S:
-      case OP_STORE_FNC:  // pointers
+      case OP_STORE_FNC:                     // pointers
+        Sys_Print_I("STORE_FNC %v", st->b);  // WTF?
         SOPBI(OPAI);
         // OPB->_int = OPA->_int;
         break;
@@ -531,7 +536,7 @@ void PR_ExecuteProgram(GoInt32 fnum) {
         break;
       case OP_STOREP_V:
         ptr = (eval_t *)((byte *)EVars(0) + OPBI);
-        //ptr = (eval_t *)((byte *)sv.edicts + OPB->_int);
+        // ptr = (eval_t *)((byte *)sv.edicts + OPB->_int);
         ptr->vector[0] = OPAV1;
         ptr->vector[1] = OPAV2;
         ptr->vector[2] = OPAV3;
@@ -550,8 +555,9 @@ void PR_ExecuteProgram(GoInt32 fnum) {
           PR_RunError("assignment to world entity");
         }
         SOPCI((byte *)((int *)EVars(OPAI) + OPBI) - (byte *)EVars(0));
-//        OPC->_int =
-//            (byte *)((int *)EVars(OPA->edict) + OPB->_int) - (byte *)sv.edicts;
+        //        OPC->_int =
+        //            (byte *)((int *)EVars(OPA->edict) + OPB->_int) - (byte
+        //            *)sv.edicts;
         break;
 
       case OP_LOAD_F:
@@ -564,7 +570,8 @@ void PR_ExecuteProgram(GoInt32 fnum) {
         NUM_FOR_EDICT(ed);  // Make sure it's in range
 #endif
         SOPCI(((eval_t *)((int *)EVars(OPAI) + OPBI))->_int);
-//        OPC->_int = ((eval_t *)((int *)EVars(OPA->edict) + OPB->_int))->_int;
+        //        OPC->_int = ((eval_t *)((int *)EVars(OPA->edict) +
+        //        OPB->_int))->_int;
         break;
 
       case OP_LOAD_V:
@@ -576,9 +583,9 @@ void PR_ExecuteProgram(GoInt32 fnum) {
         SOPCV1(ptr->vector[0]);
         SOPCV2(ptr->vector[1]);
         SOPCV3(ptr->vector[2]);
-//        OPC->vector[0] = ptr->vector[0];
-//        OPC->vector[1] = ptr->vector[1];
-//        OPC->vector[2] = ptr->vector[2];
+        //        OPC->vector[0] = ptr->vector[0];
+        //        OPC->vector[1] = ptr->vector[1];
+        //        OPC->vector[2] = ptr->vector[2];
         break;
 
       case OP_IFNOT:

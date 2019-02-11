@@ -28,28 +28,28 @@ func PR_LoadProgsGo() {
 func Pr_globalsf(i int) float32 {
 	ug := unsafe.Pointer(progsdat.Globals)
 	gap := (*[92]float32)(ug)
-	return gap[i]
+	return gap[i/4]
 }
 
 //export Set_pr_globalsf
 func Set_pr_globalsf(i int, f float32) {
 	ug := unsafe.Pointer(progsdat.Globals)
 	gap := (*[92]float32)(ug)
-	gap[i] = f
+	gap[i/4] = f
 }
 
 //export Pr_globalsi
 func Pr_globalsi(i int) int32 {
 	ug := unsafe.Pointer(progsdat.Globals)
 	gap := (*[92]int32)(ug)
-	return gap[i]
+	return gap[i/4]
 }
 
 //export Set_pr_globalsi
 func Set_pr_globalsi(i int, f int32) {
 	ug := unsafe.Pointer(progsdat.Globals)
 	gap := (*[92]int32)(ug)
-	gap[i] = f
+	gap[i/4] = f
 }
 
 //export Pr_global_struct_self
