@@ -332,7 +332,7 @@ Easier to parse than PR_ValueString
 =============
 */
 static const char *PR_UglyValueString(int type, eval_t *val) {
-  static char line[512];
+  static char line[1024];
   ddef_t *def;
   dfunction_t *f;
 
@@ -391,8 +391,8 @@ const char *PR_GlobalString(int ofs) {
   else {
     eval_t v;
     v.vector[0] = Pr_globalsf(ofs);
-    v.vector[1] = Pr_globalsf(ofs+1);
-    v.vector[2] = Pr_globalsf(ofs+2);
+    v.vector[1] = Pr_globalsf(ofs + 1);
+    v.vector[2] = Pr_globalsf(ofs + 2);
     s = PR_ValueString(def->type, &v);
     sprintf(line, "%i(%s)%s", ofs, PR_GetString(def->s_name), s);
   }
@@ -618,8 +618,8 @@ void ED_WriteGlobals(FILE *f) {
     fprintf(f, "\"%s\" ", name);
     eval_t v;
     v.vector[0] = Pr_globalsf(def->ofs);
-    v.vector[1] = Pr_globalsf(def->ofs+1);
-    v.vector[2] = Pr_globalsf(def->ofs+2);
+    v.vector[1] = Pr_globalsf(def->ofs + 1);
+    v.vector[2] = Pr_globalsf(def->ofs + 2);
     fprintf(f, "\"%s\"\n", PR_UglyValueString(type, &v));
   }
   fprintf(f, "}\n");
@@ -1023,8 +1023,8 @@ void PR_LoadProgs(void) {
     // johnfitz
   }
 
-//  for (i = 0; i < progs->numglobals; i++)
-//    ((int *)pr_globals)[i] = LittleLong(((int *)pr_globals)[i]);
+  //  for (i = 0; i < progs->numglobals; i++)
+  //    ((int *)pr_globals)[i] = LittleLong(((int *)pr_globals)[i]);
 }
 
 void TT_ClearEdict(edict_t *e) {
