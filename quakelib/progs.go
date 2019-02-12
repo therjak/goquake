@@ -21,35 +21,32 @@ func PR_LoadProgsGo() {
 	}
 	progsdat = p
 	log.Printf("go: %v\n", progsdat.Globals)
+	log.Printf("go2: %v\n", progsdat.RawGlobals[:92])
 	log.Printf("c: %v\n", *(*[92]int32)(unsafe.Pointer(C.pr_globals)))
 }
 
 //export Pr_globalsf
 func Pr_globalsf(i int) float32 {
-	ug := unsafe.Pointer(progsdat.Globals)
-	gap := (*[92]float32)(ug)
-	return gap[i/4]
+	ug := unsafe.Pointer(&progsdat.RawGlobals[i])
+	gap := *(*float32)(ug)
+	return gap
 }
 
 //export Set_pr_globalsf
 func Set_pr_globalsf(i int, f float32) {
-	ug := unsafe.Pointer(progsdat.Globals)
-	gap := (*[92]float32)(ug)
-	gap[i/4] = f
+	ug := unsafe.Pointer(&progsdat.RawGlobals[i])
+	gap := (*float32)(ug)
+	*gap = f
 }
 
 //export Pr_globalsi
 func Pr_globalsi(i int) int32 {
-	ug := unsafe.Pointer(progsdat.Globals)
-	gap := (*[92]int32)(ug)
-	return gap[i/4]
+	return progsdat.RawGlobals[i]
 }
 
 //export Set_pr_globalsi
 func Set_pr_globalsi(i int, f int32) {
-	ug := unsafe.Pointer(progsdat.Globals)
-	gap := (*[92]int32)(ug)
-	gap[i/4] = f
+	progsdat.RawGlobals[i] = f
 }
 
 //export Pr_global_struct_self

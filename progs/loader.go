@@ -7,6 +7,7 @@ import (
 	"io"
 	"quake/crc"
 	"quake/filesystem"
+	"unsafe"
 )
 
 type LoadedProg struct {
@@ -19,6 +20,7 @@ type LoadedProg struct {
 	GlobalDefs []Def
 	FieldDefs  []Def
 	Globals    *GlobalVars
+	RawGlobals []int32
 	Alpha      bool
 }
 
@@ -42,7 +44,7 @@ func LoadProgs() (*LoadedProg, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Could not read functions: %v", err)
 	}
-	gl, err := readGlobals(hdr, r)
+	gl, rgl, err := readGlobals(hdr, r)
 	if err != nil {
 		return nil, fmt.Errorf("Could not read globals: %v", err)
 	}
@@ -69,6 +71,7 @@ func LoadProgs() (*LoadedProg, error) {
 		GlobalDefs: gd,
 		FieldDefs:  fd,
 		Globals:    gl,
+		RawGlobals: rgl,
 		Alpha:      a,
 	}, nil
 }
@@ -136,14 +139,15 @@ func readFunctions(pr *Header, file io.ReadSeeker) ([]Function, error) {
 	return v, nil
 }
 
-func readGlobals(pr *Header, file io.ReadSeeker) (*GlobalVars, error) {
-	var v GlobalVars
+func readGlobals(pr *Header, file io.ReadSeeker) (*GlobalVars, []int32, error) {
+	v := make([]int32, pr.NumGlobals)
 	_, err := file.Seek(int64(pr.OffsetGlobals), io.SeekStart)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if err := binary.Read(file, binary.LittleEndian, &v); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return &v, nil
+	gp := unsafe.Pointer(&v[0])
+	return (*GlobalVars)(gp), v, nil
 }

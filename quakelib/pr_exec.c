@@ -510,8 +510,7 @@ void PR_ExecuteProgram(GoInt32 fnum) {
       case OP_STORE_ENT:
       case OP_STORE_FLD:  // integers
       case OP_STORE_S:
-      case OP_STORE_FNC:                     // pointers
-        Sys_Print_I("STORE_FNC %v", st->b);  // WTF?
+      case OP_STORE_FNC:  // pointers
         SOPBI(OPAI);
         // OPB->_int = OPA->_int;
         break;
