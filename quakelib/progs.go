@@ -1,12 +1,10 @@
 package quakelib
 
-//extern float *pr_globals;
 import "C"
 
 import (
 	"log"
 	"quake/progs"
-	"unsafe"
 )
 
 var (
@@ -20,33 +18,26 @@ func PR_LoadProgsGo() {
 		log.Fatalf("Failed to load progs.dat: %v", err)
 	}
 	progsdat = p
-	log.Printf("go: %v\n", progsdat.Globals)
-	log.Printf("go2: %v\n", progsdat.RawGlobals[:92])
-	log.Printf("c: %v\n", *(*[92]int32)(unsafe.Pointer(C.pr_globals)))
 }
 
 //export Pr_globalsf
 func Pr_globalsf(i int) float32 {
-	ug := unsafe.Pointer(&progsdat.RawGlobals[i])
-	gap := *(*float32)(ug)
-	return gap
+	return progsdat.RawGlobalsF[i]
 }
 
 //export Set_pr_globalsf
 func Set_pr_globalsf(i int, f float32) {
-	ug := unsafe.Pointer(&progsdat.RawGlobals[i])
-	gap := (*float32)(ug)
-	*gap = f
+	progsdat.RawGlobalsF[i] = f
 }
 
 //export Pr_globalsi
 func Pr_globalsi(i int) int32 {
-	return progsdat.RawGlobals[i]
+	return progsdat.RawGlobalsI[i]
 }
 
 //export Set_pr_globalsi
 func Set_pr_globalsi(i int, f int32) {
-	progsdat.RawGlobals[i] = f
+	progsdat.RawGlobalsI[i] = f
 }
 
 //export Pr_global_struct_self

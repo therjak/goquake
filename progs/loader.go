@@ -13,15 +13,16 @@ import (
 type LoadedProg struct {
 	CRC uint16
 	// The progs.dat expects an edict to have EdictSize 32bit values
-	EdictSize  int
-	Header     *Header
-	Functions  []Function
-	Statements []Statement
-	GlobalDefs []Def
-	FieldDefs  []Def
-	Globals    *GlobalVars
-	RawGlobals []int32
-	Alpha      bool
+	EdictSize   int
+	Header      *Header
+	Functions   []Function
+	Statements  []Statement
+	GlobalDefs  []Def
+	FieldDefs   []Def
+	Globals     *GlobalVars
+	RawGlobalsI []int32
+	RawGlobalsF []float32
+	Alpha       bool
 }
 
 func LoadProgs() (*LoadedProg, error) {
@@ -44,7 +45,7 @@ func LoadProgs() (*LoadedProg, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Could not read functions: %v", err)
 	}
-	gl, rgl, err := readGlobals(hdr, r)
+	gl, rgli, rglf, err := readGlobals(hdr, r)
 	if err != nil {
 		return nil, fmt.Errorf("Could not read globals: %v", err)
 	}
@@ -63,16 +64,17 @@ func LoadProgs() (*LoadedProg, error) {
 	ez := int(hdr.EntityFields)
 
 	return &LoadedProg{
-		CRC:        crcVal,
-		EdictSize:  ez,
-		Header:     hdr,
-		Functions:  fu,
-		Statements: st,
-		GlobalDefs: gd,
-		FieldDefs:  fd,
-		Globals:    gl,
-		RawGlobals: rgl,
-		Alpha:      a,
+		CRC:         crcVal,
+		EdictSize:   ez,
+		Header:      hdr,
+		Functions:   fu,
+		Statements:  st,
+		GlobalDefs:  gd,
+		FieldDefs:   fd,
+		Globals:     gl,
+		RawGlobalsI: rgli,
+		RawGlobalsF: rglf,
+		Alpha:       a,
 	}, nil
 }
 
@@ -139,15 +141,16 @@ func readFunctions(pr *Header, file io.ReadSeeker) ([]Function, error) {
 	return v, nil
 }
 
-func readGlobals(pr *Header, file io.ReadSeeker) (*GlobalVars, []int32, error) {
+func readGlobals(pr *Header, file io.ReadSeeker) (*GlobalVars, []int32, []float32, error) {
 	v := make([]int32, pr.NumGlobals)
 	_, err := file.Seek(int64(pr.OffsetGlobals), io.SeekStart)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	if err := binary.Read(file, binary.LittleEndian, &v); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	gp := unsafe.Pointer(&v[0])
-	return (*GlobalVars)(gp), v, nil
+	vf := *(*[]float32)(unsafe.Pointer(&v))
+	return (*GlobalVars)(gp), v, vf, nil
 }
