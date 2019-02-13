@@ -33,6 +33,36 @@ const (
 	ReservedOffset                  // 28
 )
 
+const (
+	FlagFly         = 1 << iota
+	FlagSwim        = 1 << iota
+	FlagConveyor    = 1 << iota
+	FlagClient      = 1 << iota
+	FlagInWater     = 1 << iota
+	FlagMonstar     = 1 << iota
+	FlagGodMode     = 1 << iota
+	FlagNoTarget    = 1 << iota
+	FlagItem        = 1 << iota
+	FlagOnGround    = 1 << iota
+	FlagPartialJump = 1 << iota
+	FlagWaterJump   = 1 << iota
+	FlagJumpRelease = 1 << iota
+)
+
+const (
+	MoveTypeNone = iota
+	MoveTypeAngleNoClip
+	MoveTypeAngleClip
+	MoveTypeWalk
+	MoveTypeStep
+	MoveTypeFly
+	MoveTypeToss
+	MoveTypePush
+	MoveTypeNoClip
+	MoveTypeFlyMissle
+	MoveTypeBounce
+)
+
 type Header struct {
 	Version          int32
 	CRC              int32
