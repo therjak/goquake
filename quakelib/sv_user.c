@@ -2,8 +2,6 @@
 
 #include "quakedef.h"
 
-int sv_player;
-
 extern cvar_t sv_friction;
 extern cvar_t sv_stopspeed;
 
@@ -44,23 +42,23 @@ void SV_SetIdealPitch(void) {
   int i, j;
   int step, dir, steps;
 
-  if (!((int)EVars(sv_player)->flags & FL_ONGROUND)) return;
+  if (!((int)EVars(SV_Player())->flags & FL_ONGROUND)) return;
 
-  angleval = EVars(sv_player)->angles[YAW] * M_PI * 2 / 360;
+  angleval = EVars(SV_Player())->angles[YAW] * M_PI * 2 / 360;
   sinval = sin(angleval);
   cosval = cos(angleval);
 
   for (i = 0; i < MAX_FORWARD; i++) {
-    top[0] = EVars(sv_player)->origin[0] + cosval * (i + 3) * 12;
-    top[1] = EVars(sv_player)->origin[1] + sinval * (i + 3) * 12;
-    top[2] = EVars(sv_player)->origin[2] + EVars(sv_player)->view_ofs[2];
+    top[0] = EVars(SV_Player())->origin[0] + cosval * (i + 3) * 12;
+    top[1] = EVars(SV_Player())->origin[1] + sinval * (i + 3) * 12;
+    top[2] = EVars(SV_Player())->origin[2] + EVars(SV_Player())->view_ofs[2];
 
     bottom[0] = top[0];
     bottom[1] = top[1];
     bottom[2] = top[2] - 160;
 
-    tr =
-        SV_Move(top, vec3_origin, vec3_origin, bottom, 1, EDICT_NUM(sv_player));
+    tr = SV_Move(top, vec3_origin, vec3_origin, bottom, 1,
+                 EDICT_NUM(SV_Player()));
     if (tr.allsolid) return;  // looking at a wall, leave ideal the way is was
 
     if (tr.fraction == 1) return;  // near a dropoff
@@ -82,12 +80,12 @@ void SV_SetIdealPitch(void) {
   }
 
   if (!dir) {
-    EVars(sv_player)->idealpitch = 0;
+    EVars(SV_Player())->idealpitch = 0;
     return;
   }
 
   if (steps < 2) return;
-  EVars(sv_player)->idealpitch = -dir * Cvar_GetValue(&sv_idealpitchscale);
+  EVars(SV_Player())->idealpitch = -dir * Cvar_GetValue(&sv_idealpitchscale);
 }
 
 /*
@@ -539,7 +537,7 @@ void SV_RunClients(void) {
   for (i = 0, host_client = 0; i < SVS_GetMaxClients(); i++, host_client++) {
     if (!GetClientActive(HostClient())) continue;
 
-    sv_player = NUM_FOR_EDICT(SV_GetEdict(HostClient()));
+    Set_SV_Player(NUM_FOR_EDICT(SV_GetEdict(HostClient())));
 
     if (!SV_ReadClientMessage(HostClient())) {
       SV_DropClient(HostClient(), false);  // client misbehaved...

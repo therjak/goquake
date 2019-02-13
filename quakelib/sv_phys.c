@@ -764,7 +764,7 @@ void SV_WalkMove(edict_t *ent) {
 
   if (Cvar_GetValue(&sv_nostep)) return;
 
-  if ((int)EVars(sv_player)->flags & FL_WATERJUMP) return;
+  if ((int)EVars(SV_Player())->flags & FL_WATERJUMP) return;
 
   VectorCopy(EdictV(ent)->origin, nosteporg);
   VectorCopy(EdictV(ent)->velocity, nostepvel);

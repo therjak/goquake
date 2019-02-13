@@ -45,7 +45,18 @@ var (
 	svs         = ServerStatic{}
 	sv          = Server{}
 	sv_protocol int
+	sv_player   int
 )
+
+//export SV_Player
+func SV_Player() int {
+	return sv_player
+}
+
+//export Set_SV_Player
+func Set_SV_Player(p int) {
+	sv_player = p
+}
 
 func svProtocol(args []cmd.QArg) {
 	switch len(args) {

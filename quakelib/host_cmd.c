@@ -431,7 +431,7 @@ void Host_God_f(void) {
   }
 
   if (Pr_global_struct_deathmatch()) return;
-  entvars_t *pent = EVars(sv_player);
+  entvars_t *pent = EVars(SV_Player());
   float *flags = &pent->flags;
 
   // johnfitz -- allow user to explicitly set god mode to on or off
@@ -471,7 +471,7 @@ void Host_Notarget_f(void) {
   }
 
   if (Pr_global_struct_deathmatch()) return;
-  entvars_t *pent = EVars(sv_player);
+  entvars_t *pent = EVars(SV_Player());
   float *flags = &pent->flags;
 
   // johnfitz -- allow user to explicitly set notarget to on or off
@@ -514,7 +514,7 @@ void Host_Noclip_f(void) {
   }
 
   if (Pr_global_struct_deathmatch()) return;
-  entvars_t *pent = EVars(sv_player);
+  entvars_t *pent = EVars(SV_Player());
   float *movetype = &pent->movetype;
 
   // johnfitz -- allow user to explicitly set noclip to on or off
@@ -563,7 +563,7 @@ void Host_SetPos_f(void) {
   }
 
   if (Pr_global_struct_deathmatch()) return;
-  entvars_t *pent = EVars(sv_player);
+  entvars_t *pent = EVars(SV_Player());
 
   if (Cmd_Argc() != 7 && Cmd_Argc() != 4) {
     SV_ClientPrintf2(HostClient(), "usage:\n");
@@ -600,7 +600,7 @@ void Host_SetPos_f(void) {
     pent->fixangle = 1;
   }
 
-  SV_LinkEdict(EDICT_NUM(sv_player), false);
+  SV_LinkEdict(EDICT_NUM(SV_Player()), false);
 }
 
 /*
@@ -617,7 +617,7 @@ void Host_Fly_f(void) {
   }
 
   if (Pr_global_struct_deathmatch()) return;
-  entvars_t *pent = EVars(sv_player);
+  entvars_t *pent = EVars(SV_Player());
   float *movetype = &pent->movetype;
 
   // johnfitz -- allow user to explicitly set noclip to on or off
@@ -1312,13 +1312,13 @@ void Host_Kill_f(void) {
     return;
   }
 
-  if (EVars(sv_player)->health <= 0) {
+  if (EVars(SV_Player())->health <= 0) {
     SV_ClientPrintf2(HostClient(), "Can't suicide -- allready dead!\n");
     return;
   }
 
   Set_pr_global_struct_time(SV_Time());
-  Set_pr_global_struct_self(sv_player);
+  Set_pr_global_struct_self(SV_Player());
   PR_ExecuteProgram(Pr_global_struct_ClientKill());
 }
 
@@ -1344,7 +1344,7 @@ void Host_Pause_f(void) {
   else {
     SV_SetPaused(!SV_Paused());
 
-    entvars_t *pent = EVars(sv_player);
+    entvars_t *pent = EVars(SV_Player());
     if (SV_Paused()) {
       SV_BroadcastPrintf("%s paused the game\n", PR_GetString(pent->netname));
     } else {
@@ -1401,7 +1401,7 @@ void Host_Spawn_f(void) {
       Set_pr_global_struct_parm(i, GetClientSpawnParam(HostClient(), i));
     // call the spawn function
     Set_pr_global_struct_time(SV_Time());
-    Set_pr_global_struct_self(sv_player);
+    Set_pr_global_struct_self(SV_Player());
     PR_ExecuteProgram(Pr_global_struct_ClientConnect());
 
     if ((Sys_DoubleTime() - ClientConnectTime(HostClient())) <= SV_Time()) {
@@ -1474,7 +1474,7 @@ void Host_Spawn_f(void) {
   {
     SV_MS_Clear();
     SV_MS_SetMaxLen(MAX_DATAGRAM);
-    SV_WriteClientdataToMessage(EDICT_NUM(sv_player));
+    SV_WriteClientdataToMessage(EDICT_NUM(SV_Player()));
     ClientWriteSVMSG(HostClient());
   }
   ClientWriteByte(HostClient(), svc_signonnum);
@@ -1604,7 +1604,7 @@ void Host_Give_f(void) {
   t = Cmd_Argv(1);
   v = Cmd_ArgvAsInt(2);
 
-  entvars_t *pent = EVars(sv_player);
+  entvars_t *pent = EVars(SV_Player());
   switch (t[0]) {
     case '0':
     case '1':
