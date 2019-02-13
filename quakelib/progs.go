@@ -25,8 +25,8 @@ func Pr_globalsf(i int) float32 {
 	return progsdat.RawGlobalsF[i]
 }
 
-//export Set_pr_globalsf
-func Set_pr_globalsf(i int, f float32) {
+//export Set_Pr_globalsf
+func Set_Pr_globalsf(i int, f float32) {
 	progsdat.RawGlobalsF[i] = f
 }
 
@@ -35,8 +35,8 @@ func Pr_globalsi(i int) int32 {
 	return progsdat.RawGlobalsI[i]
 }
 
-//export Set_pr_globalsi
-func Set_pr_globalsi(i int, f int32) {
+//export Set_Pr_globalsi
+func Set_Pr_globalsi(i int, f int32) {
 	progsdat.RawGlobalsI[i] = f
 }
 

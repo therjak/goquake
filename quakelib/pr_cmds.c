@@ -9,7 +9,7 @@ static char *PR_GetTempString(void) {
   return pr_string_temp[(STRINGTEMP_BUFFERS - 1) & ++pr_string_tempindex];
 }
 
-#define RETURN_EDICT(e) (Set_pr_globalsi(OFS_RETURN, NUM_FOR_EDICT(e)))
+#define RETURN_EDICT(e) (Set_Pr_globalsi(OFS_RETURN, NUM_FOR_EDICT(e)))
 
 #define MSG_BROADCAST 0  // unreliable to all
 #define MSG_ONE 1        // reliable to one (msg_entity)
@@ -367,9 +367,9 @@ static void PF_normalize(void) {
     newvalue[2] = z * new_temp;
   }
 
-  Set_pr_globalsf(OFS_RETURN, newvalue[0]);
-  Set_pr_globalsf(OFS_RETURN + 1, newvalue[1]);
-  Set_pr_globalsf(OFS_RETURN + 2, newvalue[2]);
+  Set_Pr_globalsf(OFS_RETURN, newvalue[0]);
+  Set_Pr_globalsf(OFS_RETURN + 1, newvalue[1]);
+  Set_Pr_globalsf(OFS_RETURN + 2, newvalue[2]);
 }
 
 /*
@@ -391,7 +391,7 @@ static void PF_vlen(void) {
   new_temp += t * t;
   new_temp = sqrt(new_temp);
 
-  Set_pr_globalsf(OFS_RETURN, new_temp);
+  Set_Pr_globalsf(OFS_RETURN, new_temp);
 }
 
 /*
@@ -413,7 +413,7 @@ static void PF_vectoyaw(void) {
     if (yaw < 0) yaw += 360;
   }
 
-  Set_pr_globalsf(OFS_RETURN, yaw);
+  Set_Pr_globalsf(OFS_RETURN, yaw);
 }
 
 /*
@@ -446,9 +446,9 @@ static void PF_vectoangles(void) {
     if (pitch < 0) pitch += 360;
   }
 
-  Set_pr_globalsf(OFS_RETURN + 0, pitch);
-  Set_pr_globalsf(OFS_RETURN + 1, yaw);
-  Set_pr_globalsf(OFS_RETURN + 2, 0);
+  Set_Pr_globalsf(OFS_RETURN + 0, pitch);
+  Set_Pr_globalsf(OFS_RETURN + 1, yaw);
+  Set_Pr_globalsf(OFS_RETURN + 2, 0);
 }
 
 /*
@@ -465,7 +465,7 @@ static void PF_random(void) {
 
   num = (rand() & 0x7fff) / ((float)0x7fff);
 
-  Set_pr_globalsf(OFS_RETURN, num);
+  Set_Pr_globalsf(OFS_RETURN, num);
 }
 
 /*
@@ -829,7 +829,7 @@ static void PF_cvar(void) {
 
   str = PR_GetString(Pr_globalsi(OFS_PARM0));
 
-  Set_pr_globalsf(OFS_RETURN, Cvar_VariableValue(str));
+  Set_Pr_globalsf(OFS_RETURN, Cvar_VariableValue(str));
 }
 
 /*
@@ -904,13 +904,13 @@ static void PF_ftos(void) {
     sprintf(s, "%d", (int)v);
   else
     sprintf(s, "%5.1f", v);
-  Set_pr_globalsi(OFS_RETURN, PR_SetEngineString(s));
+  Set_Pr_globalsi(OFS_RETURN, PR_SetEngineString(s));
 }
 
 static void PF_fabs(void) {
   float v;
   v = Pr_globalsf(OFS_PARM0);
-  Set_pr_globalsf(OFS_RETURN, fabs(v));
+  Set_Pr_globalsf(OFS_RETURN, fabs(v));
 }
 
 static void PF_vtos(void) {
@@ -919,7 +919,7 @@ static void PF_vtos(void) {
   s = PR_GetTempString();
   sprintf(s, "'%5.1f %5.1f %5.1f'", Pr_globalsf(OFS_PARM0),
           Pr_globalsf(OFS_PARM0 + 1), Pr_globalsf(OFS_PARM0 + 2));
-  Set_pr_globalsi(OFS_RETURN, PR_SetEngineString(s));
+  Set_Pr_globalsi(OFS_RETURN, PR_SetEngineString(s));
 }
 
 static void PF_Spawn(void) {
@@ -969,7 +969,7 @@ static void PR_CheckEmptyString(const char *s) {
 
 static void PF_precache_file(void) {  // precache_file is only used to copy
                                       // files with qcc, it does nothing
-  Set_pr_globalsi(OFS_RETURN, Pr_globalsi(OFS_PARM0));
+  Set_Pr_globalsi(OFS_RETURN, Pr_globalsi(OFS_PARM0));
 }
 
 static void PF_precache_sound(void) {
@@ -980,7 +980,7 @@ static void PF_precache_sound(void) {
     PR_RunError("PF_Precache_*: Precache can only be done in spawn functions");
 
   s = PR_GetString(Pr_globalsi(OFS_PARM0));
-  Set_pr_globalsi(OFS_RETURN, Pr_globalsi(OFS_PARM0));
+  Set_Pr_globalsi(OFS_RETURN, Pr_globalsi(OFS_PARM0));
   PR_CheckEmptyString(s);
 
   for (i = 0; i < MAX_SOUNDS; i++) {
@@ -1001,7 +1001,7 @@ static void PF_precache_model(void) {
     PR_RunError("PF_Precache_*: Precache can only be done in spawn functions");
 
   s = PR_GetString(Pr_globalsi(OFS_PARM0));
-  Set_pr_globalsi(OFS_RETURN, Pr_globalsi(OFS_PARM0));
+  Set_Pr_globalsi(OFS_RETURN, Pr_globalsi(OFS_PARM0));
   PR_CheckEmptyString(s);
 
   for (i = 0; i < MAX_MODELS; i++) {
@@ -1042,7 +1042,7 @@ static void PF_walkmove(void) {
   dist = Pr_globalsf(OFS_PARM1);
 
   if (!((int)EdictV(ent)->flags & (FL_ONGROUND | FL_FLY | FL_SWIM))) {
-    Set_pr_globalsf(OFS_RETURN, 0);
+    Set_Pr_globalsf(OFS_RETURN, 0);
     return;
   }
 
@@ -1056,7 +1056,7 @@ static void PF_walkmove(void) {
   oldf = pr_xfunction;
   oldself = Pr_global_struct_self();
 
-  Set_pr_globalsf(OFS_RETURN, SV_movestep(ent, move, true));
+  Set_Pr_globalsf(OFS_RETURN, SV_movestep(ent, move, true));
 
   // restore program state
   pr_xfunction = oldf;
@@ -1084,13 +1084,13 @@ static void PF_droptofloor(void) {
                   end, false, ent);
 
   if (trace.fraction == 1 || trace.allsolid)
-    Set_pr_globalsf(OFS_RETURN, 0);
+    Set_Pr_globalsf(OFS_RETURN, 0);
   else {
     VectorCopy(trace.endpos, EdictV(ent)->origin);
     SV_LinkEdict(ent, false);
     EdictV(ent)->flags = (int)EdictV(ent)->flags | FL_ONGROUND;
     EdictV(ent)->groundentity = NUM_FOR_EDICT(trace.ent);
-    Set_pr_globalsf(OFS_RETURN, 1);
+    Set_Pr_globalsf(OFS_RETURN, 1);
   }
 }
 
@@ -1128,17 +1128,17 @@ static void PF_rint(void) {
   float f;
   f = Pr_globalsf(OFS_PARM0);
   if (f > 0)
-    Set_pr_globalsf(OFS_RETURN, (int)(f + 0.5));
+    Set_Pr_globalsf(OFS_RETURN, (int)(f + 0.5));
   else
-    Set_pr_globalsf(OFS_RETURN, (int)(f - 0.5));
+    Set_Pr_globalsf(OFS_RETURN, (int)(f - 0.5));
 }
 
 static void PF_floor(void) {
-  Set_pr_globalsf(OFS_RETURN, floor(Pr_globalsf(OFS_PARM0)));
+  Set_Pr_globalsf(OFS_RETURN, floor(Pr_globalsf(OFS_PARM0)));
 }
 
 static void PF_ceil(void) {
-  Set_pr_globalsf(OFS_RETURN, ceil(Pr_globalsf(OFS_PARM0)));
+  Set_Pr_globalsf(OFS_RETURN, ceil(Pr_globalsf(OFS_PARM0)));
 }
 
 /*
@@ -1151,7 +1151,7 @@ static void PF_checkbottom(void) {
 
   ent = G_EDICT(OFS_PARM0);
 
-  Set_pr_globalsf(OFS_RETURN, SV_CheckBottom(ent));
+  Set_Pr_globalsf(OFS_RETURN, SV_CheckBottom(ent));
 }
 
 /*
@@ -1166,7 +1166,7 @@ static void PF_pointcontents(void) {
   v[1] = Pr_globalsf(OFS_PARM0 + 1);
   v[2] = Pr_globalsf(OFS_PARM0 + 2);
 
-  Set_pr_globalsf(OFS_RETURN, SV_PointContents(v));
+  Set_Pr_globalsf(OFS_RETURN, SV_PointContents(v));
 }
 
 /*
@@ -1229,9 +1229,9 @@ static void PF_aim(void) {
        EdictV(ent)->team != EdictV(tr.ent)->team)) {
     vec3_t r;
     Pr_global_struct_v_forward(&r[0], &r[1], &r[2]);
-    Set_pr_globalsf(OFS_RETURN, r[0]);
-    Set_pr_globalsf(OFS_RETURN + 1, r[1]);
-    Set_pr_globalsf(OFS_RETURN + 2, r[2]);
+    Set_Pr_globalsf(OFS_RETURN, r[0]);
+    Set_Pr_globalsf(OFS_RETURN + 1, r[1]);
+    Set_Pr_globalsf(OFS_RETURN + 2, r[2]);
     return;
   }
 
@@ -1271,13 +1271,13 @@ static void PF_aim(void) {
     VectorScale(vforward, dist, end);
     end[2] = dir[2];
     VectorNormalize(end);
-    Set_pr_globalsf(OFS_RETURN, end[0]);
-    Set_pr_globalsf(OFS_RETURN + 1, end[1]);
-    Set_pr_globalsf(OFS_RETURN + 2, end[2]);
+    Set_Pr_globalsf(OFS_RETURN, end[0]);
+    Set_Pr_globalsf(OFS_RETURN + 1, end[1]);
+    Set_Pr_globalsf(OFS_RETURN + 2, end[2]);
   } else {
-    Set_pr_globalsf(OFS_RETURN, bestdir[0]);
-    Set_pr_globalsf(OFS_RETURN + 1, bestdir[1]);
-    Set_pr_globalsf(OFS_RETURN + 2, bestdir[2]);
+    Set_Pr_globalsf(OFS_RETURN, bestdir[0]);
+    Set_Pr_globalsf(OFS_RETURN + 1, bestdir[1]);
+    Set_Pr_globalsf(OFS_RETURN + 2, bestdir[2]);
   }
 }
 

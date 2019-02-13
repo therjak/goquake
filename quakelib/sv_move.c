@@ -361,7 +361,7 @@ void SV_MoveToGoal(void) {
   dist = Pr_globalsf(OFS_PARM0);
 
   if (!((int)EdictV(ent)->flags & (FL_ONGROUND | FL_FLY | FL_SWIM))) {
-    Set_pr_globalsf(OFS_RETURN, 0);
+    Set_Pr_globalsf(OFS_RETURN, 0);
     return;
   }
 

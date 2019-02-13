@@ -1022,9 +1022,6 @@ void PR_LoadProgs(void) {
       pr_alpha_supported = true;
     // johnfitz
   }
-
-  //  for (i = 0; i < progs->numglobals; i++)
-  //    ((int *)pr_globals)[i] = LittleLong(((int *)pr_globals)[i]);
 }
 
 void TT_ClearEdict(edict_t *e) {

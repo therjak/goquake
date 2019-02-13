@@ -44,8 +44,6 @@ entvars_t *EdictV(edict_t *e);
 extern dprograms_t *progs;
 extern dfunction_t *pr_functions;
 extern dstatement_t *pr_statements;
-extern globalvars_t *pr_global_struct;
-extern float *pr_globals; /* same as pr_global_struct */
 
 void PR_Init(void);
 
