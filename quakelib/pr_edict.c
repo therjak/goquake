@@ -39,8 +39,7 @@ static ddef_t *pr_globaldefs;
 qboolean pr_alpha_supported;  // johnfitz
 
 dstatement_t *pr_statements;
-globalvars_t *pr_global_struct;
-float *pr_globals;  // same as pr_global_struct
+float *pr_globals;
 
 unsigned short pr_crc;
 
@@ -981,8 +980,7 @@ void PR_LoadProgs(void) {
   pr_fielddefs = (ddef_t *)((byte *)progs + progs->ofs_fielddefs);
   pr_statements = (dstatement_t *)((byte *)progs + progs->ofs_statements);
 
-  pr_global_struct = (globalvars_t *)((byte *)progs + progs->ofs_globals);
-  pr_globals = (float *)pr_global_struct;
+  pr_globals = (float *)((byte *)progs + progs->ofs_globals);
 
   // byte swap the lumps
   for (i = 0; i < progs->numstatements; i++) {
