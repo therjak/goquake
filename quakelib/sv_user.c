@@ -2,7 +2,7 @@
 
 #include "quakedef.h"
 
-edict_t *sv_player;
+int sv_player;
 
 extern cvar_t sv_friction;
 extern cvar_t sv_stopspeed;
@@ -44,22 +44,23 @@ void SV_SetIdealPitch(void) {
   int i, j;
   int step, dir, steps;
 
-  if (!((int)EdictV(sv_player)->flags & FL_ONGROUND)) return;
+  if (!((int)EVars(sv_player)->flags & FL_ONGROUND)) return;
 
-  angleval = EdictV(sv_player)->angles[YAW] * M_PI * 2 / 360;
+  angleval = EVars(sv_player)->angles[YAW] * M_PI * 2 / 360;
   sinval = sin(angleval);
   cosval = cos(angleval);
 
   for (i = 0; i < MAX_FORWARD; i++) {
-    top[0] = EdictV(sv_player)->origin[0] + cosval * (i + 3) * 12;
-    top[1] = EdictV(sv_player)->origin[1] + sinval * (i + 3) * 12;
-    top[2] = EdictV(sv_player)->origin[2] + EdictV(sv_player)->view_ofs[2];
+    top[0] = EVars(sv_player)->origin[0] + cosval * (i + 3) * 12;
+    top[1] = EVars(sv_player)->origin[1] + sinval * (i + 3) * 12;
+    top[2] = EVars(sv_player)->origin[2] + EVars(sv_player)->view_ofs[2];
 
     bottom[0] = top[0];
     bottom[1] = top[1];
     bottom[2] = top[2] - 160;
 
-    tr = SV_Move(top, vec3_origin, vec3_origin, bottom, 1, sv_player);
+    tr =
+        SV_Move(top, vec3_origin, vec3_origin, bottom, 1, EDICT_NUM(sv_player));
     if (tr.allsolid) return;  // looking at a wall, leave ideal the way is was
 
     if (tr.fraction == 1) return;  // near a dropoff
@@ -81,12 +82,12 @@ void SV_SetIdealPitch(void) {
   }
 
   if (!dir) {
-    EdictV(sv_player)->idealpitch = 0;
+    EVars(sv_player)->idealpitch = 0;
     return;
   }
 
   if (steps < 2) return;
-  EdictV(sv_player)->idealpitch = -dir * Cvar_GetValue(&sv_idealpitchscale);
+  EVars(sv_player)->idealpitch = -dir * Cvar_GetValue(&sv_idealpitchscale);
 }
 
 /*
@@ -236,7 +237,8 @@ void SV_WaterMove(edict_t *player, movecmd_t *cmd) {
 }
 
 void SV_WaterJump(edict_t *player) {
-  if (SV_Time() > EdictV(player)->teleport_time || !EdictV(player)->waterlevel) {
+  if (SV_Time() > EdictV(player)->teleport_time ||
+      !EdictV(player)->waterlevel) {
     EdictV(player)->flags = (int)EdictV(player)->flags & ~FL_WATERJUMP;
     EdictV(player)->teleport_time = 0;
   }
@@ -342,7 +344,8 @@ void SV_ClientThink(int client) {
   angles = EdictV(player)->angles;
 
   VectorAdd(EdictV(player)->v_angle, EdictV(player)->punchangle, v_angle);
-  angles[ROLL] = V_CalcRoll(EdictV(player)->angles, EdictV(player)->velocity) * 4;
+  angles[ROLL] =
+      V_CalcRoll(EdictV(player)->angles, EdictV(player)->velocity) * 4;
   if (!EdictV(player)->fixangle) {
     angles[PITCH] = -v_angle[PITCH] / 3;
     angles[YAW] = v_angle[YAW];
@@ -356,7 +359,8 @@ void SV_ClientThink(int client) {
   // walk
   //
   // johnfitz -- alternate noclip
-  if (EdictV(player)->movetype == MOVETYPE_NOCLIP && Cvar_GetValue(&sv_altnoclip)) {
+  if (EdictV(player)->movetype == MOVETYPE_NOCLIP &&
+      Cvar_GetValue(&sv_altnoclip)) {
     SV_NoclipMove(player, &cmd);
   } else if (EdictV(player)->waterlevel >= 2 &&
              EdictV(player)->movetype != MOVETYPE_NOCLIP) {
@@ -381,8 +385,8 @@ void SV_ReadClientMove(int client) {
   int bits;
 
   // read ping time
-  SetClientPingTime(client,GetClientNumPings(client) % NUM_PING_TIMES,
-      SV_Time() - MSG_ReadFloat());
+  SetClientPingTime(client, GetClientNumPings(client) % NUM_PING_TIMES,
+                    SV_Time() - MSG_ReadFloat());
   SetClientNumPings(client, (GetClientNumPings(client) + 1) % NUM_PING_TIMES);
 
   // read current angles
@@ -532,11 +536,10 @@ void SV_RunClients(void) {
   int i;
   movecmd_t move = {0, 0, 0};
 
-  for (i = 0, host_client = 0; i < SVS_GetMaxClients();
-       i++, host_client++) {
+  for (i = 0, host_client = 0; i < SVS_GetMaxClients(); i++, host_client++) {
     if (!GetClientActive(HostClient())) continue;
 
-    sv_player = SV_GetEdict(HostClient());
+    sv_player = NUM_FOR_EDICT(SV_GetEdict(HostClient()));
 
     if (!SV_ReadClientMessage(HostClient())) {
       SV_DropClient(HostClient(), false);  // client misbehaved...

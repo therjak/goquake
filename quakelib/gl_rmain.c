@@ -718,7 +718,7 @@ draw bounding boxes -- the server-side boxes, not the renderer cullboxes
 ================
 */
 void R_ShowBoundingBoxes(void) {
-  extern edict_t *sv_player;
+  extern int sv_player;
   vec3_t mins, maxs;
   edict_t *ed;
   int i;
@@ -736,9 +736,9 @@ void R_ShowBoundingBoxes(void) {
 
   for (i = 0, ed = NEXT_EDICT(sv.edicts); i < SV_NumEdicts();
        i++, ed = NEXT_EDICT(ed)) {
-    if (ed == sv_player) continue;  // don't draw player's own bbox
+    if (ed == EDICT_NUM(sv_player)) continue;  // don't draw player's own bbox
 
-    if (EdictV(ed)->mins[0] == EdictV(ed)->maxs[0] && 
+    if (EdictV(ed)->mins[0] == EdictV(ed)->maxs[0] &&
         EdictV(ed)->mins[1] == EdictV(ed)->maxs[1] &&
         EdictV(ed)->mins[2] == EdictV(ed)->maxs[2]) {
       // point entity

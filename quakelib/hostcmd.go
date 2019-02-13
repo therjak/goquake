@@ -14,7 +14,9 @@ func hostGod(args []cmd.QArg) {
 		forwardToServer("god", args)
 		return
 	}
-	// need pr_global_struct
+	if progsdat.Globals.DeathMatch != 0 {
+		return
+	}
 	// need sv_player
 }
 
@@ -23,7 +25,9 @@ func hostNoTarget(args []cmd.QArg) {
 		forwardToServer("notarget", args)
 		return
 	}
-	// need pr_global_struct
+	if progsdat.Globals.DeathMatch != 0 {
+		return
+	}
 	// need sv_player
 }
 */

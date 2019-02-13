@@ -124,7 +124,7 @@ extern server_t sv;  // local server
 
 extern int host_client;
 int HostClient(void);
-extern edict_t *sv_player;
+extern int sv_player;
 
 //===========================================================
 
