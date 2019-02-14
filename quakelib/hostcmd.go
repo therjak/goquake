@@ -14,9 +14,15 @@ func init() {
 	cmd.AddCommand("god", hostGod)
 	cmd.AddCommand("notarget", hostNoTarget)
 	cmd.AddCommand("fly", hostFly)
-	// cmd.AddCommand("noclip", hostNoClip)
+	// cmd.AddCommand("noclip", hostNoClip) -- anglehack
 	cmd.AddCommand("give", hostGive)
 	// cmd.AddCommand("color", hostColor)
+	// cmd.AddCommand("ping", hostPing)
+	// cmd.AddCommand("say", hostSayAll)
+	// cmd.AddCommand("say_team", hostSayTeam)
+	// cmd.AddCommand("tell", hostTell)
+	// cmd.AddCommand("pause", hostPause)
+	// cmd.AddCommand("begin", hostBegin)
 }
 
 func qFormatI(b int32) string {
