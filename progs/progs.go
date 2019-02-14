@@ -63,6 +63,83 @@ const (
 	MoveTypeBounce
 )
 
+const (
+	ItemShotgun         = 1 << iota
+	ItemSuperShotgun    = 1 << iota
+	ItemNailgun         = 1 << iota
+	ItemSuperNailgun    = 1 << iota
+	ItemGrenadeLauncher = 1 << iota
+	ItemRocketLauncher  = 1 << iota
+	ItemLightning       = 1 << iota
+	ItemSuperLightning  = 1 << iota
+	ItemShells          = 1 << iota
+	ItemNails           = 1 << iota
+	ItemRockets         = 1 << iota
+	ItemCells           = 1 << iota
+	ItemAxe             = 1 << iota
+	ItemArmor1          = 1 << iota
+	ItemArmor2          = 1 << iota
+	ItemArmor3          = 1 << iota
+	ItemSuperHealth     = 1 << iota
+	ItemKey1            = 1 << iota
+	ItemKey2            = 1 << iota
+	ItemInvisibility    = 1 << iota
+	ItemInvulnerability = 1 << iota
+	ItemSuit            = 1 << iota
+	ItemQuad            = 1 << iota
+	_                   = 1 << iota // 23
+	_                   = 1 << iota
+	_                   = 1 << iota
+	_                   = 1 << iota
+	_                   = 1 << iota
+	ItemSigil1          = 1 << iota
+	ItemSigil2          = 1 << iota
+	ItemSigil3          = 1 << iota
+	ItemSigil4          = 1 << iota
+)
+
+//===========================================
+// rogue changed and added defines
+const (
+/*
+ RIT_SHELLS 128
+ RIT_NAILS 256
+ RIT_ROCKETS 512
+ RIT_CELLS 1024
+ RIT_AXE 2048
+ RIT_LAVA_NAILGUN 4096
+ RIT_LAVA_SUPER_NAILGUN 8192
+ RIT_MULTI_GRENADE 16384
+ RIT_MULTI_ROCKET 32768
+ RIT_PLASMA_GUN 65536
+ RIT_ARMOR1 8388608
+ RIT_ARMOR2 16777216
+ RIT_ARMOR3 33554432
+ RIT_LAVA_NAILS 67108864
+ RIT_PLASMA_AMMO 134217728
+ RIT_MULTI_ROCKETS 268435456
+ RIT_SHIELD 536870912
+ RIT_ANTIGRAV 1073741824
+ RIT_SUPERHEALTH 2147483648
+*/
+)
+
+// MED 01/04/97 added hipnotic defines
+//===========================================
+// hipnotic added defines
+const (
+/*
+ HIT_PROXIMITY_GUN_BIT 16
+ HIT_MJOLNIR_BIT 7
+ HIT_LASER_CANNON_BIT 23
+ HIT_PROXIMITY_GUN (1 << HIT_PROXIMITY_GUN_BIT)
+ HIT_MJOLNIR (1 << HIT_MJOLNIR_BIT)
+ HIT_LASER_CANNON (1 << HIT_LASER_CANNON_BIT)
+ HIT_WETSUIT (1 << (23 + 2))
+ HIT_EMPATHY_SHIELDS (1 << (23 + 3))
+*/
+)
+
 type Header struct {
 	Version          int32
 	CRC              int32
