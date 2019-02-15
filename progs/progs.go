@@ -87,57 +87,50 @@ const (
 	ItemInvulnerability = 1 << iota
 	ItemSuit            = 1 << iota
 	ItemQuad            = 1 << iota
-	_                   = 1 << iota // 23
-	_                   = 1 << iota
-	_                   = 1 << iota
-	_                   = 1 << iota
-	_                   = 1 << iota
+	ItemReserved1       = 1 << iota // 23
+	ItemReserved2       = 1 << iota
+	ItemReserved3       = 1 << iota
+	ItemReserved4       = 1 << iota
+	ItemReserved5       = 1 << iota
 	ItemSigil1          = 1 << iota
 	ItemSigil2          = 1 << iota
 	ItemSigil3          = 1 << iota
 	ItemSigil4          = 1 << iota
 )
 
-//===========================================
 // rogue changed and added defines
 const (
-/*
- RIT_SHELLS 128
- RIT_NAILS 256
- RIT_ROCKETS 512
- RIT_CELLS 1024
- RIT_AXE 2048
- RIT_LAVA_NAILGUN 4096
- RIT_LAVA_SUPER_NAILGUN 8192
- RIT_MULTI_GRENADE 16384
- RIT_MULTI_ROCKET 32768
- RIT_PLASMA_GUN 65536
- RIT_ARMOR1 8388608
- RIT_ARMOR2 16777216
- RIT_ARMOR3 33554432
- RIT_LAVA_NAILS 67108864
- RIT_PLASMA_AMMO 134217728
- RIT_MULTI_ROCKETS 268435456
- RIT_SHIELD 536870912
- RIT_ANTIGRAV 1073741824
- RIT_SUPERHEALTH 2147483648
-*/
+	RogueItemShells           = ItemSuperLightning // 128
+	RogueItemNails            = ItemShells         // 256
+	RogueItemRockets          = ItemNails          // 512
+	RogueItemCells            = ItemRockets        // 1024
+	RogueItemAxe              = ItemCells          // 2048
+	RogueItemLavaNailgun      = ItemAxe            // 4096
+	RogueItemLavaSuperNailgun = ItemArmor1         // 8192
+	RogueItemMultiGrenade     = ItemArmor2         // 16384
+	RogueItemMultiRocket      = ItemArmor3         // 32768
+	RogueItemPlasmaGun        = ItemSuperHealth    // 65536
+	RogueItemArmor1           = ItemReserved1      // 8388608
+	RogueItemArmor2           = ItemReserved2      // 16777216
+	RogueItemArmor3           = ItemReserved3      // 33554432
+	RogueItemLavaNails        = ItemReserved4      // 67108864
+	RogueItemPlasmaAmmo       = ItemReserved5      // 134217728
+	RogueItemMultiRockets     = ItemSigil1         // 268435456
+	RogueItemShield           = ItemSigil2         // 536870912
+	RogueItemAntigrav         = ItemSigil3         // 1073741824
+	RogueItemSuperHealth      = ItemSigil4         // 2147483648
 )
 
-// MED 01/04/97 added hipnotic defines
-//===========================================
 // hipnotic added defines
 const (
-/*
- HIT_PROXIMITY_GUN_BIT 16
- HIT_MJOLNIR_BIT 7
- HIT_LASER_CANNON_BIT 23
- HIT_PROXIMITY_GUN (1 << HIT_PROXIMITY_GUN_BIT)
- HIT_MJOLNIR (1 << HIT_MJOLNIR_BIT)
- HIT_LASER_CANNON (1 << HIT_LASER_CANNON_BIT)
- HIT_WETSUIT (1 << (23 + 2))
- HIT_EMPATHY_SHIELDS (1 << (23 + 3))
-*/
+	HipnoticItemProximityGunBit = 16
+	HipnoticItemMjolnirBit      = 7
+	HipnoticItemLaserCannonBit  = 23
+	HipnoticItemProximityGun    = (1 << HIT_PROXIMITY_GUN_BIT)
+	HipnoticItemMjolnir         = (1 << HIT_MJOLNIR_BIT)
+	HipnoticItemLaserCannon     = (1 << HIT_LASER_CANNON_BIT)
+	HipnoticItemWetsuit         = (1 << (23 + 2))
+	HipnoticItemEmpathyShields  = (1 << (23 + 3))
 )
 
 type Header struct {
