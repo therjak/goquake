@@ -126,9 +126,9 @@ const (
 	HipnoticItemProximityGunBit = 16
 	HipnoticItemMjolnirBit      = 7
 	HipnoticItemLaserCannonBit  = 23
-	HipnoticItemProximityGun    = (1 << HIT_PROXIMITY_GUN_BIT)
-	HipnoticItemMjolnir         = (1 << HIT_MJOLNIR_BIT)
-	HipnoticItemLaserCannon     = (1 << HIT_LASER_CANNON_BIT)
+	HipnoticItemProximityGun    = (1 << HipnoticItemProximityGunBit)
+	HipnoticItemMjolnir         = (1 << HipnoticItemMjolnirBit)
+	HipnoticItemLaserCannon     = (1 << HipnoticItemLaserCannonBit)
 	HipnoticItemWetsuit         = (1 << (23 + 2))
 	HipnoticItemEmpathyShields  = (1 << (23 + 3))
 )

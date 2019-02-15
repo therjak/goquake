@@ -6,8 +6,10 @@ import "C"
 import (
 	"fmt"
 	"quake/cmd"
+	"quake/cvars"
 	"quake/execute"
 	"quake/progs"
+	"quake/protocol/server"
 )
 
 func init() {
@@ -21,8 +23,8 @@ func init() {
 	// cmd.AddCommand("say", hostSayAll)
 	// cmd.AddCommand("say_team", hostSayTeam)
 	// cmd.AddCommand("tell", hostTell)
-	// cmd.AddCommand("pause", hostPause)
-	// cmd.AddCommand("begin", hostBegin)
+	cmd.AddCommand("pause", hostPause)
+	cmd.AddCommand("begin", hostBegin)
 }
 
 func qFormatI(b int32) string {
@@ -123,6 +125,46 @@ func hostFly(args []cmd.QArg) {
 }
 
 func hostColor(args []cmd.QArg) {
+}
+
+func hostPause(args []cmd.QArg) {
+	if cls.demoPlayback {
+		cls.demoPaused = !cls.demoPaused
+		cl.paused = cls.demoPaused
+		return
+	}
+	if execute.IsSrcCommand() {
+		forwardToServer("pause", args)
+		return
+	}
+	if cvars.Pausable.String() != "1" {
+		SV_ClientPrint(int(C.HostClient()), "Pause not allowed.\n")
+		return
+	}
+	sv.paused = !sv.paused
+	/*
+		ev := EntVars(sv_player)
+		if sv.paused {
+		  SV_BroadcastPrintf("%s paused the game\n", PR_GetString(ev.netname))
+		} else {
+		  SV_BroadcastPrintf("%s unpaused the game\n", PR_GetString(ev.netname))
+		}
+	*/
+	sv.reliableDatagram.WriteByte(server.SetPause)
+	sv.reliableDatagram.WriteByte(func() int {
+		if sv.paused {
+			return 1
+		}
+		return 0
+	}())
+}
+
+func hostBegin(args []cmd.QArg) {
+	if execute.IsSrcCommand() {
+		conPrintf("begin is not valid from the console\n")
+		return
+	}
+	sv_clients[C.HostClient()].spawned = true
 }
 
 func hostGive(args []cmd.QArg) {

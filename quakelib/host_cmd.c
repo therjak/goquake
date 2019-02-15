@@ -1195,41 +1195,6 @@ void Host_Kill_f(void) {
   PR_ExecuteProgram(Pr_global_struct_ClientKill());
 }
 
-/*
-==================
-Host_Pause_f
-==================
-*/
-void Host_Pause_f(void) {
-  // ericw -- demo pause support (inspired by MarkV)
-  if (CLS_IsDemoPlayback()) {
-    CLS_SetDemoPaused(!CLS_IsDemoPaused());
-    CL_SetPaused(CLS_IsDemoPaused());
-    return;
-  }
-
-  if (IsSrcCommand()) {
-    Cmd_ForwardToServer();
-    return;
-  }
-  if (!Cvar_GetValue(&pausable))
-    SV_ClientPrintf2(HostClient(), "Pause not allowed.\n");
-  else {
-    SV_SetPaused(!SV_Paused());
-
-    entvars_t *pent = EVars(SV_Player());
-    if (SV_Paused()) {
-      SV_BroadcastPrintf("%s paused the game\n", PR_GetString(pent->netname));
-    } else {
-      SV_BroadcastPrintf("%s unpaused the game\n", PR_GetString(pent->netname));
-    }
-
-    // send notification to all clients
-    SV_RD_WriteByte(svc_setpause);
-    SV_RD_WriteByte(SV_Paused());
-  }
-}
-
 //===========================================================================
 
 /*
@@ -1354,22 +1319,6 @@ void Host_Spawn_f(void) {
   ClientWriteByte(HostClient(), 3);
   SetClientSendSignon(HostClient(), true);
 }
-
-/*
-==================
-Host_Begin_f
-==================
-*/
-void Host_Begin_f(void) {
-  if (IsSrcCommand()) {
-    Con_Printf("begin is not valid from the console\n");
-    return;
-  }
-
-  SetClientSpawned(HostClient(), true);
-}
-
-//===========================================================================
 
 /*
 ==================
@@ -1665,9 +1614,7 @@ void Host_InitCommands(void) {
   Cmd_AddCommand("tell", Host_Tell_f);
   Cmd_AddCommand("color", Host_Color_f);
   Cmd_AddCommand("kill", Host_Kill_f);
-  Cmd_AddCommand("pause", Host_Pause_f);
   Cmd_AddCommand("spawn", Host_Spawn_f);
-  Cmd_AddCommand("begin", Host_Begin_f);
   Cmd_AddCommand("prespawn", Host_PreSpawn_f);
   Cmd_AddCommand("kick", Host_Kick_f);
   Cmd_AddCommand("ping", Host_Ping_f);
