@@ -20,8 +20,6 @@ cvar_t sv_altnoclip;
 
 edict_t *SV_GetEdict(int cl) { return EDICT_NUM(GetClientEdictId(cl)); }
 
-int SV_GetEdictNum(int cl) { return GetClientEdictId(cl); }
-
 void SV_SetEdict(int cl, edict_t *ed) {
   SetClientEdictId(cl, NUM_FOR_EDICT(ed));
 }

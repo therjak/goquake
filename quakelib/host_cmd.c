@@ -1059,7 +1059,7 @@ void Host_Say(qboolean teamonly) {
   for (j = 0; j < SVS_GetMaxClients(); j++) {
     if (!GetClientActive(j) || !GetClientSpawned(j)) continue;
     if (Cvar_GetValue(&teamplay) && teamonly &&
-        EVars(SV_GetEdictNum(j))->team != EVars(SV_GetEdictNum(save))->team)
+        EVars(GetClientEdictId(j))->team != EVars(GetClientEdictId(save))->team)
       continue;
     SV_ClientPrintf2(j, "%s", text);
   }
@@ -1166,7 +1166,7 @@ void Host_Color_f(void) {
   }
 
   SetClientColors(HostClient(), playercolor);
-  EVars(SV_GetEdictNum(HostClient()))->team = bottom + 1;
+  EVars(GetClientEdictId(HostClient()))->team = bottom + 1;
 
   // send notification to all clients
   SV_RD_WriteByte(svc_updatecolors);

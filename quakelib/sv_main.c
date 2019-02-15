@@ -237,7 +237,7 @@ void SV_SendServerinfo(int client) {
 
   // set view
   ClientWriteByte(client, svc_setview);
-  ClientWriteShort(client, SV_GetEdictNum(client));
+  ClientWriteShort(client, GetClientEdictId(client));
 
   ClientWriteByte(client, svc_signonnum);
   ClientWriteByte(client, 1);

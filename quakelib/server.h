@@ -48,7 +48,6 @@ typedef struct {
 
 edict_t *SV_GetEdict(int cl);
 
-int SV_GetEdictNum(int cl);
 void SV_SetEdict(int cl, edict_t *ed);
 void SV_SetEdictNum(int cl, int num);
 
