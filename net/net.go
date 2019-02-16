@@ -627,6 +627,8 @@ func (c *Connection) SendMessage(data []byte) int {
 
 	// there is some mechanism to allow multiple messages into the send buffer
 	// in the original. does this need a larger channel buffer?
+	// TODO: this can panic! need to fix some race where the cannel is closed
+	// in another go routine
 	c.out <- msg{data: buf.Bytes()}
 	if c.canWriteChan != nil {
 		// TODO: there should be a better way to handle both loopback and udp
