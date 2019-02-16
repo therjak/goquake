@@ -18,7 +18,7 @@ func init() {
 	cmd.AddCommand("fly", hostFly)
 	// cmd.AddCommand("noclip", hostNoClip) -- anglehack
 	cmd.AddCommand("give", hostGive)
-	// cmd.AddCommand("color", hostColor)
+	cmd.AddCommand("color", hostColor)
 	// cmd.AddCommand("ping", hostPing)
 	// cmd.AddCommand("say", hostSayAll)
 	// cmd.AddCommand("say_team", hostSayTeam)
@@ -125,6 +125,43 @@ func hostFly(args []cmd.QArg) {
 }
 
 func hostColor(args []cmd.QArg) {
+	c := int(cvars.ClientColor.Value())
+	t := c >> 4
+	b := c & 0x0f
+	if len(args) == 0 {
+		conPrintf("\"color\" is \"%d %d\"\n", t, b)
+		conPrintf("color <0-13> [0-13]\n")
+		return
+	}
+	t = args[0].Int()
+	b = t
+	if len(args) > 1 {
+		b = args[1].Int()
+	}
+
+	t &= 0x0f
+	if t > 13 {
+		t = 13
+	}
+	b &= 0x0f
+	if b > 13 {
+		b = 13
+	}
+	c = t*16 + b
+	if execute.IsSrcCommand() {
+		cvars.ClientColor.SetValue(float32(c))
+		if cls.state == ca_connected {
+			forwardToServer("color", args)
+		}
+		return
+	}
+	cID := int(C.HostClient())
+	client := sv_clients[cID]
+	client.colors = c
+	EntVars(client.edictId).Team = float32(b + 1)
+	sv.reliableDatagram.WriteByte(server.UpdateColors)
+	sv.reliableDatagram.WriteByte(cID)
+	sv.reliableDatagram.WriteByte(c)
 }
 
 func hostPause(args []cmd.QArg) {

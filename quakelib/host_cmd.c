@@ -1131,51 +1131,6 @@ void Host_Tell_f(void) {
 
 /*
 ==================
-Host_Color_f
-==================
-*/
-void Host_Color_f(void) {
-  int top, bottom;
-  int playercolor;
-
-  if (Cmd_Argc() == 1) {
-    Con_Printf("\"color\" is \"%i %i\"\n", ((int)Cvar_GetValue(&cl_color)) >> 4,
-               ((int)Cvar_GetValue(&cl_color)) & 0x0f);
-    Con_Printf("color <0-13> [0-13]\n");
-    return;
-  }
-
-  if (Cmd_Argc() == 2)
-    top = bottom = Cmd_ArgvAsInt(1);
-  else {
-    top = Cmd_ArgvAsInt(1);
-    bottom = Cmd_ArgvAsInt(2);
-  }
-
-  top &= 15;
-  if (top > 13) top = 13;
-  bottom &= 15;
-  if (bottom > 13) bottom = 13;
-
-  playercolor = top * 16 + bottom;
-
-  if (IsSrcCommand()) {
-    Cvar_SetValue("_cl_color", playercolor);
-    if (CLS_GetState() == ca_connected) Cmd_ForwardToServer();
-    return;
-  }
-
-  SetClientColors(HostClient(), playercolor);
-  EVars(GetClientEdictId(HostClient()))->team = bottom + 1;
-
-  // send notification to all clients
-  SV_RD_WriteByte(svc_updatecolors);
-  SV_RD_WriteByte(HostClient());
-  SV_RD_WriteByte(GetClientColors(HostClient()));
-}
-
-/*
-==================
 Host_Kill_f
 ==================
 */
@@ -1612,7 +1567,6 @@ void Host_InitCommands(void) {
   Cmd_AddCommand("say", Host_Say_f);
   Cmd_AddCommand("say_team", Host_Say_Team_f);
   Cmd_AddCommand("tell", Host_Tell_f);
-  Cmd_AddCommand("color", Host_Color_f);
   Cmd_AddCommand("kill", Host_Kill_f);
   Cmd_AddCommand("spawn", Host_Spawn_f);
   Cmd_AddCommand("prespawn", Host_PreSpawn_f);
