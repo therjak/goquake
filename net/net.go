@@ -591,7 +591,6 @@ func (c *Connection) Close() {
 		c.con.Close()
 	} else {
 		// loop server/client
-		fmt.Printf("Closing c.out")
 		close(c.out)
 	}
 	delete(conuuids, c.uuid)
