@@ -10,6 +10,7 @@ import (
 	"quake/execute"
 	"quake/progs"
 	"quake/protocol/server"
+	"strings"
 )
 
 func init() {
@@ -22,7 +23,7 @@ func init() {
 	// cmd.AddCommand("ping", hostPing)
 	// cmd.AddCommand("say", hostSayAll)
 	// cmd.AddCommand("say_team", hostSayTeam)
-	// cmd.AddCommand("tell", hostTell)
+	cmd.AddCommand("tell", hostTell)
 	cmd.AddCommand("pause", hostPause)
 	cmd.AddCommand("begin", hostBegin)
 }
@@ -451,5 +452,46 @@ func hostGive(args []cmd.QArg) {
 	case progs.ItemLightning:
 		ev.CurrentAmmo = ev.AmmoCells
 	}
+}
 
+func hostTell(args []cmd.QArg) {
+	if execute.IsSrcCommand() {
+		forwardToServer("tell", args)
+		return
+	}
+
+	if len(args) < 2 {
+		// need at least destination and message
+		return
+	}
+
+	cn := sv_clients[int(C.HostClient())].name
+	// TODO: should we realy concat or use cmd.CmdArgs?
+	ms := func() string {
+		a := args[1:]
+		n := (len(a) - 1)
+		for i := 0; i < len(a); i++ {
+			n += len(a[i].String())
+		}
+
+		b := make([]byte, n)
+		bp := copy(b, a[0].String())
+		for _, s := range a[1:] {
+			bp += copy(b[bp:], " ")
+			bp += copy(b[bp:], s.String())
+		}
+		return string(b)
+	}()
+	text := fmt.Sprintf("%s: %s", cn, ms)
+
+	for i, c := range sv_clients {
+		if !c.active || !c.spawned {
+			continue
+		}
+		if strings.ToLower(c.name) != strings.ToLower(args[0].String()) {
+			continue
+		}
+		// TODO: We check without case check. Are names unique ignoring the case?
+		SV_ClientPrint(i, text)
+	}
 }

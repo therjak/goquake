@@ -1072,63 +1072,6 @@ void Host_Say_f(void) { Host_Say(false); }
 
 void Host_Say_Team_f(void) { Host_Say(true); }
 
-void Host_Tell_f(void) {
-  int j;
-  int save;
-  const char *p;
-  char text[MAXCMDLINE], *p2;
-  qboolean quoted;
-
-  if (IsSrcCommand()) {
-    Cmd_ForwardToServer();
-    return;
-  }
-
-  if (Cmd_Argc() < 3) return;
-
-  p = Cmd_Args();
-  // remove quotes if present
-  quoted = false;
-  if (*p == '\"') {
-    p++;
-    quoted = true;
-  }
-  char *name = GetClientName(HostClient());
-  q_snprintf(text, sizeof(text), "%s: %s", name, p);
-  free(name);
-
-  // check length & truncate if necessary
-  j = (int)strlen(text);
-  if (j >= (int)sizeof(text) - 1) {
-    text[sizeof(text) - 2] = '\n';
-    text[sizeof(text) - 1] = '\0';
-  } else {
-    p2 = text + j;
-    while ((const char *)p2 > (const char *)text &&
-           (p2[-1] == '\r' || p2[-1] == '\n' || (p2[-1] == '\"' && quoted))) {
-      if (p2[-1] == '\"' && quoted) quoted = false;
-      p2[-1] = '\0';
-      p2--;
-    }
-    p2[0] = '\n';
-    p2[1] = '\0';
-  }
-
-  save = HostClient();
-  for (j = 0; j < SVS_GetMaxClients(); j++) {
-    if (!GetClientActive(j) || !GetClientSpawned(j)) continue;
-    char *name = GetClientName(j);
-    if (q_strcasecmp(name, Cmd_Argv(1))) {
-      free(name);
-      continue;
-    }
-    free(name);
-    SV_ClientPrintf2(j, "%s", text);
-    break;
-  }
-  host_client = save;
-}
-
 /*
 ==================
 Host_Kill_f
@@ -1566,7 +1509,6 @@ void Host_InitCommands(void) {
 
   Cmd_AddCommand("say", Host_Say_f);
   Cmd_AddCommand("say_team", Host_Say_Team_f);
-  Cmd_AddCommand("tell", Host_Tell_f);
   Cmd_AddCommand("kill", Host_Kill_f);
   Cmd_AddCommand("spawn", Host_Spawn_f);
   Cmd_AddCommand("prespawn", Host_PreSpawn_f);
