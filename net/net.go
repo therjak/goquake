@@ -585,14 +585,15 @@ func CheckNewConnections() *Connection {
 
 func (c *Connection) Close() {
 	SetTime()
+	c.canWriteChan = nil
+	c.canWrite = false
 	if c.con != nil {
 		c.con.Close()
 	} else {
 		// loop server/client
+		fmt.Printf("Closing c.out")
 		close(c.out)
 	}
-	c.canWriteChan = nil
-	c.canWrite = false
 	delete(conuuids, c.uuid)
 	// TODO: see loop.Close
 }
@@ -605,7 +606,7 @@ func (c *Connection) GetMessage() (*QReader, error) {
 	select {
 	case m, isOpen := <-c.in:
 		if !isOpen {
-			close(c.out)
+			c.Close()
 			return nil, fmt.Errorf("Connection is not open")
 		}
 		return NewQReader(m.data), nil
@@ -627,8 +628,6 @@ func (c *Connection) SendMessage(data []byte) int {
 
 	// there is some mechanism to allow multiple messages into the send buffer
 	// in the original. does this need a larger channel buffer?
-	// TODO: this can panic! need to fix some race where the cannel is closed
-	// in another go routine
 	c.out <- msg{data: buf.Bytes()}
 	if c.canWriteChan != nil {
 		// TODO: there should be a better way to handle both loopback and udp
