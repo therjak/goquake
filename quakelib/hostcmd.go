@@ -5,6 +5,7 @@ import "C"
 
 import (
 	"fmt"
+	"log"
 	"quake/cmd"
 	"quake/cvars"
 	"quake/execute"
@@ -454,6 +455,21 @@ func hostGive(args []cmd.QArg) {
 	}
 }
 
+func concatArgs(args []cmd.QArg) string {
+	n := (len(args) - 1)
+	for i := 0; i < len(args); i++ {
+		n += len(args[i].String())
+	}
+
+	b := make([]byte, n)
+	bp := copy(b, args[0].String())
+	for _, s := range args[1:] {
+		bp += copy(b[bp:], " ")
+		bp += copy(b[bp:], s.String())
+	}
+	return string(b)
+}
+
 func hostTell(args []cmd.QArg) {
 	if execute.IsSrcCommand() {
 		forwardToServer("tell", args)
@@ -467,21 +483,7 @@ func hostTell(args []cmd.QArg) {
 
 	cn := sv_clients[int(C.HostClient())].name
 	// TODO: should we realy concat or use cmd.CmdArgs?
-	ms := func() string {
-		a := args[1:]
-		n := (len(a) - 1)
-		for i := 0; i < len(a); i++ {
-			n += len(a[i].String())
-		}
-
-		b := make([]byte, n)
-		bp := copy(b, a[0].String())
-		for _, s := range a[1:] {
-			bp += copy(b[bp:], " ")
-			bp += copy(b[bp:], s.String())
-		}
-		return string(b)
-	}()
+	ms := concatArgs(args[1:])
 	text := fmt.Sprintf("%s: %s", cn, ms)
 
 	for i, c := range sv_clients {
@@ -496,9 +498,60 @@ func hostTell(args []cmd.QArg) {
 	}
 }
 
+func hostSay(team bool, args []cmd.QArg) {
+	// we know len(args) >= 1
+	// ! execute.IsSrcCommand && cls.state != ca_dedicated
+	fromServer := false
+	if execute.IsSrcCommand() {
+		team = false
+		fromServer = true
+	}
+	ms := concatArgs(args)
+	text := func() string {
+		if fromServer {
+			return fmt.Sprintf("\001<%s> %s", cvars.HostName.String(), ms)
+		} else {
+			return fmt.Sprintf("\001%s: %s", sv_clients[int(C.HostClient())].name, ms)
+		}
+	}()
+	for i, c := range sv_clients {
+		if !c.active || !c.spawned {
+			continue
+		}
+		if team && cvars.TeamPlay.Bool() &&
+			EntVars(c.edictId).Team != EntVars(sv_clients[int(C.HostClient())].edictId).Team {
+			continue
+		}
+		SV_ClientPrint(i, text)
+	}
+	if cls.state == ca_dedicated {
+		log.Printf(text)
+	}
+}
+
 func hostSayAll(args []cmd.QArg) {
 	// say
+	if len(args) < 1 {
+		return
+	}
+	if execute.IsSrcCommand() {
+		if cls.state != ca_dedicated {
+			forwardToServer("say", args)
+			return
+		}
+	}
+	hostSay(false, args)
 }
 func hostSayTeam(args []cmd.QArg) {
 	// say_team
+	if len(args) < 1 {
+		return
+	}
+	if execute.IsSrcCommand() {
+		if cls.state != ca_dedicated {
+			forwardToServer("say_team", args)
+			return
+		}
+	}
+	hostSay(true, args)
 }

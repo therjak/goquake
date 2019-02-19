@@ -115,6 +115,10 @@ func (cv *Cvar) Toggle() {
 	}
 }
 
+func (cv *Cvar) Bool() bool {
+	return cv.stringValue != "0"
+}
+
 func Get(name string) (*Cvar, bool) {
 	cv, err := cvarByName[name]
 	return cv, err
