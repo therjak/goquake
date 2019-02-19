@@ -456,7 +456,7 @@ func hostGive(args []cmd.QArg) {
 }
 
 func concatArgs(args []cmd.QArg) string {
-	n := (len(args) - 1)
+	n := len(args)
 	for i := 0; i < len(args); i++ {
 		n += len(args[i].String())
 	}
@@ -467,6 +467,7 @@ func concatArgs(args []cmd.QArg) string {
 		bp += copy(b[bp:], " ")
 		bp += copy(b[bp:], s.String())
 	}
+	bp += copy(b[bp:], "\n")
 	return string(b)
 }
 
@@ -500,7 +501,6 @@ func hostTell(args []cmd.QArg) {
 
 func hostSay(team bool, args []cmd.QArg) {
 	// we know len(args) >= 1
-	// ! execute.IsSrcCommand && cls.state != ca_dedicated
 	fromServer := false
 	if execute.IsSrcCommand() {
 		team = false

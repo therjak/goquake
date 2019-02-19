@@ -979,76 +979,6 @@ void Host_Name_f(void) {
   SV_RD_WriteString(newName);
 }
 
-void Host_Say(qboolean teamonly) {
-  int j;
-  int save;
-  const char *p;
-  char text[MAXCMDLINE], *p2;
-  qboolean quoted;
-  qboolean fromServer = false;
-
-  if (IsSrcCommand()) {
-    if (CLS_GetState() != ca_dedicated) {
-      Cmd_ForwardToServer();
-      return;
-    }
-    fromServer = true;
-    teamonly = false;
-  }
-
-  if (Cmd_Argc() < 2) return;
-
-  save = HostClient();
-
-  p = Cmd_Args();
-  // remove quotes if present
-  quoted = false;
-  if (*p == '\"') {
-    p++;
-    quoted = true;
-  }
-  // turn on color set 1
-  if (!fromServer) {
-    char *name = GetClientName(save);
-    q_snprintf(text, sizeof(text), "\001%s: %s", name, p);
-    free(name);
-  } else {
-    q_snprintf(text, sizeof(text), "\001<%s> %s", Cvar_GetString(&hostname), p);
-  }
-
-  // check length & truncate if necessary
-  j = (int)strlen(text);
-  if (j >= (int)sizeof(text) - 1) {
-    text[sizeof(text) - 2] = '\n';
-    text[sizeof(text) - 1] = '\0';
-  } else {
-    p2 = text + j;
-    while ((const char *)p2 > (const char *)text &&
-           (p2[-1] == '\r' || p2[-1] == '\n' || (p2[-1] == '\"' && quoted))) {
-      if (p2[-1] == '\"' && quoted) quoted = false;
-      p2[-1] = '\0';
-      p2--;
-    }
-    p2[0] = '\n';
-    p2[1] = '\0';
-  }
-
-  for (j = 0; j < SVS_GetMaxClients(); j++) {
-    if (!GetClientActive(j) || !GetClientSpawned(j)) continue;
-    if (Cvar_GetValue(&teamplay) && teamonly &&
-        EVars(GetClientEdictId(j))->team != EVars(GetClientEdictId(save))->team)
-      continue;
-    SV_ClientPrintf2(j, "%s", text);
-  }
-  host_client = save;
-
-  if (CLS_GetState() == ca_dedicated) Sys_Print(&text[1]);
-}
-
-void Host_Say_f(void) { Host_Say(false); }
-
-void Host_Say_Team_f(void) { Host_Say(true); }
-
 /*
 ==================
 Host_Kill_f
@@ -1484,8 +1414,6 @@ void Host_InitCommands(void) {
   Cmd_AddCommand("noclip", Host_Noclip_f);
   Cmd_AddCommand("setpos", Host_SetPos_f);  // QuakeSpasm
 
-  Cmd_AddCommand("say", Host_Say_f);
-  Cmd_AddCommand("say_team", Host_Say_Team_f);
   Cmd_AddCommand("kill", Host_Kill_f);
   Cmd_AddCommand("spawn", Host_Spawn_f);
   Cmd_AddCommand("prespawn", Host_PreSpawn_f);
