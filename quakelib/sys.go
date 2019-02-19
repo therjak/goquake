@@ -2,7 +2,6 @@ package quakelib
 
 //#include <stdlib.h>
 //#include "host_shutdown.h"
-//int HostClient(void);
 import "C"
 
 import (
@@ -120,8 +119,7 @@ func REPORT_STR(in *C.char) {
 func SVClientPrintf(format string, v ...interface{}) {
 	s := fmt.Sprintf(format, v...)
 	log.Print(s)
-	c := C.HostClient()
-	SV_ClientPrint(int(c), s)
+	HostClient().ClientPrint(s)
 }
 
 func SvBroadcastPrintf(format string, v ...interface{}) {

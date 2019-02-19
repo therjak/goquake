@@ -1,8 +1,5 @@
 package quakelib
 
-//int HostClient(void);
-import "C"
-
 import (
 	"fmt"
 	"log"
@@ -61,8 +58,8 @@ func hostGod(args []cmd.QArg) {
 		}
 	}
 	ev.Flags = float32(f)
-	SV_ClientPrint(int(C.HostClient()),
-		fmt.Sprintf("godmode %v\n", qFormatI(f&flag)))
+	HostClient().ClientPrint(fmt.Sprintf(
+		"godmode %v\n", qFormatI(f&flag)))
 }
 
 func hostNoTarget(args []cmd.QArg) {
@@ -90,8 +87,8 @@ func hostNoTarget(args []cmd.QArg) {
 		}
 	}
 	ev.Flags = float32(f)
-	SV_ClientPrint(int(C.HostClient()),
-		fmt.Sprintf("notarget %v\n", qFormatI(f&flag)))
+	HostClient().ClientPrint(fmt.Sprintf(
+		"notarget %v\n", qFormatI(f&flag)))
 }
 
 func hostFly(args []cmd.QArg) {
@@ -122,8 +119,8 @@ func hostFly(args []cmd.QArg) {
 		}
 	}
 	ev.MoveType = float32(m)
-	SV_ClientPrint(int(C.HostClient()),
-		fmt.Sprintf("flymode %v\n", qFormatI(m&progs.MoveTypeFly)))
+	HostClient().ClientPrint(fmt.Sprintf(
+		"flymode %v\n", qFormatI(m&progs.MoveTypeFly)))
 }
 
 func hostColor(args []cmd.QArg) {
@@ -157,8 +154,8 @@ func hostColor(args []cmd.QArg) {
 		}
 		return
 	}
-	cID := int(C.HostClient())
-	client := sv_clients[cID]
+	cID := HostClientID()
+	client := HostClient()
 	client.colors = c
 	EntVars(client.edictId).Team = float32(b + 1)
 	sv.reliableDatagram.WriteByte(server.UpdateColors)
@@ -177,16 +174,16 @@ func hostPause(args []cmd.QArg) {
 		return
 	}
 	if cvars.Pausable.String() != "1" {
-		SV_ClientPrint(int(C.HostClient()), "Pause not allowed.\n")
+		HostClient().ClientPrint("Pause not allowed.\n")
 		return
 	}
 	sv.paused = !sv.paused
 	/*
 		ev := EntVars(sv_player)
 		if sv.paused {
-		  SV_BroadcastPrintf("%s paused the game\n", PR_GetString(ev.netname))
+		  SvBroadcastPrintf("%s paused the game\n", PR_GetString(ev.netname))
 		} else {
-		  SV_BroadcastPrintf("%s unpaused the game\n", PR_GetString(ev.netname))
+		  SvBroadcastPrintf("%s unpaused the game\n", PR_GetString(ev.netname))
 		}
 	*/
 	sv.reliableDatagram.WriteByte(server.SetPause)
@@ -203,7 +200,7 @@ func hostBegin(args []cmd.QArg) {
 		conPrintf("begin is not valid from the console\n")
 		return
 	}
-	sv_clients[C.HostClient()].spawned = true
+	HostClient().spawned = true
 }
 
 func hostGive(args []cmd.QArg) {
@@ -482,12 +479,12 @@ func hostTell(args []cmd.QArg) {
 		return
 	}
 
-	cn := sv_clients[int(C.HostClient())].name
+	cn := HostClient().name
 	// TODO: should we realy concat or use cmd.CmdArgs?
 	ms := concatArgs(args[1:])
 	text := fmt.Sprintf("%s: %s", cn, ms)
 
-	for i, c := range sv_clients {
+	for _, c := range sv_clients {
 		if !c.active || !c.spawned {
 			continue
 		}
@@ -495,7 +492,7 @@ func hostTell(args []cmd.QArg) {
 			continue
 		}
 		// TODO: We check without case check. Are names unique ignoring the case?
-		SV_ClientPrint(i, text)
+		c.ClientPrint(text)
 	}
 }
 
@@ -511,18 +508,18 @@ func hostSay(team bool, args []cmd.QArg) {
 		if fromServer {
 			return fmt.Sprintf("\001<%s> %s", cvars.HostName.String(), ms)
 		} else {
-			return fmt.Sprintf("\001%s: %s", sv_clients[int(C.HostClient())].name, ms)
+			return fmt.Sprintf("\001%s: %s", HostClient().name, ms)
 		}
 	}()
-	for i, c := range sv_clients {
+	for _, c := range sv_clients {
 		if !c.active || !c.spawned {
 			continue
 		}
 		if team && cvars.TeamPlay.Bool() &&
-			EntVars(c.edictId).Team != EntVars(sv_clients[int(C.HostClient())].edictId).Team {
+			EntVars(c.edictId).Team != EntVars(HostClient().edictId).Team {
 			continue
 		}
-		SV_ClientPrint(i, text)
+		c.ClientPrint(text)
 	}
 	if cls.state == ca_dedicated {
 		log.Printf(text)

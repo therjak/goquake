@@ -14,6 +14,7 @@ typedef struct movecmd_s {
 #endif // _MOVEDEF_h
 void SV_DropClient(int, int);
 void SV_ConnectClient(int);
+int HostClient(void);
 */
 import "C"
 
@@ -97,9 +98,17 @@ func SV_ClientPrint2(client C.int, msg *C.char) {
 	ClientWriteString(client, msg)
 }
 
-func SV_ClientPrint(client int, msg string) {
-	ClientWriteByte2(client, server.Print)
-	ClientWriteString2(client, msg)
+func HostClient() *SVClient {
+	return sv_clients[HostClientID()]
+}
+
+func HostClientID() int {
+	return int(C.HostClient())
+}
+
+func (c *SVClient) ClientPrint(msg string) {
+	c.msg.WriteByte(server.Print)
+	c.msg.WriteString(msg)
 }
 
 func CheckForNewClients() {
