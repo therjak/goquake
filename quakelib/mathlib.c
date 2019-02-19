@@ -1,25 +1,3 @@
-/*
-Copyright (C) 1996-2001 Id Software, Inc.
-Copyright (C) 2002-2009 John Fitzgibbons and others
-Copyright (C) 2007-2008 Kristian Duske
-Copyright (C) 2010-2014 QuakeSpasm developers
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
 // mathlib.c -- math primitives
 
 #include "quakedef.h"
@@ -105,10 +83,7 @@ Split out like this for ASM to call.
 ==================
 */
 void BOPS_Error(void) __attribute__((__noreturn__));
-void BOPS_Error(void) { 
-  (void)Go_Error("BoxOnPlaneSide:  Bad signbits");
-
-}
+void BOPS_Error(void) { (void)Go_Error("BoxOnPlaneSide:  Bad signbits"); }
 
 /*
 ==================
@@ -122,7 +97,7 @@ int BoxOnPlaneSide(vec3_t emins, vec3_t emaxs, mplane_t *p) {
   int sides;
 
 #if 0  // this is done by the BOX_ON_PLANE_SIDE macro before calling this
-		// function
+       // function
 // fast axial cases
 	if (p->type < 3)
 	{

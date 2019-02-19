@@ -1,25 +1,3 @@
-/*
-Copyright (C) 1996-2001 Id Software, Inc.
-Copyright (C) 2002-2009 John Fitzgibbons and others
-Copyright (C) 2007-2008 Kristian Duske
-Copyright (C) 2010-2014 QuakeSpasm developers
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
-
 // gl_texmgr.c -- fitzquake's texture manager. manages opengl texture images
 
 #include "quakedef.h"
@@ -455,7 +433,7 @@ TexMgr_NewGame
 */
 void TexMgr_NewGame(void) {
   // deletes all textures where TEXPREF_PERSIST is unset
-  TexMgr_FreeTextures(0, TEXPREF_PERSIST); 
+  TexMgr_FreeTextures(0, TEXPREF_PERSIST);
   TexMgr_LoadPalette();
 }
 
@@ -539,7 +517,7 @@ void TexMgr_Init(void) {
   Cvar_FakeRegister(&gl_texture_anisotropy, "gl_texture_anisotropy");
   Cvar_SetCallback(&gl_texture_anisotropy, &TexMgr_Anisotropy_f);
 
-  Cvar_Register(&gl_texturemode, "gl_texturemode", glmodes[glmode_idx].name, 
+  Cvar_Register(&gl_texturemode, "gl_texturemode", glmodes[glmode_idx].name,
                 CVAR_ARCHIVE);
 
   Cvar_SetCallback(&gl_texturemode, &TexMgr_TextureMode_f);
@@ -1203,7 +1181,7 @@ void TexMgr_ReloadImage(gltexture_t *glt, int shirt, int pants) {
     // lump inside file
     long size;
     int length = 0;
-    byte* file = COM_LoadFileGo(glt->source_file, &length);
+    byte *file = COM_LoadFileGo(glt->source_file, &length);
     if (!file) goto invalid;
     size = (long)(glt->source_width * glt->source_height);
     /* should be SRC_INDEXED, but no harm being paranoid:  */
@@ -1218,7 +1196,7 @@ void TexMgr_ReloadImage(gltexture_t *glt, int shirt, int pants) {
     }
 
     data = (byte *)Hunk_Alloc(size);
-    byte* fs = file + glt->source_offset;
+    byte *fs = file + glt->source_offset;
     memcpy(data, fs, size);
 
     free(file);

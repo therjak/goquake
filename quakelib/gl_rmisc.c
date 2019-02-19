@@ -1,25 +1,3 @@
-/*
-Copyright (C) 1996-2001 Id Software, Inc.
-Copyright (C) 2002-2009 John Fitzgibbons and others
-Copyright (C) 2007-2008 Kristian Duske
-Copyright (C) 2010-2014 QuakeSpasm developers
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
 // r_misc.c
 
 #include "quakedef.h"
@@ -104,28 +82,36 @@ static void R_Model_ExtraFlags_List_f(cvar_t *var) {
 R_SetWateralpha_f -- ericw
 ====================
 */
-static void R_SetWateralpha_f(cvar_t *var) { map_wateralpha = Cvar_GetValue(var); }
+static void R_SetWateralpha_f(cvar_t *var) {
+  map_wateralpha = Cvar_GetValue(var);
+}
 
 /*
 ====================
 R_SetLavaalpha_f -- ericw
 ====================
 */
-static void R_SetLavaalpha_f(cvar_t *var) { map_lavaalpha = Cvar_GetValue(var); }
+static void R_SetLavaalpha_f(cvar_t *var) {
+  map_lavaalpha = Cvar_GetValue(var);
+}
 
 /*
 ====================
 R_SetTelealpha_f -- ericw
 ====================
 */
-static void R_SetTelealpha_f(cvar_t *var) { map_telealpha = Cvar_GetValue(var); }
+static void R_SetTelealpha_f(cvar_t *var) {
+  map_telealpha = Cvar_GetValue(var);
+}
 
 /*
 ====================
 R_SetSlimealpha_f -- ericw
 ====================
 */
-static void R_SetSlimealpha_f(cvar_t *var) { map_slimealpha = Cvar_GetValue(var); }
+static void R_SetSlimealpha_f(cvar_t *var) {
+  map_slimealpha = Cvar_GetValue(var);
+}
 
 /*
 ====================
@@ -154,66 +140,64 @@ void R_Init(void) {
   Cmd_AddCommand("timerefresh", R_TimeRefresh_f);
   Cmd_AddCommand("pointfile", R_ReadPointFile_f);
 
-
-
-  Cvar_FakeRegister(&r_norefresh,"r_norefresh");
-  Cvar_FakeRegister(&r_lightmap,"r_lightmap");
-  Cvar_FakeRegister(&r_fullbright,"r_fullbright");
-  Cvar_FakeRegister(&r_drawentities,"r_drawentities");
-  Cvar_FakeRegister(&r_drawviewmodel,"r_drawviewmodel");
-  Cvar_FakeRegister(&r_shadows,"r_shadows");
-  Cvar_FakeRegister(&r_wateralpha,"r_wateralpha");
+  Cvar_FakeRegister(&r_norefresh, "r_norefresh");
+  Cvar_FakeRegister(&r_lightmap, "r_lightmap");
+  Cvar_FakeRegister(&r_fullbright, "r_fullbright");
+  Cvar_FakeRegister(&r_drawentities, "r_drawentities");
+  Cvar_FakeRegister(&r_drawviewmodel, "r_drawviewmodel");
+  Cvar_FakeRegister(&r_shadows, "r_shadows");
+  Cvar_FakeRegister(&r_wateralpha, "r_wateralpha");
   Cvar_SetCallback(&r_wateralpha, R_SetWateralpha_f);
-  Cvar_FakeRegister(&r_dynamic,"r_dynamic");
-  Cvar_FakeRegister(&r_novis,"r_novis");
+  Cvar_FakeRegister(&r_dynamic, "r_dynamic");
+  Cvar_FakeRegister(&r_novis, "r_novis");
   Cvar_SetCallback(&r_novis, R_VisChanged);
-  Cvar_FakeRegister(&r_speeds,"r_speeds");
-  Cvar_FakeRegister(&r_pos,"r_pos");
+  Cvar_FakeRegister(&r_speeds, "r_speeds");
+  Cvar_FakeRegister(&r_pos, "r_pos");
 
-  Cvar_FakeRegister(&gl_finish,"gl_finish");
-  Cvar_FakeRegister(&gl_clear,"gl_clear");
-  Cvar_FakeRegister(&gl_cull,"gl_cull");
-  Cvar_FakeRegister(&gl_smoothmodels,"gl_smoothmodels");
-  Cvar_FakeRegister(&gl_affinemodels,"gl_affinemodels");
-  Cvar_FakeRegister(&gl_polyblend,"gl_polyblend");
-  Cvar_FakeRegister(&gl_flashblend,"gl_flashblend");
-  Cvar_FakeRegister(&gl_playermip,"gl_playermip");
-  Cvar_FakeRegister(&gl_nocolors,"gl_nocolors");
+  Cvar_FakeRegister(&gl_finish, "gl_finish");
+  Cvar_FakeRegister(&gl_clear, "gl_clear");
+  Cvar_FakeRegister(&gl_cull, "gl_cull");
+  Cvar_FakeRegister(&gl_smoothmodels, "gl_smoothmodels");
+  Cvar_FakeRegister(&gl_affinemodels, "gl_affinemodels");
+  Cvar_FakeRegister(&gl_polyblend, "gl_polyblend");
+  Cvar_FakeRegister(&gl_flashblend, "gl_flashblend");
+  Cvar_FakeRegister(&gl_playermip, "gl_playermip");
+  Cvar_FakeRegister(&gl_nocolors, "gl_nocolors");
 
-  Cvar_FakeRegister(&r_stereo,"r_stereo");
-  Cvar_FakeRegister(&r_stereodepth,"r_stereodepth");
-  Cvar_FakeRegister(&r_clearcolor,"r_clearcolor");
+  Cvar_FakeRegister(&r_stereo, "r_stereo");
+  Cvar_FakeRegister(&r_stereodepth, "r_stereodepth");
+  Cvar_FakeRegister(&r_clearcolor, "r_clearcolor");
   Cvar_SetCallback(&r_clearcolor, R_SetClearColor_f);
-  Cvar_FakeRegister(&r_waterquality,"r_waterquality");
-  Cvar_FakeRegister(&r_oldwater,"r_oldwater");
-  Cvar_FakeRegister(&r_waterwarp,"r_waterwarp");
-  Cvar_FakeRegister(&r_drawflat,"r_drawflat");
-  Cvar_FakeRegister(&r_flatlightstyles,"r_flatlightstyles");
-  Cvar_FakeRegister(&r_oldskyleaf,"r_oldskyleaf");
+  Cvar_FakeRegister(&r_waterquality, "r_waterquality");
+  Cvar_FakeRegister(&r_oldwater, "r_oldwater");
+  Cvar_FakeRegister(&r_waterwarp, "r_waterwarp");
+  Cvar_FakeRegister(&r_drawflat, "r_drawflat");
+  Cvar_FakeRegister(&r_flatlightstyles, "r_flatlightstyles");
+  Cvar_FakeRegister(&r_oldskyleaf, "r_oldskyleaf");
   Cvar_SetCallback(&r_oldskyleaf, R_VisChanged);
-  Cvar_FakeRegister(&r_drawworld,"r_drawworld");
-  Cvar_FakeRegister(&r_showtris,"r_showtris");
-  Cvar_FakeRegister(&r_showbboxes,"r_showbboxes");
-  Cvar_FakeRegister(&gl_farclip,"gl_farclip");
-  Cvar_FakeRegister(&gl_fullbrights,"gl_fullbrights");
+  Cvar_FakeRegister(&r_drawworld, "r_drawworld");
+  Cvar_FakeRegister(&r_showtris, "r_showtris");
+  Cvar_FakeRegister(&r_showbboxes, "r_showbboxes");
+  Cvar_FakeRegister(&gl_farclip, "gl_farclip");
+  Cvar_FakeRegister(&gl_fullbrights, "gl_fullbrights");
   Cvar_SetCallback(&gl_fullbrights, GL_Fullbrights_f);
-  Cvar_FakeRegister(&gl_overbright,"gl_overbright");
+  Cvar_FakeRegister(&gl_overbright, "gl_overbright");
   Cvar_SetCallback(&gl_overbright, GL_Overbright_f);
-  Cvar_FakeRegister(&gl_overbright_models,"gl_overbright_models");
-  Cvar_FakeRegister(&r_lerpmodels,"r_lerpmodels");
-  Cvar_FakeRegister(&r_lerpmove,"r_lerpmove");
-  Cvar_FakeRegister(&r_nolerp_list,"r_nolerp_list");
+  Cvar_FakeRegister(&gl_overbright_models, "gl_overbright_models");
+  Cvar_FakeRegister(&r_lerpmodels, "r_lerpmodels");
+  Cvar_FakeRegister(&r_lerpmove, "r_lerpmove");
+  Cvar_FakeRegister(&r_nolerp_list, "r_nolerp_list");
   Cvar_SetCallback(&r_nolerp_list, R_Model_ExtraFlags_List_f);
-  Cvar_FakeRegister(&r_noshadow_list,"r_noshadow_list");
+  Cvar_FakeRegister(&r_noshadow_list, "r_noshadow_list");
 
   Cvar_SetCallback(&r_noshadow_list, R_Model_ExtraFlags_List_f);
 
-  Cvar_FakeRegister(&gl_zfix,"gl_zfix");
-  Cvar_FakeRegister(&r_lavaalpha,"r_lavaalpha");
+  Cvar_FakeRegister(&gl_zfix, "gl_zfix");
+  Cvar_FakeRegister(&r_lavaalpha, "r_lavaalpha");
   Cvar_SetCallback(&r_lavaalpha, R_SetLavaalpha_f);
-  Cvar_FakeRegister(&r_telealpha,"r_telealpha");
+  Cvar_FakeRegister(&r_telealpha, "r_telealpha");
   Cvar_SetCallback(&r_telealpha, R_SetTelealpha_f);
-  Cvar_FakeRegister(&r_slimealpha,"r_slimealpha");
+  Cvar_FakeRegister(&r_slimealpha, "r_slimealpha");
   Cvar_SetCallback(&r_slimealpha, R_SetSlimealpha_f);
 
   R_InitParticles();
@@ -396,7 +380,10 @@ void R_TimeRefresh_f(void) {
 
   start = Sys_DoubleTime();
   for (i = 0; i < 128; i++) {
-    glx = 0; gly = 0; glwidth = ScreenWidth(); glheight = ScreenHeight();
+    glx = 0;
+    gly = 0;
+    glwidth = ScreenWidth();
+    glheight = ScreenHeight();
     r_refdef.viewangles[1] = i / 128.0 * 360.0;
     R_RenderView();
     GL_EndRendering();

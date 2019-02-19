@@ -21,8 +21,8 @@ func init() {
 	cmd.AddCommand("give", hostGive)
 	cmd.AddCommand("color", hostColor)
 	// cmd.AddCommand("ping", hostPing)
-	// cmd.AddCommand("say", hostSayAll)
-	// cmd.AddCommand("say_team", hostSayTeam)
+	cmd.AddCommand("say", hostSayAll)
+	cmd.AddCommand("say_team", hostSayTeam)
 	cmd.AddCommand("tell", hostTell)
 	cmd.AddCommand("pause", hostPause)
 	cmd.AddCommand("begin", hostBegin)
@@ -494,4 +494,11 @@ func hostTell(args []cmd.QArg) {
 		// TODO: We check without case check. Are names unique ignoring the case?
 		SV_ClientPrint(i, text)
 	}
+}
+
+func hostSayAll(args []cmd.QArg) {
+	// say
+}
+func hostSayTeam(args []cmd.QArg) {
+	// say_team
 }

@@ -1,26 +1,3 @@
-/*
-Copyright (C) 1996-2001 Id Software, Inc.
-Copyright (C) 2002-2009 John Fitzgibbons and others
-Copyright (C) 2007-2008 Kristian Duske
-Copyright (C) 2010-2014 QuakeSpasm developers
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
-
 // draw.c -- 2d drawing
 
 #include "quakedef.h"
@@ -658,7 +635,8 @@ void GL_SetCanvas(canvastype newcanvas) {
       glViewport(glx, gly, glwidth, glheight);
       break;
     case CANVAS_CONSOLE:
-      lines = ConHeight() - (GetScreenConsoleCurrentHeight() * ConHeight() / glheight);
+      lines = ConHeight() -
+              (GetScreenConsoleCurrentHeight() * ConHeight() / glheight);
       glOrtho(0, ConWidth(), ConHeight() + lines, lines, -99999, 99999);
       glViewport(glx, gly, glwidth, glheight);
       break;
@@ -693,12 +671,12 @@ void GL_SetCanvas(canvastype newcanvas) {
       glViewport(scr_vrect.x, glheight - scr_vrect.y - scr_vrect.height,
                  scr_vrect.width & ~1, scr_vrect.height & ~1);
       break;
-    case CANVAS_BOTTOMLEFT:               // used by devstats
+    case CANVAS_BOTTOMLEFT:             // used by devstats
       s = (float)glwidth / ConWidth();  // use console scale
       glOrtho(0, 320, 200, 0, -99999, 99999);
       glViewport(glx, gly, 320 * s, 200 * s);
       break;
-    case CANVAS_BOTTOMRIGHT:              // used by fps/clock
+    case CANVAS_BOTTOMRIGHT:            // used by fps/clock
       s = (float)glwidth / ConWidth();  // use console scale
       glOrtho(0, 320, 200, 0, -99999, 99999);
       glViewport(glx + glwidth - 320 * s, gly, 320 * s, 200 * s);
