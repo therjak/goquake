@@ -18,7 +18,7 @@ func init() {
 	// cmd.AddCommand("noclip", hostNoClip) -- anglehack
 	cmd.AddCommand("give", hostGive)
 	cmd.AddCommand("color", hostColor)
-	// cmd.AddCommand("ping", hostPing)
+	cmd.AddCommand("ping", hostPing)
 	cmd.AddCommand("say", hostSayAll)
 	cmd.AddCommand("say_team", hostSayTeam)
 	cmd.AddCommand("tell", hostTell)
@@ -539,6 +539,7 @@ func hostSayAll(args []cmd.QArg) {
 	}
 	hostSay(false, args)
 }
+
 func hostSayTeam(args []cmd.QArg) {
 	// say_team
 	if len(args) < 1 {
@@ -551,4 +552,19 @@ func hostSayTeam(args []cmd.QArg) {
 		}
 	}
 	hostSay(true, args)
+}
+
+func hostPing(args []cmd.QArg) {
+	if execute.IsSrcCommand() {
+		forwardToServer("ping", args)
+		return
+	}
+	HostClient().ClientPrint("Client ping times:\n")
+	for _, c := range sv_clients {
+		if !c.active {
+			continue
+		}
+		HostClient().ClientPrint(fmt.Sprintf(
+			"%4d %s\n", int(c.PingTime()*1000), c.name))
+	}
 }

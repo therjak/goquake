@@ -498,35 +498,6 @@ void Host_SetPos_f(void) {
 }
 
 /*
-==================
-Host_Ping_f
-
-==================
-*/
-void Host_Ping_f(void) {
-  int i, j;
-  float total;
-
-  if (IsSrcCommand()) {
-    Cmd_ForwardToServer();
-    return;
-  }
-
-  SV_ClientPrintf2(HostClient(), "Client ping times:\n");
-  for (i = 0; i < SVS_GetMaxClients(); i++) {
-    if (!GetClientActive(i)) continue;
-    total = 0;
-    for (j = 0; j < NUM_PING_TIMES; j++) {
-      total += GetClientPingTime(i, j);
-    }
-    total /= NUM_PING_TIMES;
-    char *name = GetClientName(i);
-    SV_ClientPrintf2(HostClient(), "%4i %s\n", (int)(total * 1000), name);
-    free(name);
-  }
-}
-
-/*
 ===============================================================================
 
 SERVER TRANSITIONS
@@ -1418,7 +1389,6 @@ void Host_InitCommands(void) {
   Cmd_AddCommand("spawn", Host_Spawn_f);
   Cmd_AddCommand("prespawn", Host_PreSpawn_f);
   Cmd_AddCommand("kick", Host_Kick_f);
-  Cmd_AddCommand("ping", Host_Ping_f);
   Cmd_AddCommand("load", Host_Loadgame_f);
   Cmd_AddCommand("save", Host_Savegame_f);
 

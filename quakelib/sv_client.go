@@ -111,6 +111,14 @@ func (c *SVClient) ClientPrint(msg string) {
 	c.msg.WriteString(msg)
 }
 
+func (c *SVClient) PingTime() float32 {
+	r := float32(0)
+	for _, p := range c.pingTimes {
+		r += p
+	}
+	return r / float32(len(c.pingTimes))
+}
+
 func CheckForNewClients() {
 	for {
 		con := net.CheckNewConnections()

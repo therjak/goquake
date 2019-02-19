@@ -120,7 +120,7 @@ func send(v userView, m userMove) {
 	b.WriteByte(clc.Move)
 
 	// MSG_WriteFloat(&buf, CL_MTime());  // so server can get ping time
-	b.WriteFloat(0) // TODO
+	b.WriteFloat(0) // TODO: This breaks 'ping'!!!
 
 	if cl.protocol == protocol.NetQuake {
 		b.WriteAngle(v.pitch)
