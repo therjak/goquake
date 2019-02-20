@@ -97,3 +97,8 @@ func Host_PreSpawn_f() {
 	c.msg.WriteByte(2)
 	c.sendSignon = true
 }
+
+// Host_FindMaxClients
+// SV_BroadcastPrint
+// SV_BroadcastPrintf
+// Host_ClientCommands

@@ -167,39 +167,6 @@ filelist_item_t *modlist;
 
 void Modlist_Add(const char *name) { FileList_Add(name, &modlist); }
 
-#ifdef _WIN32
-void Modlist_Init(void) {
-  WIN32_FIND_DATA fdat, mod_fdat;
-  HANDLE fhnd, mod_fhnd;
-  char dir_string[MAX_OSPATH], mod_string[MAX_OSPATH];
-
-  q_snprintf(dir_string, sizeof(dir_string), "%s/*", Com_Basedir());
-  fhnd = FindFirstFile(dir_string, &fdat);
-  if (fhnd == INVALID_HANDLE_VALUE) return;
-
-  do {
-    if (!strcmp(fdat.cFileName, ".")) continue;
-
-    q_snprintf(mod_string, sizeof(mod_string), "%s/%s/progs.dat", Com_Basedir(),
-               fdat.cFileName);
-    mod_fhnd = FindFirstFile(mod_string, &mod_fdat);
-    if (mod_fhnd != INVALID_HANDLE_VALUE) {
-      FindClose(mod_fhnd);
-      Modlist_Add(fdat.cFileName);
-    } else {
-      q_snprintf(mod_string, sizeof(mod_string), "%s/%s/*.pak", Com_Basedir(),
-                 fdat.cFileName);
-      mod_fhnd = FindFirstFile(mod_string, &mod_fdat);
-      if (mod_fhnd != INVALID_HANDLE_VALUE) {
-        FindClose(mod_fhnd);
-        Modlist_Add(fdat.cFileName);
-      }
-    }
-  } while (FindNextFile(fhnd, &fdat));
-
-  FindClose(fhnd);
-}
-#else
 void Modlist_Init(void) {
   DIR *dir_p, *mod_dir_p;
   struct dirent *dir_t, *mod_dir_t;
@@ -231,7 +198,6 @@ void Modlist_Init(void) {
 
   closedir(dir_p);
 }
-#endif
 
 //==============================================================================
 // ericw -- demo list management
