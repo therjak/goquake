@@ -1,9 +1,5 @@
 package progs
 
-import (
-	"unsafe"
-)
-
 const (
 	ProgVersion   = 6
 	MaxParms      = 8 // matches OffsetParm0-7
@@ -179,6 +175,7 @@ type Statement struct {
 	C        int16
 }
 
+/*
 func (g *GlobalVars) Returnf() *[3]float32 {
 	return (*[3]float32)(unsafe.Pointer(&g.Return[0]))
 }
@@ -202,21 +199,23 @@ func (g *GlobalVars) Parm3f() *[3]float32 {
 func (g *GlobalVars) Parm4f() *[3]float32 {
 	return (*[3]float32)(unsafe.Pointer(&g.Parm4[0]))
 }
-
+*/
 type GlobalVars struct {
-	Null     int32
-	Return   [3]int32
-	Parm0    [3]int32
-	Parm1    [3]int32
-	Parm2    [3]int32
-	Parm3    [3]int32
-	Parm4    [3]int32
-	Parm5    [3]int32
-	Parm6    [3]int32
-	Parm7    [3]int32
-	Reserved int32
+	/*
+		Null     int32
+		Return   [3]int32
+		Parm0    [3]int32
+		Parm1    [3]int32
+		Parm2    [3]int32
+		Parm3    [3]int32
+		Parm4    [3]int32
+		Parm5    [3]int32
+		Parm6    [3]int32
+		Parm7    [3]int32
+		Reserved int32
+	*/
 	// the above should be equal to:
-	// Pad               [28]int32
+	Pad               [28]int32
 	Self              int32
 	Other             int32
 	World             int32
