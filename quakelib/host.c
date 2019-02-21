@@ -125,40 +125,6 @@ void Host_Error(const char *error, ...) {
   longjmp(host_abortserver, 1);
 }
 
-/*
-================
-Host_FindMaxClients
-================
-*/
-void Host_FindMaxClients(void) {
-  SVS_SetMaxClients(1);
-
-  if (CMLDedicated()) {
-    CLS_SetState(ca_dedicated);
-    SVS_SetMaxClients(CMLDedicatedNum());
-  } else
-    CLS_SetState(ca_disconnected);
-
-  if (CMLListen()) {
-    if (CLS_GetState() == ca_dedicated)
-      Go_Error("Only one of -dedicated or -listen can be specified");
-    SVS_SetMaxClients(CMLListenNum());
-  }
-  if (SVS_GetMaxClients() < 1)
-    SVS_SetMaxClients(8);
-  else if (SVS_GetMaxClients() > MAX_SCOREBOARD)
-    SVS_SetMaxClients(MAX_SCOREBOARD);
-
-  SVS_SetMaxClientsLimit(SVS_GetMaxClients());
-  if (SVS_GetMaxClientsLimit() < 4) SVS_SetMaxClientsLimit(4);
-  CreateSVClients();
-
-  if (SVS_GetMaxClients() > 1)
-    Cvar_SetQuick(&deathmatch, "1");
-  else
-    Cvar_SetQuick(&deathmatch, "0");
-}
-
 void Host_Version_f(void) {
   Con_Printf("Quake Version %1.2f\n", VERSION);
   Con_Printf("QuakeSpasm Version %1.2f.%d\n", QUAKESPASM_VERSION,

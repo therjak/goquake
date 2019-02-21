@@ -4,6 +4,7 @@ package quakelib
 import "C"
 
 import (
+	cmdl "quake/commandline"
 	"quake/cvars"
 	"quake/execute"
 	"quake/math"
@@ -98,7 +99,39 @@ func Host_PreSpawn_f() {
 	c.sendSignon = true
 }
 
-// Host_FindMaxClients
+//export Host_FindMaxClients
+func Host_FindMaxClients() {
+	svs.maxClients = 1
+	if cmdl.Dedicated() {
+		cls.state = ca_dedicated
+		svs.maxClients = cmdl.DedicatedNum()
+	} else {
+		cls.state = ca_disconnected
+	}
+	if cmdl.Listen() {
+		if cls.state == ca_dedicated {
+			Error("Only one of -dedicated or -listen can be specified")
+		}
+		svs.maxClients = cmdl.ListenNum()
+	}
+	if svs.maxClients < 1 {
+		svs.maxClients = 8
+	} else if svs.maxClients > 16 {
+		svs.maxClients = 16
+	}
+
+	svs.maxClientsLimit = svs.maxClients
+	if svs.maxClientsLimit < 4 {
+		svs.maxClientsLimit = 4
+	}
+	CreateSVClients()
+	if svs.maxClients > 1 {
+		cvars.DeathMatch.SetByString("1")
+	} else {
+		cvars.DeathMatch.SetByString("0")
+	}
+}
+
 // SV_BroadcastPrint
 // SV_BroadcastPrintf
 // Host_ClientCommands
