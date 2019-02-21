@@ -265,7 +265,6 @@ void Host_Error(const char *error, ...);
 void Host_EndGame(const char *message);
 void Host_Frame();
 void Host_Quit_f(void);
-void Host_ClientCommands(int client, const char *msg);
 void Host_ShutdownServer(qboolean crash);
 void Host_WriteConfiguration(void);
 

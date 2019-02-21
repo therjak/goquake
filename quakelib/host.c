@@ -132,6 +132,24 @@ void Host_Version_f(void) {
   Con_Printf("Exe: " __TIME__ " " __DATE__ "\n");
 }
 
+/*
+=================
+SV_BroadcastPrintf
+
+Sends text to all active clients
+=================
+*/
+
+void SV_BroadcastPrintf(const char *fmt, ...) {
+  va_list argptr;
+  char string[1024];
+
+  va_start(argptr, fmt);
+  q_vsnprintf(string, sizeof(string), fmt, argptr);
+  va_end(argptr);
+  SV_BroadcastPrint2(string);
+}
+
 /* cvar callback functions : */
 void Host_Callback_Notify(cvar_t *var) {
   if (SV_Active())
@@ -241,46 +259,6 @@ void SV_ClientPrintf2(int client, const char *fmt, ...) {
   q_vsnprintf(string, sizeof(string), fmt, argptr);
   va_end(argptr);
   SV_ClientPrint2(client, string);
-}
-
-/*
-=================
-SV_BroadcastPrintf
-
-Sends text to all active clients
-=================
-*/
-
-void SV_BroadcastPrint(const char *msg) {
-  int i;
-  for (i = 0; i < SVS_GetMaxClients(); i++) {
-    if (GetClientActive(i) && GetClientSpawned(i)) {
-      ClientWriteByte(i, svc_print);
-      ClientWriteString(i, msg);
-    }
-  }
-}
-
-void SV_BroadcastPrintf(const char *fmt, ...) {
-  va_list argptr;
-  char string[1024];
-
-  va_start(argptr, fmt);
-  q_vsnprintf(string, sizeof(string), fmt, argptr);
-  va_end(argptr);
-  SV_BroadcastPrint(string);
-}
-
-/*
-=================
-Host_ClientCommands
-
-Send text over to the client to be executed
-=================
-*/
-void Host_ClientCommands(int client, const char *msg) {
-  ClientWriteByte(client, svc_stufftext);
-  ClientWriteString(client, msg);
 }
 
 /*

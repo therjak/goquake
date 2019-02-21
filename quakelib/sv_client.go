@@ -20,6 +20,7 @@ import "C"
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"quake/net"
 	"quake/protocol/server"
@@ -94,8 +95,26 @@ func SV_CheckForNewClients() {
 
 //export SV_ClientPrint2
 func SV_ClientPrint2(client C.int, msg *C.char) {
-	ClientWriteByte(client, server.Print)
-	ClientWriteString(client, msg)
+	sv_clients[int(client)].ClientPrint(C.GoString(msg))
+	//	ClientWriteByte(client, server.Print)
+	//	ClientWriteString(client, msg)
+}
+
+//export SV_BroadcastPrint2
+func SV_BroadcastPrint2(msg *C.char) {
+	SV_BroadcastPrint(C.GoString(msg))
+}
+
+func SV_BroadcastPrintf(format string, v ...interface{}) {
+	SV_BroadcastPrint(fmt.Sprintf(format, v...))
+}
+
+func SV_BroadcastPrint(m string) {
+	for _, c := range sv_clients {
+		if c.active && c.spawned {
+			c.ClientPrint(m)
+		}
+	}
 }
 
 func HostClient() *SVClient {
@@ -108,6 +127,11 @@ func HostClientID() int {
 
 func (c *SVClient) ClientPrint(msg string) {
 	c.msg.WriteByte(server.Print)
+	c.msg.WriteString(msg)
+}
+
+func (c *SVClient) ClientCommands(msg string) {
+	c.msg.WriteByte(server.StuffText)
 	c.msg.WriteString(msg)
 }
 
@@ -604,5 +628,4 @@ func MSG_ReadAngle16() C.float {
 		return -1
 	}
 	return C.float(f)
-
 }

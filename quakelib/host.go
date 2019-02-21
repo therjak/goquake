@@ -8,6 +8,7 @@ import (
 	"quake/cvars"
 	"quake/execute"
 	"quake/math"
+	"quake/protocol/server"
 	svc "quake/protocol/server"
 	"quake/qtime"
 )
@@ -132,6 +133,9 @@ func Host_FindMaxClients() {
 	}
 }
 
-// SV_BroadcastPrint
-// SV_BroadcastPrintf
-// Host_ClientCommands
+//export Host_ClientCommands
+func Host_ClientCommands(client C.int, msg *C.char) {
+	ClientWriteByte(client, server.StuffText)
+	ClientWriteString(client, msg)
+	// sv_clients[int(client)].ClientCommands(C.GoString(msg))
+}

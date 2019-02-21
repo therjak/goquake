@@ -181,9 +181,9 @@ func hostPause(args []cmd.QArg) {
 	/*
 		ev := EntVars(sv_player)
 		if sv.paused {
-		  SvBroadcastPrintf("%s paused the game\n", PR_GetString(ev.netname))
+		  SV_BroadcastPrintf("%s paused the game\n", PR_GetString(ev.netname))
 		} else {
-		  SvBroadcastPrintf("%s unpaused the game\n", PR_GetString(ev.netname))
+		  SV_BroadcastPrintf("%s unpaused the game\n", PR_GetString(ev.netname))
 		}
 	*/
 	sv.reliableDatagram.WriteByte(server.SetPause)
