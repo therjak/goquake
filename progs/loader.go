@@ -23,6 +23,7 @@ type LoadedProg struct {
 	RawGlobalsI []int32
 	RawGlobalsF []float32
 	Alpha       bool
+	Strings     map[int]string
 }
 
 func LoadProgs() (*LoadedProg, error) {
@@ -57,6 +58,10 @@ func LoadProgs() (*LoadedProg, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Could not read global defs: %v", err)
 	}
+	sr, err := readStrings(hdr, r)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read strings: %v", err)
+	}
 	// pr_strings?
 	// alpha
 	a := false
@@ -75,6 +80,7 @@ func LoadProgs() (*LoadedProg, error) {
 		RawGlobalsI: rgli,
 		RawGlobalsF: rglf,
 		Alpha:       a,
+		Strings:     sr,
 	}, nil
 }
 
@@ -153,4 +159,24 @@ func readGlobals(pr *Header, file io.ReadSeeker) (*GlobalVars, []int32, []float3
 	gp := unsafe.Pointer(&v[0])
 	vf := *(*[]float32)(unsafe.Pointer(&v))
 	return (*GlobalVars)(gp), v, vf, nil
+}
+
+func readStrings(pr *Header, file io.ReadSeeker) (map[int]string, error) {
+	_, err := file.Seek(int64(pr.OffsetStrings), io.SeekStart)
+	if err != nil {
+		return nil, err
+	}
+	b := make([]byte, pr.NumStrings)
+	if _, err := file.Read(b); err != nil {
+		return nil, err
+	}
+	bs := bytes.Split(b, []byte{0x00})
+	m := make(map[int]string)
+	idx := 0
+	for _, s := range bs {
+		m[idx] = string(s)
+		// log.Printf("ProgsString: [%d] '%X' l:%d", idx, s, len(s))
+		idx += len(s) + 1
+	}
+	return m, nil
 }

@@ -52,7 +52,6 @@ void PR_LoadProgs(void);
 
 const char *PR_GetString(int num);
 int PR_SetEngineString(const char *s);
-int PR_AllocString(int bufferlength, char **ptr);
 
 void PR_Profile_f(void);
 

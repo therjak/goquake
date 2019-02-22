@@ -35,6 +35,7 @@ int type_size[8] = {
 
 static ddef_t *ED_FieldAtOfs(int ofs);
 static qboolean ED_ParseEpair(void *base, ddef_t *key, const char *s);
+int PR_AllocString(int size, char **ptr);
 
 #define MAX_FIELD_LEN 64
 #define GEFV_CACHESIZE 2
