@@ -1,5 +1,7 @@
 package progs
 
+import "unsafe"
+
 const (
 	ProgVersion   = 6
 	MaxParms      = 8 // matches OffsetParm0-7
