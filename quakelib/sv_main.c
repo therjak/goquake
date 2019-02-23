@@ -1020,7 +1020,7 @@ void SV_SpawnServer(const char *server) {
     SV_SetEdictNum(i, i + 1);
   }
 
-  sv.state = ss_loading;
+  SV_SetState(ss_loading);
   SV_SetPaused(false);
 
   SV_SetTime(1.0);
@@ -1075,7 +1075,7 @@ void SV_SpawnServer(const char *server) {
   SV_SetActive(true);
 
   // all setup is completed, any further precache statements are errors
-  sv.state = ss_active;
+  SV_SetState(ss_active);
 
   // run two frames to allow everything to settle
   InitHostFrameTime();

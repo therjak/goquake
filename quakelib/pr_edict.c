@@ -1067,7 +1067,51 @@ void PR_Init(void) {
 }
 
 //===========================================================================
+/*
+const char *prstrbuf1(char *s) {
+  static char buffer[2048];
+  strncpy(buffer, s, 2048);
+  free(s);
+  return buffer;
+}
 
+const char *prstrbuf2(char *s) {
+  static char buffer[2048];
+  strncpy(buffer, s, 2048);
+  free(s);
+  return buffer;
+}
+
+const char *prstrbuf3(char *s) {
+  static char buffer[2048];
+  strncpy(buffer, s, 2048);
+  free(s);
+  return buffer;
+}
+
+const char *prstrbuf4(char *s) {
+  static char buffer[2048];
+  strncpy(buffer, s, 2048);
+  free(s);
+  return buffer;
+}
+
+const char *PR_GetString(int num) {
+  static int i = 0;
+  i = (i+1)%4;
+  char *s = PR_GetStringInt(num);
+  if (i == 0) {
+    return prstrbuf1(s);
+  }
+  if (i == 1) {
+    return prstrbuf2(s);
+  }
+  if (i == 1) {
+    return prstrbuf3(s);
+  }
+  return prstrbuf4(s);
+}
+*/
 #define PR_STRING_ALLOCSLOTS 256
 
 static void PR_AllocStringSlots(void) {
@@ -1096,14 +1140,19 @@ const char *PR_GetString(int num) {
   }
 }
 
-int PR_SetEngineString(const char *s) {
+int PR_SetEngineString(char *s) {
   int i;
 
   if (!s) return 0;
-  if (s >= pr_strings && s <= pr_strings + pr_stringssize - 2)
+  if (s >= pr_strings && s <= pr_strings + pr_stringssize - 2) {
+    Sys_Print_S("Got known pr_strings %s", s);
     return (int)(s - pr_strings);
+  }
   for (i = 0; i < pr_numknownstrings; i++) {
-    if (pr_knownstrings[i] == s) return -1 - i;
+    if (pr_knownstrings[i] == s) {
+      Sys_Print_S("Got known pr_knownstrings %s", s);
+      return -1 - i;
+    }
   }
   if (i >= pr_maxknownstrings) PR_AllocStringSlots();
   pr_numknownstrings++;

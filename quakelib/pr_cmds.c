@@ -952,8 +952,9 @@ static void PF_Find(void) {
   for (e++; e < SV_NumEdicts(); e++) {
     ed = EDICT_NUM(e);
     if (ed->free) continue;
-    t = E_STRING(ed, f);
+    t = (PR_GetString(*(GoInt32 *)&((float *)EdictV(ed))[f]));
     if (!t) continue;
+    s = PR_GetString(Pr_globalsi(OFS_PARM2));
     if (!strcmp(t, s)) {
       RETURN_EDICT(ed);
       return;
@@ -976,7 +977,7 @@ static void PF_precache_sound(void) {
   const char *s;
   int i;
 
-  if (sv.state != ss_loading)
+  if (SV_State() != ss_loading)
     PR_RunError("PF_Precache_*: Precache can only be done in spawn functions");
 
   s = PR_GetString(Pr_globalsi(OFS_PARM0));
@@ -997,7 +998,7 @@ static void PF_precache_model(void) {
   const char *s;
   int i;
 
-  if (sv.state != ss_loading)
+  if (SV_State() != ss_loading)
     PR_RunError("PF_Precache_*: Precache can only be done in spawn functions");
 
   s = PR_GetString(Pr_globalsi(OFS_PARM0));
@@ -1113,7 +1114,7 @@ static void PF_lightstyle(void) {
   sv.lightstyles[style] = val;
 
   // send message to all clients on this server
-  if (sv.state != ss_active) return;
+  if (SV_State() != ss_active) return;
 
   for (j = 0; j < SVS_GetMaxClients(); j++) {
     if (GetClientActive(j) || GetClientSpawned(j)) {

@@ -464,7 +464,7 @@ void PR_ExecuteProgram(GoInt32 fnum) {
 #ifdef PARANOID
         NUM_FOR_EDICT(ed);  // Make sure it's in range
 #endif
-        if (ed == (edict_t *)sv.edicts && sv.state == ss_active) {
+        if (ed == (edict_t *)sv.edicts && SV_State() == ss_active) {
           pr_xstatement = st - pr_statements;
           PR_RunError("assignment to world entity");
         }

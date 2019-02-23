@@ -62,7 +62,6 @@ func LoadProgs() (*LoadedProg, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Could not read strings: %v", err)
 	}
-	// pr_strings?
 	// alpha
 	a := false
 

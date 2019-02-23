@@ -51,7 +51,7 @@ void PR_ExecuteProgram(GoInt32 fnum);
 void PR_LoadProgs(void);
 
 const char *PR_GetString(int num);
-int PR_SetEngineString(const char *s);
+int PR_SetEngineString(char *s);
 
 void PR_Profile_f(void);
 
@@ -83,7 +83,6 @@ edict_t *G_EDICT(int o);
 #define E_FLOAT(e, o) (((float *)EdictV(e))[o])
 #define E_INT(e, o) (*(int *)&((float *)EdictV(e))[o])
 #define E_VECTOR(e, o) (&((float *)EdictV(e))[o])
-#define E_STRING(e, o) (PR_GetString(*(GoInt32 *)&((float *)EdictV(e))[o]))
 
 extern int type_size[8];
 

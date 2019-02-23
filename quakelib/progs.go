@@ -8,8 +8,14 @@ import (
 )
 
 var (
-	progsdat *progs.LoadedProg
+	progsdat        *progs.LoadedProg
+	engineStrings   []string
+	engineStringMap map[string]int
 )
+
+func init() {
+	engineStringMap = make(map[string]int)
+}
 
 //export PR_LoadProgsGo
 func PR_LoadProgsGo() {
@@ -18,6 +24,62 @@ func PR_LoadProgsGo() {
 		log.Fatalf("Failed to load progs.dat: %v", err)
 	}
 	progsdat = p
+	fillEngineStrings(p.Strings)
+}
+
+func fillEngineStrings(ks map[int]string) {
+	// just ignore duplicates
+	for _, v := range ks {
+		_, ok := engineStringMap[v]
+		if !ok {
+			engineStringMap[v] = len(engineStrings)
+			engineStrings = append(engineStrings, v)
+		}
+	}
+}
+
+// export ED_NewString
+func ED_NewString(str *C.char) C.int {
+	// TODO:
+	// replace \n with '\n' and all other \x with just '\'
+	log.Printf("ED_NewString %x", C.GoString(str))
+	return PR_SetEngineString(str)
+}
+
+// export PR_SetEngineString
+func PR_SetEngineString(str *C.char) C.int {
+	s := C.GoString(str)
+	i, ok := engineStringMap[s]
+	if !ok {
+		i = len(engineStrings)
+		engineStringMap[s] = i
+		engineStrings = append(engineStrings, s)
+		log.Printf("PR_SetEngineStringNEW")
+	}
+	log.Printf("PR_SetEngineString %v, %d", s, i)
+	return C.int(-(i + 1))
+}
+
+//export PR_GetStringInt
+func PR_GetStringInt(num C.int) *C.char {
+	n := int(num)
+	if num >= 0 {
+		s, ok := progsdat.Strings[n]
+		if !ok {
+			log.Printf("PR_GetStringInt: request of %v, is unknown", n)
+			return C.CString("")
+		}
+		// log.Printf("PR_GetEngineString1 %v", s)
+		return C.CString(s)
+	}
+	// n is negative, so -(n + 1) is our index
+	index := -(n + 1)
+	if len(engineStrings) <= index {
+		log.Printf("PR_GetStringInt: request of %v, is unknown", n)
+		return C.CString("")
+	}
+	log.Printf("PR_GetEngineString2 %v, %v", index, engineStrings[index])
+	return C.CString(engineStrings[index])
 }
 
 //export Pr_globalsf

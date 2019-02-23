@@ -21,6 +21,13 @@ type ServerStatic struct {
 	changeLevelIssued bool
 }
 
+type ServerState bool
+
+const (
+	ServerStateLoading = ServerState(false)
+	ServerStateActive  = ServerState(true)
+)
+
 type Server struct {
 	active   bool
 	paused   bool
@@ -39,6 +46,12 @@ type Server struct {
 
 	protocol      uint16
 	protocolFlags uint16
+
+	state ServerState // some actions are only valid during load
+
+	modelPrecache []string
+	soundPrecache []string
+	lightStyles   []string
 }
 
 var (
@@ -47,6 +60,23 @@ var (
 	sv_protocol int
 	sv_player   int
 )
+
+//export SV_State
+func SV_State() int {
+	if sv.state == ServerStateLoading {
+		return 0
+	}
+	return 1
+}
+
+//export SV_SetState
+func SV_SetState(s C.int) {
+	if s == 0 {
+		sv.state = ServerStateLoading
+	} else {
+		sv.state = ServerStateActive
+	}
+}
 
 //export SV_Player
 func SV_Player() int {

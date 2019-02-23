@@ -40,7 +40,6 @@ typedef struct {
   edict_t *edicts;       // can NOT be array indexed, because
                          // edict_t is variable sized, but can
                          // be used to reference the world ent
-  server_state_t state;  // some actions are only valid during load
 } server_t;
 
 #define NUM_PING_TIMES 16
