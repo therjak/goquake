@@ -127,7 +127,7 @@ setorigin (entity, origin)
 =================
 */
 static void PF_setorigin(void) {
-  edict_t *e = G_EDICT(OFS_PARM0);
+  edict_t *e = EDICT_NUM(Pr_globalsi(OFS_PARM0));
   float *origin = EdictV(e)->origin;
 
   *(origin) = Pr_globalsf(OFS_PARM1);
@@ -214,7 +214,7 @@ static void PF_setsize(void) {
   edict_t *e;
   vec3_t minvec, maxvec;
 
-  e = G_EDICT(OFS_PARM0);
+  e = EDICT_NUM(Pr_globalsi(OFS_PARM0));
   minvec[0] = Pr_globalsf(OFS_PARM1);
   minvec[1] = Pr_globalsf(OFS_PARM1 + 1);
   minvec[2] = Pr_globalsf(OFS_PARM1 + 2);
@@ -237,7 +237,7 @@ static void PF_setmodel(void) {
   qmodel_t *mod;
   edict_t *e;
 
-  e = G_EDICT(OFS_PARM0);
+  e = EDICT_NUM(Pr_globalsi(OFS_PARM0));
   m = PR_GetString(Pr_globalsi(OFS_PARM1));
 
   // check to see if model was properly precached
@@ -296,7 +296,7 @@ static void PF_sprint(void) {
   int client;
   int entnum;
 
-  entnum = G_EDICTNUM(OFS_PARM0);
+  entnum = Pr_globalsi(OFS_PARM0);
   s = PF_VarString(1);
 
   if (entnum < 1 || entnum > SVS_GetMaxClients()) {
@@ -324,7 +324,7 @@ static void PF_centerprint(void) {
   int client;
   int entnum;
 
-  entnum = G_EDICTNUM(OFS_PARM0);
+  entnum = Pr_globalsi(OFS_PARM0);
   s = PF_VarString(1);
 
   if (entnum < 1 || entnum > SVS_GetMaxClients()) {
@@ -574,7 +574,7 @@ static void PF_sound(void) {
   int volume;
   float attenuation;
 
-  entity = G_EDICT(OFS_PARM0);
+  entity = EDICT_NUM(Pr_globalsi(OFS_PARM0));
   channel = Pr_globalsf(OFS_PARM1);
   sample = PR_GetString(Pr_globalsi(OFS_PARM2));
   volume = Pr_globalsf(OFS_PARM3) * 255;
@@ -629,7 +629,7 @@ static void PF_traceline(void) {
   v2[1] = Pr_globalsf(OFS_PARM1 + 1);
   v2[2] = Pr_globalsf(OFS_PARM1 + 2);
   nomonsters = Pr_globalsf(OFS_PARM2);
-  ent = G_EDICT(OFS_PARM3);
+  ent = EDICT_NUM(Pr_globalsi(OFS_PARM3));
 
   /* FIXME FIXME FIXME: Why do we hit this with certain progs.dat ?? */
   if (Cvar_GetValue(&developer)) {
@@ -792,7 +792,7 @@ static void PF_stuffcmd(void) {
   int entnum;
   const char *str;
 
-  entnum = G_EDICTNUM(OFS_PARM0);
+  entnum = Pr_globalsi(OFS_PARM0);
   if (entnum < 1 || entnum > SVS_GetMaxClients()) {
     PR_RunError("Parm 0 not a client");
   }
@@ -933,7 +933,7 @@ static void PF_Spawn(void) {
 static void PF_Remove(void) {
   edict_t *ed;
 
-  ed = G_EDICT(OFS_PARM0);
+  ed = EDICT_NUM(Pr_globalsi(OFS_PARM0));
   ED_Free(ed);
 }
 
@@ -944,7 +944,7 @@ static void PF_Find(void) {
   const char *s, *t;
   edict_t *ed;
 
-  e = G_EDICTNUM(OFS_PARM0);
+  e = Pr_globalsi(OFS_PARM0);
   f = Pr_globalsi(OFS_PARM1);
   s = PR_GetString(Pr_globalsi(OFS_PARM2));
   if (!s) PR_RunError("PF_Find: bad search string");
@@ -1022,7 +1022,7 @@ static void PF_traceon(void) { pr_trace = true; }
 
 static void PF_traceoff(void) { pr_trace = false; }
 
-static void PF_eprint(void) { ED_PrintNum(G_EDICTNUM(OFS_PARM0)); }
+static void PF_eprint(void) { ED_PrintNum(Pr_globalsi(OFS_PARM0)); }
 
 /*
 ===============
@@ -1150,7 +1150,7 @@ PF_checkbottom
 static void PF_checkbottom(void) {
   edict_t *ent;
 
-  ent = G_EDICT(OFS_PARM0);
+  ent = EDICT_NUM(Pr_globalsi(OFS_PARM0));
 
   Set_Pr_globalsf(OFS_RETURN, SV_CheckBottom(ent));
 }
@@ -1181,7 +1181,7 @@ static void PF_nextent(void) {
   int i;
   edict_t *ent;
 
-  i = G_EDICTNUM(OFS_PARM0);
+  i = Pr_globalsi(OFS_PARM0);
   while (1) {
     i++;
     if (i == SV_NumEdicts()) {
@@ -1214,7 +1214,7 @@ static void PF_aim(void) {
   float dist, bestdist;
   float speed;
 
-  ent = G_EDICT(OFS_PARM0);
+  ent = EDICT_NUM(Pr_globalsi(OFS_PARM0));
   speed = Pr_globalsf(OFS_PARM1);
   (void)speed; /* variable set but not used */
 
@@ -1447,7 +1447,7 @@ static void PF_WriteString(void) {
 
 static void PF_WriteEntity(void) {
   int dest = Pr_globalsf(OFS_PARM0);
-  float msg = G_EDICTNUM(OFS_PARM1);
+  float msg = Pr_globalsi(OFS_PARM1);
   if (dest == MSG_ONE) {
     ClientWriteShort(WriteClient(), msg);
   } else if (dest == MSG_INIT) {
@@ -1468,7 +1468,7 @@ static void PF_makestatic(void) {
   int i;
   int bits = 0;  // johnfitz -- PROTOCOL_FITZQUAKE
 
-  ent = G_EDICT(OFS_PARM0);
+  ent = EDICT_NUM(Pr_globalsi(OFS_PARM0));
 
   // johnfitz -- don't send invisible static entities
   if (ent->alpha == ENTALPHA_ZERO) {
@@ -1536,7 +1536,7 @@ static void PF_setspawnparms(void) {
   int i;
   int client;
 
-  ent = G_EDICT(OFS_PARM0);
+  ent = EDICT_NUM(Pr_globalsi(OFS_PARM0));
   i = NUM_FOR_EDICT(ent);
   if (i < 1 || i > SVS_GetMaxClients()) PR_RunError("Entity is not a client");
 

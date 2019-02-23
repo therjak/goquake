@@ -40,6 +40,8 @@ int PR_AllocString(int size, char **ptr);
 #define MAX_FIELD_LEN 64
 #define GEFV_CACHESIZE 2
 
+#define GOENGSTR 0
+
 typedef struct {
   ddef_t *pcache;
   char field[MAX_FIELD_LEN];
@@ -647,6 +649,7 @@ void ED_ParseGlobals(const char *data) {
 ED_NewString
 =============
 */
+#if !GOENGSTR
 static GoInt32 ED_NewString(const char *string) {
   char *new_p;
   int i, l;
@@ -668,7 +671,7 @@ static GoInt32 ED_NewString(const char *string) {
 
   return num;
 }
-
+#endif
 /*
 =============
 ED_ParseEval
@@ -1036,8 +1039,6 @@ void FreeEdicts(edict_t *e) {
   free(e);
 }
 
-edict_t *G_EDICT(int o) { return EDICT_NUM(Pr_globalsi(o)); }
-
 entvars_t *EdictV(edict_t *e) {
   int n = NUM_FOR_EDICT(e);
   return EVars(n);
@@ -1067,7 +1068,7 @@ void PR_Init(void) {
 }
 
 //===========================================================================
-/*
+#if GOENGSTR
 const char *prstrbuf1(char *s) {
   static char buffer[2048];
   strncpy(buffer, s, 2048);
@@ -1111,7 +1112,9 @@ const char *PR_GetString(int num) {
   }
   return prstrbuf4(s);
 }
-*/
+
+#else
+
 #define PR_STRING_ALLOCSLOTS 256
 
 static void PR_AllocStringSlots(void) {
@@ -1173,3 +1176,4 @@ int PR_AllocString(int size, char **ptr) {
   if (ptr) *ptr = (char *)pr_knownstrings[i];
   return -1 - i;
 }
+#endif
