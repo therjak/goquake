@@ -22,7 +22,9 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"quake/cvars"
 	"quake/net"
+	"quake/protocol"
 	"quake/protocol/server"
 	"time"
 	"unsafe"
@@ -629,3 +631,76 @@ func MSG_ReadAngle16() C.float {
 	}
 	return C.float(f)
 }
+
+//export SV_SendServerinfo
+func SV_SendServerinfo(client C.int) {
+	c := sv_clients[int(client)]
+	m := &c.msg
+	m.WriteByte(server.Print)
+	m.WriteString(
+		fmt.Sprintf("%s\nFITZQUAKE %1.2f SERVER (%d CRC)\n",
+			[]byte{2}, FITZQUAKE_VERSION, progsdat.CRC))
+
+	m.WriteByte(int(server.ServerInfo))
+	m.WriteLong(int(sv.protocol))
+
+	if sv.protocol == protocol.RMQ {
+		m.WriteLong(int(sv.protocolFlags))
+	}
+
+	c.msg.WriteByte(svs.maxClients)
+
+	if !cvars.Coop.Bool() && cvars.DeathMatch.Bool() {
+		m.WriteByte(server.GameDeathmatch)
+	} else {
+		m.WriteByte(server.GameCoop)
+	}
+
+	m.WriteString(PR_GetStringWrap(int(EntVars(0).Message)))
+
+	for i, mn := range sv.modelPrecache[1:] {
+		if sv.protocol == protocol.NetQuake && i >= 256 {
+			break
+		}
+		log.Printf("Model: %v", mn)
+		m.WriteString(mn)
+	}
+	m.WriteByte(0)
+
+	for i, sn := range sv.soundPrecache[1:] {
+		if sv.protocol == protocol.NetQuake && i >= 256 {
+			break
+		}
+		m.WriteString(sn)
+	}
+	m.WriteByte(0)
+
+	m.WriteByte(server.CDTrack)
+	m.WriteByte(int(EntVars(0).Sounds))
+	m.WriteByte(int(EntVars(0).Sounds))
+
+	m.WriteByte(server.SetView)
+	m.WriteShort(c.edictId)
+
+	m.WriteByte(server.SignonNum)
+	m.WriteByte(1)
+
+	c.sendSignon = true
+	c.spawned = false
+}
+
+//
+// TODO
+//
+
+//SV_ModelIndex
+func SV_ModelIndex(name *C.char) C.int {
+	return 0
+}
+
+// part of SV_SpawnServer
+
+// part of PF_setmodel
+
+//PF_precache_model
+func PF_precache_model() {}

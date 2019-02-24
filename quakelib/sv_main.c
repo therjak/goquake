@@ -161,72 +161,6 @@ CLIENT SPAWNING
 
 /*
 ================
-SV_SendServerinfo
-
-Sends the first message from the server to a connected client.
-This will be sent on the initial connection and upon each server load.
-================
-*/
-void SV_SendServerinfo(int client) {
-  const char **s;
-  char message[2048];
-  int i;  // johnfitz
-
-  ClientWriteByte(client, svc_print);
-  sprintf(message, "%c\nFITZQUAKE %1.2f SERVER (%i CRC)\n", 2,
-          FITZQUAKE_VERSION, pr_crc);  // johnfitz -- include fitzquake version
-  ClientWriteString(client, message);
-
-  ClientWriteByte(client, svc_serverinfo);
-  // johnfitz -- sv.protocol instead of PROTOCOL_VERSION
-  ClientWriteLong(client, SV_Protocol());
-
-  if (SV_Protocol() == PROTOCOL_RMQ) {
-    // mh - now send protocol flags so that the client knows the protocol
-    // features to expect
-    ClientWriteLong(client, SV_ProtocolFlags());
-  }
-
-  ClientWriteByte(client, SVS_GetMaxClients());
-
-  if (!Cvar_GetValue(&coop) && Cvar_GetValue(&deathmatch))
-    ClientWriteByte(client, GAME_DEATHMATCH);
-  else
-    ClientWriteByte(client, GAME_COOP);
-
-  ClientWriteString(client, PR_GetString(EdictV(sv.edicts)->message));
-
-  // johnfitz -- only send the first 256 model and sound precaches if protocol
-  // is 15
-  for (i = 0, s = sv.model_precache + 1; *s; s++, i++)
-    if (SV_Protocol() != PROTOCOL_NETQUAKE || i < 256)
-      ClientWriteString(client, *s);
-  ClientWriteByte(client, 0);
-
-  for (i = 0, s = sv.sound_precache + 1; *s; s++, i++)
-    if (SV_Protocol() != PROTOCOL_NETQUAKE || i < 256)
-      ClientWriteString(client, *s);
-  ClientWriteByte(client, 0);
-  // johnfitz
-
-  // send music
-  ClientWriteByte(client, svc_cdtrack);
-  ClientWriteByte(client, EdictV(sv.edicts)->sounds);
-  ClientWriteByte(client, EdictV(sv.edicts)->sounds);
-
-  // set view
-  ClientWriteByte(client, svc_setview);
-  ClientWriteShort(client, GetClientEdictId(client));
-
-  ClientWriteByte(client, svc_signonnum);
-  ClientWriteByte(client, 1);
-
-  SetClientSendSignon(client, true);
-  SetClientSpawned(client, false);  // need prespawn, spawn, etc
-}
-
-/*
-================
 SV_ConnectClient
 
 Initializes a client_t for a new net connection.  This will only be called
@@ -1041,10 +975,14 @@ void SV_SpawnServer(const char *server) {
   SV_ClearWorld();
 
   sv.sound_precache[0] = dummy;
+  SetSVSoundPrecache(0, dummy);
   sv.model_precache[0] = dummy;
+  SetSVModelPrecache(0, dummy);
   sv.model_precache[1] = sv.modelname;
+  SetSVModelPrecache(1, sv.modelname);
   for (i = 1; i < sv.worldmodel->numsubmodels; i++) {
     sv.model_precache[1 + i] = localmodels[i];
+    SetSVModelPrecache(1 + i, localmodels[i]);
     sv.models[i + 1] = Mod_ForName(localmodels[i], false);
   }
 

@@ -83,3 +83,8 @@ const (
 
 	// johnfitz
 )
+
+const (
+	GameCoop       = 0
+	GameDeathmatch = 1
+)

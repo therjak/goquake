@@ -987,6 +987,7 @@ static void PF_precache_sound(void) {
   for (i = 0; i < MAX_SOUNDS; i++) {
     if (!sv.sound_precache[i]) {
       sv.sound_precache[i] = s;
+      SetSVSoundPrecache(i, s);
       return;
     }
     if (!strcmp(sv.sound_precache[i], s)) return;
@@ -1008,6 +1009,7 @@ static void PF_precache_model(void) {
   for (i = 0; i < MAX_MODELS; i++) {
     if (!sv.model_precache[i]) {
       sv.model_precache[i] = s;
+      SetSVModelPrecache(i, s);
       sv.models[i] = Mod_ForName(s, true);
       return;
     }

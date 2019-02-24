@@ -1148,12 +1148,12 @@ int PR_SetEngineString(char *s) {
 
   if (!s) return 0;
   if (s >= pr_strings && s <= pr_strings + pr_stringssize - 2) {
-    Sys_Print_S("Got known pr_strings %s", s);
+    // Sys_Print_S("Got known pr_strings %s", s);
     return (int)(s - pr_strings);
   }
   for (i = 0; i < pr_numknownstrings; i++) {
     if (pr_knownstrings[i] == s) {
-      Sys_Print_S("Got known pr_knownstrings %s", s);
+      // Sys_Print_S("Got known pr_knownstrings %s", s);
       return -1 - i;
     }
   }
