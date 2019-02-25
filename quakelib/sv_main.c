@@ -958,12 +958,9 @@ void SV_SpawnServer(const char *server) {
 
   sv.sound_precache[0] = dummy;
   SetSVSoundPrecache(0, dummy);
-  sv.model_precache[0] = dummy;
   SetSVModelPrecache(0, dummy);
-  sv.model_precache[1] = sv.modelname;
   SetSVModelPrecache(1, sv.modelname);
   for (i = 1; i < sv.worldmodel->numsubmodels; i++) {
-    sv.model_precache[1 + i] = localmodels[i];
     SetSVModelPrecache(1 + i, localmodels[i]);
     sv.models[i + 1] = Mod_ForName(localmodels[i], false);
   }

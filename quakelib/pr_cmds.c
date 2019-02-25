@@ -241,14 +241,11 @@ static void PF_setmodel(void) {
   m = PR_GetString(Pr_globalsi(OFS_PARM1));
 
   // check to see if model was properly precached
-  for (i = 0, check = sv.model_precache; *check; i++, check++) {
-    if (!strcmp(*check, m)) break;
-  }
-
-  if (!*check) {
+  i = ElementOfSVModelPrecache(m);
+  if (i == -1) {
     PR_RunError("no precache: %s", m);
   }
-  EdictV(e)->model = PR_SetEngineString(*check);
+  EdictV(e)->model = PR_SetEngineString(m);
   EdictV(e)->modelindex = i;  // SV_ModelIndex (m);
 
   mod = sv.models[(int)EdictV(e)->modelindex];  // Mod_ForName (m, true);
@@ -1007,13 +1004,12 @@ static void PF_precache_model(void) {
   PR_CheckEmptyString(s);
 
   for (i = 0; i < MAX_MODELS; i++) {
-    if (!sv.model_precache[i]) {
-      sv.model_precache[i] = s;
+    if (!ExistSVModelPrecache(i)) {
       SetSVModelPrecache(i, s);
       sv.models[i] = Mod_ForName(s, true);
       return;
     }
-    if (!strcmp(sv.model_precache[i], s)) return;
+    if (IsSVModelPrecache(i, s)) return;
   }
   PR_RunError("PF_precache_model: overflow");
 }

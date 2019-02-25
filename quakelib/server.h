@@ -33,7 +33,6 @@ typedef struct {
   char name[64];       // map name
   char modelname[64];  // maps/<name>.bsp, for model_precache[0]
   struct qmodel_s *worldmodel;
-  const char *model_precache[MAX_MODELS];  // NULL terminated
   struct qmodel_s *models[MAX_MODELS];
   const char *sound_precache[MAX_SOUNDS];  // NULL terminated
   const char *lightstyles[MAX_LIGHTSTYLES];
