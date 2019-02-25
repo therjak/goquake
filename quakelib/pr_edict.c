@@ -1099,7 +1099,7 @@ const char *prstrbuf4(char *s) {
 
 const char *PR_GetString(int num) {
   static int i = 0;
-  i = (i+1)%4;
+  i = (i + 1) % 4;
   char *s = PR_GetStringInt(num);
   if (i == 0) {
     return prstrbuf1(s);

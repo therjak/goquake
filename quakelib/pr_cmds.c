@@ -1003,13 +1003,15 @@ static void PF_precache_model(void) {
   Set_Pr_globalsi(OFS_RETURN, Pr_globalsi(OFS_PARM0));
   PR_CheckEmptyString(s);
 
+  if (ElementOfSVModelPrecache(s) != -1) {
+    return;
+  }
   for (i = 0; i < MAX_MODELS; i++) {
     if (!ExistSVModelPrecache(i)) {
       SetSVModelPrecache(i, s);
       sv.models[i] = Mod_ForName(s, true);
       return;
     }
-    if (IsSVModelPrecache(i, s)) return;
   }
   PR_RunError("PF_precache_model: overflow");
 }

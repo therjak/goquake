@@ -47,12 +47,6 @@ func ExistSVModelPrecache(i C.int) C.int {
 	return 1
 }
 
-//export IsSVModelPrecache
-func IsSVModelPrecache(i C.int, c *C.char) C.int {
-	s := C.GoString(c)
-	return b2i(s == sv.modelPrecache[int(i)])
-}
-
 //export SetSVSoundPrecache
 func SetSVSoundPrecache(i C.int, c *C.char) {
 	s := C.GoString(c)
