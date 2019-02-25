@@ -743,24 +743,6 @@ SERVER SPAWNING
 
 /*
 ================
-SV_ModelIndex
-
-================
-*/
-int SV_ModelIndex(const char *name) {
-  int i;
-
-  if (!name || !name[0]) return 0;
-
-  for (i = 0; i < MAX_MODELS && sv.model_precache[i]; i++)
-    if (!strcmp(sv.model_precache[i], name)) return i;
-  if (i == MAX_MODELS || !sv.model_precache[i])
-    Go_Error_S("SV_ModelIndex: model %v not precached", name);
-  return i;
-}
-
-/*
-================
 SV_CreateBaseline
 ================
 */

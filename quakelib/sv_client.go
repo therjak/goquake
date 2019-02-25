@@ -689,14 +689,27 @@ func SV_SendServerinfo(client C.int) {
 	c.spawned = false
 }
 
+//export SV_ModelIndex
+func SV_ModelIndex(name *C.char) C.int {
+	if name == nil {
+		return 0
+	}
+	n := C.GoString(name)
+	if len(n) == 0 {
+		return 0
+	}
+	for i, m := range sv.modelPrecache {
+		if m == n {
+			return C.int(i)
+		}
+	}
+	Error("SV_ModelINdex: model %v not precached", n)
+	return 0
+}
+
 //
 // TODO
 //
-
-//SV_ModelIndex
-func SV_ModelIndex(name *C.char) C.int {
-	return 0
-}
 
 // part of SV_SpawnServer
 

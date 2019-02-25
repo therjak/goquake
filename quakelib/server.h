@@ -37,9 +37,9 @@ typedef struct {
   struct qmodel_s *models[MAX_MODELS];
   const char *sound_precache[MAX_SOUNDS];  // NULL terminated
   const char *lightstyles[MAX_LIGHTSTYLES];
-  edict_t *edicts;       // can NOT be array indexed, because
-                         // edict_t is variable sized, but can
-                         // be used to reference the world ent
+  edict_t *edicts;  // can NOT be array indexed, because
+                    // edict_t is variable sized, but can
+                    // be used to reference the world ent
 } server_t;
 
 #define NUM_PING_TIMES 16
@@ -135,8 +135,6 @@ void SV_DropClient(int client, qboolean crash);
 
 void SV_SendClientMessages(void);
 void SV_ClearDatagram(void);
-
-int SV_ModelIndex(const char *name);
 
 void SV_SetIdealPitch(void);
 
