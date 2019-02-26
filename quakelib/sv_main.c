@@ -96,12 +96,9 @@ void SV_StartSound(edict_t *entity, int channel, const char *sample, int volume,
   if (SV_DG_Len() > MAX_DATAGRAM - 16) return;
 
   // find precache number for sound
-  for (sound_num = 1; sound_num < MAX_SOUNDS && sv.sound_precache[sound_num];
-       sound_num++) {
-    if (!strcmp(sample, sv.sound_precache[sound_num])) break;
-  }
+  sound_num = ElementOfSVSoundPrecache(sample);
 
-  if (sound_num == MAX_SOUNDS || !sv.sound_precache[sound_num]) {
+  if (sound_num == -1) {
     Con_Printf("SV_StartSound: %s not precacheed\n", sample);
     return;
   }
@@ -956,7 +953,6 @@ void SV_SpawnServer(const char *server) {
   //
   SV_ClearWorld();
 
-  sv.sound_precache[0] = dummy;
   SetSVSoundPrecache(0, dummy);
   SetSVModelPrecache(0, dummy);
   SetSVModelPrecache(1, sv.modelname);

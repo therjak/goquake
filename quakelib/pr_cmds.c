@@ -509,11 +509,9 @@ static void PF_ambientsound(void) {
   attenuation = Pr_globalsf(OFS_PARM3);
 
   // check to see if samp was properly precached
-  for (soundnum = 0, check = sv.sound_precache; *check; check++, soundnum++) {
-    if (!strcmp(*check, samp)) break;
-  }
+  soundnum = ElementOfSVSoundPrecache(samp);
 
-  if (!*check) {
+  if (soundnum == -1) {
     Con_Printf("no precache: %s\n", samp);
     return;
   }
@@ -981,13 +979,14 @@ static void PF_precache_sound(void) {
   Set_Pr_globalsi(OFS_RETURN, Pr_globalsi(OFS_PARM0));
   PR_CheckEmptyString(s);
 
+  if (ElementOfSVSoundPrecache(s) != -1) {
+    return;
+  }
   for (i = 0; i < MAX_SOUNDS; i++) {
-    if (!sv.sound_precache[i]) {
-      sv.sound_precache[i] = s;
+    if (!ExistSVSoundPrecache(i)) {
       SetSVSoundPrecache(i, s);
       return;
     }
-    if (!strcmp(sv.sound_precache[i], s)) return;
   }
   PR_RunError("PF_precache_sound: overflow");
 }

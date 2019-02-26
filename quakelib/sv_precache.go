@@ -59,6 +59,25 @@ func SetSVSoundPrecache(i C.int, c *C.char) {
 	}
 }
 
+//export ElementOfSVSoundPrecache
+func ElementOfSVSoundPrecache(c *C.char) C.int {
+	s := C.GoString(c)
+	for i, m := range sv.soundPrecache {
+		if m == s {
+			return C.int(i)
+		}
+	}
+	return -1
+}
+
+//export ExistSVSoundPrecache
+func ExistSVSoundPrecache(i C.int) C.int {
+	if int(i) >= len(sv.soundPrecache) {
+		return 0
+	}
+	return 1
+}
+
 //export SetSVLightStyles
 func SetSVLightStyles(i C.int, c *C.char) {
 	s := C.GoString(c)
