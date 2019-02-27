@@ -286,7 +286,7 @@ Host_Mapname_f -- johnfitz
 */
 void Host_Mapname_f(void) {
   if (SV_Active()) {
-    Con_Printf("\"mapname\" is \"%s\"\n", sv.name);
+    Con_Printf("\"mapname\" is \"%s\"\n", SV_Name());
     return;
   }
 
@@ -334,7 +334,7 @@ void Host_Status_f(void) {
   print_fn("host:    %s\n", Cvar_GetString(&hostname));
   print_fn("version: %4.2f\n", VERSION);
   if (NETtcpipAvailable()) print_fn("tcp/ip:  %s\n", my_tcpip_address);
-  print_fn("map:     %s\n", sv.name);
+  print_fn("map:     %s\n", SV_Name());
   int active = 0;
   for (j = 0; j < SVS_GetMaxClients(); j++) {
     if (GetClientActive(j)) {
@@ -488,7 +488,7 @@ void Host_Map_f(void) {
   {
     if (CLS_GetState() == ca_dedicated) {
       if (SV_Active())
-        Con_Printf("Current map: %s\n", sv.name);
+        Con_Printf("Current map: %s\n", SV_Name());
       else
         Con_Printf("Server not active\n");
     } else if (CLS_GetState() == ca_connected) {
@@ -575,7 +575,7 @@ void Host_Restart_f(void) {
   if (CLS_IsDemoPlayback() || !SV_Active()) return;
 
   if (!IsSrcCommand()) return;
-  q_strlcpy(mapname, sv.name,
+  q_strlcpy(mapname, SV_Name(),
             sizeof(mapname));  // mapname gets cleared in spawnserver
   SV_SpawnServer(mapname);
   if (!SV_Active()) Host_Error("cannot restart map %s", mapname);
@@ -712,7 +712,7 @@ void Host_Savegame_f(void) {
   for (i = 0; i < NUM_SPAWN_PARMS; i++)
     fprintf(f, "%f\n", GetClientSpawnParam(0, i));
   fprintf(f, "%d\n", current_skill);
-  fprintf(f, "%s\n", sv.name);
+  fprintf(f, "%s\n", SV_Name());
   fprintf(f, "%f\n", SV_Time());
 
   // write the light styles

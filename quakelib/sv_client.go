@@ -706,14 +706,3 @@ func SV_ModelIndex(name *C.char) C.int {
 	Error("SV_ModelINdex: model %v not precached", n)
 	return 0
 }
-
-//
-// TODO
-//
-
-// part of SV_SpawnServer
-
-// part of PF_setmodel
-
-//PF_precache_model
-func PF_precache_model() {}

@@ -30,8 +30,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 typedef enum { ss_loading, ss_active } server_state_t;
 
 typedef struct {
-  char name[64];       // map name
-  char modelname[64];  // maps/<name>.bsp, for model_precache[0]
   struct qmodel_s *worldmodel;
   struct qmodel_s *models[MAX_MODELS];
   const char *lightstyles[MAX_LIGHTSTYLES];
@@ -39,6 +37,9 @@ typedef struct {
                     // edict_t is variable sized, but can
                     // be used to reference the world ent
 } server_t;
+
+const char *SV_Name();
+const char *SV_ModelName();
 
 #define NUM_PING_TIMES 16
 #define NUM_SPAWN_PARMS 16

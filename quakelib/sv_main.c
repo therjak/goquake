@@ -899,7 +899,7 @@ void SV_SpawnServer(const char *server) {
   // memset (&sv, 0, sizeof(sv));
   Host_ClearMemory();
 
-  q_strlcpy(sv.name, server, sizeof(sv.name));
+  SV_SetName(server);
 
   SV_SetProtocol();  // Go side knows which protocol to set
 
@@ -938,11 +938,11 @@ void SV_SpawnServer(const char *server) {
 
   SV_SetTime(1.0);
 
-  q_strlcpy(sv.name, server, sizeof(sv.name));
-  q_snprintf(sv.modelname, sizeof(sv.modelname), "maps/%s.bsp", server);
-  sv.worldmodel = Mod_ForName(sv.modelname, false);
+  SV_SetName(server);
+  SV_SetModelName("maps/%s.bsp", server);
+  sv.worldmodel = Mod_ForName(SV_ModelName(), false);
   if (!sv.worldmodel) {
-    Con_Printf("Couldn't spawn server %s\n", sv.modelname);
+    Con_Printf("Couldn't spawn server %s\n", SV_ModelName());
     SV_SetActive(false);
     return;
   }
@@ -955,7 +955,7 @@ void SV_SpawnServer(const char *server) {
 
   SetSVSoundPrecache(0, dummy);
   SetSVModelPrecache(0, dummy);
-  SetSVModelPrecache(1, sv.modelname);
+  SetSVModelPrecache(1, SV_ModelName());
   for (i = 1; i < sv.worldmodel->numsubmodels; i++) {
     SetSVModelPrecache(1 + i, localmodels[i]);
     sv.models[i + 1] = Mod_ForName(localmodels[i], false);
@@ -978,7 +978,7 @@ void SV_SpawnServer(const char *server) {
     Set_pr_global_struct_deathmatch(Cvar_GetValue(&deathmatch));
   }
 
-  Set_pr_global_struct_mapname(PR_SetEngineString(sv.name));
+  Set_pr_global_struct_mapname(PR_SetEngineString(SV_Name()));
 
   // serverflags are for cross level information (sigils)
   Set_pr_global_struct_serverflags(SVS_GetServerFlags());
@@ -1013,4 +1013,20 @@ void SV_SpawnServer(const char *server) {
     }
 
   Con_DPrintf("Server spawned.\n");
+}
+
+const char *SV_Name() {
+  static char buffer[2048];
+  char *s = SV_NameInt();
+  strncpy(buffer, s, 2048);
+  free(s);
+  return buffer;
+}
+
+const char *SV_ModelName() {
+  static char buffer[2048];
+  char *s = SV_ModelNameInt();
+  strncpy(buffer, s, 2048);
+  free(s);
+  return buffer;
 }

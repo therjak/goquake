@@ -4,6 +4,7 @@ package quakelib
 import "C"
 
 import (
+	"fmt"
 	"log"
 	"quake/cmd"
 	cmdl "quake/commandline"
@@ -52,6 +53,9 @@ type Server struct {
 	modelPrecache []string
 	soundPrecache []string
 	lightStyles   []string
+
+	name      string
+	modelName string
 }
 
 var (
@@ -60,6 +64,26 @@ var (
 	sv_protocol int
 	sv_player   int
 )
+
+//export SV_NameInt
+func SV_NameInt() *C.char {
+	return C.CString(sv.name)
+}
+
+//export SV_SetName
+func SV_SetName(n *C.char) {
+	sv.name = C.GoString(n)
+}
+
+//export SV_ModelNameInt
+func SV_ModelNameInt() *C.char {
+	return C.CString(sv.modelName)
+}
+
+//export SV_SetModelName
+func SV_SetModelName(n *C.char, s *C.char) {
+	sv.modelName = fmt.Sprintf(C.GoString(n), C.GoString(s))
+}
 
 //export SV_State
 func SV_State() int {
