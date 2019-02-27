@@ -29,11 +29,10 @@ func PR_LoadProgsGo() {
 
 func fillEngineStrings(ks map[int]string) {
 	// just ignore duplicates
-	for _, v := range ks {
+	for k, v := range ks {
 		_, ok := engineStringMap[v]
 		if !ok {
-			engineStringMap[v] = len(engineStrings)
-			engineStrings = append(engineStrings, v)
+			engineStringMap[v] = k
 		}
 	}
 }
@@ -42,22 +41,29 @@ func fillEngineStrings(ks map[int]string) {
 func ED_NewString(str *C.char) C.int {
 	// TODO:
 	// replace \n with '\n' and all other \x with just '\'
-	log.Printf("ED_NewString %x", C.GoString(str))
-	return PR_SetEngineString(str)
+	s := C.GoString(str)
+	engineStrings = append(engineStrings, s)
+	i := len(engineStrings)
+	engineStringMap[s] = -i
+	log.Printf("ED_NewString: %s, %d", s, -i)
+	return C.int(-i)
 }
 
 // export PR_SetEngineString
 func PR_SetEngineString(str *C.char) C.int {
 	s := C.GoString(str)
-	i, ok := engineStringMap[s]
-	if !ok {
-		i = len(engineStrings)
-		engineStringMap[s] = i
-		engineStrings = append(engineStrings, s)
-		log.Printf("PR_SetEngineStringNEW")
-	}
-	log.Printf("PR_SetEngineString %v, %d", s, i)
-	return C.int(-(i + 1))
+	/*
+		v, ok := engineStringMap[s]
+		if ok {
+			log.Printf("PR_SetEngineString1 %v, %d", s, v)
+			return C.int(v)
+		}
+	*/
+	engineStrings = append(engineStrings, s)
+	i := len(engineStrings)
+	engineStringMap[s] = -i
+	log.Printf("PR_SetEngineString2 %v, %d", s, -i)
+	return C.int(-i)
 }
 
 //export PR_GetStringInt
@@ -78,7 +84,6 @@ func PR_GetStringInt(num C.int) *C.char {
 		log.Printf("PR_GetStringInt: request of %v, is unknown", n)
 		return C.CString("")
 	}
-	log.Printf("PR_GetEngineString2 %v, %v", index, engineStrings[index])
 	return C.CString(engineStrings[index])
 }
 

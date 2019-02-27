@@ -656,6 +656,7 @@ static GoInt32 ED_NewString(const char *string) {
   GoInt32 num;
 
   l = strlen(string) + 1;
+  Sys_Print_S("ED_NewString: %s", string);
   num = PR_AllocString(l, &new_p);
 
   for (i = 0; i < l; i++) {
@@ -668,6 +669,7 @@ static GoInt32 ED_NewString(const char *string) {
     } else
       *new_p++ = string[i];
   }
+  Sys_Print_I("ED_NewStringI: %d", num);
 
   return num;
 }
@@ -1126,17 +1128,22 @@ static void PR_AllocStringSlots(void) {
 }
 
 const char *PR_GetString(int num) {
+  const char *ret;
   // positive numbers are strings in progs.dat
   // negative ones new ones from SetEngineString
-  if (num >= 0 && num < pr_stringssize)
-    return pr_strings + num;
-  else if (num < 0 && num >= -pr_numknownstrings) {
+  if (num >= 0 && num < pr_stringssize) {
+    ret = pr_strings + num;
+    // Sys_Print_S("PR_GetString: %s", ret);
+    return ret;
+  } else if (num < 0 && num >= -pr_numknownstrings) {
     if (!pr_knownstrings[-1 - num]) {
       Host_Error("PR_GetString: attempt to get a non-existant string %d\n",
                  num);
       return "";
     }
-    return pr_knownstrings[-1 - num];
+    ret = pr_knownstrings[-1 - num];
+    // Sys_Print_S("PR_GetString: %s", ret);
+    return ret;
   } else {
     Host_Error("PR_GetString: invalid string offset %d\n", num);
     return "";
@@ -1145,22 +1152,30 @@ const char *PR_GetString(int num) {
 
 int PR_SetEngineString(char *s) {
   int i;
+  int r;
 
   if (!s) return 0;
+  Sys_Print_S("PR_SetString: %s", s);
   if (s >= pr_strings && s <= pr_strings + pr_stringssize - 2) {
     // Sys_Print_S("Got known pr_strings %s", s);
-    return (int)(s - pr_strings);
+    r = (int)(s - pr_strings);
+    Sys_Print_I("PR_SetString: %d", r);
+    return r;
   }
   for (i = 0; i < pr_numknownstrings; i++) {
     if (pr_knownstrings[i] == s) {
       // Sys_Print_S("Got known pr_knownstrings %s", s);
-      return -1 - i;
+      r = -1 - i;
+      Sys_Print_I("PR_SetString: %d", r);
+      return r;
     }
   }
   if (i >= pr_maxknownstrings) PR_AllocStringSlots();
   pr_numknownstrings++;
   pr_knownstrings[i] = s;
-  return -1 - i;
+  r = -1 - i;
+  Sys_Print_I("PR_SetString: %d", r);
+  return r;
 }
 
 int PR_AllocString(int size, char **ptr) {

@@ -233,19 +233,21 @@ setmodel(entity, model)
 */
 static void PF_setmodel(void) {
   int i;
+  int mi;
   const char *m, **check;
   qmodel_t *mod;
   edict_t *e;
 
   e = EDICT_NUM(Pr_globalsi(OFS_PARM0));
-  m = PR_GetString(Pr_globalsi(OFS_PARM1));
+  mi = Pr_globalsi(OFS_PARM1);
+  m = PR_GetString(mi);
 
   // check to see if model was properly precached
   i = ElementOfSVModelPrecache(m);
   if (i == -1) {
     PR_RunError("no precache: %s", m);
   }
-  EdictV(e)->model = PR_SetEngineString(m);
+  EdictV(e)->model = mi;
   EdictV(e)->modelindex = i;  // SV_ModelIndex (m);
 
   mod = sv.models[(int)EdictV(e)->modelindex];  // Mod_ForName (m, true);
