@@ -49,7 +49,8 @@ realcheck:
   start[0] = stop[0] = (mins[0] + maxs[0]) * 0.5;
   start[1] = stop[1] = (mins[1] + maxs[1]) * 0.5;
   stop[2] = start[2] - 2 * STEPSIZE;
-  trace = SV_Move(start, vec3_origin, vec3_origin, stop, true, ent);
+  trace =
+      SV_Move(start, vec3_origin, vec3_origin, stop, true, NUM_FOR_EDICT(ent));
 
   if (trace.fraction == 1.0) return false;
   mid = bottom = trace.endpos[2];
@@ -60,7 +61,8 @@ realcheck:
       start[0] = stop[0] = x ? maxs[0] : mins[0];
       start[1] = stop[1] = y ? maxs[1] : mins[1];
 
-      trace = SV_Move(start, vec3_origin, vec3_origin, stop, true, ent);
+      trace = SV_Move(start, vec3_origin, vec3_origin, stop, true,
+                      NUM_FOR_EDICT(ent));
 
       if (trace.fraction != 1.0 && trace.endpos[2] > bottom)
         bottom = trace.endpos[2];
@@ -106,7 +108,7 @@ qboolean SV_movestep(edict_t *ent, vec3_t move, qboolean relink) {
         if (dz < 30) neworg[2] += 8;
       }
       trace = SV_Move(EdictV(ent)->origin, EdictV(ent)->mins, EdictV(ent)->maxs,
-                      neworg, false, ent);
+                      neworg, false, NUM_FOR_EDICT(ent));
 
       if (trace.fraction == 1) {
         if (((int)EdictV(ent)->flags & FL_SWIM) &&
@@ -129,15 +131,15 @@ qboolean SV_movestep(edict_t *ent, vec3_t move, qboolean relink) {
   VectorCopy(neworg, end);
   end[2] -= STEPSIZE * 2;
 
-  trace =
-      SV_Move(neworg, EdictV(ent)->mins, EdictV(ent)->maxs, end, false, ent);
+  trace = SV_Move(neworg, EdictV(ent)->mins, EdictV(ent)->maxs, end, false,
+                  NUM_FOR_EDICT(ent));
 
   if (trace.allsolid) return false;
 
   if (trace.startsolid) {
     neworg[2] -= STEPSIZE;
-    trace =
-        SV_Move(neworg, EdictV(ent)->mins, EdictV(ent)->maxs, end, false, ent);
+    trace = SV_Move(neworg, EdictV(ent)->mins, EdictV(ent)->maxs, end, false,
+                    NUM_FOR_EDICT(ent));
     if (trace.allsolid || trace.startsolid) return false;
   }
   if (trace.fraction == 1) {

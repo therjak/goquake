@@ -62,27 +62,25 @@ void SV_CheckAllEnts(void) {
 SV_CheckVelocity
 ================
 */
-void SV_CheckVelocity(edict_t *ent) {
+void SV_CheckVelocity(entvars_t *ent) {
   int i;
 
   //
   // bound velocity
   //
   for (i = 0; i < 3; i++) {
-    if (IS_NAN(EdictV(ent)->velocity[i])) {
-      Con_Printf("Got a NaN velocity on %s\n",
-                 PR_GetString(EdictV(ent)->classname));
-      EdictV(ent)->velocity[i] = 0;
+    if (IS_NAN(ent->velocity[i])) {
+      Con_Printf("Got a NaN velocity on %s\n", PR_GetString(ent->classname));
+      ent->velocity[i] = 0;
     }
-    if (IS_NAN(EdictV(ent)->origin[i])) {
-      Con_Printf("Got a NaN origin on %s\n",
-                 PR_GetString(EdictV(ent)->classname));
-      EdictV(ent)->origin[i] = 0;
+    if (IS_NAN(ent->origin[i])) {
+      Con_Printf("Got a NaN origin on %s\n", PR_GetString(ent->classname));
+      ent->origin[i] = 0;
     }
-    if (EdictV(ent)->velocity[i] > Cvar_GetValue(&sv_maxvelocity))
-      EdictV(ent)->velocity[i] = Cvar_GetValue(&sv_maxvelocity);
-    else if (EdictV(ent)->velocity[i] < -Cvar_GetValue(&sv_maxvelocity))
-      EdictV(ent)->velocity[i] = -Cvar_GetValue(&sv_maxvelocity);
+    if (ent->velocity[i] > Cvar_GetValue(&sv_maxvelocity))
+      ent->velocity[i] = Cvar_GetValue(&sv_maxvelocity);
+    else if (ent->velocity[i] < -Cvar_GetValue(&sv_maxvelocity))
+      ent->velocity[i] = -Cvar_GetValue(&sv_maxvelocity);
   }
 }
 
@@ -238,7 +236,7 @@ int SV_FlyMove(edict_t *ent, float time, trace_t *steptrace) {
       end[i] = EdictV(ent)->origin[i] + time_left * EdictV(ent)->velocity[i];
 
     trace = SV_Move(EdictV(ent)->origin, EdictV(ent)->mins, EdictV(ent)->maxs,
-                    end, false, ent);
+                    end, false, NUM_FOR_EDICT(ent));
 
     if (trace.allsolid) {  // entity is trapped in another solid
       VectorCopy(vec3_origin, EdictV(ent)->velocity);
@@ -366,15 +364,15 @@ trace_t SV_PushEntity(edict_t *ent, vec3_t push) {
 
   if (EdictV(ent)->movetype == MOVETYPE_FLYMISSILE)
     trace = SV_Move(EdictV(ent)->origin, EdictV(ent)->mins, EdictV(ent)->maxs,
-                    end, MOVE_MISSILE, ent);
+                    end, MOVE_MISSILE, NUM_FOR_EDICT(ent));
   else if (EdictV(ent)->solid == SOLID_TRIGGER ||
            EdictV(ent)->solid == SOLID_NOT)
     // only clip against bmodels
     trace = SV_Move(EdictV(ent)->origin, EdictV(ent)->mins, EdictV(ent)->maxs,
-                    end, MOVE_NOMONSTERS, ent);
+                    end, MOVE_NOMONSTERS, NUM_FOR_EDICT(ent));
   else
     trace = SV_Move(EdictV(ent)->origin, EdictV(ent)->mins, EdictV(ent)->maxs,
-                    end, MOVE_NORMAL, ent);
+                    end, MOVE_NORMAL, NUM_FOR_EDICT(ent));
 
   VectorCopy(trace.endpos, EdictV(ent)->origin);
   SV_LinkEdict(ent, true);
@@ -838,7 +836,7 @@ void SV_Physics_Client(edict_t *ent, int num) {
   //
   // do a move
   //
-  SV_CheckVelocity(ent);
+  SV_CheckVelocity(EdictV(ent));
 
   //
   // decide which move function to call
@@ -978,7 +976,7 @@ void SV_Physics_Toss(edict_t *ent) {
   // if onground, return without moving
   if (((int)EdictV(ent)->flags & FL_ONGROUND)) return;
 
-  SV_CheckVelocity(ent);
+  SV_CheckVelocity(EdictV(ent));
 
   // add gravity
   if (EdictV(ent)->movetype != MOVETYPE_FLY &&
@@ -1048,7 +1046,7 @@ void SV_Physics_Step(edict_t *ent) {
       hitsound = false;
 
     SV_AddGravity(ent);
-    SV_CheckVelocity(ent);
+    SV_CheckVelocity(EdictV(ent));
     SV_FlyMove(ent, HostFrameTime(), NULL);
     SV_LinkEdict(ent, true);
 

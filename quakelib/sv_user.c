@@ -55,8 +55,7 @@ void SV_SetIdealPitch(void) {
     bottom[1] = top[1];
     bottom[2] = top[2] - 160;
 
-    tr = SV_Move(top, vec3_origin, vec3_origin, bottom, 1,
-                 EDICT_NUM(SV_Player()));
+    tr = SV_Move(top, vec3_origin, vec3_origin, bottom, 1, SV_Player());
     if (tr.allsolid) return;  // looking at a wall, leave ideal the way is was
 
     if (tr.fraction == 1) return;  // near a dropoff
@@ -110,7 +109,8 @@ void SV_UserFriction(edict_t *player) {
   start[2] = origin[2] + EdictV(player)->mins[2];
   stop[2] = start[2] - 34;
 
-  trace = SV_Move(start, vec3_origin, vec3_origin, stop, true, player);
+  trace = SV_Move(start, vec3_origin, vec3_origin, stop, true,
+                  NUM_FOR_EDICT(player));
 
   if (trace.fraction == 1.0)
     friction = Cvar_GetValue(&sv_friction) * Cvar_GetValue(&sv_edgefriction);

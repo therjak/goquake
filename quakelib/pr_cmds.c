@@ -642,7 +642,8 @@ static void PF_traceline(void) {
   if (IS_NAN(v2[0]) || IS_NAN(v2[1]) || IS_NAN(v2[2]))
     v2[0] = v2[1] = v2[2] = 0;
 
-  trace = SV_Move(v1, vec3_origin, vec3_origin, v2, nomonsters, ent);
+  trace =
+      SV_Move(v1, vec3_origin, vec3_origin, v2, nomonsters, NUM_FOR_EDICT(ent));
 
   Set_pr_global_struct_trace_allsolid(trace.allsolid);
   Set_pr_global_struct_trace_startsolid(trace.startsolid);
@@ -1083,7 +1084,7 @@ static void PF_droptofloor(void) {
   end[2] -= 256;
 
   trace = SV_Move(EdictV(ent)->origin, EdictV(ent)->mins, EdictV(ent)->maxs,
-                  end, false, ent);
+                  end, false, NUM_FOR_EDICT(ent));
 
   if (trace.fraction == 1 || trace.allsolid)
     Set_Pr_globalsf(OFS_RETURN, 0);
@@ -1225,7 +1226,7 @@ static void PF_aim(void) {
   // try sending a trace straight
   Pr_global_struct_v_forward(&dir[0], &dir[1], &dir[2]);
   VectorMA(start, 2048, dir, end);
-  tr = SV_Move(start, vec3_origin, vec3_origin, end, false, ent);
+  tr = SV_Move(start, vec3_origin, vec3_origin, end, false, NUM_FOR_EDICT(ent));
   if (tr.ent && EdictV(tr.ent)->takedamage == DAMAGE_AIM &&
       (!Cvar_GetValue(&teamplay) || EdictV(ent)->team <= 0 ||
        EdictV(ent)->team != EdictV(tr.ent)->team)) {
@@ -1258,7 +1259,8 @@ static void PF_aim(void) {
     Pr_global_struct_v_forward(&vforward[0], &vforward[1], &vforward[2]);
     dist = DotProduct(dir, vforward);
     if (dist < bestdist) continue;  // to far to turn
-    tr = SV_Move(start, vec3_origin, vec3_origin, end, false, ent);
+    tr = SV_Move(start, vec3_origin, vec3_origin, end, false,
+                 NUM_FOR_EDICT(ent));
     if (tr.ent == check) {  // can shoot at this one
       bestdist = dist;
       bestent = check;
