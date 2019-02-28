@@ -111,11 +111,10 @@ extern client_static_t cls;
 // server signon
 //
 typedef struct {
-  int movemessages;  // since connecting to this server
-                     // throw out the first couple, so the player
-                     // doesn't accidentally do something the
-                     // first frame
-  // usercmd_t cmd;     // last command sent to the server
+  int movemessages;      // since connecting to this server
+                         // throw out the first couple, so the player
+                         // doesn't accidentally do something the
+                         // first frame
   float cmdforwardmove;  // last command sent to the server
 
   // information for local display
@@ -239,9 +238,7 @@ void CL_NextDemo(void);
 // cl_input
 //
 void CL_SendCmd(void);
-void CL_SendMove(const usercmd_t *cmd);
 int CL_ReadFromServer(void);
-void CL_BaseMove(usercmd_t *cmd);
 void CL_AdjustAngles();
 
 void CL_ParseTEnt(void);
