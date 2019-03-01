@@ -52,7 +52,7 @@ void SV_CheckAllEnts(void) {
         EdictV(check)->movetype == MOVETYPE_NOCLIP)
       continue;
 
-    if (SV_TestEntityPosition(check))
+    if (SV_TestEntityPosition(NUM_FOR_EDICT(check)))
       Con_Printf("entity in invalid position\n");
   }
 }
@@ -389,7 +389,8 @@ SV_PushMove
 */
 void SV_PushMove(edict_t *pusher, float movetime) {
   int i, e;
-  edict_t *check, *block;
+  edict_t *check;
+  qboolean block;
   vec3_t mins, maxs, move;
   vec3_t entorig, pushorig;
   int num_moved;
@@ -445,7 +446,7 @@ void SV_PushMove(edict_t *pusher, float movetime) {
         continue;
 
       // see if the ent's bbox is inside the pusher's final position
-      if (!SV_TestEntityPosition(check)) continue;
+      if (!SV_TestEntityPosition(NUM_FOR_EDICT(check))) continue;
     }
 
     // remove the onground flag for non-players
@@ -463,7 +464,7 @@ void SV_PushMove(edict_t *pusher, float movetime) {
     EdictV(pusher)->solid = SOLID_BSP;
 
     // if it is still inside the pusher, block
-    block = SV_TestEntityPosition(check);
+    block = SV_TestEntityPosition(NUM_FOR_EDICT(check));
     if (block) {  // fail the move
       if (EdictV(check)->mins[0] == EdictV(check)->maxs[0]) continue;
       if (EdictV(check)->solid == SOLID_NOT ||
@@ -556,14 +557,14 @@ void SV_CheckStuck(edict_t *ent) {
   int z;
   vec3_t org;
 
-  if (!SV_TestEntityPosition(ent)) {
+  if (!SV_TestEntityPosition(NUM_FOR_EDICT(ent))) {
     VectorCopy(EdictV(ent)->origin, EdictV(ent)->oldorigin);
     return;
   }
 
   VectorCopy(EdictV(ent)->origin, org);
   VectorCopy(EdictV(ent)->oldorigin, EdictV(ent)->origin);
-  if (!SV_TestEntityPosition(ent)) {
+  if (!SV_TestEntityPosition(NUM_FOR_EDICT(ent))) {
     Con_DPrintf("Unstuck.\n");
     SV_LinkEdict(ent, true);
     return;
@@ -575,7 +576,7 @@ void SV_CheckStuck(edict_t *ent) {
         EdictV(ent)->origin[0] = org[0] + i;
         EdictV(ent)->origin[1] = org[1] + j;
         EdictV(ent)->origin[2] = org[2] + z;
-        if (!SV_TestEntityPosition(ent)) {
+        if (!SV_TestEntityPosition(NUM_FOR_EDICT(ent))) {
           Con_DPrintf("Unstuck.\n");
           SV_LinkEdict(ent, true);
           return;

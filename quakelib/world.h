@@ -62,7 +62,7 @@ int SV_TruePointContents(vec3_t p);
 // does not check any entities at all
 // the non-true version remaps the water current contents to content_water
 
-edict_t *SV_TestEntityPosition(edict_t *ent);
+qboolean SV_TestEntityPosition(int ent);
 
 trace_t SV_Move(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, int type,
                 int passedict);

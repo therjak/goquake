@@ -464,17 +464,16 @@ SV_TestEntityPosition
 This could be a lot more efficient...
 ============
 */
-edict_t *SV_TestEntityPosition(edict_t *ent) {
+qboolean SV_TestEntityPosition(int ent) {
   trace_t trace;
   entvars_t *ev;
-  ev = EdictV(ent);
+  ev = EdictV(EDICT_NUM(ent));
 
-  trace = SV_Move(ev->origin, ev->mins, ev->maxs, ev->origin, 0,
-                  NUM_FOR_EDICT(ent));
+  trace = SV_Move(ev->origin, ev->mins, ev->maxs, ev->origin, 0, ent);
 
-  if (trace.startsolid) return sv.edicts;
+  if (trace.startsolid) return true;
 
-  return NULL;
+  return false;
 }
 
 /*
