@@ -224,7 +224,8 @@ SV_UnlinkEdict
 static link_t **sv_link_next;
 static link_t **sv_link_prev;
 
-void SV_UnlinkEdict(edict_t *ent) {
+void SV_UnlinkEdict(int e) {
+  edict_t *ent = EDICT_NUM(e);
   if (!ent->area.prev) return;  // not linked in anywhere
   RemoveLink(&ent->area);
   if (sv_link_next && *sv_link_next == &ent->area)
@@ -333,11 +334,12 @@ SV_LinkEdict
 
 ===============
 */
-void SV_LinkEdict(edict_t *ent, qboolean touch_triggers) {
+void SV_LinkEdict(int e, qboolean touch_triggers) {
   areanode_t *node;
+  edict_t *ent = EDICT_NUM(e);
   entvars_t *ev;
 
-  if (ent->area.prev) SV_UnlinkEdict(ent);  // unlink from old position
+  if (ent->area.prev) SV_UnlinkEdict(e);  // unlink from old position
 
   if (ent == sv.edicts) return;  // don't add the world
 

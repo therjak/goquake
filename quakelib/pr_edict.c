@@ -121,7 +121,7 @@ FIXME: walk all entities and NULL out references to this entity
 =================
 */
 void ED_Free(edict_t *ed) {
-  SV_UnlinkEdict(ed);  // unlink from world bsp
+  SV_UnlinkEdict(NUM_FOR_EDICT(ed));  // unlink from world bsp
 
   ed->free = true;
   EdictV(ed)->model = 0;

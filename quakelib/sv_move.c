@@ -116,7 +116,7 @@ qboolean SV_movestep(edict_t *ent, vec3_t move, qboolean relink) {
           return false;  // swim monster left water
 
         VectorCopy(trace.endpos, EdictV(ent)->origin);
-        if (relink) SV_LinkEdict(ent, true);
+        if (relink) SV_LinkEdict(NUM_FOR_EDICT(ent), true);
         return true;
       }
 
@@ -146,7 +146,7 @@ qboolean SV_movestep(edict_t *ent, vec3_t move, qboolean relink) {
     // if monster had the ground pulled out, go ahead and fall
     if ((int)EdictV(ent)->flags & FL_PARTIALGROUND) {
       VectorAdd(EdictV(ent)->origin, move, EdictV(ent)->origin);
-      if (relink) SV_LinkEdict(ent, true);
+      if (relink) SV_LinkEdict(NUM_FOR_EDICT(ent), true);
       EdictV(ent)->flags = (int)EdictV(ent)->flags & ~FL_ONGROUND;
       //	Con_Printf ("fall down\n");
       return true;
@@ -163,7 +163,7 @@ qboolean SV_movestep(edict_t *ent, vec3_t move, qboolean relink) {
                                                        // mostly pulled out from
                                                        // underneath it
       // and is trying to correct
-      if (relink) SV_LinkEdict(ent, true);
+      if (relink) SV_LinkEdict(NUM_FOR_EDICT(ent), true);
       return true;
     }
     VectorCopy(oldorg, EdictV(ent)->origin);
@@ -177,7 +177,7 @@ qboolean SV_movestep(edict_t *ent, vec3_t move, qboolean relink) {
   EdictV(ent)->groundentity = NUM_FOR_EDICT(trace.ent);
 
   // the move is ok
-  if (relink) SV_LinkEdict(ent, true);
+  if (relink) SV_LinkEdict(NUM_FOR_EDICT(ent), true);
   return true;
 }
 
@@ -212,10 +212,10 @@ qboolean SV_StepDirection(edict_t *ent, float yaw, float dist) {
         delta < 315) {  // not turned far enough, so don't take the step
       VectorCopy(oldorigin, EdictV(ent)->origin);
     }
-    SV_LinkEdict(ent, true);
+    SV_LinkEdict(NUM_FOR_EDICT(ent), true);
     return true;
   }
-  SV_LinkEdict(ent, true);
+  SV_LinkEdict(NUM_FOR_EDICT(ent), true);
 
   return false;
 }

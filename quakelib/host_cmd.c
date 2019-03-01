@@ -460,7 +460,7 @@ void Host_SetPos_f(void) {
     pent->fixangle = 1;
   }
 
-  SV_LinkEdict(EDICT_NUM(SV_Player()), false);
+  SV_LinkEdict(SV_Player(), false);
 }
 
 /*
@@ -853,7 +853,7 @@ void Host_Loadgame_f(void) {
       ED_ParseEdict(start, ent);
 
       // link it into the bsp tree
-      if (!ent->free) SV_LinkEdict(ent, false);
+      if (!ent->free) SV_LinkEdict(NUM_FOR_EDICT(ent), false);
     }
 
     entnum++;

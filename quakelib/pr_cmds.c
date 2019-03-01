@@ -134,7 +134,7 @@ static void PF_setorigin(void) {
   *(origin + 1) = Pr_globalsf(OFS_PARM1 + 1);
   *(origin + 2) = Pr_globalsf(OFS_PARM1 + 2);
 
-  SV_LinkEdict(e, false);
+  SV_LinkEdict(NUM_FOR_EDICT(e), false);
 }
 
 static void SetMinMaxSize(edict_t *e, float *minvec, float *maxvec,
@@ -198,7 +198,7 @@ static void SetMinMaxSize(edict_t *e, float *minvec, float *maxvec,
   VectorCopy(rmax, EdictV(e)->maxs);
   VectorSubtract(maxvec, minvec, EdictV(e)->size);
 
-  SV_LinkEdict(e, false);
+  SV_LinkEdict(NUM_FOR_EDICT(e), false);
 }
 
 /*
@@ -1090,7 +1090,7 @@ static void PF_droptofloor(void) {
     Set_Pr_globalsf(OFS_RETURN, 0);
   else {
     VectorCopy(trace.endpos, EdictV(ent)->origin);
-    SV_LinkEdict(ent, false);
+    SV_LinkEdict(NUM_FOR_EDICT(ent), false);
     EdictV(ent)->flags = (int)EdictV(ent)->flags | FL_ONGROUND;
     EdictV(ent)->groundentity = NUM_FOR_EDICT(trace.ent);
     Set_Pr_globalsf(OFS_RETURN, 1);

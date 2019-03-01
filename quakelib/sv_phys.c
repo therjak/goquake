@@ -375,7 +375,7 @@ trace_t SV_PushEntity(edict_t *ent, vec3_t push) {
                     end, MOVE_NORMAL, NUM_FOR_EDICT(ent));
 
   VectorCopy(trace.endpos, EdictV(ent)->origin);
-  SV_LinkEdict(ent, true);
+  SV_LinkEdict(NUM_FOR_EDICT(ent), true);
 
   if (trace.ent) SV_Impact(ent, trace.ent);
 
@@ -416,7 +416,7 @@ void SV_PushMove(edict_t *pusher, float movetime) {
 
   VectorAdd(EdictV(pusher)->origin, move, EdictV(pusher)->origin);
   EdictV(pusher)->ltime += movetime;
-  SV_LinkEdict(pusher, false);
+  SV_LinkEdict(NUM_FOR_EDICT(pusher), false);
 
   // johnfitz -- dynamically allocate
   mark = Hunk_LowMark();
@@ -475,10 +475,10 @@ void SV_PushMove(edict_t *pusher, float movetime) {
       }
 
       VectorCopy(entorig, EdictV(check)->origin);
-      SV_LinkEdict(check, true);
+      SV_LinkEdict(NUM_FOR_EDICT(check), true);
 
       VectorCopy(pushorig, EdictV(pusher)->origin);
-      SV_LinkEdict(pusher, false);
+      SV_LinkEdict(NUM_FOR_EDICT(pusher), false);
       EdictV(pusher)->ltime -= movetime;
 
       // if the pusher has a "blocked" function, call it
@@ -492,7 +492,7 @@ void SV_PushMove(edict_t *pusher, float movetime) {
       // move back any entities we already moved
       for (i = 0; i < num_moved; i++) {
         VectorCopy(moved_from[i], EdictV(moved_edict[i])->origin);
-        SV_LinkEdict(moved_edict[i], false);
+        SV_LinkEdict(NUM_FOR_EDICT(moved_edict[i]), false);
       }
       Hunk_FreeToLowMark(mark);  // johnfitz
       return;
@@ -566,7 +566,7 @@ void SV_CheckStuck(edict_t *ent) {
   VectorCopy(EdictV(ent)->oldorigin, EdictV(ent)->origin);
   if (!SV_TestEntityPosition(NUM_FOR_EDICT(ent))) {
     Con_DPrintf("Unstuck.\n");
-    SV_LinkEdict(ent, true);
+    SV_LinkEdict(NUM_FOR_EDICT(ent), true);
     return;
   }
 
@@ -578,7 +578,7 @@ void SV_CheckStuck(edict_t *ent) {
         EdictV(ent)->origin[2] = org[2] + z;
         if (!SV_TestEntityPosition(NUM_FOR_EDICT(ent))) {
           Con_DPrintf("Unstuck.\n");
-          SV_LinkEdict(ent, true);
+          SV_LinkEdict(NUM_FOR_EDICT(ent), true);
           return;
         }
       }
@@ -879,7 +879,7 @@ void SV_Physics_Client(edict_t *ent, int num) {
   //
   // call standard player post-think
   //
-  SV_LinkEdict(ent, true);
+  SV_LinkEdict(NUM_FOR_EDICT(ent), true);
 
   Set_pr_global_struct_time(SV_Time());
   Set_pr_global_struct_self(NUM_FOR_EDICT(ent));
@@ -916,7 +916,7 @@ void SV_Physics_Noclip(edict_t *ent) {
   VectorMA(EdictV(ent)->origin, HostFrameTime(), EdictV(ent)->velocity,
            EdictV(ent)->origin);
 
-  SV_LinkEdict(ent, false);
+  SV_LinkEdict(NUM_FOR_EDICT(ent), false);
 }
 
 /*
@@ -1049,7 +1049,7 @@ void SV_Physics_Step(edict_t *ent) {
     SV_AddGravity(ent);
     SV_CheckVelocity(EdictV(ent));
     SV_FlyMove(ent, HostFrameTime(), NULL);
-    SV_LinkEdict(ent, true);
+    SV_LinkEdict(NUM_FOR_EDICT(ent), true);
 
     if ((int)EdictV(ent)->flags & FL_ONGROUND)  // just hit ground
     {
@@ -1100,7 +1100,8 @@ void SV_Physics(void) {
     if (ent->free) continue;
 
     if (Pr_global_struct_force_retouch()) {
-      SV_LinkEdict(ent, true);  // force retouch even for stationary
+      SV_LinkEdict(NUM_FOR_EDICT(ent),
+                   true);  // force retouch even for stationary
     }
 
     if (i > 0 && i <= SVS_GetMaxClients())
