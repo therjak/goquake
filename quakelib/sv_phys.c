@@ -41,18 +41,18 @@ SV_CheckAllEnts
 */
 void SV_CheckAllEnts(void) {
   int e;
-  edict_t *check;
+  int check;
 
   // see if any solid entities are inside the final position
-  check = NEXT_EDICT(sv.edicts);
-  for (e = 1; e < SV_NumEdicts(); e++, check = NEXT_EDICT(check)) {
-    if (check->free) continue;
-    if (EdictV(check)->movetype == MOVETYPE_PUSH ||
-        EdictV(check)->movetype == MOVETYPE_NONE ||
-        EdictV(check)->movetype == MOVETYPE_NOCLIP)
+  check = 1;
+  for (e = 1; e < SV_NumEdicts(); e++, check++) {
+    if (EDICT_NUM(check)->free) continue;
+    if (EVars(check)->movetype == MOVETYPE_PUSH ||
+        EVars(check)->movetype == MOVETYPE_NONE ||
+        EVars(check)->movetype == MOVETYPE_NOCLIP)
       continue;
 
-    if (SV_TestEntityPosition(NUM_FOR_EDICT(check)))
+    if (SV_TestEntityPosition(check))
       Con_Printf("entity in invalid position\n");
   }
 }
@@ -1075,7 +1075,7 @@ SV_Physics
 void SV_Physics(void) {
   int i;
   int entity_cap;  // For sv_freezenonclients
-  edict_t *ent;
+  int ent;
 
   // let the progs know that a new frame has started
   Set_pr_global_struct_self(0);
@@ -1088,7 +1088,7 @@ void SV_Physics(void) {
   //
   // treat each object in turn
   //
-  ent = sv.edicts;
+  ent = 0;
 
   if (Cvar_GetValue(&sv_freezenonclients))
     entity_cap =
@@ -1096,32 +1096,31 @@ void SV_Physics(void) {
   else
     entity_cap = SV_NumEdicts();
 
-  // for (i=0 ; i<sv.num_edicts ; i++, ent = NEXT_EDICT(ent))
-  for (i = 0; i < entity_cap; i++, ent = NEXT_EDICT(ent)) {
-    if (ent->free) continue;
+  for (i = 0; i < entity_cap; i++, ent++) {
+    if (EDICT_NUM(ent)->free) continue;
 
     if (Pr_global_struct_force_retouch()) {
-      SV_LinkEdict(NUM_FOR_EDICT(ent),
+      SV_LinkEdict(ent,
                    true);  // force retouch even for stationary
     }
 
     if (i > 0 && i <= SVS_GetMaxClients())
-      SV_Physics_Client(NUM_FOR_EDICT(ent), i);
-    else if (EdictV(ent)->movetype == MOVETYPE_PUSH)
-      SV_Physics_Pusher(NUM_FOR_EDICT(ent));
-    else if (EdictV(ent)->movetype == MOVETYPE_NONE)
-      SV_Physics_None(NUM_FOR_EDICT(ent));
-    else if (EdictV(ent)->movetype == MOVETYPE_NOCLIP)
-      SV_Physics_Noclip(NUM_FOR_EDICT(ent));
-    else if (EdictV(ent)->movetype == MOVETYPE_STEP)
-      SV_Physics_Step(NUM_FOR_EDICT(ent));
-    else if (EdictV(ent)->movetype == MOVETYPE_TOSS ||
-             EdictV(ent)->movetype == MOVETYPE_BOUNCE ||
-             EdictV(ent)->movetype == MOVETYPE_FLY ||
-             EdictV(ent)->movetype == MOVETYPE_FLYMISSILE)
-      SV_Physics_Toss(NUM_FOR_EDICT(ent));
+      SV_Physics_Client(ent, i);
+    else if (EVars(ent)->movetype == MOVETYPE_PUSH)
+      SV_Physics_Pusher(ent);
+    else if (EVars(ent)->movetype == MOVETYPE_NONE)
+      SV_Physics_None(ent);
+    else if (EVars(ent)->movetype == MOVETYPE_NOCLIP)
+      SV_Physics_Noclip(ent);
+    else if (EVars(ent)->movetype == MOVETYPE_STEP)
+      SV_Physics_Step(ent);
+    else if (EVars(ent)->movetype == MOVETYPE_TOSS ||
+             EVars(ent)->movetype == MOVETYPE_BOUNCE ||
+             EVars(ent)->movetype == MOVETYPE_FLY ||
+             EVars(ent)->movetype == MOVETYPE_FLYMISSILE)
+      SV_Physics_Toss(ent);
     else
-      Go_Error_I("SV_Physics: bad movetype %v", (int)EdictV(ent)->movetype);
+      Go_Error_I("SV_Physics: bad movetype %v", (int)EVars(ent)->movetype);
   }
 
   if (Pr_global_struct_force_retouch()) Dec_pr_global_struct_force_retouch();

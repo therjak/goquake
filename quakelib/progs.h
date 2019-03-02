@@ -37,7 +37,9 @@ typedef struct edict_s {
 
 entvars_t *EdictV(edict_t *e);
 
-#define EDICT_FROM_AREA(l) STRUCT_FROM_LINK(l, edict_t, area)
+// FIXME: remove this mess!
+#define EDICT_FROM_AREA(l) \
+  ((edict_t *)((byte *)l - (intptr_t) & (((edict_t *)0)->area)))
 
 //============================================================================
 
@@ -73,12 +75,6 @@ edict_t *AllocEdicts();
 void FreeEdicts(edict_t *e);
 edict_t *EDICT_NUM(int n);
 int NUM_FOR_EDICT(edict_t *e);
-
-edict_t *NEXT_EDICT(edict_t *e);
-
-#define E_FLOAT(e, o) (((float *)EdictV(e))[o])
-#define E_INT(e, o) (*(int *)&((float *)EdictV(e))[o])
-#define E_VECTOR(e, o) (&((float *)EdictV(e))[o])
 
 extern int type_size[8];
 

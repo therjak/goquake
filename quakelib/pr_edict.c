@@ -1012,10 +1012,6 @@ void TT_ClearEdict(edict_t *e) {
   TT_ClearEntVars(EdictV(e));
 }
 
-edict_t *NEXT_EDICT(edict_t *e) {
-  return ((edict_t *)((byte *)e + sizeof(edict_t)));
-}
-
 edict_t *EDICT_NUM(int n) {
   if (n < 0 || n >= SV_MaxEdicts()) Host_Error("EDICT_NUM: bad number %i", n);
   return (edict_t *)((byte *)sv.edicts + (n) * sizeof(edict_t));
