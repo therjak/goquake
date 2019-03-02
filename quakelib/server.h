@@ -44,10 +44,6 @@ const char *SV_ModelName();
 #define NUM_PING_TIMES 16
 #define NUM_SPAWN_PARMS 16
 
-edict_t *SV_GetEdict(int cl);
-
-void SV_SetEdictNum(int cl, int num);
-
 //=============================================================================
 
 // edict->movetype values

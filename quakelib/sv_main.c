@@ -191,7 +191,7 @@ void SV_ConnectClient(int clientnum) {
   SetClientName(client, "unconnected");
   SetClientActive(client, true);
   SetClientSpawned(client, false);
-  SV_SetEdictNum(client, edictnum);
+  SetClientEdictId(client, edictnum);
 
   if (SV_LoadGame()) {
     for (i = 0; i < NUM_SPAWN_PARMS; i++) {
@@ -640,9 +640,9 @@ qboolean SV_SendClientDatagram(int client) {
   SV_MS_WriteFloat(SV_Time());
 
   // add the client specific data to the datagram
-  SV_WriteClientdataToMessage(SV_GetEdict(client));
+  SV_WriteClientdataToMessage(EDICT_NUM(GetClientEdictId(client)));
 
-  SV_WriteEntitiesToClient(SV_GetEdict(client));
+  SV_WriteEntitiesToClient(EDICT_NUM(GetClientEdictId(client)));
 
   return SV_DG_SendOut(client);
 }
@@ -930,7 +930,7 @@ void SV_SpawnServer(const char *server) {
   }
   // ericw -- sv.edicts switched to use malloc()
   for (i = 0; i < SVS_GetMaxClients(); i++) {
-    SV_SetEdictNum(i, i + 1);
+    SetClientEdictId(i, i + 1);
   }
 
   SV_SetState(ss_loading);

@@ -280,7 +280,7 @@ void SV_DropClient(int client, qboolean crash) {
       ClientSendMessage(client);
     }
 
-    if (SV_GetEdict(client) && GetClientSpawned(client)) {
+    if (GetClientSpawned(client)) {
       // call the prog function for removing a client
       // this will set the body to a dead frame, among other things
       saveSelf = Pr_global_struct_self();

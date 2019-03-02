@@ -18,10 +18,6 @@ cvar_t sv_idealpitchscale;
 cvar_t sv_edgefriction;
 cvar_t sv_altnoclip;
 
-edict_t *SV_GetEdict(int cl) { return EDICT_NUM(GetClientEdictId(cl)); }
-
-void SV_SetEdictNum(int cl, int num) { SetClientEdictId(cl, num); }
-
 /*
 ===============
 SV_SetIdealPitch
@@ -313,7 +309,7 @@ the angle fields specify an exact angular motion in degrees
 void SV_ClientThink(int client) {
   movecmd_t cmd;
   entvars_t *entv = EVars(GetClientEdictId(client));
-  edict_t *player = SV_GetEdict(client);
+  edict_t *player = EDICT_NUM(GetClientEdictId(client));
   vec3_t v_angle;
 
   if (entv->movetype == MOVETYPE_NONE) return;
