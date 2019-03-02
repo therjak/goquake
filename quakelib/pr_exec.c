@@ -288,7 +288,7 @@ void PR_ExecuteProgram(GoInt32 fnum) {
   dstatement_t *st;
   dfunction_t *f, *newf;
   int profile, startprofile;
-  edict_t *ed;
+  int ed;
   int exitdepth;
 
   if (!fnum || fnum >= progs->numfunctions) {
@@ -396,7 +396,7 @@ void PR_ExecuteProgram(GoInt32 fnum) {
         SOPCF(!OPAI);
         break;
       case OP_NOT_ENT:
-        SOPCF((EDICT_NUM(OPAI) == sv.edicts));
+        SOPCF(OPAI == 0);
         break;
 
       case OP_EQ_F:
@@ -460,11 +460,8 @@ void PR_ExecuteProgram(GoInt32 fnum) {
         break;
 
       case OP_ADDRESS:
-        ed = EDICT_NUM(OPAI);
-#ifdef PARANOID
-        NUM_FOR_EDICT(ed);  // Make sure it's in range
-#endif
-        if (ed == (edict_t *)sv.edicts && SV_State() == ss_active) {
+        ed = OPAI;
+        if (ed == 0 && SV_State() == ss_active) {
           pr_xstatement = st - pr_statements;
           PR_RunError("assignment to world entity");
         }
@@ -476,18 +473,10 @@ void PR_ExecuteProgram(GoInt32 fnum) {
       case OP_LOAD_ENT:
       case OP_LOAD_S:
       case OP_LOAD_FNC:
-        ed = EDICT_NUM(OPAI);
-#ifdef PARANOID
-        NUM_FOR_EDICT(ed);  // Make sure it's in range
-#endif
         SOPCI(((eval_t *)((int *)EVars(OPAI) + OPBI))->_int);
         break;
 
       case OP_LOAD_V:
-        ed = EDICT_NUM(OPAI);
-#ifdef PARANOID
-        NUM_FOR_EDICT(ed);  // Make sure it's in range
-#endif
         ptr = (eval_t *)((int *)EVars(OPAI) + OPBI);
         SOPCV1(ptr->vector[0]);
         SOPCV2(ptr->vector[1]);
@@ -546,7 +535,6 @@ void PR_ExecuteProgram(GoInt32 fnum) {
         break;
 
       case OP_STATE:
-        ed = EDICT_NUM(Pr_global_struct_self());
         EVars(Pr_global_struct_self())->nextthink =
             Pr_global_struct_time() + 0.1;
         EVars(Pr_global_struct_self())->frame = OPAF;

@@ -698,7 +698,7 @@ draw bounding boxes -- the server-side boxes, not the renderer cullboxes
 */
 void R_ShowBoundingBoxes(void) {
   vec3_t mins, maxs;
-  edict_t *ed;
+  int ed;
   int i;
 
   if (!Cvar_GetValue(&r_showbboxes) || cl.maxclients > 1 ||
@@ -712,19 +712,19 @@ void R_ShowBoundingBoxes(void) {
   glDisable(GL_CULL_FACE);
   glColor3f(1, 1, 1);
 
-  for (i = 0, ed = NEXT_EDICT(sv.edicts); i < SV_NumEdicts();
-       i++, ed = NEXT_EDICT(ed)) {
-    if (ed == EDICT_NUM(SV_Player())) continue;  // don't draw player's own bbox
+  for (i = 0, ed = 1; i < SV_NumEdicts();
+       i++, ed++) {
+    if (ed == SV_Player()) continue;  // don't draw player's own bbox
 
-    if (EdictV(ed)->mins[0] == EdictV(ed)->maxs[0] &&
-        EdictV(ed)->mins[1] == EdictV(ed)->maxs[1] &&
-        EdictV(ed)->mins[2] == EdictV(ed)->maxs[2]) {
+    if (EVars(ed)->mins[0] == EVars(ed)->maxs[0] &&
+        EVars(ed)->mins[1] == EVars(ed)->maxs[1] &&
+        EVars(ed)->mins[2] == EVars(ed)->maxs[2]) {
       // point entity
-      R_EmitWirePoint(EdictV(ed)->origin);
+      R_EmitWirePoint(EVars(ed)->origin);
     } else {
       // box entity
-      VectorAdd(EdictV(ed)->mins, EdictV(ed)->origin, mins);
-      VectorAdd(EdictV(ed)->maxs, EdictV(ed)->origin, maxs);
+      VectorAdd(EVars(ed)->mins, EVars(ed)->origin, mins);
+      VectorAdd(EVars(ed)->maxs, EVars(ed)->origin, maxs);
       R_EmitWireBox(mins, maxs);
     }
   }

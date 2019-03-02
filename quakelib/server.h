@@ -122,7 +122,7 @@ int HostClient(void);
 void SV_Init(void);
 
 void SV_StartParticle(vec3_t org, vec3_t dir, int color, int count);
-void SV_StartSound(edict_t *entity, int channel, const char *sample, int volume,
+void SV_StartSound(int entity, int channel, const char *sample, int volume,
                    float attenuation);
 
 void SV_DropClient(int client, qboolean crash);
@@ -143,10 +143,10 @@ void SV_BroadcastPrintf(const char *fmt, ...)
 
 void SV_Physics(void);
 
-qboolean SV_CheckBottom(edict_t *ent);
-qboolean SV_movestep(edict_t *ent, vec3_t move, qboolean relink);
+qboolean SV_CheckBottom(int ent);
+qboolean SV_movestep(int ent, vec3_t move, qboolean relink);
 
-void SV_WriteClientdataToMessage(edict_t *ent);
+void SV_WriteClientdataToMessage(int ent);
 
 void SV_MoveToGoal(void);
 

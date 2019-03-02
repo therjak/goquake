@@ -79,7 +79,7 @@ Larger attenuations will drop off.  (max 4 attenuation)
 
 ==================
 */
-void SV_StartSound(edict_t *entity, int channel, const char *sample, int volume,
+void SV_StartSound(int entity, int channel, const char *sample, int volume,
                    float attenuation) {
   int sound_num, ent;
   int i, field_mask;
@@ -103,7 +103,7 @@ void SV_StartSound(edict_t *entity, int channel, const char *sample, int volume,
     return;
   }
 
-  ent = NUM_FOR_EDICT(entity);
+  ent = entity;
 
   field_mask = 0;
   if (volume != DEFAULT_SOUND_PACKET_VOLUME) field_mask |= SND_VOLUME;
@@ -144,8 +144,8 @@ void SV_StartSound(edict_t *entity, int channel, const char *sample, int volume,
   // johnfitz
 
   for (i = 0; i < 3; i++)
-    SV_DG_WriteCoord(EdictV(entity)->origin[i] +
-                     0.5 * (EdictV(entity)->mins[i] + EdictV(entity)->maxs[i]));
+    SV_DG_WriteCoord(EVars(entity)->origin[i] +
+                     0.5 * (EVars(entity)->mins[i] + EVars(entity)->maxs[i]));
 }
 
 /*
@@ -289,35 +289,35 @@ SV_WriteEntitiesToClient
 
 =============
 */
-void SV_WriteEntitiesToClient(edict_t *clent) {
+void SV_WriteEntitiesToClient(int clent) {
   int e, i;
   int bits;
   byte *pvs;
   vec3_t org;
   float miss;
-  edict_t *ent;
+  int ent;
 
   // find the client's PVS
-  VectorAdd(EdictV(clent)->origin, EdictV(clent)->view_ofs, org);
+  VectorAdd(EVars(clent)->origin, EVars(clent)->view_ofs, org);
   pvs = SV_FatPVS(org, sv.worldmodel);
 
   // send over all entities (excpet the client) that touch the pvs
-  ent = NEXT_EDICT(sv.edicts);
-  for (e = 1; e < SV_NumEdicts(); e++, ent = NEXT_EDICT(ent)) {
+  ent = 1;
+  for (e = 1; e < SV_NumEdicts(); e++, ent++) {
     if (ent != clent)  // clent is ALLWAYS sent
     {
       // ignore ents without visible models
-      if (!EdictV(ent)->modelindex || !PR_GetString(EdictV(ent)->model)[0])
+      if (!EVars(ent)->modelindex || !PR_GetString(EVars(ent)->model)[0])
         continue;
 
       // johnfitz -- don't send model>255 entities if protocol is 15
       if (SV_Protocol() == PROTOCOL_NETQUAKE &&
-          (int)EdictV(ent)->modelindex & 0xFF00)
+          (int)EVars(ent)->modelindex & 0xFF00)
         continue;
 
       // ignore if not touching a PV leaf
-      for (i = 0; i < ent->num_leafs; i++)
-        if (pvs[ent->leafnums[i] >> 3] & (1 << (ent->leafnums[i] & 7))) break;
+      for (i = 0; i < EDICT_NUM(ent)->num_leafs; i++)
+        if (pvs[EDICT_NUM(ent)->leafnums[i] >> 3] & (1 << (EDICT_NUM(ent)->leafnums[i] & 7))) break;
 
       // ericw -- added ent->num_leafs < MAX_ENT_LEAFS condition.
       //
@@ -327,7 +327,7 @@ void SV_WriteEntitiesToClient(edict_t *clent) {
       // this commonly happens with rotators, because they often have huge
       // bboxes
       // spanning the entire map, or really tall lifts, etc.
-      if (i == ent->num_leafs && ent->num_leafs < MAX_ENT_LEAFS)
+      if (i == EDICT_NUM(ent)->num_leafs && EDICT_NUM(ent)->num_leafs < MAX_ENT_LEAFS)
         continue;  // not visible
     }
 
@@ -348,48 +348,48 @@ void SV_WriteEntitiesToClient(edict_t *clent) {
     bits = 0;
 
     for (i = 0; i < 3; i++) {
-      miss = EdictV(ent)->origin[i] - ent->baseline.origin[i];
+      miss = EVars(ent)->origin[i] - EDICT_NUM(ent)->baseline.origin[i];
       if (miss < -0.1 || miss > 0.1) bits |= U_ORIGIN1 << i;
     }
 
-    if (EdictV(ent)->angles[0] != ent->baseline.angles[0]) bits |= U_ANGLE1;
+    if (EVars(ent)->angles[0] != EDICT_NUM(ent)->baseline.angles[0]) bits |= U_ANGLE1;
 
-    if (EdictV(ent)->angles[1] != ent->baseline.angles[1]) bits |= U_ANGLE2;
+    if (EVars(ent)->angles[1] != EDICT_NUM(ent)->baseline.angles[1]) bits |= U_ANGLE2;
 
-    if (EdictV(ent)->angles[2] != ent->baseline.angles[2]) bits |= U_ANGLE3;
+    if (EVars(ent)->angles[2] != EDICT_NUM(ent)->baseline.angles[2]) bits |= U_ANGLE3;
 
-    if (EdictV(ent)->movetype == MOVETYPE_STEP)
+    if (EVars(ent)->movetype == MOVETYPE_STEP)
       bits |= U_STEP;  // don't mess up the step animation
 
-    if (ent->baseline.colormap != EdictV(ent)->colormap) bits |= U_COLORMAP;
+    if (EDICT_NUM(ent)->baseline.colormap != EVars(ent)->colormap) bits |= U_COLORMAP;
 
-    if (ent->baseline.skin != EdictV(ent)->skin) bits |= U_SKIN;
+    if (EDICT_NUM(ent)->baseline.skin != EVars(ent)->skin) bits |= U_SKIN;
 
-    if (ent->baseline.frame != EdictV(ent)->frame) bits |= U_FRAME;
+    if (EDICT_NUM(ent)->baseline.frame != EVars(ent)->frame) bits |= U_FRAME;
 
-    if (ent->baseline.effects != EdictV(ent)->effects) bits |= U_EFFECTS;
+    if (EDICT_NUM(ent)->baseline.effects != EVars(ent)->effects) bits |= U_EFFECTS;
 
-    if (ent->baseline.modelindex != EdictV(ent)->modelindex) bits |= U_MODEL;
+    if (EDICT_NUM(ent)->baseline.modelindex != EVars(ent)->modelindex) bits |= U_MODEL;
 
     // johnfitz -- alpha
     if (pr_alpha_supported) {
       // TODO: find a cleaner place to put this code
       eval_t *val;
-      val = GetEdictFieldValue(EdictV(ent), "alpha");
-      if (val) ent->alpha = ENTALPHA_ENCODE(val->_float);
+      val = GetEdictFieldValue(EVars(ent), "alpha");
+      if (val) EDICT_NUM(ent)->alpha = ENTALPHA_ENCODE(val->_float);
     }
 
     // don't send invisible entities unless they have effects
-    if (ent->alpha == ENTALPHA_ZERO && !EdictV(ent)->effects) continue;
+    if (EDICT_NUM(ent)->alpha == ENTALPHA_ZERO && !EVars(ent)->effects) continue;
     // johnfitz
 
     // johnfitz -- PROTOCOL_FITZQUAKE
     if (SV_Protocol() != PROTOCOL_NETQUAKE) {
-      if (ent->baseline.alpha != ent->alpha) bits |= U_ALPHA;
-      if (bits & U_FRAME && (int)EdictV(ent)->frame & 0xFF00) bits |= U_FRAME2;
-      if (bits & U_MODEL && (int)EdictV(ent)->modelindex & 0xFF00)
+      if (EDICT_NUM(ent)->baseline.alpha != EDICT_NUM(ent)->alpha) bits |= U_ALPHA;
+      if (bits & U_FRAME && (int)EVars(ent)->frame & 0xFF00) bits |= U_FRAME2;
+      if (bits & U_MODEL && (int)EVars(ent)->modelindex & 0xFF00)
         bits |= U_MODEL2;
-      if (ent->sendinterval) bits |= U_LERPFINISH;
+      if (EDICT_NUM(ent)->sendinterval) bits |= U_LERPFINISH;
       if (bits >= 65536) bits |= U_EXTEND1;
       if (bits >= 16777216) bits |= U_EXTEND2;
     }
@@ -416,25 +416,25 @@ void SV_WriteEntitiesToClient(edict_t *clent) {
     else
       SV_MS_WriteByte(e);
 
-    if (bits & U_MODEL) SV_MS_WriteByte(EdictV(ent)->modelindex);
-    if (bits & U_FRAME) SV_MS_WriteByte(EdictV(ent)->frame);
-    if (bits & U_COLORMAP) SV_MS_WriteByte(EdictV(ent)->colormap);
-    if (bits & U_SKIN) SV_MS_WriteByte(EdictV(ent)->skin);
-    if (bits & U_EFFECTS) SV_MS_WriteByte(EdictV(ent)->effects);
-    if (bits & U_ORIGIN1) SV_MS_WriteCoord(EdictV(ent)->origin[0]);
-    if (bits & U_ANGLE1) SV_MS_WriteAngle(EdictV(ent)->angles[0]);
-    if (bits & U_ORIGIN2) SV_MS_WriteCoord(EdictV(ent)->origin[1]);
-    if (bits & U_ANGLE2) SV_MS_WriteAngle(EdictV(ent)->angles[1]);
-    if (bits & U_ORIGIN3) SV_MS_WriteCoord(EdictV(ent)->origin[2]);
-    if (bits & U_ANGLE3) SV_MS_WriteAngle(EdictV(ent)->angles[2]);
+    if (bits & U_MODEL) SV_MS_WriteByte(EVars(ent)->modelindex);
+    if (bits & U_FRAME) SV_MS_WriteByte(EVars(ent)->frame);
+    if (bits & U_COLORMAP) SV_MS_WriteByte(EVars(ent)->colormap);
+    if (bits & U_SKIN) SV_MS_WriteByte(EVars(ent)->skin);
+    if (bits & U_EFFECTS) SV_MS_WriteByte(EVars(ent)->effects);
+    if (bits & U_ORIGIN1) SV_MS_WriteCoord(EVars(ent)->origin[0]);
+    if (bits & U_ANGLE1) SV_MS_WriteAngle(EVars(ent)->angles[0]);
+    if (bits & U_ORIGIN2) SV_MS_WriteCoord(EVars(ent)->origin[1]);
+    if (bits & U_ANGLE2) SV_MS_WriteAngle(EVars(ent)->angles[1]);
+    if (bits & U_ORIGIN3) SV_MS_WriteCoord(EVars(ent)->origin[2]);
+    if (bits & U_ANGLE3) SV_MS_WriteAngle(EVars(ent)->angles[2]);
 
     // johnfitz -- PROTOCOL_FITZQUAKE
-    if (bits & U_ALPHA) SV_MS_WriteByte(ent->alpha);
-    if (bits & U_FRAME2) SV_MS_WriteByte((int)EdictV(ent)->frame >> 8);
-    if (bits & U_MODEL2) SV_MS_WriteByte((int)EdictV(ent)->modelindex >> 8);
+    if (bits & U_ALPHA) SV_MS_WriteByte(EDICT_NUM(ent)->alpha);
+    if (bits & U_FRAME2) SV_MS_WriteByte((int)EVars(ent)->frame >> 8);
+    if (bits & U_MODEL2) SV_MS_WriteByte((int)EVars(ent)->modelindex >> 8);
     if (bits & U_LERPFINISH)
       SV_MS_WriteByte(
-          (byte)(Q_rint((EdictV(ent)->nextthink - SV_Time()) * 255)));
+          (byte)(Q_rint((EVars(ent)->nextthink - SV_Time()) * 255)));
     // johnfitz
   }
 
@@ -456,11 +456,11 @@ SV_CleanupEnts
 */
 void SV_CleanupEnts(void) {
   int e;
-  edict_t *ent;
+  int ent;
 
-  ent = NEXT_EDICT(sv.edicts);
-  for (e = 1; e < SV_NumEdicts(); e++, ent = NEXT_EDICT(ent)) {
-    EdictV(ent)->effects = (int)EdictV(ent)->effects & ~EF_MUZZLEFLASH;
+  ent = 1;
+  for (e = 1; e < SV_NumEdicts(); e++, ent++) {
+    EVars(ent)->effects = (int)EVars(ent)->effects & ~EF_MUZZLEFLASH;
   }
 }
 
@@ -470,27 +470,27 @@ SV_WriteClientdataToMessage
 
 ==================
 */
-void SV_WriteClientdataToMessage(edict_t *ent) {
+void SV_WriteClientdataToMessage(int ent) {
   int bits;
   int i;
-  edict_t *other;
+  int other;
   int items;
   eval_t *val;
 
   //
   // send a damage message
   //
-  if (EdictV(ent)->dmg_take || EdictV(ent)->dmg_save) {
-    other = EDICT_NUM(EdictV(ent)->dmg_inflictor);
+  if (EVars(ent)->dmg_take || EVars(ent)->dmg_save) {
+    other = EVars(ent)->dmg_inflictor;
     SV_MS_WriteByte(svc_damage);
-    SV_MS_WriteByte(EdictV(ent)->dmg_save);
-    SV_MS_WriteByte(EdictV(ent)->dmg_take);
+    SV_MS_WriteByte(EVars(ent)->dmg_save);
+    SV_MS_WriteByte(EVars(ent)->dmg_take);
     for (i = 0; i < 3; i++)
-      SV_MS_WriteCoord(EdictV(other)->origin[i] +
-                       0.5 * (EdictV(other)->mins[i] + EdictV(other)->maxs[i]));
+      SV_MS_WriteCoord(EVars(other)->origin[i] +
+                       0.5 * (EVars(other)->mins[i] + EVars(other)->maxs[i]));
 
-    EdictV(ent)->dmg_take = 0;
-    EdictV(ent)->dmg_save = 0;
+    EVars(ent)->dmg_take = 0;
+    EVars(ent)->dmg_save = 0;
   }
 
   //
@@ -499,42 +499,42 @@ void SV_WriteClientdataToMessage(edict_t *ent) {
   SV_SetIdealPitch();  // how much to look up / down ideally
 
   // a fixangle might get lost in a dropped packet.  Oh well.
-  if (EdictV(ent)->fixangle) {
+  if (EVars(ent)->fixangle) {
     SV_MS_WriteByte(svc_setangle);
-    for (i = 0; i < 3; i++) SV_MS_WriteAngle(EdictV(ent)->angles[i]);
-    EdictV(ent)->fixangle = 0;
+    for (i = 0; i < 3; i++) SV_MS_WriteAngle(EVars(ent)->angles[i]);
+    EVars(ent)->fixangle = 0;
   }
 
   bits = 0;
 
-  if (EdictV(ent)->view_ofs[2] != DEFAULT_VIEWHEIGHT) bits |= SU_VIEWHEIGHT;
+  if (EVars(ent)->view_ofs[2] != DEFAULT_VIEWHEIGHT) bits |= SU_VIEWHEIGHT;
 
-  if (EdictV(ent)->idealpitch) bits |= SU_IDEALPITCH;
+  if (EVars(ent)->idealpitch) bits |= SU_IDEALPITCH;
 
   // stuff the sigil bits into the high bits of items for sbar, or else
   // mix in items2
-  val = GetEdictFieldValue(EdictV(ent), "items2");
+  val = GetEdictFieldValue(EVars(ent), "items2");
 
   if (val)
-    items = (int)EdictV(ent)->items | ((int)val->_float << 23);
+    items = (int)EVars(ent)->items | ((int)val->_float << 23);
   else
     items =
-        (int)EdictV(ent)->items | ((int)Pr_global_struct_serverflags() << 28);
+        (int)EVars(ent)->items | ((int)Pr_global_struct_serverflags() << 28);
 
   bits |= SU_ITEMS;
 
-  if ((int)EdictV(ent)->flags & FL_ONGROUND) bits |= SU_ONGROUND;
+  if ((int)EVars(ent)->flags & FL_ONGROUND) bits |= SU_ONGROUND;
 
-  if (EdictV(ent)->waterlevel >= 2) bits |= SU_INWATER;
+  if (EVars(ent)->waterlevel >= 2) bits |= SU_INWATER;
 
   for (i = 0; i < 3; i++) {
-    if (EdictV(ent)->punchangle[i]) bits |= (SU_PUNCH1 << i);
-    if (EdictV(ent)->velocity[i]) bits |= (SU_VELOCITY1 << i);
+    if (EVars(ent)->punchangle[i]) bits |= (SU_PUNCH1 << i);
+    if (EVars(ent)->velocity[i]) bits |= (SU_VELOCITY1 << i);
   }
 
-  if (EdictV(ent)->weaponframe) bits |= SU_WEAPONFRAME;
+  if (EVars(ent)->weaponframe) bits |= SU_WEAPONFRAME;
 
-  if (EdictV(ent)->armorvalue) bits |= SU_ARMOR;
+  if (EVars(ent)->armorvalue) bits |= SU_ARMOR;
 
   //	if (ent->v.weapon)
   bits |= SU_WEAPON;
@@ -542,17 +542,17 @@ void SV_WriteClientdataToMessage(edict_t *ent) {
   // johnfitz -- PROTOCOL_FITZQUAKE
   if (SV_Protocol() != PROTOCOL_NETQUAKE) {
     if (bits & SU_WEAPON &&
-        SV_ModelIndex(PR_GetString(EdictV(ent)->weaponmodel)) & 0xFF00)
+        SV_ModelIndex(PR_GetString(EVars(ent)->weaponmodel)) & 0xFF00)
       bits |= SU_WEAPON2;
-    if ((int)EdictV(ent)->armorvalue & 0xFF00) bits |= SU_ARMOR2;
-    if ((int)EdictV(ent)->currentammo & 0xFF00) bits |= SU_AMMO2;
-    if ((int)EdictV(ent)->ammo_shells & 0xFF00) bits |= SU_SHELLS2;
-    if ((int)EdictV(ent)->ammo_nails & 0xFF00) bits |= SU_NAILS2;
-    if ((int)EdictV(ent)->ammo_rockets & 0xFF00) bits |= SU_ROCKETS2;
-    if ((int)EdictV(ent)->ammo_cells & 0xFF00) bits |= SU_CELLS2;
-    if (bits & SU_WEAPONFRAME && (int)EdictV(ent)->weaponframe & 0xFF00)
+    if ((int)EVars(ent)->armorvalue & 0xFF00) bits |= SU_ARMOR2;
+    if ((int)EVars(ent)->currentammo & 0xFF00) bits |= SU_AMMO2;
+    if ((int)EVars(ent)->ammo_shells & 0xFF00) bits |= SU_SHELLS2;
+    if ((int)EVars(ent)->ammo_nails & 0xFF00) bits |= SU_NAILS2;
+    if ((int)EVars(ent)->ammo_rockets & 0xFF00) bits |= SU_ROCKETS2;
+    if ((int)EVars(ent)->ammo_cells & 0xFF00) bits |= SU_CELLS2;
+    if (bits & SU_WEAPONFRAME && (int)EVars(ent)->weaponframe & 0xFF00)
       bits |= SU_WEAPONFRAME2;
-    if (bits & SU_WEAPON && ent->alpha != ENTALPHA_DEFAULT)
+    if (bits & SU_WEAPON && EDICT_NUM(ent)->alpha != ENTALPHA_DEFAULT)
       bits |= SU_WEAPONALPHA;  // for now, weaponalpha = client entity alpha
     if (bits >= 65536) bits |= SU_EXTEND1;
     if (bits >= 16777216) bits |= SU_EXTEND2;
@@ -569,36 +569,36 @@ void SV_WriteClientdataToMessage(edict_t *ent) {
   if (bits & SU_EXTEND2) SV_MS_WriteByte(bits >> 24);
   // johnfitz
 
-  if (bits & SU_VIEWHEIGHT) SV_MS_WriteChar(EdictV(ent)->view_ofs[2]);
+  if (bits & SU_VIEWHEIGHT) SV_MS_WriteChar(EVars(ent)->view_ofs[2]);
 
-  if (bits & SU_IDEALPITCH) SV_MS_WriteChar(EdictV(ent)->idealpitch);
+  if (bits & SU_IDEALPITCH) SV_MS_WriteChar(EVars(ent)->idealpitch);
 
   for (i = 0; i < 3; i++) {
-    if (bits & (SU_PUNCH1 << i)) SV_MS_WriteChar(EdictV(ent)->punchangle[i]);
+    if (bits & (SU_PUNCH1 << i)) SV_MS_WriteChar(EVars(ent)->punchangle[i]);
     if (bits & (SU_VELOCITY1 << i))
-      SV_MS_WriteChar(EdictV(ent)->velocity[i] / 16);
+      SV_MS_WriteChar(EVars(ent)->velocity[i] / 16);
   }
 
   // [always sent]	if (bits & SU_ITEMS)
   SV_MS_WriteLong(items);
 
-  if (bits & SU_WEAPONFRAME) SV_MS_WriteByte(EdictV(ent)->weaponframe);
-  if (bits & SU_ARMOR) SV_MS_WriteByte(EdictV(ent)->armorvalue);
+  if (bits & SU_WEAPONFRAME) SV_MS_WriteByte(EVars(ent)->weaponframe);
+  if (bits & SU_ARMOR) SV_MS_WriteByte(EVars(ent)->armorvalue);
   if (bits & SU_WEAPON)
-    SV_MS_WriteByte(SV_ModelIndex(PR_GetString(EdictV(ent)->weaponmodel)));
+    SV_MS_WriteByte(SV_ModelIndex(PR_GetString(EVars(ent)->weaponmodel)));
 
-  SV_MS_WriteShort(EdictV(ent)->health);
-  SV_MS_WriteByte(EdictV(ent)->currentammo);
-  SV_MS_WriteByte(EdictV(ent)->ammo_shells);
-  SV_MS_WriteByte(EdictV(ent)->ammo_nails);
-  SV_MS_WriteByte(EdictV(ent)->ammo_rockets);
-  SV_MS_WriteByte(EdictV(ent)->ammo_cells);
+  SV_MS_WriteShort(EVars(ent)->health);
+  SV_MS_WriteByte(EVars(ent)->currentammo);
+  SV_MS_WriteByte(EVars(ent)->ammo_shells);
+  SV_MS_WriteByte(EVars(ent)->ammo_nails);
+  SV_MS_WriteByte(EVars(ent)->ammo_rockets);
+  SV_MS_WriteByte(EVars(ent)->ammo_cells);
 
   if (CMLStandardQuake()) {
-    SV_MS_WriteByte(EdictV(ent)->weapon);
+    SV_MS_WriteByte(EVars(ent)->weapon);
   } else {
     for (i = 0; i < 32; i++) {
-      if (((int)EdictV(ent)->weapon) & (1 << i)) {
+      if (((int)EVars(ent)->weapon) & (1 << i)) {
         SV_MS_WriteByte(i);
         break;
       }
@@ -607,17 +607,17 @@ void SV_WriteClientdataToMessage(edict_t *ent) {
 
   // johnfitz -- PROTOCOL_FITZQUAKE
   if (bits & SU_WEAPON2)
-    SV_MS_WriteByte(SV_ModelIndex(PR_GetString(EdictV(ent)->weaponmodel)) >> 8);
-  if (bits & SU_ARMOR2) SV_MS_WriteByte((int)EdictV(ent)->armorvalue >> 8);
-  if (bits & SU_AMMO2) SV_MS_WriteByte((int)EdictV(ent)->currentammo >> 8);
-  if (bits & SU_SHELLS2) SV_MS_WriteByte((int)EdictV(ent)->ammo_shells >> 8);
-  if (bits & SU_NAILS2) SV_MS_WriteByte((int)EdictV(ent)->ammo_nails >> 8);
-  if (bits & SU_ROCKETS2) SV_MS_WriteByte((int)EdictV(ent)->ammo_rockets >> 8);
-  if (bits & SU_CELLS2) SV_MS_WriteByte((int)EdictV(ent)->ammo_cells >> 8);
+    SV_MS_WriteByte(SV_ModelIndex(PR_GetString(EVars(ent)->weaponmodel)) >> 8);
+  if (bits & SU_ARMOR2) SV_MS_WriteByte((int)EVars(ent)->armorvalue >> 8);
+  if (bits & SU_AMMO2) SV_MS_WriteByte((int)EVars(ent)->currentammo >> 8);
+  if (bits & SU_SHELLS2) SV_MS_WriteByte((int)EVars(ent)->ammo_shells >> 8);
+  if (bits & SU_NAILS2) SV_MS_WriteByte((int)EVars(ent)->ammo_nails >> 8);
+  if (bits & SU_ROCKETS2) SV_MS_WriteByte((int)EVars(ent)->ammo_rockets >> 8);
+  if (bits & SU_CELLS2) SV_MS_WriteByte((int)EVars(ent)->ammo_cells >> 8);
   if (bits & SU_WEAPONFRAME2)
-    SV_MS_WriteByte((int)EdictV(ent)->weaponframe >> 8);
+    SV_MS_WriteByte((int)EVars(ent)->weaponframe >> 8);
   // for now, weaponalpha = client entity alpha
-  if (bits & SU_WEAPONALPHA) SV_MS_WriteByte(ent->alpha);
+  if (bits & SU_WEAPONALPHA) SV_MS_WriteByte(EDICT_NUM(ent)->alpha);
   // johnfitz
 }
 
@@ -640,9 +640,9 @@ qboolean SV_SendClientDatagram(int client) {
   SV_MS_WriteFloat(SV_Time());
 
   // add the client specific data to the datagram
-  SV_WriteClientdataToMessage(EDICT_NUM(GetClientEdictId(client)));
+  SV_WriteClientdataToMessage(GetClientEdictId(client));
 
-  SV_WriteEntitiesToClient(EDICT_NUM(GetClientEdictId(client)));
+  SV_WriteEntitiesToClient(GetClientEdictId(client));
 
   return SV_DG_SendOut(client);
 }
