@@ -19,7 +19,6 @@ cvar_t sv_edgefriction;
 cvar_t sv_altnoclip;
 
 edict_t *SV_GetEdict(int cl) { return EDICT_NUM(GetClientEdictId(cl)); }
-int SV_GetEdictNum(int cl) { return GetClientEdictId(cl); }
 
 void SV_SetEdictNum(int cl, int num) { SetClientEdictId(cl, num); }
 
@@ -313,38 +312,38 @@ the angle fields specify an exact angular motion in degrees
 */
 void SV_ClientThink(int client) {
   movecmd_t cmd;
+  entvars_t *entv = EVars(GetClientEdictId(client));
   edict_t *player = SV_GetEdict(client);
   vec3_t v_angle;
 
-  if (EdictV(player)->movetype == MOVETYPE_NONE) return;
+  if (entv->movetype == MOVETYPE_NONE) return;
 
-  onground = (int)EdictV(player)->flags & FL_ONGROUND;
+  onground = (int)entv->flags & FL_ONGROUND;
 
-  origin = EdictV(player)->origin;
-  velocity = EdictV(player)->velocity;
+  origin = entv->origin;
+  velocity = entv->velocity;
 
   DropPunchAngle(player);
 
   //
   // if dead, behave differently
   //
-  if (EdictV(player)->health <= 0) return;
+  if (entv->health <= 0) return;
 
   //
   // angles
   // show 1/3 the pitch angle and all the roll angle
   cmd = GetClientMoveCmd(client);
-  angles = EdictV(player)->angles;
+  angles = entv->angles;
 
-  VectorAdd(EdictV(player)->v_angle, EdictV(player)->punchangle, v_angle);
-  angles[ROLL] =
-      V_CalcRoll(EdictV(player)->angles, EdictV(player)->velocity) * 4;
-  if (!EdictV(player)->fixangle) {
+  VectorAdd(entv->v_angle, entv->punchangle, v_angle);
+  angles[ROLL] = V_CalcRoll(entv->angles, entv->velocity) * 4;
+  if (!entv->fixangle) {
     angles[PITCH] = -v_angle[PITCH] / 3;
     angles[YAW] = v_angle[YAW];
   }
 
-  if ((int)EdictV(player)->flags & FL_WATERJUMP) {
+  if ((int)entv->flags & FL_WATERJUMP) {
     SV_WaterJump(player);
     return;
   }
@@ -352,11 +351,11 @@ void SV_ClientThink(int client) {
   // walk
   //
   // johnfitz -- alternate noclip
-  if (EdictV(player)->movetype == MOVETYPE_NOCLIP &&
+  if (entv->movetype == MOVETYPE_NOCLIP &&
       Cvar_GetValue(&sv_altnoclip)) {
     SV_NoclipMove(player, &cmd);
-  } else if (EdictV(player)->waterlevel >= 2 &&
-             EdictV(player)->movetype != MOVETYPE_NOCLIP) {
+  } else if (entv->waterlevel >= 2 &&
+             entv->movetype != MOVETYPE_NOCLIP) {
     SV_WaterMove(player, &cmd);
   } else {
     SV_AirMove(player, &cmd);
@@ -371,7 +370,7 @@ SV_ReadClientMove
 */
 void SV_ReadClientMove(int client) {
   movecmd_t move;
-  edict_t *player = SV_GetEdict(client);
+  entvars_t *entv = EVars(GetClientEdictId(client));
 
   int i;
   vec3_t angle;
@@ -391,7 +390,7 @@ void SV_ReadClientMove(int client) {
       angle[i] = MSG_ReadAngle16();
   // johnfitz
 
-  VectorCopy(angle, EdictV(player)->v_angle);
+  VectorCopy(angle, entv->v_angle);
 
   // read movement
   move.forwardmove = MSG_ReadShort();
@@ -401,11 +400,11 @@ void SV_ReadClientMove(int client) {
 
   // read buttons
   bits = MSG_ReadByte();
-  EdictV(player)->button0 = bits & 1;
-  EdictV(player)->button2 = (bits & 2) >> 1;
+  entv->button0 = bits & 1;
+  entv->button2 = (bits & 2) >> 1;
 
   i = MSG_ReadByte();
-  if (i) EdictV(player)->impulse = i;
+  if (i) entv->impulse = i;
 }
 
 /*
@@ -532,7 +531,7 @@ void SV_RunClients(void) {
   for (i = 0, host_client = 0; i < SVS_GetMaxClients(); i++, host_client++) {
     if (!GetClientActive(HostClient())) continue;
 
-    Set_SV_Player(NUM_FOR_EDICT(SV_GetEdict(HostClient())));
+    Set_SV_Player(GetClientEdictId(HostClient()));
 
     if (!SV_ReadClientMessage(HostClient())) {
       SV_DropClient(HostClient(), false);  // client misbehaved...

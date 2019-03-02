@@ -354,7 +354,7 @@ void Host_Status_f(void) {
       hours = 0;
     char *name = GetClientName(j);
     print_fn("#%-2u %-16.16s  %3i  %2i:%02i:%02i\n", j + 1, name,
-             (int)EdictV(SV_GetEdict(j))->frags, hours, minutes, seconds);
+             (int)EVars(GetClientEdictId(j))->frags, hours, minutes, seconds);
     free(name);
     print_fn("   %s\n", NET_QSocketGetAddressString(j));
   }
@@ -690,7 +690,7 @@ void Host_Savegame_f(void) {
 
   // (therjak) Why this? SVS_GetMaxClients is 1
   for (i = 0; i < SVS_GetMaxClients(); i++) {
-    if (GetClientActive(i) && (EdictV(SV_GetEdict(i))->health <= 0)) {
+    if (GetClientActive(i) && (EVars(GetClientEdictId(i))->health <= 0)) {
       Con_Printf("Can't savegame with a dead player\n");
       return;
     }
@@ -907,7 +907,7 @@ void Host_Name_f(void) {
   }
   SetClientName(HostClient(), newName);
   free(name);
-  EdictV(SV_GetEdict(HostClient()))->netname = PR_SetEngineString(newName);
+  EVars(GetClientEdictId(HostClient()))->netname = PR_SetEngineString(newName);
 
   // send notification to all clients
 
@@ -946,7 +946,7 @@ Host_Spawn_f
 */
 void Host_Spawn_f(void) {
   int i;
-  edict_t *ent;
+  int ent;
   entvars_t *entv;
 
   if (IsSrcCommand()) {
@@ -965,11 +965,11 @@ void Host_Spawn_f(void) {
     SV_SetPaused(false);
   } else {
     // set up the edict
-    ent = SV_GetEdict(HostClient());
-    entv = EdictV(ent);
+    ent = GetClientEdictId(HostClient());
+    entv = EVars(ent);
 
     TT_ClearEntVars(entv);
-    entv->colormap = NUM_FOR_EDICT(ent);
+    entv->colormap = ent;
     entv->team = (GetClientColors(HostClient()) & 15) + 1;
     // TODO(therjak): This is a memory leak!!!
     Sys_Print("Memory Leaking");
@@ -1046,10 +1046,10 @@ void Host_Spawn_f(void) {
   // in a state where it is expecting the client to correct the angle
   // and it won't happen if the game was just loaded, so you wind up
   // with a permanent head tilt
-  ent = EDICT_NUM(1 + (HostClient()));
+  ent = 1 + HostClient();
   ClientWriteByte(HostClient(), svc_setangle);
   for (i = 0; i < 2; i++)
-    ClientWriteAngle(HostClient(), EdictV(ent)->angles[i]);
+    ClientWriteAngle(HostClient(), EVars(ent)->angles[i]);
   ClientWriteAngle(HostClient(), 0);
   {
     SV_MS_Clear();

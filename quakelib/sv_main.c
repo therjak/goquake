@@ -657,15 +657,15 @@ void SV_UpdateToReliableMessages(void) {
 
   // check for changes to be sent over the reliable streams
   for (i = 0; i < SVS_GetMaxClients(); i++) {
-    if (GetClientOldFrags(i) != EdictV(SV_GetEdict(i))->frags) {
+    if (GetClientOldFrags(i) != EVars(GetClientEdictId(i))->frags) {
       for (j = 0; j < SVS_GetMaxClients(); j++) {
         if (!GetClientActive(j)) continue;
         ClientWriteByte(j, svc_updatefrags);
         ClientWriteByte(j, i);
-        ClientWriteShort(j, EdictV(SV_GetEdict(i))->frags);
+        ClientWriteShort(j, EVars(GetClientEdictId(i))->frags);
       }
 
-      SetClientOldFrags(i, EdictV(SV_GetEdict(i))->frags);
+      SetClientOldFrags(i, EVars(GetClientEdictId(i))->frags);
     }
   }
 
@@ -846,7 +846,7 @@ void SV_SaveSpawnparms(void) {
     if (!GetClientActive(HostClient())) continue;
 
     // call the progs to get default spawn parms for the new client
-    Set_pr_global_struct_self(NUM_FOR_EDICT(SV_GetEdict(HostClient())));
+    Set_pr_global_struct_self(GetClientEdictId(HostClient()));
     PR_ExecuteProgram(Pr_global_struct_SetChangeParms());
     for (j = 0; j < NUM_SPAWN_PARMS; j++) {
       SetClientSpawnParam(HostClient(), j, Pr_global_struct_parm(j));
