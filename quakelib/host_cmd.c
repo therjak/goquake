@@ -746,7 +746,6 @@ void Host_Loadgame_f(void) {
   char str[32768];
   const char *start;
   int i, r;
-  edict_t *ent;
   int entnum;
   int version;
   float spawn_parms[NUM_SPAWN_PARMS];
@@ -843,17 +842,16 @@ void Host_Loadgame_f(void) {
     if (entnum == -1) {  // parse the global vars
       ED_ParseGlobals(start);
     } else {  // parse an edict
-      ent = EDICT_NUM(entnum);
       if (entnum < SV_NumEdicts()) {
-        ent->free = false;
+        EDICT_NUM(entnum)->free = false;
         TT_ClearEntVars(EVars(entnum));
       } else {
-        TT_ClearEdict(ent);
+        TT_ClearEdict(EDICT_NUM(entnum));
       }
-      ED_ParseEdict(start, ent);
+      ED_ParseEdict(start, EDICT_NUM(entnum));
 
       // link it into the bsp tree
-      if (!ent->free) SV_LinkEdict(NUM_FOR_EDICT(ent), false);
+      if (!EDICT_NUM(entnum)->free) SV_LinkEdict(entnum, false);
     }
 
     entnum++;
