@@ -130,39 +130,6 @@ the
 #define CCREP_PLAYER_INFO 0x84
 #define CCREP_RULE_INFO 0x85
 
-//typedef struct qsocket_s {
-//  int id;
-  /*
-  struct qsocket_s *next;
-  double connecttime;
-  double lastMessageTime;
-  double lastSendTime;
-
-  qboolean disconnected;
-  qboolean canSend;
-  qboolean sendNext;
-
-  int driver;
-  int landriver;
-  sys_socket_t socket;
-  void *driverdata;
-
-  unsigned int ackSequence;
-  unsigned int sendSequence;
-  unsigned int unreliableSendSequence;
-  int sendMessageLength;
-  byte sendMessage[NET_MAXMESSAGE];
-
-  unsigned int receiveSequence;
-  unsigned int unreliableReceiveSequence;
-  int receiveMessageLength;
-  byte receiveMessage[NET_MAXMESSAGE];
-
-  struct qsockaddr addr;
-  char address[NET_NAMELEN];
-*/
-//} qsocket_t;
-
 extern int net_activeSockets;
 extern int net_freeSockets;
 extern int net_numsockets;
