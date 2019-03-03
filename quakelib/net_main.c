@@ -4,8 +4,6 @@
 //
 #include "arch_def.h"
 //
-#include "net_sys.h"
-//
 #include "quakedef.h"
 //
 #include "net_defs.h"

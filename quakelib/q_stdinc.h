@@ -29,6 +29,7 @@
 #ifndef __QSTDINC_H
 #define __QSTDINC_H
 
+#include <stdbool.h>
 #include <sys/types.h>
 #include <stddef.h>
 #include <limits.h>
@@ -110,13 +111,6 @@ COMPILE_TIME_ASSERT(enum, sizeof(THE_DUMMY_ENUM) == sizeof(int));
 
 typedef unsigned char byte;
 
-#undef true
-#undef false
-#if defined(__cplusplus)
-#else
-#define true 1
-#define false 0
-#endif
 //#if defined(__cplusplus)
 /* some structures have qboolean members and the x86 asm code expect
  * those members to be 4 bytes long. therefore, qboolean must be 32
