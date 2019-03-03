@@ -542,19 +542,17 @@ For debugging
 =============
 */
 static void ED_Count(void) {
-  edict_t *ent;
   int i, active, models, solid, step;
 
   if (!SV_Active()) return;
 
   active = models = solid = step = 0;
   for (i = 0; i < SV_NumEdicts(); i++) {
-    ent = EDICT_NUM(i);
-    if (ent->free) continue;
+    if (EDICT_NUM(i)->free) continue;
     active++;
-    if (EdictV(ent)->solid) solid++;
-    if (EdictV(ent)->model) models++;
-    if (EdictV(ent)->movetype == MOVETYPE_STEP) step++;
+    if (EVars(i)->solid) solid++;
+    if (EVars(i)->model) models++;
+    if (EVars(i)->movetype == MOVETYPE_STEP) step++;
   }
 
   Con_Printf("num_edicts:%3i\n", SV_NumEdicts());
