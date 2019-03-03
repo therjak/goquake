@@ -89,7 +89,7 @@ qboolean SV_movestep(int ent, vec3_t move, qboolean relink) {
   vec3_t oldorg, neworg, end;
   trace_t trace;
   int i;
-  edict_t *enemy;
+  int enemy;
 
   // try the move
   VectorCopy(EVars(ent)->origin, oldorg);
@@ -100,8 +100,8 @@ qboolean SV_movestep(int ent, vec3_t move, qboolean relink) {
     // try one move with vertical motion, then one without
     for (i = 0; i < 2; i++) {
       VectorAdd(EVars(ent)->origin, move, neworg);
-      enemy = EDICT_NUM(EVars(ent)->enemy);
-      if (i == 0 && enemy != sv.edicts) {
+      enemy = EVars(ent)->enemy;
+      if (i == 0 && enemy != 0) {
         dz = EVars(ent)->origin[2] -
              EVars(EVars(ent)->enemy)->origin[2];
         if (dz > 40) neworg[2] -= 8;
@@ -120,7 +120,7 @@ qboolean SV_movestep(int ent, vec3_t move, qboolean relink) {
         return true;
       }
 
-      if (enemy == sv.edicts) break;
+      if (enemy == 0) break;
     }
 
     return false;
