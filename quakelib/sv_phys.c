@@ -251,13 +251,13 @@ int SV_FlyMove(int ent, float time, trace_t *steptrace) {
 
     if (trace.fraction == 1) break;  // moved the entire distance
 
-    if (!trace.ent) Go_Error("SV_FlyMove: !trace.ent");
+    if (!trace.entp) Go_Error("SV_FlyMove: !trace.ent");
 
     if (trace.plane.normal[2] > 0.7) {
       blocked |= 1;  // floor
-      if (EdictV(trace.ent)->solid == SOLID_BSP) {
+      if (EVars(trace.entn)->solid == SOLID_BSP) {
         EVars(ent)->flags = (int)EVars(ent)->flags | FL_ONGROUND;
-        EVars(ent)->groundentity = NUM_FOR_EDICT(trace.ent);
+        EVars(ent)->groundentity = trace.entn;
       }
     }
     if (!trace.plane.normal[2]) {
@@ -268,7 +268,7 @@ int SV_FlyMove(int ent, float time, trace_t *steptrace) {
     //
     // run the impact function
     //
-    SV_Impact(ent, NUM_FOR_EDICT(trace.ent));
+    SV_Impact(ent, trace.entn);
     if (EDICT_NUM(ent)->free) break;  // removed by the impact function
 
     time_left -= time_left * trace.fraction;
@@ -377,7 +377,7 @@ trace_t SV_PushEntity(int ent, vec3_t push) {
   VectorCopy(trace.endpos, EVars(ent)->origin);
   SV_LinkEdict(ent, true);
 
-  if (trace.ent) SV_Impact(ent, NUM_FOR_EDICT(trace.ent));
+  if (trace.entp) SV_Impact(ent, trace.entn);
 
   return trace;
 }
@@ -806,7 +806,7 @@ void SV_WalkMove(int ent) {
   if (downtrace.plane.normal[2] > 0.7) {
     if (EVars(ent)->solid == SOLID_BSP) {
       EVars(ent)->flags = (int)EVars(ent)->flags | FL_ONGROUND;
-      EVars(ent)->groundentity = NUM_FOR_EDICT(downtrace.ent);
+      EVars(ent)->groundentity = downtrace.entn;
     }
   } else {
     // if the push down didn't end up on good ground, use the move without
@@ -1007,7 +1007,7 @@ void SV_Physics_Toss(int ent) {
     if (EVars(ent)->velocity[2] < 60 ||
         EVars(ent)->movetype != MOVETYPE_BOUNCE) {
       EVars(ent)->flags = (int)EVars(ent)->flags | FL_ONGROUND;
-      EVars(ent)->groundentity = NUM_FOR_EDICT(trace.ent);
+      EVars(ent)->groundentity = trace.entn;
       VectorCopy(vec3_origin, EVars(ent)->velocity);
       VectorCopy(vec3_origin, EVars(ent)->avelocity);
     }

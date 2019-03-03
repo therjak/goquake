@@ -35,7 +35,8 @@ typedef struct {
   float fraction;  // time completed, 1.0 = didn't hit anything
   vec3_t endpos;   // final position
   plane_t plane;   // surface normal at impact
-  edict_t *ent;    // entity the surface is on
+  edict_t *entp;    // entity the surface is on
+  int entn;    // entity the surface is on
 } trace_t;
 
 #define MOVE_NORMAL 0

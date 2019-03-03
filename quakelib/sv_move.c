@@ -174,7 +174,7 @@ qboolean SV_movestep(int ent, vec3_t move, qboolean relink) {
     //		Con_Printf ("back on ground\n");
     EVars(ent)->flags = (int)EVars(ent)->flags & ~FL_PARTIALGROUND;
   }
-  EVars(ent)->groundentity = NUM_FOR_EDICT(trace.ent);
+  EVars(ent)->groundentity = trace.entn;
 
   // the move is ok
   if (relink) SV_LinkEdict(ent, true);
