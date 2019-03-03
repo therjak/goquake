@@ -63,7 +63,7 @@ edict_t *ED_Alloc(void);
 void ED_Free(edict_t *ed);
 
 void ED_Write(FILE *f, edict_t *ed);
-const char *ED_ParseEdict(const char *data, edict_t *ent);
+const char *ED_ParseEdict(const char *data, int ent);
 
 void ED_WriteGlobals(FILE *f);
 void ED_ParseGlobals(const char *data);

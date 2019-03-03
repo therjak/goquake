@@ -848,7 +848,7 @@ void Host_Loadgame_f(void) {
       } else {
         TT_ClearEdict(EDICT_NUM(entnum));
       }
-      ED_ParseEdict(start, EDICT_NUM(entnum));
+      ED_ParseEdict(start, entnum);
 
       // link it into the bsp tree
       if (!EDICT_NUM(entnum)->free) SV_LinkEdict(entnum, false);

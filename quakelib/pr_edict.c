@@ -753,7 +753,7 @@ ed should be a properly initialized empty edict.
 Used for initial level load and for savegames.
 ====================
 */
-const char *ED_ParseEdict(const char *data, edict_t *ent) {
+const char *ED_ParseEdict(const char *data, int ent) {
   ddef_t *key;
   char keyname[256];
   qboolean anglehack, init;
@@ -762,8 +762,8 @@ const char *ED_ParseEdict(const char *data, edict_t *ent) {
   init = false;
 
   // clear it
-  if (ent != sv.edicts)  // hack
-    TT_ClearEntVars(EdictV(ent));
+  if (ent != 0)  // hack
+    TT_ClearEntVars(EVars(ent));
 
   // go through all the dictionary pairs
   while (1) {
@@ -809,7 +809,7 @@ const char *ED_ParseEdict(const char *data, edict_t *ent) {
     // johnfitz -- hack to support .alpha even when progs.dat doesn't know about
     // it
     if (!strcmp(keyname, "alpha"))
-      ent->alpha = ENTALPHA_ENCODE(atof(com_token));
+      EDICT_NUM(ent)->alpha = ENTALPHA_ENCODE(atof(com_token));
     // johnfitz
 
     key = ED_FindField(keyname);
@@ -829,11 +829,11 @@ const char *ED_ParseEdict(const char *data, edict_t *ent) {
       sprintf(com_token, "0 %s 0", temp);
     }
 
-    if (!ED_ParseEpair((void *)EdictV(ent), key, com_token))
+    if (!ED_ParseEpair((void *)EVars(ent), key, com_token))
       Host_Error("ED_ParseEdict: parse error");
   }
 
-  if (!init) ent->free = true;
+  if (!init) EDICT_NUM(ent)->free = true;
 
   return data;
 }
@@ -872,7 +872,7 @@ void ED_LoadFromFile(const char *data) {
       ent = EDICT_NUM(0);
     else
       ent = ED_Alloc();
-    data = ED_ParseEdict(data, ent);
+    data = ED_ParseEdict(data, NUM_FOR_EDICT(ent));
 
     // remove things from different skill levels or deathmatch
     if (Cvar_GetValue(&deathmatch)) {
