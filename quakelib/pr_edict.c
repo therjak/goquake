@@ -456,7 +456,7 @@ ED_Write
 For savegames
 =============
 */
-void ED_Write(FILE *f, edict_t *ed) {
+void ED_Write(FILE *f, int ed) {
   ddef_t *d;
   int *v;
   int i, j;
@@ -465,7 +465,7 @@ void ED_Write(FILE *f, edict_t *ed) {
 
   fprintf(f, "{\n");
 
-  if (ed->free) {
+  if (EDICT_NUM(ed)->free) {
     fprintf(f, "}\n");
     return;
   }
@@ -476,7 +476,7 @@ void ED_Write(FILE *f, edict_t *ed) {
     j = strlen(name);
     if (j > 1 && name[j - 2] == '_') continue;  // skip _x, _y, _z vars
 
-    v = (int *)((char *)EdictV(ed) + d->ofs * 4);
+    v = (int *)((char *)EVars(ed) + d->ofs * 4);
 
     // if the value is still all 0, skip the field
     type = d->type & ~DEF_SAVEGLOBAL;
@@ -491,8 +491,8 @@ void ED_Write(FILE *f, edict_t *ed) {
 
   // johnfitz -- save entity alpha manually when progs.dat doesn't know about
   // alpha
-  if (!pr_alpha_supported && ed->alpha != ENTALPHA_DEFAULT)
-    fprintf(f, "\"alpha\" \"%f\"\n", ENTALPHA_TOSAVE(ed->alpha));
+  if (!pr_alpha_supported && EDICT_NUM(ed)->alpha != ENTALPHA_DEFAULT)
+    fprintf(f, "\"alpha\" \"%f\"\n", ENTALPHA_TOSAVE(EDICT_NUM(ed)->alpha));
   // johnfitz
 
   fprintf(f, "}\n");

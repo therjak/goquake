@@ -726,7 +726,7 @@ void Host_Savegame_f(void) {
 
   ED_WriteGlobals(f);
   for (i = 0; i < SV_NumEdicts(); i++) {
-    ED_Write(f, EDICT_NUM(i));
+    ED_Write(f, i);
     fflush(f);
   }
   fclose(f);
