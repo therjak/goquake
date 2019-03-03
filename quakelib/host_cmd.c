@@ -846,7 +846,7 @@ void Host_Loadgame_f(void) {
         EDICT_NUM(entnum)->free = false;
         TT_ClearEntVars(EVars(entnum));
       } else {
-        TT_ClearEdict(EDICT_NUM(entnum));
+        TT_ClearEdict(entnum);
       }
       ED_ParseEdict(start, entnum);
 

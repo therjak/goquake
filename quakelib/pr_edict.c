@@ -68,9 +68,9 @@ ED_ClearEdict
 Sets everything to NULL
 =================
 */
-void ED_ClearEdict(edict_t *e) {
-  TT_ClearEntVars(EdictV(e));
-  e->free = false;
+void ED_ClearEdict(int e) {
+  TT_ClearEntVars(EVars(e));
+  EDICT_NUM(e)->free = false;
 }
 
 /*
@@ -93,7 +93,7 @@ edict_t *ED_Alloc(void) {
     // the first couple seconds of server time can involve a lot of
     // freeing and allocating, so relax the replacement policy
     if (e->free && (e->freetime < 2 || SV_Time() - e->freetime > 0.5)) {
-      ED_ClearEdict(e);
+      ED_ClearEdict(i);
       return e;
     }
   }
@@ -103,13 +103,12 @@ edict_t *ED_Alloc(void) {
     Host_Error("ED_Alloc: no free edicts (max_edicts is %i)", SV_MaxEdicts());
 
   SV_SetNumEdicts(SV_NumEdicts() + 1);
-  e = EDICT_NUM(i);
-  TT_ClearEdict(e);
+  TT_ClearEdict(i);
   // ericw -- switched sv.edicts to malloc(), so
   // we are accessing uninitialized memory and
   // must fully zero it, not just ED_ClearEdict
 
-  return e;
+  return EDICT_NUM(i);
 }
 
 /*
@@ -1007,9 +1006,10 @@ void PR_LoadProgs(void) {
   }
 }
 
-void TT_ClearEdict(edict_t *e) {
-  memset(e, 0, sizeof(edict_t));
-  TT_ClearEntVars(EdictV(e));
+void TT_ClearEdict(int e) {
+  edict_t *ent = EDICT_NUM(e);
+  memset(ent, 0, sizeof(edict_t));
+  TT_ClearEntVars(EVars(e));
 }
 
 edict_t *EDICT_NUM(int n) {

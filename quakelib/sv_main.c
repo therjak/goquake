@@ -926,7 +926,7 @@ void SV_SpawnServer(const char *server) {
   // leave slots at start for clients only
   SV_SetNumEdicts(SVS_GetMaxClients() + 1);
   for (i = 0; i < SV_NumEdicts(); i++) {
-    TT_ClearEdict(EDICT_NUM(i));
+    TT_ClearEdict(i);
   }
   // ericw -- sv.edicts switched to use malloc()
   for (i = 0; i < SVS_GetMaxClients(); i++) {

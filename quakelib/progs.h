@@ -57,7 +57,7 @@ int PR_SetEngineString(char *s);
 
 void PR_Profile_f(void);
 
-void TT_ClearEdict(edict_t *e);
+void TT_ClearEdict(int e);
 
 edict_t *ED_Alloc(void);
 void ED_Free(edict_t *ed);
