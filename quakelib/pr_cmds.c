@@ -85,7 +85,7 @@ static void PF_objerror(void) {
              PR_GetString(pr_xfunction->s_name), s);
   ed = Pr_global_struct_self();
   ED_PrintNum(ed);
-  ED_Free(EDICT_NUM(ed));
+  ED_Free(ed);
 
   // Host_Error ("Program error"); //johnfitz -- by design, this should not be
   // fatal
@@ -929,9 +929,9 @@ static void PF_Spawn(void) {
 }
 
 static void PF_Remove(void) {
-  edict_t *ed;
+  int ed;
 
-  ed = EDICT_NUM(Pr_globalsi(OFS_PARM0));
+  ed = Pr_globalsi(OFS_PARM0);
   ED_Free(ed);
 }
 
@@ -1473,7 +1473,7 @@ static void PF_makestatic(void) {
 
   // johnfitz -- don't send invisible static entities
   if (EDICT_NUM(ent)->alpha == ENTALPHA_ZERO) {
-    ED_Free(EDICT_NUM(ent));
+    ED_Free(ent);
     return;
   }
   // johnfitz
@@ -1482,7 +1482,7 @@ static void PF_makestatic(void) {
   if (SV_Protocol() == PROTOCOL_NETQUAKE) {
     if (SV_ModelIndex(PR_GetString(EVars(ent)->model)) & 0xFF00 ||
         (int)(EVars(ent)->frame) & 0xFF00) {
-      ED_Free(EDICT_NUM(ent));
+      ED_Free(ent);
       return;  // can't display the correct model & frame, so don't show it at
                // all
     }
@@ -1522,7 +1522,7 @@ static void PF_makestatic(void) {
   // johnfitz
 
   // throw the entity away now
-  ED_Free(EDICT_NUM(ent));
+  ED_Free(ent);
 }
 
 //=============================================================================

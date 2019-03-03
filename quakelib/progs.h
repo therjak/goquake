@@ -60,7 +60,7 @@ void PR_Profile_f(void);
 void TT_ClearEdict(int e);
 
 edict_t *ED_Alloc(void);
-void ED_Free(edict_t *ed);
+void ED_Free(int ed);
 
 void ED_Write(FILE *f, int ed);
 const char *ED_ParseEdict(const char *data, int ent);

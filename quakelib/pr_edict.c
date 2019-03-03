@@ -119,23 +119,23 @@ Marks the edict as free
 FIXME: walk all entities and NULL out references to this entity
 =================
 */
-void ED_Free(edict_t *ed) {
-  SV_UnlinkEdict(NUM_FOR_EDICT(ed));  // unlink from world bsp
+void ED_Free(int ed) {
+  SV_UnlinkEdict(ed);  // unlink from world bsp
 
-  ed->free = true;
-  EdictV(ed)->model = 0;
-  EdictV(ed)->takedamage = 0;
-  EdictV(ed)->modelindex = 0;
-  EdictV(ed)->colormap = 0;
-  EdictV(ed)->skin = 0;
-  EdictV(ed)->frame = 0;
-  VectorCopy(vec3_origin, EdictV(ed)->origin);
-  VectorCopy(vec3_origin, EdictV(ed)->angles);
-  EdictV(ed)->nextthink = -1;
-  EdictV(ed)->solid = 0;
-  ed->alpha = ENTALPHA_DEFAULT;  // johnfitz -- reset alpha for next entity
+  EDICT_NUM(ed)->free = true;
+  EVars(ed)->model = 0;
+  EVars(ed)->takedamage = 0;
+  EVars(ed)->modelindex = 0;
+  EVars(ed)->colormap = 0;
+  EVars(ed)->skin = 0;
+  EVars(ed)->frame = 0;
+  VectorCopy(vec3_origin, EVars(ed)->origin);
+  VectorCopy(vec3_origin, EVars(ed)->angles);
+  EVars(ed)->nextthink = -1;
+  EVars(ed)->solid = 0;
+  EDICT_NUM(ed)->alpha = ENTALPHA_DEFAULT;  // johnfitz -- reset alpha for next entity
 
-  ed->freetime = SV_Time();
+  EDICT_NUM(ed)->freetime = SV_Time();
 }
 
 //===========================================================================
@@ -876,7 +876,7 @@ void ED_LoadFromFile(const char *data) {
     // remove things from different skill levels or deathmatch
     if (Cvar_GetValue(&deathmatch)) {
       if (((int)EdictV(ent)->spawnflags & SPAWNFLAG_NOT_DEATHMATCH)) {
-        ED_Free(ent);
+        ED_Free(NUM_FOR_EDICT(ent));
         inhibit++;
         continue;
       }
@@ -886,7 +886,7 @@ void ED_LoadFromFile(const char *data) {
                 ((int)EdictV(ent)->spawnflags & SPAWNFLAG_NOT_MEDIUM)) ||
                (current_skill >= 2 &&
                 ((int)EdictV(ent)->spawnflags & SPAWNFLAG_NOT_HARD))) {
-      ED_Free(ent);
+      ED_Free(NUM_FOR_EDICT(ent));
       inhibit++;
       continue;
     }
@@ -897,7 +897,7 @@ void ED_LoadFromFile(const char *data) {
     if (!EdictV(ent)->classname) {
       Con_SafePrintf("No classname for:\n");  // johnfitz -- was Con_Printf
       ED_PrintNum(NUM_FOR_EDICT(ent));
-      ED_Free(ent);
+      ED_Free(NUM_FOR_EDICT(ent));
       continue;
     }
 
@@ -907,7 +907,7 @@ void ED_LoadFromFile(const char *data) {
     if (!func) {
       Con_SafePrintf("No spawn function for:\n");  // johnfitz -- was Con_Printf
       ED_PrintNum(NUM_FOR_EDICT(ent));
-      ED_Free(ent);
+      ED_Free(NUM_FOR_EDICT(ent));
       continue;
     }
 
