@@ -897,7 +897,7 @@ void ED_LoadFromFile(const char *data) {
     //
     if (!EdictV(ent)->classname) {
       Con_SafePrintf("No classname for:\n");  // johnfitz -- was Con_Printf
-      ED_Print(ent);
+      ED_PrintNum(NUM_FOR_EDICT(ent));
       ED_Free(ent);
       continue;
     }
@@ -907,7 +907,7 @@ void ED_LoadFromFile(const char *data) {
 
     if (!func) {
       Con_SafePrintf("No spawn function for:\n");  // johnfitz -- was Con_Printf
-      ED_Print(ent);
+      ED_PrintNum(NUM_FOR_EDICT(ent));
       ED_Free(ent);
       continue;
     }
