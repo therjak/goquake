@@ -470,7 +470,7 @@ This could be a lot more efficient...
 qboolean SV_TestEntityPosition(int ent) {
   trace_t trace;
   entvars_t *ev;
-  ev = EdictV(EDICT_NUM(ent));
+  ev = EVars(ent);
 
   trace = SV_Move(ev->origin, ev->mins, ev->maxs, ev->origin, 0, ent);
 
