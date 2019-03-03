@@ -9,7 +9,7 @@ static char *PR_GetTempString(void) {
   return pr_string_temp[(STRINGTEMP_BUFFERS - 1) & ++pr_string_tempindex];
 }
 
-#define RETURN_EDICT(e) (Set_Pr_globalsi(OFS_RETURN, NUM_FOR_EDICT(e)))
+#define RETURN_EDICT(e) (Set_Pr_globalsi(OFS_RETURN, e))
 
 #define MSG_BROADCAST 0  // unreliable to all
 #define MSG_ONE 1        // reliable to one (msg_entity)
@@ -754,7 +754,7 @@ static void PF_checkclient(void) {
   // return check if it might be visible
   ent = SV_LastCheck();
   if (EDICT_NUM(ent)->free || EVars(ent)->health <= 0) {
-    RETURN_EDICT(sv.edicts);
+    RETURN_EDICT(0);
     return;
   }
 
@@ -765,13 +765,13 @@ static void PF_checkclient(void) {
   l = (leaf - sv.worldmodel->leafs) - 1;
   if ((l < 0) || !(checkpvs[l >> 3] & (1 << (l & 7)))) {
     c_notvis++;
-    RETURN_EDICT(sv.edicts);
+    RETURN_EDICT(0);
     return;
   }
 
   // might be able to see it
   c_invis++;
-  RETURN_EDICT(EDICT_NUM(ent));
+  RETURN_EDICT(ent);
 }
 
 //============================================================================
@@ -882,7 +882,7 @@ static void PF_findradius(void) {
     chain = ent;
   }
 
-  RETURN_EDICT(EDICT_NUM(chain));
+  RETURN_EDICT(chain);
 }
 
 /*
@@ -925,7 +925,7 @@ static void PF_Spawn(void) {
 
   ed = ED_Alloc();
 
-  RETURN_EDICT(ed);
+  RETURN_EDICT(NUM_FOR_EDICT(ed));
 }
 
 static void PF_Remove(void) {
@@ -954,12 +954,12 @@ static void PF_Find(void) {
     if (!t) continue;
     s = PR_GetString(Pr_globalsi(OFS_PARM2));
     if (!strcmp(t, s)) {
-      RETURN_EDICT(EDICT_NUM(ed));
+      RETURN_EDICT(ed);
       return;
     }
   }
 
-  RETURN_EDICT(sv.edicts);
+  RETURN_EDICT(0);
 }
 
 static void PR_CheckEmptyString(const char *s) {
@@ -1181,18 +1181,16 @@ entity nextent(entity)
 */
 static void PF_nextent(void) {
   int i;
-  edict_t *ent;
 
   i = Pr_globalsi(OFS_PARM0);
   while (1) {
     i++;
     if (i == SV_NumEdicts()) {
-      RETURN_EDICT(sv.edicts);
+      RETURN_EDICT(0);
       return;
     }
-    ent = EDICT_NUM(i);
-    if (!ent->free) {
-      RETURN_EDICT(ent);
+    if (!EDICT_NUM(i)->free) {
+      RETURN_EDICT(i);
       return;
     }
   }
