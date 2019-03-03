@@ -750,15 +750,15 @@ void SV_CreateBaseline(void) {
     // get the current server version
     svent = EDICT_NUM(entnum);
     if (svent->free) continue;
-    if (entnum > SVS_GetMaxClients() && !EdictV(svent)->modelindex) continue;
+    if (entnum > SVS_GetMaxClients() && !EVars(entnum)->modelindex) continue;
 
     //
     // create entity baseline
     //
-    VectorCopy(EdictV(svent)->origin, svent->baseline.origin);
-    VectorCopy(EdictV(svent)->angles, svent->baseline.angles);
-    svent->baseline.frame = EdictV(svent)->frame;
-    svent->baseline.skin = EdictV(svent)->skin;
+    VectorCopy(EVars(entnum)->origin, svent->baseline.origin);
+    VectorCopy(EVars(entnum)->angles, svent->baseline.angles);
+    svent->baseline.frame = EVars(entnum)->frame;
+    svent->baseline.skin = EVars(entnum)->skin;
     if (entnum > 0 && entnum <= SVS_GetMaxClients()) {
       svent->baseline.colormap = entnum;
       svent->baseline.modelindex = SV_ModelIndex("progs/player.mdl");
@@ -766,7 +766,7 @@ void SV_CreateBaseline(void) {
     } else {
       svent->baseline.colormap = 0;
       svent->baseline.modelindex =
-          SV_ModelIndex(PR_GetString(EdictV(svent)->model));
+          SV_ModelIndex(PR_GetString(EVars(entnum)->model));
       svent->baseline.alpha = svent->alpha;  // johnfitz -- alpha support
     }
 
