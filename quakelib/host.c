@@ -416,7 +416,6 @@ Host_ServerFrame
 */
 void Host_ServerFrame(void) {
   int i, active;  // johnfitz
-  edict_t *ent;   // johnfitz
 
   // run the world state
   Set_pr_global_struct_frametime(HostFrameTime());
@@ -438,8 +437,7 @@ void Host_ServerFrame(void) {
   // johnfitz -- devstats
   if (CLS_GetSignon() == SIGNONS) {
     for (i = 0, active = 0; i < SV_NumEdicts(); i++) {
-      ent = EDICT_NUM(i);
-      if (!ent->free) active++;
+      if (!EDICT_NUM(i)->free) active++;
     }
     if (active > 600 && dev_peakstats.edicts <= 600)
       Con_DWarning("%i edicts exceeds standard limit of 600.\n", active);
