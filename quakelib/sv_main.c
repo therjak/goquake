@@ -861,7 +861,7 @@ This is called at the start of each level
 extern float scr_centertime_off;
 void SV_SpawnServer(const char *server) {
   static char dummy[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-  edict_t *ent;
+  int ent;
   int i;
 
   // let's not have any servers with no name
@@ -961,13 +961,13 @@ void SV_SpawnServer(const char *server) {
   //
   // load the rest of the entities
   //
-  ent = EDICT_NUM(0);
-  TT_ClearEntVars(EdictV(ent));
-  ent->free = false;
-  EdictV(ent)->model = PR_SetEngineString(sv.worldmodel->name);
-  EdictV(ent)->modelindex = 1;  // world model
-  EdictV(ent)->solid = SOLID_BSP;
-  EdictV(ent)->movetype = MOVETYPE_PUSH;
+  ent = 0;
+  TT_ClearEntVars(EVars(ent));
+  EDICT_NUM(ent)->free = false;
+  EVars(ent)->model = PR_SetEngineString(sv.worldmodel->name);
+  EVars(ent)->modelindex = 1;  // world model
+  EVars(ent)->solid = SOLID_BSP;
+  EVars(ent)->movetype = MOVETYPE_PUSH;
 
   if (Cvar_GetValue(&coop)) {
     Set_pr_global_struct_coop(Cvar_GetValue(&coop));
