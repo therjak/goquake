@@ -98,7 +98,6 @@ qboolean SV_RunThink(int e) {
   float thinktime;
   float oldframe;  // johnfitz
   int i;           // johnfitz
-  edict_t *ent = EDICT_NUM(e);
 
   thinktime = EVars(e)->nextthink;
   if (thinktime <= 0 || thinktime > SV_Time() + HostFrameTime()) return true;
@@ -119,18 +118,18 @@ qboolean SV_RunThink(int e) {
   // johnfitz -- PROTOCOL_FITZQUAKE
   // capture interval to nextthink here and send it to client for better
   // lerp timing, but only if interval is not 0.1 (which client assumes)
-  ent->sendinterval = false;
-  if (!ent->free && EVars(e)->nextthink &&
+  EDICT_NUM(e)->sendinterval = false;
+  if (!EDICT_NUM(e)->free && EVars(e)->nextthink &&
       (EVars(e)->movetype == MOVETYPE_STEP ||
        EVars(e)->frame != oldframe)) {
     i = Q_rint((EVars(e)->nextthink - thinktime) * 255);
     if (i >= 0 && i < 256 && i != 25 &&
         i != 26)  // 25 and 26 are close enough to 0.1 to not send
-      ent->sendinterval = true;
+      EDICT_NUM(e)->sendinterval = true;
   }
   // johnfitz
 
-  return !ent->free;
+  return !EDICT_NUM(e)->free;
 }
 
 /*
