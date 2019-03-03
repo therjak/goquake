@@ -394,7 +394,7 @@ void SV_PushMove(int pusher, float movetime) {
   vec3_t mins, maxs, move;
   vec3_t entorig, pushorig;
   int num_moved;
-  edict_t **moved_edict;  // johnfitz -- dynamically allocate
+  int *moved_edict;  // johnfitz -- dynamically allocate
   vec3_t *moved_from;     // johnfitz -- dynamically allocate
   int mark;               // johnfitz
 
@@ -420,7 +420,7 @@ void SV_PushMove(int pusher, float movetime) {
 
   // johnfitz -- dynamically allocate
   mark = Hunk_LowMark();
-  moved_edict = (edict_t **)Hunk_Alloc(SV_NumEdicts() * sizeof(edict_t *));
+  moved_edict = (int *)Hunk_Alloc(SV_NumEdicts() * sizeof(int));
   moved_from = (vec3_t *)Hunk_Alloc(SV_NumEdicts() * sizeof(vec3_t));
   // johnfitz
 
@@ -455,7 +455,7 @@ void SV_PushMove(int pusher, float movetime) {
 
     VectorCopy(EVars(check)->origin, entorig);
     VectorCopy(EVars(check)->origin, moved_from[num_moved]);
-    moved_edict[num_moved] = EDICT_NUM(check);
+    moved_edict[num_moved] = check;
     num_moved++;
 
     // try moving the contacted entity
@@ -491,8 +491,8 @@ void SV_PushMove(int pusher, float movetime) {
 
       // move back any entities we already moved
       for (i = 0; i < num_moved; i++) {
-        VectorCopy(moved_from[i], EdictV(moved_edict[i])->origin);
-        SV_LinkEdict(NUM_FOR_EDICT(moved_edict[i]), false);
+        VectorCopy(moved_from[i], EVars(moved_edict[i])->origin);
+        SV_LinkEdict(moved_edict[i], false);
       }
       Hunk_FreeToLowMark(mark);  // johnfitz
       return;
