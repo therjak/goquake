@@ -853,6 +853,7 @@ void ED_LoadFromFile(const char *data) {
   dfunction_t *func;
   edict_t *ent = NULL;
   int inhibit = 0;
+  int edictnum;
 
   Set_pr_global_struct_time(SV_Time());
 
@@ -868,22 +869,23 @@ void ED_LoadFromFile(const char *data) {
       ent = EDICT_NUM(0);
     else
       ent = ED_Alloc();
-    data = ED_ParseEdict(data, NUM_FOR_EDICT(ent));
+    edictnum = NUM_FOR_EDICT(ent);
+    data = ED_ParseEdict(data, edictnum);
 
     // remove things from different skill levels or deathmatch
     if (Cvar_GetValue(&deathmatch)) {
-      if (((int)EdictV(ent)->spawnflags & SPAWNFLAG_NOT_DEATHMATCH)) {
-        ED_Free(NUM_FOR_EDICT(ent));
+      if (((int)EVars(edictnum)->spawnflags & SPAWNFLAG_NOT_DEATHMATCH)) {
+        ED_Free(edictnum);
         inhibit++;
         continue;
       }
     } else if ((current_skill == 0 &&
-                ((int)EdictV(ent)->spawnflags & SPAWNFLAG_NOT_EASY)) ||
+                ((int)EVars(edictnum)->spawnflags & SPAWNFLAG_NOT_EASY)) ||
                (current_skill == 1 &&
-                ((int)EdictV(ent)->spawnflags & SPAWNFLAG_NOT_MEDIUM)) ||
+                ((int)EVars(edictnum)->spawnflags & SPAWNFLAG_NOT_MEDIUM)) ||
                (current_skill >= 2 &&
-                ((int)EdictV(ent)->spawnflags & SPAWNFLAG_NOT_HARD))) {
-      ED_Free(NUM_FOR_EDICT(ent));
+                ((int)EVars(edictnum)->spawnflags & SPAWNFLAG_NOT_HARD))) {
+      ED_Free(edictnum);
       inhibit++;
       continue;
     }
@@ -891,24 +893,24 @@ void ED_LoadFromFile(const char *data) {
     //
     // immediately call spawn function
     //
-    if (!EdictV(ent)->classname) {
+    if (!EVars(edictnum)->classname) {
       Con_SafePrintf("No classname for:\n");  // johnfitz -- was Con_Printf
-      ED_PrintNum(NUM_FOR_EDICT(ent));
-      ED_Free(NUM_FOR_EDICT(ent));
+      ED_PrintNum(edictnum);
+      ED_Free(edictnum);
       continue;
     }
 
     // look for the spawn function
-    func = ED_FindFunction(PR_GetString(EdictV(ent)->classname));
+    func = ED_FindFunction(PR_GetString(EVars(edictnum)->classname));
 
     if (!func) {
       Con_SafePrintf("No spawn function for:\n");  // johnfitz -- was Con_Printf
-      ED_PrintNum(NUM_FOR_EDICT(ent));
-      ED_Free(NUM_FOR_EDICT(ent));
+      ED_PrintNum(edictnum);
+      ED_Free(edictnum);
       continue;
     }
 
-    Set_pr_global_struct_self(NUM_FOR_EDICT(ent));
+    Set_pr_global_struct_self(edictnum);
     PR_ExecuteProgram(func - pr_functions);
   }
 
