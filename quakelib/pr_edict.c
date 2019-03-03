@@ -84,7 +84,7 @@ instead of being removed and recreated, which can cause interpolated
 angles and bad trails.
 =================
 */
-edict_t *ED_Alloc(void) {
+int ED_Alloc(void) {
   int i;
   edict_t *e;
 
@@ -94,7 +94,7 @@ edict_t *ED_Alloc(void) {
     // freeing and allocating, so relax the replacement policy
     if (e->free && (e->freetime < 2 || SV_Time() - e->freetime > 0.5)) {
       ED_ClearEdict(i);
-      return e;
+      return i;
     }
   }
 
@@ -108,7 +108,7 @@ edict_t *ED_Alloc(void) {
   // we are accessing uninitialized memory and
   // must fully zero it, not just ED_ClearEdict
 
-  return EDICT_NUM(i);
+  return i;
 }
 
 /*
@@ -851,9 +851,8 @@ to call ED_CallSpawnFunctions () to let the objects initialize themselves.
 */
 void ED_LoadFromFile(const char *data) {
   dfunction_t *func;
-  edict_t *ent = NULL;
   int inhibit = 0;
-  int edictnum;
+  int edictnum = -1;
 
   Set_pr_global_struct_time(SV_Time());
 
@@ -865,11 +864,10 @@ void ED_LoadFromFile(const char *data) {
     if (com_token[0] != '{')
       Host_Error("ED_LoadFromFile: found %s when expecting {", com_token);
 
-    if (!ent)
-      ent = EDICT_NUM(0);
+    if (edictnum < 0)
+      edictnum = 0;
     else
-      ent = ED_Alloc();
-    edictnum = NUM_FOR_EDICT(ent);
+      edictnum = ED_Alloc();
     data = ED_ParseEdict(data, edictnum);
 
     // remove things from different skill levels or deathmatch

@@ -921,11 +921,11 @@ static void PF_vtos(void) {
 }
 
 static void PF_Spawn(void) {
-  edict_t *ed;
+  int ed;
 
   ed = ED_Alloc();
 
-  RETURN_EDICT(NUM_FOR_EDICT(ed));
+  RETURN_EDICT(ed);
 }
 
 static void PF_Remove(void) {

@@ -59,7 +59,7 @@ void PR_Profile_f(void);
 
 void TT_ClearEdict(int e);
 
-edict_t *ED_Alloc(void);
+int ED_Alloc(void);
 void ED_Free(int ed);
 
 void ED_Write(FILE *f, int ed);
