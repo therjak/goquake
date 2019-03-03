@@ -292,7 +292,7 @@ void PR_ExecuteProgram(GoInt32 fnum) {
   int exitdepth;
 
   if (!fnum || fnum >= progs->numfunctions) {
-    if (Pr_global_struct_self()) ED_Print(EDICT_NUM(Pr_global_struct_self()));
+    if (Pr_global_struct_self()) ED_PrintNum(Pr_global_struct_self());
     Host_Error("PR_ExecuteProgram: NULL function");
   }
 

@@ -57,13 +57,11 @@ error(value)
 */
 static void PF_error(void) {
   char *s;
-  edict_t *ed;
 
   s = PF_VarString(0);
   Con_Printf("======SERVER ERROR in %s:\n%s\n",
              PR_GetString(pr_xfunction->s_name), s);
-  ed = EDICT_NUM(Pr_global_struct_self());
-  ED_Print(ed);
+  ED_PrintNum(Pr_global_struct_self());
 
   Host_Error("Program error");
 }
@@ -80,14 +78,14 @@ objerror(value)
 */
 static void PF_objerror(void) {
   char *s;
-  edict_t *ed;
+  int ed;
 
   s = PF_VarString(0);
   Con_Printf("======OBJECT ERROR in %s:\n%s\n",
              PR_GetString(pr_xfunction->s_name), s);
-  ed = EDICT_NUM(Pr_global_struct_self());
-  ED_Print(ed);
-  ED_Free(ed);
+  ed = Pr_global_struct_self();
+  ED_PrintNum(ed);
+  ED_Free(EDICT_NUM(ed));
 
   // Host_Error ("Program error"); //johnfitz -- by design, this should not be
   // fatal

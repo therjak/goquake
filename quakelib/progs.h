@@ -62,7 +62,6 @@ void TT_ClearEdict(edict_t *e);
 edict_t *ED_Alloc(void);
 void ED_Free(edict_t *ed);
 
-void ED_Print(edict_t *ed);
 void ED_Write(FILE *f, edict_t *ed);
 const char *ED_ParseEdict(const char *data, edict_t *ent);
 
