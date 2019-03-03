@@ -166,7 +166,6 @@ once for a player each game, not once for each level change.
 
 */
 void SV_ConnectClient(int clientnum) {
-  edict_t *ent;
   int client;
   int edictnum;
   int i;
@@ -177,8 +176,6 @@ void SV_ConnectClient(int clientnum) {
   Con_DPrintf("Client %s connected\n", NET_QSocketGetAddressString(client));
 
   edictnum = clientnum + 1;
-
-  // ent = EDICT_NUM(edictnum);
 
   // set up the client_t
   if (SV_LoadGame()) {
