@@ -409,27 +409,26 @@ ED_Print
 For debugging
 =============
 */
-void ED_Print(edict_t *ed) {
+void ED_Print(int ed) {
   ddef_t *d;
   int *v;
   int i, j, l;
   const char *name;
   int type;
 
-  if (ed->free) {
+  if (EDICT_NUM(ed)->free) {
     Con_Printf("FREE\n");
     return;
   }
 
-  Con_SafePrintf("\nEDICT %i:\n",
-                 NUM_FOR_EDICT(ed));  // johnfitz -- was Con_Printf
+  Con_SafePrintf("\nEDICT %i:\n", ed);
   for (i = 1; i < progs->numfielddefs; i++) {
     d = &pr_fielddefs[i];
     name = PR_GetString(d->s_name);
     l = strlen(name);
     if (l > 1 && name[l - 2] == '_') continue;  // skip _x, _y, _z vars
 
-    v = (int *)((char *)EdictV(ed) + d->ofs * 4);
+    v = (int *)((char *)EVars(ed) + d->ofs * 4);
 
     // if the value is still all 0, skip the field
     type = d->type & ~DEF_SAVEGLOBAL;
@@ -497,7 +496,7 @@ void ED_Write(FILE *f, int ed) {
   fprintf(f, "}\n");
 }
 
-void ED_PrintNum(int ent) { ED_Print(EDICT_NUM(ent)); }
+void ED_PrintNum(int ent) { ED_Print(ent); }
 
 /*
 =============
