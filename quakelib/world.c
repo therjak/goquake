@@ -636,7 +636,7 @@ trace_t SV_ClipMoveToEntity(int ent, vec3_t start, vec3_t mins, vec3_t maxs,
   VectorCopy(end, trace.endpos);
 
   // get the clipping hull
-  hull = SV_HullForEntity(EdictV(EDICT_NUM(ent)), mins, maxs, offset);
+  hull = SV_HullForEntity(EVars(ent), mins, maxs, offset);
 
   VectorSubtract(start, offset, start_l);
   VectorSubtract(end, offset, end_l);
