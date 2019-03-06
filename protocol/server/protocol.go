@@ -85,6 +85,14 @@ const (
 )
 
 const (
-	GameCoop       = 0
-	GameDeathmatch = 1
+	GameCoop       = iota
+	GameDeathmatch = iota
+)
+
+const (
+	SoundVolume      = 1 << iota
+	SoundAttenuation = 1 << iota
+	SoundLooping     = 1 << iota
+	SoundLargeEntity = 1 << iota // fitzquake
+	SoundLargeSound  = 1 << iota // fitzquake
 )

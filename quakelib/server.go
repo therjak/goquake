@@ -556,3 +556,87 @@ func SV_SendReconnect() {
 		execute.Execute("reconnect\n", execute.Command)
 	}
 }
+
+/*
+Each entity can have eight independant sound sources, like voice,
+weapon, feet, etc.
+
+Channel 0 is an auto-allocate channel, the others override anything
+allready running on that entity/channel pair.
+
+An attenuation of 0 will play full volume everywhere in the level.
+Larger attenuations will drop off.  (max 4 attenuation)
+*/
+//export SV_StartSound
+func SV_StartSound(entity, channel C.int, sample *C.char, volume C.int,
+	attenuation C.float) {
+	sv.StartSound(int(entity), int(channel), int(volume), C.GoString(sample), float32(attenuation))
+}
+
+func (s *Server) StartSound(entity, channel, volume int, sample string, attenuation float32) {
+	if volume < 0 || volume > 255 {
+		HostError("SV_StartSound: volume = %d", volume)
+	}
+	if attenuation < 0 || attenuation > 4 {
+		HostError("SV_StartSound: attenuation = %f", attenuation)
+	}
+	if channel < 0 || channel > 7 {
+		HostError("SV_StartSound: channel = %d", channel)
+	}
+	if s.datagram.Len() > net.MAX_DATAGRAM-16 {
+		return
+	}
+	for soundnum, m := range s.soundPrecache {
+		if m == sample {
+			s.sendStartSound(entity, channel, volume, soundnum, attenuation)
+			return
+		}
+	}
+	conPrintf("SV_StartSound: %s not precacheed", sample)
+}
+
+func (s *Server) sendStartSound(entity, channel, volume, soundnum int, attenuation float32) {
+	fieldMask := 0
+	if volume != 255 {
+		fieldMask |= server.SoundVolume
+	}
+	if attenuation != 1.0 {
+		fieldMask |= server.SoundAttenuation
+	}
+	if entity >= 8192 {
+		if s.protocol == protocol.NetQuake {
+			return // protocol does not support this info
+		}
+		fieldMask |= server.SoundLargeEntity
+	}
+	if soundnum >= 256 || channel >= 8 {
+		if s.protocol == protocol.NetQuake {
+			return
+		}
+		fieldMask |= server.SoundLargeSound
+	}
+	s.datagram.WriteByte(server.Sound)
+	s.datagram.WriteByte(fieldMask)
+	if fieldMask&server.SoundVolume != 0 {
+		s.datagram.WriteByte(volume)
+	}
+	if fieldMask&server.SoundAttenuation != 0 {
+		s.datagram.WriteByte(int(attenuation * 64))
+	}
+	if fieldMask&server.SoundLargeEntity != 0 {
+		s.datagram.WriteShort(entity)
+		s.datagram.WriteByte(channel)
+	} else {
+		s.datagram.WriteShort((entity << 3) | channel)
+	}
+	if fieldMask&server.SoundLargeSound != 0 {
+		s.datagram.WriteShort(soundnum)
+	} else {
+		s.datagram.WriteByte(soundnum)
+	}
+	ev := EntVars(entity)
+	flags := int(s.protocolFlags)
+	s.datagram.WriteCoord(ev.Origin[0]+0.5*ev.Mins[0]+ev.Maxs[0], flags)
+	s.datagram.WriteCoord(ev.Origin[1]+0.5*ev.Mins[1]+ev.Maxs[1], flags)
+	s.datagram.WriteCoord(ev.Origin[2]+0.5*ev.Mins[2]+ev.Maxs[2], flags)
+}

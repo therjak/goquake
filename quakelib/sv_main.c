@@ -65,90 +65,6 @@ EVENT MESSAGES
 */
 
 /*
-==================
-SV_StartSound
-
-Each entity can have eight independant sound sources, like voice,
-weapon, feet, etc.
-
-Channel 0 is an auto-allocate channel, the others override anything
-allready running on that entity/channel pair.
-
-An attenuation of 0 will play full volume everywhere in the level.
-Larger attenuations will drop off.  (max 4 attenuation)
-
-==================
-*/
-void SV_StartSound(int entity, int channel, const char *sample, int volume,
-                   float attenuation) {
-  int sound_num, ent;
-  int i, field_mask;
-
-  if (volume < 0 || volume > 255)
-    Host_Error("SV_StartSound: volume = %i", volume);
-
-  if (attenuation < 0 || attenuation > 4)
-    Host_Error("SV_StartSound: attenuation = %f", attenuation);
-
-  if (channel < 0 || channel > 7)
-    Host_Error("SV_StartSound: channel = %i", channel);
-
-  if (SV_DG_Len() > MAX_DATAGRAM - 16) return;
-
-  // find precache number for sound
-  sound_num = ElementOfSVSoundPrecache(sample);
-
-  if (sound_num == -1) {
-    Con_Printf("SV_StartSound: %s not precacheed\n", sample);
-    return;
-  }
-
-  ent = entity;
-
-  field_mask = 0;
-  if (volume != DEFAULT_SOUND_PACKET_VOLUME) field_mask |= SND_VOLUME;
-  if (attenuation != DEFAULT_SOUND_PACKET_ATTENUATION)
-    field_mask |= SND_ATTENUATION;
-
-  // johnfitz -- PROTOCOL_FITZQUAKE
-  if (ent >= 8192) {
-    if (SV_Protocol() == PROTOCOL_NETQUAKE)
-      return;  // don't send any info protocol can't support
-    else
-      field_mask |= SND_LARGEENTITY;
-  }
-  if (sound_num >= 256 || channel >= 8) {
-    if (SV_Protocol() == PROTOCOL_NETQUAKE)
-      return;  // don't send any info protocol can't support
-    else
-      field_mask |= SND_LARGESOUND;
-  }
-  // johnfitz
-
-  // directed messages go only to the entity the are targeted on
-  SV_DG_WriteByte(svc_sound);
-  SV_DG_WriteByte(field_mask);
-  if (field_mask & SND_VOLUME) SV_DG_WriteByte(volume);
-  if (field_mask & SND_ATTENUATION) SV_DG_WriteByte(attenuation * 64);
-
-  // johnfitz -- PROTOCOL_FITZQUAKE
-  if (field_mask & SND_LARGEENTITY) {
-    SV_DG_WriteShort(ent);
-    SV_DG_WriteByte(channel);
-  } else
-    SV_DG_WriteShort((ent << 3) | channel);
-  if (field_mask & SND_LARGESOUND)
-    SV_DG_WriteShort(sound_num);
-  else
-    SV_DG_WriteByte(sound_num);
-  // johnfitz
-
-  for (i = 0; i < 3; i++)
-    SV_DG_WriteCoord(EVars(entity)->origin[i] +
-                     0.5 * (EVars(entity)->mins[i] + EVars(entity)->maxs[i]));
-}
-
-/*
 ==============================================================================
 
 CLIENT SPAWNING
@@ -314,7 +230,9 @@ void SV_WriteEntitiesToClient(int clent) {
 
       // ignore if not touching a PV leaf
       for (i = 0; i < EDICT_NUM(ent)->num_leafs; i++)
-        if (pvs[EDICT_NUM(ent)->leafnums[i] >> 3] & (1 << (EDICT_NUM(ent)->leafnums[i] & 7))) break;
+        if (pvs[EDICT_NUM(ent)->leafnums[i] >> 3] &
+            (1 << (EDICT_NUM(ent)->leafnums[i] & 7)))
+          break;
 
       // ericw -- added ent->num_leafs < MAX_ENT_LEAFS condition.
       //
@@ -324,7 +242,8 @@ void SV_WriteEntitiesToClient(int clent) {
       // this commonly happens with rotators, because they often have huge
       // bboxes
       // spanning the entire map, or really tall lifts, etc.
-      if (i == EDICT_NUM(ent)->num_leafs && EDICT_NUM(ent)->num_leafs < MAX_ENT_LEAFS)
+      if (i == EDICT_NUM(ent)->num_leafs &&
+          EDICT_NUM(ent)->num_leafs < MAX_ENT_LEAFS)
         continue;  // not visible
     }
 
@@ -349,24 +268,30 @@ void SV_WriteEntitiesToClient(int clent) {
       if (miss < -0.1 || miss > 0.1) bits |= U_ORIGIN1 << i;
     }
 
-    if (EVars(ent)->angles[0] != EDICT_NUM(ent)->baseline.angles[0]) bits |= U_ANGLE1;
+    if (EVars(ent)->angles[0] != EDICT_NUM(ent)->baseline.angles[0])
+      bits |= U_ANGLE1;
 
-    if (EVars(ent)->angles[1] != EDICT_NUM(ent)->baseline.angles[1]) bits |= U_ANGLE2;
+    if (EVars(ent)->angles[1] != EDICT_NUM(ent)->baseline.angles[1])
+      bits |= U_ANGLE2;
 
-    if (EVars(ent)->angles[2] != EDICT_NUM(ent)->baseline.angles[2]) bits |= U_ANGLE3;
+    if (EVars(ent)->angles[2] != EDICT_NUM(ent)->baseline.angles[2])
+      bits |= U_ANGLE3;
 
     if (EVars(ent)->movetype == MOVETYPE_STEP)
       bits |= U_STEP;  // don't mess up the step animation
 
-    if (EDICT_NUM(ent)->baseline.colormap != EVars(ent)->colormap) bits |= U_COLORMAP;
+    if (EDICT_NUM(ent)->baseline.colormap != EVars(ent)->colormap)
+      bits |= U_COLORMAP;
 
     if (EDICT_NUM(ent)->baseline.skin != EVars(ent)->skin) bits |= U_SKIN;
 
     if (EDICT_NUM(ent)->baseline.frame != EVars(ent)->frame) bits |= U_FRAME;
 
-    if (EDICT_NUM(ent)->baseline.effects != EVars(ent)->effects) bits |= U_EFFECTS;
+    if (EDICT_NUM(ent)->baseline.effects != EVars(ent)->effects)
+      bits |= U_EFFECTS;
 
-    if (EDICT_NUM(ent)->baseline.modelindex != EVars(ent)->modelindex) bits |= U_MODEL;
+    if (EDICT_NUM(ent)->baseline.modelindex != EVars(ent)->modelindex)
+      bits |= U_MODEL;
 
     // johnfitz -- alpha
     if (pr_alpha_supported) {
@@ -377,12 +302,14 @@ void SV_WriteEntitiesToClient(int clent) {
     }
 
     // don't send invisible entities unless they have effects
-    if (EDICT_NUM(ent)->alpha == ENTALPHA_ZERO && !EVars(ent)->effects) continue;
+    if (EDICT_NUM(ent)->alpha == ENTALPHA_ZERO && !EVars(ent)->effects)
+      continue;
     // johnfitz
 
     // johnfitz -- PROTOCOL_FITZQUAKE
     if (SV_Protocol() != PROTOCOL_NETQUAKE) {
-      if (EDICT_NUM(ent)->baseline.alpha != EDICT_NUM(ent)->alpha) bits |= U_ALPHA;
+      if (EDICT_NUM(ent)->baseline.alpha != EDICT_NUM(ent)->alpha)
+        bits |= U_ALPHA;
       if (bits & U_FRAME && (int)EVars(ent)->frame & 0xFF00) bits |= U_FRAME2;
       if (bits & U_MODEL && (int)EVars(ent)->modelindex & 0xFF00)
         bits |= U_MODEL2;
