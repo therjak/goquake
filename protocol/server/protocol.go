@@ -96,3 +96,17 @@ const (
 	SoundLargeEntity = 1 << iota // fitzquake
 	SoundLargeSound  = 1 << iota // fitzquake
 )
+
+const (
+	EffectBrightField = 1 << iota
+	EffectMuzzleFlash = 1 << iota
+	EffectBrightLight = 1 << iota
+	EffectDimLight    = 1 << iota
+)
+
+const (
+	SpawnFlagNotEasy      = 1 << (8 + iota)
+	SpawnFlagNotMedium    = 1 << (8 + iota)
+	SpawnFlagNotHard      = 1 << (8 + iota)
+	SpawnFlagNotDeathmath = 1 << (8 + iota)
+)

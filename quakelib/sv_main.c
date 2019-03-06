@@ -373,22 +373,6 @@ stats:
 }
 
 /*
-=============
-SV_CleanupEnts
-
-=============
-*/
-void SV_CleanupEnts(void) {
-  int e;
-  int ent;
-
-  ent = 1;
-  for (e = 1; e < SV_NumEdicts(); e++, ent++) {
-    EVars(ent)->effects = (int)EVars(ent)->effects & ~EF_MUZZLEFLASH;
-  }
-}
-
-/*
 ==================
 SV_WriteClientdataToMessage
 

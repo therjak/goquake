@@ -640,3 +640,16 @@ func (s *Server) sendStartSound(entity, channel, volume, soundnum int, attenuati
 	s.datagram.WriteCoord(ev.Origin[1]+0.5*ev.Mins[1]+ev.Maxs[1], flags)
 	s.datagram.WriteCoord(ev.Origin[2]+0.5*ev.Mins[2]+ev.Maxs[2], flags)
 }
+
+//export SV_CleanupEnts
+func SV_CleanupEnts() {
+	sv.CleanupEntvarEffects()
+}
+
+func (s *Server) CleanupEntvarEffects() {
+	for i := 1; i < s.numEdicts; i++ {
+		ev := EntVars(i)
+		eff := int(ev.Effects)
+		ev.Effects = float32(eff &^ server.EffectMuzzleFlash)
+	}
+}

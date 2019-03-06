@@ -1,6 +1,7 @@
 package quakelib
 
 //#include <string.h>
+//#include <stdlib.h>
 //void Host_Error(const char * error, ...);
 //void host_error_go(char* error) {
 //  char string[1024];
