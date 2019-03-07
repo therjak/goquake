@@ -1,6 +1,7 @@
 package quakelib
 
 // const char* PR_GetString(int num);
+// unsigned char EAlpha(int num);
 import "C"
 
 import (
@@ -14,6 +15,10 @@ import (
 func PR_GetStringWrap(num int) string {
 	c := C.PR_GetString(C.int(num))
 	return C.GoString(c)
+}
+
+func EntityAlpha(num int) byte {
+	return byte(C.EAlpha(C.int(num)))
 }
 
 //export SetSVModelPrecache

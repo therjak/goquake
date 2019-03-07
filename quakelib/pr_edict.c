@@ -133,7 +133,8 @@ void ED_Free(int ed) {
   VectorCopy(vec3_origin, EVars(ed)->angles);
   EVars(ed)->nextthink = -1;
   EVars(ed)->solid = 0;
-  EDICT_NUM(ed)->alpha = ENTALPHA_DEFAULT;  // johnfitz -- reset alpha for next entity
+  EDICT_NUM(ed)->alpha =
+      ENTALPHA_DEFAULT;  // johnfitz -- reset alpha for next entity
 
   EDICT_NUM(ed)->freetime = SV_Time();
 }
@@ -1038,6 +1039,8 @@ entvars_t *EdictV(edict_t *e) {
   int n = NUM_FOR_EDICT(e);
   return EVars(n);
 }
+
+unsigned char EAlpha(int num) { return EDICT_NUM(num)->alpha; }
 
 /*
 ===============

@@ -110,3 +110,42 @@ const (
 	SpawnFlagNotHard      = 1 << (8 + iota)
 	SpawnFlagNotDeathmath = 1 << (8 + iota)
 )
+
+const (
+	DEFAULT_VIEWHEIGHT = 22
+)
+
+const (
+	SU_VIEWHEIGHT   = (1 << iota)
+	SU_IDEALPITCH   = (1 << iota)
+	SU_PUNCH1       = (1 << iota)
+	SU_PUNCH2       = (1 << iota)
+	SU_PUNCH3       = (1 << iota)
+	SU_VELOCITY1    = (1 << iota)
+	SU_VELOCITY2    = (1 << iota)
+	SU_VELOCITY3    = (1 << iota)
+	SU_UNUSED8      = (1 << iota) // AVAILABLE BIT
+	SU_ITEMS        = (1 << iota)
+	SU_ONGROUND     = (1 << iota) // no data follows, the bit is it
+	SU_INWATER      = (1 << iota) // no data follows, the bit is it
+	SU_WEAPONFRAME  = (1 << iota)
+	SU_ARMOR        = (1 << iota)
+	SU_WEAPON       = (1 << iota)
+	SU_EXTEND1      = (1 << iota) // another byte to follow
+	SU_WEAPON2      = (1 << iota) // 1 byte, this is .weaponmodel & 0xFF00 (second byte)
+	SU_ARMOR2       = (1 << iota) // 1 byte, this is .armorvalue & 0xFF00 (second byte)
+	SU_AMMO2        = (1 << iota) // 1 byte, this is .currentammo & 0xFF00 (second byte)
+	SU_SHELLS2      = (1 << iota) // 1 byte, this is .ammo_shells & 0xFF00 (second byte)
+	SU_NAILS2       = (1 << iota) // 1 byte, this is .ammo_nails & 0xFF00 (second byte)
+	SU_ROCKETS2     = (1 << iota) // 1 byte, this is .ammo_rockets & 0xFF00 (second byte)
+	SU_CELLS2       = (1 << iota) // 1 byte, this is .ammo_cells & 0xFF00 (second byte)
+	SU_EXTEND2      = (1 << iota) // another byte to follow
+	SU_WEAPONFRAME2 = (1 << iota) // 1 byte, this is .weaponframe & 0xFF00 (second byte)
+	SU_WEAPONALPHA  = (1 << iota) // 1 byte, this is alpha for weaponmodel, uses ENTALPHA_ENCODE, not sent if ENTALPHA_DEFAULT
+	SU_UNUSED26     = (1 << iota)
+	SU_UNUSED27     = (1 << iota)
+	SU_UNUSED28     = (1 << iota)
+	SU_UNUSED29     = (1 << iota)
+	SU_UNUSED30     = (1 << iota)
+	SU_EXTEND3      = (1 << iota) // another byte to follow, future expansion
+)

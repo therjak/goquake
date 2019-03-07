@@ -1,6 +1,7 @@
 package quakelib
 
 // void SV_DropClient(int,int);
+// void SV_SetIdealPitch();
 import "C"
 
 import (
@@ -11,6 +12,7 @@ import (
 	"quake/execute"
 	"quake/math"
 	"quake/net"
+	"quake/progs"
 	"quake/protocol"
 	"quake/protocol/server"
 )
@@ -652,4 +654,158 @@ func (s *Server) CleanupEntvarEffects() {
 		eff := int(ev.Effects)
 		ev.Effects = float32(eff &^ server.EffectMuzzleFlash)
 	}
+}
+
+//export SV_WriteClientdataToMessage
+func SV_WriteClientdataToMessage(ent C.int) {
+	sv.WriteClientdataToMessage(EntVars(int(ent)), EntityAlpha(int(ent)))
+}
+
+func (s *Server) WriteClientdataToMessage(e *progs.EntVars, alpha byte) {
+	flags := int(s.protocolFlags)
+	if e.DmgTake != 0 || e.DmgSave != 0 {
+		other := EntVars(int(e.DmgInflictor))
+		msgBuf.WriteByte(server.Damage)
+		msgBuf.WriteByte(int(e.DmgSave))
+		msgBuf.WriteByte(int(e.DmgTake))
+		msgBuf.WriteCoord(other.Origin[0]+0.5*other.Mins[0]+other.Maxs[0], flags)
+		msgBuf.WriteCoord(other.Origin[1]+0.5*other.Mins[1]+other.Maxs[1], flags)
+		msgBuf.WriteCoord(other.Origin[2]+0.5*other.Mins[2]+other.Maxs[2], flags)
+		e.DmgTake = 0
+		e.DmgSave = 0
+	}
+
+	// send the current viewpos offset from the view entity
+	C.SV_SetIdealPitch() // how much to loop up/down ideally
+
+	// a fixangle might get lost in a dropped packet.  Oh well.
+	if e.FixAngle != 0 {
+		msgBuf.WriteByte(server.SetAngle)
+		msgBuf.WriteAngle(e.Angles[0], flags)
+		msgBuf.WriteAngle(e.Angles[1], flags)
+		msgBuf.WriteAngle(e.Angles[2], flags)
+		e.FixAngle = 0
+	}
+
+	bits := 0
+	if e.ViewOfs[2] != server.DEFAULT_VIEWHEIGHT {
+		bits |= server.SU_VIEWHEIGHT
+	}
+	if e.IdealPitch != 0 {
+		bits |= server.SU_IDEALPITCH
+	}
+	// stuff the sigil bits into the high bits of items for sbar, or else mix in items2
+	items := func() int {
+		/*
+			  		v := GetEdictFieldValue(e, "items2")
+						if v != 0 {
+							return e.Items | v.float << 23
+						}
+		*/
+		return int(e.Items) | int(progsdat.Globals.ServerFlags)<<28
+	}()
+	bits |= server.SU_ITEMS
+	if (int(e.Flags) & progs.FlagOnGround) != 0 {
+		bits |= server.SU_ONGROUND
+	}
+	/*
+	   if ((int)EVars(ent)->flags & FL_ONGROUND) bits |= SU_ONGROUND;
+
+	   if (EVars(ent)->waterlevel >= 2) bits |= SU_INWATER;
+
+	   for (i = 0; i < 3; i++) {
+	     if (EVars(ent)->punchangle[i]) bits |= (SU_PUNCH1 << i);
+	     if (EVars(ent)->velocity[i]) bits |= (SU_VELOCITY1 << i);
+	   }
+
+	   if (EVars(ent)->weaponframe) bits |= SU_WEAPONFRAME;
+
+	   if (EVars(ent)->armorvalue) bits |= SU_ARMOR;
+
+	   //	if (ent->v.weapon)
+	   bits |= SU_WEAPON;
+
+	   // johnfitz -- PROTOCOL_FITZQUAKE
+	   if (SV_Protocol() != PROTOCOL_NETQUAKE) {
+	     if (bits & SU_WEAPON &&
+	         SV_ModelIndex(PR_GetString(EVars(ent)->weaponmodel)) & 0xFF00)
+	       bits |= SU_WEAPON2;
+	     if ((int)EVars(ent)->armorvalue & 0xFF00) bits |= SU_ARMOR2;
+	     if ((int)EVars(ent)->currentammo & 0xFF00) bits |= SU_AMMO2;
+	     if ((int)EVars(ent)->ammo_shells & 0xFF00) bits |= SU_SHELLS2;
+	     if ((int)EVars(ent)->ammo_nails & 0xFF00) bits |= SU_NAILS2;
+	     if ((int)EVars(ent)->ammo_rockets & 0xFF00) bits |= SU_ROCKETS2;
+	     if ((int)EVars(ent)->ammo_cells & 0xFF00) bits |= SU_CELLS2;
+	     if (bits & SU_WEAPONFRAME && (int)EVars(ent)->weaponframe & 0xFF00)
+	       bits |= SU_WEAPONFRAME2;
+	     if (bits & SU_WEAPON && EDICT_NUM(ent)->alpha != ENTALPHA_DEFAULT)
+	       bits |= SU_WEAPONALPHA;  // for now, weaponalpha = client entity alpha
+	     if (bits >= 65536) bits |= SU_EXTEND1;
+	     if (bits >= 16777216) bits |= SU_EXTEND2;
+	   }
+	   // johnfitz
+
+	   // send the data
+
+	   SV_MS_WriteByte(svc_clientdata);
+	   SV_MS_WriteShort(bits);
+
+	   // johnfitz -- PROTOCOL_FITZQUAKE
+	   if (bits & SU_EXTEND1) SV_MS_WriteByte(bits >> 16);
+	   if (bits & SU_EXTEND2) SV_MS_WriteByte(bits >> 24);
+	   // johnfitz
+
+	   if (bits & SU_VIEWHEIGHT) SV_MS_WriteChar(EVars(ent)->view_ofs[2]);
+
+	   if (bits & SU_IDEALPITCH) SV_MS_WriteChar(EVars(ent)->idealpitch);
+
+	   for (i = 0; i < 3; i++) {
+	     if (bits & (SU_PUNCH1 << i)) SV_MS_WriteChar(EVars(ent)->punchangle[i]);
+	     if (bits & (SU_VELOCITY1 << i))
+	       SV_MS_WriteChar(EVars(ent)->velocity[i] / 16);
+	   }
+
+	*/
+	// [always sent]	if (bits & SU_ITEMS)
+	msgBuf.WriteLong(items)
+	/*
+
+	   if (bits & SU_WEAPONFRAME) SV_MS_WriteByte(EVars(ent)->weaponframe);
+	   if (bits & SU_ARMOR) SV_MS_WriteByte(EVars(ent)->armorvalue);
+	   if (bits & SU_WEAPON)
+	     SV_MS_WriteByte(SV_ModelIndex(PR_GetString(EVars(ent)->weaponmodel)));
+
+	   SV_MS_WriteShort(EVars(ent)->health);
+	   SV_MS_WriteByte(EVars(ent)->currentammo);
+	   SV_MS_WriteByte(EVars(ent)->ammo_shells);
+	   SV_MS_WriteByte(EVars(ent)->ammo_nails);
+	   SV_MS_WriteByte(EVars(ent)->ammo_rockets);
+	   SV_MS_WriteByte(EVars(ent)->ammo_cells);
+
+	   if (CMLStandardQuake()) {
+	     SV_MS_WriteByte(EVars(ent)->weapon);
+	   } else {
+	     for (i = 0; i < 32; i++) {
+	       if (((int)EVars(ent)->weapon) & (1 << i)) {
+	         SV_MS_WriteByte(i);
+	         break;
+	       }
+	     }
+	   }
+
+	   // johnfitz -- PROTOCOL_FITZQUAKE
+	   if (bits & SU_WEAPON2)
+	     SV_MS_WriteByte(SV_ModelIndex(PR_GetString(EVars(ent)->weaponmodel)) >> 8);
+	   if (bits & SU_ARMOR2) SV_MS_WriteByte((int)EVars(ent)->armorvalue >> 8);
+	   if (bits & SU_AMMO2) SV_MS_WriteByte((int)EVars(ent)->currentammo >> 8);
+	   if (bits & SU_SHELLS2) SV_MS_WriteByte((int)EVars(ent)->ammo_shells >> 8);
+	   if (bits & SU_NAILS2) SV_MS_WriteByte((int)EVars(ent)->ammo_nails >> 8);
+	   if (bits & SU_ROCKETS2) SV_MS_WriteByte((int)EVars(ent)->ammo_rockets >> 8);
+	   if (bits & SU_CELLS2) SV_MS_WriteByte((int)EVars(ent)->ammo_cells >> 8);
+	   if (bits & SU_WEAPONFRAME2)
+	     SV_MS_WriteByte((int)EVars(ent)->weaponframe >> 8);
+	   // for now, weaponalpha = client entity alpha
+	   if (bits & SU_WEAPONALPHA) SV_MS_WriteByte(EDICT_NUM(ent)->alpha);
+	   // johnfitz
+	*/
 }
