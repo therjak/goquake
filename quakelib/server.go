@@ -708,91 +708,132 @@ func (s *Server) WriteClientdataToMessage(e *progs.EntVars, alpha byte) {
 	if (int(e.Flags) & progs.FlagOnGround) != 0 {
 		bits |= server.SU_ONGROUND
 	}
-	/*
-	   if ((int)EVars(ent)->flags & FL_ONGROUND) bits |= SU_ONGROUND;
+	if e.WaterLevel >= 2 {
+		bits |= server.SU_INWATER
+	}
+	if e.PunchAngle[0] != 0 {
+		bits |= server.SU_PUNCH1
+	}
+	if e.PunchAngle[1] != 0 {
+		bits |= server.SU_PUNCH2
+	}
+	if e.PunchAngle[2] != 0 {
+		bits |= server.SU_PUNCH3
+	}
+	if e.Velocity[0] != 0 {
+		bits |= server.SU_VELOCITY1
+	}
+	if e.Velocity[1] != 0 {
+		bits |= server.SU_VELOCITY2
+	}
+	if e.Velocity[2] != 0 {
+		bits |= server.SU_VELOCITY3
+	}
+	if e.WeaponFrame != 0 {
+		bits |= server.SU_WEAPONFRAME
+	}
+	if e.ArmorValue != 0 {
+		bits |= server.SU_ARMOR
+	}
+	bits |= server.SU_WEAPON
 
-	   if (EVars(ent)->waterlevel >= 2) bits |= SU_INWATER;
+	wmi := s.ModelIndex(PR_GetStringWrap(int(e.WeaponModel)))
+	if s.protocol != protocol.NetQuake {
+		if (bits&server.SU_WEAPON != 0) &&
+			((wmi & 0xFF00) != 0) {
+			bits |= server.SU_WEAPON2
+		}
+		if (int(e.ArmorValue) & 0xFF00) != 0 {
+			bits |= server.SU_ARMOR2
+		}
+		if (int(e.CurrentAmmo) & 0xFF00) != 0 {
+			bits |= server.SU_AMMO2
+		}
+		if (int(e.AmmoShells) & 0xFF00) != 0 {
+			bits |= server.SU_SHELLS2
+		}
+		if (int(e.AmmoNails) & 0xFF00) != 0 {
+			bits |= server.SU_NAILS2
+		}
+		if (int(e.AmmoRockets) & 0xFF00) != 0 {
+			bits |= server.SU_ROCKETS2
+		}
+		if (int(e.AmmoCells) & 0xFF00) != 0 {
+			bits |= server.SU_CELLS2
+		}
+		/*
+		   if (bits & SU_WEAPONFRAME && (int)EVars(ent)->weaponframe & 0xFF00)
+		     bits |= SU_WEAPONFRAME2;
+		   if (bits & SU_WEAPON && EDICT_NUM(ent)->alpha != ENTALPHA_DEFAULT)
+		     bits |= SU_WEAPONALPHA;  // for now, weaponalpha = client entity alpha
+		*/
+		if bits >= 65536 {
+			bits |= server.SU_EXTEND1
+		}
+		if bits >= 16777216 {
+			bits |= server.SU_EXTEND2
+		}
+	}
+	msgBuf.WriteByte(server.ClientData)
+	msgBuf.WriteShort(bits)
+	if (bits & server.SU_EXTEND1) != 0 {
+		msgBuf.WriteByte(bits >> 16)
+	}
+	if (bits & server.SU_EXTEND2) != 0 {
+		msgBuf.WriteByte(bits >> 24)
+	}
+	if (bits & server.SU_VIEWHEIGHT) != 0 {
+		msgBuf.WriteChar(int(e.ViewOfs[2]))
+	}
+	if (bits & server.SU_IDEALPITCH) != 0 {
+		msgBuf.WriteChar(int(e.IdealPitch))
+	}
+	if (bits & (server.SU_PUNCH1)) != 0 {
+		msgBuf.WriteChar(int(e.PunchAngle[0]))
+	}
+	if (bits & (server.SU_PUNCH2)) != 0 {
+		msgBuf.WriteChar(int(e.PunchAngle[1]))
+	}
+	if (bits & (server.SU_PUNCH3)) != 0 {
+		msgBuf.WriteChar(int(e.PunchAngle[2]))
+	}
+	if (bits & (server.SU_VELOCITY1)) != 0 {
+		msgBuf.WriteChar(int(e.Velocity[0] / 16))
+	}
+	if (bits & (server.SU_VELOCITY2)) != 0 {
+		msgBuf.WriteChar(int(e.Velocity[1] / 16))
+	}
+	if (bits & (server.SU_VELOCITY3)) != 0 {
+		msgBuf.WriteChar(int(e.Velocity[2] / 16))
+	}
 
-	   for (i = 0; i < 3; i++) {
-	     if (EVars(ent)->punchangle[i]) bits |= (SU_PUNCH1 << i);
-	     if (EVars(ent)->velocity[i]) bits |= (SU_VELOCITY1 << i);
-	   }
-
-	   if (EVars(ent)->weaponframe) bits |= SU_WEAPONFRAME;
-
-	   if (EVars(ent)->armorvalue) bits |= SU_ARMOR;
-
-	   //	if (ent->v.weapon)
-	   bits |= SU_WEAPON;
-
-	   // johnfitz -- PROTOCOL_FITZQUAKE
-	   if (SV_Protocol() != PROTOCOL_NETQUAKE) {
-	     if (bits & SU_WEAPON &&
-	         SV_ModelIndex(PR_GetString(EVars(ent)->weaponmodel)) & 0xFF00)
-	       bits |= SU_WEAPON2;
-	     if ((int)EVars(ent)->armorvalue & 0xFF00) bits |= SU_ARMOR2;
-	     if ((int)EVars(ent)->currentammo & 0xFF00) bits |= SU_AMMO2;
-	     if ((int)EVars(ent)->ammo_shells & 0xFF00) bits |= SU_SHELLS2;
-	     if ((int)EVars(ent)->ammo_nails & 0xFF00) bits |= SU_NAILS2;
-	     if ((int)EVars(ent)->ammo_rockets & 0xFF00) bits |= SU_ROCKETS2;
-	     if ((int)EVars(ent)->ammo_cells & 0xFF00) bits |= SU_CELLS2;
-	     if (bits & SU_WEAPONFRAME && (int)EVars(ent)->weaponframe & 0xFF00)
-	       bits |= SU_WEAPONFRAME2;
-	     if (bits & SU_WEAPON && EDICT_NUM(ent)->alpha != ENTALPHA_DEFAULT)
-	       bits |= SU_WEAPONALPHA;  // for now, weaponalpha = client entity alpha
-	     if (bits >= 65536) bits |= SU_EXTEND1;
-	     if (bits >= 16777216) bits |= SU_EXTEND2;
-	   }
-	   // johnfitz
-
-	   // send the data
-
-	   SV_MS_WriteByte(svc_clientdata);
-	   SV_MS_WriteShort(bits);
-
-	   // johnfitz -- PROTOCOL_FITZQUAKE
-	   if (bits & SU_EXTEND1) SV_MS_WriteByte(bits >> 16);
-	   if (bits & SU_EXTEND2) SV_MS_WriteByte(bits >> 24);
-	   // johnfitz
-
-	   if (bits & SU_VIEWHEIGHT) SV_MS_WriteChar(EVars(ent)->view_ofs[2]);
-
-	   if (bits & SU_IDEALPITCH) SV_MS_WriteChar(EVars(ent)->idealpitch);
-
-	   for (i = 0; i < 3; i++) {
-	     if (bits & (SU_PUNCH1 << i)) SV_MS_WriteChar(EVars(ent)->punchangle[i]);
-	     if (bits & (SU_VELOCITY1 << i))
-	       SV_MS_WriteChar(EVars(ent)->velocity[i] / 16);
-	   }
-
-	*/
-	// [always sent]	if (bits & SU_ITEMS)
 	msgBuf.WriteLong(items)
+
+	if (bits & (server.SU_WEAPONFRAME)) != 0 {
+		msgBuf.WriteByte(int(e.WeaponFrame))
+	}
+	if (bits & (server.SU_ARMOR)) != 0 {
+		msgBuf.WriteByte(int(e.ArmorValue))
+	}
+	msgBuf.WriteByte(wmi)
+	msgBuf.WriteShort(int(e.Health))
+	msgBuf.WriteByte(int(e.CurrentAmmo))
+	msgBuf.WriteByte(int(e.AmmoShells))
+	msgBuf.WriteByte(int(e.AmmoNails))
+	msgBuf.WriteByte(int(e.AmmoRockets))
+	msgBuf.WriteByte(int(e.AmmoCells))
+
+	if !(cmdl.Quoth() || cmdl.Rogue() || cmdl.Hipnotic()) {
+		msgBuf.WriteByte(int(e.Weapon))
+	} else {
+		for i := 0; i < 32; i++ {
+			if int(e.Weapon)&(1<<uint(i)) != 0 {
+				msgBuf.WriteByte(i)
+				break
+			}
+		}
+	}
 	/*
-
-	   if (bits & SU_WEAPONFRAME) SV_MS_WriteByte(EVars(ent)->weaponframe);
-	   if (bits & SU_ARMOR) SV_MS_WriteByte(EVars(ent)->armorvalue);
-	   if (bits & SU_WEAPON)
-	     SV_MS_WriteByte(SV_ModelIndex(PR_GetString(EVars(ent)->weaponmodel)));
-
-	   SV_MS_WriteShort(EVars(ent)->health);
-	   SV_MS_WriteByte(EVars(ent)->currentammo);
-	   SV_MS_WriteByte(EVars(ent)->ammo_shells);
-	   SV_MS_WriteByte(EVars(ent)->ammo_nails);
-	   SV_MS_WriteByte(EVars(ent)->ammo_rockets);
-	   SV_MS_WriteByte(EVars(ent)->ammo_cells);
-
-	   if (CMLStandardQuake()) {
-	     SV_MS_WriteByte(EVars(ent)->weapon);
-	   } else {
-	     for (i = 0; i < 32; i++) {
-	       if (((int)EVars(ent)->weapon) & (1 << i)) {
-	         SV_MS_WriteByte(i);
-	         break;
-	       }
-	     }
-	   }
-
 	   // johnfitz -- PROTOCOL_FITZQUAKE
 	   if (bits & SU_WEAPON2)
 	     SV_MS_WriteByte(SV_ModelIndex(PR_GetString(EVars(ent)->weaponmodel)) >> 8);

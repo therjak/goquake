@@ -695,14 +695,18 @@ func SV_ModelIndex(name *C.char) C.int {
 		return 0
 	}
 	n := C.GoString(name)
+	return C.int(sv.ModelIndex(n))
+}
+
+func (s *Server) ModelIndex(n string) int {
 	if len(n) == 0 {
 		return 0
 	}
-	for i, m := range sv.modelPrecache {
+	for i, m := range s.modelPrecache {
 		if m == n {
-			return C.int(i)
+			return i
 		}
 	}
-	Error("SV_ModelINdex: model %v not precached", n)
+	Error("SV_ModelIndex: model %v not precached", n)
 	return 0
 }
