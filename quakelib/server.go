@@ -739,8 +739,7 @@ func (s *Server) WriteClientdataToMessage(e *progs.EntVars, alpha byte) {
 
 	wmi := s.ModelIndex(PR_GetStringWrap(int(e.WeaponModel)))
 	if s.protocol != protocol.NetQuake {
-		if (bits&server.SU_WEAPON != 0) &&
-			((wmi & 0xFF00) != 0) {
+		if (wmi & 0xFF00) != 0 {
 			bits |= server.SU_WEAPON2
 		}
 		if (int(e.ArmorValue) & 0xFF00) != 0 {
@@ -761,12 +760,13 @@ func (s *Server) WriteClientdataToMessage(e *progs.EntVars, alpha byte) {
 		if (int(e.AmmoCells) & 0xFF00) != 0 {
 			bits |= server.SU_CELLS2
 		}
-		/*
-		   if (bits & SU_WEAPONFRAME && (int)EVars(ent)->weaponframe & 0xFF00)
-		     bits |= SU_WEAPONFRAME2;
-		   if (bits & SU_WEAPON && EDICT_NUM(ent)->alpha != ENTALPHA_DEFAULT)
-		     bits |= SU_WEAPONALPHA;  // for now, weaponalpha = client entity alpha
-		*/
+		if (bits&server.SU_WEAPONFRAME != 0) &&
+			(int(e.WeaponFrame)&0xFF00) != 0 {
+			bits |= server.SU_WEAPONFRAME2
+		}
+		if alpha != 0 {
+			bits |= server.SU_WEAPONALPHA
+		}
 		if bits >= 65536 {
 			bits |= server.SU_EXTEND1
 		}
@@ -823,30 +823,44 @@ func (s *Server) WriteClientdataToMessage(e *progs.EntVars, alpha byte) {
 	msgBuf.WriteByte(int(e.AmmoRockets))
 	msgBuf.WriteByte(int(e.AmmoCells))
 
-	if !(cmdl.Quoth() || cmdl.Rogue() || cmdl.Hipnotic()) {
-		msgBuf.WriteByte(int(e.Weapon))
-	} else {
+	if cmdl.Quoth() || cmdl.Rogue() || cmdl.Hipnotic() {
 		for i := 0; i < 32; i++ {
 			if int(e.Weapon)&(1<<uint(i)) != 0 {
 				msgBuf.WriteByte(i)
 				break
 			}
 		}
+	} else {
+		msgBuf.WriteByte(int(e.Weapon))
 	}
-	/*
-	   // johnfitz -- PROTOCOL_FITZQUAKE
-	   if (bits & SU_WEAPON2)
-	     SV_MS_WriteByte(SV_ModelIndex(PR_GetString(EVars(ent)->weaponmodel)) >> 8);
-	   if (bits & SU_ARMOR2) SV_MS_WriteByte((int)EVars(ent)->armorvalue >> 8);
-	   if (bits & SU_AMMO2) SV_MS_WriteByte((int)EVars(ent)->currentammo >> 8);
-	   if (bits & SU_SHELLS2) SV_MS_WriteByte((int)EVars(ent)->ammo_shells >> 8);
-	   if (bits & SU_NAILS2) SV_MS_WriteByte((int)EVars(ent)->ammo_nails >> 8);
-	   if (bits & SU_ROCKETS2) SV_MS_WriteByte((int)EVars(ent)->ammo_rockets >> 8);
-	   if (bits & SU_CELLS2) SV_MS_WriteByte((int)EVars(ent)->ammo_cells >> 8);
-	   if (bits & SU_WEAPONFRAME2)
-	     SV_MS_WriteByte((int)EVars(ent)->weaponframe >> 8);
-	   // for now, weaponalpha = client entity alpha
-	   if (bits & SU_WEAPONALPHA) SV_MS_WriteByte(EDICT_NUM(ent)->alpha);
-	   // johnfitz
-	*/
+	if (bits & (server.SU_WEAPON2)) != 0 {
+		msgBuf.WriteByte(wmi >> 8)
+	}
+	if (bits & (server.SU_ARMOR2)) != 0 {
+		msgBuf.WriteByte(int(e.ArmorValue) >> 8)
+	}
+	if (bits & (server.SU_AMMO2)) != 0 {
+		msgBuf.WriteByte(int(e.CurrentAmmo) >> 8)
+	}
+	if (bits & (server.SU_SHELLS2)) != 0 {
+		msgBuf.WriteByte(int(e.AmmoShells) >> 8)
+	}
+	if (bits & (server.SU_NAILS2)) != 0 {
+		msgBuf.WriteByte(int(e.AmmoNails) >> 8)
+	}
+	if (bits & (server.SU_NAILS2)) != 0 {
+		msgBuf.WriteByte(int(e.AmmoNails) >> 8)
+	}
+	if (bits & (server.SU_ROCKETS2)) != 0 {
+		msgBuf.WriteByte(int(e.AmmoRockets) >> 8)
+	}
+	if (bits & (server.SU_CELLS2)) != 0 {
+		msgBuf.WriteByte(int(e.AmmoCells) >> 8)
+	}
+	if (bits & (server.SU_WEAPONFRAME2)) != 0 {
+		msgBuf.WriteByte(int(e.WeaponFrame) >> 8)
+	}
+	if (bits & (server.SU_WEAPONALPHA)) != 0 {
+		msgBuf.WriteByte(int(alpha))
+	}
 }
