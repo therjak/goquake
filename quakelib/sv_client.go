@@ -634,7 +634,10 @@ func MSG_ReadAngle16() C.float {
 
 //export SV_SendServerinfo
 func SV_SendServerinfo(client C.int) {
-	c := sv_clients[int(client)]
+	sv_clients[int(client)].SendServerinfo()
+}
+
+func (c *SVClient) SendServerinfo() {
 	m := &c.msg
 	m.WriteByte(server.Print)
 	m.WriteString(

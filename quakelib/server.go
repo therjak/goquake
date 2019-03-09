@@ -2,6 +2,7 @@ package quakelib
 
 // void SV_DropClient(int,int);
 // void SV_SetIdealPitch();
+// void PR_ExecuteProgram(int p);
 import "C"
 
 import (
@@ -863,4 +864,33 @@ func (s *Server) WriteClientdataToMessage(e *progs.EntVars, alpha byte) {
 	if (bits & (server.SU_WEAPONALPHA)) != 0 {
 		msgBuf.WriteByte(int(alpha))
 	}
+}
+
+/*
+Initializes a client_t for a new net connection.  This will only be called
+once for a player each game, not once for each level change.
+*/
+//export SV_ConnectClient
+func SV_ConnectClient(n C.int) {
+	ConnectClient(int(n))
+}
+
+func ConnectClient(n int) {
+	old := sv_clients[n]
+	new := &SVClient{
+		netConnection: old.netConnection,
+		edictId:       n + 1,
+		id:            n,
+		name:          "unconnected",
+		active:        true,
+		spawned:       false,
+	}
+	if sv.loadGame {
+		new.spawnParams = old.spawnParams
+	} else {
+		C.PR_ExecuteProgram(C.int(progsdat.Globals.SetNewParms))
+		new.spawnParams = progsdat.Globals.Parm
+	}
+	sv_clients[n] = new
+	new.SendServerinfo()
 }

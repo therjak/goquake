@@ -283,7 +283,7 @@ static int PR_LeaveFunction(void) {
 #define SOPCV2(X) Set_Pr_globalsf((unsigned short)st->c + 1, X)
 #define SOPCV3(X) Set_Pr_globalsf((unsigned short)st->c + 2, X)
 
-void PR_ExecuteProgram(GoInt32 fnum) {
+void PR_ExecuteProgram(int fnum) {
   eval_t *ptr;
   dstatement_t *st;
   dfunction_t *f, *newf;

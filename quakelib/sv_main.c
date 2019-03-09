@@ -59,77 +59,6 @@ void SV_Init(void) {
 /*
 =============================================================================
 
-EVENT MESSAGES
-
-=============================================================================
-*/
-
-/*
-==============================================================================
-
-CLIENT SPAWNING
-
-==============================================================================
-*/
-
-/*
-================
-SV_ConnectClient
-
-Initializes a client_t for a new net connection.  This will only be called
-once for a player each game, not once for each level change.
-================
-
-*/
-void SV_ConnectClient(int clientnum) {
-  int client;
-  int edictnum;
-  int i;
-  float spawn_parms[NUM_SPAWN_PARMS];
-
-  client = clientnum;
-
-  Con_DPrintf("Client %s connected\n", NET_QSocketGetAddressString(client));
-
-  edictnum = clientnum + 1;
-
-  // set up the client_t
-  if (SV_LoadGame()) {
-    for (i = 0; i < NUM_SPAWN_PARMS; i++) {
-      spawn_parms[i] = GetClientSpawnParam(client, i);
-    }
-  }
-  CleanSVClient(client);
-
-  SetClientName(client, "unconnected");
-  SetClientActive(client, true);
-  SetClientSpawned(client, false);
-  SetClientEdictId(client, edictnum);
-
-  if (SV_LoadGame()) {
-    for (i = 0; i < NUM_SPAWN_PARMS; i++) {
-      SetClientSpawnParam(client, i, spawn_parms[i]);
-    }
-  } else {
-    // call the progs to get default spawn parms for the new client
-    PR_ExecuteProgram(Pr_global_struct_SetNewParms());
-    for (i = 0; i < NUM_SPAWN_PARMS; i++)
-      SetClientSpawnParam(client, i, Pr_global_struct_parm(i));
-  }
-  SV_SendServerinfo(client);
-}
-
-/*
-===============================================================================
-
-FRAME UPDATES
-
-===============================================================================
-*/
-
-/*
-=============================================================================
-
 The PVS must include a small area around the client to allow head bobbing
 or other small motion on the client side.  Otherwise, a bob might cause an
 entity that should be visible to not show up, especially when the bob
@@ -377,6 +306,7 @@ stats:
 SV_SendClientDatagram
 =======================
 */
+// THERJAK
 qboolean SV_SendClientDatagram(int client) {
   SV_MS_Clear();
   SV_MS_SetMaxLen(MAX_DATAGRAM);
@@ -403,6 +333,7 @@ qboolean SV_SendClientDatagram(int client) {
 SV_UpdateToReliableMessages
 =======================
 */
+// THERJAK
 void SV_UpdateToReliableMessages(void) {
   int i, j;
 

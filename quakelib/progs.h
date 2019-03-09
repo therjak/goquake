@@ -49,7 +49,7 @@ extern dstatement_t *pr_statements;
 
 void PR_Init(void);
 
-void PR_ExecuteProgram(GoInt32 fnum);
+void PR_ExecuteProgram(int fnum);
 void PR_LoadProgs(void);
 
 const char *PR_GetString(int num);

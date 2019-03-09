@@ -28,6 +28,7 @@ func AllocEntvars(edicts C.int, entityfields C.int) {
 //export FreeEntvars
 func FreeEntvars() {
 	C.free(unsafe.Pointer(g_entvars))
+	g_entvars = nil
 }
 
 //export EVars
