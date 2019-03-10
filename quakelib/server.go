@@ -19,6 +19,14 @@ import (
 	"quake/protocol/server"
 )
 
+const (
+	SOLID_NOT = iota
+	SOLID_TRIGGER
+	SOLID_BBOX
+	SOLID_SLIDEBOX
+	SOLID_BSP
+)
+
 type ServerStatic struct {
 	maxClients        int
 	maxClientsLimit   int
@@ -946,4 +954,33 @@ func (s *Server) UpdateToReliableMessages() {
 		cl.oldFrags = int(newFrags)
 	}
 	s.reliableDatagram.ClearMessage()
+}
+
+//export SV_Impact
+func SV_Impact(e1, e2 C.int) {
+	sv.Impact(int(e1), int(e2))
+}
+
+func (s *Server) Impact(e1, e2 int) {
+	oldSelf := progsdat.Globals.Self
+	oldOther := progsdat.Globals.Other
+
+	progsdat.Globals.Time = float32(s.time)
+
+	ent1 := EntVars(e1)
+	ent2 := EntVars(e2)
+	if ent1.Touch != 0 && ent1.Solid != SOLID_NOT {
+		progsdat.Globals.Self = int32(e1)
+		progsdat.Globals.Other = int32(e2)
+		C.PR_ExecuteProgram(C.int(ent1.Touch))
+	}
+
+	if ent2.Touch != 0 && ent2.Solid != SOLID_NOT {
+		progsdat.Globals.Self = int32(e2)
+		progsdat.Globals.Other = int32(e1)
+		C.PR_ExecuteProgram(C.int(ent2.Touch))
+	}
+
+	progsdat.Globals.Self = oldSelf
+	progsdat.Globals.Other = oldOther
 }

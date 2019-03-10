@@ -134,36 +134,6 @@ qboolean SV_RunThink(int e) {
 
 /*
 ==================
-SV_Impact
-
-Two entities have touched, so run their touch functions
-==================
-*/
-void SV_Impact(int e1, int e2) {
-  int old_self, old_other;
-
-  old_self = Pr_global_struct_self();
-  old_other = Pr_global_struct_other();
-
-  Set_pr_global_struct_time(SV_Time());
-  if (EVars(e1)->touch && EVars(e1)->solid != SOLID_NOT) {
-    Set_pr_global_struct_self(e1);
-    Set_pr_global_struct_other(e2);
-    PR_ExecuteProgram(EVars(e1)->touch);
-  }
-
-  if (EVars(e2)->touch && EVars(e2)->solid != SOLID_NOT) {
-    Set_pr_global_struct_self(e2);
-    Set_pr_global_struct_other(e1);
-    PR_ExecuteProgram(EVars(e2)->touch);
-  }
-
-  Set_pr_global_struct_self(old_self);
-  Set_pr_global_struct_other(old_other);
-}
-
-/*
-==================
 ClipVelocity
 
 Slide off of the impacting object
