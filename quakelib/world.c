@@ -225,6 +225,7 @@ static link_t **sv_link_next;
 static link_t **sv_link_prev;
 
 void SV_UnlinkEdict(int e) {
+  // THERJAK
   edict_t *ent = EDICT_NUM(e);
   if (!ent->area.prev) return;  // not linked in anywhere
   RemoveLink(&ent->area);
@@ -336,6 +337,7 @@ SV_LinkEdict
 ===============
 */
 void SV_LinkEdict(int e, qboolean touch_triggers) {
+  // THERJAK
   areanode_t *node;
   edict_t *ent = EDICT_NUM(e);
   entvars_t *ev;

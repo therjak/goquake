@@ -62,6 +62,7 @@ void SV_CheckAllEnts(void) {
 SV_CheckVelocity
 ================
 */
+// THERJAK
 void SV_CheckVelocity(entvars_t *ent) {
   int i;
 
