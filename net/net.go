@@ -179,6 +179,8 @@ const (
 	NETFLAG_CTL         = 0x80000000
 
 	MAX_DATAGRAM = 32000
+	DATAGRAM_MTU = 1400
+	MAX_MSGLEN   = 64000
 	quake        = "QUAKE\x00"
 )
 

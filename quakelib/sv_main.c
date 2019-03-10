@@ -303,59 +303,6 @@ stats:
 
 /*
 =======================
-SV_SendClientDatagram
-=======================
-*/
-// THERJAK
-qboolean SV_SendClientDatagram(int client) {
-  SV_MS_Clear();
-  SV_MS_SetMaxLen(MAX_DATAGRAM);
-
-  // johnfitz -- if client is nonlocal, use smaller max size so packets aren't
-  // fragmented
-  if (Q_strcmp(NET_QSocketGetAddressString(client), "LOCAL") != 0)
-    SV_MS_SetMaxLen(DATAGRAM_MTU);
-  // johnfitz
-
-  SV_MS_WriteByte(svc_time);
-  SV_MS_WriteFloat(SV_Time());
-
-  // add the client specific data to the datagram
-  SV_WriteClientdataToMessage(GetClientEdictId(client));
-
-  SV_WriteEntitiesToClient(GetClientEdictId(client));
-
-  return SV_DG_SendOut(client);
-}
-
-/*
-=======================
-SV_UpdateToReliableMessages
-=======================
-*/
-// THERJAK
-void SV_UpdateToReliableMessages(void) {
-  int i, j;
-
-  // check for changes to be sent over the reliable streams
-  for (i = 0; i < SVS_GetMaxClients(); i++) {
-    if (GetClientOldFrags(i) != EVars(GetClientEdictId(i))->frags) {
-      for (j = 0; j < SVS_GetMaxClients(); j++) {
-        if (!GetClientActive(j)) continue;
-        ClientWriteByte(j, svc_updatefrags);
-        ClientWriteByte(j, i);
-        ClientWriteShort(j, EVars(GetClientEdictId(i))->frags);
-      }
-
-      SetClientOldFrags(i, EVars(GetClientEdictId(i))->frags);
-    }
-  }
-
-  SV_RD_SendOut();
-}
-
-/*
-=======================
 SV_SendClientMessages
 =======================
 */

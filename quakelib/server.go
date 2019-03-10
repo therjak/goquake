@@ -3,6 +3,7 @@ package quakelib
 // void SV_DropClient(int,int);
 // void SV_SetIdealPitch();
 // void PR_ExecuteProgram(int p);
+// void SV_WriteEntitiesToClient(int clent);
 import "C"
 
 import (
@@ -449,17 +450,20 @@ func SV_ClearDatagram() {
 
 //export SV_DG_SendOut
 func SV_DG_SendOut(client C.int) C.int {
+	return b2i(sv.SendDatagram(sv_clients[int(client)]))
+}
+
+func (s *Server) SendDatagram(c *SVClient) bool {
 	b := msgBuf.Bytes()
 	// If there is space add the server datagram
-	if len(b)+sv.datagram.Len() < 32000 {
-		b = append(b, sv.datagram.Bytes()...)
+	if len(b)+s.datagram.Len() < 32000 {
+		b = append(b, s.datagram.Bytes()...)
 	}
-	con := sv_clients[int(client)].netConnection
-	if con.SendUnreliableMessage(b) == -1 {
-		C.SV_DropClient(client, 1)
-		return 0
+	if c.netConnection.SendUnreliableMessage(b) == -1 {
+		C.SV_DropClient(C.int(c.id), 1)
+		return false
 	}
-	return 1
+	return true
 }
 
 //export SV_RD_WriteByte
@@ -499,13 +503,17 @@ func SV_RD_WriteString(s *C.char) {
 
 //export SV_RD_SendOut
 func SV_RD_SendOut() {
-	b := sv.reliableDatagram.Bytes()
+	sv.SendReliableDatagram()
+}
+
+func (s *Server) SendReliableDatagram() {
+	b := s.reliableDatagram.Bytes()
 	for _, cl := range sv_clients {
 		if cl.active {
 			cl.msg.WriteBytes(b)
 		}
 	}
-	sv.reliableDatagram.ClearMessage()
+	s.reliableDatagram.ClearMessage()
 }
 
 //export SVS_GetServerFlags
@@ -893,4 +901,49 @@ func ConnectClient(n int) {
 	}
 	sv_clients[n] = new
 	new.SendServerinfo()
+}
+
+//export SV_SendClientDatagram
+func SV_SendClientDatagram(c C.int) C.int {
+	return b2i(sv.SendClientDatagram(sv_clients[int(c)]))
+}
+
+func (s *Server) SendClientDatagram(c *SVClient) bool {
+	msgBuf.ClearMessage()
+	msgBufMaxLen = net.MAX_DATAGRAM
+	if c.Address() != "LOCAL" {
+		msgBufMaxLen = net.DATAGRAM_MTU
+	}
+	msgBuf.WriteByte(server.Time)
+	msgBuf.WriteFloat(float32(s.time))
+
+	s.WriteClientdataToMessage(EntVars(c.edictId), EntityAlpha(c.edictId))
+
+	C.SV_WriteEntitiesToClient(C.int(c.edictId))
+
+	return s.SendDatagram(c)
+}
+
+//export SV_UpdateToReliableMessages
+func SV_UpdateToReliableMessages() {
+	sv.UpdateToReliableMessages()
+}
+
+func (s *Server) UpdateToReliableMessages() {
+	b := s.reliableDatagram.Bytes()
+	for _, cl := range sv_clients {
+		newFrags := EntVars(cl.edictId).Frags
+		if cl.active {
+			// Does it actually matter to compare as float32?
+			// These subtle C things...
+			if float32(cl.oldFrags) != newFrags {
+				cl.msg.WriteByte(server.UpdateFrags)
+				cl.msg.WriteByte(cl.id)
+				cl.msg.WriteShort(int(newFrags))
+			}
+			cl.msg.WriteBytes(b)
+		}
+		cl.oldFrags = int(newFrags)
+	}
+	s.reliableDatagram.ClearMessage()
 }
