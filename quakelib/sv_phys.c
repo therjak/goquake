@@ -58,34 +58,6 @@ void SV_CheckAllEnts(void) {
 }
 
 /*
-================
-SV_CheckVelocity
-================
-*/
-// THERJAK
-void SV_CheckVelocity(entvars_t *ent) {
-  int i;
-
-  //
-  // bound velocity
-  //
-  for (i = 0; i < 3; i++) {
-    if (IS_NAN(ent->velocity[i])) {
-      Con_Printf("Got a NaN velocity on %s\n", PR_GetString(ent->classname));
-      ent->velocity[i] = 0;
-    }
-    if (IS_NAN(ent->origin[i])) {
-      Con_Printf("Got a NaN origin on %s\n", PR_GetString(ent->classname));
-      ent->origin[i] = 0;
-    }
-    if (ent->velocity[i] > Cvar_GetValue(&sv_maxvelocity))
-      ent->velocity[i] = Cvar_GetValue(&sv_maxvelocity);
-    else if (ent->velocity[i] < -Cvar_GetValue(&sv_maxvelocity))
-      ent->velocity[i] = -Cvar_GetValue(&sv_maxvelocity);
-  }
-}
-
-/*
 =============
 SV_RunThink
 
@@ -121,8 +93,7 @@ qboolean SV_RunThink(int e) {
   // lerp timing, but only if interval is not 0.1 (which client assumes)
   EDICT_NUM(e)->sendinterval = false;
   if (!EDICT_NUM(e)->free && EVars(e)->nextthink &&
-      (EVars(e)->movetype == MOVETYPE_STEP ||
-       EVars(e)->frame != oldframe)) {
+      (EVars(e)->movetype == MOVETYPE_STEP || EVars(e)->frame != oldframe)) {
     i = Q_rint((EVars(e)->nextthink - thinktime) * 255);
     if (i >= 0 && i < 256 && i != 25 &&
         i != 26)  // 25 and 26 are close enough to 0.1 to not send
@@ -206,8 +177,8 @@ int SV_FlyMove(int ent, float time, trace_t *steptrace) {
     for (i = 0; i < 3; i++)
       end[i] = EVars(ent)->origin[i] + time_left * EVars(ent)->velocity[i];
 
-    trace = SV_Move(EVars(ent)->origin, EVars(ent)->mins, EVars(ent)->maxs,
-                    end, false, ent);
+    trace = SV_Move(EVars(ent)->origin, EVars(ent)->mins, EVars(ent)->maxs, end,
+                    false, ent);
 
     if (trace.allsolid) {  // entity is trapped in another solid
       VectorCopy(vec3_origin, EVars(ent)->velocity);
@@ -334,16 +305,15 @@ trace_t SV_PushEntity(int ent, vec3_t push) {
   VectorAdd(EVars(ent)->origin, push, end);
 
   if (EVars(ent)->movetype == MOVETYPE_FLYMISSILE)
-    trace = SV_Move(EVars(ent)->origin, EVars(ent)->mins, EVars(ent)->maxs,
-                    end, MOVE_MISSILE, ent);
-  else if (EVars(ent)->solid == SOLID_TRIGGER ||
-           EVars(ent)->solid == SOLID_NOT)
+    trace = SV_Move(EVars(ent)->origin, EVars(ent)->mins, EVars(ent)->maxs, end,
+                    MOVE_MISSILE, ent);
+  else if (EVars(ent)->solid == SOLID_TRIGGER || EVars(ent)->solid == SOLID_NOT)
     // only clip against bmodels
-    trace = SV_Move(EVars(ent)->origin, EVars(ent)->mins, EVars(ent)->maxs,
-                    end, MOVE_NOMONSTERS, ent);
+    trace = SV_Move(EVars(ent)->origin, EVars(ent)->mins, EVars(ent)->maxs, end,
+                    MOVE_NOMONSTERS, ent);
   else
-    trace = SV_Move(EVars(ent)->origin, EVars(ent)->mins, EVars(ent)->maxs,
-                    end, MOVE_NORMAL, ent);
+    trace = SV_Move(EVars(ent)->origin, EVars(ent)->mins, EVars(ent)->maxs, end,
+                    MOVE_NORMAL, ent);
 
   VectorCopy(trace.endpos, EVars(ent)->origin);
   SV_LinkEdict(ent, true);
@@ -365,9 +335,9 @@ void SV_PushMove(int pusher, float movetime) {
   vec3_t mins, maxs, move;
   vec3_t entorig, pushorig;
   int num_moved;
-  int *moved_edict;  // johnfitz -- dynamically allocate
-  vec3_t *moved_from;     // johnfitz -- dynamically allocate
-  int mark;               // johnfitz
+  int *moved_edict;    // johnfitz -- dynamically allocate
+  vec3_t *moved_from;  // johnfitz -- dynamically allocate
+  int mark;            // johnfitz
 
   if (!EVars(pusher)->velocity[0] && !EVars(pusher)->velocity[1] &&
       !EVars(pusher)->velocity[2]) {
@@ -808,7 +778,7 @@ void SV_Physics_Client(int ent, int num) {
   //
   // do a move
   //
-  SV_CheckVelocity(EVars(ent));
+  SV_CheckVelocity(ent);
 
   //
   // decide which move function to call
@@ -948,7 +918,7 @@ void SV_Physics_Toss(int ent) {
   // if onground, return without moving
   if (((int)EVars(ent)->flags & FL_ONGROUND)) return;
 
-  SV_CheckVelocity(EVars(ent));
+  SV_CheckVelocity(ent);
 
   // add gravity
   if (EVars(ent)->movetype != MOVETYPE_FLY &&
@@ -1018,7 +988,7 @@ void SV_Physics_Step(int ent) {
       hitsound = false;
 
     SV_AddGravity(ent);
-    SV_CheckVelocity(EVars(ent));
+    SV_CheckVelocity(ent);
     SV_FlyMove(ent, HostFrameTime(), NULL);
     SV_LinkEdict(ent, true);
 

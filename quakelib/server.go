@@ -11,6 +11,7 @@ import (
 	"log"
 	"quake/cmd"
 	cmdl "quake/commandline"
+	"quake/cvars"
 	"quake/execute"
 	"quake/math"
 	"quake/net"
@@ -983,4 +984,28 @@ func (s *Server) Impact(e1, e2 int) {
 
 	progsdat.Globals.Self = oldSelf
 	progsdat.Globals.Other = oldOther
+}
+
+//export SV_CheckVelocity
+func SV_CheckVelocity(e C.int) {
+	CheckVelocity(EntVars(int(e)))
+}
+
+func CheckVelocity(ent *progs.EntVars) {
+	maxVelocity := cvars.ServerMaxVelocity.Value()
+	for i := 0; i < 3; i++ {
+		if ent.Velocity[i] != ent.Velocity[i] {
+			conPrintf("Got a NaN velocity on %s\n", PR_GetStringWrap(int(ent.ClassName)))
+			ent.Velocity[i] = 0
+		}
+		if ent.Origin[i] != ent.Origin[i] {
+			conPrintf("Got a NaN origin on %s\n", PR_GetStringWrap(int(ent.ClassName)))
+			ent.Origin[i] = 0
+		}
+		if ent.Velocity[i] > maxVelocity {
+			ent.Velocity[i] = maxVelocity
+		} else if ent.Velocity[i] < -maxVelocity {
+			ent.Velocity[i] = -maxVelocity
+		}
+	}
 }
