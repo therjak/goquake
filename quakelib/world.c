@@ -2,6 +2,10 @@
 
 #include "quakedef.h"
 
+// FIXME: remove this mess!
+#define EDICT_FROM_AREA(l) \
+  ((edict_t *)((byte *)l - (intptr_t) & (((edict_t *)0)->area2)))
+
 /*
 
 entities never clip against themselves, or their owner
@@ -227,13 +231,13 @@ static link_t **sv_link_prev;
 void SV_UnlinkEdict(int e) {
   // THERJAK
   edict_t *ent = EDICT_NUM(e);
-  if (!ent->area.prev) return;  // not linked in anywhere
-  RemoveLink(&ent->area);
-  if (sv_link_next && *sv_link_next == &ent->area)
-    *sv_link_next = ent->area.next;
-  if (sv_link_prev && *sv_link_prev == &ent->area)
-    *sv_link_prev = ent->area.prev;
-  ent->area.prev = ent->area.next = NULL;
+  if (!ent->area2.prev) return;  // not linked in anywhere
+  RemoveLink(&ent->area2);
+  if (sv_link_next && *sv_link_next == &ent->area2)
+    *sv_link_next = ent->area2.next;
+  if (sv_link_prev && *sv_link_prev == &ent->area2)
+    *sv_link_prev = ent->area2.prev;
+  ent->area2.prev = ent->area2.next = NULL;
 }
 
 /*
@@ -283,10 +287,8 @@ void SV_TouchLinks(int e, areanode_t *node) {
   // recurse down both sides
   if (node->axis == -1) return;
 
-  if (ev->absmax[node->axis] > node->dist)
-    SV_TouchLinks(e, node->children[0]);
-  if (ev->absmin[node->axis] < node->dist)
-    SV_TouchLinks(e, node->children[1]);
+  if (ev->absmax[node->axis] > node->dist) SV_TouchLinks(e, node->children[0]);
+  if (ev->absmin[node->axis] < node->dist) SV_TouchLinks(e, node->children[1]);
 }
 
 /*
@@ -342,7 +344,7 @@ void SV_LinkEdict(int e, qboolean touch_triggers) {
   edict_t *ent = EDICT_NUM(e);
   entvars_t *ev;
 
-  if (ent->area.prev) SV_UnlinkEdict(e);  // unlink from old position
+  SV_UnlinkEdict(e);  // unlink from old position
 
   if (e == 0) return;  // don't add the world
 
@@ -394,9 +396,9 @@ void SV_LinkEdict(int e, qboolean touch_triggers) {
   // link it in
 
   if (ev->solid == SOLID_TRIGGER)
-    InsertLinkBefore(&ent->area, &node->trigger_edicts);
+    InsertLinkBefore(&ent->area2, &node->trigger_edicts);
   else
-    InsertLinkBefore(&ent->area, &node->solid_edicts);
+    InsertLinkBefore(&ent->area2, &node->solid_edicts);
 
   // if touch_triggers, touch all entities at this node and decend for more
   if (touch_triggers) SV_TouchLinks(e, sv_areanodes);
@@ -454,10 +456,6 @@ int SV_PointContents(vec3_t p) {
   if (cont <= CONTENTS_CURRENT_0 && cont >= CONTENTS_CURRENT_DOWN)
     cont = CONTENTS_WATER;
   return cont;
-}
-
-int SV_TruePointContents(vec3_t p) {
-  return SV_HullPointContents(&sv.worldmodel->hulls[0], 0, p);
 }
 
 //===========================================================================
@@ -536,21 +534,12 @@ qboolean SV_RecursiveHullCheck(hull_t *hull, int num, float p1f, float p2f,
     t2 = DoublePrecisionDotProduct(plane->normal, p2) - plane->dist;
   }
 
-#if 1
   if (t1 >= 0 && t2 >= 0)
     return SV_RecursiveHullCheck(hull, node->children[0], p1f, p2f, p1, p2,
                                  trace);
   if (t1 < 0 && t2 < 0)
     return SV_RecursiveHullCheck(hull, node->children[1], p1f, p2f, p1, p2,
                                  trace);
-#else
-  if ((t1 >= DIST_EPSILON && t2 >= DIST_EPSILON) || (t2 > t1 && t1 >= 0))
-    return SV_RecursiveHullCheck(hull, node->children[0], p1f, p2f, p1, p2,
-                                 trace);
-  if ((t1 <= -DIST_EPSILON && t2 <= -DIST_EPSILON) || (t2 < t1 && t1 <= 0))
-    return SV_RecursiveHullCheck(hull, node->children[1], p1f, p2f, p1, p2,
-                                 trace);
-#endif
 
   // put the crosspoint DIST_EPSILON pixels on the near side
   if (t1 < 0)
@@ -703,11 +692,11 @@ void SV_ClipToLinks(areanode_t *node, moveclip_t *clip) {
     }
 
     if ((int)tv->flags & FL_MONSTER)
-      trace = SV_ClipMoveToEntity(touch, clip->start,
-                                  clip->mins2, clip->maxs2, clip->end);
+      trace = SV_ClipMoveToEntity(touch, clip->start, clip->mins2, clip->maxs2,
+                                  clip->end);
     else
-      trace = SV_ClipMoveToEntity(touch, clip->start, clip->mins,
-                                  clip->maxs, clip->end);
+      trace = SV_ClipMoveToEntity(touch, clip->start, clip->mins, clip->maxs,
+                                  clip->end);
     if (trace.allsolid || trace.startsolid ||
         trace.fraction < clip->trace.fraction) {
       trace.entn = touch;

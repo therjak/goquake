@@ -35,8 +35,8 @@ typedef struct {
   float fraction;  // time completed, 1.0 = didn't hit anything
   vec3_t endpos;   // final position
   plane_t plane;   // surface normal at impact
-  qboolean entp;    // entity the surface is on
-  int entn;    // entity the surface is on
+  qboolean entp;   // entity the surface is on
+  int entn;        // entity the surface is on
 } trace_t;
 
 #define MOVE_NORMAL 0
@@ -58,7 +58,6 @@ void SV_LinkEdict(int ent, qboolean touch_triggers);
 // if touchtriggers, calls prog functions for the intersected triggers
 
 int SV_PointContents(vec3_t p);
-int SV_TruePointContents(vec3_t p);
 // returns the CONTENTS_* value from the world at the given point.
 // does not check any entities at all
 // the non-true version remaps the water current contents to content_water
