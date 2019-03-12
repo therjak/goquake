@@ -1,5 +1,8 @@
 package quakelib
 
+//#include "trace.h"
+import "C"
+
 import (
 	"container/ring"
 )
@@ -18,4 +21,18 @@ type AreaNode struct {
 
 func InsertLinkBefore() {}
 func Edict_From_Area()  {}
-func SV_UnlinkEdict()   {}
+
+// Needs to be called any time an entity changes origin, mins, maxs, or solid
+// flags ent->v.modified
+// sets ent->v.absmin and ent->v.absmax
+// if touchtriggers, calls prog functions for the intersected triggers
+// export SV_UnlinkEdict
+func SV_UnlinkEdict(e C.int) {
+}
+
+func SV_TouchLinks(e int, a *AreaNode) {
+}
+
+// export SV_LinkEdict
+func SV_LinkEdict(e C.int, touchTriggers C.int) {
+}
