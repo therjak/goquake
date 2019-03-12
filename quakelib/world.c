@@ -216,7 +216,6 @@ SV_UnlinkEdict
 ===============
 */
 static link_t **sv_link_next;
-static link_t **sv_link_prev;
 
 void SV_UnlinkEdict(int e) {
   // THERJAK
@@ -225,8 +224,6 @@ void SV_UnlinkEdict(int e) {
   RemoveLink(&ent->area2);
   if (sv_link_next && *sv_link_next == &ent->area2)
     *sv_link_next = ent->area2.next;
-  if (sv_link_prev && *sv_link_prev == &ent->area2)
-    *sv_link_prev = ent->area2.prev;
   ent->area2.prev = ent->area2.next = NULL;
 }
 
