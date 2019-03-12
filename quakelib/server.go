@@ -47,9 +47,9 @@ type Server struct {
 	paused   bool
 	loadGame bool
 
-	time          float64
+	time          float32
 	lastCheck     int
-	lastCheckTime float64
+	lastCheckTime float32
 
 	datagram         net.Message
 	reliableDatagram net.Message
@@ -178,23 +178,23 @@ func SV_SetLastCheck(c C.int) {
 }
 
 //export SV_Time
-func SV_Time() C.double {
-	return C.double(sv.time)
+func SV_Time() C.float {
+	return C.float(sv.time)
 }
 
 //export SV_SetTime
-func SV_SetTime(t C.double) {
-	sv.time = float64(t)
+func SV_SetTime(t C.float) {
+	sv.time = float32(t)
 }
 
 //export SV_LastCheckTime
-func SV_LastCheckTime() C.double {
-	return C.double(sv.lastCheckTime)
+func SV_LastCheckTime() C.float {
+	return C.float(sv.lastCheckTime)
 }
 
 //export SV_SetLastCheckTime
-func SV_SetLastCheckTime(t C.double) {
-	sv.lastCheckTime = float64(t)
+func SV_SetLastCheckTime(t C.float) {
+	sv.lastCheckTime = float32(t)
 }
 
 //export SV_NumEdicts
@@ -924,7 +924,7 @@ func (s *Server) SendClientDatagram(c *SVClient) bool {
 		msgBufMaxLen = net.DATAGRAM_MTU
 	}
 	msgBuf.WriteByte(server.Time)
-	msgBuf.WriteFloat(float32(s.time))
+	msgBuf.WriteFloat(s.time)
 
 	s.WriteClientdataToMessage(EntVars(c.edictId), EntityAlpha(c.edictId))
 
@@ -966,7 +966,7 @@ func (s *Server) Impact(e1, e2 int) {
 	oldSelf := progsdat.Globals.Self
 	oldOther := progsdat.Globals.Other
 
-	progsdat.Globals.Time = float32(s.time)
+	progsdat.Globals.Time = s.time
 
 	ent1 := EntVars(e1)
 	ent2 := EntVars(e2)
