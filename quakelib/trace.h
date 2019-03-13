@@ -2,6 +2,8 @@
 #ifndef _QUAKE_TRACE_H
 #define _QUAKE_TRACE_H
 
+typedef float v3[3];
+
 typedef struct {
   float normal[3];
   float dist;
@@ -20,9 +22,9 @@ typedef struct {
 
 typedef struct {
   float boxmins[3], boxmaxs[3];  // enclose the test object along entire move
-  float *mins, *maxs;            // size of the moving object
+  float mins[3], maxs[3];            // size of the moving object
   float mins2[3], maxs2[3];      // size when clipping against mosnters
-  float *start, *end;
+  float start[3], end[3];
   trace_t trace;
   int Type;
   int passedict;

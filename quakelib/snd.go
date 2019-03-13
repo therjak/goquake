@@ -3,10 +3,7 @@ package quakelib
 // #include "q_sound.h"
 
 // typedef int sfx_t;
-// #ifndef CFWRAP
-// #define CFWRAP
-// inline float cf(int idx, float* f) { return f[idx]; }
-// #endif
+// #include "cgo_help.h"
 import "C"
 
 import (

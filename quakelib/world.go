@@ -2,11 +2,13 @@ package quakelib
 
 //#include "trace.h"
 //#include "edict.h"
+//#include "cgo_help.h"
 //void PR_ExecuteProgram(int p);
 import "C"
 
 import (
 	"container/ring"
+	"quake/math"
 )
 
 const (
@@ -187,14 +189,13 @@ func LinkEdict(e int, touchTriggers bool) {
 	}
 }
 
-type moveClip C.moveclip_t
-
-//export SV_ClipToLinks
-func SV_ClipToLinks(clip *moveClip) {
-	ClipToLinks(gArea, clip)
+type moveClip struct {
+	boxmins, boxmaxs, mins, maxs, mins2, maxs2, start, end math.Vec3
+	trace                                                  C.trace_t
+	typ, edict                                             int
 }
 
-func ClipToLinks(a *areaNode, clip *moveClip) {
+func clipToLinks(a *areaNode, clip *moveClip) {
 	var next *ring.Ring
 	for l := a.solidEdicts.Next(); l != a.solidEdicts; l = next {
 		next = l.Next()
@@ -203,48 +204,117 @@ func ClipToLinks(a *areaNode, clip *moveClip) {
 		if tv.Solid == SOLID_NOT {
 			continue
 		}
-		if touch == int(clip.passedict) {
+		if touch == clip.edict {
 			continue
 		}
 		if tv.Solid == SOLID_TRIGGER {
 			Error("Trigger in clipping list")
 		}
-		if clip.Type == MOVE_NOMONSTERS && tv.Solid != SOLID_BSP {
+		if clip.typ == MOVE_NOMONSTERS && tv.Solid != SOLID_BSP {
 			continue
 		}
-		if float32(clip.boxmaxs[0]) < tv.AbsMin[0] ||
-			float32(clip.boxmaxs[1]) < tv.AbsMin[1] ||
-			float32(clip.boxmaxs[2]) < tv.AbsMin[2] ||
-			float32(clip.boxmins[0]) > tv.AbsMax[0] ||
-			float32(clip.boxmins[1]) > tv.AbsMax[1] ||
-			float32(clip.boxmins[2]) > tv.AbsMax[2] {
+		if clip.boxmaxs.X < tv.AbsMin[0] ||
+			clip.boxmaxs.Y < tv.AbsMin[1] ||
+			clip.boxmaxs.Z < tv.AbsMin[2] ||
+			clip.boxmins.X > tv.AbsMax[0] ||
+			clip.boxmins.Y > tv.AbsMax[1] ||
+			clip.boxmins.Z > tv.AbsMax[2] {
 			continue
 		}
-		if clip.passedict >= 0 && EntVars(int(clip.passedict)).Size[0] != 0 &&
+		if clip.edict >= 0 && EntVars(clip.edict).Size[0] != 0 &&
 			tv.Size[0] == 0 {
 			continue
 		}
 		if clip.trace.allsolid != 0 {
 			return
 		}
-		if clip.passedict >= 0 {
-			if tv.Owner == int32(clip.passedict) {
+		if clip.edict >= 0 {
+			if tv.Owner == int32(clip.edict) {
 				continue
 			}
-			if EntVars(int(clip.passedict)).Owner == int32(touch) {
+			if EntVars(clip.edict).Owner == int32(touch) {
 				continue
 			}
 		}
-		// TODO: missing stuff
+		trace := func() C.trace_t {
+			if int(tv.Flags)&FL_MONSTER != 0 {
+				return clipMoveToEntity(touch, clip.start, clip.mins2, clip.maxs2, clip.end)
+			}
+			return clipMoveToEntity(touch, clip.start, clip.mins, clip.maxs, clip.end)
+		}()
+		if trace.allsolid != 0 || trace.startsolid != 0 ||
+			trace.fraction < clip.trace.fraction {
+			trace.entn = C.int(touch)
+			trace.entp = b2i(true)
+			if clip.trace.startsolid != 0 {
+				clip.trace = trace
+				clip.trace.startsolid = b2i(true)
+			} else {
+				clip.trace = trace
+			}
+		} else {
+			clip.trace.startsolid = b2i(true)
+		}
 	}
 
 	if a.axis == -1 {
 		return
 	}
-	if float32(clip.boxmaxs[a.axis]) > a.dist {
-		ClipToLinks(a.children[0], clip)
+	if clip.boxmaxs.Idx(a.axis) > a.dist {
+		clipToLinks(a.children[0], clip)
 	}
-	if float32(clip.boxmins[a.axis]) < a.dist {
-		ClipToLinks(a.children[1], clip)
+	if clip.boxmins.Idx(a.axis) < a.dist {
+		clipToLinks(a.children[1], clip)
 	}
+}
+
+func clipMoveToEntity(ent int, start, mins, maxs, end math.Vec3) C.trace_t {
+	var r C.trace_t
+	// TODO
+	return r
+}
+
+func (c *moveClip) moveBounds(s, e math.Vec3) {
+	min, max := math.MinMax(s, e)
+	c.boxmins = math.Add(min, math.Add(c.mins, math.Vec3{-1, -1, -1}))
+	c.boxmaxs = math.Add(max, math.Add(c.maxs, math.Vec3{1, 1, 1}))
+}
+
+func p2v3(p *C.float) math.Vec3 {
+	return math.Vec3{
+		X: float32(C.cf(0, p)),
+		Y: float32(C.cf(1, p)),
+		Z: float32(C.cf(2, p)),
+	}
+}
+
+//export SV_Move
+func SV_Move(st, mi, ma, en *C.float, ty C.int, ed C.int) C.trace_t {
+	start := p2v3(st)
+	mins := p2v3(mi)
+	maxs := p2v3(ma)
+	end := p2v3(en)
+
+	clip := moveClip{
+		trace: clipMoveToEntity(0, start, mins, maxs, end),
+		start: start,
+		end:   end,
+		mins:  mins,
+		maxs:  maxs,
+		typ:   int(ty),
+		edict: int(ed),
+		mins2: mins,
+		maxs2: maxs,
+	}
+	if ty == MOVE_MISSLE {
+		clip.mins2 = math.Vec3{-15, -15, -15}
+		clip.maxs2 = math.Vec3{15, 15, 15}
+	}
+
+	// create the bounding box of the entire move
+	clip.moveBounds(start, end)
+
+	clipToLinks(gArea, &clip)
+
+	return clip.trace
 }

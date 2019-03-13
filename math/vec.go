@@ -8,6 +8,17 @@ type Vec3 struct {
 	X, Y, Z float32
 }
 
+func (v *Vec3) Idx(i int) float32 {
+	switch i {
+	default:
+		return v.X
+	case 1:
+		return v.Y
+	case 2:
+		return v.Z
+	}
+}
+
 // Length returns the length of the vector
 func (v *Vec3) Length() float32 {
 	return float32(m.Sqrt(float64(Dot(*v, *v))))
@@ -57,4 +68,19 @@ func Dot(a Vec3, b Vec3) float32 {
 // Equal returns a == b
 func Equal(a Vec3, b Vec3) bool {
 	return a.X == b.X && a.Y == b.Y && a.Z == b.Z
+}
+
+func minmax(a, b float32) (float32, float32) {
+	if a < b {
+		return a, b
+	}
+	return b, a
+}
+
+func MinMax(a, b Vec3) (Vec3, Vec3) {
+	var r, s Vec3
+	r.X, s.X = minmax(a.X, b.X)
+	r.Y, s.Y = minmax(a.Y, b.Y)
+	r.Z, s.Z = minmax(a.Z, b.Z)
+	return r, s
 }
