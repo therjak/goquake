@@ -6,7 +6,7 @@
 #define MAX_ENT_LEAFS 32
 typedef struct edict_s {
   int free;
-  link_t area2; /* linked to a division node or leaf */
+  // link_t area2; /* linked to a division node or leaf */
 
   int num_leafs;
   int leafnums[MAX_ENT_LEAFS];

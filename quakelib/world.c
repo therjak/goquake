@@ -2,6 +2,8 @@
 
 #include "quakedef.h"
 
+#include "_cgo_export.h"
+
 // FIXME: remove this mess!
 #define EDICT_FROM_AREA(l) \
   ((edict_t *)((byte *)l - (intptr_t) & (((edict_t *)0)->area2)))
@@ -215,6 +217,7 @@ SV_UnlinkEdict
 
 ===============
 */
+/*
 static link_t **sv_link_next;
 
 void SV_UnlinkEdict(int e) {
@@ -226,12 +229,13 @@ void SV_UnlinkEdict(int e) {
     *sv_link_next = ent->area2.next;
   ent->area2.prev = ent->area2.next = NULL;
 }
-
+*/
 /*
 ====================
 SV_TouchLinks
 ====================
 */
+/*
 void SV_TouchLinks(int e, areanode_t *node) {
   link_t *l, *next;
   int touch;
@@ -277,7 +281,7 @@ void SV_TouchLinks(int e, areanode_t *node) {
   if (ev->absmax[node->axis] > node->dist) SV_TouchLinks(e, node->children[0]);
   if (ev->absmin[node->axis] < node->dist) SV_TouchLinks(e, node->children[1]);
 }
-
+*/
 /*
 ===============
 SV_FindTouchedLeafs
@@ -325,6 +329,7 @@ SV_LinkEdict
 
 ===============
 */
+/*
 void SV_LinkEdict(int e, qboolean touch_triggers) {
   // THERJAK
   areanode_t *node;
@@ -390,7 +395,7 @@ void SV_LinkEdict(int e, qboolean touch_triggers) {
   // if touch_triggers, touch all entities at this node and decend for more
   if (touch_triggers) SV_TouchLinks(e, sv_areanodes);
 }
-
+*/
 /*
 ===============================================================================
 
@@ -644,67 +649,69 @@ SV_ClipToLinks
 Mins and maxs enclose the entire area swept by the move
 ====================
 */
+/*
 void SV_ClipToLinks(areanode_t *node, moveclip_t *clip) {
-  link_t *l, *next;
-  int touch;
-  trace_t trace;
-  entvars_t *tv;
+link_t *l, *next;
+int touch;
+trace_t trace;
+entvars_t *tv;
 
-  // touch linked edicts
-  for (l = node->solid_edicts.next; l != &node->solid_edicts; l = next) {
-    next = l->next;
-    touch = NUM_FOR_EDICT(EDICT_FROM_AREA(l));
-    tv = EVars(touch);
-    if (tv->solid == SOLID_NOT) continue;
-    if (touch == clip->passedict) continue;
-    if (tv->solid == SOLID_TRIGGER) Go_Error("Trigger in clipping list");
+// touch linked edicts
+for (l = node->solid_edicts.next; l != &node->solid_edicts; l = next) {
+  next = l->next;
+  touch = NUM_FOR_EDICT(EDICT_FROM_AREA(l));
+  tv = EVars(touch);
+  if (tv->solid == SOLID_NOT) continue;
+  if (touch == clip->passedict) continue;
+  if (tv->solid == SOLID_TRIGGER) Go_Error("Trigger in clipping list");
 
-    if (clip->type == MOVE_NOMONSTERS && tv->solid != SOLID_BSP) continue;
+  if (clip->type == MOVE_NOMONSTERS && tv->solid != SOLID_BSP) continue;
 
-    if (clip->boxmins[0] > tv->absmax[0] || clip->boxmins[1] > tv->absmax[1] ||
-        clip->boxmins[2] > tv->absmax[2] || clip->boxmaxs[0] < tv->absmin[0] ||
-        clip->boxmaxs[1] < tv->absmin[1] || clip->boxmaxs[2] < tv->absmin[2])
-      continue;
+  if (clip->boxmins[0] > tv->absmax[0] || clip->boxmins[1] > tv->absmax[1] ||
+      clip->boxmins[2] > tv->absmax[2] || clip->boxmaxs[0] < tv->absmin[0] ||
+      clip->boxmaxs[1] < tv->absmin[1] || clip->boxmaxs[2] < tv->absmin[2])
+    continue;
 
-    if (clip->passedict >= 0 && EVars(clip->passedict)->size[0] && !tv->size[0])
-      continue;  // points never interact
+  if (clip->passedict >= 0 && EVars(clip->passedict)->size[0] && !tv->size[0])
+    continue;  // points never interact
 
-    // might intersect, so do an exact clip
-    if (clip->trace.allsolid) return;
-    if (clip->passedict >= 0) {
-      if (tv->owner == clip->passedict)
-        continue;  // don't clip against own missiles
-      if (EVars(clip->passedict)->owner == touch)
-        continue;  // don't clip against owner
-    }
-
-    if ((int)tv->flags & FL_MONSTER)
-      trace = SV_ClipMoveToEntity(touch, clip->start, clip->mins2, clip->maxs2,
-                                  clip->end);
-    else
-      trace = SV_ClipMoveToEntity(touch, clip->start, clip->mins, clip->maxs,
-                                  clip->end);
-    if (trace.allsolid || trace.startsolid ||
-        trace.fraction < clip->trace.fraction) {
-      trace.entn = touch;
-      trace.entp = true;
-      if (clip->trace.startsolid) {
-        clip->trace = trace;
-        clip->trace.startsolid = true;
-      } else
-        clip->trace = trace;
-    } else if (trace.startsolid)
-      clip->trace.startsolid = true;
+  // might intersect, so do an exact clip
+  if (clip->trace.allsolid) return;
+  if (clip->passedict >= 0) {
+    if (tv->owner == clip->passedict)
+      continue;  // don't clip against own missiles
+    if (EVars(clip->passedict)->owner == touch)
+      continue;  // don't clip against owner
   }
 
-  // recurse down both sides
-  if (node->axis == -1) return;
-
-  if (clip->boxmaxs[node->axis] > node->dist)
-    SV_ClipToLinks(node->children[0], clip);
-  if (clip->boxmins[node->axis] < node->dist)
-    SV_ClipToLinks(node->children[1], clip);
+  if ((int)tv->flags & FL_MONSTER)
+    trace = SV_ClipMoveToEntity(touch, clip->start, clip->mins2, clip->maxs2,
+                                clip->end);
+  else
+    trace = SV_ClipMoveToEntity(touch, clip->start, clip->mins, clip->maxs,
+                                clip->end);
+  if (trace.allsolid || trace.startsolid ||
+      trace.fraction < clip->trace.fraction) {
+    trace.entn = touch;
+    trace.entp = true;
+    if (clip->trace.startsolid) {
+      clip->trace = trace;
+      clip->trace.startsolid = true;
+    } else
+      clip->trace = trace;
+  } else if (trace.startsolid)
+    clip->trace.startsolid = true;
 }
+
+// recurse down both sides
+if (node->axis == -1) return;
+
+if (clip->boxmaxs[node->axis] > node->dist)
+  SV_ClipToLinks(node->children[0], clip);
+if (clip->boxmins[node->axis] < node->dist)
+  SV_ClipToLinks(node->children[1], clip);
+}
+  */
 
 /*
 ==================
@@ -745,7 +752,7 @@ trace_t SV_Move(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, int type,
   clip.end = end;
   clip.mins = mins;
   clip.maxs = maxs;
-  clip.type = type;
+  clip.Type = type;
   clip.passedict = passedict;
 
   if (type == MOVE_MISSILE) {
@@ -762,7 +769,7 @@ trace_t SV_Move(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, int type,
   SV_MoveBounds(start, clip.mins2, clip.maxs2, end, clip.boxmins, clip.boxmaxs);
 
   // clip to entities
-  SV_ClipToLinks(sv_areanodes, &clip);
+  SV_ClipToLinks(&clip);
 
   return clip.trace;
 }

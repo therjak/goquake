@@ -24,7 +24,7 @@ typedef struct {
   float mins2[3], maxs2[3];      // size when clipping against mosnters
   float *start, *end;
   trace_t trace;
-  int type;
+  int Type;
   int passedict;
 } moveclip_t;
 
