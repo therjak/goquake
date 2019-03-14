@@ -557,7 +557,7 @@ void GL_BuildBModelVertexBuffer(void) {
   numverts = 0;
   for (j = 1; j < MAX_MODELS; j++) {
     m = cl.model_precache[j];
-    if (!m || m->name[0] == '*' || m->type != mod_brush) continue;
+    if (!m || m->name[0] == '*' || m->Type != mod_brush) continue;
 
     for (i = 0; i < m->numsurfaces; i++) {
       numverts += m->surfaces[i].numedges;
@@ -571,7 +571,7 @@ void GL_BuildBModelVertexBuffer(void) {
 
   for (j = 1; j < MAX_MODELS; j++) {
     m = cl.model_precache[j];
-    if (!m || m->name[0] == '*' || m->type != mod_brush) continue;
+    if (!m || m->name[0] == '*' || m->Type != mod_brush) continue;
 
     for (i = 0; i < m->numsurfaces; i++) {
       msurface_t *s = &m->surfaces[i];

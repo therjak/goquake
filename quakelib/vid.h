@@ -24,8 +24,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifndef __VID_DEFS_H
 #define __VID_DEFS_H
 
-#include "_cgo_export.h"
-
 // vid.h -- video driver defs
 
 #define VID_CBITS 6

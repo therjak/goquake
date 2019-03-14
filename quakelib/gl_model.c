@@ -152,7 +152,7 @@ void Mod_ClearAll(void) {
   qmodel_t *mod;
 
   for (i = 0, mod = mod_known; i < mod_numknown; i++, mod++)
-    if (mod->type != mod_alias) {
+    if (mod->Type != mod_alias) {
       mod->needload = true;
       TexMgr_FreeTexturesForOwner(mod);  // johnfitz
     }
@@ -215,7 +215,7 @@ void Mod_TouchModel(const char *name) {
   mod = Mod_FindName(name);
 
   if (!mod->needload) {
-    if (mod->type == mod_alias) Cache_Check(&mod->cache);
+    if (mod->Type == mod_alias) Cache_Check(&mod->cache);
   }
 }
 
@@ -232,7 +232,7 @@ qmodel_t *Mod_LoadModel(qmodel_t *mod, qboolean crash) {
   int mod_type;
 
   if (!mod->needload) {
-    if (mod->type == mod_alias) {
+    if (mod->Type == mod_alias) {
       if (Cache_Check(&mod->cache)) return mod;
     } else
       return mod;  // not cached at all
@@ -1825,7 +1825,7 @@ void Mod_LoadBrushModel(qmodel_t *mod, void *buffer) {
   dmodel_t *bm;
   float radius;  // johnfitz
 
-  loadmodel->type = mod_brush;
+  loadmodel->Type = mod_brush;
 
   header = (dheader_t *)buffer;
 
@@ -2301,7 +2301,7 @@ Mod_SetExtraFlags -- johnfitz -- set up extra flags that aren't in the mdl
 void Mod_SetExtraFlags(qmodel_t *mod) {
   extern cvar_t r_nolerp_list, r_noshadow_list;
 
-  if (!mod || mod->type != mod_alias) return;
+  if (!mod || mod->Type != mod_alias) return;
 
   mod->flags &= 0xFF;  // only preserve first byte
 
@@ -2443,7 +2443,7 @@ void Mod_LoadAliasModel(qmodel_t *mod, void *buffer) {
 
   pheader->numposes = posenum;
 
-  mod->type = mod_alias;
+  mod->Type = mod_alias;
 
   Mod_SetExtraFlags(mod);  // johnfitz
 
@@ -2635,7 +2635,7 @@ void Mod_LoadSpriteModel(qmodel_t *mod, void *buffer) {
     }
   }
 
-  mod->type = mod_sprite;
+  mod->Type = mod_sprite;
 }
 
 //=============================================================================

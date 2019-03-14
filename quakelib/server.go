@@ -14,6 +14,7 @@ import (
 	"quake/cvars"
 	"quake/execute"
 	"quake/math"
+	"quake/model"
 	"quake/net"
 	"quake/progs"
 	"quake/protocol"
@@ -83,8 +84,11 @@ type Server struct {
 	soundPrecache []string
 	lightStyles   []string
 
-	name      string
-	modelName string
+	name      string // map name
+	modelName string // maps/<name>.bsp, for model_precache[0]
+
+	models     []*model.QModel
+	worldModel *model.QModel
 }
 
 var (

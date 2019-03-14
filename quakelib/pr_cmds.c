@@ -253,7 +253,7 @@ static void PF_setmodel(void) {
   if (mod)
   // johnfitz -- correct physics cullboxes for bmodels
   {
-    if (mod->type == mod_brush)
+    if (mod->Type == mod_brush)
       SetMinMaxSize(e, mod->clipmins, mod->clipmaxs, true);
     else
       SetMinMaxSize(e, mod->mins, mod->maxs, true);

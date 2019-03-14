@@ -243,7 +243,7 @@ void R_TranslateNewPlayerSkin(int playernum) {
   // get correct texture pixels
   currententity = &cl_entities[1 + playernum];
 
-  if (!currententity->model || currententity->model->type != mod_alias) return;
+  if (!currententity->model || currententity->model->Type != mod_alias) return;
 
   paliashdr = (aliashdr_t *)Mod_Extradata(currententity->model);
 

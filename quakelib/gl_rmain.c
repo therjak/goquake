@@ -612,7 +612,7 @@ void R_DrawEntitiesOnList(qboolean alphapass)  // johnfitz -- added parameter
       currententity->angles[0] *= 0.3;
     // johnfitz
 
-    switch (currententity->model->type) {
+    switch (currententity->model->Type) {
       case mod_alias:
         R_DrawAliasModel(currententity);
         break;
@@ -642,7 +642,7 @@ void R_DrawViewModel(void) {
   if (!currententity->model) return;
 
   // johnfitz -- this fixes a crash
-  if (currententity->model->type != mod_alias) return;
+  if (currententity->model->Type != mod_alias) return;
   // johnfitz
 
   // hack the depth range to prevent view model from poking into walls
@@ -774,7 +774,7 @@ void R_ShowTris(void) {
       if (currententity == &cl_entities[CL_Viewentity()])  // chasecam
         currententity->angles[0] *= 0.3;
 
-      switch (currententity->model->type) {
+      switch (currententity->model->Type) {
         case mod_brush:
           R_DrawBrushModel_ShowTris(currententity);
           break;
@@ -793,7 +793,7 @@ void R_ShowTris(void) {
     currententity = &cl.viewent;
     if (Cvar_GetValue(&r_drawviewmodel) && !Cvar_GetValue(&chase_active) &&
         CL_Stats(STAT_HEALTH) > 0 && !(cl.items & IT_INVISIBILITY) &&
-        currententity->model && currententity->model->type == mod_alias) {
+        currententity->model && currententity->model->Type == mod_alias) {
       glDepthRange(0, 0.3);
       R_DrawAliasModel_ShowTris(currententity);
       glDepthRange(0, 1);
@@ -840,7 +840,7 @@ void R_DrawShadows(void) {
   for (i = 0; i < cl_numvisedicts; i++) {
     currententity = cl_visedicts[i];
 
-    if (currententity->model->type != mod_alias) continue;
+    if (currententity->model->Type != mod_alias) continue;
 
     if (currententity == &cl.viewent) return;
 

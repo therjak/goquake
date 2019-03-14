@@ -24,8 +24,28 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define __MODEL__
 
 #include <GL/gl.h>
+
+#include "q_stdinc.h"
+
+#ifndef QUAKE_GAME
+#define QUAKE_GAME
+#endif
+
+#include "bspfile.h"
+#include "zone.h"
+#include "render.h"
+
 #include "modelgen.h"
 #include "spritegn.h"
+
+#ifndef MAX_QPATH
+#define MAX_QPATH 64
+#endif
+
+#ifndef MAX_DLIGHTS
+#define MAX_DLIGHTS 64
+#endif
+
 
 /*
 
@@ -378,7 +398,7 @@ typedef struct qmodel_s {
                          // that this model came from
   qboolean needload;     // bmodels and sprites don't cache normally
 
-  modtype_t type;
+  modtype_t Type;
   int numframes;
   synctype_t synctype;
 

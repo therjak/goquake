@@ -525,7 +525,7 @@ void GLMesh_LoadVertexBuffers(void) {
 
   for (j = 1; j < MAX_MODELS; j++) {
     if (!(m = cl.model_precache[j])) break;
-    if (m->type != mod_alias) continue;
+    if (m->Type != mod_alias) continue;
 
     hdr = (const aliashdr_t *)Mod_Extradata(m);
 
@@ -546,7 +546,7 @@ void GLMesh_DeleteVertexBuffers(void) {
 
   for (j = 1; j < MAX_MODELS; j++) {
     if (!(m = cl.model_precache[j])) break;
-    if (m->type != mod_alias) continue;
+    if (m->Type != mod_alias) continue;
 
     GL_DeleteBuffersFunc(1, &m->meshvbo);
     m->meshvbo = 0;
