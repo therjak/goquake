@@ -65,6 +65,13 @@ func Dot(a Vec3, b Vec3) float32 {
 	return a.X*b.X + a.Y*b.Y + a.Z*b.Z
 }
 
+// DoublePrecDot return a dot b calculated in double precision
+func DoublePrecDot(a Vec3, b Vec3) float32 {
+	return float32(float64(a.X)*float64(b.X) +
+		float64(a.Y)*float64(b.Y) +
+		float64(a.Z)*float64(b.Z))
+}
+
 // Equal returns a == b
 func Equal(a Vec3, b Vec3) bool {
 	return a.X == b.X && a.Y == b.Y && a.Z == b.Z

@@ -407,14 +407,6 @@ qboolean SV_RecursiveHullCheck(hull_t *hull, int num, float p1f, float p2f,
                              trace))
     return false;
 
-#ifdef PARANOID
-  if (SV_HullPointContents(sv_hullmodel, mid, node->children[side]) ==
-      CONTENTS_SOLID) {
-    Con_Printf("mid PointInHullSolid\n");
-    return false;
-  }
-#endif
-
   if (SV_HullPointContents(hull, node->children[side ^ 1], mid) !=
       CONTENTS_SOLID)
     // go past the node
@@ -495,4 +487,3 @@ trace_t SV_ClipMoveToEntity(int ent, vec3_t start, vec3_t mins, vec3_t maxs,
 
   return trace;
 }
-

@@ -9,12 +9,34 @@ import "C"
 import (
 	"container/ring"
 	"quake/math"
+	"quake/progs"
 )
 
 const (
 	MOVE_NORMAL = iota
 	MOVE_NOMONSTERS
 	MOVE_MISSLE
+)
+
+const (
+	CONTENTS_EMPTY        = -1
+	CONTENTS_SOLID        = -2
+	CONTENTS_WATER        = -3
+	CONTENTS_SLIME        = -4
+	CONTENTS_LAVA         = -5
+	CONTENTS_SKY          = -6
+	CONTENTS_ORIGIN       = -7
+	CONTENTS_CLIP         = -8
+	CONTENTS_CURRENT_0    = -9
+	CONTENTS_CURRENT_90   = -10
+	CONTENTS_CURRENT_180  = -11
+	CONTENTS_CURRENT_270  = -12
+	CONTENTS_CURRENT_UP   = -13
+	CONTENTS_CURRENT_DOWN = -14
+)
+
+const (
+	DIST_EPSILON = 0.03125 // (1/32) to keep floating point happy
 )
 
 type areaNode struct {
@@ -31,18 +53,16 @@ var (
 	gArea       *areaNode
 )
 
-func initBoxHull() {
-	// TODO
-}
-
 // export SV_ClearWorld
 func SV_ClearWorld() {
 	initBoxHull()
 	// gArea = createAreaNode(0, sv.worldmodel.mins, sv.worldmodel.maxs)
 }
 
+/*
 func InsertLinkBefore() {}
 func Edict_From_Area()  {}
+*/
 
 // Needs to be called any time an entity changes origin, mins, maxs, or solid
 // flags ent->v.modified
@@ -268,10 +288,224 @@ func clipToLinks(a *areaNode, clip *moveClip) {
 	}
 }
 
+type mPlane struct {
+	normal   math.Vec3
+	dist     float32
+	typ      int // was byte
+	signBits int // was byte
+	// pad [2]byte
+}
+
+type mClipNode struct {
+	planeNum int
+	children [2]int
+}
+
+type hull struct {
+	clipNodes     []mClipNode
+	planes        []mPlane
+	firstClipNode int
+	lastClipNode  int
+	clipMins      math.Vec3
+	clipMaxs      math.Vec3
+}
+
+var (
+	boxHull hull
+)
+
+func initBoxHull() {
+	boxHull.clipNodes = make([]mClipNode, 6)
+	boxHull.planes = make([]mPlane, 6)
+	boxHull.firstClipNode = 0
+	boxHull.lastClipNode = 5
+	for i := 0; i < 6; i++ {
+		boxHull.clipNodes[i].planeNum = i
+		side := i & 1
+		boxHull.clipNodes[i].children[side] = CONTENTS_EMPTY
+		if i == 5 {
+			boxHull.clipNodes[i].children[side^1] = CONTENTS_SOLID
+		} else {
+			boxHull.clipNodes[i].children[side^1] = i + 1
+		}
+		boxHull.planes[i].typ = i >> 1
+		switch i >> 1 {
+		case 0:
+			boxHull.planes[i].normal.X = 1
+		case 1:
+			boxHull.planes[i].normal.Y = 1
+		case 2:
+			boxHull.planes[i].normal.Z = 1
+		}
+	}
+}
+
+func hullForBox(mins, maxs math.Vec3) *hull {
+	boxHull.planes[0].dist = maxs.X
+	boxHull.planes[1].dist = mins.X
+	boxHull.planes[2].dist = maxs.Y
+	boxHull.planes[3].dist = mins.Y
+	boxHull.planes[4].dist = maxs.Z
+	boxHull.planes[5].dist = mins.Z
+	return &boxHull
+}
+
+func hullForEntity(ent *progs.EntVars, mins, maxs math.Vec3) (*hull, math.Vec3) {
+	return nil, math.Vec3{}
+}
+
+func hullPointContents(h *hull, num int, p math.Vec3) int {
+	for num >= 0 {
+		if num < h.firstClipNode || num > h.lastClipNode {
+			Error("SV_HullPointContents: bad node number")
+		}
+		node := h.clipNodes[num]
+		plane := h.planes[node.planeNum]
+		d := func() float32 {
+			if plane.typ < 3 {
+				return p.Idx(plane.typ) - plane.dist
+			}
+			return math.DoublePrecDot(plane.normal, p) - plane.dist
+		}()
+		if d < 0 {
+			num = node.children[1]
+		} else {
+			num = node.children[0]
+		}
+	}
+
+	return num
+}
+
+func recursiveHullCheck(h *hull, num int, p1f, p2f float32, p1, p2 math.Vec3, trace *C.trace_t) bool {
+	if num < 0 { // check for empty
+		if num != CONTENTS_SOLID {
+			trace.allsolid = b2i(false)
+			if num == CONTENTS_EMPTY {
+				trace.inopen = b2i(true)
+			} else {
+				trace.inwater = b2i(true)
+			}
+		} else {
+			trace.startsolid = b2i(true)
+		}
+		return true
+	}
+	if num < h.firstClipNode || num > h.lastClipNode {
+		Error("RecursiveHullCheck: bad node number")
+	}
+	node := h.clipNodes[num]
+	plane := h.planes[node.planeNum]
+	t1, t2 := func() (float32, float32) {
+		if plane.typ < 3 {
+			return (p1.Idx(plane.typ) - plane.dist),
+				(p2.Idx(plane.typ) - plane.dist)
+		} else {
+			return math.DoublePrecDot(plane.normal, p1) - plane.dist,
+				math.DoublePrecDot(plane.normal, p2) - plane.dist
+		}
+	}()
+	if t1 >= 0 && t2 >= 0 {
+		return recursiveHullCheck(h, node.children[0], p1f, p2f, p1, p2, trace)
+	}
+	if t1 < 0 && t2 < 0 {
+		return recursiveHullCheck(h, node.children[1], p1f, p2f, p1, p2, trace)
+	}
+	// put the crosspoint DIST_EPSILON pixels on the near side
+	frac := func() float32 {
+		if t1 < 0 {
+			return (t1 + DIST_EPSILON) / (t1 - t2)
+		}
+		return (t1 - DIST_EPSILON) / (t1 - t2)
+	}()
+	if frac < 0 {
+		frac = 0
+	}
+	if frac > 1 {
+		frac = 1
+	}
+	midf := p1f + (p2f-p1f)*frac
+	mid := func() math.Vec3 {
+		t := math.Sub(p2, p1)
+		t = t.Scale(frac)
+		return math.Add(p1, t)
+	}()
+	side := func() int {
+		if t1 < 0 {
+			return 1
+		}
+		return 0
+	}()
+	// move up to the node
+	if !recursiveHullCheck(h, node.children[side], p1f, midf, p1, mid, trace) {
+		return false
+	}
+	if hullPointContents(h, node.children[side^1], mid) != CONTENTS_SOLID {
+		return recursiveHullCheck(h, node.children[side^1], midf, p2f, mid, p2, trace)
+	}
+	if trace.allsolid != 0 {
+		return false // never got out of the solid area
+	}
+	// the other side of the node is solid, this is the impact point
+	if side == 0 {
+		trace.plane.normal[0] = C.float(plane.normal.X)
+		trace.plane.normal[1] = C.float(plane.normal.Y)
+		trace.plane.normal[2] = C.float(plane.normal.Z)
+		trace.plane.dist = C.float(plane.dist)
+	} else {
+		trace.plane.normal[0] = C.float(-plane.normal.X)
+		trace.plane.normal[1] = C.float(-plane.normal.Y)
+		trace.plane.normal[2] = C.float(-plane.normal.Z)
+		trace.plane.dist = C.float(-plane.dist)
+	}
+	for hullPointContents(h, h.firstClipNode, mid) == CONTENTS_SOLID {
+		// shouldn't really happen, but does occasionally
+		frac -= 0.1
+		if frac < 0 {
+			trace.fraction = C.float(midf)
+			trace.endpos[0] = C.float(mid.X)
+			trace.endpos[1] = C.float(mid.Y)
+			trace.endpos[2] = C.float(mid.Z)
+			conPrintf("backup past 0\n")
+			return false
+		}
+		midf = p1f + (p2f-p1f)*frac
+		mid = func() math.Vec3 {
+			t := math.Sub(p2, p1)
+			t = t.Scale(frac)
+			return math.Add(p1, t)
+		}()
+	}
+	trace.fraction = C.float(midf)
+	trace.endpos[0] = C.float(mid.X)
+	trace.endpos[1] = C.float(mid.Y)
+	trace.endpos[2] = C.float(mid.Z)
+
+	return false
+}
+
 func clipMoveToEntity(ent int, start, mins, maxs, end math.Vec3) C.trace_t {
-	var r C.trace_t
-	// TODO
-	return r
+	var trace C.trace_t
+	trace.fraction = 1
+	trace.allsolid = b2i(true)
+	trace.endpos[0] = C.float(end.X)
+	trace.endpos[1] = C.float(end.Y)
+	trace.endpos[2] = C.float(end.Z)
+	hull, offset := hullForEntity(EntVars(ent), mins, maxs)
+	startL := math.Sub(start, offset)
+	endL := math.Sub(end, offset)
+	recursiveHullCheck(hull, hull.firstClipNode, 0, 1, startL, endL, &trace)
+
+	if trace.fraction != 1 {
+		trace.endpos[0] += C.float(offset.X)
+		trace.endpos[1] += C.float(offset.Y)
+		trace.endpos[2] += C.float(offset.Z)
+	}
+	if trace.fraction < 1 || trace.startsolid != 0 {
+		trace.entn = C.int(ent)
+		trace.entp = b2i(true)
+	}
+	return trace
 }
 
 func (c *moveClip) moveBounds(s, e math.Vec3) {
