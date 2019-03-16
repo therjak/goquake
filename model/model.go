@@ -63,7 +63,7 @@ type QModel struct {
 	ClipMins math.Vec3
 	ClipMaxs math.Vec3
 
-	Nodes []Node
+	Node *Node
 
 	Hulls [MAX_MAP_HULLS]Hull
 }

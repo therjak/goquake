@@ -54,17 +54,55 @@ var (
 	gArea       *areaNode
 )
 
-// export SV_ClearWorld
+//export SV_ClearWorld
 func SV_ClearWorld() {
-	initBoxHull()
-	// TODO:
-	// gArea = createAreaNode(0, sv.worldmodel.mins, sv.worldmodel.maxs)
+	clearWorld()
 }
 
-/*
-func InsertLinkBefore() {}
-func Edict_From_Area()  {}
-*/
+// called after the world model has been loaded, before linking any entities
+func clearWorld() {
+	initBoxHull()
+	gArea = createAreaNode(0, sv.worldModel.Mins, sv.worldModel.Maxs)
+}
+
+func createAreaNode(depth int, mins, maxs math.Vec3) *areaNode {
+	if depth == 4 {
+		return &areaNode{
+			axis: -1,
+		}
+	}
+	an := &areaNode{}
+	s := math.Sub(maxs, mins)
+	an.axis = func() int {
+		if s.X > s.Y {
+			return 0
+		}
+		return 1
+	}()
+	an.dist = 0.5 * (maxs.Idx(an.axis) + mins.Idx(an.axis))
+
+	mins1 := mins
+	mins2 := mins
+	maxs1 := maxs
+	maxs2 := maxs
+
+	switch an.axis {
+	case 0:
+		maxs1.X = an.dist
+		mins2.X = an.dist
+	case 1:
+		maxs1.Y = an.dist
+		mins2.Y = an.dist
+	case 2:
+		maxs1.Z = an.dist
+		mins2.Z = an.dist
+	}
+
+	an.children[0] = createAreaNode(depth+1, mins2, maxs2)
+	an.children[1] = createAreaNode(depth+1, mins1, maxs1)
+
+	return an
+}
 
 // Needs to be called any time an entity changes origin, mins, maxs, or solid
 // flags ent->v.modified
@@ -140,6 +178,10 @@ func SV_LinkEdict(e C.int, touchTriggers C.int) {
 	LinkEdict(int(e), touchTriggers != 0)
 }
 
+// Needs to be called any time an entity changes origin, mins, max,
+// or solid flags ent.v.modified
+// sets the related entvar.absmin and entvar.absmax
+// if touchTriggers calls prog functions for the intersected triggers
 func LinkEdict(e int, touchTriggers bool) {
 	UnlinkEdict(e)
 	if e == 0 {
@@ -177,8 +219,7 @@ func LinkEdict(e int, touchTriggers bool) {
 
 	ed.num_leafs = 0
 	if ev.ModelIndex != 0 {
-		// TODO:
-		// SV_FindTouchedLeafs(e, sv.worldmodel->nodes)
+		findTouchedLeafs(e, sv.worldModel.Node)
 	}
 	if ev.Solid == SOLID_NOT {
 		return
@@ -209,6 +250,96 @@ func LinkEdict(e int, touchTriggers bool) {
 	if touchTriggers {
 		SV_TouchLinks(e, gArea)
 	}
+}
+
+func findTouchedLeafs(e int, node *model.Node) {
+	if node.Contents == CONTENTS_SOLID {
+		return
+	}
+	if node.Contents < 0 {
+		ed := C.EDICT_NUM(C.int(e))
+		if ed.num_leafs == C.MAX_ENT_LEAFS {
+			return
+		}
+
+		leafNum := C.int(1)
+		// TODO: leaf stuff
+		// number in sv.worldmodel.leafs
+		// leaf - sv.worldmodel.leafs - 1
+
+		ed.leafnums[ed.num_leafs] = leafNum
+		ed.num_leafs++
+
+	}
+	splitplane := node.Plane
+	ev := EntVars(e)
+	sides := boxOnPlaneSide(math.VFromA(ev.AbsMin), math.VFromA(ev.AbsMax), splitplane)
+	if sides&1 != 0 {
+		findTouchedLeafs(e, node.Children[0])
+	}
+	if sides&2 != 0 {
+		findTouchedLeafs(e, node.Children[1])
+	}
+}
+
+func boxOnPlaneSide(mins, maxs math.Vec3, p *model.Plane) int {
+	if p.Type < 3 {
+		if p.Dist <= mins.Idx(int(p.Type)) {
+			return 1
+		}
+		if p.Dist >= maxs.Idx(int(p.Type)) {
+			return 2
+		}
+		return 3
+	}
+	d1, d2 := func() (float32, float32) {
+		n := p.Normal
+		switch p.SignBits {
+		case 0:
+			d1 := n.X*maxs.X + n.Y*maxs.Y + n.Z*maxs.Z
+			d2 := n.X*mins.X + n.Y*mins.Y + n.Z*mins.Z
+			return d1, d2
+		case 1:
+			d1 := n.X*mins.X + n.Y*maxs.Y + n.Z*maxs.Z
+			d2 := n.X*maxs.X + n.Y*mins.Y + n.Z*mins.Z
+			return d1, d2
+		case 2:
+			d1 := n.X*maxs.X + n.Y*mins.Y + n.Z*maxs.Z
+			d2 := n.X*mins.X + n.Y*maxs.Y + n.Z*mins.Z
+			return d1, d2
+		case 3:
+			d1 := n.X*mins.X + n.Y*mins.Y + n.Z*maxs.Z
+			d2 := n.X*maxs.X + n.Y*maxs.Y + n.Z*mins.Z
+			return d1, d2
+		case 4:
+			d1 := n.X*maxs.X + n.Y*maxs.Y + n.Z*mins.Z
+			d2 := n.X*mins.X + n.Y*mins.Y + n.Z*maxs.Z
+			return d1, d2
+		case 5:
+			d1 := n.X*mins.X + n.Y*maxs.Y + n.Z*mins.Z
+			d2 := n.X*maxs.X + n.Y*mins.Y + n.Z*maxs.Z
+			return d1, d2
+		case 6:
+			d1 := n.X*maxs.X + n.Y*mins.Y + n.Z*mins.Z
+			d2 := n.X*mins.X + n.Y*maxs.Y + n.Z*maxs.Z
+			return d1, d2
+		case 7:
+			d1 := n.X*mins.X + n.Y*mins.Y + n.Z*mins.Z
+			d2 := n.X*maxs.X + n.Y*maxs.Y + n.Z*maxs.Z
+			return d1, d2
+		default:
+			Error("BoxOnPlaneSide: Bad signbits")
+			return 0, 0
+		}
+	}()
+	sides := 0
+	if d1 >= p.Dist {
+		sides = 1
+	}
+	if d2 < p.Dist {
+		sides |= 2
+	}
+	return sides
 }
 
 type moveClip struct {
@@ -380,6 +511,7 @@ func hullPointContents(h *model.Hull, num int, p math.Vec3) int {
 	return num
 }
 
+//TODO: export?
 func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 math.Vec3, trace *C.trace_t) bool {
 	if num < 0 { // check for empty
 		if num != CONTENTS_SOLID {
@@ -525,25 +657,47 @@ func p2v3(p *C.float) math.Vec3 {
 	}
 }
 
+//export SV_TestEntityPosition
+func SV_TestEntityPosition(ent C.int) C.int {
+	return b2i(testEntityPosition(int(ent)))
+}
+
+func testEntityPosition(ent int) bool {
+	ev := EntVars(ent)
+	trace := svMove(math.VFromA(ev.Origin), math.VFromA(ev.Mins),
+		math.VFromA(ev.Maxs), math.VFromA(ev.Origin), 0, ent)
+	return trace.startsolid != 0
+}
+
+// mins and maxs are relative
+// if the entire move stays in a solid volume, trace.allsolid will be set
+// if the starting point is in a solid, it will be allowed to move out to
+// an open area
+// nomonsters is used for line of sight or edge testing where monsters
+// shouldn't be considered solid objects
+// passedict is explicitly excluded from clipping checks (normally NULL)
 //export SV_Move
 func SV_Move(st, mi, ma, en *C.float, ty C.int, ed C.int) C.trace_t {
 	start := p2v3(st)
 	mins := p2v3(mi)
 	maxs := p2v3(ma)
 	end := p2v3(en)
+	return svMove(start, mins, maxs, end, int(ty), int(ed))
+}
 
+func svMove(start, mins, maxs, end math.Vec3, typ, ed int) C.trace_t {
 	clip := moveClip{
 		trace: clipMoveToEntity(0, start, mins, maxs, end),
 		start: start,
 		end:   end,
 		mins:  mins,
 		maxs:  maxs,
-		typ:   int(ty),
-		edict: int(ed),
+		typ:   typ,
+		edict: ed,
 		mins2: mins,
 		maxs2: maxs,
 	}
-	if ty == MOVE_MISSLE {
+	if typ == MOVE_MISSLE {
 		clip.mins2 = math.Vec3{-15, -15, -15}
 		clip.maxs2 = math.Vec3{15, 15, 15}
 	}
