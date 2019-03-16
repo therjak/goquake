@@ -9,7 +9,6 @@ type Plane struct {
 	Dist     float32
 	Type     byte
 	SignBits byte
-	Pad      [2]byte
 }
 
 type ClipNode struct {
@@ -24,6 +23,19 @@ type Hull struct {
 	LastClipNode  int
 	ClipMins      math.Vec3
 	ClipMaxs      math.Vec3
+}
+
+type Node struct {
+	Contents int // 0 to differentiate from leafs
+	VisFrame int
+
+	MinMaxs  [6]float32
+	Parent   *Node
+	Children [2]*Node
+	Plane    *Plane
+
+	FirstSurface uint32
+	NumSurfaces  uint32
 }
 
 // GLuint == uint32
@@ -50,6 +62,8 @@ type QModel struct {
 	Maxs     math.Vec3
 	ClipMins math.Vec3
 	ClipMaxs math.Vec3
+
+	Nodes []Node
 
 	Hulls [MAX_MAP_HULLS]Hull
 }

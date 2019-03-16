@@ -417,7 +417,7 @@ void R_SetFrustum(float fovx, float fovy) {
   TurnVector(frustum[3].normal, vpn, vup, fovy / 2 - 90);     // top plane
 
   for (i = 0; i < 4; i++) {
-    frustum[i].type = PLANE_ANYZ;
+    frustum[i].Type = PLANE_ANYZ;
     frustum[i].dist = DotProduct(
         r_origin, frustum[i].normal);  // FIXME: shouldn't this always be zero?
     frustum[i].signbits = SignbitsForPlane(&frustum[i]);

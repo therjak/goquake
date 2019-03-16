@@ -125,9 +125,9 @@ int BoxOnPlaneSide(vec3_t emins, vec3_t emaxs, struct mplane_s *plane);
 float anglemod(float a);
 
 #define BOX_ON_PLANE_SIDE(emins, emaxs, p)                               \
-  (((p)->type < 3) ? (((p)->dist <= (emins)[(p)->type])                  \
+  (((p)->Type < 3) ? (((p)->dist <= (emins)[(p)->Type])                  \
                           ? 1                                            \
-                          : (((p)->dist >= (emaxs)[(p)->type]) ? 2 : 3)) \
+                          : (((p)->dist >= (emaxs)[(p)->Type]) ? 2 : 3)) \
                    : BoxOnPlaneSide((emins), (emaxs), (p)))
 
 #endif /* __MATHLIB_H */

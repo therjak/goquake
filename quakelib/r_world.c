@@ -147,7 +147,7 @@ vieworg
 qboolean R_BackFaceCull(msurface_t *surf) {
   double dot;
 
-  switch (surf->plane->type) {
+  switch (surf->plane->Type) {
     case PLANE_X:
       dot = r_refdef.vieworg[0] - surf->plane->dist;
       break;

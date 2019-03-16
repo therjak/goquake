@@ -57,6 +57,7 @@ var (
 // export SV_ClearWorld
 func SV_ClearWorld() {
 	initBoxHull()
+	// TODO:
 	// gArea = createAreaNode(0, sv.worldmodel.mins, sv.worldmodel.maxs)
 }
 
@@ -330,7 +331,30 @@ func hullForBox(mins, maxs math.Vec3) *model.Hull {
 }
 
 func hullForEntity(ent *progs.EntVars, mins, maxs math.Vec3) (*model.Hull, math.Vec3) {
-	return nil, math.Vec3{}
+	if ent.Solid == SOLID_BSP {
+		if ent.MoveType != progs.MoveTypePush {
+			Error("SOLID_BSP without MOVETYPE_PUSH")
+		}
+		m := sv.models[int(ent.ModelIndex)]
+		if m == nil || m.Type != model.ModBrush {
+			Error("MOVETYPE_PUSH with a non bsp model")
+		}
+		s := maxs.X - mins.X
+		h := func() *model.Hull {
+			if s < 3 {
+				return &m.Hulls[0]
+			} else if s <= 32 {
+				return &m.Hulls[1]
+			}
+			return &m.Hulls[2]
+		}()
+		offset := math.Add(math.Sub(h.ClipMins, mins), math.VFromA(ent.Origin))
+		return h, offset
+	}
+	hullmins := math.Sub(math.VFromA(ent.Mins), maxs)
+	hullmaxs := math.Sub(math.VFromA(ent.Maxs), mins)
+	origin := math.VFromA(ent.Origin)
+	return hullForBox(hullmins, hullmaxs), origin
 }
 
 func hullPointContents(h *model.Hull, num int, p math.Vec3) int {

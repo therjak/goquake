@@ -1499,6 +1499,7 @@ void Mod_LoadClipnodes(lump_t *l, qboolean bsp2) {
   hull->clipnodes = out;
   hull->firstclipnode = 0;
   hull->lastclipnode = count - 1;
+  hull->numPlanes = loadmodel->numplanes;
   hull->planes = loadmodel->planes;
   hull->clip_mins[0] = -16;
   hull->clip_mins[1] = -16;
@@ -1511,6 +1512,7 @@ void Mod_LoadClipnodes(lump_t *l, qboolean bsp2) {
   hull->clipnodes = out;
   hull->firstclipnode = 0;
   hull->lastclipnode = count - 1;
+  hull->numPlanes = loadmodel->numplanes;
   hull->planes = loadmodel->planes;
   hull->clip_mins[0] = -32;
   hull->clip_mins[1] = -32;
@@ -1574,6 +1576,7 @@ void Mod_MakeHull0(void) {
   hull->clipnodes = out;
   hull->firstclipnode = 0;
   hull->lastclipnode = count - 1;
+  hull->numPlanes = loadmodel->numplanes;
   hull->planes = loadmodel->planes;
 
   for (i = 0; i < count; i++, out++, in++) {
@@ -1693,7 +1696,7 @@ void Mod_LoadPlanes(lump_t *l) {
     }
 
     out->dist = LittleFloat(in->dist);
-    out->type = LittleLong(in->type);
+    out->Type = LittleLong(in->type);
     out->signbits = bits;
   }
 }
@@ -1779,7 +1782,7 @@ void Mod_BoundsFromClipNode(qmodel_t *mod, int hull, int nodenum) {
 
   node = &mod->clipnodes[nodenum];
   plane = mod->hulls[hull].planes + node->planenum;
-  switch (plane->type) {
+  switch (plane->Type) {
     case PLANE_X:
       if (plane->signbits == 1)
         mod->clipmins[0] = q_min(mod->clipmins[0],

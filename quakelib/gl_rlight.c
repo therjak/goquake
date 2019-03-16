@@ -143,8 +143,8 @@ start:
   if (node->contents < 0) return;
 
   splitplane = node->plane;
-  if (splitplane->type < 3)
-    dist = light->origin[splitplane->type] - splitplane->dist;
+  if (splitplane->Type < 3)
+    dist = light->origin[splitplane->Type] - splitplane->dist;
   else
     dist = DotProduct(light->origin, splitplane->normal) - splitplane->dist;
 
@@ -244,9 +244,9 @@ loc0:
   if (node->contents < 0) return false;  // didn't hit anything
 
   // calculate mid point
-  if (node->plane->type < 3) {
-    front = start[node->plane->type] - node->plane->dist;
-    back = end[node->plane->type] - node->plane->dist;
+  if (node->plane->Type < 3) {
+    front = start[node->plane->Type] - node->plane->dist;
+    back = end[node->plane->Type] - node->plane->dist;
   } else {
     front = DotProduct(start, node->plane->normal) - node->plane->dist;
     back = DotProduct(end, node->plane->normal) - node->plane->dist;

@@ -84,7 +84,7 @@ typedef struct { vec3_t position; } mvertex_t;
 typedef struct mplane_s {
   vec3_t normal;
   float dist;
-  byte type;      // for texture axis selection and fast side tests
+  byte Type;      // for texture axis selection and fast side tests
   byte signbits;  // signx + signy<<1 + signz<<1
   byte pad[2];
 } mplane_t;
@@ -226,6 +226,7 @@ typedef struct mclipnode_s {
 // !!! if this is changed, it must be changed in asm_i386.h too !!!
 typedef struct {
   mclipnode_t *clipnodes;  // johnfitz -- was dclipnode_t
+  int numPlanes;
   mplane_t *planes;
   int firstclipnode;
   int lastclipnode;

@@ -43,6 +43,7 @@ void SV_InitBoxHull(void) {
   int side;
 
   box_hull.clipnodes = box_clipnodes;
+  box_hull.numPlanes = 6;
   box_hull.planes = box_planes;
   box_hull.firstclipnode = 0;
   box_hull.lastclipnode = 5;
@@ -58,7 +59,7 @@ void SV_InitBoxHull(void) {
     else
       box_clipnodes[i].children[side ^ 1] = CONTENTS_SOLID;
 
-    box_planes[i].type = i >> 1;
+    box_planes[i].Type = i >> 1;
     box_planes[i].normal[i >> 1] = 1;
   }
 }
@@ -278,8 +279,8 @@ int SV_HullPointContents(hull_t *hull, int num, vec3_t p) {
     node = hull->clipnodes + num;
     plane = hull->planes + node->planenum;
 
-    if (plane->type < 3)
-      d = p[plane->type] - plane->dist;
+    if (plane->Type < 3)
+      d = p[plane->Type] - plane->dist;
     else
       d = DoublePrecisionDotProduct(plane->normal, p) - plane->dist;
     if (d < 0)
@@ -374,9 +375,9 @@ qboolean SV_RecursiveHullCheck(hull_t *hull, int num, float p1f, float p2f,
   node = hull->clipnodes + num;
   plane = hull->planes + node->planenum;
 
-  if (plane->type < 3) {
-    t1 = p1[plane->type] - plane->dist;
-    t2 = p2[plane->type] - plane->dist;
+  if (plane->Type < 3) {
+    t1 = p1[plane->Type] - plane->dist;
+    t2 = p2[plane->Type] - plane->dist;
   } else {
     t1 = DoublePrecisionDotProduct(plane->normal, p1) - plane->dist;
     t2 = DoublePrecisionDotProduct(plane->normal, p2) - plane->dist;
@@ -443,47 +444,4 @@ qboolean SV_RecursiveHullCheck(hull_t *hull, int num, float p1f, float p2f,
   VectorCopy(mid, trace->endpos);
 
   return false;
-}
-
-/*
-==================
-SV_ClipMoveToEntity
-
-Handles selection or creation of a clipping hull, and offseting (and
-eventually rotation) of the end points
-==================
-*/
-trace_t SV_ClipMoveToEntity(int ent, vec3_t start, vec3_t mins, vec3_t maxs,
-                            vec3_t end) {
-  trace_t trace;
-  vec3_t offset;
-  vec3_t start_l, end_l;
-  hull_t *hull;
-
-  // fill in a default trace
-  memset(&trace, 0, sizeof(trace_t));
-  trace.fraction = 1;
-  trace.allsolid = true;
-  VectorCopy(end, trace.endpos);
-
-  // get the clipping hull
-  hull = SV_HullForEntity(EVars(ent), mins, maxs, offset);
-
-  VectorSubtract(start, offset, start_l);
-  VectorSubtract(end, offset, end_l);
-
-  // trace a line through the apropriate clipping hull
-  SV_RecursiveHullCheck(hull, hull->firstclipnode, 0, 1, start_l, end_l,
-                        &trace);
-
-  // fix trace up by the offset
-  if (trace.fraction != 1) VectorAdd(trace.endpos, offset, trace.endpos);
-
-  // did we clip the move?
-  if (trace.fraction < 1 || trace.startsolid) {
-    trace.entn = ent;
-    trace.entp = true;
-  }
-
-  return trace;
 }

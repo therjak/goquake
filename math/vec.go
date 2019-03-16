@@ -8,6 +8,10 @@ type Vec3 struct {
 	X, Y, Z float32
 }
 
+func VFromA(a [3]float32) Vec3 {
+	return Vec3{a[0], a[1], a[2]}
+}
+
 func (v *Vec3) Idx(i int) float32 {
 	switch i {
 	default:
