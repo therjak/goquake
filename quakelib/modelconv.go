@@ -15,7 +15,21 @@ import (
 
 //export SVSetModel
 func SVSetModel(m *C.qmodel_t, idx C.int) {
-	nm := &model.QModel{
+	nm := convCModel(m)
+	if int(idx) == len(sv.models) {
+		sv.models = append(sv.models, nm)
+	} else {
+		sv.models[int(idx)] = nm
+	}
+}
+
+//export SVSetWorldModel
+func SVSetWorldModel(m *C.qmodel_t) {
+	sv.worldModel = convCModel(m)
+}
+
+func convCModel(m *C.qmodel_t) *model.QModel {
+	return &model.QModel{
 		Name:     C.GoString(&m.name[0]),
 		Type:     model.ModType(m.Type),
 		Mins:     math.Vec3{float32(m.mins[0]), float32(m.mins[1]), float32(m.mins[2])},
@@ -23,11 +37,6 @@ func SVSetModel(m *C.qmodel_t, idx C.int) {
 		ClipMins: math.Vec3{float32(m.clipmins[0]), float32(m.clipmins[1]), float32(m.clipmins[2])},
 		ClipMaxs: math.Vec3{float32(m.clipmaxs[0]), float32(m.clipmaxs[1]), float32(m.clipmaxs[2])},
 		Hulls:    convHulls(&m.hulls),
-	}
-	if int(idx) == len(sv.models) {
-		sv.models = append(sv.models, nm)
-	} else {
-		sv.models[int(idx)] = nm
 	}
 }
 
@@ -39,7 +48,9 @@ func convHulls(h *[4]C.hull_t) [4]model.Hull {
 		r[i].ClipMins = v3v3(h[i].clip_mins)
 		r[i].ClipMaxs = v3v3(h[i].clip_maxs)
 		r[i].Planes = convPlanes(h[i].planes, int(h[i].numPlanes))
-		r[i].ClipNodes = convClipNodes(h[i].clipnodes, int(h[i].lastclipnode)+1)
+		if h[i].clipnodes != nil {
+			r[i].ClipNodes = convClipNodes(h[i].clipnodes, int(h[i].lastclipnode)+1)
+		}
 	}
 	return r
 }

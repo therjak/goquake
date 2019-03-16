@@ -575,7 +575,9 @@ void SV_SpawnServer(const char *server) {
     SV_SetActive(false);
     return;
   }
+  SVSetWorldModel(sv.worldmodel);
   sv.models[1] = sv.worldmodel;
+  SVSetModel(sv.worldmodel, 1);
 
   //
   // clear world interaction links
@@ -588,6 +590,7 @@ void SV_SpawnServer(const char *server) {
   for (i = 1; i < sv.worldmodel->numsubmodels; i++) {
     SetSVModelPrecache(1 + i, localmodels[i]);
     sv.models[i + 1] = Mod_ForName(localmodels[i], false);
+    SVSetModel(sv.models[i+1], i+1);
   }
 
   //

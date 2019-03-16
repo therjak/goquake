@@ -1012,6 +1012,7 @@ static void PF_precache_model(void) {
     if (!ExistSVModelPrecache(i)) {
       SetSVModelPrecache(i, s);
       sv.models[i] = Mod_ForName(s, true);
+      SVSetModel(sv.models[i], i);
       return;
     }
   }

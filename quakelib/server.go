@@ -92,8 +92,10 @@ type Server struct {
 }
 
 var (
-	svs         = ServerStatic{}
-	sv          = Server{}
+	svs = ServerStatic{}
+	sv  = Server{
+		models: make([]*model.QModel, 1),
+	}
 	sv_protocol int
 	sv_player   int
 )
@@ -279,7 +281,9 @@ func SV_SetLoadGame(b C.int) {
 
 //export SV_Clear
 func SV_Clear() {
-	sv = Server{}
+	sv = Server{
+		models: make([]*model.QModel, 1),
+	}
 }
 
 //export SV_Active
