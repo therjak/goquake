@@ -37,7 +37,42 @@ func convCModel(m *C.qmodel_t) *model.QModel {
 		ClipMins: math.Vec3{float32(m.clipmins[0]), float32(m.clipmins[1]), float32(m.clipmins[2])},
 		ClipMaxs: math.Vec3{float32(m.clipmaxs[0]), float32(m.clipmaxs[1]), float32(m.clipmaxs[2])},
 		Hulls:    convHulls(&m.hulls),
+		Node:     convNode(m.nodes),
 	}
+}
+
+func convNode(n *C.mnode_t) model.Node {
+	if n == nil {
+		return nil
+	}
+	if n.contents == 0 {
+		plane := convPlane(n.plane)
+		r := &model.MNode{
+			NodeBase: model.NewNodeBase(
+				0, int(n.visframe),
+				[6]float32{
+					float32(n.minmaxs[0]), float32(n.minmaxs[1]), float32(n.minmaxs[2]),
+					float32(n.minmaxs[3]), float32(n.minmaxs[4]), float32(n.minmaxs[5]),
+				}),
+			Plane: &plane,
+			Children: [2]model.Node{
+				convNode(n.children[0]),
+				convNode(n.children[1]),
+			},
+			FirstSurface: uint32(n.firstsurface),
+			NumSurfaces:  uint32(n.numsurfaces),
+		}
+		if r.Children[0] != nil {
+			r.Children[0].SetParent(r)
+		}
+		if r.Children[1] != nil {
+			r.Children[1].SetParent(r)
+		}
+		return r
+	}
+	// we actually got a C.mleaf_t
+	// TODO: we need a pointer to the same leaf in QModel.Leafs
+	return nil
 }
 
 func convHulls(h *[4]C.hull_t) [4]model.Hull {
@@ -63,16 +98,20 @@ func v3v3(v C.vec3_t) math.Vec3 {
 	}
 }
 
+func convPlane(p *C.mplane_t) model.Plane {
+	return model.Plane{
+		Normal:   v3v3(p.normal),
+		Dist:     float32(p.dist),
+		Type:     byte(p.Type),
+		SignBits: byte(p.signbits),
+	}
+}
+
 func convPlanes(ps *C.mplane_t, num int) []model.Plane {
 	var r []model.Plane
 	for i := 0; i < num; i++ {
 		p := C.getPlane(ps, C.int(i))
-		r = append(r, model.Plane{
-			Normal:   v3v3(p.normal),
-			Dist:     float32(p.dist),
-			Type:     byte(p.Type),
-			SignBits: byte(p.signbits),
-		})
+		r = append(r, convPlane(p))
 	}
 	return r
 }

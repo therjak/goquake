@@ -25,18 +25,60 @@ type Hull struct {
 	ClipMaxs      math.Vec3
 }
 
-type Node struct {
-	Contents int // 0 to differentiate from leafs
-	VisFrame int
+type NodeBase struct {
+	contents int // 0 to differentiate from leafs
+	visFrame int
 
-	MinMaxs  [6]float32
-	Parent   *Node
-	Children [2]*Node
+	minMaxs [6]float32
+	parent  Node
+}
+
+func NewNodeBase(contents, visframe int, minmax [6]float32) NodeBase {
+	return NodeBase{
+		contents: contents,
+		visFrame: visframe,
+		minMaxs:  minmax,
+		parent:   nil,
+	}
+}
+
+type Node interface {
+	Contents() int
+	Parent() Node
+	SetParent(p Node)
+}
+
+func (n *NodeBase) Contents() int {
+	return n.contents
+}
+func (n *NodeBase) Parent() Node {
+	return n.parent
+}
+func (n *NodeBase) SetParent(p Node) {
+	n.parent = p
+}
+
+type MNode struct {
+	NodeBase
+	Children [2]Node
 	Plane    *Plane
 
 	FirstSurface uint32
 	NumSurfaces  uint32
 }
+
+type MLeaf struct {
+	NodeBase
+	CompressedVis     []byte
+	Efrags            []Efrag
+	FirstMarkSurface  []*Surface
+	NumMarkSurfaces   int
+	Key               int
+	AmbientSoundLevel [4]byte
+}
+
+type Efrag struct{}
+type Surface struct{}
 
 // GLuint == uint32
 
@@ -63,7 +105,9 @@ type QModel struct {
 	ClipMins math.Vec3
 	ClipMaxs math.Vec3
 
-	Node *Node
+	Leafs []*MLeaf
+
+	Node Node
 
 	Hulls [MAX_MAP_HULLS]Hull
 }

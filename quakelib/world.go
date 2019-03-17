@@ -252,33 +252,42 @@ func LinkEdict(e int, touchTriggers bool) {
 	}
 }
 
-func findTouchedLeafs(e int, node *model.Node) {
-	if node.Contents == CONTENTS_SOLID {
+func findTouchedLeafs(e int, node model.Node) {
+	if node.Contents() == CONTENTS_SOLID {
 		return
 	}
-	if node.Contents < 0 {
+	if node.Contents() < 0 {
+		// This is a leaf
 		ed := C.EDICT_NUM(C.int(e))
 		if ed.num_leafs == C.MAX_ENT_LEAFS {
 			return
 		}
+		leaf := node.(*model.MLeaf)
+		leafNum := -1
+		for i := 0; i < len(sv.worldModel.Leafs); i++ {
+			if sv.worldModel.Leafs[i] == leaf {
+				// TODO: why -1?
+				leafNum = i - 1
+			}
+		}
 
-		leafNum := C.int(1)
 		// TODO: leaf stuff
 		// number in sv.worldmodel.leafs
 		// leaf - sv.worldmodel.leafs - 1
 
-		ed.leafnums[ed.num_leafs] = leafNum
+		ed.leafnums[ed.num_leafs] = C.int(leafNum)
 		ed.num_leafs++
-
+		return
 	}
-	splitplane := node.Plane
+	n := node.(*model.MNode)
+	splitplane := n.Plane
 	ev := EntVars(e)
 	sides := boxOnPlaneSide(math.VFromA(ev.AbsMin), math.VFromA(ev.AbsMax), splitplane)
 	if sides&1 != 0 {
-		findTouchedLeafs(e, node.Children[0])
+		findTouchedLeafs(e, n.Children[0])
 	}
 	if sides&2 != 0 {
-		findTouchedLeafs(e, node.Children[1])
+		findTouchedLeafs(e, n.Children[1])
 	}
 }
 
