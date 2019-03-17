@@ -12,6 +12,10 @@ extern qboolean pr_alpha_supported;  // johnfitz
 
 //============================================================================
 
+int SVWorldModelLeafIndex(mleaf_t* l) {
+  return l - sv.worldmodel->leafs;
+}
+
 /*
 ===============
 SV_Init

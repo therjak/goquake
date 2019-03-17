@@ -5,10 +5,13 @@ package quakelib
 //#define MODELCONF_H
 //inline mclipnode_t* getClipNode(mclipnode_t* n, int idx) { return &n[idx]; }
 //inline mplane_t* getPlane(mplane_t* n, int idx) { return &n[idx]; }
+//inline mleaf_t* AsLeaf(mnode_t* n) { return (mleaf_t*)(n); }
 //#endif
+//int SVWorldModelLeafIndex(mleaf_t* l);
 import "C"
 
 import (
+	"log"
 	"quake/math"
 	"quake/model"
 )
@@ -29,6 +32,7 @@ func SVSetWorldModel(m *C.qmodel_t) {
 }
 
 func convCModel(m *C.qmodel_t) *model.QModel {
+	log.Printf("ModelName: %s", C.GoString(&m.name[0]))
 	return &model.QModel{
 		Name:     C.GoString(&m.name[0]),
 		Type:     model.ModType(m.Type),
@@ -72,6 +76,8 @@ func convNode(n *C.mnode_t) model.Node {
 	}
 	// we actually got a C.mleaf_t
 	// TODO: we need a pointer to the same leaf in QModel.Leafs
+	idx := C.SVWorldModelLeafIndex(C.AsLeaf(n))
+	log.Printf("Leaf nr: %d, cont: %d", idx, n.contents)
 	return nil
 }
 
