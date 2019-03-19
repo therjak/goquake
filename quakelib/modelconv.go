@@ -5,9 +5,10 @@ package quakelib
 //#define MODELCONF_H
 //inline mclipnode_t* getClipNode(mclipnode_t* n, int idx) { return &n[idx]; }
 //inline mplane_t* getPlane(mplane_t* n, int idx) { return &n[idx]; }
+//inline mleaf_t* getLeaf(mleaf_t* n, int idx) { return &n[idx]; }
 //inline mleaf_t* AsLeaf(mnode_t* n) { return (mleaf_t*)(n); }
 //#endif
-//int SVWorldModelLeafIndex(mleaf_t* l);
+//int ModelLeafIndex(mleaf_t* l);
 import "C"
 
 import (
@@ -28,11 +29,20 @@ func SVSetModel(m *C.qmodel_t, idx C.int) {
 
 //export SVSetWorldModel
 func SVSetWorldModel(m *C.qmodel_t) {
+	sv.worldModel = nil
 	sv.worldModel = convCModel(m)
 }
 
 func convCModel(m *C.qmodel_t) *model.QModel {
 	log.Printf("ModelName: %s", C.GoString(&m.name[0]))
+	myleafs := convLeafs(m.leafs, int(m.numleafs))
+	leafs := func() []*model.MLeaf {
+		if sv.worldModel != nil {
+			return sv.worldModel.Leafs
+		}
+		return myleafs
+	}()
+
 	return &model.QModel{
 		Name:     C.GoString(&m.name[0]),
 		Type:     model.ModType(m.Type),
@@ -41,11 +51,12 @@ func convCModel(m *C.qmodel_t) *model.QModel {
 		ClipMins: math.Vec3{float32(m.clipmins[0]), float32(m.clipmins[1]), float32(m.clipmins[2])},
 		ClipMaxs: math.Vec3{float32(m.clipmaxs[0]), float32(m.clipmaxs[1]), float32(m.clipmaxs[2])},
 		Hulls:    convHulls(&m.hulls),
-		Node:     convNode(m.nodes),
+		Node:     convNode(m.nodes, leafs),
+		Leafs:    myleafs,
 	}
 }
 
-func convNode(n *C.mnode_t) model.Node {
+func convNode(n *C.mnode_t, l []*model.MLeaf) model.Node {
 	if n == nil {
 		return nil
 	}
@@ -60,8 +71,8 @@ func convNode(n *C.mnode_t) model.Node {
 				}),
 			Plane: &plane,
 			Children: [2]model.Node{
-				convNode(n.children[0]),
-				convNode(n.children[1]),
+				convNode(n.children[0], l),
+				convNode(n.children[1], l),
 			},
 			FirstSurface: uint32(n.firstsurface),
 			NumSurfaces:  uint32(n.numsurfaces),
@@ -75,10 +86,37 @@ func convNode(n *C.mnode_t) model.Node {
 		return r
 	}
 	// we actually got a C.mleaf_t
-	// TODO: we need a pointer to the same leaf in QModel.Leafs
-	idx := C.SVWorldModelLeafIndex(C.AsLeaf(n))
-	log.Printf("Leaf nr: %d, cont: %d", idx, n.contents)
-	return nil
+	idx := C.ModelLeafIndex(C.AsLeaf(n))
+	if n.contents != -2 {
+		log.Printf("Leaf nr: %d, cont: %d", idx, n.contents)
+	}
+	return l[int(idx)]
+}
+
+func convLeafs(li *C.mleaf_t, n int) []*model.MLeaf {
+	log.Printf("converting %d leafs", n)
+	if n == 0 {
+		return []*model.MLeaf{}
+	}
+	r := make([]*model.MLeaf, 0, n+1)
+	for i := 0; i < n+1; i++ {
+		l := C.getLeaf(li, C.int(i))
+		r = append(r, &model.MLeaf{
+			NodeBase: model.NewNodeBase(
+				int(l.contents), int(l.visframe),
+				[6]float32{
+					float32(l.minmaxs[0]), float32(l.minmaxs[1]), float32(l.minmaxs[2]),
+					float32(l.minmaxs[3]), float32(l.minmaxs[4]), float32(l.minmaxs[5]),
+				}),
+			// CompressedVis:
+			// Efrags:
+			// FirstMarkSurface:
+			// NumMarkSurfaces:
+			// Key:
+			// AmbientSoundLevel:
+		})
+	}
+	return r
 }
 
 func convHulls(h *[4]C.hull_t) [4]model.Hull {

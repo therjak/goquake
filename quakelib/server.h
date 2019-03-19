@@ -38,7 +38,7 @@ typedef struct {
                     // be used to reference the world ent
 } server_t;
 
-int SVWorldModelLeafIndex(mleaf_t* l);
+int ModelLeafIndex(mleaf_t *l);
 const char *SV_Name();
 const char *SV_ModelName();
 

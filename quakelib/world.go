@@ -61,6 +61,7 @@ func SV_ClearWorld() {
 
 // called after the world model has been loaded, before linking any entities
 func clearWorld() {
+	edictToRing = make(map[int]*ring.Ring)
 	initBoxHull()
 	gArea = createAreaNode(0, sv.worldModel.Mins, sv.worldModel.Maxs)
 }
@@ -267,7 +268,7 @@ func findTouchedLeafs(e int, node model.Node) {
 		for i := 0; i < len(sv.worldModel.Leafs); i++ {
 			if sv.worldModel.Leafs[i] == leaf {
 				// TODO: why -1?
-				leafNum = i - 1
+				leafNum = i // - 1
 			}
 		}
 

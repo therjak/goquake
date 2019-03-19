@@ -12,9 +12,7 @@ extern qboolean pr_alpha_supported;  // johnfitz
 
 //============================================================================
 
-int SVWorldModelLeafIndex(mleaf_t* l) {
-  return l - sv.worldmodel->leafs;
-}
+int ModelLeafIndex(mleaf_t *l) { return l - sv.worldmodel->leafs; }
 
 /*
 ===============
@@ -594,7 +592,7 @@ void SV_SpawnServer(const char *server) {
   for (i = 1; i < sv.worldmodel->numsubmodels; i++) {
     SetSVModelPrecache(1 + i, localmodels[i]);
     sv.models[i + 1] = Mod_ForName(localmodels[i], false);
-    SVSetModel(sv.models[i+1], i+1);
+    SVSetModel(sv.models[i + 1], i + 1);
   }
 
   //
