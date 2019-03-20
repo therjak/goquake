@@ -35,7 +35,12 @@ func SVSetWorldModel(m *C.qmodel_t) {
 	sv.models = sv.models[:1]
 	sv.worldModel = convCModel(m, true)
 	sv.models = append(sv.models, sv.worldModel)
+	// append models with name '*1' to '*(sv.worldModel.NumSubmodels -1)'
 }
+
+// fixme: there is some issue with the bsp. probably a off by one
+// fixme: there is a bug with touching stuff (like items, teleporters or doors).
+// probably better to get a working file loading code going than this broken conversion stuff
 
 func convCModel(m *C.qmodel_t, localModel bool) *model.QModel {
 	log.Printf("ModelName: %s, local %v", C.GoString(&m.name[0]), localModel)
@@ -48,15 +53,16 @@ func convCModel(m *C.qmodel_t, localModel bool) *model.QModel {
 	}()
 
 	return &model.QModel{
-		Name:     C.GoString(&m.name[0]),
-		Type:     model.ModType(m.Type),
-		Mins:     math.Vec3{float32(m.mins[0]), float32(m.mins[1]), float32(m.mins[2])},
-		Maxs:     math.Vec3{float32(m.maxs[0]), float32(m.maxs[1]), float32(m.maxs[2])},
-		ClipMins: math.Vec3{float32(m.clipmins[0]), float32(m.clipmins[1]), float32(m.clipmins[2])},
-		ClipMaxs: math.Vec3{float32(m.clipmaxs[0]), float32(m.clipmaxs[1]), float32(m.clipmaxs[2])},
-		Hulls:    convHulls(&m.hulls),
-		Node:     convNode(m.nodes, leafs, localModel),
-		Leafs:    myleafs,
+		Name:         C.GoString(&m.name[0]),
+		Type:         model.ModType(m.Type),
+		Mins:         math.Vec3{float32(m.mins[0]), float32(m.mins[1]), float32(m.mins[2])},
+		Maxs:         math.Vec3{float32(m.maxs[0]), float32(m.maxs[1]), float32(m.maxs[2])},
+		ClipMins:     math.Vec3{float32(m.clipmins[0]), float32(m.clipmins[1]), float32(m.clipmins[2])},
+		ClipMaxs:     math.Vec3{float32(m.clipmaxs[0]), float32(m.clipmaxs[1]), float32(m.clipmaxs[2])},
+		Hulls:        convHulls(&m.hulls),
+		Node:         convNode(m.nodes, leafs, localModel),
+		NumSubmodels: int(m.numsubmodels),
+		Leafs:        myleafs,
 	}
 }
 

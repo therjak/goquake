@@ -105,6 +105,9 @@ type QModel struct {
 	ClipMins math.Vec3
 	ClipMaxs math.Vec3
 
+	NumSubmodels int
+	// dmodel_t *submodels
+
 	Leafs []*MLeaf
 
 	Node Node
