@@ -27,10 +27,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "q_stdinc.h"
 
-#ifndef QUAKE_GAME
-#define QUAKE_GAME
-#endif
-
 #include "bspfile.h"
 #include "zone.h"
 #include "render.h"

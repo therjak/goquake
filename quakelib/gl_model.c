@@ -249,6 +249,7 @@ qmodel_t *Mod_LoadModel(qmodel_t *mod, qboolean crash) {
   //
   int length = 0;
   buf = COM_LoadFileGo(mod->name, &length);
+  LoadModelGo(mod->name);
   if (!buf) {
     if (crash)
       Go_Error_S("Mod_LoadModel: %v not found",

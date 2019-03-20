@@ -23,9 +23,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifndef _QUAKE_RENDER_H
 #define _QUAKE_RENDER_H
 
-#ifndef QUAKE_GAME
-#define QUAKE_GAME
-#endif
 #include "entity_state.h"
 #include "vid.h"
 

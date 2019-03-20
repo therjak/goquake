@@ -13,6 +13,7 @@ import "C"
 
 import (
 	"log"
+	"quake/bsp"
 	"quake/math"
 	"quake/model"
 )
@@ -26,6 +27,11 @@ func SVSetModel(m *C.qmodel_t, idx C.int, localModel C.int) {
 	} else {
 		sv.models[int(idx)] = nm
 	}
+}
+
+//export LoadModelGo
+func LoadModelGo(name *C.char) {
+	bsp.LoadModel(C.GoString(name))
 }
 
 //export SVSetWorldModel
