@@ -69,10 +69,15 @@ func clearWorld() {
 func createAreaNode(depth int, mins, maxs math.Vec3) *areaNode {
 	if depth == 4 {
 		return &areaNode{
-			axis: -1,
+			axis:          -1,
+			triggerEdicts: ring.New(1),
+			solidEdicts:   ring.New(1),
 		}
 	}
-	an := &areaNode{}
+	an := &areaNode{
+		triggerEdicts: ring.New(1),
+		solidEdicts:   ring.New(1),
+	}
 	s := math.Sub(maxs, mins)
 	an.axis = func() int {
 		if s.X > s.Y {
@@ -241,6 +246,7 @@ func LinkEdict(e int, touchTriggers bool) {
 	}
 
 	r := ring.New(1)
+	r.Value = e
 	edictToRing[int(e)] = r
 	if ev.Solid == SOLID_TRIGGER {
 		node.triggerEdicts.Prev().Link(r)
