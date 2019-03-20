@@ -640,8 +640,7 @@ static void PF_traceline(void) {
   if (IS_NAN(v2[0]) || IS_NAN(v2[1]) || IS_NAN(v2[2]))
     v2[0] = v2[1] = v2[2] = 0;
 
-  trace =
-      SV_Move(v1, vec3_origin, vec3_origin, v2, nomonsters, ent);
+  trace = SV_Move(v1, vec3_origin, vec3_origin, v2, nomonsters, ent);
 
   Set_pr_global_struct_trace_allsolid(trace.allsolid);
   Set_pr_global_struct_trace_startsolid(trace.startsolid);
@@ -1012,7 +1011,7 @@ static void PF_precache_model(void) {
     if (!ExistSVModelPrecache(i)) {
       SetSVModelPrecache(i, s);
       sv.models[i] = Mod_ForName(s, true);
-      SVSetModel(sv.models[i], i);
+      SVSetModel(sv.models[i], i, false);
       return;
     }
   }
@@ -1084,8 +1083,8 @@ static void PF_droptofloor(void) {
   VectorCopy(EVars(ent)->origin, end);
   end[2] -= 256;
 
-  trace = SV_Move(EVars(ent)->origin, EVars(ent)->mins, EVars(ent)->maxs,
-                  end, false, ent);
+  trace = SV_Move(EVars(ent)->origin, EVars(ent)->mins, EVars(ent)->maxs, end,
+                  false, ent);
 
   if (trace.fraction == 1 || trace.allsolid)
     Set_Pr_globalsf(OFS_RETURN, 0);
@@ -1260,8 +1259,7 @@ static void PF_aim(void) {
     Pr_global_struct_v_forward(&vforward[0], &vforward[1], &vforward[2]);
     dist = DotProduct(dir, vforward);
     if (dist < bestdist) continue;  // to far to turn
-    tr = SV_Move(start, vec3_origin, vec3_origin, end, false,
-                 ent);
+    tr = SV_Move(start, vec3_origin, vec3_origin, end, false, ent);
     if (tr.entn == check) {  // can shoot at this one
       bestdist = dist;
       bestent = check;

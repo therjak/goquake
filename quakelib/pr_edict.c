@@ -633,7 +633,7 @@ void ED_ParseGlobals(const char *data) {
       continue;
     }
 
-    Sys_Print("ParseGlobals");
+    // Sys_Print("ParseGlobals");
     if (!ED_ParseEpair((void *)pr_globals, key, com_token))
       Host_Error("ED_ParseGlobals: parse error");
   }
@@ -653,7 +653,7 @@ static GoInt32 ED_NewString(const char *string) {
   GoInt32 num;
 
   l = strlen(string) + 1;
-  Sys_Print_S("ED_NewString: %s", string);
+  // Sys_Print_S("ED_NewString: %s", string);
   num = PR_AllocString(l, &new_p);
 
   for (i = 0; i < l; i++) {
@@ -666,7 +666,7 @@ static GoInt32 ED_NewString(const char *string) {
     } else
       *new_p++ = string[i];
   }
-  Sys_Print_I("ED_NewStringI: %d", num);
+  // Sys_Print_I("ED_NewStringI: %d", num);
 
   return num;
 }

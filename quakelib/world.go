@@ -69,7 +69,8 @@ func clearWorld() {
 func createAreaNode(depth int, mins, maxs math.Vec3) *areaNode {
 	if depth == 4 {
 		return &areaNode{
-			axis:          -1,
+			axis: -1,
+			// We need a 'root' ring to be able to use Prev()
 			triggerEdicts: ring.New(1),
 			solidEdicts:   ring.New(1),
 		}

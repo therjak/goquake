@@ -18,8 +18,9 @@ import (
 )
 
 //export SVSetModel
-func SVSetModel(m *C.qmodel_t, idx C.int) {
-	nm := convCModel(m)
+func SVSetModel(m *C.qmodel_t, idx C.int, localModel C.int) {
+	log.Printf("SetModel: %d", idx)
+	nm := convCModel(m, localModel != 0)
 	if int(idx) == len(sv.models) {
 		sv.models = append(sv.models, nm)
 	} else {
@@ -29,15 +30,18 @@ func SVSetModel(m *C.qmodel_t, idx C.int) {
 
 //export SVSetWorldModel
 func SVSetWorldModel(m *C.qmodel_t) {
+	log.Printf("New world")
 	sv.worldModel = nil
-	sv.worldModel = convCModel(m)
+	sv.models = sv.models[:1]
+	sv.worldModel = convCModel(m, true)
+	sv.models = append(sv.models, sv.worldModel)
 }
 
-func convCModel(m *C.qmodel_t) *model.QModel {
-	log.Printf("ModelName: %s", C.GoString(&m.name[0]))
+func convCModel(m *C.qmodel_t, localModel bool) *model.QModel {
+	log.Printf("ModelName: %s, local %v", C.GoString(&m.name[0]), localModel)
 	myleafs := convLeafs(m.leafs, int(m.numleafs))
 	leafs := func() []*model.MLeaf {
-		if sv.worldModel != nil {
+		if sv.worldModel != nil && localModel {
 			return sv.worldModel.Leafs
 		}
 		return myleafs
@@ -51,12 +55,12 @@ func convCModel(m *C.qmodel_t) *model.QModel {
 		ClipMins: math.Vec3{float32(m.clipmins[0]), float32(m.clipmins[1]), float32(m.clipmins[2])},
 		ClipMaxs: math.Vec3{float32(m.clipmaxs[0]), float32(m.clipmaxs[1]), float32(m.clipmaxs[2])},
 		Hulls:    convHulls(&m.hulls),
-		Node:     convNode(m.nodes, leafs),
+		Node:     convNode(m.nodes, leafs, localModel),
 		Leafs:    myleafs,
 	}
 }
 
-func convNode(n *C.mnode_t, l []*model.MLeaf) model.Node {
+func convNode(n *C.mnode_t, l []*model.MLeaf, localModel bool) model.Node {
 	if n == nil {
 		return nil
 	}
@@ -71,8 +75,8 @@ func convNode(n *C.mnode_t, l []*model.MLeaf) model.Node {
 				}),
 			Plane: &plane,
 			Children: [2]model.Node{
-				convNode(n.children[0], l),
-				convNode(n.children[1], l),
+				convNode(n.children[0], l, localModel),
+				convNode(n.children[1], l, localModel),
 			},
 			FirstSurface: uint32(n.firstsurface),
 			NumSurfaces:  uint32(n.numsurfaces),
@@ -86,11 +90,15 @@ func convNode(n *C.mnode_t, l []*model.MLeaf) model.Node {
 		return r
 	}
 	// we actually got a C.mleaf_t
-	idx := C.ModelLeafIndex(C.AsLeaf(n))
-	if n.contents != -2 {
-		log.Printf("Leaf nr: %d, cont: %d", idx, n.contents)
+	if localModel {
+		idx := C.ModelLeafIndex(C.AsLeaf(n))
+		if n.contents != -2 && idx > 30000 {
+			log.Printf("Leaf nr: %d, cont: %d", idx, n.contents)
+		}
+		return l[int(idx)]
 	}
-	return l[int(idx)]
+	// TODO: bad hack
+	return l[0]
 }
 
 func convLeafs(li *C.mleaf_t, n int) []*model.MLeaf {
