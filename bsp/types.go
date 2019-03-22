@@ -1,5 +1,6 @@
 package bsp
 
+// called lump_t in c
 type directory struct {
 	Offset int32
 	Size   int32
