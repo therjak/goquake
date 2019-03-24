@@ -7,22 +7,22 @@ type directory struct {
 }
 
 type header struct {
-	Version        int32
-	Entities       directory
-	Planes         directory
-	Miptex         directory
-	Vertices       directory
-	VisibilityList directory
-	Nodes          directory
-	Texinfo        directory
-	Faces          directory
-	Lightmaps      directory
-	Clipnodes      directory
-	Leaves         directory
-	FaceList       directory
-	Edges          directory
-	Ledges         directory
-	Models         directory
+	Version      int32
+	Entities     directory
+	Planes       directory
+	Textures     directory
+	Vertexes     directory
+	Visibility   directory
+	Nodes        directory
+	Texinfo      directory
+	Faces        directory
+	Lighting     directory
+	ClipNodes    directory
+	Leafs        directory
+	MarkSurfaces directory
+	Edges        directory
+	SurfaceEdges directory // SURFEDGES
+	Models       directory
 }
 
 type scalar float32
@@ -47,8 +47,8 @@ type bBoxShort struct {
 
 // Model, either a big zone, the level or parts inside that zone
 type model struct {
-	BoundingBox   boundBox
-	Origin        vec3
+	BoundingBox   [6]float32
+	Origin        [3]float32
 	HeadNode      [4]int32
 	NumberOfLeafs int32 // not including the solid leaf 0
 	FaceID        int32
@@ -73,12 +73,12 @@ type edgeV1 struct {
 }
 
 type surface struct {
-	VectorS   vec3   // S vector, horizontal in texture space
-	DistS     scalar // horizontal offset in texture space
-	VectorT   vec3   // T vector, vertical in texture space
-	DistT     scalar // vertical offset in texture space
-	TextureID uint32 // Index of mip texture, must be in [0,numtex[
-	Animated  uint32 // 0 for ordinary textures, 1 for water
+	VectorS   [3]float32 // S vector, horizontal in texture space
+	DistS     float32    // horizontal offset in texture space
+	VectorT   [3]float32 // T vector, vertical in texture space
+	DistT     float32    // vertical offset in texture space
+	TextureID uint32     // Index of mip texture, must be in [0,numtex[
+	Animated  uint32     // 0 for ordinary textures, 1 for water
 }
 
 type faceV0 struct {
@@ -118,55 +118,52 @@ type mipTexture struct {
 }
 
 type nodeV0 struct {
-	PlaneID       int32
-	Front         int16
-	Back          int16
-	Box           bBoxShort
-	FaceID        uint16
-	NumberOfFaces uint16
+	PlaneID      int32
+	Children     [2]int16
+	Box          [6]int16
+	FirstSurface uint16
+	SurfaceCount uint16
 }
 type nodeV1 struct {
-	PlaneID       int32
-	Front         int32
-	Back          int32
-	Box           bBoxShort
-	FaceID        uint32
-	NumberOfFaces uint32
+	PlaneID      int32
+	Children     [2]int32
+	Box          [6]int16
+	FirstSurface uint32
+	SurfaceCount uint32
 }
 type nodeV2 struct {
-	PlaneID       int32
-	Front         int32
-	Back          int32
-	Box           boundBox
-	FaceID        uint32
-	NumberOfFaces uint32
+	PlaneID      int32
+	Children     [2]int32
+	Box          [6]float32
+	FirstSurface uint32
+	SurfaceCount uint32
 }
 
 type leafV0 struct {
-	Type              int32
-	VisibilityList    int32
-	Bound             bBoxShort
-	ListOfFacesID     uint16
-	ListOfFacesNumber uint16
-	Ambients          [4]byte
+	Type             int32 // Contents
+	VisOfs           int32
+	Box              [6]int16 // mins & maxs
+	FirstMarkSurface uint16   // firstmarksurface
+	MarkSurfaceCount uint16   // nummarksurfaces
+	Ambients         [4]byte  // ambient_level
 }
 
 type leafV1 struct {
-	Type              int32
-	VisibilityList    int32
-	Bound             bBoxShort
-	ListOfFacesID     uint32
-	ListOfFacesNumber uint32
-	Ambients          [4]byte
+	Type             int32
+	VisibilityList   int32
+	Box              [6]int16
+	FirstMarkSurface uint32
+	MarkSurfaceCount uint32
+	Ambients         [4]byte
 }
 
 type leafV2 struct {
-	Type              int32
-	VisibilityList    int32
-	Bound             boundBox
-	ListOfFacesID     uint32
-	ListOfFacesNumber uint32
-	Ambients          [4]byte
+	Type             int32
+	VisibilityList   int32
+	Box              [6]float32
+	FirstMarkSurface uint32
+	MarkSurfaceCount uint32
+	Ambients         [4]byte
 }
 
 const (
@@ -188,8 +185,8 @@ const (
 )
 
 type plane struct {
-	Normal   vec3
-	Distance scalar
+	Normal   [3]float32
+	Distance float32
 	Type     int32 // 0: axial plane in X, 1: axial plane in Y, 2 axial in Z, 3,4,5 similar but non axial
 }
 

@@ -31,7 +31,10 @@ func SVSetModel(m *C.qmodel_t, idx C.int, localModel C.int) {
 
 //export LoadModelGo
 func LoadModelGo(name *C.char) {
-	bsp.LoadModel(C.GoString(name))
+	_, err := bsp.LoadModel(C.GoString(name))
+	if err != nil {
+		log.Printf("LoadModel err: %v", err)
+	}
 }
 
 //export SVSetWorldModel
@@ -91,7 +94,7 @@ func convNode(n *C.mnode_t, l []*model.MLeaf, localModel bool) model.Node {
 				convNode(n.children[1], l, localModel),
 			},
 			FirstSurface: uint32(n.firstsurface),
-			NumSurfaces:  uint32(n.numsurfaces),
+			SurfaceCount: uint32(n.numsurfaces),
 		}
 		if r.Children[0] != nil {
 			r.Children[0].SetParent(r)

@@ -64,21 +64,23 @@ type MNode struct {
 	Plane    *Plane
 
 	FirstSurface uint32
-	NumSurfaces  uint32
+	SurfaceCount uint32
 }
 
 type MLeaf struct {
 	NodeBase
-	CompressedVis     []byte
-	Efrags            []Efrag
-	FirstMarkSurface  []*Surface
-	NumMarkSurfaces   int
+	CompressedVis []byte
+	Efrags        []Efrag
+	MarkSurfaces  []*Surface // FirstMarkSurface
+	// NumMarkSurfaces   int == len(MarkSurfaces)
 	Key               int
 	AmbientSoundLevel [4]byte
 }
 
 type Efrag struct{}
-type Surface struct{}
+type Surface struct {
+}
+type Texinfo struct{}
 
 // GLuint == uint32
 
@@ -108,9 +110,21 @@ type QModel struct {
 	NumSubmodels int
 	// dmodel_t *submodels
 
-	Leafs []*MLeaf
-
-	Node Node
+	// submodels
+	Planes []*Plane
+	Leafs  []*MLeaf
+	// vertexes
+	// edges
+	Nodes    []*MNode
+	Texinfos []*Texinfo
+	Surfaces []*Surface
+	// surfedge
+	// clipnodes
+	MarkSurfaces []*Surface
 
 	Hulls [MAX_MAP_HULLS]Hull
+	// textures
+	VisData []byte
+
+	Node Node
 }
