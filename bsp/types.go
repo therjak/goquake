@@ -119,7 +119,7 @@ type mipTexture struct {
 
 type nodeV0 struct {
 	PlaneID      int32
-	Children     [2]int16
+	Children     [2]uint16
 	Box          [6]int16
 	FirstSurface uint16
 	SurfaceCount uint16

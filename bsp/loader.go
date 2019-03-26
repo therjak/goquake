@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"quake/filesystem"
+	"quake/math"
 	qm "quake/model"
 )
 
@@ -71,7 +72,11 @@ func LoadBSP(name string, data []byte) (*qm.QModel, error) {
 		// loadSurfaceEdges(fs(h.SurfaceEdges, data),ret)
 		// loadTextures(fs(h.Textures, data),ret)
 		// loadLighting(fs(h.Lighting, data),ret)
-		// loadPlanes(fs(h.Planes, data),ret)
+		splanes, err := loadPlanes(fs(h.Planes, data))
+		if err != nil {
+			return nil, err
+		}
+		ret.Planes = buildPlanes(splanes)
 		// loadTextinfo(fs(h.Texinfo , data),ret)
 		sfaces, err := loadFacesV0(fs(h.Faces, data))
 		if err != nil {
@@ -136,8 +141,46 @@ func LoadBSP(name string, data []byte) (*qm.QModel, error) {
 	return ret, nil
 }
 
+func buildPlanes(pls []*plane) []*qm.Plane {
+	ret := make([]*qm.Plane, 0, len(pls))
+	for _, pl := range pls {
+		ret = append(ret, &qm.Plane{
+			Normal: math.Vec3{pl.Normal[0], pl.Normal[1], pl.Normal[2]},
+			Dist:   pl.Distance,
+			Type:   byte(pl.Type),
+			SignBits: func() byte {
+				r := 0
+				for i := uint8(0); i < 3; i++ {
+					if pl.Normal[i] < 0 {
+						r |= 1 << i
+					}
+				}
+				return byte(r)
+			}(),
+		})
+	}
+	return ret
+}
+
+func loadPlanes(data []byte) ([]*plane, error) {
+	ret := []*plane{}
+	buf := bytes.NewReader(data)
+	for {
+		val := &plane{}
+		err := binary.Read(buf, binary.LittleEndian, val)
+		switch err {
+		default:
+			return nil, err
+		case io.EOF:
+			return ret, nil
+		case nil:
+			ret = append(ret, val)
+		}
+	}
+}
+
 func buildMarkSurfacesV0(marks []int, surfaces []*qm.Surface) ([]*qm.Surface, error) {
-	ret := make([]*qm.Surface, len(marks))
+	ret := make([]*qm.Surface, 0, len(marks))
 	for _, m := range marks {
 		if m >= len(surfaces) {
 			return nil, fmt.Errorf("MarkSurfaces out of bounds")
@@ -147,14 +190,52 @@ func buildMarkSurfacesV0(marks []int, surfaces []*qm.Surface) ([]*qm.Surface, er
 	return ret, nil
 }
 
-func loadFacesV0(date []byte) ([]*faceV0, error) {
-	// TODO
-	return nil, nil
+func loadFacesV0(data []byte) ([]*faceV0, error) {
+	ret := []*faceV0{}
+	buf := bytes.NewReader(data)
+	for {
+		val := &faceV0{}
+		err := binary.Read(buf, binary.LittleEndian, val)
+		switch err {
+		default:
+			return nil, err
+		case io.EOF:
+			return ret, nil
+		case nil:
+			ret = append(ret, val)
+		}
+	}
 }
 
 func buildSurfacesV0(f []*faceV0, plane []*qm.Plane, texinfo []*qm.Texinfo) ([]*qm.Surface, error) {
-	// TODO
-	return nil, nil
+	ret := make([]*qm.Surface, 0, len(f))
+	for _, _ /*sf*/ = range f {
+		nsf := &qm.Surface{
+			// PlaneID int32
+			// Side int32
+			// ListEdgeID int32
+			// ListEdgeNumber int32
+			// TextInfoID int32
+			// LightStyle [4]uint8
+			// LightMap  int32
+			//
+			// TODO
+			// firstedge
+			// numedge
+			// plane = plane[sf.planenum]
+			// side
+			// texinfo = textinfo[sf.textinfo]
+			// styles
+			// lightofs
+			// flags = 0
+			// if side != 0 {
+			// flags |= SURF_PLANEBACK
+		}
+		// calcsurfaceExtends
+		// caldSurfaceBounds
+		ret = append(ret, nsf)
+	}
+	return ret, nil
 }
 
 func loadMarkSurfacesV0(data []byte) ([]int, error) {
@@ -175,13 +256,19 @@ func loadMarkSurfacesV0(data []byte) ([]int, error) {
 }
 
 func buildLeafsV0(ls []*leafV0, ms []*qm.Surface, vd []byte) ([]*qm.MLeaf, error) {
-	ret := make([]*qm.MLeaf, len(ls))
+	ret := make([]*qm.MLeaf, 0, len(ls))
 	for _, l := range ls {
+		nv := func() []byte {
+			if l.VisOfs == -1 {
+				return nil
+			}
+			return vd[l.VisOfs:]
+		}()
 		nl := &qm.MLeaf{
 			NodeBase: qm.NewNodeBase(int(l.Type), 0, [6]float32{
 				float32(l.Box[0]), float32(l.Box[1]), float32(l.Box[2]),
 				float32(l.Box[3]), float32(l.Box[4]), float32(l.Box[5])}),
-			CompressedVis:     vd[l.VisOfs:],
+			CompressedVis:     nv,
 			MarkSurfaces:      ms[l.FirstMarkSurface : l.FirstMarkSurface+l.MarkSurfaceCount],
 			AmbientSoundLevel: [4]byte{l.Ambients[0], l.Ambients[1], l.Ambients[2], l.Ambients[3]},
 		}
@@ -208,7 +295,7 @@ func loadLeafsV0(data []byte) ([]*leafV0, error) {
 }
 
 func buildNodesV0(nd []*nodeV0, leafs []*qm.MLeaf, planes []*qm.Plane) ([]*qm.MNode, error) {
-	ret := make([]*qm.MNode, len(nd))
+	ret := make([]*qm.MNode, 0, len(nd))
 	for _, n := range nd {
 		nn := &qm.MNode{
 			NodeBase: qm.NewNodeBase(0, 0, [6]float32{
@@ -221,11 +308,11 @@ func buildNodesV0(nd []*nodeV0, leafs []*qm.MLeaf, planes []*qm.Plane) ([]*qm.MN
 		}
 		ret = append(ret, nn)
 	}
-	getChild := func(id int) qm.Node {
-		if id < len(ret) {
+	getChild := func(id uint16) qm.Node {
+		if int(id) < len(ret) {
 			return ret[id]
 		}
-		p := 65535 - id // this is intentionally, -1 is leaf 0
+		p := 65535 - int(id) // this is intentionally, -1 is leaf 0
 		if p < len(leafs) {
 			return leafs[p]
 		}
@@ -233,9 +320,10 @@ func buildNodesV0(nd []*nodeV0, leafs []*qm.MLeaf, planes []*qm.Plane) ([]*qm.MN
 			id, len(ret), p, len(leafs))
 		return nil
 	}
+	log.Printf("l %d, %d", len(nd), len(ret))
 	for i, n := range nd {
-		ret[i].Children[0] = getChild(int(n.Children[0]))
-		ret[i].Children[1] = getChild(int(n.Children[1]))
+		ret[i].Children[0] = getChild(n.Children[0])
+		ret[i].Children[1] = getChild(n.Children[1])
 	}
 	return ret, nil
 }
