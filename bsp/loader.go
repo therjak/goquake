@@ -126,6 +126,8 @@ func LoadBSP(name string, data []byte) (*qm.QModel, error) {
 		}
 		ret.ClipNodes = mcn
 
+		makeHulls(&ret.Hulls, ret.ClipNodes, ret.Planes, ret.Nodes)
+
 		// loadEntities(fs(h.Entities , data),ret)
 		// loadModels(fs(h.Models , data),ret)
 		// makeHull0(ret)
@@ -371,7 +373,7 @@ func buildClipNodesV0(scns []*clipNodeV0, pls []*qm.Plane) ([]*qm.ClipNode, erro
 			return nil, fmt.Errorf("buildClipNodesV0, planenum out of bounds")
 		}
 		cn := &qm.ClipNode{
-			PlaneNum: int(scn.PlaneNumber),
+			Plane:    pls[int(scn.PlaneNumber)],
 			Children: [2]int{int(scn.Children[0]), int(scn.Children[1])},
 		}
 		if cn.Children[0] >= len(scns) {
@@ -404,4 +406,38 @@ func loadClipNodesV0(data []byte) ([]*clipNodeV0, error) {
 
 // func loadEntities(fs(h.Entities , data),ret)
 // func loadModes(fs(h.Models , data),ret)
-// func makeHull0(ret)
+// func makeHull0(ret) {
+func makeHulls(hs *[4]qm.Hull, cns []*qm.ClipNode, pns []*qm.Plane, ns []*qm.MNode) {
+	hs[0].ClipNodes = make([]*qm.ClipNode, 0, len(ns))
+	for _, cn := range ns {
+		hs[0].ClipNodes = append(hs[0].ClipNodes, &qm.ClipNode{
+			Plane: cn.Plane,
+			// TODO:
+			Children: [2]int{},
+		})
+	}
+	hs[0].FirstClipNode = 0
+	hs[0].LastClipNode = len(ns) - 1
+	hs[0].Planes = pns
+
+	hs[1].ClipMins = math.Vec3{-16, -16, -24}
+	hs[1].ClipMaxs = math.Vec3{16, 16, 32}
+	hs[1].ClipNodes = cns
+	hs[1].FirstClipNode = 0
+	hs[1].LastClipNode = len(cns) - 1
+	hs[1].Planes = pns
+
+	hs[2].ClipMins = math.Vec3{-32, -32, -24}
+	hs[2].ClipMaxs = math.Vec3{32, 32, 64}
+	hs[2].ClipNodes = cns
+	hs[2].FirstClipNode = 0
+	hs[2].LastClipNode = len(cns) - 1
+	hs[2].Planes = pns
+	// ClipNodes []ClipNode
+	// Planes []Plane
+	// FirstClipNode int
+	// LastClipNode int
+	// ClipMins math.Vec3
+	// ClipMaxs math.Vec3
+
+}

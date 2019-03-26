@@ -12,13 +12,13 @@ type Plane struct {
 }
 
 type ClipNode struct {
-	PlaneNum int
+	Plane    *Plane
 	Children [2]int
 }
 
 type Hull struct {
-	ClipNodes     []ClipNode
-	Planes        []Plane
+	ClipNodes     []*ClipNode
+	Planes        []*Plane
 	FirstClipNode int
 	LastClipNode  int
 	ClipMins      math.Vec3

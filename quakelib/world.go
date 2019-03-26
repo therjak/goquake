@@ -443,12 +443,14 @@ var (
 )
 
 func initBoxHull() {
-	boxHull.ClipNodes = make([]model.ClipNode, 6)
-	boxHull.Planes = make([]model.Plane, 6)
+	boxHull.ClipNodes = make([]*model.ClipNode, 6)
+	boxHull.Planes = make([]*model.Plane, 6)
 	boxHull.FirstClipNode = 0
 	boxHull.LastClipNode = 5
 	for i := 0; i < 6; i++ {
-		boxHull.ClipNodes[i].PlaneNum = i
+		boxHull.ClipNodes[i] = &model.ClipNode{}
+		boxHull.Planes[i] = &model.Plane{}
+		boxHull.ClipNodes[i].Plane = boxHull.Planes[i]
 		side := i & 1
 		boxHull.ClipNodes[i].Children[side] = CONTENTS_EMPTY
 		if i == 5 {
@@ -511,7 +513,7 @@ func hullPointContents(h *model.Hull, num int, p math.Vec3) int {
 			Error("SV_HullPointContents: bad node number")
 		}
 		node := h.ClipNodes[num]
-		plane := h.Planes[node.PlaneNum]
+		plane := node.Plane
 		d := func() float32 {
 			if plane.Type < 3 {
 				return p.Idx(int(plane.Type)) - plane.Dist
@@ -547,7 +549,7 @@ func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 math.Ve
 		Error("RecursiveHullCheck: bad node number")
 	}
 	node := h.ClipNodes[num]
-	plane := h.Planes[node.PlaneNum]
+	plane := node.Plane
 	t1, t2 := func() (float32, float32) {
 		if plane.Type < 3 {
 			return (p1.Idx(int(plane.Type)) - plane.Dist),

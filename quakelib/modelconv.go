@@ -88,7 +88,7 @@ func convNode(n *C.mnode_t, l []*model.MLeaf, localModel bool) model.Node {
 					float32(n.minmaxs[0]), float32(n.minmaxs[1]), float32(n.minmaxs[2]),
 					float32(n.minmaxs[3]), float32(n.minmaxs[4]), float32(n.minmaxs[5]),
 				}),
-			Plane: &plane,
+			Plane: plane,
 			Children: [2]model.Node{
 				convNode(n.children[0], l, localModel),
 				convNode(n.children[1], l, localModel),
@@ -151,7 +151,7 @@ func convHulls(h *[4]C.hull_t) [4]model.Hull {
 		r[i].ClipMaxs = v3v3(h[i].clip_maxs)
 		r[i].Planes = convPlanes(h[i].planes, int(h[i].numPlanes))
 		if h[i].clipnodes != nil {
-			r[i].ClipNodes = convClipNodes(h[i].clipnodes, int(h[i].lastclipnode)+1)
+			r[i].ClipNodes = convClipNodes(h[i].clipnodes, int(h[i].lastclipnode)+1, r[i].Planes)
 		}
 	}
 	return r
@@ -165,8 +165,8 @@ func v3v3(v C.vec3_t) math.Vec3 {
 	}
 }
 
-func convPlane(p *C.mplane_t) model.Plane {
-	return model.Plane{
+func convPlane(p *C.mplane_t) *model.Plane {
+	return &model.Plane{
 		Normal:   v3v3(p.normal),
 		Dist:     float32(p.dist),
 		Type:     byte(p.Type),
@@ -174,8 +174,8 @@ func convPlane(p *C.mplane_t) model.Plane {
 	}
 }
 
-func convPlanes(ps *C.mplane_t, num int) []model.Plane {
-	var r []model.Plane
+func convPlanes(ps *C.mplane_t, num int) []*model.Plane {
+	var r []*model.Plane
 	for i := 0; i < num; i++ {
 		p := C.getPlane(ps, C.int(i))
 		r = append(r, convPlane(p))
@@ -183,12 +183,12 @@ func convPlanes(ps *C.mplane_t, num int) []model.Plane {
 	return r
 }
 
-func convClipNodes(cn *C.mclipnode_t, num int) []model.ClipNode {
-	var r []model.ClipNode
+func convClipNodes(cn *C.mclipnode_t, num int, pns []*model.Plane) []*model.ClipNode {
+	var r []*model.ClipNode
 	for i := 0; i < num; i++ {
 		n := C.getClipNode(cn, C.int(i))
-		r = append(r, model.ClipNode{
-			PlaneNum: int(n.planenum),
+		r = append(r, &model.ClipNode{
+			Plane:    pns[int(n.planenum)],
 			Children: [2]int{int(n.children[0]), int(n.children[1])},
 		})
 	}
