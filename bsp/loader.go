@@ -433,6 +433,8 @@ func makeHulls(hs *[4]qm.Hull, cns []*qm.ClipNode, pns []*qm.Plane, ns []*qm.MNo
 	hs[0].FirstClipNode = 0
 	hs[0].LastClipNode = len(ns) - 1
 	hs[0].Planes = pns
+	// hs[0].ClipMins?
+	// hs[0].ClipMaxs?
 
 	hs[1].ClipMins = math.Vec3{-16, -16, -24}
 	hs[1].ClipMaxs = math.Vec3{16, 16, 32}
@@ -447,11 +449,6 @@ func makeHulls(hs *[4]qm.Hull, cns []*qm.ClipNode, pns []*qm.Plane, ns []*qm.MNo
 	hs[2].FirstClipNode = 0
 	hs[2].LastClipNode = len(cns) - 1
 	hs[2].Planes = pns
-	// ClipNodes []ClipNode
-	// Planes []Plane
-	// FirstClipNode int
-	// LastClipNode int
-	// ClipMins math.Vec3
-	// ClipMaxs math.Vec3
 
+	// TODO: Whats with hull[3]?
 }
