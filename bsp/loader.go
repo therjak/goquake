@@ -409,11 +409,25 @@ func loadClipNodesV0(data []byte) ([]*clipNodeV0, error) {
 // func makeHull0(ret) {
 func makeHulls(hs *[4]qm.Hull, cns []*qm.ClipNode, pns []*qm.Plane, ns []*qm.MNode) {
 	hs[0].ClipNodes = make([]*qm.ClipNode, 0, len(ns))
+
+	getNodeNum := func(qn qm.Node) int {
+		node, ok := qn.(*qm.MNode)
+		if !ok {
+			return qn.Contents()
+		}
+		for i, n := range ns {
+			if n == node {
+				return i
+			}
+		}
+		log.Printf("Could not find node number")
+		return -1
+	}
+
 	for _, cn := range ns {
 		hs[0].ClipNodes = append(hs[0].ClipNodes, &qm.ClipNode{
-			Plane: cn.Plane,
-			// TODO:
-			Children: [2]int{},
+			Plane:    cn.Plane,
+			Children: [2]int{getNodeNum(cn.Children[0]), getNodeNum(cn.Children[1])},
 		})
 	}
 	hs[0].FirstClipNode = 0
