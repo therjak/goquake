@@ -119,7 +119,7 @@ type QModel struct {
 	Texinfos []*Texinfo
 	Surfaces []*Surface
 	// surfedge
-	// clipnodes
+	ClipNodes    []*ClipNode
 	MarkSurfaces []*Surface
 
 	Hulls [MAX_MAP_HULLS]Hull

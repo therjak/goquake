@@ -191,13 +191,11 @@ type plane struct {
 }
 
 type clipNodeV0 struct {
-	PlaneNumber uint32 // the plane which splits the node
-	Front       int16  // if positive id of the child node, -2 if front part inside the model, -1 if outside the model
-	Back        int16  // see front
+	PlaneNumber int32     // the plane which splits the node
+	Children    [2]uint16 // if positive id of the child node, -2 if front part inside the model, -1 if outside the model
 }
 
 type clipNodeV1 struct {
-	PlaneNumber uint32 // the plane which splits the node
-	Front       int32  // if positive id of the child node, -2 if front part inside the model, -1 if outside the model
-	Back        int32  // see front
+	PlaneNumber int32    // the plane which splits the node
+	Children    [2]int32 // if positive id of the child node, -2 if front part inside the model, -1 if outside the model
 }

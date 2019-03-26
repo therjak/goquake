@@ -116,7 +116,16 @@ func LoadBSP(name string, data []byte) (*qm.QModel, error) {
 		}
 		ret.Nodes = mn
 
-		// loadClipNodesV0(fs(h.ClipNodes , data),ret)
+		scn, err := loadClipNodesV0(fs(h.ClipNodes, data))
+		if err != nil {
+			return nil, err
+		}
+		mcn, err := buildClipNodesV0(scn, ret.Planes)
+		if err != nil {
+			return nil, err
+		}
+		ret.ClipNodes = mcn
+
 		// loadEntities(fs(h.Entities , data),ret)
 		// loadModels(fs(h.Models , data),ret)
 		// makeHull0(ret)
@@ -320,12 +329,22 @@ func buildNodesV0(nd []*nodeV0, leafs []*qm.MLeaf, planes []*qm.Plane) ([]*qm.MN
 			id, len(ret), p, len(leafs))
 		return nil
 	}
-	log.Printf("l %d, %d", len(nd), len(ret))
 	for i, n := range nd {
 		ret[i].Children[0] = getChild(n.Children[0])
 		ret[i].Children[1] = getChild(n.Children[1])
 	}
+	setParents(ret[0], nil)
 	return ret, nil
+}
+
+func setParents(n qm.Node, p qm.Node) {
+	n.SetParent(p)
+	mn, ok := n.(*qm.MNode)
+	if !ok {
+		return
+	}
+	setParents(mn.Children[0], n)
+	setParents(mn.Children[1], n)
 }
 
 func loadNodesV0(data []byte) ([]*nodeV0, error) {
@@ -345,7 +364,44 @@ func loadNodesV0(data []byte) ([]*nodeV0, error) {
 	}
 }
 
-// func loadClipNodes(fs(h.ClipNodes , data),ret)
+func buildClipNodesV0(scns []*clipNodeV0, pls []*qm.Plane) ([]*qm.ClipNode, error) {
+	ret := make([]*qm.ClipNode, 0, len(scns))
+	for _, scn := range scns {
+		if scn.PlaneNumber < 0 || int(scn.PlaneNumber) >= len(pls) {
+			return nil, fmt.Errorf("buildClipNodesV0, planenum out of bounds")
+		}
+		cn := &qm.ClipNode{
+			PlaneNum: int(scn.PlaneNumber),
+			Children: [2]int{int(scn.Children[0]), int(scn.Children[1])},
+		}
+		if cn.Children[0] >= len(scns) {
+			cn.Children[0] -= 65536
+		}
+		if cn.Children[1] >= len(scns) {
+			cn.Children[1] -= 65536
+		}
+		ret = append(ret, cn)
+	}
+	return ret, nil
+}
+
+func loadClipNodesV0(data []byte) ([]*clipNodeV0, error) {
+	ret := []*clipNodeV0{}
+	buf := bytes.NewReader(data)
+	for {
+		n := &clipNodeV0{}
+		err := binary.Read(buf, binary.LittleEndian, n)
+		switch err {
+		default:
+			return nil, err
+		case io.EOF:
+			return ret, nil
+		case nil:
+			ret = append(ret, n)
+		}
+	}
+}
+
 // func loadEntities(fs(h.Entities , data),ret)
 // func loadModes(fs(h.Models , data),ret)
 // func makeHull0(ret)
