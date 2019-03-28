@@ -97,6 +97,16 @@ const (
 	MAX_MODELS    = 2048
 )
 
+type Submodel struct {
+	Mins         math.Vec3
+	Maxs         math.Vec3
+	Origin       math.Vec3
+	HeadNode     [4]int32
+	VisLeafCount int32
+	FirstFace    int32
+	FaceCount    int32
+}
+
 // Knows currently only what sv.models needs to know
 type QModel struct {
 	Name string
@@ -107,12 +117,9 @@ type QModel struct {
 	ClipMins math.Vec3
 	ClipMaxs math.Vec3
 
-	NumSubmodels int
-	// dmodel_t *submodels
-
-	// submodels
-	Planes []*Plane
-	Leafs  []*MLeaf
+	Submodels []*Submodel
+	Planes    []*Plane
+	Leafs     []*MLeaf
 	// vertexes
 	// edges
 	Nodes    []*MNode

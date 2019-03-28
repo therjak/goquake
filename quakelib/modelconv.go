@@ -62,16 +62,16 @@ func convCModel(m *C.qmodel_t, localModel bool) *model.QModel {
 	}()
 
 	return &model.QModel{
-		Name:         C.GoString(&m.name[0]),
-		Type:         model.ModType(m.Type),
-		Mins:         math.Vec3{float32(m.mins[0]), float32(m.mins[1]), float32(m.mins[2])},
-		Maxs:         math.Vec3{float32(m.maxs[0]), float32(m.maxs[1]), float32(m.maxs[2])},
-		ClipMins:     math.Vec3{float32(m.clipmins[0]), float32(m.clipmins[1]), float32(m.clipmins[2])},
-		ClipMaxs:     math.Vec3{float32(m.clipmaxs[0]), float32(m.clipmaxs[1]), float32(m.clipmaxs[2])},
-		Hulls:        convHulls(&m.hulls),
-		Node:         convNode(m.nodes, leafs, localModel),
-		NumSubmodels: int(m.numsubmodels),
-		Leafs:        myleafs,
+		Name:     C.GoString(&m.name[0]),
+		Type:     model.ModType(m.Type),
+		Mins:     math.Vec3{float32(m.mins[0]), float32(m.mins[1]), float32(m.mins[2])},
+		Maxs:     math.Vec3{float32(m.maxs[0]), float32(m.maxs[1]), float32(m.maxs[2])},
+		ClipMins: math.Vec3{float32(m.clipmins[0]), float32(m.clipmins[1]), float32(m.clipmins[2])},
+		ClipMaxs: math.Vec3{float32(m.clipmaxs[0]), float32(m.clipmaxs[1]), float32(m.clipmaxs[2])},
+		Hulls:    convHulls(&m.hulls),
+		Node:     convNode(m.nodes, leafs, localModel),
+		// NumSubmodels: int(m.numsubmodels),
+		Leafs: myleafs,
 	}
 }
 

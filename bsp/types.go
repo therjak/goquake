@@ -47,12 +47,12 @@ type bBoxShort struct {
 
 // Model, either a big zone, the level or parts inside that zone
 type model struct {
-	BoundingBox   [6]float32
-	Origin        [3]float32
-	HeadNode      [4]int32
-	NumberOfLeafs int32 // not including the solid leaf 0
-	FaceID        int32
-	NumberOfFaces int32
+	BoundingBox  [6]float32
+	Origin       [3]float32
+	HeadNode     [4]int32
+	VisLeafCount int32 // not including the solid leaf 0
+	FirstFace    int32
+	FaceCount    int32
 }
 
 type vertex struct {

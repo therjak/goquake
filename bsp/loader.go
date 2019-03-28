@@ -128,13 +128,19 @@ func LoadBSP(name string, data []byte) (*qm.QModel, error) {
 
 		makeHulls(&ret.Hulls, ret.ClipNodes, ret.Planes, ret.Nodes)
 
+		submod, err := loadSubmodels(fs(h.Models, data))
+		if err != nil {
+			return nil, err
+		}
+		msm, err := buildSubmodels(submod)
+		if err != nil {
+			return nil, err
+		}
+		ret.Submodels = msm
+
 		// loadEntities(fs(h.Entities , data),ret)
 		// loadModels(fs(h.Models , data),ret)
-		// makeHull0(ret)
 
-		// read leafs
-		// read nodes
-		// read clipnodes
 		// read 'submodels', submodel[0] is the 'map'
 		// HeadNode [0] == first bsp node index
 		// [1] == first clip node index
@@ -451,4 +457,50 @@ func makeHulls(hs *[4]qm.Hull, cns []*qm.ClipNode, pns []*qm.Plane, ns []*qm.MNo
 	hs[2].Planes = pns
 
 	// TODO: Whats with hull[3]?
+}
+
+func loadSubmodels(data []byte) ([]*model, error) {
+	ret := []*model{}
+	buf := bytes.NewReader(data)
+	for {
+		m := &model{}
+		err := binary.Read(buf, binary.LittleEndian, m)
+		switch err {
+		default:
+			return nil, err
+		case io.EOF:
+			return ret, nil
+		case nil:
+			ret = append(ret)
+		}
+	}
+}
+
+func buildSubmodels(mod []*model) ([]*qm.Submodel, error) {
+	if len(mod) == 0 {
+		return nil, fmt.Errorf("No model found")
+	}
+	if mod[0].VisLeafCount > 70000 {
+		return nil, fmt.Errorf(
+			"LoadSubModels: too many visleafs (%d, max = %d)",
+			mod[0].VisLeafCount, 70000)
+	}
+	if mod[0].VisLeafCount > 8192 {
+		log.Printf("%d visleafs exceeds standard limit of 8192", mod[0].VisLeafCount)
+	}
+	ret := make([]*qm.Submodel, 0, len(mod))
+	for _, m := range mod {
+		ret = append(ret, &qm.Submodel{
+			Mins:   math.Vec3{m.BoundingBox[0], m.BoundingBox[1], m.BoundingBox[2]},
+			Maxs:   math.Vec3{m.BoundingBox[3], m.BoundingBox[4], m.BoundingBox[5]},
+			Origin: math.Vec3{m.Origin[0], m.Origin[1], m.Origin[2]},
+			HeadNode: [4]int32{
+				m.HeadNode[0], m.HeadNode[1], m.HeadNode[2], m.HeadNode[3],
+			},
+			VisLeafCount: m.VisLeafCount,
+			FirstFace:    m.FirstFace,
+			FaceCount:    m.FaceCount,
+		})
+	}
+	return ret, nil
 }
