@@ -101,10 +101,10 @@ type Submodel struct {
 	Mins         math.Vec3
 	Maxs         math.Vec3
 	Origin       math.Vec3
-	HeadNode     [4]int32
-	VisLeafCount int32
-	FirstFace    int32
-	FaceCount    int32
+	HeadNode     [4]int
+	VisLeafCount int
+	FirstFace    int
+	FaceCount    int
 }
 
 // Knows currently only what sv.models needs to know
@@ -128,6 +128,8 @@ type QModel struct {
 	// surfedge
 	ClipNodes    []*ClipNode
 	MarkSurfaces []*Surface
+
+	FrameCount int
 
 	Hulls [MAX_MAP_HULLS]Hull
 	// textures

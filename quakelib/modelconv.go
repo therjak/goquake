@@ -20,8 +20,16 @@ import (
 
 //export SVSetModel
 func SVSetModel(m *C.qmodel_t, idx C.int, localModel C.int) {
-	log.Printf("SetModel: %d", idx)
-	nm := convCModel(m, localModel != 0)
+	name := C.GoString(&m.name[0])
+	nm := func() *model.QModel {
+		cm, ok := models[name]
+		if ok {
+			log.Printf("SetModel: %d, %s cached", idx, name)
+			return cm
+		}
+		log.Printf("SetModel: %d, %s", idx, name)
+		return convCModel(m, localModel != 0)
+	}()
 	if int(idx) == len(sv.models) {
 		sv.models = append(sv.models, nm)
 	} else {
@@ -29,20 +37,38 @@ func SVSetModel(m *C.qmodel_t, idx C.int, localModel C.int) {
 	}
 }
 
+var (
+	models map[string]*model.QModel
+)
+
+func init() {
+	// TODO: at some point this should get cleaned up
+	models = make(map[string]*model.QModel)
+}
+
 //export LoadModelGo
 func LoadModelGo(name *C.char) {
-	_, err := bsp.LoadModel(C.GoString(name))
+	mods, err := bsp.LoadModel(C.GoString(name))
 	if err != nil {
 		log.Printf("LoadModel err: %v", err)
+	}
+	for _, m := range mods {
+		models[m.Name] = m
 	}
 }
 
 //export SVSetWorldModel
 func SVSetWorldModel(m *C.qmodel_t) {
-	log.Printf("New world")
+	name := C.GoString(&m.name[0])
+	log.Printf("New world: %s", name)
 	sv.worldModel = nil
 	sv.models = sv.models[:1]
-	sv.worldModel = convCModel(m, true)
+	cm, ok := models[name]
+	if ok {
+		sv.worldModel = cm
+	} else {
+		sv.worldModel = convCModel(m, true)
+	}
 	sv.models = append(sv.models, sv.worldModel)
 	// append models with name '*1' to '*(sv.worldModel.NumSubmodels -1)'
 }
@@ -52,7 +78,7 @@ func SVSetWorldModel(m *C.qmodel_t) {
 // probably better to get a working file loading code going than this broken conversion stuff
 
 func convCModel(m *C.qmodel_t, localModel bool) *model.QModel {
-	log.Printf("ModelName: %s, local %v", C.GoString(&m.name[0]), localModel)
+	// log.Printf("ModelName: %s, local %v", C.GoString(&m.name[0]), localModel)
 	myleafs := convLeafs(m.leafs, int(m.numleafs))
 	leafs := func() []*model.MLeaf {
 		if sv.worldModel != nil && localModel {

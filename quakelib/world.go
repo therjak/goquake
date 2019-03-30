@@ -8,6 +8,7 @@ import "C"
 
 import (
 	"container/ring"
+	"log"
 	"quake/math"
 	"quake/model"
 	"quake/progs"
@@ -149,8 +150,12 @@ func SV_TouchLinks(e int, a *areaNode) {
 		if tv == nil || tv.Solid != SOLID_TRIGGER {
 			continue
 		}
-		if ev.AbsMin[0] > tv.AbsMin[0] || ev.AbsMin[1] > tv.AbsMin[1] || ev.AbsMin[2] > tv.AbsMin[2] ||
-			ev.AbsMax[0] < tv.AbsMax[0] || ev.AbsMax[1] < tv.AbsMax[1] || ev.AbsMax[2] < tv.AbsMax[2] {
+		if ev.AbsMin[0] > tv.AbsMax[0] ||
+			ev.AbsMin[1] > tv.AbsMax[1] ||
+			ev.AbsMin[2] > tv.AbsMax[2] ||
+			ev.AbsMax[0] < tv.AbsMin[0] ||
+			ev.AbsMax[1] < tv.AbsMin[1] ||
+			ev.AbsMax[2] < tv.AbsMin[2] {
 			continue
 		}
 
@@ -160,6 +165,7 @@ func SV_TouchLinks(e int, a *areaNode) {
 		progsdat.Globals.Self = int32(touch)
 		progsdat.Globals.Other = int32(e)
 		progsdat.Globals.Time = sv.time
+		log.Printf("Touching self %d, other %d", touch, e)
 		C.PR_ExecuteProgram(C.int(tv.Touch))
 
 		progsdat.Globals.Self = oldSelf
@@ -226,7 +232,7 @@ func LinkEdict(e int, touchTriggers bool) {
 
 	ed.num_leafs = 0
 	if ev.ModelIndex != 0 {
-		findTouchedLeafs(e, sv.worldModel.Node)
+		findTouchedLeafs(e, sv.worldModel.Nodes[0])
 	}
 	if ev.Solid == SOLID_NOT {
 		return
@@ -274,14 +280,9 @@ func findTouchedLeafs(e int, node model.Node) {
 		leafNum := -1
 		for i := 0; i < len(sv.worldModel.Leafs); i++ {
 			if sv.worldModel.Leafs[i] == leaf {
-				// TODO: why -1?
-				leafNum = i // - 1
+				leafNum = i - 1 // why -1 ?
 			}
 		}
-
-		// TODO: leaf stuff
-		// number in sv.worldmodel.leafs
-		// leaf - sv.worldmodel.leafs - 1
 
 		ed.leafnums[ed.num_leafs] = C.int(leafNum)
 		ed.num_leafs++

@@ -16,7 +16,7 @@ var (
 	spriteMagic = [4]byte{'I', 'D', 'S', 'P'}
 )
 
-func LoadModel(name string) (*qm.QModel, error) {
+func LoadModel(name string) ([]*qm.QModel, error) {
 	// TODO: Add cache
 
 	b, err := filesystem.GetFileContents(name)
@@ -45,8 +45,9 @@ const (
 	bsp2Version_bsp2 = '2'<<24 | 'P'<<16 | 'S'<<8 | 'B'
 )
 
-func LoadBSP(name string, data []byte) (*qm.QModel, error) {
-	ret := &qm.QModel{
+func LoadBSP(name string, data []byte) ([]*qm.QModel, error) {
+	var ret []*qm.QModel
+	mod := &qm.QModel{
 		Name: name,
 		Type: qm.ModBrush,
 		// Mins, Maxs, ClipMins, Clipmaxs Vec3
@@ -67,66 +68,68 @@ func LoadBSP(name string, data []byte) (*qm.QModel, error) {
 	switch h.Version {
 	case bspVersion:
 		log.Printf("Got V0 bsp: %v", h)
-		// loadVertexes(fs(h.Vertexes, data),ret)
-		// loadEdgesV0(fs(h.Edges, data),ret)
-		// loadSurfaceEdges(fs(h.SurfaceEdges, data),ret)
-		// loadTextures(fs(h.Textures, data),ret)
-		// loadLighting(fs(h.Lighting, data),ret)
+		// TODO: loadVertexes(fs(h.Vertexes, data),ret)
+		// TODO: loadEdgesV0(fs(h.Edges, data),ret)
+		// TODO: loadSurfaceEdges(fs(h.SurfaceEdges, data),ret)
+		// TODO: loadTextures(fs(h.Textures, data),ret)
+		// TODO: loadLighting(fs(h.Lighting, data),ret)
 		splanes, err := loadPlanes(fs(h.Planes, data))
 		if err != nil {
 			return nil, err
 		}
-		ret.Planes = buildPlanes(splanes)
-		// loadTextinfo(fs(h.Texinfo , data),ret)
+		mod.Planes = buildPlanes(splanes)
+		// TODO: loadTextinfo(fs(h.Texinfo , data),ret)
 		sfaces, err := loadFacesV0(fs(h.Faces, data))
 		if err != nil {
 			return nil, err
 		}
-		msurfaces, err := buildSurfacesV0(sfaces, ret.Planes, ret.Texinfos)
+		msurfaces, err := buildSurfacesV0(sfaces, mod.Planes, mod.Texinfos)
 		if err != nil {
 			return nil, err
 		}
-		ret.Surfaces = msurfaces
+		mod.Surfaces = msurfaces
 		msurf, err := loadMarkSurfacesV0(fs(h.MarkSurfaces, data))
 		if err != nil {
 			return nil, err
 		}
-		mms, err := buildMarkSurfacesV0(msurf, ret.Surfaces)
+		mms, err := buildMarkSurfacesV0(msurf, mod.Surfaces)
 		if err != nil {
 			return nil, err
 		}
-		ret.MarkSurfaces = mms
-		ret.VisData = fs(h.Visibility, data)
+		mod.MarkSurfaces = mms
+		// VisData = loadVisibility
+		mod.VisData = fs(h.Visibility, data)
 		leafs, err := loadLeafsV0(fs(h.Leafs, data))
 		if err != nil {
 			return nil, err
 		}
-		ml, err := buildLeafsV0(leafs, ret.MarkSurfaces, ret.VisData)
+		ml, err := buildLeafsV0(leafs, mod.MarkSurfaces, mod.VisData)
 		if err != nil {
 			return nil, err
 		}
-		ret.Leafs = ml
+		mod.Leafs = ml
 		nodes, err := loadNodesV0(fs(h.Nodes, data))
 		if err != nil {
 			return nil, err
 		}
-		mn, err := buildNodesV0(nodes, ret.Leafs, ret.Planes)
+		mn, err := buildNodesV0(nodes, mod.Leafs, mod.Planes)
 		if err != nil {
 			return nil, err
 		}
-		ret.Nodes = mn
+		mod.Nodes = mn
 
 		scn, err := loadClipNodesV0(fs(h.ClipNodes, data))
 		if err != nil {
 			return nil, err
 		}
-		mcn, err := buildClipNodesV0(scn, ret.Planes)
+		mcn, err := buildClipNodesV0(scn, mod.Planes)
 		if err != nil {
 			return nil, err
 		}
-		ret.ClipNodes = mcn
+		mod.ClipNodes = mcn
 
-		makeHulls(&ret.Hulls, ret.ClipNodes, ret.Planes, ret.Nodes)
+		// entities: TODO
+		// loadEntities(fs(h.Entities , data),ret)
 
 		submod, err := loadSubmodels(fs(h.Models, data))
 		if err != nil {
@@ -136,16 +139,40 @@ func LoadBSP(name string, data []byte) (*qm.QModel, error) {
 		if err != nil {
 			return nil, err
 		}
-		ret.Submodels = msm
+		mod.Submodels = msm
 
-		// loadEntities(fs(h.Entities , data),ret)
-		// loadModels(fs(h.Models , data),ret)
+		makeHulls(&mod.Hulls, mod.ClipNodes, mod.Planes, mod.Nodes)
+		mod.FrameCount = 2
 
 		// read 'submodels', submodel[0] is the 'map'
 		// HeadNode [0] == first bsp node index
 		// [1] == first clip node index
 		// [2] == last clip node index
 		// [3] usually 0
+		for i, sub := range mod.Submodels {
+			m := *mod
+			if i > 0 {
+				m.Name = fmt.Sprintf("*%d", i)
+			}
+			m.Hulls[0].FirstClipNode = sub.HeadNode[0]
+			for i := 1; i < 4; i++ {
+				m.Hulls[i].FirstClipNode = sub.HeadNode[i]
+				m.Hulls[i].LastClipNode = len(mod.ClipNodes) - 1
+			}
+			// TODO
+			// m.FirstModelSurface = sub.FirstFace
+			// m.NumModelSurfaces = sub.FaceCount
+			m.Mins = sub.Mins
+			m.Maxs = sub.Maxs
+			// TODO: calc rotate and yaw bounds
+			if i > 0 {
+				m.ClipMins = sub.Mins
+				m.ClipMaxs = sub.Maxs
+			}
+			m.Leafs = m.Leafs[:sub.VisLeafCount]
+
+			ret = append(ret, &m)
+		}
 
 	case bsp2Version_2psb:
 		log.Printf("Got V1 bsp: %v", h)
@@ -455,8 +482,6 @@ func makeHulls(hs *[4]qm.Hull, cns []*qm.ClipNode, pns []*qm.Plane, ns []*qm.MNo
 	hs[2].FirstClipNode = 0
 	hs[2].LastClipNode = len(cns) - 1
 	hs[2].Planes = pns
-
-	// TODO: Whats with hull[3]?
 }
 
 func loadSubmodels(data []byte) ([]*model, error) {
@@ -471,7 +496,7 @@ func loadSubmodels(data []byte) ([]*model, error) {
 		case io.EOF:
 			return ret, nil
 		case nil:
-			ret = append(ret)
+			ret = append(ret, m)
 		}
 	}
 }
@@ -494,12 +519,12 @@ func buildSubmodels(mod []*model) ([]*qm.Submodel, error) {
 			Mins:   math.Vec3{m.BoundingBox[0], m.BoundingBox[1], m.BoundingBox[2]},
 			Maxs:   math.Vec3{m.BoundingBox[3], m.BoundingBox[4], m.BoundingBox[5]},
 			Origin: math.Vec3{m.Origin[0], m.Origin[1], m.Origin[2]},
-			HeadNode: [4]int32{
-				m.HeadNode[0], m.HeadNode[1], m.HeadNode[2], m.HeadNode[3],
+			HeadNode: [4]int{
+				int(m.HeadNode[0]), int(m.HeadNode[1]), int(m.HeadNode[2]), int(m.HeadNode[3]),
 			},
-			VisLeafCount: m.VisLeafCount,
-			FirstFace:    m.FirstFace,
-			FaceCount:    m.FaceCount,
+			VisLeafCount: int(m.VisLeafCount),
+			FirstFace:    int(m.FirstFace),
+			FaceCount:    int(m.FaceCount),
 		})
 	}
 	return ret, nil
