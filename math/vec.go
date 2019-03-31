@@ -76,6 +76,16 @@ func DoublePrecDot(a Vec3, b Vec3) float32 {
 		float64(a.Z)*float64(b.Z))
 }
 
+// Lerp computes a weighted average between two points
+func Lerp(a, b Vec3, frac float32) Vec3 {
+	fi := 1 - frac
+	return Vec3{
+		fi*a.X + frac*b.X,
+		fi*a.Y + frac*b.Y,
+		fi*a.Z + frac*b.Z,
+	}
+}
+
 // Equal returns a == b
 func Equal(a Vec3, b Vec3) bool {
 	return a.X == b.X && a.Y == b.Y && a.Z == b.Z
