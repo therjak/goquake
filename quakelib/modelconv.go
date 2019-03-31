@@ -12,6 +12,7 @@ package quakelib
 import "C"
 
 import (
+	"fmt"
 	"log"
 	"quake/bsp"
 	"quake/math"
@@ -27,7 +28,7 @@ func SVSetModel(m *C.qmodel_t, idx C.int, localModel C.int) {
 			log.Printf("SetModel: %d, %s cached", idx, name)
 			return cm
 		}
-		log.Printf("SetModel: %d, %s", idx, name)
+		log.Printf("SetModel: %d, %s new", idx, name)
 		return convCModel(m, localModel != 0)
 	}()
 	if int(idx) == len(sv.models) {
@@ -59,26 +60,38 @@ func LoadModelGo(name *C.char) {
 
 //export SVSetWorldModel
 func SVSetWorldModel(m *C.qmodel_t) {
+	// This has already a lot of SV_SpawnServer
 	name := C.GoString(&m.name[0])
 	log.Printf("New world: %s", name)
 	sv.worldModel = nil
+	sv.modelPrecache = sv.modelPrecache[:0]
 	sv.models = sv.models[:1]
+	log.Printf("New world starts with %d models", len(sv.models))
 	cm, ok := models[name]
 	if ok {
 		sv.worldModel = cm
 	} else {
-		sv.worldModel = convCModel(m, true)
+		log.Fatalf("Missing the world model")
+		return
 	}
+	sv.modelPrecache = append(sv.modelPrecache, string([]byte{0, 0, 0, 0, 0, 0, 0, 0}))
+	sv.modelPrecache = append(sv.modelPrecache, name)
 	sv.models = append(sv.models, sv.worldModel)
-	// append models with name '*1' to '*(sv.worldModel.NumSubmodels -1)'
+	for i := 1; i < len(sv.worldModel.Submodels); i++ {
+		nn := fmt.Sprintf("*%d", i)
+		nm, ok := models[nn]
+		if !ok {
+			log.Printf("Missing model %d", i)
+			continue
+		}
+		sv.modelPrecache = append(sv.modelPrecache, nn)
+		sv.models = append(sv.models, nm)
+	}
+
+	clearWorld()
 }
 
-// fixme: there is some issue with the bsp. probably a off by one
-// fixme: there is a bug with touching stuff (like items, teleporters or doors).
-// probably better to get a working file loading code going than this broken conversion stuff
-
 func convCModel(m *C.qmodel_t, localModel bool) *model.QModel {
-	// log.Printf("ModelName: %s, local %v", C.GoString(&m.name[0]), localModel)
 	myleafs := convLeafs(m.leafs, int(m.numleafs))
 	leafs := func() []*model.MLeaf {
 		if sv.worldModel != nil && localModel {
@@ -143,7 +156,6 @@ func convNode(n *C.mnode_t, l []*model.MLeaf, localModel bool) model.Node {
 }
 
 func convLeafs(li *C.mleaf_t, n int) []*model.MLeaf {
-	log.Printf("converting %d leafs", n)
 	if n == 0 {
 		return []*model.MLeaf{}
 	}

@@ -17,7 +17,7 @@ var (
 )
 
 func LoadModel(name string) ([]*qm.QModel, error) {
-	// TODO: Add cache
+	// TODO: move the cache
 
 	b, err := filesystem.GetFileContents(name)
 	if err != nil {
@@ -27,13 +27,10 @@ func LoadModel(name string) ([]*qm.QModel, error) {
 	copy(magic[:], b)
 	switch magic {
 	case polyMagic:
-		log.Printf("Got a poly %s", name)
-	// LoadAliasModel, this is a .mdl
+		// LoadAliasModel, this is a .mdl
 	case spriteMagic:
-		log.Printf("Got a sprite %s", name)
 		// LoadSpriteModel, this is a .spr
 	default:
-		log.Printf("Got a bsp %s", name)
 		return LoadBSP(name, b)
 	}
 	return nil, nil
@@ -143,6 +140,8 @@ func LoadBSP(name string, data []byte) ([]*qm.QModel, error) {
 
 		makeHulls(&mod.Hulls, mod.ClipNodes, mod.Planes, mod.Nodes)
 		mod.FrameCount = 2
+
+		mod.Node = mod.Nodes[0]
 
 		// read 'submodels', submodel[0] is the 'map'
 		// HeadNode [0] == first bsp node index

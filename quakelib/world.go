@@ -51,7 +51,6 @@ type areaNode struct {
 
 var (
 	edictToRing map[int]*ring.Ring
-	nextLink    *ring.Ring
 	gArea       *areaNode
 )
 
@@ -126,28 +125,61 @@ func UnlinkEdict(e int) {
 	if !ok {
 		return
 	}
-	if nextLink == r {
-		nextLink = nextLink.Next()
-	}
 	r.Prev().Unlink(1)
 }
 
-func SV_TouchLinks(e int, a *areaNode) {
+func triggerEdicts(e int, a *areaNode) []int {
+	ret := []int{}
 	ev := EntVars(e)
 
-	for l := a.triggerEdicts.Next(); l != a.triggerEdicts; l = nextLink {
+	for l := a.triggerEdicts.Next(); l != a.triggerEdicts; l = l.Next() {
 		if l == nil {
 			// my area got removed out from under me!
-			conPrintf("SV_TouchLinks: encountered NULL link!\n")
+			log.Printf("triggerEdicts: encountered NULL link!\n")
 			break
 		}
-		nextLink = l.Next()
 		touch := l.Value.(int)
 		if touch == e {
 			continue
 		}
 		tv := EntVars(touch)
-		if tv == nil || tv.Solid != SOLID_TRIGGER {
+		if tv == nil || tv.Touch == 0 || tv.Solid != SOLID_TRIGGER {
+			continue
+		}
+		if ev.AbsMin[0] > tv.AbsMax[0] ||
+			ev.AbsMin[1] > tv.AbsMax[1] ||
+			ev.AbsMin[2] > tv.AbsMax[2] ||
+			ev.AbsMax[0] < tv.AbsMin[0] ||
+			ev.AbsMax[1] < tv.AbsMin[1] ||
+			ev.AbsMax[2] < tv.AbsMin[2] {
+			continue
+		}
+		ret = append(ret, touch)
+	}
+
+	if a.axis == -1 {
+		return ret
+	}
+
+	if ev.AbsMax[a.axis] > a.dist {
+		ret = append(ret, triggerEdicts(e, a.children[0])...)
+	}
+	if ev.AbsMin[a.axis] < a.dist {
+		ret = append(ret, triggerEdicts(e, a.children[1])...)
+	}
+	return ret
+}
+
+func SV_TouchLinks(e int, a *areaNode) {
+	te := triggerEdicts(e, a)
+	ev := EntVars(e)
+
+	for _, touch := range te {
+		if touch == e {
+			continue
+		}
+		tv := EntVars(touch)
+		if tv == nil || tv.Touch == 0 || tv.Solid != SOLID_TRIGGER {
 			continue
 		}
 		if ev.AbsMin[0] > tv.AbsMax[0] ||
@@ -165,24 +197,10 @@ func SV_TouchLinks(e int, a *areaNode) {
 		progsdat.Globals.Self = int32(touch)
 		progsdat.Globals.Other = int32(e)
 		progsdat.Globals.Time = sv.time
-		log.Printf("Touching self %d, other %d", touch, e)
 		C.PR_ExecuteProgram(C.int(tv.Touch))
 
 		progsdat.Globals.Self = oldSelf
 		progsdat.Globals.Other = oldOther
-	}
-
-	nextLink = nil
-
-	if a.axis == -1 {
-		return
-	}
-
-	if ev.AbsMax[a.axis] > a.dist {
-		SV_TouchLinks(e, a.children[0])
-	}
-	if ev.AbsMin[a.axis] < a.dist {
-		SV_TouchLinks(e, a.children[1])
 	}
 }
 
@@ -232,8 +250,9 @@ func LinkEdict(e int, touchTriggers bool) {
 
 	ed.num_leafs = 0
 	if ev.ModelIndex != 0 {
-		findTouchedLeafs(e, sv.worldModel.Nodes[0])
+		findTouchedLeafs(e, sv.worldModel.Node)
 	}
+
 	if ev.Solid == SOLID_NOT {
 		return
 	}
@@ -384,6 +403,7 @@ func clipToLinks(a *areaNode, clip *moveClip) {
 		if clip.typ == MOVE_NOMONSTERS && tv.Solid != SOLID_BSP {
 			continue
 		}
+
 		if clip.boxmaxs.X < tv.AbsMin[0] ||
 			clip.boxmaxs.Y < tv.AbsMin[1] ||
 			clip.boxmaxs.Z < tv.AbsMin[2] ||
@@ -392,6 +412,7 @@ func clipToLinks(a *areaNode, clip *moveClip) {
 			clip.boxmins.Z > tv.AbsMax[2] {
 			continue
 		}
+
 		if clip.edict >= 0 && EntVars(clip.edict).Size[0] != 0 &&
 			tv.Size[0] == 0 {
 			continue
@@ -579,12 +600,8 @@ func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 math.Ve
 	if frac > 1 {
 		frac = 1
 	}
-	midf := p1f + (p2f-p1f)*frac
-	mid := func() math.Vec3 {
-		t := math.Sub(p2, p1)
-		t = t.Scale(frac)
-		return math.Add(p1, t)
-	}()
+	midf := (1-frac)*p1f + p2f*frac
+	mid := math.Lerp(p1, p2, frac)
 	side := func() int {
 		if t1 < 0 {
 			return 1
@@ -624,12 +641,8 @@ func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 math.Ve
 			conPrintf("backup past 0\n")
 			return false
 		}
-		midf = p1f + (p2f-p1f)*frac
-		mid = func() math.Vec3 {
-			t := math.Sub(p2, p1)
-			t = t.Scale(frac)
-			return math.Add(p1, t)
-		}()
+		midf = (1-frac)*p1f + p2f*frac
+		mid = math.Lerp(p1, p2, frac)
 	}
 	trace.fraction = C.float(midf)
 	trace.endpos[0] = C.float(mid.X)
@@ -664,6 +677,8 @@ func clipMoveToEntity(ent int, start, mins, maxs, end math.Vec3) C.trace_t {
 }
 
 func (c *moveClip) moveBounds(s, e math.Vec3) {
+	// c.boxmins = math.Vec3{-9999, -9999, -9999}
+	// c.boxmaxs = math.Vec3{9999, 9999, 9999}
 	min, max := math.MinMax(s, e)
 	c.boxmins = math.Add(min, math.Add(c.mins, math.Vec3{-1, -1, -1}))
 	c.boxmaxs = math.Add(max, math.Add(c.maxs, math.Vec3{1, 1, 1}))

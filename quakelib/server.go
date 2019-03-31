@@ -30,19 +30,19 @@ const (
 )
 
 const (
-	FL_FLY           = 1 << iota
-	FL_SWIM          = 1 << iota
-	FL_CONVEYOR      = 1 << iota
-	FL_CLIENT        = 1 << iota
-	FL_INWATER       = 1 << iota
-	FL_MONSTER       = 1 << iota
-	FL_GODMODE       = 1 << iota
-	FL_NOTARGET      = 1 << iota
-	FL_ITEM          = 1 << iota
-	FL_ONGROUND      = 1 << iota
-	FL_PARTIALGROUND = 1 << iota
-	FL_WATERJUMP     = 1 << iota
-	FL_JUMPRELEASED  = 1 << iota
+	FL_FLY = 1 << iota
+	FL_SWIM
+	FL_CONVEYOR
+	FL_CLIENT
+	FL_INWATER
+	FL_MONSTER
+	FL_GODMODE
+	FL_NOTARGET
+	FL_ITEM
+	FL_ONGROUND
+	FL_PARTIALGROUND
+	FL_WATERJUMP
+	FL_JUMPRELEASED
 )
 
 type ServerStatic struct {
