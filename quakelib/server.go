@@ -680,9 +680,9 @@ func (s *Server) sendStartSound(entity, channel, volume, soundnum int, attenuati
 	}
 	ev := EntVars(entity)
 	flags := int(s.protocolFlags)
-	s.datagram.WriteCoord(ev.Origin[0]+0.5*ev.Mins[0]+ev.Maxs[0], flags)
-	s.datagram.WriteCoord(ev.Origin[1]+0.5*ev.Mins[1]+ev.Maxs[1], flags)
-	s.datagram.WriteCoord(ev.Origin[2]+0.5*ev.Mins[2]+ev.Maxs[2], flags)
+	s.datagram.WriteCoord(ev.Origin[0]+0.5*(ev.Mins[0]+ev.Maxs[0]), flags)
+	s.datagram.WriteCoord(ev.Origin[1]+0.5*(ev.Mins[1]+ev.Maxs[1]), flags)
+	s.datagram.WriteCoord(ev.Origin[2]+0.5*(ev.Mins[2]+ev.Maxs[2]), flags)
 }
 
 //export SV_CleanupEnts
@@ -710,9 +710,9 @@ func (s *Server) WriteClientdataToMessage(e *progs.EntVars, alpha byte) {
 		msgBuf.WriteByte(server.Damage)
 		msgBuf.WriteByte(int(e.DmgSave))
 		msgBuf.WriteByte(int(e.DmgTake))
-		msgBuf.WriteCoord(other.Origin[0]+0.5*other.Mins[0]+other.Maxs[0], flags)
-		msgBuf.WriteCoord(other.Origin[1]+0.5*other.Mins[1]+other.Maxs[1], flags)
-		msgBuf.WriteCoord(other.Origin[2]+0.5*other.Mins[2]+other.Maxs[2], flags)
+		msgBuf.WriteCoord(other.Origin[0]+0.5*(other.Mins[0]+other.Maxs[0]), flags)
+		msgBuf.WriteCoord(other.Origin[1]+0.5*(other.Mins[1]+other.Maxs[1]), flags)
+		msgBuf.WriteCoord(other.Origin[2]+0.5*(other.Mins[2]+other.Maxs[2]), flags)
 		e.DmgTake = 0
 		e.DmgSave = 0
 	}
