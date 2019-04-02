@@ -515,9 +515,8 @@ func buildSubmodels(mod []*model) ([]*qm.Submodel, error) {
 	ret := make([]*qm.Submodel, 0, len(mod))
 	for _, m := range mod {
 		ret = append(ret, &qm.Submodel{
-			// spread the mins/maxs by a pixel -- but why?
-			Mins:   math.Vec3{m.BoundingBox[0] - 1, m.BoundingBox[1] - 1, m.BoundingBox[2] - 1},
-			Maxs:   math.Vec3{m.BoundingBox[3] + 1, m.BoundingBox[4] + 1, m.BoundingBox[5] + 1},
+			Mins:   math.Vec3{m.BoundingBox[0], m.BoundingBox[1], m.BoundingBox[2]},
+			Maxs:   math.Vec3{m.BoundingBox[3], m.BoundingBox[4], m.BoundingBox[5]},
 			Origin: math.Vec3{m.Origin[0], m.Origin[1], m.Origin[2]},
 			HeadNode: [4]int{
 				int(m.HeadNode[0]), int(m.HeadNode[1]), int(m.HeadNode[2]), int(m.HeadNode[3]),

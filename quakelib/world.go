@@ -237,15 +237,6 @@ func LinkEdict(e int, touchTriggers bool) {
 		ev.AbsMin[1] -= 15
 		ev.AbsMax[0] += 15
 		ev.AbsMax[1] += 15
-	} else {
-		// movement is clipped an epsilon away from the actual edge
-		// we must fully check even when the bounding boxes don't quite touch
-		ev.AbsMin[0] -= 1
-		ev.AbsMin[1] -= 1
-		ev.AbsMin[2] -= 1
-		ev.AbsMax[0] += 1
-		ev.AbsMax[1] += 1
-		ev.AbsMax[2] += 1
 	}
 
 	ed.num_leafs = 0
@@ -586,19 +577,14 @@ func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 math.Ve
 		return recursiveHullCheck(h, node.Children[1], p1f, p2f, p1, p2, trace)
 	}
 
-	/*
-		if plane.Type != 2 {
-			log.Printf("plane: %v, p1 %v, p2: %v", plane, p1, p2)
-			log.Printf("t1: %v, t2: %v", t1, t2)
-		}
-	*/
-
 	// put the crosspoint DIST_EPSILON pixels on the near side
 	frac := func() float32 {
+		d := t1 - t2
+		// In the C implementation DIST_EPSILON is a float64..
 		if t1 < 0 {
-			return (t1 + DIST_EPSILON) / (t1 - t2)
+			return (t1 + DIST_EPSILON) / d
 		}
-		return (t1 - DIST_EPSILON) / (t1 - t2)
+		return (t1 - DIST_EPSILON) / d
 	}()
 	if frac < 0 {
 		frac = 0
@@ -683,12 +669,9 @@ func clipMoveToEntity(ent int, start, mins, maxs, end math.Vec3) C.trace_t {
 }
 
 func (c *moveClip) moveBounds(s, e math.Vec3) {
-	// c.boxmins = math.Vec3{-9999, -9999, -9999}
-	// c.boxmaxs = math.Vec3{9999, 9999, 9999}
 	min, max := math.MinMax(s, e)
-	// TODO: Why reduce the box by 1? the orig increases the box by 1
-	c.boxmins = math.Add(min, math.Add(c.mins, math.Vec3{1, 1, 1}))
-	c.boxmaxs = math.Add(max, math.Sub(c.maxs, math.Vec3{1, 1, 1}))
+	c.boxmins = math.Add(min, c.mins)
+	c.boxmaxs = math.Add(max, c.maxs)
 }
 
 func p2v3(p *C.float) math.Vec3 {
