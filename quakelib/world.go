@@ -386,9 +386,7 @@ type moveClip struct {
 }
 
 func clipToLinks(a *areaNode, clip *moveClip) {
-	var next *ring.Ring
-	for l := a.solidEdicts.Next(); l != a.solidEdicts; l = next {
-		next = l.Next()
+	for l := a.solidEdicts.Next(); l != a.solidEdicts; l = l.Next() {
 		touch := l.Value.(int)
 		tv := EntVars(touch)
 		if tv.Solid == SOLID_NOT {
@@ -587,6 +585,14 @@ func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 math.Ve
 	if t1 < 0 && t2 < 0 {
 		return recursiveHullCheck(h, node.Children[1], p1f, p2f, p1, p2, trace)
 	}
+
+	/*
+		if plane.Type != 2 {
+			log.Printf("plane: %v, p1 %v, p2: %v", plane, p1, p2)
+			log.Printf("t1: %v, t2: %v", t1, t2)
+		}
+	*/
+
 	// put the crosspoint DIST_EPSILON pixels on the near side
 	frac := func() float32 {
 		if t1 < 0 {
@@ -680,8 +686,9 @@ func (c *moveClip) moveBounds(s, e math.Vec3) {
 	// c.boxmins = math.Vec3{-9999, -9999, -9999}
 	// c.boxmaxs = math.Vec3{9999, 9999, 9999}
 	min, max := math.MinMax(s, e)
-	c.boxmins = math.Add(min, math.Add(c.mins, math.Vec3{-1, -1, -1}))
-	c.boxmaxs = math.Add(max, math.Add(c.maxs, math.Vec3{1, 1, 1}))
+	// TODO: Why reduce the box by 1? the orig increases the box by 1
+	c.boxmins = math.Add(min, math.Add(c.mins, math.Vec3{1, 1, 1}))
+	c.boxmaxs = math.Add(max, math.Sub(c.maxs, math.Vec3{1, 1, 1}))
 }
 
 func p2v3(p *C.float) math.Vec3 {
