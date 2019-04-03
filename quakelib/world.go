@@ -633,7 +633,7 @@ func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 math.Ve
 			conPrintf("backup past 0\n")
 			return false
 		}
-		midf = (1-frac)*p1f + p2f*frac
+		midf = (1-frac)*p1f + frac*p2f
 		mid = math.Lerp(p1, p2, frac)
 	}
 	trace.fraction = C.float(midf)
