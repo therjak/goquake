@@ -19,15 +19,4 @@ typedef struct {
   int entp;         // entity the surface is on
   int entn;         // entity the surface is on
 } trace_t;
-
-typedef struct {
-  float boxmins[3], boxmaxs[3];  // enclose the test object along entire move
-  float mins[3], maxs[3];            // size of the moving object
-  float mins2[3], maxs2[3];      // size when clipping against mosnters
-  float start[3], end[3];
-  trace_t trace;
-  int Type;
-  int passedict;
-} moveclip_t;
-
 #endif  //  _QUAKE_TRACE_H

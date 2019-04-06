@@ -418,7 +418,8 @@ func clipToLinks(a *areaNode, clip *moveClip) {
 			}
 		}
 		trace := func() C.trace_t {
-			if int(tv.Flags)&FL_MONSTER != 0 {
+			if (int(tv.Flags) & FL_MONSTER) != 0 {
+				// this just makes monstern easier to hit with missiles
 				return clipMoveToEntity(touch, clip.start, clip.mins2, clip.maxs2, clip.end)
 			}
 			return clipMoveToEntity(touch, clip.start, clip.mins, clip.maxs, clip.end)
@@ -539,6 +540,11 @@ func hullPointContents(h *model.Hull, num int, p math.Vec3) int {
 	}
 
 	return num
+}
+
+//export SV_PointContents
+func SV_PointContents(p *C.float) C.int {
+	return C.int(hullPointContents(&sv.worldModel.Hulls[0], 0, p2v3(p)))
 }
 
 //TODO: export?
@@ -670,8 +676,8 @@ func clipMoveToEntity(ent int, start, mins, maxs, end math.Vec3) C.trace_t {
 
 func (c *moveClip) moveBounds(s, e math.Vec3) {
 	min, max := math.MinMax(s, e)
-	c.boxmins = math.Add(min, c.mins)
-	c.boxmaxs = math.Add(max, c.maxs)
+	c.boxmins = math.Add(min, c.mins2)
+	c.boxmaxs = math.Add(max, c.maxs2)
 }
 
 func p2v3(p *C.float) math.Vec3 {

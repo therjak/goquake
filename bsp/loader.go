@@ -368,18 +368,7 @@ func buildNodesV0(nd []*nodeV0, leafs []*qm.MLeaf, planes []*qm.Plane) ([]*qm.MN
 		ret[i].Children[0] = getChild(n.Children[0])
 		ret[i].Children[1] = getChild(n.Children[1])
 	}
-	setParents(ret[0], nil)
 	return ret, nil
-}
-
-func setParents(n qm.Node, p qm.Node) {
-	n.SetParent(p)
-	mn, ok := n.(*qm.MNode)
-	if !ok {
-		return
-	}
-	setParents(mn.Children[0], n)
-	setParents(mn.Children[1], n)
 }
 
 func loadNodesV0(data []byte) ([]*nodeV0, error) {

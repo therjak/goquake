@@ -30,7 +30,6 @@ type NodeBase struct {
 	visFrame int
 
 	minMaxs [6]float32
-	parent  Node
 }
 
 func NewNodeBase(contents, visframe int, minmax [6]float32) NodeBase {
@@ -38,24 +37,15 @@ func NewNodeBase(contents, visframe int, minmax [6]float32) NodeBase {
 		contents: contents,
 		visFrame: visframe,
 		minMaxs:  minmax,
-		parent:   nil,
 	}
 }
 
 type Node interface {
 	Contents() int
-	Parent() Node
-	SetParent(p Node)
 }
 
 func (n *NodeBase) Contents() int {
 	return n.contents
-}
-func (n *NodeBase) Parent() Node {
-	return n.parent
-}
-func (n *NodeBase) SetParent(p Node) {
-	n.parent = p
 }
 
 type MNode struct {

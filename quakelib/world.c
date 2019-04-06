@@ -54,21 +54,6 @@ int SV_HullPointContents(hull_t *hull, int num, vec3_t p) {
 }
 
 /*
-==================
-SV_PointContents
-
-==================
-*/
-int SV_PointContents(vec3_t p) {
-  int cont;
-
-  cont = SV_HullPointContents(&sv.worldmodel->hulls[0], 0, p);
-  if (cont <= CONTENTS_CURRENT_0 && cont >= CONTENTS_CURRENT_DOWN)
-    cont = CONTENTS_WATER;
-  return cont;
-}
-
-/*
 ===============================================================================
 
 LINE TESTING IN HULLS

@@ -135,12 +135,6 @@ func convNode(n *C.mnode_t, l []*model.MLeaf, localModel bool) model.Node {
 			FirstSurface: uint32(n.firstsurface),
 			SurfaceCount: uint32(n.numsurfaces),
 		}
-		if r.Children[0] != nil {
-			r.Children[0].SetParent(r)
-		}
-		if r.Children[1] != nil {
-			r.Children[1].SetParent(r)
-		}
 		return r
 	}
 	// we actually got a C.mleaf_t
