@@ -8,6 +8,7 @@ import (
 	"log"
 	"quake/filesystem"
 	"quake/math"
+	"quake/mdl"
 	qm "quake/model"
 )
 
@@ -27,7 +28,7 @@ func LoadModel(name string) ([]*qm.QModel, error) {
 	copy(magic[:], b)
 	switch magic {
 	case polyMagic:
-		// LoadAliasModel, this is a .mdl
+		return mdl.Load(name, b)
 	case spriteMagic:
 		// LoadSpriteModel, this is a .spr
 	default:
