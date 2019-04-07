@@ -14,6 +14,28 @@ func runError(format string, v ...interface{}) {
 	conPrintf(format, v...)
 }
 
+/*
+This is the only valid way to move an object without using the physics
+of the world (setting velocity and waiting).  Directly changing origin
+will not set internal links correctly, so clipping would be messed up.
+
+This should be called when an object is spawned, and then only if it is
+teleported.
+*/
+//export PF_setorigin
+func PF_setorigin() {
+	e := int(progsdat.RawGlobalsI[progs.OffsetParm0])
+	ev := EntVars(e)
+
+	ev.Origin = [3]float32{
+		progsdat.RawGlobalsF[progs.OffsetParm1],
+		progsdat.RawGlobalsF[progs.OffsetParm1+1],
+		progsdat.RawGlobalsF[progs.OffsetParm1+2],
+	}
+
+	LinkEdict(e, false)
+}
+
 func setMinMaxSize(e int, min, max math.Vec3) {
 	if min.X > max.X || min.Y > max.Y || min.Z > max.Z {
 		runError("backwards mins/maxs")

@@ -112,31 +112,6 @@ static void PF_makevectors(void) {
 
 /*
 =================
-PF_setorigin
-
-This is the only valid way to move an object without using the physics
-of the world (setting velocity and waiting).  Directly changing origin
-will not set internal links correctly, so clipping would be messed up.
-
-This should be called when an object is spawned, and then only if it is
-teleported.
-
-setorigin (entity, origin)
-=================
-*/
-static void PF_setorigin(void) {
-  int e = Pr_globalsi(OFS_PARM0);
-  float *origin = EVars(e)->origin;
-
-  *(origin) = Pr_globalsf(OFS_PARM1);
-  *(origin + 1) = Pr_globalsf(OFS_PARM1 + 1);
-  *(origin + 2) = Pr_globalsf(OFS_PARM1 + 2);
-
-  SV_LinkEdict(e, false);
-}
-
-/*
-=================
 PF_bprint
 
 broadcast print to everyone on server

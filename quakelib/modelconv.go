@@ -66,6 +66,7 @@ func SVSetWorldModel(m *C.qmodel_t) {
 	sv.worldModel = nil
 	sv.modelPrecache = sv.modelPrecache[:0]
 	sv.soundPrecache = sv.soundPrecache[:0]
+	sv.models = append(sv.models, nil)
 	sv.models = sv.models[:1]
 	log.Printf("New world starts with %d models", len(sv.models))
 	cm, ok := models[name]
