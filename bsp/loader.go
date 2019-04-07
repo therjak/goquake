@@ -505,6 +505,7 @@ func buildSubmodels(mod []*model) ([]*qm.Submodel, error) {
 	ret := make([]*qm.Submodel, 0, len(mod))
 	for _, m := range mod {
 		ret = append(ret, &qm.Submodel{
+			// Therjak: orig reduces mins and extends max by 1, here it breaks stuff. Why?
 			Mins:   math.Vec3{m.BoundingBox[0], m.BoundingBox[1], m.BoundingBox[2]},
 			Maxs:   math.Vec3{m.BoundingBox[3], m.BoundingBox[4], m.BoundingBox[5]},
 			Origin: math.Vec3{m.Origin[0], m.Origin[1], m.Origin[2]},

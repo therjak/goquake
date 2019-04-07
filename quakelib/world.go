@@ -237,6 +237,18 @@ func LinkEdict(e int, touchTriggers bool) {
 		ev.AbsMin[1] -= 15
 		ev.AbsMax[0] += 15
 		ev.AbsMax[1] += 15
+	} else {
+		// because movement is clipped an epsilon away from an actual edge,
+		// we must fully check even when bounding boxes don't quite touch
+
+		/* Therjak: this just breaks a lot of stuff, why?
+		ev.AbsMin[0] -= 1
+		ev.AbsMin[1] -= 1
+		ev.AbsMin[2] -= 1
+		ev.AbsMax[0] += 1
+		ev.AbsMax[1] += 1
+		ev.AbsMax[2] += 1
+		*/
 	}
 
 	ed.num_leafs = 0
@@ -676,8 +688,8 @@ func clipMoveToEntity(ent int, start, mins, maxs, end math.Vec3) C.trace_t {
 
 func (c *moveClip) moveBounds(s, e math.Vec3) {
 	min, max := math.MinMax(s, e)
-	c.boxmins = math.Add(min, c.mins2)
-	c.boxmaxs = math.Add(max, c.maxs2)
+	c.boxmins = math.Sub(math.Add(min, c.mins2), math.Vec3{1, 1, 1})
+	c.boxmaxs = math.Add(math.Add(max, c.maxs2), math.Vec3{1, 1, 1})
 }
 
 func p2v3(p *C.float) math.Vec3 {
