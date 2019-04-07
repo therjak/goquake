@@ -110,6 +110,47 @@ static void PF_makevectors(void) {
   Set_pr_global_struct_v_up(u[0], u[1], u[2]);
 }
 
+static void PF_setmodel(void) {
+  int i;
+  int mi;
+  const char *m, **check;
+  qmodel_t *mod;
+  int e;
+  PF_setmodel2();
+
+  e = Pr_globalsi(OFS_PARM0);
+  mi = Pr_globalsi(OFS_PARM1);
+  m = PR_GetString(mi);
+
+  // check to see if model was properly precached
+  i = ElementOfSVModelPrecache(m);
+  if (i == -1) {
+    PR_RunError("no precache: %s", m);
+  }
+  mod = sv.models[i];  // Mod_ForName (m, true);
+  Sys_Print_S("sm1 nn: ", mod->name);
+
+  if (mod)  {
+    if (mod->Type == mod_brush) {
+  Sys_Print_F("mms n: ", mod->clipmins[0]);
+  Sys_Print_F("mms n: ", mod->clipmins[1]);
+  Sys_Print_F("mms n: ", mod->clipmins[2]);
+  Sys_Print_F("mms n: ", mod->clipmaxs[0]);
+  Sys_Print_F("mms n: ", mod->clipmaxs[1]);
+  Sys_Print_F("mms n: ", mod->clipmaxs[2]);
+    }else {
+      /*
+  Sys_Print_F("mms n: ", minvec[0]);
+  Sys_Print_F("mms m: ", minvec[1]);
+  Sys_Print_F("mms m: ", minvec[2]);
+  Sys_Print_F("mms m: ", maxvec[0]);
+  Sys_Print_F("mms m: ", maxvec[1]);
+  Sys_Print_F("mms m: ", maxvec[2]);
+  */
+    }
+  }
+}
+
 /*
 =================
 PF_bprint

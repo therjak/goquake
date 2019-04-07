@@ -1151,18 +1151,18 @@ int PR_SetEngineString(char *s) {
   int r;
 
   if (!s) return 0;
-  Sys_Print_S("PR_SetString: %s", s);
+  // Sys_Print_S("PR_SetString: %s", s);
   if (s >= pr_strings && s <= pr_strings + pr_stringssize - 2) {
     // Sys_Print_S("Got known pr_strings %s", s);
     r = (int)(s - pr_strings);
-    Sys_Print_I("PR_SetString: %d", r);
+    // Sys_Print_I("PR_SetString: %d", r);
     return r;
   }
   for (i = 0; i < pr_numknownstrings; i++) {
     if (pr_knownstrings[i] == s) {
       // Sys_Print_S("Got known pr_knownstrings %s", s);
       r = -1 - i;
-      Sys_Print_I("PR_SetString: %d", r);
+      // Sys_Print_I("PR_SetString: %d", r);
       return r;
     }
   }
@@ -1170,7 +1170,7 @@ int PR_SetEngineString(char *s) {
   pr_numknownstrings++;
   pr_knownstrings[i] = s;
   r = -1 - i;
-  Sys_Print_I("PR_SetString: %d", r);
+  // Sys_Print_I("PR_SetString: %d", r);
   return r;
 }
 

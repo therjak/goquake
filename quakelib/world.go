@@ -241,14 +241,13 @@ func LinkEdict(e int, touchTriggers bool) {
 		// because movement is clipped an epsilon away from an actual edge,
 		// we must fully check even when bounding boxes don't quite touch
 
-		/* Therjak: this just breaks a lot of stuff, why?
+		// Therjak: this just breaks a lot of stuff, why?
 		ev.AbsMin[0] -= 1
 		ev.AbsMin[1] -= 1
 		ev.AbsMin[2] -= 1
 		ev.AbsMax[0] += 1
 		ev.AbsMax[1] += 1
 		ev.AbsMax[2] += 1
-		*/
 	}
 
 	ed.num_leafs = 0

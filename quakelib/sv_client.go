@@ -665,7 +665,6 @@ func (c *SVClient) SendServerinfo() {
 		if sv.protocol == protocol.NetQuake && i >= 256 {
 			break
 		}
-		log.Printf("Model: %v", mn)
 		m.WriteString(mn)
 	}
 	m.WriteByte(0)

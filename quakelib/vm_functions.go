@@ -36,21 +36,25 @@ func PF_setorigin() {
 	LinkEdict(e, false)
 }
 
-func setMinMaxSize(e int, min, max math.Vec3) {
+func setMinMaxSize(ev *progs.EntVars, min, max math.Vec3) {
 	if min.X > max.X || min.Y > max.Y || min.Z > max.Z {
 		runError("backwards mins/maxs")
 	}
-	ev := EntVars(e)
-	ev.Mins = [3]float32{min.X, min.Y, min.Z}
-	ev.Maxs = [3]float32{max.X, max.Y, max.Z}
+	ev.Mins[0] = min.X
+	ev.Mins[1] = min.Y
+	ev.Mins[2] = min.Z
+	ev.Maxs[0] = max.X
+	ev.Maxs[1] = max.Y
+	ev.Maxs[2] = max.Z
 	s := math.Sub(max, min)
-	ev.Size = [3]float32{s.X, s.Y, s.Z}
-	LinkEdict(e, false)
+	ev.Size[0] = s.X
+	ev.Size[1] = s.Y
+	ev.Size[2] = s.Z
 }
 
 //export PF_setsize
 func PF_setsize() {
-	e := progsdat.RawGlobalsI[progs.OffsetParm0]
+	e := int(progsdat.RawGlobalsI[progs.OffsetParm0])
 	min := math.Vec3{
 		progsdat.RawGlobalsF[progs.OffsetParm1],
 		progsdat.RawGlobalsF[progs.OffsetParm1+1],
@@ -61,11 +65,12 @@ func PF_setsize() {
 		progsdat.RawGlobalsF[progs.OffsetParm2+1],
 		progsdat.RawGlobalsF[progs.OffsetParm2+2],
 	}
-	setMinMaxSize(int(e), min, max)
+	setMinMaxSize(EntVars(e), min, max)
+	LinkEdict(e, false)
 }
 
-//export PF_setmodel
-func PF_setmodel() {
+//export PF_setmodel2
+func PF_setmodel2() {
 
 	e := int(progsdat.RawGlobalsI[progs.OffsetParm0])
 	mi := progsdat.RawGlobalsI[progs.OffsetParm1]
@@ -81,6 +86,7 @@ func PF_setmodel() {
 	if idx == -1 {
 		runError("no precache: %s", m)
 	}
+
 	ev := EntVars(e)
 	ev.Model = mi
 	ev.ModelIndex = float32(idx)
@@ -88,12 +94,16 @@ func PF_setmodel() {
 	mod := sv.models[idx]
 	if mod != nil {
 		if mod.Type == model.ModBrush {
-			setMinMaxSize(e, mod.ClipMins, mod.ClipMaxs)
+			log.Printf("ModBrush")
+			log.Printf("mins: %v, maxs: %v", mod.ClipMins, mod.ClipMaxs)
+			setMinMaxSize(ev, mod.ClipMins, mod.ClipMaxs)
 		} else {
-			setMinMaxSize(e, mod.Mins, mod.Maxs)
+			log.Printf("!!!ModBrush")
+			setMinMaxSize(ev, mod.Mins, mod.Maxs)
 		}
 	} else {
 		log.Printf("No Mod")
-		setMinMaxSize(e, math.Vec3{}, math.Vec3{})
+		setMinMaxSize(ev, math.Vec3{}, math.Vec3{})
 	}
+	LinkEdict(e, false)
 }
