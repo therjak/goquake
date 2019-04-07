@@ -65,6 +65,7 @@ func SVSetWorldModel(m *C.qmodel_t) {
 	log.Printf("New world: %s", name)
 	sv.worldModel = nil
 	sv.modelPrecache = sv.modelPrecache[:0]
+	sv.soundPrecache = sv.soundPrecache[:0]
 	sv.models = sv.models[:1]
 	log.Printf("New world starts with %d models", len(sv.models))
 	cm, ok := models[name]
@@ -76,6 +77,7 @@ func SVSetWorldModel(m *C.qmodel_t) {
 	}
 	sv.modelPrecache = append(sv.modelPrecache, string([]byte{0, 0, 0, 0, 0, 0, 0, 0}))
 	sv.modelPrecache = append(sv.modelPrecache, name)
+	sv.soundPrecache = append(sv.soundPrecache, string([]byte{0, 0, 0, 0, 0, 0, 0, 0}))
 	sv.models = append(sv.models, sv.worldModel)
 	for i := 1; i < len(sv.worldModel.Submodels); i++ {
 		nn := fmt.Sprintf("*%d", i)

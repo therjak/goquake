@@ -585,7 +585,7 @@ void SV_SpawnServer(const char *server) {
   //
   // SV_ClearWorld();
 
-  SetSVSoundPrecache(0, dummy);
+  // SetSVSoundPrecache(0, dummy);
   // SetSVModelPrecache(0, dummy);
   // SetSVModelPrecache(1, SV_ModelName());
   for (i = 1; i < sv.worldmodel->numsubmodels; i++) {
