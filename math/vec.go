@@ -12,6 +12,10 @@ func VFromA(a [3]float32) Vec3 {
 	return Vec3{a[0], a[1], a[2]}
 }
 
+func (v *Vec3) Array() [3]float32 {
+	return [3]float32{v.X, v.Y, v.Z}
+}
+
 func (v *Vec3) Idx(i int) float32 {
 	switch i {
 	default:

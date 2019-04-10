@@ -26,12 +26,7 @@ teleported.
 func PF_setorigin() {
 	e := int(progsdat.RawGlobalsI[progs.OffsetParm0])
 	ev := EntVars(e)
-
-	ev.Origin = [3]float32{
-		progsdat.RawGlobalsF[progs.OffsetParm1],
-		progsdat.RawGlobalsF[progs.OffsetParm1+1],
-		progsdat.RawGlobalsF[progs.OffsetParm1+2],
-	}
+	ev.Origin = *progsdat.Globals.Parm1f()
 
 	LinkEdict(e, false)
 }
@@ -40,31 +35,17 @@ func setMinMaxSize(ev *progs.EntVars, min, max math.Vec3) {
 	if min.X > max.X || min.Y > max.Y || min.Z > max.Z {
 		runError("backwards mins/maxs")
 	}
-	ev.Mins[0] = min.X
-	ev.Mins[1] = min.Y
-	ev.Mins[2] = min.Z
-	ev.Maxs[0] = max.X
-	ev.Maxs[1] = max.Y
-	ev.Maxs[2] = max.Z
+	ev.Mins = min.Array()
+	ev.Maxs = max.Array()
 	s := math.Sub(max, min)
-	ev.Size[0] = s.X
-	ev.Size[1] = s.Y
-	ev.Size[2] = s.Z
+	ev.Size = s.Array()
 }
 
 //export PF_setsize
 func PF_setsize() {
 	e := int(progsdat.RawGlobalsI[progs.OffsetParm0])
-	min := math.Vec3{
-		progsdat.RawGlobalsF[progs.OffsetParm1],
-		progsdat.RawGlobalsF[progs.OffsetParm1+1],
-		progsdat.RawGlobalsF[progs.OffsetParm1+2],
-	}
-	max := math.Vec3{
-		progsdat.RawGlobalsF[progs.OffsetParm2],
-		progsdat.RawGlobalsF[progs.OffsetParm2+1],
-		progsdat.RawGlobalsF[progs.OffsetParm2+2],
-	}
+	min := math.VFromA(*progsdat.Globals.Parm1f())
+	max := math.VFromA(*progsdat.Globals.Parm2f())
 	setMinMaxSize(EntVars(e), min, max)
 	LinkEdict(e, false)
 }
@@ -106,4 +87,11 @@ func PF_setmodel2() {
 		setMinMaxSize(ev, math.Vec3{}, math.Vec3{})
 	}
 	LinkEdict(e, false)
+}
+
+//export PF_normalize
+func PF_normalize() {
+	v := math.VFromA(*progsdat.Globals.Parm0f())
+	vn := v.Normalize()
+	*progsdat.Globals.Returnf() = vn.Array()
 }

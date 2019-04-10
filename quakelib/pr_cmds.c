@@ -130,15 +130,15 @@ static void PF_setmodel(void) {
   mod = sv.models[i];  // Mod_ForName (m, true);
   Sys_Print_S("sm1 nn: ", mod->name);
 
-  if (mod)  {
+  if (mod) {
     if (mod->Type == mod_brush) {
-  Sys_Print_F("mms n: ", mod->clipmins[0]);
-  Sys_Print_F("mms n: ", mod->clipmins[1]);
-  Sys_Print_F("mms n: ", mod->clipmins[2]);
-  Sys_Print_F("mms n: ", mod->clipmaxs[0]);
-  Sys_Print_F("mms n: ", mod->clipmaxs[1]);
-  Sys_Print_F("mms n: ", mod->clipmaxs[2]);
-    }else {
+      Sys_Print_F("mms n: ", mod->clipmins[0]);
+      Sys_Print_F("mms n: ", mod->clipmins[1]);
+      Sys_Print_F("mms n: ", mod->clipmins[2]);
+      Sys_Print_F("mms n: ", mod->clipmaxs[0]);
+      Sys_Print_F("mms n: ", mod->clipmaxs[1]);
+      Sys_Print_F("mms n: ", mod->clipmaxs[2]);
+    } else {
       /*
   Sys_Print_F("mms n: ", minvec[0]);
   Sys_Print_F("mms m: ", minvec[1]);
@@ -221,40 +221,6 @@ static void PF_centerprint(void) {
 
   ClientWriteChar(client, svc_centerprint);
   ClientWriteString(client, s);
-}
-
-/*
-=================
-PF_normalize
-
-vector normalize(vector)
-=================
-*/
-static void PF_normalize(void) {
-  vec3_t newvalue;
-  float new_temp;
-  float x, y, z;
-
-  x = Pr_globalsf(OFS_PARM0);
-  new_temp = x * x;
-  y = Pr_globalsf(OFS_PARM0 + 1);
-  new_temp += y * y;
-  z = Pr_globalsf(OFS_PARM0 + 2);
-  new_temp += z * z;
-  new_temp = sqrt(new_temp);
-
-  if (new_temp == 0)
-    newvalue[0] = newvalue[1] = newvalue[2] = 0;
-  else {
-    new_temp = 1 / new_temp;
-    newvalue[0] = x * new_temp;
-    newvalue[1] = y * new_temp;
-    newvalue[2] = z * new_temp;
-  }
-
-  Set_Pr_globalsf(OFS_RETURN, newvalue[0]);
-  Set_Pr_globalsf(OFS_RETURN + 1, newvalue[1]);
-  Set_Pr_globalsf(OFS_RETURN + 2, newvalue[2]);
 }
 
 /*
