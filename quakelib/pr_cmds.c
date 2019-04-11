@@ -225,28 +225,6 @@ static void PF_centerprint(void) {
 
 /*
 =================
-PF_vlen
-
-scalar vlen(vector)
-=================
-*/
-static void PF_vlen(void) {
-  float new_temp;
-  float t;
-
-  t = Pr_globalsf(OFS_PARM0);
-  new_temp = t * t;
-  t = Pr_globalsf(OFS_PARM0 + 1);
-  new_temp += t * t;
-  t = Pr_globalsf(OFS_PARM0 + 2);
-  new_temp += t * t;
-  new_temp = sqrt(new_temp);
-
-  Set_Pr_globalsf(OFS_RETURN, new_temp);
-}
-
-/*
-=================
 PF_vectoyaw
 
 float vectoyaw(vector)
@@ -1397,22 +1375,6 @@ static void PF_setspawnparms(void) {
 
   for (i = 0; i < NUM_SPAWN_PARMS; i++)
     Set_pr_global_struct_parm(i, GetClientSpawnParam(client, i));
-}
-
-/*
-==============
-PF_changelevel
-==============
-*/
-static void PF_changelevel(void) {
-  const char *s;
-
-  // make sure we don't issue two changelevels
-  if (SVS_IsChangeLevelIssued()) return;
-  SVS_SetChangeLevelIssued(true);
-
-  s = PR_GetString(Pr_globalsi(OFS_PARM0));
-  Cbuf_AddText(va("changelevel %s\n", s));
 }
 
 static void PF_Fixme(void) { PR_RunError("unimplemented builtin"); }
