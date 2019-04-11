@@ -277,23 +277,6 @@ static void PF_vectoangles(void) {
 
 /*
 =================
-PF_Random
-
-Returns a number from 0 <= num < 1
-
-random()
-=================
-*/
-static void PF_random(void) {
-  float num;
-
-  num = (rand() & 0x7fff) / ((float)0x7fff);
-
-  Set_Pr_globalsf(OFS_RETURN, num);
-}
-
-/*
-=================
 PF_particle
 
 particle(origin, color, count)

@@ -5,6 +5,7 @@ import "C"
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"quake/cbuf"
 	"quake/math"
 	"quake/model"
@@ -149,16 +150,15 @@ static void PF_vectoangles(void) {
   Set_Pr_globalsf(OFS_RETURN + 1, yaw);
   Set_Pr_globalsf(OFS_RETURN + 2, 0);
 }
+*/
 
 // Returns a number from 0 <= num < 1
-static void PF_random(void) {
-  float num;
-
-  num = (rand() & 0x7fff) / ((float)0x7fff);
-
-  Set_Pr_globalsf(OFS_RETURN, num);
+//export PF_random
+func PF_random() {
+	progsdat.Globals.Returnf()[0] = rand.Float32()
 }
 
+/*
 static void PF_particle(void) {
   float color;
   float count;
