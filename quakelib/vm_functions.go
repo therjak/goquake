@@ -848,144 +848,169 @@ void PF_changeyaw(void) {
 
   EVars(ent)->angles[1] = anglemod(current + move);
 }
+*/
 
-static int WriteClient() {
-  int entnum;
+const (
+	MSG_BROADCAST = iota // unreliable to all
+	MSG_ONE              // reliable to one
+	MSG_ALL              // reliable to all
+	MSG_INIT             // write to the init string
+)
 
-  entnum = Pr_global_struct_msg_entity();
-  if (entnum < 1 || entnum > SVS_GetMaxClients())
-    PR_RunError("WriteDest: not a client");
-  return entnum - 1;
+func writeClient() int {
+	entnum := int(progsdat.Globals.MsgEntity)
+	if entnum < 1 || entnum > svs.maxClients {
+		runError("WriteDest: not a client")
+	}
+	return entnum - 1
 }
 
-static void PF_WriteByte(void) {
-  int dest = Pr_globalsf(OFS_PARM0);
-  float msg = Pr_globalsf(OFS_PARM1);
-  if (dest == MSG_ONE) {
-    ClientWriteByte(WriteClient(), msg);
-  } else if (dest == MSG_INIT) {
-    SV_SO_WriteByte(msg);
-  } else if (dest == MSG_BROADCAST) {
-    SV_DG_WriteByte(msg);
-  } else if (dest == MSG_ALL) {
-    SV_RD_WriteByte(msg);
-  } else {
-    PR_RunError("WriteDest: bad destination");
-  }
+//export PF_WriteByte
+func PF_WriteByte() {
+	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
+	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
+	switch dest {
+	case MSG_ONE:
+		sv_clients[writeClient()].msg.WriteByte(int(msg))
+	case MSG_INIT:
+		sv.signon.WriteByte(int(msg))
+	case MSG_BROADCAST:
+		sv.datagram.WriteByte(int(msg))
+	case MSG_ALL:
+		sv.reliableDatagram.WriteByte(int(msg))
+	default:
+		runError("WriteDest: bad destination")
+	}
 }
 
-static void PF_WriteChar(void) {
-  int dest = Pr_globalsf(OFS_PARM0);
-  float msg = Pr_globalsf(OFS_PARM1);
-  if (dest == MSG_ONE) {
-    ClientWriteChar(WriteClient(), msg);
-  } else if (dest == MSG_INIT) {
-    SV_SO_WriteChar(msg);
-  } else if (dest == MSG_BROADCAST) {
-    SV_DG_WriteChar(msg);
-  } else if (dest == MSG_ALL) {
-    SV_RD_WriteChar(msg);
-  } else {
-    PR_RunError("WriteDest: bad destination");
-  }
+//export PF_WriteChar
+func PF_WriteChar() {
+	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
+	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
+	switch dest {
+	case MSG_ONE:
+		sv_clients[writeClient()].msg.WriteChar(int(msg))
+	case MSG_INIT:
+		sv.signon.WriteChar(int(msg))
+	case MSG_BROADCAST:
+		sv.datagram.WriteChar(int(msg))
+	case MSG_ALL:
+		sv.reliableDatagram.WriteChar(int(msg))
+	default:
+		runError("WriteDest: bad destination")
+	}
 }
 
-static void PF_WriteShort(void) {
-  int dest = Pr_globalsf(OFS_PARM0);
-  float msg = Pr_globalsf(OFS_PARM1);
-  if (dest == MSG_ONE) {
-    ClientWriteShort(WriteClient(), msg);
-  } else if (dest == MSG_INIT) {
-    SV_SO_WriteShort(msg);
-  } else if (dest == MSG_BROADCAST) {
-    SV_DG_WriteShort(msg);
-  } else if (dest == MSG_ALL) {
-    SV_RD_WriteShort(msg);
-  } else {
-    PR_RunError("WriteDest: bad destination");
-  }
+//export PF_WriteShort
+func PF_WriteShort() {
+	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
+	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
+	switch dest {
+	case MSG_ONE:
+		sv_clients[writeClient()].msg.WriteShort(int(msg))
+	case MSG_INIT:
+		sv.signon.WriteShort(int(msg))
+	case MSG_BROADCAST:
+		sv.datagram.WriteShort(int(msg))
+	case MSG_ALL:
+		sv.reliableDatagram.WriteShort(int(msg))
+	default:
+		runError("WriteDest: bad destination")
+	}
 }
 
-static void PF_WriteLong(void) {
-  int dest = Pr_globalsf(OFS_PARM0);
-  float msg = Pr_globalsf(OFS_PARM1);
-  if (dest == MSG_ONE) {
-    ClientWriteLong(WriteClient(), msg);
-  } else if (dest == MSG_INIT) {
-    SV_SO_WriteLong(msg);
-  } else if (dest == MSG_BROADCAST) {
-    SV_DG_WriteLong(msg);
-  } else if (dest == MSG_ALL) {
-    SV_RD_WriteLong(msg);
-  } else {
-    PR_RunError("WriteDest: bad destination");
-  }
+//export PF_WriteLong
+func PF_WriteLong() {
+	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
+	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
+	switch dest {
+	case MSG_ONE:
+		sv_clients[writeClient()].msg.WriteLong(int(msg))
+	case MSG_INIT:
+		sv.signon.WriteLong(int(msg))
+	case MSG_BROADCAST:
+		sv.datagram.WriteLong(int(msg))
+	case MSG_ALL:
+		sv.reliableDatagram.WriteLong(int(msg))
+	default:
+		runError("WriteDest: bad destination")
+	}
 }
 
-static void PF_WriteAngle(void) {
-  int dest = Pr_globalsf(OFS_PARM0);
-  float msg = Pr_globalsf(OFS_PARM1);
-  if (dest == MSG_ONE) {
-    ClientWriteAngle(WriteClient(), msg);
-  } else if (dest == MSG_INIT) {
-    SV_SO_WriteAngle(msg);
-  } else if (dest == MSG_BROADCAST) {
-    SV_DG_WriteAngle(msg);
-  } else if (dest == MSG_ALL) {
-    SV_RD_WriteAngle(msg);
-  } else {
-    PR_RunError("WriteDest: bad destination");
-  }
+//export PF_WriteAngle
+func PF_WriteAngle() {
+	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
+	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
+	switch dest {
+	case MSG_ONE:
+		sv_clients[writeClient()].msg.WriteAngle(msg, int(sv.protocolFlags))
+	case MSG_INIT:
+		sv.signon.WriteAngle(msg, int(sv.protocolFlags))
+	case MSG_BROADCAST:
+		sv.datagram.WriteAngle(msg, int(sv.protocolFlags))
+	case MSG_ALL:
+		sv.reliableDatagram.WriteAngle(msg, int(sv.protocolFlags))
+	default:
+		runError("WriteDest: bad destination")
+	}
 }
 
-static void PF_WriteCoord(void) {
-  int dest = Pr_globalsf(OFS_PARM0);
-  float msg = Pr_globalsf(OFS_PARM1);
-  if (dest == MSG_ONE) {
-    ClientWriteCoord(WriteClient(), msg);
-  } else if (dest == MSG_INIT) {
-    SV_SO_WriteCoord(msg);
-  } else if (dest == MSG_BROADCAST) {
-    SV_DG_WriteCoord(msg);
-  } else if (dest == MSG_ALL) {
-    SV_RD_WriteCoord(msg);
-  } else {
-    PR_RunError("WriteDest: bad destination");
-  }
+//export PF_WriteCoord
+func PF_WriteCoord() {
+	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
+	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
+	switch dest {
+	case MSG_ONE:
+		sv_clients[writeClient()].msg.WriteCoord(msg, int(sv.protocolFlags))
+	case MSG_INIT:
+		sv.signon.WriteCoord(msg, int(sv.protocolFlags))
+	case MSG_BROADCAST:
+		sv.datagram.WriteCoord(msg, int(sv.protocolFlags))
+	case MSG_ALL:
+		sv.reliableDatagram.WriteCoord(msg, int(sv.protocolFlags))
+	default:
+		runError("WriteDest: bad destination")
+	}
 }
 
-static void PF_WriteString(void) {
-  int dest = Pr_globalsf(OFS_PARM0);
-  const char *msg = PR_GetString(Pr_globalsi(OFS_PARM1));
-  if (dest == MSG_ONE) {
-    ClientWriteString(WriteClient(), msg);
-  } else if (dest == MSG_INIT) {
-    SV_SO_WriteString(msg);
-  } else if (dest == MSG_BROADCAST) {
-    SV_DG_WriteString(msg);
-  } else if (dest == MSG_ALL) {
-    SV_RD_WriteString(msg);
-  } else {
-    PR_RunError("WriteDest: bad destination");
-  }
+//export PF_WriteString
+func PF_WriteString() {
+	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
+	i := int(progsdat.RawGlobalsI[progs.OffsetParm1])
+	msg := PR_GetStringWrap(i)
+	switch dest {
+	case MSG_ONE:
+		sv_clients[writeClient()].msg.WriteString(msg)
+	case MSG_INIT:
+		sv.signon.WriteString(msg)
+	case MSG_BROADCAST:
+		sv.datagram.WriteString(msg)
+	case MSG_ALL:
+		sv.reliableDatagram.WriteString(msg)
+	default:
+		runError("WriteDest: bad destination")
+	}
 }
 
-static void PF_WriteEntity(void) {
-  int dest = Pr_globalsf(OFS_PARM0);
-  float msg = Pr_globalsi(OFS_PARM1);
-  if (dest == MSG_ONE) {
-    ClientWriteShort(WriteClient(), msg);
-  } else if (dest == MSG_INIT) {
-    SV_SO_WriteShort(msg);
-  } else if (dest == MSG_BROADCAST) {
-    SV_DG_WriteShort(msg);
-  } else if (dest == MSG_ALL) {
-    SV_RD_WriteShort(msg);
-  } else {
-    PR_RunError("WriteDest: bad destination");
-  }
+//export PF_WriteEntity
+func PF_WriteEntity() {
+	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
+	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
+	switch dest {
+	case MSG_ONE:
+		sv_clients[writeClient()].msg.WriteShort(int(msg))
+	case MSG_INIT:
+		sv.signon.WriteShort(int(msg))
+	case MSG_BROADCAST:
+		sv.datagram.WriteShort(int(msg))
+	case MSG_ALL:
+		sv.reliableDatagram.WriteShort(int(msg))
+	default:
+		runError("WriteDest: bad destination")
+	}
 }
 
+/*
 static void PF_makestatic(void) {
   int ent;
   int i;
