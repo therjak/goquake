@@ -75,9 +75,10 @@ func Dot(a Vec3, b Vec3) float32 {
 
 // DoublePrecDot return a dot b calculated in double precision
 func DoublePrecDot(a Vec3, b Vec3) float32 {
-	return float32(float64(a.X)*float64(b.X) +
-		float64(a.Y)*float64(b.Y) +
-		float64(a.Z)*float64(b.Z))
+	p := func(x, y float32) float64 {
+		return float64(x) * float64(y)
+	}
+	return float32(p(a.X, b.X) + p(a.Y, b.Y) + p(a.Z, b.Z))
 }
 
 // Lerp computes a weighted average between two points

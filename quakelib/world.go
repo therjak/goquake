@@ -603,12 +603,7 @@ func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 math.Ve
 		}
 		return (t1 - DIST_EPSILON) / d
 	}()
-	if frac < 0 {
-		frac = 0
-	}
-	if frac > 1 {
-		frac = 1
-	}
+	frac = math.Clamp32(0, frac, 1)
 	midf := (1-frac)*p1f + p2f*frac
 	mid := math.Lerp(p1, p2, frac)
 	side := func() int {
