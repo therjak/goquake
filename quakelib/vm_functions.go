@@ -106,51 +106,51 @@ func PF_vlen() {
 	progsdat.Globals.Returnf()[0] = l
 }
 
-/*
-*
-static void PF_vectoyaw(void) {
-  float yaw;
-  float x = Pr_globalsf(OFS_PARM0);
-  float y = Pr_globalsf(OFS_PARM0 + 1);
-
-  if (y == 0 && x == 0)
-    yaw = 0;
-  else {
-    yaw = (int)(atan2(y, x) * 180 / M_PI);
-    if (yaw < 0) yaw += 360;
-  }
-
-  Set_Pr_globalsf(OFS_RETURN, yaw);
+//export PF_vectoyaw
+func PF_vectoyaw() {
+	v := math.VFromA(*progsdat.Globals.Parm0f())
+	yaw := func() float32 {
+		if v.X == 0 && v.Y == 0 {
+			return 0
+		}
+		y := (math.Atan2(v.Y, v.X) * 180) / math.Pi
+		y = math.Trunc(y)
+		if y < 0 {
+			y += 360
+		}
+		return y
+	}()
+	progsdat.Globals.Returnf()[0] = yaw
 }
 
-static void PF_vectoangles(void) {
-  float forward;
-  float yaw, pitch;
-
-  float x = Pr_globalsf(OFS_PARM0);
-  float y = Pr_globalsf(OFS_PARM0 + 1);
-  float z = Pr_globalsf(OFS_PARM0 + 2);
-
-  if (y == 0 && x == 0) {
-    yaw = 0;
-    if (z > 0)
-      pitch = 90;
-    else
-      pitch = 270;
-  } else {
-    yaw = (int)(atan2(y, x) * 180 / M_PI);
-    if (yaw < 0) yaw += 360;
-
-    forward = sqrt(x * x + y * y);
-    pitch = (int)(atan2(z, forward) * 180 / M_PI);
-    if (pitch < 0) pitch += 360;
-  }
-
-  Set_Pr_globalsf(OFS_RETURN + 0, pitch);
-  Set_Pr_globalsf(OFS_RETURN + 1, yaw);
-  Set_Pr_globalsf(OFS_RETURN + 2, 0);
+//export PF_vectoangles
+func PF_vectoangles() {
+	v := math.VFromA(*progsdat.Globals.Parm0f())
+	yaw, pitch := func() (float32, float32) {
+		if v.X == 0 && v.Y == 0 {
+			p := func() float32 {
+				if v.Z > 0 {
+					return 90
+				}
+				return 270
+			}()
+			return 0, p
+		}
+		y := (math.Atan2(v.Y, v.X) * 180) / math.Pi
+		y = math.Trunc(y)
+		if y < 0 {
+			y += 360
+		}
+		forward := math.Sqrt(v.X*v.X + v.Y*v.Y)
+		p := (math.Atan2(v.Z, forward) * 180) / math.Pi
+		p = math.Trunc(p)
+		if p < 0 {
+			p += 360
+		}
+		return y, p
+	}()
+	*progsdat.Globals.Returnf() = [3]float32{pitch, yaw, 0}
 }
-*/
 
 // Returns a number from 0 <= num < 1
 //export PF_random

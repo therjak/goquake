@@ -220,63 +220,6 @@ static void PF_centerprint(void) {
 
 /*
 =================
-PF_vectoyaw
-
-float vectoyaw(vector)
-=================
-*/
-static void PF_vectoyaw(void) {
-  float yaw;
-  float x = Pr_globalsf(OFS_PARM0);
-  float y = Pr_globalsf(OFS_PARM0 + 1);
-
-  if (y == 0 && x == 0)
-    yaw = 0;
-  else {
-    yaw = (int)(atan2(y, x) * 180 / M_PI);
-    if (yaw < 0) yaw += 360;
-  }
-
-  Set_Pr_globalsf(OFS_RETURN, yaw);
-}
-
-/*
-=================
-PF_vectoangles
-
-vector vectoangles(vector)
-=================
-*/
-static void PF_vectoangles(void) {
-  float forward;
-  float yaw, pitch;
-
-  float x = Pr_globalsf(OFS_PARM0);
-  float y = Pr_globalsf(OFS_PARM0 + 1);
-  float z = Pr_globalsf(OFS_PARM0 + 2);
-
-  if (y == 0 && x == 0) {
-    yaw = 0;
-    if (z > 0)
-      pitch = 90;
-    else
-      pitch = 270;
-  } else {
-    yaw = (int)(atan2(y, x) * 180 / M_PI);
-    if (yaw < 0) yaw += 360;
-
-    forward = sqrt(x * x + y * y);
-    pitch = (int)(atan2(z, forward) * 180 / M_PI);
-    if (pitch < 0) pitch += 360;
-  }
-
-  Set_Pr_globalsf(OFS_RETURN + 0, pitch);
-  Set_Pr_globalsf(OFS_RETURN + 1, yaw);
-  Set_Pr_globalsf(OFS_RETURN + 2, 0);
-}
-
-/*
-=================
 PF_particle
 
 particle(origin, color, count)
