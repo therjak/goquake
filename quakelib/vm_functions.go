@@ -12,6 +12,8 @@ import (
 	"quake/math/vec"
 	"quake/model"
 	"quake/progs"
+	"quake/protocol"
+	"quake/protocol/server"
 	"runtime"
 )
 
@@ -170,60 +172,57 @@ func PF_particle() {
 	sv.StartParticle(org, dir, int(color), int(count))
 }
 
-/*
-static void PF_ambientsound(void) {
-  const char *samp, **check;
-  vec3_t pos;
-  float vol, attenuation;
-  int i, soundnum;
-  int large = false;  // johnfitz -- PROTOCOL_FITZQUAKE
+//export PF_ambientsound
+func PF_ambientsound() {
+	large := false
+	pos := vec.VFromA(*progsdat.Globals.Parm0f())
+	sample := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm1]))
+	volume := progsdat.RawGlobalsF[progs.OffsetParm2] * 255
+	attenuation := progsdat.RawGlobalsF[progs.OffsetParm3] * 64
 
-  pos[0] = Pr_globalsf(OFS_PARM0);
-  pos[1] = Pr_globalsf(OFS_PARM0 + 1);
-  pos[2] = Pr_globalsf(OFS_PARM0 + 2);
-  samp = PR_GetString(Pr_globalsi(OFS_PARM1));
-  vol = Pr_globalsf(OFS_PARM2);
-  attenuation = Pr_globalsf(OFS_PARM3);
+	// check to see if samp was properly precached
+	soundnum := func() int {
+		for i, m := range sv.soundPrecache {
+			if m == sample {
+				return i
+			}
+		}
+		return -1
+	}()
 
-  // check to see if samp was properly precached
-  soundnum = ElementOfSVSoundPrecache(samp);
+	if soundnum == -1 {
+		conPrintf("no precache: %v\n", sample)
+		return
+	}
 
-  if (soundnum == -1) {
-    Con_Printf("no precache: %s\n", samp);
-    return;
-  }
+	if soundnum > 255 {
+		if sv.protocol == protocol.NetQuake {
+			return // don't send any info protocol can't support
+		} else {
+			large = true
+		}
+	}
 
-  // johnfitz -- PROTOCOL_FITZQUAKE
-  if (soundnum > 255) {
-    if (SV_Protocol() == PROTOCOL_NETQUAKE)
-      return;  // don't send any info protocol can't support
-    else
-      large = true;
-  }
-  // johnfitz
+	// add an svc_spawnambient command to the level signon packet
+	if large {
+		sv.signon.WriteByte(server.SpawnStaticSound2)
+	} else {
+		sv.signon.WriteByte(server.SpawnStaticSound)
+	}
 
-  // add an svc_spawnambient command to the level signon packet
+	sv.signon.WriteCoord(pos.X, int(sv.protocolFlags))
+	sv.signon.WriteCoord(pos.Y, int(sv.protocolFlags))
+	sv.signon.WriteCoord(pos.Z, int(sv.protocolFlags))
 
-  // johnfitz -- PROTOCOL_FITZQUAKE
-  if (large)
-    SV_SO_WriteByte(svc_spawnstaticsound2);
-  else
-    SV_SO_WriteByte(svc_spawnstaticsound);
-  // johnfitz
+	if large {
+		sv.signon.WriteShort(soundnum)
+	} else {
+		sv.signon.WriteByte(soundnum)
+	}
 
-  for (i = 0; i < 3; i++) SV_SO_WriteCoord(pos[i]);
-
-  // johnfitz -- PROTOCOL_FITZQUAKE
-  if (large)
-    SV_SO_WriteShort(soundnum);
-  else
-    SV_SO_WriteByte(soundnum);
-  // johnfitz
-
-  SV_SO_WriteByte(vol * 255);
-  SV_SO_WriteByte(attenuation * 64);
+	sv.signon.WriteByte(int(volume))
+	sv.signon.WriteByte(int(attenuation))
 }
-*/
 
 // Each entity can have eight independant sound sources, like voice,
 // weapon, feet, etc.

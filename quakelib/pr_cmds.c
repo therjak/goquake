@@ -218,65 +218,6 @@ static void PF_centerprint(void) {
   ClientWriteString(client, s);
 }
 
-/*
-=================
-PF_ambientsound
-
-=================
-*/
-static void PF_ambientsound(void) {
-  const char *samp, **check;
-  vec3_t pos;
-  float vol, attenuation;
-  int i, soundnum;
-  int large = false;  // johnfitz -- PROTOCOL_FITZQUAKE
-
-  pos[0] = Pr_globalsf(OFS_PARM0);
-  pos[1] = Pr_globalsf(OFS_PARM0 + 1);
-  pos[2] = Pr_globalsf(OFS_PARM0 + 2);
-  samp = PR_GetString(Pr_globalsi(OFS_PARM1));
-  vol = Pr_globalsf(OFS_PARM2);
-  attenuation = Pr_globalsf(OFS_PARM3);
-
-  // check to see if samp was properly precached
-  soundnum = ElementOfSVSoundPrecache(samp);
-
-  if (soundnum == -1) {
-    Con_Printf("no precache: %s\n", samp);
-    return;
-  }
-
-  // johnfitz -- PROTOCOL_FITZQUAKE
-  if (soundnum > 255) {
-    if (SV_Protocol() == PROTOCOL_NETQUAKE)
-      return;  // don't send any info protocol can't support
-    else
-      large = true;
-  }
-  // johnfitz
-
-  // add an svc_spawnambient command to the level signon packet
-
-  // johnfitz -- PROTOCOL_FITZQUAKE
-  if (large)
-    SV_SO_WriteByte(svc_spawnstaticsound2);
-  else
-    SV_SO_WriteByte(svc_spawnstaticsound);
-  // johnfitz
-
-  for (i = 0; i < 3; i++) SV_SO_WriteCoord(pos[i]);
-
-  // johnfitz -- PROTOCOL_FITZQUAKE
-  if (large)
-    SV_SO_WriteShort(soundnum);
-  else
-    SV_SO_WriteByte(soundnum);
-  // johnfitz
-
-  SV_SO_WriteByte(vol * 255);
-  SV_SO_WriteByte(attenuation * 64);
-}
-
 static byte checkpvs[MAX_MAP_LEAFS / 8];
 
 static int PF_newcheckclient(int check) {
