@@ -12,6 +12,7 @@ import (
 	"quake/math/vec"
 	"quake/model"
 	"quake/progs"
+	"runtime"
 )
 
 func runError(format string, v ...interface{}) {
@@ -252,13 +253,11 @@ func PF_sound() {
 	sv.StartSound(int(entity), int(channel), int(volume), sample, attenuation)
 }
 
-/*
-static void PF_break(void) {
-  Con_Printf("break statement\n");
-  *(int *)-4 = 0;  // dump to debugger
-  //	PR_RunError ("break statement");
+//export PF_break
+func PF_break() {
+	conPrintf("break statement\n")
+	runtime.Breakpoint()
 }
-*/
 
 // Used for use tracing and shot targeting
 // Traces are blocked by bbox and exact bsp entityes, and also slide

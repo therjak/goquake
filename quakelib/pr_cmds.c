@@ -277,19 +277,6 @@ static void PF_ambientsound(void) {
   SV_SO_WriteByte(attenuation * 64);
 }
 
-/*
-=================
-PF_break
-
-break()
-=================
-*/
-static void PF_break(void) {
-  Con_Printf("break statement\n");
-  *(int *)-4 = 0;  // dump to debugger
-  //	PR_RunError ("break statement");
-}
-
 static byte checkpvs[MAX_MAP_LEAFS / 8];
 
 static int PF_newcheckclient(int check) {
