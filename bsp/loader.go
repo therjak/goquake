@@ -7,7 +7,7 @@ import (
 	"io"
 	"log"
 	"quake/filesystem"
-	"quake/math"
+	"quake/math/vec"
 	"quake/mdl"
 	qm "quake/model"
 )
@@ -190,7 +190,7 @@ func buildPlanes(pls []*plane) []*qm.Plane {
 	ret := make([]*qm.Plane, 0, len(pls))
 	for _, pl := range pls {
 		ret = append(ret, &qm.Plane{
-			Normal: math.Vec3{pl.Normal[0], pl.Normal[1], pl.Normal[2]},
+			Normal: vec.Vec3{pl.Normal[0], pl.Normal[1], pl.Normal[2]},
 			Dist:   pl.Distance,
 			Type:   byte(pl.Type),
 			SignBits: func() byte {
@@ -459,15 +459,15 @@ func makeHulls(hs *[4]qm.Hull, cns []*qm.ClipNode, pns []*qm.Plane, ns []*qm.MNo
 	// hs[0].ClipMins?
 	// hs[0].ClipMaxs?
 
-	hs[1].ClipMins = math.Vec3{-16, -16, -24}
-	hs[1].ClipMaxs = math.Vec3{16, 16, 32}
+	hs[1].ClipMins = vec.Vec3{-16, -16, -24}
+	hs[1].ClipMaxs = vec.Vec3{16, 16, 32}
 	hs[1].ClipNodes = cns
 	hs[1].FirstClipNode = 0
 	hs[1].LastClipNode = len(cns) - 1
 	hs[1].Planes = pns
 
-	hs[2].ClipMins = math.Vec3{-32, -32, -24}
-	hs[2].ClipMaxs = math.Vec3{32, 32, 64}
+	hs[2].ClipMins = vec.Vec3{-32, -32, -24}
+	hs[2].ClipMaxs = vec.Vec3{32, 32, 64}
 	hs[2].ClipNodes = cns
 	hs[2].FirstClipNode = 0
 	hs[2].LastClipNode = len(cns) - 1
@@ -507,9 +507,9 @@ func buildSubmodels(mod []*model) ([]*qm.Submodel, error) {
 	for _, m := range mod {
 		ret = append(ret, &qm.Submodel{
 			// Therjak: orig reduces mins and extends max by 1, here it breaks stuff. Why?
-			Mins:   math.Vec3{m.BoundingBox[0] - 1, m.BoundingBox[1] - 1, m.BoundingBox[2] - 1},
-			Maxs:   math.Vec3{m.BoundingBox[3] + 1, m.BoundingBox[4] + 1, m.BoundingBox[5] + 1},
-			Origin: math.Vec3{m.Origin[0], m.Origin[1], m.Origin[2]},
+			Mins:   vec.Vec3{m.BoundingBox[0] - 1, m.BoundingBox[1] - 1, m.BoundingBox[2] - 1},
+			Maxs:   vec.Vec3{m.BoundingBox[3] + 1, m.BoundingBox[4] + 1, m.BoundingBox[5] + 1},
+			Origin: vec.Vec3{m.Origin[0], m.Origin[1], m.Origin[2]},
 			HeadNode: [4]int{
 				int(m.HeadNode[0]), int(m.HeadNode[1]), int(m.HeadNode[2]), int(m.HeadNode[3]),
 			},

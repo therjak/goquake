@@ -9,7 +9,7 @@ import "C"
 import (
 	"log"
 	"quake/cmd"
-	"quake/math"
+	"quake/math/vec"
 	"quake/snd"
 )
 
@@ -62,11 +62,11 @@ func S_ClearBuffer() {
 	// remove stuff already in the pipeline to be played
 }
 
-func cfloatToVec3(f *C.float) math.Vec3 {
+func cfloatToVec3(f *C.float) vec.Vec3 {
 	a := C.cf(0, f)
 	b := C.cf(1, f)
 	c := C.cf(2, f)
-	return math.Vec3{X: float32(a), Y: float32(b), Z: float32(c)}
+	return vec.Vec3{X: float32(a), Y: float32(b), Z: float32(c)}
 }
 
 //export S_Update

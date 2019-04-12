@@ -1,7 +1,7 @@
 package mdl
 
 import (
-	"quake/math"
+	"quake/math/vec"
 	qm "quake/model"
 )
 
@@ -15,12 +15,12 @@ func Load(name string, data []byte) ([]*qm.QModel, error) {
 	mod := &qm.QModel{
 		Name: name,
 		Type: qm.ModAlias,
-		Mins: math.Vec3{999999, 999999, 999999},
-		// YMins: math.Vec3{999999,999999,999999},
-		// RMins: math.Vec3{999999,999999,999999},
-		Maxs: math.Vec3{-999999, -999999, -999999},
-		// YMaxs: math.Vec3{-999999,-999999,-999999},
-		// RMaxs: math.Vec3{-999999,-999999,-999999},
+		Mins: vec.Vec3{999999, 999999, 999999},
+		// YMins: vec.Vec3{999999,999999,999999},
+		// RMins: vec.Vec3{999999,999999,999999},
+		Maxs: vec.Vec3{-999999, -999999, -999999},
+		// YMaxs: vec.Vec3{-999999,-999999,-999999},
+		// RMaxs: vec.Vec3{-999999,-999999,-999999},
 	}
 
 	// TODO: load the actual model
@@ -51,7 +51,7 @@ func calcAliasBounds(mod *qm.QModel, ah *aliashdr,
 
 	for i := 0; i < len(poseverts); i++ {
 		for j := 0; j < len(poseverts[i]); j++ {
-			v := math.Vec3{
+			v := vec.Vec3{
 				float32(poseverts[i][j].PackedPosition[0])*pheader.Scale[0] + pheader.ScaleOrigin[0],
 				float32(poseverts[i][j].PackedPosition[1])*pheader.Scale[1] + pheader.ScaleOrigin[1],
 				float32(poseverts[i][j].PackedPosition[2])*pheader.Scale[0] + pheader.ScaleOrigin[2],

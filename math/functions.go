@@ -19,3 +19,7 @@ func Sqrt(x float32) float32 {
 func Trunc(x float32) float32 {
 	return float32(gmath.Trunc(float64(x)))
 }
+
+func Lerp(a, b, frac float32) float32 {
+	return (1-frac)*a + frac*b
+}

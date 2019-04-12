@@ -605,7 +605,7 @@ func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 vec.Vec
 		return (t1 - DIST_EPSILON) / d
 	}()
 	frac = math.Clamp32(0, frac, 1)
-	midf := (1-frac)*p1f + p2f*frac
+	midf := math.Lerp(p1f, p2f, frac)
 	mid := vec.Lerp(p1, p2, frac)
 	side := func() int {
 		if t1 < 0 {
@@ -646,7 +646,7 @@ func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 vec.Vec
 			conPrintf("backup past 0\n")
 			return false
 		}
-		midf = (1-frac)*p1f + frac*p2f
+		midf = math.Lerp(p1f, p2f, frac)
 		mid = vec.Lerp(p1, p2, frac)
 	}
 	trace.fraction = C.float(midf)

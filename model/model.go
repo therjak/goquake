@@ -1,11 +1,11 @@
 package model
 
 import (
-	"quake/math"
+	"quake/math/vec"
 )
 
 type Plane struct {
-	Normal   math.Vec3
+	Normal   vec.Vec3
 	Dist     float32
 	Type     byte
 	SignBits byte
@@ -21,8 +21,8 @@ type Hull struct {
 	Planes        []*Plane
 	FirstClipNode int
 	LastClipNode  int
-	ClipMins      math.Vec3
-	ClipMaxs      math.Vec3
+	ClipMins      vec.Vec3
+	ClipMaxs      vec.Vec3
 }
 
 type NodeBase struct {
@@ -88,9 +88,9 @@ const (
 )
 
 type Submodel struct {
-	Mins         math.Vec3
-	Maxs         math.Vec3
-	Origin       math.Vec3
+	Mins         vec.Vec3
+	Maxs         vec.Vec3
+	Origin       vec.Vec3
 	HeadNode     [4]int
 	VisLeafCount int
 	FirstFace    int
@@ -102,10 +102,10 @@ type QModel struct {
 	Name string
 	Type ModType
 
-	Mins     math.Vec3
-	Maxs     math.Vec3
-	ClipMins math.Vec3
-	ClipMaxs math.Vec3
+	Mins     vec.Vec3
+	Maxs     vec.Vec3
+	ClipMins vec.Vec3
+	ClipMaxs vec.Vec3
 
 	Submodels []*Submodel
 	Planes    []*Plane

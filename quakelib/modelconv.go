@@ -15,7 +15,7 @@ import (
 	"fmt"
 	"log"
 	"quake/bsp"
-	"quake/math"
+	"quake/math/vec"
 	"quake/model"
 )
 
@@ -106,10 +106,10 @@ func convCModel(m *C.qmodel_t, localModel bool) *model.QModel {
 	return &model.QModel{
 		Name:     C.GoString(&m.name[0]),
 		Type:     model.ModType(m.Type),
-		Mins:     math.Vec3{float32(m.mins[0]), float32(m.mins[1]), float32(m.mins[2])},
-		Maxs:     math.Vec3{float32(m.maxs[0]), float32(m.maxs[1]), float32(m.maxs[2])},
-		ClipMins: math.Vec3{float32(m.clipmins[0]), float32(m.clipmins[1]), float32(m.clipmins[2])},
-		ClipMaxs: math.Vec3{float32(m.clipmaxs[0]), float32(m.clipmaxs[1]), float32(m.clipmaxs[2])},
+		Mins:     vec.Vec3{float32(m.mins[0]), float32(m.mins[1]), float32(m.mins[2])},
+		Maxs:     vec.Vec3{float32(m.maxs[0]), float32(m.maxs[1]), float32(m.maxs[2])},
+		ClipMins: vec.Vec3{float32(m.clipmins[0]), float32(m.clipmins[1]), float32(m.clipmins[2])},
+		ClipMaxs: vec.Vec3{float32(m.clipmaxs[0]), float32(m.clipmaxs[1]), float32(m.clipmaxs[2])},
 		Hulls:    convHulls(&m.hulls),
 		Node:     convNode(m.nodes, leafs, localModel),
 		// NumSubmodels: int(m.numsubmodels),
@@ -192,8 +192,8 @@ func convHulls(h *[4]C.hull_t) [4]model.Hull {
 	return r
 }
 
-func v3v3(v C.vec3_t) math.Vec3 {
-	return math.Vec3{
+func v3v3(v C.vec3_t) vec.Vec3 {
+	return vec.Vec3{
 		X: float32(v[0]),
 		Y: float32(v[1]),
 		Z: float32(v[2]),

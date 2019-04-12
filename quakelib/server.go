@@ -13,7 +13,7 @@ import (
 	cmdl "quake/commandline"
 	"quake/cvars"
 	"quake/execute"
-	"quake/math"
+	"quake/math/vec"
 	"quake/model"
 	"quake/net"
 	"quake/progs"
@@ -401,7 +401,7 @@ func SV_SO_Len() C.int {
 	return C.int(sv.signon.Len())
 }
 
-func svStartParticle(org, dir math.Vec3, color, count int) {
+func svStartParticle(org, dir vec.Vec3, color, count int) {
 	if sv.datagram.Len()+16 > net.MAX_DATAGRAM {
 		return
 	}
