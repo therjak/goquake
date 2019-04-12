@@ -1,4 +1,4 @@
-package math
+package vec
 
 import (
 	m "math"

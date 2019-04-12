@@ -14,7 +14,7 @@ import (
 	"quake/commandline"
 	"quake/cvars"
 	"quake/filesystem"
-	"quake/math"
+	"quake/math/vec"
 	"time"
 
 	// "github.com/hajimehoshi/oto"
@@ -46,7 +46,7 @@ type playingSound struct {
 	entnum             int // entnum
 	distanceMultiplier float32
 	masterVolume       float32
-	origin             math.Vec3
+	origin             vec.Vec3
 	done               bool // if done it must no longer be updated
 	right              uint8
 	left               uint8
@@ -93,13 +93,13 @@ func (p *Player) SetVolume(v float32) {
 	// Volume over all channels
 }
 
-func (p *Player) Play(s *Sound, entity int, origin math.Vec3) int {
+func (p *Player) Play(s *Sound, entity int, origin vec.Vec3) int {
 	// Returns playing channel id
 	// is the input playingSound correct?
 	return 0
 }
 
-func (p *Player) UpdateListenerPos(listener int, listenerPos, listenerRight math.Vec3) {
+func (p *Player) UpdateListenerPos(listener int, listenerPos, listenerRight vec.Vec3) {
 }
 
 func (p *Player) Close() error {
@@ -107,15 +107,15 @@ func (p *Player) Close() error {
 }
 */
 
-func (s *playingSound) spatialize(listener int, listenerPos, listenerRight math.Vec3) {
+func (s *playingSound) spatialize(listener int, listenerPos, listenerRight vec.Vec3) {
 	if listener == s.entnum {
 		s.right = uint8(s.masterVolume)
 		s.left = uint8(s.masterVolume)
 	} else {
-		v := math.Sub(s.origin, listenerPos)
+		v := vec.Sub(s.origin, listenerPos)
 		dist := v.Length() * s.distanceMultiplier
 		v = v.Normalize()
-		dot := math.Dot(listenerRight, v)
+		dot := vec.Dot(listenerRight, v)
 		dist = 1.0 - dist
 		lscale := (1.0 - dot) * dist
 		rscale := (1.0 + dot) * dist
@@ -168,7 +168,7 @@ func (a *aSounds) stopAll() {
 	mix.HaltChannel(-1)
 }
 
-func (a *aSounds) update(listener int, listenerOrigin, listenerRight math.Vec3) {
+func (a *aSounds) update(listener int, listenerOrigin, listenerRight vec.Vec3) {
 	for _, s := range a.sounds {
 		s.spatialize(listener, listenerOrigin, listenerRight)
 		if err := mix.SetPanning(s.channel, s.left, s.right); err != nil {
@@ -241,7 +241,7 @@ func Shutdown() {
 	mix.CloseAudio()
 }
 
-func Start(entnum int, entchannel int, sfx int, sndOrigin math.Vec3,
+func Start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3,
 	fvol float32, attenuation float32, looping bool) {
 	if cvars.NoSound.Value() != 0 || !soundFlag {
 		return
@@ -304,8 +304,8 @@ var (
 )
 
 type Listener struct {
-	Origin math.Vec3
-	Right  math.Vec3
+	Origin vec.Vec3
+	Right  vec.Vec3
 	ID     int
 }
 

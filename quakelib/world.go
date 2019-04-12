@@ -10,6 +10,7 @@ import (
 	"container/ring"
 	"log"
 	"quake/math"
+	"quake/math/vec"
 	"quake/model"
 	"quake/progs"
 )
@@ -66,7 +67,7 @@ func clearWorld() {
 	gArea = createAreaNode(0, sv.worldModel.Mins, sv.worldModel.Maxs)
 }
 
-func createAreaNode(depth int, mins, maxs math.Vec3) *areaNode {
+func createAreaNode(depth int, mins, maxs vec.Vec3) *areaNode {
 	if depth == 4 {
 		return &areaNode{
 			axis: -1,
@@ -79,7 +80,7 @@ func createAreaNode(depth int, mins, maxs math.Vec3) *areaNode {
 		triggerEdicts: ring.New(1),
 		solidEdicts:   ring.New(1),
 	}
-	s := math.Sub(maxs, mins)
+	s := vec.Sub(maxs, mins)
 	an.axis = func() int {
 		if s.X > s.Y {
 			return 0
@@ -312,7 +313,7 @@ func findTouchedLeafs(e int, node model.Node) {
 	n := node.(*model.MNode)
 	splitplane := n.Plane
 	ev := EntVars(e)
-	sides := boxOnPlaneSide(math.VFromA(ev.AbsMin), math.VFromA(ev.AbsMax), splitplane)
+	sides := boxOnPlaneSide(vec.VFromA(ev.AbsMin), vec.VFromA(ev.AbsMax), splitplane)
 	if sides&1 != 0 {
 		findTouchedLeafs(e, n.Children[0])
 	}
@@ -321,7 +322,7 @@ func findTouchedLeafs(e int, node model.Node) {
 	}
 }
 
-func boxOnPlaneSide(mins, maxs math.Vec3, p *model.Plane) int {
+func boxOnPlaneSide(mins, maxs vec.Vec3, p *model.Plane) int {
 	if p.Type < 3 {
 		if p.Dist <= mins.Idx(int(p.Type)) {
 			return 1
@@ -382,7 +383,7 @@ func boxOnPlaneSide(mins, maxs math.Vec3, p *model.Plane) int {
 }
 
 type moveClip struct {
-	boxmins, boxmaxs, mins, maxs, mins2, maxs2, start, end math.Vec3
+	boxmins, boxmaxs, mins, maxs, mins2, maxs2, start, end vec.Vec3
 	trace                                                  C.trace_t
 	typ, edict                                             int
 }
@@ -493,7 +494,7 @@ func initBoxHull() {
 	}
 }
 
-func hullForBox(mins, maxs math.Vec3) *model.Hull {
+func hullForBox(mins, maxs vec.Vec3) *model.Hull {
 	boxHull.Planes[0].Dist = maxs.X
 	boxHull.Planes[1].Dist = mins.X
 	boxHull.Planes[2].Dist = maxs.Y
@@ -503,7 +504,7 @@ func hullForBox(mins, maxs math.Vec3) *model.Hull {
 	return &boxHull
 }
 
-func hullForEntity(ent *progs.EntVars, mins, maxs math.Vec3) (*model.Hull, math.Vec3) {
+func hullForEntity(ent *progs.EntVars, mins, maxs vec.Vec3) (*model.Hull, vec.Vec3) {
 	if ent.Solid == SOLID_BSP {
 		if ent.MoveType != progs.MoveTypePush {
 			Error("SOLID_BSP without MOVETYPE_PUSH")
@@ -521,16 +522,16 @@ func hullForEntity(ent *progs.EntVars, mins, maxs math.Vec3) (*model.Hull, math.
 			}
 			return &m.Hulls[2]
 		}()
-		offset := math.Add(math.Sub(h.ClipMins, mins), math.VFromA(ent.Origin))
+		offset := vec.Add(vec.Sub(h.ClipMins, mins), vec.VFromA(ent.Origin))
 		return h, offset
 	}
-	hullmins := math.Sub(math.VFromA(ent.Mins), maxs)
-	hullmaxs := math.Sub(math.VFromA(ent.Maxs), mins)
-	origin := math.VFromA(ent.Origin)
+	hullmins := vec.Sub(vec.VFromA(ent.Mins), maxs)
+	hullmaxs := vec.Sub(vec.VFromA(ent.Maxs), mins)
+	origin := vec.VFromA(ent.Origin)
 	return hullForBox(hullmins, hullmaxs), origin
 }
 
-func hullPointContents(h *model.Hull, num int, p math.Vec3) int {
+func hullPointContents(h *model.Hull, num int, p vec.Vec3) int {
 	for num >= 0 {
 		if num < h.FirstClipNode || num > h.LastClipNode {
 			Error("SV_HullPointContents: bad node number")
@@ -541,7 +542,7 @@ func hullPointContents(h *model.Hull, num int, p math.Vec3) int {
 			if plane.Type < 3 {
 				return p.Idx(int(plane.Type)) - plane.Dist
 			}
-			return math.DoublePrecDot(plane.Normal, p) - plane.Dist
+			return vec.DoublePrecDot(plane.Normal, p) - plane.Dist
 		}()
 		if d < 0 {
 			num = node.Children[1]
@@ -559,7 +560,7 @@ func SV_PointContents(p *C.float) C.int {
 }
 
 //TODO: export?
-func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 math.Vec3, trace *C.trace_t) bool {
+func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 vec.Vec3, trace *C.trace_t) bool {
 	if num < 0 { // check for empty
 		if num != CONTENTS_SOLID {
 			trace.allsolid = b2i(false)
@@ -583,8 +584,8 @@ func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 math.Ve
 			return (p1.Idx(int(plane.Type)) - plane.Dist),
 				(p2.Idx(int(plane.Type)) - plane.Dist)
 		} else {
-			return math.DoublePrecDot(plane.Normal, p1) - plane.Dist,
-				math.DoublePrecDot(plane.Normal, p2) - plane.Dist
+			return vec.DoublePrecDot(plane.Normal, p1) - plane.Dist,
+				vec.DoublePrecDot(plane.Normal, p2) - plane.Dist
 		}
 	}()
 	if t1 >= 0 && t2 >= 0 {
@@ -605,7 +606,7 @@ func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 math.Ve
 	}()
 	frac = math.Clamp32(0, frac, 1)
 	midf := (1-frac)*p1f + p2f*frac
-	mid := math.Lerp(p1, p2, frac)
+	mid := vec.Lerp(p1, p2, frac)
 	side := func() int {
 		if t1 < 0 {
 			return 1
@@ -646,7 +647,7 @@ func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 math.Ve
 			return false
 		}
 		midf = (1-frac)*p1f + frac*p2f
-		mid = math.Lerp(p1, p2, frac)
+		mid = vec.Lerp(p1, p2, frac)
 	}
 	trace.fraction = C.float(midf)
 	trace.endpos[0] = C.float(mid.X)
@@ -656,7 +657,7 @@ func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 math.Ve
 	return false
 }
 
-func clipMoveToEntity(ent int, start, mins, maxs, end math.Vec3) C.trace_t {
+func clipMoveToEntity(ent int, start, mins, maxs, end vec.Vec3) C.trace_t {
 	var trace C.trace_t
 	trace.fraction = 1
 	trace.allsolid = b2i(true)
@@ -664,8 +665,8 @@ func clipMoveToEntity(ent int, start, mins, maxs, end math.Vec3) C.trace_t {
 	trace.endpos[1] = C.float(end.Y)
 	trace.endpos[2] = C.float(end.Z)
 	hull, offset := hullForEntity(EntVars(ent), mins, maxs)
-	startL := math.Sub(start, offset)
-	endL := math.Sub(end, offset)
+	startL := vec.Sub(start, offset)
+	endL := vec.Sub(end, offset)
 	recursiveHullCheck(hull, hull.FirstClipNode, 0, 1, startL, endL, &trace)
 
 	if trace.fraction != 1 {
@@ -680,14 +681,14 @@ func clipMoveToEntity(ent int, start, mins, maxs, end math.Vec3) C.trace_t {
 	return trace
 }
 
-func (c *moveClip) moveBounds(s, e math.Vec3) {
-	min, max := math.MinMax(s, e)
-	c.boxmins = math.Sub(math.Add(min, c.mins2), math.Vec3{1, 1, 1})
-	c.boxmaxs = math.Add(math.Add(max, c.maxs2), math.Vec3{1, 1, 1})
+func (c *moveClip) moveBounds(s, e vec.Vec3) {
+	min, max := vec.MinMax(s, e)
+	c.boxmins = vec.Sub(vec.Add(min, c.mins2), vec.Vec3{1, 1, 1})
+	c.boxmaxs = vec.Add(vec.Add(max, c.maxs2), vec.Vec3{1, 1, 1})
 }
 
-func p2v3(p *C.float) math.Vec3 {
-	return math.Vec3{
+func p2v3(p *C.float) vec.Vec3 {
+	return vec.Vec3{
 		X: float32(C.cf(0, p)),
 		Y: float32(C.cf(1, p)),
 		Z: float32(C.cf(2, p)),
@@ -701,8 +702,8 @@ func SV_TestEntityPosition(ent C.int) C.int {
 
 func testEntityPosition(ent int) bool {
 	ev := EntVars(ent)
-	trace := svMove(math.VFromA(ev.Origin), math.VFromA(ev.Mins),
-		math.VFromA(ev.Maxs), math.VFromA(ev.Origin), 0, ent)
+	trace := svMove(vec.VFromA(ev.Origin), vec.VFromA(ev.Mins),
+		vec.VFromA(ev.Maxs), vec.VFromA(ev.Origin), 0, ent)
 	return trace.startsolid != 0
 }
 
@@ -722,7 +723,7 @@ func SV_Move(st, mi, ma, en *C.float, ty C.int, ed C.int) C.trace_t {
 	return svMove(start, mins, maxs, end, int(ty), int(ed))
 }
 
-func svMove(start, mins, maxs, end math.Vec3, typ, ed int) C.trace_t {
+func svMove(start, mins, maxs, end vec.Vec3, typ, ed int) C.trace_t {
 	clip := moveClip{
 		trace: clipMoveToEntity(0, start, mins, maxs, end),
 		start: start,
@@ -735,8 +736,8 @@ func svMove(start, mins, maxs, end math.Vec3, typ, ed int) C.trace_t {
 		maxs2: maxs,
 	}
 	if typ == MOVE_MISSLE {
-		clip.mins2 = math.Vec3{-15, -15, -15}
-		clip.maxs2 = math.Vec3{15, 15, 15}
+		clip.mins2 = vec.Vec3{-15, -15, -15}
+		clip.maxs2 = vec.Vec3{15, 15, 15}
 	}
 
 	// create the bounding box of the entire move

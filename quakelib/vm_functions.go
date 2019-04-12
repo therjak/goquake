@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"quake/cbuf"
 	"quake/math"
+	"quake/math/vec"
 	"quake/model"
 	"quake/progs"
 )
@@ -34,21 +35,21 @@ func PF_setorigin() {
 	LinkEdict(e, false)
 }
 
-func setMinMaxSize(ev *progs.EntVars, min, max math.Vec3) {
+func setMinMaxSize(ev *progs.EntVars, min, max vec.Vec3) {
 	if min.X > max.X || min.Y > max.Y || min.Z > max.Z {
 		runError("backwards mins/maxs")
 	}
 	ev.Mins = min.Array()
 	ev.Maxs = max.Array()
-	s := math.Sub(max, min)
+	s := vec.Sub(max, min)
 	ev.Size = s.Array()
 }
 
 //export PF_setsize
 func PF_setsize() {
 	e := int(progsdat.RawGlobalsI[progs.OffsetParm0])
-	min := math.VFromA(*progsdat.Globals.Parm1f())
-	max := math.VFromA(*progsdat.Globals.Parm2f())
+	min := vec.VFromA(*progsdat.Globals.Parm1f())
+	max := vec.VFromA(*progsdat.Globals.Parm2f())
 	setMinMaxSize(EntVars(e), min, max)
 	LinkEdict(e, false)
 }
@@ -87,28 +88,28 @@ func PF_setmodel2() {
 		}
 	} else {
 		log.Printf("No Mod")
-		setMinMaxSize(ev, math.Vec3{}, math.Vec3{})
+		setMinMaxSize(ev, vec.Vec3{}, vec.Vec3{})
 	}
 	LinkEdict(e, false)
 }
 
 //export PF_normalize
 func PF_normalize() {
-	v := math.VFromA(*progsdat.Globals.Parm0f())
+	v := vec.VFromA(*progsdat.Globals.Parm0f())
 	vn := v.Normalize()
 	*progsdat.Globals.Returnf() = vn.Array()
 }
 
 //export PF_vlen
 func PF_vlen() {
-	v := math.VFromA(*progsdat.Globals.Parm0f())
+	v := vec.VFromA(*progsdat.Globals.Parm0f())
 	l := v.Length()
 	progsdat.Globals.Returnf()[0] = l
 }
 
 //export PF_vectoyaw
 func PF_vectoyaw() {
-	v := math.VFromA(*progsdat.Globals.Parm0f())
+	v := vec.VFromA(*progsdat.Globals.Parm0f())
 	yaw := func() float32 {
 		if v.X == 0 && v.Y == 0 {
 			return 0
@@ -125,7 +126,7 @@ func PF_vectoyaw() {
 
 //export PF_vectoangles
 func PF_vectoangles() {
-	v := math.VFromA(*progsdat.Globals.Parm0f())
+	v := vec.VFromA(*progsdat.Globals.Parm0f())
 	yaw, pitch := func() (float32, float32) {
 		if v.X == 0 && v.Y == 0 {
 			p := func() float32 {
