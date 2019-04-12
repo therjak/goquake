@@ -220,29 +220,6 @@ static void PF_centerprint(void) {
 
 /*
 =================
-PF_particle
-
-particle(origin, color, count)
-=================
-*/
-static void PF_particle(void) {
-  float color;
-  float count;
-  vec3_t org, dir;
-
-  org[0] = Pr_globalsf(OFS_PARM0);
-  org[1] = Pr_globalsf(OFS_PARM0 + 1);
-  org[2] = Pr_globalsf(OFS_PARM0 + 2);
-  dir[0] = Pr_globalsf(OFS_PARM1);
-  dir[1] = Pr_globalsf(OFS_PARM1 + 1);
-  dir[2] = Pr_globalsf(OFS_PARM1 + 2);
-  color = Pr_globalsf(OFS_PARM2);
-  count = Pr_globalsf(OFS_PARM3);
-  SV_StartParticle(org, dir, color, count);
-}
-
-/*
-=================
 PF_ambientsound
 
 =================

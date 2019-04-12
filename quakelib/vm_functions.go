@@ -159,23 +159,16 @@ func PF_random() {
 	progsdat.Globals.Returnf()[0] = rand.Float32()
 }
 
-/*
-static void PF_particle(void) {
-  float color;
-  float count;
-  vec3_t org, dir;
-
-  org[0] = Pr_globalsf(OFS_PARM0);
-  org[1] = Pr_globalsf(OFS_PARM0 + 1);
-  org[2] = Pr_globalsf(OFS_PARM0 + 2);
-  dir[0] = Pr_globalsf(OFS_PARM1);
-  dir[1] = Pr_globalsf(OFS_PARM1 + 1);
-  dir[2] = Pr_globalsf(OFS_PARM1 + 2);
-  color = Pr_globalsf(OFS_PARM2);
-  count = Pr_globalsf(OFS_PARM3);
-  SV_StartParticle(org, dir, color, count);
+//export PF_particle
+func PF_particle() {
+	org := vec.VFromA(*progsdat.Globals.Parm0f())
+	dir := vec.VFromA(*progsdat.Globals.Parm1f())
+	color := progsdat.RawGlobalsF[progs.OffsetParm2]
+	count := progsdat.RawGlobalsF[progs.OffsetParm3]
+	sv.StartParticle(org, dir, int(color), int(count))
 }
 
+/*
 static void PF_ambientsound(void) {
   const char *samp, **check;
   vec3_t pos;

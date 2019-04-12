@@ -401,14 +401,14 @@ func SV_SO_Len() C.int {
 	return C.int(sv.signon.Len())
 }
 
-func svStartParticle(org, dir vec.Vec3, color, count int) {
-	if sv.datagram.Len()+16 > net.MAX_DATAGRAM {
+func (s *Server) StartParticle(org, dir vec.Vec3, color, count int) {
+	if s.datagram.Len()+16 > net.MAX_DATAGRAM {
 		return
 	}
-	sv.datagram.WriteByte(server.Particle)
-	sv.datagram.WriteCoord(org.X, int(sv.protocolFlags))
-	sv.datagram.WriteCoord(org.Y, int(sv.protocolFlags))
-	sv.datagram.WriteCoord(org.Z, int(sv.protocolFlags))
+	s.datagram.WriteByte(server.Particle)
+	s.datagram.WriteCoord(org.X, int(s.protocolFlags))
+	s.datagram.WriteCoord(org.Y, int(s.protocolFlags))
+	s.datagram.WriteCoord(org.Z, int(s.protocolFlags))
 	df := func(d float32) int {
 		v := d * 16
 		if v > 127 {
@@ -419,16 +419,11 @@ func svStartParticle(org, dir vec.Vec3, color, count int) {
 		}
 		return int(v)
 	}
-	sv.datagram.WriteChar(df(dir.X))
-	sv.datagram.WriteChar(df(dir.Y))
-	sv.datagram.WriteChar(df(dir.Z))
-	sv.datagram.WriteByte(count)
-	sv.datagram.WriteByte(color)
-}
-
-//export SV_StartParticle
-func SV_StartParticle(org, dir *C.float, color, count C.int) {
-	svStartParticle(cfloatToVec3(org), cfloatToVec3(dir), int(color), int(count))
+	s.datagram.WriteChar(df(dir.X))
+	s.datagram.WriteChar(df(dir.Y))
+	s.datagram.WriteChar(df(dir.Z))
+	s.datagram.WriteByte(count)
+	s.datagram.WriteByte(color)
 }
 
 //export SV_DG_WriteByte

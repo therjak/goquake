@@ -122,8 +122,6 @@ int HostClient(void);
 
 void SV_Init(void);
 
-void SV_StartParticle(vec3_t org, vec3_t dir, int color, int count);
-
 void SV_DropClient(int client, qboolean crash);
 
 void SV_SendClientMessages(void);
