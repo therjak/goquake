@@ -279,46 +279,6 @@ static void PF_ambientsound(void) {
 
 /*
 =================
-PF_sound
-
-Each entity can have eight independant sound sources, like voice,
-weapon, feet, etc.
-
-Channel 0 is an auto-allocate channel, the others override anything
-already running on that entity/channel pair.
-
-An attenuation of 0 will play full volume everywhere in the level.
-Larger attenuations will drop off.
-
-=================
-*/
-static void PF_sound(void) {
-  const char *sample;
-  int channel;
-  int entity;
-  int volume;
-  float attenuation;
-
-  entity = Pr_globalsi(OFS_PARM0);
-  channel = Pr_globalsf(OFS_PARM1);
-  sample = PR_GetString(Pr_globalsi(OFS_PARM2));
-  volume = Pr_globalsf(OFS_PARM3) * 255;
-  attenuation = Pr_globalsf(OFS_PARM4);
-
-  if (volume < 0 || volume > 255)
-    Host_Error("SV_StartSound: volume = %i", volume);
-
-  if (attenuation < 0 || attenuation > 4)
-    Host_Error("SV_StartSound: attenuation = %f", attenuation);
-
-  if (channel < 0 || channel > 7)
-    Host_Error("SV_StartSound: channel = %i", channel);
-
-  SV_StartSound(entity, channel, sample, volume, attenuation);
-}
-
-/*
-=================
 PF_break
 
 break()

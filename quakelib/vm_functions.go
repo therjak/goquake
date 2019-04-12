@@ -221,38 +221,36 @@ static void PF_ambientsound(void) {
   SV_SO_WriteByte(vol * 255);
   SV_SO_WriteByte(attenuation * 64);
 }
-
+*/
 // Each entity can have eight independant sound sources, like voice,
 // weapon, feet, etc.
 // Channel 0 is an auto-allocate channel, the others override anything
 // already running on that entity/channel pair.
 // An attenuation of 0 will play full volume everywhere in the level.
 // Larger attenuations will drop off.
-static void PF_sound(void) {
-  const char *sample;
-  int channel;
-  int entity;
-  int volume;
-  float attenuation;
+//export PF_sound
+func PF_sound() {
+	entity := progsdat.RawGlobalsI[progs.OffsetParm0]
+	channel := progsdat.RawGlobalsF[progs.OffsetParm1]
+	sample := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm2]))
+	volume := progsdat.RawGlobalsF[progs.OffsetParm3] * 255
+	attenuation := progsdat.RawGlobalsF[progs.OffsetParm4]
 
-  entity = Pr_globalsi(OFS_PARM0);
-  channel = Pr_globalsf(OFS_PARM1);
-  sample = PR_GetString(Pr_globalsi(OFS_PARM2));
-  volume = Pr_globalsf(OFS_PARM3) * 255;
-  attenuation = Pr_globalsf(OFS_PARM4);
+	if volume < 0 || volume > 255 {
+		HostError("SV_StartSound: volume = %v", volume)
+	}
 
-  if (volume < 0 || volume > 255)
-    Host_Error("SV_StartSound: volume = %i", volume);
+	if attenuation < 0 || attenuation > 4 {
+		HostError("SV_StartSound: attenuation = %v", attenuation)
+	}
 
-  if (attenuation < 0 || attenuation > 4)
-    Host_Error("SV_StartSound: attenuation = %f", attenuation);
-
-  if (channel < 0 || channel > 7)
-    Host_Error("SV_StartSound: channel = %i", channel);
-
-  SV_StartSound(entity, channel, sample, volume, attenuation);
+	if channel < 0 || channel > 7 {
+		HostError("SV_StartSound: channel = %v", channel)
+	}
+	sv.StartSound(int(entity), int(channel), int(volume), sample, attenuation)
 }
 
+/*
 static void PF_break(void) {
   Con_Printf("break statement\n");
   *(int *)-4 = 0;  // dump to debugger
