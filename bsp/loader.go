@@ -155,9 +155,9 @@ func LoadBSP(name string, data []byte) ([]*qm.QModel, error) {
 				m.Name = fmt.Sprintf("*%d", i)
 			}
 			m.Hulls[0].FirstClipNode = sub.HeadNode[0]
-			for i := 1; i < 4; i++ {
-				m.Hulls[i].FirstClipNode = sub.HeadNode[i]
-				m.Hulls[i].LastClipNode = len(mod.ClipNodes) - 1
+			for j := 1; j < 4; j++ {
+				m.Hulls[j].FirstClipNode = sub.HeadNode[j]
+				m.Hulls[j].LastClipNode = len(mod.ClipNodes) - 1
 			}
 			// TODO
 			// m.FirstModelSurface = sub.FirstFace

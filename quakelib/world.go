@@ -72,13 +72,13 @@ func createAreaNode(depth int, mins, maxs vec.Vec3) *areaNode {
 		return &areaNode{
 			axis: -1,
 			// We need a 'root' ring to be able to use Prev()
-			triggerEdicts: ring.New(1),
-			solidEdicts:   ring.New(1),
+			triggerEdicts: &ring.Ring{},
+			solidEdicts:   &ring.Ring{},
 		}
 	}
 	an := &areaNode{
-		triggerEdicts: ring.New(1),
-		solidEdicts:   ring.New(1),
+		triggerEdicts: &ring.Ring{},
+		solidEdicts:   &ring.Ring{},
 	}
 	s := vec.Sub(maxs, mins)
 	an.axis = func() int {
@@ -274,9 +274,8 @@ func LinkEdict(e int, touchTriggers bool) {
 		}
 	}
 
-	r := ring.New(1)
-	r.Value = e
-	edictToRing[int(e)] = r
+	r := &ring.Ring{Value: e}
+	edictToRing[e] = r
 	if ev.Solid == SOLID_TRIGGER {
 		node.triggerEdicts.Prev().Link(r)
 	} else {
@@ -446,8 +445,6 @@ func clipToLinks(a *areaNode, clip *moveClip) {
 			} else {
 				clip.trace = trace
 			}
-		} else {
-			clip.trace.startsolid = b2i(true)
 		}
 	}
 
