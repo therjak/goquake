@@ -426,59 +426,9 @@ func (s *Server) StartParticle(org, dir vec.Vec3, color, count int) {
 	s.datagram.WriteByte(color)
 }
 
-//export SV_DG_WriteByte
-func SV_DG_WriteByte(v C.int) {
-	sv.datagram.WriteByte(int(v))
-}
-
-//export SV_DG_WriteChar
-func SV_DG_WriteChar(v C.int) {
-	sv.datagram.WriteChar(int(v))
-}
-
-//export SV_DG_WriteShort
-func SV_DG_WriteShort(v C.int) {
-	sv.datagram.WriteShort(int(v))
-}
-
-//export SV_DG_WriteLong
-func SV_DG_WriteLong(v C.int) {
-	sv.datagram.WriteLong(int(v))
-}
-
-//export SV_DG_WriteAngle
-func SV_DG_WriteAngle(v C.float) {
-	sv.datagram.WriteAngle(float32(v), int(sv.protocolFlags))
-}
-
-//export SV_DG_WriteCoord
-func SV_DG_WriteCoord(v C.float) {
-	sv.datagram.WriteCoord(float32(v), int(sv.protocolFlags))
-}
-
-//export SV_DG_WriteString
-func SV_DG_WriteString(s *C.char) {
-	sv.datagram.WriteString(C.GoString(s))
-}
-
-//export SV_DG_Len
-func SV_DG_Len() C.int {
-	return C.int(sv.datagram.Len())
-}
-
-//export SV_DG_ClearMessage
-func SV_DG_ClearMessage() {
-	sv.datagram.ClearMessage()
-}
-
 //export SV_ClearDatagram
 func SV_ClearDatagram() {
-	SV_DG_ClearMessage()
-}
-
-//export SV_DG_SendOut
-func SV_DG_SendOut(client C.int) C.int {
-	return b2i(sv.SendDatagram(sv_clients[int(client)]))
+	sv.datagram.ClearMessage()
 }
 
 func (s *Server) SendDatagram(c *SVClient) bool {
@@ -499,39 +449,9 @@ func SV_RD_WriteByte(v C.int) {
 	sv.reliableDatagram.WriteByte(int(v))
 }
 
-//export SV_RD_WriteChar
-func SV_RD_WriteChar(v C.int) {
-	sv.reliableDatagram.WriteChar(int(v))
-}
-
-//export SV_RD_WriteShort
-func SV_RD_WriteShort(v C.int) {
-	sv.reliableDatagram.WriteShort(int(v))
-}
-
-//export SV_RD_WriteLong
-func SV_RD_WriteLong(v C.int) {
-	sv.reliableDatagram.WriteLong(int(v))
-}
-
-//export SV_RD_WriteAngle
-func SV_RD_WriteAngle(v C.float) {
-	sv.reliableDatagram.WriteAngle(float32(v), int(sv.protocolFlags))
-}
-
-//export SV_RD_WriteCoord
-func SV_RD_WriteCoord(v C.float) {
-	sv.reliableDatagram.WriteCoord(float32(v), int(sv.protocolFlags))
-}
-
 //export SV_RD_WriteString
 func SV_RD_WriteString(s *C.char) {
 	sv.reliableDatagram.WriteString(C.GoString(s))
-}
-
-//export SV_RD_SendOut
-func SV_RD_SendOut() {
-	sv.SendReliableDatagram()
 }
 
 func (s *Server) SendReliableDatagram() {
