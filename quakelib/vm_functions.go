@@ -395,46 +395,43 @@ static void PF_checkclient(void) {
   c_invis++;
   RETURN_EDICT(ent);
 }
+*/
 
 // Sends text over to the client's execution buffer
-static void PF_stuffcmd(void) {
-  int entnum;
-  const char *str;
+//export PF_stuffcmd
+func PF_stuffcmd() {
+	entnum := int(progsdat.RawGlobalsI[progs.OffsetParm0])
+	if entnum < 1 || entnum > svs.maxClients {
+		runError("Parm 0 not a client")
+	}
+	str := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm1]))
 
-  entnum = Pr_globalsi(OFS_PARM0);
-  if (entnum < 1 || entnum > SVS_GetMaxClients()) {
-    PR_RunError("Parm 0 not a client");
-  }
-  str = PR_GetString(Pr_globalsi(OFS_PARM1));
-
-  Host_ClientCommands(entnum - 1, str);
+	c := sv_clients[entnum-1]
+	c.msg.WriteByte(server.StuffText)
+	c.msg.WriteString(str)
 }
 
 // Sends text over to the client's execution buffer
-static void PF_localcmd(void) {
-  const char *str;
-
-  str = PR_GetString(Pr_globalsi(OFS_PARM0));
-  Cbuf_AddText(str);
+//export PF_localcmd
+func PF_localcmd() {
+	str := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm0]))
+	cbuf.AddText(str)
 }
 
-static void PF_cvar(void) {
-  const char *str;
-
-  str = PR_GetString(Pr_globalsi(OFS_PARM0));
-
-  Set_Pr_globalsf(OFS_RETURN, Cvar_VariableValue(str));
+//export PF_cvar
+func PF_cvar() {
+	str := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm0]))
+	progsdat.Globals.Returnf()[0] = CvarVariableValue(str)
 }
 
-static void PF_cvar_set(void) {
-  const char *var, *val;
-
-  var = PR_GetString(Pr_globalsi(OFS_PARM0));
-  val = PR_GetString(Pr_globalsi(OFS_PARM1));
-
-  Cvar_Set(var, val);
+//export PF_cvar_set
+func PF_cvar_set() {
+	name := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm0]))
+	val := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm1]))
+	cvarSet(name, val)
 }
 
+/*
 // Returns a chain of entities that have origins within a spherical area
 static void PF_findradius(void) {
   int ent;

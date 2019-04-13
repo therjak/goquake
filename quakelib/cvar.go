@@ -99,11 +99,16 @@ func CvarSetValueQuick(id C.int, value C.float) {
 //export Cvar_Set
 func Cvar_Set(name *C.char, value *C.char) {
 	n := C.GoString(name)
-	if cv, ok := cvar.Get(n); ok {
-		cv.SetByString(C.GoString(value))
+	v := C.GoString(value)
+	cvarSet(n, v)
+}
+
+func cvarSet(name, value string) {
+	if cv, ok := cvar.Get(name); ok {
+		cv.SetByString(value)
 	} else {
-		log.Printf("Cvar not found %v", n)
-		conlog.Printf("Cvar_Set: variable %v not found\n", n)
+		log.Printf("Cvar not found %v", name)
+		conlog.Printf("Cvar_Set: variable %v not found\n", name)
 	}
 }
 
