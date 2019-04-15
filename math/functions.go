@@ -23,3 +23,12 @@ func Trunc(x float32) float32 {
 func Lerp(a, b, frac float32) float32 {
 	return (1-frac)*a + frac*b
 }
+
+// Abs returns the absolute value of x.
+// //
+// // Special cases are:
+// //	Abs(±Inf) = +Inf
+// //	Abs(NaN) = NaN
+func Abs(x float32) float32 {
+	return gmath.Float32frombits(gmath.Float32bits(x) &^ (1 << 31))
+}

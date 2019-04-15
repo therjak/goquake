@@ -479,12 +479,14 @@ static void PF_ftos(void) {
   Set_Pr_globalsi(OFS_RETURN, PR_SetEngineString(s));
 }
 
-static void PF_fabs(void) {
-  float v;
-  v = Pr_globalsf(OFS_PARM0);
-  Set_Pr_globalsf(OFS_RETURN, fabs(v));
+*/
+//export PF_fabs
+func PF_fabs() {
+	f := progsdat.RawGlobalsF[progs.OffsetParm0]
+	progsdat.Globals.Returnf()[0] = math.Abs(f)
 }
 
+/*
 static void PF_vtos(void) {
   char *s;
 
@@ -600,7 +602,9 @@ static void PF_traceon(void) { pr_trace = true; }
 static void PF_traceoff(void) { pr_trace = false; }
 
 static void PF_eprint(void) { ED_PrintNum(Pr_globalsi(OFS_PARM0)); }
+*/
 
+/*
 static void PF_walkmove(void) {
   int ent;
   float yaw, dist;
@@ -633,31 +637,35 @@ static void PF_walkmove(void) {
   pr_xfunction = oldf;
   Set_pr_global_struct_self(oldself);
 }
+*/
 
-static void PF_droptofloor(void) {
-  int ent;
-  vec3_t end;
-  trace_t trace;
+//export PF_droptofloor
+func PF_droptofloor() {
+	ent := int(progsdat.Globals.Self)
+	ev := EntVars(ent)
+	start := vec.VFromA(ev.Origin)
+	mins := vec.VFromA(ev.Mins)
+	maxs := vec.VFromA(ev.Maxs)
+	end := vec.VFromA(ev.Origin)
+	end.Z -= 256
 
-  ent = Pr_global_struct_self();
+	trace := svMove(start, mins, maxs, end, 0, ent)
 
-  VectorCopy(EVars(ent)->origin, end);
-  end[2] -= 256;
-
-  trace = SV_Move(EVars(ent)->origin, EVars(ent)->mins, EVars(ent)->maxs, end,
-                  false, ent);
-
-  if (trace.fraction == 1 || trace.allsolid)
-    Set_Pr_globalsf(OFS_RETURN, 0);
-  else {
-    VectorCopy(trace.endpos, EVars(ent)->origin);
-    SV_LinkEdict(ent, false);
-    EVars(ent)->flags = (int)EVars(ent)->flags | FL_ONGROUND;
-    EVars(ent)->groundentity = trace.entn;
-    Set_Pr_globalsf(OFS_RETURN, 1);
-  }
+	if trace.fraction == 1 || trace.allsolid != 0 {
+		progsdat.Globals.Returnf()[0] = 0
+	} else {
+		ev.Origin = [3]float32{
+			float32(trace.endpos[0]),
+			float32(trace.endpos[1]),
+			float32(trace.endpos[2])}
+		LinkEdict(ent, false)
+		ev.Flags = float32(int(ev.Flags) | FL_ONGROUND)
+		ev.GroundEntity = int32(trace.entn)
+		progsdat.Globals.Returnf()[0] = 1
+	}
 }
 
+/* TODO
 static void PF_lightstyle(void) {
   int style;
   const char *val;
@@ -697,7 +705,9 @@ static void PF_floor(void) {
 static void PF_ceil(void) {
   Set_Pr_globalsf(OFS_RETURN, ceil(Pr_globalsf(OFS_PARM0)));
 }
+*/
 
+/*
 static void PF_checkbottom(void) {
   int ent;
 

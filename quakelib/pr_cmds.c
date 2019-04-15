@@ -375,12 +375,6 @@ static void PF_ftos(void) {
   Set_Pr_globalsi(OFS_RETURN, PR_SetEngineString(s));
 }
 
-static void PF_fabs(void) {
-  float v;
-  v = Pr_globalsf(OFS_PARM0);
-  Set_Pr_globalsf(OFS_RETURN, fabs(v));
-}
-
 static void PF_vtos(void) {
   char *s;
 
@@ -535,37 +529,6 @@ static void PF_walkmove(void) {
   // restore program state
   pr_xfunction = oldf;
   Set_pr_global_struct_self(oldself);
-}
-
-/*
-===============
-PF_droptofloor
-
-void() droptofloor
-===============
-*/
-static void PF_droptofloor(void) {
-  int ent;
-  vec3_t end;
-  trace_t trace;
-
-  ent = Pr_global_struct_self();
-
-  VectorCopy(EVars(ent)->origin, end);
-  end[2] -= 256;
-
-  trace = SV_Move(EVars(ent)->origin, EVars(ent)->mins, EVars(ent)->maxs, end,
-                  false, ent);
-
-  if (trace.fraction == 1 || trace.allsolid)
-    Set_Pr_globalsf(OFS_RETURN, 0);
-  else {
-    VectorCopy(trace.endpos, EVars(ent)->origin);
-    SV_LinkEdict(ent, false);
-    EVars(ent)->flags = (int)EVars(ent)->flags | FL_ONGROUND;
-    EVars(ent)->groundentity = trace.entn;
-    Set_Pr_globalsf(OFS_RETURN, 1);
-  }
 }
 
 /*
