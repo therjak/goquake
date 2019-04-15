@@ -1,10 +1,13 @@
 package math
 
-import "math"
+import (
+	"github.com/chewxy/math32"
+	"math"
+)
 
 // AngleMod32 changes an angle to be within 0-360 degrees
 func AngleMod32(a float32) float32 {
-	return float32(AngleMod(float64(a)))
+	return a - math32.Floor(a/360)*360
 }
 
 // AngleMod changes an angle to be within 0-360 degrees

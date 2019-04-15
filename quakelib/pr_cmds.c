@@ -561,23 +561,6 @@ static void PF_lightstyle(void) {
   }
 }
 
-static void PF_rint(void) {
-  float f;
-  f = Pr_globalsf(OFS_PARM0);
-  if (f > 0)
-    Set_Pr_globalsf(OFS_RETURN, (int)(f + 0.5));
-  else
-    Set_Pr_globalsf(OFS_RETURN, (int)(f - 0.5));
-}
-
-static void PF_floor(void) {
-  Set_Pr_globalsf(OFS_RETURN, floor(Pr_globalsf(OFS_PARM0)));
-}
-
-static void PF_ceil(void) {
-  Set_Pr_globalsf(OFS_RETURN, ceil(Pr_globalsf(OFS_PARM0)));
-}
-
 /*
 =============
 PF_checkbottom
@@ -589,21 +572,6 @@ static void PF_checkbottom(void) {
   ent = Pr_globalsi(OFS_PARM0);
 
   Set_Pr_globalsf(OFS_RETURN, SV_CheckBottom(ent));
-}
-
-/*
-=============
-PF_pointcontents
-=============
-*/
-static void PF_pointcontents(void) {
-  vec3_t v;
-
-  v[0] = Pr_globalsf(OFS_PARM0);
-  v[1] = Pr_globalsf(OFS_PARM0 + 1);
-  v[2] = Pr_globalsf(OFS_PARM0 + 2);
-
-  Set_Pr_globalsf(OFS_RETURN, SV_PointContents(v));
 }
 
 /*
@@ -716,38 +684,6 @@ static void PF_aim(void) {
     Set_Pr_globalsf(OFS_RETURN + 1, bestdir[1]);
     Set_Pr_globalsf(OFS_RETURN + 2, bestdir[2]);
   }
-}
-
-/*
-==============
-PF_changeyaw
-
-This was a major timewaster in progs, so it was converted to C
-==============
-*/
-void PF_changeyaw(void) {
-  int ent;
-  float ideal, current, move, speed;
-
-  ent = Pr_global_struct_self();
-  current = anglemod(EVars(ent)->angles[1]);
-  ideal = EVars(ent)->ideal_yaw;
-  speed = EVars(ent)->yaw_speed;
-
-  if (current == ideal) return;
-  move = ideal - current;
-  if (ideal > current) {
-    if (move >= 180) move = move - 360;
-  } else {
-    if (move <= -180) move = move + 360;
-  }
-  if (move > 0) {
-    if (move > speed) move = speed;
-  } else {
-    if (move < -speed) move = -speed;
-  }
-
-  EVars(ent)->angles[1] = anglemod(current + move);
 }
 
 //=============================================================================

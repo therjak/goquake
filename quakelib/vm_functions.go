@@ -4,6 +4,7 @@ import "C"
 
 import (
 	"fmt"
+	"github.com/chewxy/math32"
 	"log"
 	"math/rand"
 	"quake/cbuf"
@@ -118,8 +119,8 @@ func PF_vectoyaw() {
 		if v.X == 0 && v.Y == 0 {
 			return 0
 		}
-		y := (math.Atan2(v.Y, v.X) * 180) / math.Pi
-		y = math.Trunc(y)
+		y := (math32.Atan2(v.Y, v.X) * 180) / math32.Pi
+		y = math32.Trunc(y)
 		if y < 0 {
 			y += 360
 		}
@@ -141,14 +142,14 @@ func PF_vectoangles() {
 			}()
 			return 0, p
 		}
-		y := (math.Atan2(v.Y, v.X) * 180) / math.Pi
-		y = math.Trunc(y)
+		y := (math32.Atan2(v.Y, v.X) * 180) / math32.Pi
+		y = math32.Trunc(y)
 		if y < 0 {
 			y += 360
 		}
-		forward := math.Sqrt(v.X*v.X + v.Y*v.Y)
-		p := (math.Atan2(v.Z, forward) * 180) / math.Pi
-		p = math.Trunc(p)
+		forward := math32.Sqrt(v.X*v.X + v.Y*v.Y)
+		p := (math32.Atan2(v.Z, forward) * 180) / math32.Pi
+		p = math32.Trunc(p)
 		if p < 0 {
 			p += 360
 		}
@@ -483,7 +484,7 @@ static void PF_ftos(void) {
 //export PF_fabs
 func PF_fabs() {
 	f := progsdat.RawGlobalsF[progs.OffsetParm0]
-	progsdat.Globals.Returnf()[0] = math.Abs(f)
+	progsdat.Globals.Returnf()[0] = math32.Abs(f)
 }
 
 /*
@@ -688,24 +689,25 @@ static void PF_lightstyle(void) {
     }
   }
 }
-
-static void PF_rint(void) {
-  float f;
-  f = Pr_globalsf(OFS_PARM0);
-  if (f > 0)
-    Set_Pr_globalsf(OFS_RETURN, (int)(f + 0.5));
-  else
-    Set_Pr_globalsf(OFS_RETURN, (int)(f - 0.5));
-}
-
-static void PF_floor(void) {
-  Set_Pr_globalsf(OFS_RETURN, floor(Pr_globalsf(OFS_PARM0)));
-}
-
-static void PF_ceil(void) {
-  Set_Pr_globalsf(OFS_RETURN, ceil(Pr_globalsf(OFS_PARM0)));
-}
 */
+
+//export PF_rint
+func PF_rint() {
+	v := progsdat.RawGlobalsF[progs.OffsetParm0]
+	progsdat.Globals.Returnf()[0] = math.RoundToEven(v)
+}
+
+//export PF_floor
+func PF_floor() {
+	v := progsdat.RawGlobalsF[progs.OffsetParm0]
+	progsdat.Globals.Returnf()[0] = math32.Floor(v)
+}
+
+//export PF_ceil
+func PF_ceil() {
+	v := progsdat.RawGlobalsF[progs.OffsetParm0]
+	progsdat.Globals.Returnf()[0] = math32.Ceil(v)
+}
 
 /*
 static void PF_checkbottom(void) {
@@ -715,17 +717,16 @@ static void PF_checkbottom(void) {
 
   Set_Pr_globalsf(OFS_RETURN, SV_CheckBottom(ent));
 }
+*/
 
-static void PF_pointcontents(void) {
-  vec3_t v;
-
-  v[0] = Pr_globalsf(OFS_PARM0);
-  v[1] = Pr_globalsf(OFS_PARM0 + 1);
-  v[2] = Pr_globalsf(OFS_PARM0 + 2);
-
-  Set_Pr_globalsf(OFS_RETURN, SV_PointContents(v));
+//export PF_pointcontents
+func PF_pointcontents() {
+	v := vec.VFromA(*progsdat.Globals.Parm0f())
+	pc := hullPointContents(&sv.worldModel.Hulls[0], 0, v)
+	progsdat.Globals.Returnf()[0] = float32(pc)
 }
 
+/*
 static void PF_nextent(void) {
   int i;
 
@@ -823,33 +824,41 @@ static void PF_aim(void) {
     Set_Pr_globalsf(OFS_RETURN + 2, bestdir[2]);
   }
 }
-
-// This was a major timewaster in progs, so it was converted to C
-void PF_changeyaw(void) {
-  int ent;
-  float ideal, current, move, speed;
-
-  ent = Pr_global_struct_self();
-  current = anglemod(EVars(ent)->angles[1]);
-  ideal = EVars(ent)->ideal_yaw;
-  speed = EVars(ent)->yaw_speed;
-
-  if (current == ideal) return;
-  move = ideal - current;
-  if (ideal > current) {
-    if (move >= 180) move = move - 360;
-  } else {
-    if (move <= -180) move = move + 360;
-  }
-  if (move > 0) {
-    if (move > speed) move = speed;
-  } else {
-    if (move < -speed) move = -speed;
-  }
-
-  EVars(ent)->angles[1] = anglemod(current + move);
-}
 */
+
+// This was a major timewaster in progs
+//export PF_changeyaw
+func PF_changeyaw() {
+	ent := int(progsdat.Globals.Self)
+	ev := EntVars(ent)
+	current := math.AngleMod32(ev.Angles[1])
+	ideal := ev.IdealYaw
+	speed := ev.YawSpeed
+
+	if current == ideal {
+		return
+	}
+	move := ideal - current
+	if ideal > current {
+		if move >= 180 {
+			move -= 360
+		}
+	} else {
+		if move <= -180 {
+			move += 360
+		}
+	}
+	if move > 0 {
+		if move > speed {
+			move = speed
+		}
+	} else {
+		if move < -speed {
+			move = -speed
+		}
+	}
+	ev.Angles[1] = math.AngleMod32(current + move)
+}
 
 const (
 	MSG_BROADCAST = iota // unreliable to all
