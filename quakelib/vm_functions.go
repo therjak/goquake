@@ -1,5 +1,6 @@
 package quakelib
 
+//#include "edict.h"
 import "C"
 
 import (
@@ -377,7 +378,7 @@ static void PF_checkclient(void) {
   // return check if it might be visible
   ent = SV_LastCheck();
   if (EDICT_NUM(ent)->free || EVars(ent)->health <= 0) {
-    RETURN_EDICT(0);
+	  progsdat.RawGlobalsI[progs.OffsetReturn] = 0;
     return;
   }
 
@@ -388,13 +389,13 @@ static void PF_checkclient(void) {
   l = (leaf - sv.worldmodel->leafs) - 1;
   if ((l < 0) || !(checkpvs[l >> 3] & (1 << (l & 7)))) {
     c_notvis++;
-    RETURN_EDICT(0);
+	  progsdat.RawGlobalsI[progs.OffsetReturn] = 0;
     return;
   }
 
   // might be able to see it
   c_invis++;
-  RETURN_EDICT(ent);
+	progsdat.RawGlobalsI[progs.OffsetReturn] = int32(ent);
 }
 */
 
@@ -462,7 +463,7 @@ static void PF_findradius(void) {
     chain = ent;
   }
 
-  RETURN_EDICT(chain);
+	progsdat.RawGlobalsI[progs.OffsetReturn] = int32(chain);
 }
 
 static void PF_dprint(void) { Con_DPrintf("%s", PF_VarString(0)); }
@@ -502,7 +503,7 @@ static void PF_Spawn(void) {
 
   ed = ED_Alloc();
 
-  RETURN_EDICT(ed);
+	progsdat.RawGlobalsI[progs.OffsetReturn] = int32(ed);
 }
 
 static void PF_Remove(void) {
@@ -531,12 +532,12 @@ static void PF_Find(void) {
     if (!t) continue;
     s = PR_GetString(Pr_globalsi(OFS_PARM2));
     if (!strcmp(t, s)) {
-      RETURN_EDICT(ed);
+	    progsdat.RawGlobalsI[progs.OffsetReturn] = int32(ed);
       return;
     }
   }
 
-  RETURN_EDICT(0);
+  progsdat.RawGlobalsI[progs.OffsetReturn] = 0;
 }
 
 static void PR_CheckEmptyString(const char *s) {
@@ -726,24 +727,23 @@ func PF_pointcontents() {
 	progsdat.Globals.Returnf()[0] = float32(pc)
 }
 
-/*
-static void PF_nextent(void) {
-  int i;
-
-  i = Pr_globalsi(OFS_PARM0);
-  while (1) {
-    i++;
-    if (i == SV_NumEdicts()) {
-      RETURN_EDICT(0);
-      return;
-    }
-    if (!EDICT_NUM(i)->free) {
-      RETURN_EDICT(i);
-      return;
-    }
-  }
+//export PF_nextent
+func PF_nextent() {
+	i := progsdat.RawGlobalsI[progs.OffsetParm0]
+	for {
+		i++
+		if int(i) == sv.numEdicts {
+			progsdat.RawGlobalsI[progs.OffsetReturn] = 0
+			return
+		}
+		if C.EDICT_NUM(C.int(i)).free == 0 {
+			progsdat.RawGlobalsI[progs.OffsetReturn] = int32(i)
+			return
+		}
+	}
 }
 
+/*
 // Pick a vector for the player to shoot along
 cvar_t sv_aim;  // = {"sv_aim", "1", CVAR_NONE};  // ericw -- turn autoaim off
                 // by default. was 0.93

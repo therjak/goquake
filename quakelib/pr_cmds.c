@@ -576,30 +576,6 @@ static void PF_checkbottom(void) {
 
 /*
 =============
-PF_nextent
-
-entity nextent(entity)
-=============
-*/
-static void PF_nextent(void) {
-  int i;
-
-  i = Pr_globalsi(OFS_PARM0);
-  while (1) {
-    i++;
-    if (i == SV_NumEdicts()) {
-      RETURN_EDICT(0);
-      return;
-    }
-    if (!EDICT_NUM(i)->free) {
-      RETURN_EDICT(i);
-      return;
-    }
-  }
-}
-
-/*
-=============
 PF_aim
 
 Pick a vector for the player to shoot along
