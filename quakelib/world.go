@@ -553,7 +553,11 @@ func hullPointContents(h *model.Hull, num int, p vec.Vec3) int {
 
 //export SV_PointContents
 func SV_PointContents(p *C.float) C.int {
-	return C.int(hullPointContents(&sv.worldModel.Hulls[0], 0, p2v3(p)))
+	return C.int(pointContents(p2v3(p)))
+}
+
+func pointContents(p vec.Vec3) int {
+	return hullPointContents(&sv.worldModel.Hulls[0], 0, p)
 }
 
 //TODO: export?
@@ -743,4 +747,76 @@ func svMove(start, mins, maxs, end vec.Vec3, typ, ed int) C.trace_t {
 	clipToLinks(gArea, &clip)
 
 	return clip.trace
+}
+
+//export SV_CheckBottom
+func SV_CheckBottom(ent C.int) C.int {
+	return b2i(checkBottom(int(ent)))
+}
+
+const (
+	kStepSize = 18
+)
+
+//Returns false if any part of the bottom of the entity is off an edge that
+//is not a staircase.
+func checkBottom(ent int) bool {
+	ev := EntVars(ent)
+	o := vec.VFromA(ev.Origin)
+	mins := vec.Add(o, vec.VFromA(ev.Mins))
+	maxs := vec.Add(o, vec.VFromA(ev.Maxs))
+
+	// if all of the points under the corners are solid world, don't bother
+	// with the tougher checks
+	d := []vec.Vec3{
+		vec.Vec3{mins.X, mins.Y, mins.Z - 1},
+		vec.Vec3{mins.X, maxs.Y, mins.Z - 1},
+		vec.Vec3{maxs.X, mins.Y, mins.Z - 1},
+		vec.Vec3{maxs.X, maxs.Y, mins.Z - 1},
+	}
+	for _, start := range d {
+		if pointContents(start) != CONTENTS_SOLID {
+			return expensiveCheckBottom(ent, mins, maxs)
+		}
+	}
+	return true
+}
+
+func expensiveCheckBottom(ent int, mins, maxs vec.Vec3) bool {
+	level := mins.Z
+	below := mins.Z - 2*kStepSize
+	start := vec.Vec3{
+		(mins.X + maxs.X) * 0.5,
+		(mins.Y + maxs.Y) * 0.5,
+		level,
+	}
+	stop := vec.Vec3{start.X, start.Y, below}
+	trace := svMove(start, vec.Vec3{}, vec.Vec3{}, stop, 1 /*true*/, ent)
+
+	if trace.fraction == 1.0 {
+		return false
+	}
+	mid := trace.endpos[2]
+	bottom := trace.endpos[2]
+
+	d := []vec.Vec3{
+		vec.Vec3{mins.X, mins.Y, 0},
+		vec.Vec3{mins.X, maxs.Y, 0},
+		vec.Vec3{maxs.X, mins.Y, 0},
+		vec.Vec3{maxs.X, maxs.Y, 0},
+	}
+
+	for _, p := range d {
+		start := vec.Vec3{p.X, p.Y, level}
+		stop := vec.Vec3{p.X, p.Y, below}
+		trace := svMove(start, vec.Vec3{}, vec.Vec3{}, stop, 1 /*true*/, ent)
+
+		if trace.fraction != 1.0 && trace.endpos[2] > bottom {
+			bottom = trace.endpos[2]
+		}
+		if trace.fraction == 1.0 || mid-trace.endpos[2] > kStepSize {
+			return false
+		}
+	}
+	return true
 }

@@ -563,19 +563,6 @@ static void PF_lightstyle(void) {
 
 /*
 =============
-PF_checkbottom
-=============
-*/
-static void PF_checkbottom(void) {
-  int ent;
-
-  ent = Pr_globalsi(OFS_PARM0);
-
-  Set_Pr_globalsf(OFS_RETURN, SV_CheckBottom(ent));
-}
-
-/*
-=============
 PF_aim
 
 Pick a vector for the player to shoot along

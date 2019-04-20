@@ -710,20 +710,20 @@ func PF_ceil() {
 	progsdat.Globals.Returnf()[0] = math32.Ceil(v)
 }
 
-/*
-static void PF_checkbottom(void) {
-  int ent;
-
-  ent = Pr_globalsi(OFS_PARM0);
-
-  Set_Pr_globalsf(OFS_RETURN, SV_CheckBottom(ent));
+//export PF_checkbottom
+func PF_checkbottom() {
+	entnum := int(progsdat.RawGlobalsI[progs.OffsetParm0])
+	f := float32(0)
+	if checkBottom(entnum) {
+		f = 1
+	}
+	progsdat.Globals.Returnf()[0] = f
 }
-*/
 
 //export PF_pointcontents
 func PF_pointcontents() {
 	v := vec.VFromA(*progsdat.Globals.Parm0f())
-	pc := hullPointContents(&sv.worldModel.Hulls[0], 0, v)
+	pc := pointContents(v)
 	progsdat.Globals.Returnf()[0] = float32(pc)
 }
 
