@@ -433,39 +433,37 @@ func PF_cvar_set() {
 	cvarSet(name, val)
 }
 
-/*
 // Returns a chain of entities that have origins within a spherical area
-static void PF_findradius(void) {
-  int ent;
-  int chain;
-  float rad;
-  vec3_t org;
-  vec3_t eorg;
-  int i, j;
+//export PF_findradius
+func PF_findradius() {
+	chain := int32(0)
+	org := vec.VFromA(*progsdat.Globals.Parm0f())
+	rad := progsdat.RawGlobalsF[progs.OffsetParm1]
 
-  chain = 0;
+	for ent := 1; ent < sv.numEdicts; ent++ {
+		if C.EDICT_NUM(C.int(ent)).free != 0 {
+			continue
+		}
+		ev := EntVars(ent)
+		if ev.Solid == SOLID_NOT {
+			continue
+		}
+		eo := vec.VFromA(ev.Origin)
+		mins := vec.VFromA(ev.Mins)
+		maxs := vec.VFromA(ev.Maxs)
+		eorg := vec.Sub(org, vec.Add(eo, vec.Add(mins, maxs).Scale(0.5)))
+		if eorg.Length() > rad {
+			continue
+		}
 
-  org[0] = Pr_globalsf(OFS_PARM0);
-  org[1] = Pr_globalsf(OFS_PARM0 + 1);
-  org[2] = Pr_globalsf(OFS_PARM0 + 2);
-  rad = Pr_globalsf(OFS_PARM1);
+		ev.Chain = chain
+		chain = int32(ent)
+	}
 
-  ent = 1;
-  for (i = 1; i < SV_NumEdicts(); i++, ent++) {
-    if (EDICT_NUM(ent)->free) continue;
-    if (EVars(ent)->solid == SOLID_NOT) continue;
-    for (j = 0; j < 3; j++)
-      eorg[j] = org[j] - (EVars(ent)->origin[j] +
-                          (EVars(ent)->mins[j] + EVars(ent)->maxs[j]) * 0.5);
-    if (VectorLength(eorg) > rad) continue;
-
-    EVars(ent)->chain = chain;
-    chain = ent;
-  }
-
-	progsdat.RawGlobalsI[progs.OffsetReturn] = int32(chain);
+	progsdat.RawGlobalsI[progs.OffsetReturn] = chain
 }
 
+/*
 static void PF_dprint(void) { Con_DPrintf("%s", PF_VarString(0)); }
 
 static void PF_ftos(void) {

@@ -51,7 +51,7 @@ func Sub(a, b Vec3) Vec3 {
 }
 
 // Scale returns the vector multiplied by the skalar s
-func (v *Vec3) Scale(s float32) Vec3 {
+func (v Vec3) Scale(s float32) Vec3 {
 	return Vec3{
 		X: v.X * s,
 		Y: v.Y * s,

@@ -316,46 +316,6 @@ static void PF_checkclient(void) {
 }
 
 /*
-=================
-PF_findradius
-
-Returns a chain of entities that have origins within a spherical area
-
-findradius (origin, radius)
-=================
-*/
-static void PF_findradius(void) {
-  int ent;
-  int chain;
-  float rad;
-  vec3_t org;
-  vec3_t eorg;
-  int i, j;
-
-  chain = 0;
-
-  org[0] = Pr_globalsf(OFS_PARM0);
-  org[1] = Pr_globalsf(OFS_PARM0 + 1);
-  org[2] = Pr_globalsf(OFS_PARM0 + 2);
-  rad = Pr_globalsf(OFS_PARM1);
-
-  ent = 1;
-  for (i = 1; i < SV_NumEdicts(); i++, ent++) {
-    if (EDICT_NUM(ent)->free) continue;
-    if (EVars(ent)->solid == SOLID_NOT) continue;
-    for (j = 0; j < 3; j++)
-      eorg[j] = org[j] - (EVars(ent)->origin[j] +
-                          (EVars(ent)->mins[j] + EVars(ent)->maxs[j]) * 0.5);
-    if (VectorLength(eorg) > rad) continue;
-
-    EVars(ent)->chain = chain;
-    chain = ent;
-  }
-
-  RETURN_EDICT(chain);
-}
-
-/*
 =========
 PF_dprint
 =========
