@@ -568,3 +568,15 @@ func hostPing(args []cmd.QArg) {
 			"%4d %s\n", int(c.PingTime()*1000), c.name))
 	}
 }
+
+func findViewThingEV() *progs.EntVars {
+	for i := 0; i < sv.numEdicts; i++ {
+		ev := EntVars(i)
+		name := PRGetString(int(ev.ClassName))
+		if name != nil && *name == "viewthing" {
+			return ev
+		}
+	}
+	conPrintf("No viewthing on map\n")
+	return nil
+}

@@ -37,21 +37,30 @@ func fillEngineStrings(ks map[int]string) {
 	}
 }
 
-// export ED_NewString
+//export ED_NewString
 func ED_NewString(str *C.char) C.int {
+	s := C.GoString(str)
+	i := EDNewString(s)
+	return C.int(i)
+}
+
+func EDNewString(s string) int {
 	// TODO:
 	// replace \n with '\n' and all other \x with just '\'
-	s := C.GoString(str)
 	engineStrings = append(engineStrings, s)
 	i := len(engineStrings)
 	engineStringMap[s] = -i
-	log.Printf("ED_NewString: %s, %d", s, -i)
-	return C.int(-i)
+	return -i
 }
 
-// export PR_SetEngineString
+//export PR_SetEngineString
 func PR_SetEngineString(str *C.char) C.int {
 	s := C.GoString(str)
+	i := PRSetEngineString(s)
+	return C.int(i)
+}
+
+func PRSetEngineString(s string) int {
 	/*
 		v, ok := engineStringMap[s]
 		if ok {
@@ -62,29 +71,36 @@ func PR_SetEngineString(str *C.char) C.int {
 	engineStrings = append(engineStrings, s)
 	i := len(engineStrings)
 	engineStringMap[s] = -i
-	log.Printf("PR_SetEngineString2 %v, %d", s, -i)
-	return C.int(-i)
+	return -i
 }
 
-//export PR_GetStringInt
-func PR_GetStringInt(num C.int) *C.char {
+//export PR_GetString
+func PR_GetString(num C.int) *C.char {
 	n := int(num)
-	if num >= 0 {
+	s := PRGetString(n)
+	if s == nil {
+		return nil
+	}
+	// TODO: FIX memory leak
+	return C.CString(*s)
+}
+
+func PRGetString(n int) *string {
+	if n >= 0 {
 		s, ok := progsdat.Strings[n]
 		if !ok {
 			log.Printf("PR_GetStringInt: request of %v, is unknown", n)
-			return C.CString("")
+			return nil
 		}
-		// log.Printf("PR_GetEngineString1 %v", s)
-		return C.CString(s)
+		return &s
 	}
 	// n is negative, so -(n + 1) is our index
 	index := -(n + 1)
 	if len(engineStrings) <= index {
 		log.Printf("PR_GetStringInt: request of %v, is unknown", n)
-		return C.CString("")
+		return nil
 	}
-	return C.CString(engineStrings[index])
+	return &engineStrings[index]
 }
 
 //export Pr_globalsf

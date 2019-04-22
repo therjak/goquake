@@ -40,8 +40,6 @@ int PR_AllocString(int size, char **ptr);
 #define MAX_FIELD_LEN 64
 #define GEFV_CACHESIZE 2
 
-#define GOENGSTR 0
-
 typedef struct {
   ddef_t *pcache;
   char field[MAX_FIELD_LEN];
@@ -643,36 +641,6 @@ void ED_ParseGlobals(const char *data) {
 
 /*
 =============
-ED_NewString
-=============
-*/
-#if !GOENGSTR
-static GoInt32 ED_NewString(const char *string) {
-  char *new_p;
-  int i, l;
-  GoInt32 num;
-
-  l = strlen(string) + 1;
-  // Sys_Print_S("ED_NewString: %s", string);
-  num = PR_AllocString(l, &new_p);
-
-  for (i = 0; i < l; i++) {
-    if (string[i] == '\\' && i < l - 1) {
-      i++;
-      if (string[i] == 'n')
-        *new_p++ = '\n';
-      else
-        *new_p++ = '\\';
-    } else
-      *new_p++ = string[i];
-  }
-  // Sys_Print_I("ED_NewStringI: %d", num);
-
-  return num;
-}
-#endif
-/*
-=============
 ED_ParseEval
 
 Can parse either fields or globals
@@ -1064,127 +1032,3 @@ void PR_Init(void) {
   Cvar_FakeRegister(&saved3, "saved3");
   Cvar_FakeRegister(&saved4, "saved4");
 }
-
-//===========================================================================
-#if GOENGSTR
-const char *prstrbuf1(char *s) {
-  static char buffer[2048];
-  strncpy(buffer, s, 2048);
-  free(s);
-  return buffer;
-}
-
-const char *prstrbuf2(char *s) {
-  static char buffer[2048];
-  strncpy(buffer, s, 2048);
-  free(s);
-  return buffer;
-}
-
-const char *prstrbuf3(char *s) {
-  static char buffer[2048];
-  strncpy(buffer, s, 2048);
-  free(s);
-  return buffer;
-}
-
-const char *prstrbuf4(char *s) {
-  static char buffer[2048];
-  strncpy(buffer, s, 2048);
-  free(s);
-  return buffer;
-}
-
-const char *PR_GetString(int num) {
-  static int i = 0;
-  i = (i + 1) % 4;
-  char *s = PR_GetStringInt(num);
-  if (i == 0) {
-    return prstrbuf1(s);
-  }
-  if (i == 1) {
-    return prstrbuf2(s);
-  }
-  if (i == 1) {
-    return prstrbuf3(s);
-  }
-  return prstrbuf4(s);
-}
-
-#else
-
-#define PR_STRING_ALLOCSLOTS 256
-
-static void PR_AllocStringSlots(void) {
-  pr_maxknownstrings += PR_STRING_ALLOCSLOTS;
-  Con_DPrintf2("PR_AllocStringSlots: realloc'ing for %d slots\n",
-               pr_maxknownstrings);
-  pr_knownstrings = (const char **)Z_Realloc(
-      (void *)pr_knownstrings, pr_maxknownstrings * sizeof(char *));
-}
-
-const char *PR_GetString(int num) {
-  const char *ret;
-  // positive numbers are strings in progs.dat
-  // negative ones new ones from SetEngineString
-  if (num >= 0 && num < pr_stringssize) {
-    ret = pr_strings + num;
-    // Sys_Print_S("PR_GetString: %s", ret);
-    return ret;
-  } else if (num < 0 && num >= -pr_numknownstrings) {
-    if (!pr_knownstrings[-1 - num]) {
-      Host_Error("PR_GetString: attempt to get a non-existant string %d\n",
-                 num);
-      return "";
-    }
-    ret = pr_knownstrings[-1 - num];
-    // Sys_Print_S("PR_GetString: %s", ret);
-    return ret;
-  } else {
-    Host_Error("PR_GetString: invalid string offset %d\n", num);
-    return "";
-  }
-}
-
-int PR_SetEngineString(char *s) {
-  int i;
-  int r;
-
-  if (!s) return 0;
-  // Sys_Print_S("PR_SetString: %s", s);
-  if (s >= pr_strings && s <= pr_strings + pr_stringssize - 2) {
-    // Sys_Print_S("Got known pr_strings %s", s);
-    r = (int)(s - pr_strings);
-    // Sys_Print_I("PR_SetString: %d", r);
-    return r;
-  }
-  for (i = 0; i < pr_numknownstrings; i++) {
-    if (pr_knownstrings[i] == s) {
-      // Sys_Print_S("Got known pr_knownstrings %s", s);
-      r = -1 - i;
-      // Sys_Print_I("PR_SetString: %d", r);
-      return r;
-    }
-  }
-  if (i >= pr_maxknownstrings) PR_AllocStringSlots();
-  pr_numknownstrings++;
-  pr_knownstrings[i] = s;
-  r = -1 - i;
-  // Sys_Print_I("PR_SetString: %d", r);
-  return r;
-}
-
-int PR_AllocString(int size, char **ptr) {
-  int i;
-
-  if (!size) return 0;
-  for (i = 0; i < pr_numknownstrings; i++) {
-    if (!pr_knownstrings[i]) break;
-  }
-  if (i >= pr_maxknownstrings) PR_AllocStringSlots();
-  pr_numknownstrings++;
-  pr_knownstrings[i] = (char *)Hunk_AllocName(size, "string");
-  if (ptr) *ptr = (char *)pr_knownstrings[i];
-  return -1 - i;
-}
-#endif

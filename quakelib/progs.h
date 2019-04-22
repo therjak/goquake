@@ -30,9 +30,6 @@ void PR_Init(void);
 void PR_ExecuteProgram(int fnum);
 void PR_LoadProgs(void);
 
-const char *PR_GetString(int num);
-int PR_SetEngineString(char *s);
-
 void PR_Profile_f(void);
 
 void TT_ClearEdict(int e);

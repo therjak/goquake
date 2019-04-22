@@ -293,6 +293,7 @@ void PR_ExecuteProgram(int fnum) {
 
   if (!fnum || fnum >= progs->numfunctions) {
     if (Pr_global_struct_self()) ED_PrintNum(Pr_global_struct_self());
+    Sys_Print_I("PR_ExecuteProgram %d", fnum);
     Host_Error("PR_ExecuteProgram: NULL function");
   }
 

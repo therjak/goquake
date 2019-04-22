@@ -1,6 +1,5 @@
 package quakelib
 
-// const char* PR_GetString(int num);
 // unsigned char EAlpha(int num);
 import "C"
 
@@ -14,11 +13,11 @@ import (
 // sv.lightStyles
 
 func PR_GetStringWrap(num int) (string, error) {
-	c := C.PR_GetString(C.int(num))
+	c := PRGetString(num)
 	if c == nil {
-		return "", fmt.Errorf("No string %i", num)
+		return "", fmt.Errorf("No string %d", num)
 	}
-	return C.GoString(c), nil
+	return *c, nil
 }
 
 func EntityAlpha(num int) byte {
