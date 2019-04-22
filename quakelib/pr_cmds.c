@@ -344,21 +344,6 @@ static void PF_vtos(void) {
   Set_Pr_globalsi(OFS_RETURN, PR_SetEngineString(s));
 }
 
-static void PF_Spawn(void) {
-  int ed;
-
-  ed = ED_Alloc();
-
-  RETURN_EDICT(ed);
-}
-
-static void PF_Remove(void) {
-  int ed;
-
-  ed = Pr_globalsi(OFS_PARM0);
-  ED_Free(ed);
-}
-
 // entity (entity start, .string field, string match) find = #5;
 static void PF_Find(void) {
   int e;

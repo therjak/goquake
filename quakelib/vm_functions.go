@@ -1,6 +1,8 @@
 package quakelib
 
 //#include "edict.h"
+//void ED_Free(int ed);
+//int ED_Alloc(void);
 import "C"
 
 import (
@@ -464,7 +466,9 @@ func PF_findradius() {
 }
 
 /*
-static void PF_dprint(void) { Con_DPrintf("%s", PF_VarString(0)); }
+static void PF_dprint(void) {
+	Con_DPrintf("%s", PF_VarString(0));
+}
 
 static void PF_ftos(void) {
   float v;
@@ -495,22 +499,20 @@ static void PF_vtos(void) {
           Pr_globalsf(OFS_PARM0 + 1), Pr_globalsf(OFS_PARM0 + 2));
   Set_Pr_globalsi(OFS_RETURN, PR_SetEngineString(s));
 }
-
-static void PF_Spawn(void) {
-  int ed;
-
-  ed = ED_Alloc();
-
-	progsdat.RawGlobalsI[progs.OffsetReturn] = int32(ed);
+*/
+//export PF_Spawn
+func PF_Spawn() {
+	ed := C.ED_Alloc()
+	progsdat.RawGlobalsI[progs.OffsetReturn] = int32(ed)
 }
 
-static void PF_Remove(void) {
-  int ed;
-
-  ed = Pr_globalsi(OFS_PARM0);
-  ED_Free(ed);
+//export PF_Remove
+func PF_Remove() {
+	ed := progsdat.RawGlobalsI[progs.OffsetParm0]
+	C.ED_Free(C.int(ed))
 }
 
+/*
 // entity (entity start, .string field, string match) find = #5;
 static void PF_Find(void) {
   int e;
