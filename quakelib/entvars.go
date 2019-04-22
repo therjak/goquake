@@ -46,6 +46,12 @@ func EntVars(idx int) *progs.EntVars {
 	//return (*progs.EntVars)(unsafe.Pointer(&virtmem[int(idx)*entityFields]))
 }
 
+func RawEntVarsI(idx, off int) int32 {
+	v := uintptr(unsafe.Pointer(g_entvars))
+	vp := v + uintptr(idx*entityFields*4) + uintptr(off*4)
+	return *(*int32)(unsafe.Pointer(vp))
+}
+
 //export TT_ClearEntVars
 func TT_ClearEntVars(e *C.entvars_t) {
 	C.memset(unsafe.Pointer(e), 0, C.ulong(entityFields*4))

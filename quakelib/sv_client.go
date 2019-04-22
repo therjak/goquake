@@ -659,7 +659,11 @@ func (c *SVClient) SendServerinfo() {
 		m.WriteByte(server.GameCoop)
 	}
 
-	m.WriteString(PR_GetStringWrap(int(EntVars(0).Message)))
+	s, err := PR_GetStringWrap(int(EntVars(0).Message))
+	if err != nil {
+		s = ""
+	}
+	m.WriteString(s)
 
 	for i, mn := range sv.modelPrecache[1:] {
 		if sv.protocol == protocol.NetQuake && i >= 256 {

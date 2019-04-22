@@ -67,7 +67,10 @@ func PF_setmodel2() {
 
 	e := int(progsdat.RawGlobalsI[progs.OffsetParm0])
 	mi := progsdat.RawGlobalsI[progs.OffsetParm1]
-	m := PR_GetStringWrap(int(mi))
+	m, err := PR_GetStringWrap(int(mi))
+	if err != nil {
+		m = ""
+	}
 
 	idx := -1
 	for i, mp := range sv.modelPrecache {
@@ -180,7 +183,10 @@ func PF_particle() {
 func PF_ambientsound() {
 	large := false
 	pos := vec.VFromA(*progsdat.Globals.Parm0f())
-	sample := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm1]))
+	sample, err := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm1]))
+	if err != nil {
+		sample = ""
+	}
 	volume := progsdat.RawGlobalsF[progs.OffsetParm2] * 255
 	attenuation := progsdat.RawGlobalsF[progs.OffsetParm3] * 64
 
@@ -238,7 +244,10 @@ func PF_ambientsound() {
 func PF_sound() {
 	entity := progsdat.RawGlobalsI[progs.OffsetParm0]
 	channel := progsdat.RawGlobalsF[progs.OffsetParm1]
-	sample := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm2]))
+	sample, err := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm2]))
+	if err != nil {
+		sample = ""
+	}
 	volume := progsdat.RawGlobalsF[progs.OffsetParm3] * 255
 	attenuation := progsdat.RawGlobalsF[progs.OffsetParm4]
 
@@ -408,7 +417,10 @@ func PF_stuffcmd() {
 	if entnum < 1 || entnum > svs.maxClients {
 		runError("Parm 0 not a client")
 	}
-	str := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm1]))
+	str, err := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm1]))
+	if err != nil {
+		str = ""
+	}
 
 	c := sv_clients[entnum-1]
 	c.msg.WriteByte(server.StuffText)
@@ -418,20 +430,32 @@ func PF_stuffcmd() {
 // Sends text over to the client's execution buffer
 //export PF_localcmd
 func PF_localcmd() {
-	str := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm0]))
+	str, err := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm0]))
+	if err != nil {
+		str = ""
+	}
 	cbuf.AddText(str)
 }
 
 //export PF_cvar
 func PF_cvar() {
-	str := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm0]))
+	str, err := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm0]))
+	if err != nil {
+		str = ""
+	}
 	progsdat.Globals.Returnf()[0] = CvarVariableValue(str)
 }
 
 //export PF_cvar_set
 func PF_cvar_set() {
-	name := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm0]))
-	val := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm1]))
+	name, err := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm0]))
+	if err != nil {
+		name = ""
+	}
+	val, err := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm1]))
+	if err != nil {
+		val = ""
+	}
 	cvarSet(name, val)
 }
 
@@ -512,34 +536,33 @@ func PF_Remove() {
 	C.ED_Free(C.int(ed))
 }
 
-/*
-// entity (entity start, .string field, string match) find = #5;
-static void PF_Find(void) {
-  int e;
-  int f;
-  const char *s, *t;
-  int ed;
-
-  e = Pr_globalsi(OFS_PARM0);
-  f = Pr_globalsi(OFS_PARM1);
-  s = PR_GetString(Pr_globalsi(OFS_PARM2));
-  if (!s) PR_RunError("PF_Find: bad search string");
-
-  for (e++; e < SV_NumEdicts(); e++) {
-    ed = e;
-    if (EDICT_NUM(ed)->free) continue;
-    t = (PR_GetString(*(GoInt32 *)&((float *)EVars(ed))[f]));
-    if (!t) continue;
-    s = PR_GetString(Pr_globalsi(OFS_PARM2));
-    if (!strcmp(t, s)) {
-	    progsdat.RawGlobalsI[progs.OffsetReturn] = int32(ed);
-      return;
-    }
-  }
-
-  progsdat.RawGlobalsI[progs.OffsetReturn] = 0;
+//export PF_Find
+func PF_Find() {
+	e := progsdat.RawGlobalsI[progs.OffsetParm0]
+	f := progsdat.RawGlobalsI[progs.OffsetParm1]
+	s, err := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm2]))
+	if err != nil {
+		s = ""
+		runError("PF_Find: bad search string")
+	}
+	for e++; int(e) < sv.numEdicts; e++ {
+		if C.EDICT_NUM(C.int(e)).free != 0 {
+			continue
+		}
+		ti := RawEntVarsI(int(e), int(f))
+		t, err := PR_GetStringWrap(int(ti))
+		if err != nil {
+			continue
+		}
+		if t == s {
+			progsdat.RawGlobalsI[progs.OffsetReturn] = int32(e)
+			return
+		}
+	}
+	progsdat.RawGlobalsI[progs.OffsetReturn] = 0
 }
 
+/*
 static void PR_CheckEmptyString(const char *s) {
   if (s[0] <= ' ') PR_RunError("Bad string");
 }
@@ -987,7 +1010,10 @@ func PF_WriteCoord() {
 func PF_WriteString() {
 	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
 	i := int(progsdat.RawGlobalsI[progs.OffsetParm1])
-	msg := PR_GetStringWrap(i)
+	msg, err := PR_GetStringWrap(i)
+	if err != nil {
+		msg = ""
+	}
 	switch dest {
 	case MSG_ONE:
 		sv_clients[writeClient()].msg.WriteString(msg)
@@ -1106,6 +1132,9 @@ func PF_changelevel() {
 	svs.changeLevelIssued = true
 
 	i := int(progsdat.RawGlobalsI[progs.OffsetParm0])
-	s := PR_GetStringWrap(i)
+	s, err := PR_GetStringWrap(i)
+	if err != nil {
+		s = ""
+	}
 	cbuf.AddText(fmt.Sprintf("changelevel %s\n", s))
 }

@@ -694,7 +694,12 @@ func (s *Server) WriteClientdataToMessage(e *progs.EntVars, alpha byte) {
 	}
 	bits |= server.SU_WEAPON
 
-	wmi := s.ModelIndex(PR_GetStringWrap(int(e.WeaponModel)))
+	wms, err := PR_GetStringWrap(int(e.WeaponModel))
+	if err != nil {
+		wms = ""
+	}
+	wmi := s.ModelIndex(wms)
+
 	if s.protocol != protocol.NetQuake {
 		if (wmi & 0xFF00) != 0 {
 			bits |= server.SU_WEAPON2
@@ -934,11 +939,19 @@ func CheckVelocity(ent *progs.EntVars) {
 	maxVelocity := cvars.ServerMaxVelocity.Value()
 	for i := 0; i < 3; i++ {
 		if ent.Velocity[i] != ent.Velocity[i] {
-			conPrintf("Got a NaN velocity on %s\n", PR_GetStringWrap(int(ent.ClassName)))
+			s, err := PR_GetStringWrap(int(ent.ClassName))
+			if err != nil {
+				s = ""
+			}
+			conPrintf("Got a NaN velocity on %s\n", s)
 			ent.Velocity[i] = 0
 		}
 		if ent.Origin[i] != ent.Origin[i] {
-			conPrintf("Got a NaN origin on %s\n", PR_GetStringWrap(int(ent.ClassName)))
+			s, err := PR_GetStringWrap(int(ent.ClassName))
+			if err != nil {
+				s = ""
+			}
+			conPrintf("Got a NaN origin on %s\n", s)
 			ent.Origin[i] = 0
 		}
 		if ent.Velocity[i] > maxVelocity {

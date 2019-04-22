@@ -344,33 +344,6 @@ static void PF_vtos(void) {
   Set_Pr_globalsi(OFS_RETURN, PR_SetEngineString(s));
 }
 
-// entity (entity start, .string field, string match) find = #5;
-static void PF_Find(void) {
-  int e;
-  int f;
-  const char *s, *t;
-  int ed;
-
-  e = Pr_globalsi(OFS_PARM0);
-  f = Pr_globalsi(OFS_PARM1);
-  s = PR_GetString(Pr_globalsi(OFS_PARM2));
-  if (!s) PR_RunError("PF_Find: bad search string");
-
-  for (e++; e < SV_NumEdicts(); e++) {
-    ed = e;
-    if (EDICT_NUM(ed)->free) continue;
-    t = (PR_GetString(*(GoInt32 *)&((float *)EVars(ed))[f]));
-    if (!t) continue;
-    s = PR_GetString(Pr_globalsi(OFS_PARM2));
-    if (!strcmp(t, s)) {
-      RETURN_EDICT(ed);
-      return;
-    }
-  }
-
-  RETURN_EDICT(0);
-}
-
 static void PR_CheckEmptyString(const char *s) {
   if (s[0] <= ' ') PR_RunError("Bad string");
 }

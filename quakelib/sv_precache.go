@@ -5,6 +5,7 @@ package quakelib
 import "C"
 
 import (
+	"fmt"
 	"log"
 )
 
@@ -12,9 +13,12 @@ import (
 // sv.soundPrecache
 // sv.lightStyles
 
-func PR_GetStringWrap(num int) string {
+func PR_GetStringWrap(num int) (string, error) {
 	c := C.PR_GetString(C.int(num))
-	return C.GoString(c)
+	if c == nil {
+		return "", fmt.Errorf("No string %i", num)
+	}
+	return C.GoString(c), nil
 }
 
 func EntityAlpha(num int) byte {
