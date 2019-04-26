@@ -7,7 +7,6 @@ import "C"
 
 import (
 	"fmt"
-	"github.com/chewxy/math32"
 	"log"
 	"math/rand"
 	"quake/cbuf"
@@ -19,6 +18,8 @@ import (
 	"quake/protocol"
 	"quake/protocol/server"
 	"runtime"
+
+	"github.com/chewxy/math32"
 )
 
 func runError(format string, v ...interface{}) {
@@ -494,12 +495,13 @@ static void PF_dprint(void) {
 	Con_DPrintf("%s", PF_VarString(0));
 }
 
+// THERJAK
 static void PF_ftos(void) {
   float v;
   char *s;
 
   v = Pr_globalsf(OFS_PARM0);
-  s = PR_GetTempString();
+  s = PR_GetTempString(); // this is just a 'get temp buffer' type of function
   if (v == (int)v)
     sprintf(s, "%d", (int)v);
   else
@@ -515,10 +517,12 @@ func PF_fabs() {
 }
 
 /*
+
+// THERJAK
 static void PF_vtos(void) {
   char *s;
 
-  s = PR_GetTempString();
+  s = PR_GetTempString(); // this is just a 'get temp buffer' type of function
   sprintf(s, "'%5.1f %5.1f %5.1f'", Pr_globalsf(OFS_PARM0),
           Pr_globalsf(OFS_PARM0 + 1), Pr_globalsf(OFS_PARM0 + 2));
   Set_Pr_globalsi(OFS_RETURN, PR_SetEngineString(s));
@@ -563,15 +567,18 @@ func PF_Find() {
 }
 
 /*
+// THERJAK
 static void PR_CheckEmptyString(const char *s) {
   if (s[0] <= ' ') PR_RunError("Bad string");
 }
 
+// THERJAK
 static void PF_precache_file(void) {  // precache_file is only used to copy
                                       // files with qcc, it does nothing
   Set_Pr_globalsi(OFS_RETURN, Pr_globalsi(OFS_PARM0));
 }
 
+// THERJAK
 static void PF_precache_sound(void) {
   const char *s;
   int i;
@@ -1047,6 +1054,7 @@ func PF_WriteEntity() {
 }
 
 /*
+// THERJAK
 static void PF_makestatic(void) {
   int ent;
   int i;
@@ -1108,6 +1116,7 @@ static void PF_makestatic(void) {
   ED_Free(ent);
 }
 
+// THERJAK
 static void PF_setspawnparms(void) {
   int i;
   int client;

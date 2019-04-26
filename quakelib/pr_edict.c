@@ -408,6 +408,7 @@ ED_Print
 For debugging
 =============
 */
+// THERJAK
 void ED_Print(int ed) {
   ddef_t *d;
   int *v;
@@ -495,6 +496,7 @@ void ED_Write(FILE *f, int ed) {
   fprintf(f, "}\n");
 }
 
+// THERJAK
 void ED_PrintNum(int ent) { ED_Print(ent); }
 
 /*
@@ -504,6 +506,7 @@ ED_PrintEdicts
 For debugging, prints all the entities in the current server
 =============
 */
+// THERJAK
 void ED_PrintEdicts(void) {
   int i;
 
@@ -520,6 +523,8 @@ ED_PrintEdict_f
 For debugging, prints a single edicy
 =============
 */
+
+// THERJAK
 static void ED_PrintEdict_f(void) {
   int i;
 
@@ -540,6 +545,8 @@ ED_Count
 For debugging
 =============
 */
+
+// THERJAK
 static void ED_Count(void) {
   int i, active, models, solid, step;
 
