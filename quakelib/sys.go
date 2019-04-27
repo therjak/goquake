@@ -137,7 +137,7 @@ func ConPrintStr(format string, v ...interface{}) {
 	C.Con_PrintStr(cstr)
 }
 
-func conSafePrintStr(format string, v ...interface{}) {
+func conSafePrintf(format string, v ...interface{}) {
 	tmp := ScreenDisabled()
 	screenDisabled = true
 	defer SetScreenDisabled(tmp)
@@ -146,7 +146,7 @@ func conSafePrintStr(format string, v ...interface{}) {
 
 func init() {
 	conlog.SetPrintf(conPrintf)
-	conlog.SetSavePrintf(conSafePrintStr)
+	conlog.SetSavePrintf(conSafePrintf)
 }
 
 const (

@@ -403,52 +403,6 @@ const char *PR_GlobalStringNoContents(int ofs) {
 
 /*
 =============
-ED_Print
-
-For debugging
-=============
-*/
-// THERJAK
-void ED_Print(int ed) {
-  ddef_t *d;
-  int *v;
-  int i, j, l;
-  const char *name;
-  int type;
-
-  if (EDICT_NUM(ed)->free) {
-    Con_Printf("FREE\n");
-    return;
-  }
-
-  Con_SafePrintf("\nEDICT %i:\n", ed);
-  for (i = 1; i < progs->numfielddefs; i++) {
-    d = &pr_fielddefs[i];
-    name = PR_GetString(d->s_name);
-    l = strlen(name);
-    if (l > 1 && name[l - 2] == '_') continue;  // skip _x, _y, _z vars
-
-    v = (int *)((char *)EVars(ed) + d->ofs * 4);
-
-    // if the value is still all 0, skip the field
-    type = d->type & ~DEF_SAVEGLOBAL;
-
-    for (j = 0; j < type_size[type]; j++) {
-      if (v[j]) break;
-    }
-    if (j == type_size[type]) continue;
-
-    Con_SafePrintf("%s", name);            // johnfitz -- was Con_Printf
-    while (l++ < 15) Con_SafePrintf(" ");  // johnfitz -- was Con_Printf
-
-    Con_SafePrintf(
-        "%s\n",
-        PR_ValueString(d->type, (eval_t *)v));  // johnfitz -- was Con_Printf
-  }
-}
-
-/*
-=============
 ED_Write
 
 For savegames
@@ -494,78 +448,6 @@ void ED_Write(FILE *f, int ed) {
   // johnfitz
 
   fprintf(f, "}\n");
-}
-
-// THERJAK
-void ED_PrintNum(int ent) { ED_Print(ent); }
-
-/*
-=============
-ED_PrintEdicts
-
-For debugging, prints all the entities in the current server
-=============
-*/
-// THERJAK
-void ED_PrintEdicts(void) {
-  int i;
-
-  if (!SV_Active()) return;
-
-  Con_Printf("%i entities\n", SV_NumEdicts());
-  for (i = 0; i < SV_NumEdicts(); i++) ED_PrintNum(i);
-}
-
-/*
-=============
-ED_PrintEdict_f
-
-For debugging, prints a single edicy
-=============
-*/
-
-// THERJAK
-static void ED_PrintEdict_f(void) {
-  int i;
-
-  if (!SV_Active()) return;
-
-  i = Cmd_ArgvAsInt(1);
-  if (i < 0 || i >= SV_NumEdicts()) {
-    Con_Printf("Bad edict number\n");
-    return;
-  }
-  ED_PrintNum(i);
-}
-
-/*
-=============
-ED_Count
-
-For debugging
-=============
-*/
-
-// THERJAK
-static void ED_Count(void) {
-  int i, active, models, solid, step;
-
-  if (!SV_Active()) return;
-
-  active = models = solid = step = 0;
-  for (i = 0; i < SV_NumEdicts(); i++) {
-    if (EDICT_NUM(i)->free) continue;
-    active++;
-    if (EVars(i)->solid) solid++;
-    if (EVars(i)->model) models++;
-    if (EVars(i)->movetype == MOVETYPE_STEP) step++;
-  }
-
-  Con_Printf("num_edicts:%3i\n", SV_NumEdicts());
-  Con_Printf("active    :%3i\n", active);
-  Con_Printf("view      :%3i\n", models);
-  Con_Printf("touch     :%3i\n", solid);
-  Con_Printf("step      :%3i\n", step);
 }
 
 /*

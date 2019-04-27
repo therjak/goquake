@@ -659,9 +659,10 @@ func (c *SVClient) SendServerinfo() {
 		m.WriteByte(server.GameCoop)
 	}
 
-	s, err := PR_GetStringWrap(int(EntVars(0).Message))
-	if err != nil {
-		s = ""
+	s := ""
+	sp := PRGetString(int(EntVars(0).Message))
+	if sp != nil {
+		s = *sp
 	}
 	m.WriteString(s)
 

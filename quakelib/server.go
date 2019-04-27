@@ -150,7 +150,7 @@ func Set_SV_Player(p int) {
 func svProtocol(args []cmd.QArg) {
 	switch len(args) {
 	default:
-		conSafePrintStr("usage: sv_protocol <protocol>\n")
+		conSafePrintf("usage: sv_protocol <protocol>\n")
 	case 0:
 		conPrintf(`"sv_protocol" is "%v"`+"\n", sv_protocol)
 	case 1:
@@ -694,11 +694,11 @@ func (s *Server) WriteClientdataToMessage(e *progs.EntVars, alpha byte) {
 	}
 	bits |= server.SU_WEAPON
 
-	wms, err := PR_GetStringWrap(int(e.WeaponModel))
-	if err != nil {
-		wms = ""
+	wmi := 0
+	wms := PRGetString(int(e.WeaponModel))
+	if wms != nil {
+		wmi = s.ModelIndex(*wms)
 	}
-	wmi := s.ModelIndex(wms)
 
 	if s.protocol != protocol.NetQuake {
 		if (wmi & 0xFF00) != 0 {
@@ -939,19 +939,13 @@ func CheckVelocity(ent *progs.EntVars) {
 	maxVelocity := cvars.ServerMaxVelocity.Value()
 	for i := 0; i < 3; i++ {
 		if ent.Velocity[i] != ent.Velocity[i] {
-			s, err := PR_GetStringWrap(int(ent.ClassName))
-			if err != nil {
-				s = ""
-			}
-			conPrintf("Got a NaN velocity on %s\n", s)
+			s := PRGetString(int(ent.ClassName))
+			conPrintf("Got a NaN velocity on %s\n", *s)
 			ent.Velocity[i] = 0
 		}
 		if ent.Origin[i] != ent.Origin[i] {
-			s, err := PR_GetStringWrap(int(ent.ClassName))
-			if err != nil {
-				s = ""
-			}
-			conPrintf("Got a NaN origin on %s\n", s)
+			s := PRGetString(int(ent.ClassName))
+			conPrintf("Got a NaN origin on %s\n", *s)
 			ent.Origin[i] = 0
 		}
 		if ent.Velocity[i] > maxVelocity {

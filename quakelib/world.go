@@ -219,7 +219,7 @@ func LinkEdict(e int, touchTriggers bool) {
 	if e == 0 {
 		return // don't add the world
 	}
-	ed := C.EDICT_NUM(C.int(e))
+	ed := edictNum(e)
 	if ed.free != 0 {
 		return
 	}
@@ -293,7 +293,7 @@ func findTouchedLeafs(e int, node model.Node) {
 	}
 	if node.Contents() < 0 {
 		// This is a leaf
-		ed := C.EDICT_NUM(C.int(e))
+		ed := edictNum(e)
 		if ed.num_leafs == C.MAX_ENT_LEAFS {
 			return
 		}

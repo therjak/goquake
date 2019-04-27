@@ -4,21 +4,12 @@ package quakelib
 import "C"
 
 import (
-	"fmt"
 	"log"
 )
 
 // sv.modelPrecache
 // sv.soundPrecache
 // sv.lightStyles
-
-func PR_GetStringWrap(num int) (string, error) {
-	c := PRGetString(num)
-	if c == nil {
-		return "", fmt.Errorf("No string %d", num)
-	}
-	return *c, nil
-}
 
 func EntityAlpha(num int) byte {
 	return byte(C.EAlpha(C.int(num)))

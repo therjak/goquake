@@ -1,8 +1,5 @@
 package quakelib
 
-//#include "edict.h"
-//void ED_Free(int ed);
-//int ED_Alloc(void);
 import "C"
 
 import (
@@ -68,20 +65,22 @@ func PF_setmodel2() {
 
 	e := int(progsdat.RawGlobalsI[progs.OffsetParm0])
 	mi := progsdat.RawGlobalsI[progs.OffsetParm1]
-	m, err := PR_GetStringWrap(int(mi))
-	if err != nil {
-		m = ""
+	m := PRGetString(int(mi))
+	if m == nil {
+		runError("no precache: %d", mi)
+		return
 	}
 
 	idx := -1
 	for i, mp := range sv.modelPrecache {
-		if mp == m {
+		if mp == *m {
 			idx = i
 			break
 		}
 	}
 	if idx == -1 {
 		runError("no precache: %s", m)
+		return
 	}
 
 	ev := EntVars(e)
@@ -184,9 +183,10 @@ func PF_particle() {
 func PF_ambientsound() {
 	large := false
 	pos := vec.VFromA(*progsdat.Globals.Parm0f())
-	sample, err := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm1]))
-	if err != nil {
-		sample = ""
+	sample := PRGetString(int(progsdat.RawGlobalsI[progs.OffsetParm1]))
+	if sample == nil {
+		conPrintf("no precache: %v\n", pos)
+		return
 	}
 	volume := progsdat.RawGlobalsF[progs.OffsetParm2] * 255
 	attenuation := progsdat.RawGlobalsF[progs.OffsetParm3] * 64
@@ -194,7 +194,7 @@ func PF_ambientsound() {
 	// check to see if samp was properly precached
 	soundnum := func() int {
 		for i, m := range sv.soundPrecache {
-			if m == sample {
+			if m == *sample {
 				return i
 			}
 		}
@@ -245,9 +245,10 @@ func PF_ambientsound() {
 func PF_sound() {
 	entity := progsdat.RawGlobalsI[progs.OffsetParm0]
 	channel := progsdat.RawGlobalsF[progs.OffsetParm1]
-	sample, err := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm2]))
-	if err != nil {
-		sample = ""
+	sample := PRGetString(int(progsdat.RawGlobalsI[progs.OffsetParm2]))
+	if sample == nil {
+		runError("PF_sound: no sample")
+		return
 	}
 	volume := progsdat.RawGlobalsF[progs.OffsetParm3] * 255
 	attenuation := progsdat.RawGlobalsF[progs.OffsetParm4]
@@ -263,7 +264,7 @@ func PF_sound() {
 	if channel < 0 || channel > 7 {
 		HostError("SV_StartSound: channel = %v", channel)
 	}
-	sv.StartSound(int(entity), int(channel), int(volume), sample, attenuation)
+	sv.StartSound(int(entity), int(channel), int(volume), *sample, attenuation)
 }
 
 //export PF_break
@@ -350,7 +351,7 @@ static int PF_newcheckclient(int check) {
 
     if (i == check) break;  // didn't find anything else
 
-    if (EDICT_NUM(ent)->free) continue;
+    if (edictNum(ent).free) continue;
     if (EVars(ent)->health <= 0) continue;
     if ((int)EVars(ent)->flags & FL_NOTARGET) continue;
 
@@ -389,7 +390,7 @@ static void PF_checkclient(void) {
 
   // return check if it might be visible
   ent = SV_LastCheck();
-  if (EDICT_NUM(ent)->free || EVars(ent)->health <= 0) {
+  if (edictNum(ent).free || EVars(ent)->health <= 0) {
 	  progsdat.RawGlobalsI[progs.OffsetReturn] = 0;
     return;
   }
@@ -417,47 +418,53 @@ func PF_stuffcmd() {
 	entnum := int(progsdat.RawGlobalsI[progs.OffsetParm0])
 	if entnum < 1 || entnum > svs.maxClients {
 		runError("Parm 0 not a client")
+		return
 	}
-	str, err := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm1]))
-	if err != nil {
-		str = ""
+	str := PRGetString(int(progsdat.RawGlobalsI[progs.OffsetParm1]))
+	if str == nil {
+		runError("stuffcmd: no string")
+		return
 	}
 
 	c := sv_clients[entnum-1]
 	c.msg.WriteByte(server.StuffText)
-	c.msg.WriteString(str)
+	c.msg.WriteString(*str)
 }
 
 // Sends text over to the client's execution buffer
 //export PF_localcmd
 func PF_localcmd() {
-	str, err := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm0]))
-	if err != nil {
-		str = ""
+	str := PRGetString(int(progsdat.RawGlobalsI[progs.OffsetParm0]))
+	if str == nil {
+		runError("localcmd: no string")
+		return
 	}
-	cbuf.AddText(str)
+	cbuf.AddText(*str)
 }
 
 //export PF_cvar
 func PF_cvar() {
-	str, err := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm0]))
-	if err != nil {
-		str = ""
+	str := PRGetString(int(progsdat.RawGlobalsI[progs.OffsetParm0]))
+	if str == nil {
+		runError("PF_cvar: no string")
+		return
 	}
-	progsdat.Globals.Returnf()[0] = CvarVariableValue(str)
+	progsdat.Globals.Returnf()[0] = CvarVariableValue(*str)
 }
 
 //export PF_cvar_set
 func PF_cvar_set() {
-	name, err := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm0]))
-	if err != nil {
-		name = ""
+	name := PRGetString(int(progsdat.RawGlobalsI[progs.OffsetParm0]))
+	if name == nil {
+		runError("PF_cvar_set: no name string")
+		return
 	}
-	val, err := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm1]))
-	if err != nil {
-		val = ""
+	val := PRGetString(int(progsdat.RawGlobalsI[progs.OffsetParm1]))
+	if val == nil {
+		runError("PF_cvar_set: no val string")
+		return
 	}
-	cvarSet(name, val)
+	cvarSet(*name, *val)
 }
 
 // Returns a chain of entities that have origins within a spherical area
@@ -468,7 +475,7 @@ func PF_findradius() {
 	rad := progsdat.RawGlobalsF[progs.OffsetParm1]
 
 	for ent := 1; ent < sv.numEdicts; ent++ {
-		if C.EDICT_NUM(C.int(ent)).free != 0 {
+		if edictNum(ent).free != 0 {
 			continue
 		}
 		ev := EntVars(ent)
@@ -530,35 +537,35 @@ static void PF_vtos(void) {
 */
 //export PF_Spawn
 func PF_Spawn() {
-	ed := C.ED_Alloc()
+	ed := edictAlloc()
 	progsdat.RawGlobalsI[progs.OffsetReturn] = int32(ed)
 }
 
 //export PF_Remove
 func PF_Remove() {
 	ed := progsdat.RawGlobalsI[progs.OffsetParm0]
-	C.ED_Free(C.int(ed))
+	edictFree(int(ed))
 }
 
 //export PF_Find
 func PF_Find() {
 	e := progsdat.RawGlobalsI[progs.OffsetParm0]
 	f := progsdat.RawGlobalsI[progs.OffsetParm1]
-	s, err := PR_GetStringWrap(int(progsdat.RawGlobalsI[progs.OffsetParm2]))
-	if err != nil {
-		s = ""
+	s := PRGetString(int(progsdat.RawGlobalsI[progs.OffsetParm2]))
+	if s == nil {
 		runError("PF_Find: bad search string")
+		return
 	}
 	for e++; int(e) < sv.numEdicts; e++ {
-		if C.EDICT_NUM(C.int(e)).free != 0 {
+		if edictNum(int(e)).free != 0 {
 			continue
 		}
 		ti := RawEntVarsI(int(e), int(f))
-		t, err := PR_GetStringWrap(int(ti))
-		if err != nil {
+		t := PRGetString(int(ti))
+		if t == nil {
 			continue
 		}
-		if t == s {
+		if *t == *s {
 			progsdat.RawGlobalsI[progs.OffsetReturn] = int32(e)
 			return
 		}
@@ -766,8 +773,8 @@ func PF_nextent() {
 			progsdat.RawGlobalsI[progs.OffsetReturn] = 0
 			return
 		}
-		if C.EDICT_NUM(C.int(i)).free == 0 {
-			progsdat.RawGlobalsI[progs.OffsetReturn] = int32(i)
+		if edictNum(int(i)).free == 0 {
+			progsdat.RawGlobalsI[progs.OffsetReturn] = i
 			return
 		}
 	}
@@ -1017,19 +1024,20 @@ func PF_WriteCoord() {
 func PF_WriteString() {
 	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
 	i := int(progsdat.RawGlobalsI[progs.OffsetParm1])
-	msg, err := PR_GetStringWrap(i)
-	if err != nil {
-		msg = ""
+	msg := PRGetString(i)
+	if msg == nil {
+		runError("PF_WriteString: bad string")
+		return
 	}
 	switch dest {
 	case MSG_ONE:
-		sv_clients[writeClient()].msg.WriteString(msg)
+		sv_clients[writeClient()].msg.WriteString(*msg)
 	case MSG_INIT:
-		sv.signon.WriteString(msg)
+		sv.signon.WriteString(*msg)
 	case MSG_BROADCAST:
-		sv.datagram.WriteString(msg)
+		sv.datagram.WriteString(*msg)
 	case MSG_ALL:
-		sv.reliableDatagram.WriteString(msg)
+		sv.reliableDatagram.WriteString(*msg)
 	default:
 		runError("WriteDest: bad destination")
 	}
@@ -1063,8 +1071,8 @@ static void PF_makestatic(void) {
   ent = Pr_globalsi(OFS_PARM0);
 
   // johnfitz -- don't send invisible static entities
-  if (EDICT_NUM(ent)->alpha == ENTALPHA_ZERO) {
-    ED_Free(ent);
+  if (edictNum(ent)->alpha == ENTALPHA_ZERO) {
+    edictFree(ent);
     return;
   }
   // johnfitz
@@ -1073,7 +1081,7 @@ static void PF_makestatic(void) {
   if (SV_Protocol() == PROTOCOL_NETQUAKE) {
     if (SV_ModelIndex(PR_GetString(EVars(ent)->model)) & 0xFF00 ||
         (int)(EVars(ent)->frame) & 0xFF00) {
-      ED_Free(ent);
+      edictFree(ent);
       return;  // can't display the correct model & frame, so don't show it at
                // all
     }
@@ -1081,7 +1089,7 @@ static void PF_makestatic(void) {
     if (SV_ModelIndex(PR_GetString(EVars(ent)->model)) & 0xFF00)
       bits |= B_LARGEMODEL;
     if ((int)(EVars(ent)->frame) & 0xFF00) bits |= B_LARGEFRAME;
-    if (EDICT_NUM(ent)->alpha != ENTALPHA_DEFAULT) bits |= B_ALPHA;
+    if (edictNum(ent)->alpha != ENTALPHA_DEFAULT) bits |= B_ALPHA;
   }
 
   if (bits) {
@@ -1109,11 +1117,11 @@ static void PF_makestatic(void) {
   }
 
   // johnfitz -- PROTOCOL_FITZQUAKE
-  if (bits & B_ALPHA) SV_SO_WriteByte(EDICT_NUM(ent)->alpha);
+  if (bits & B_ALPHA) SV_SO_WriteByte(edictNum(ent)->alpha);
   // johnfitz
 
   // throw the entity away now
-  ED_Free(ent);
+  edictFree(ent);
 }
 
 // THERJAK
@@ -1141,9 +1149,10 @@ func PF_changelevel() {
 	svs.changeLevelIssued = true
 
 	i := int(progsdat.RawGlobalsI[progs.OffsetParm0])
-	s, err := PR_GetStringWrap(i)
-	if err != nil {
-		s = ""
+	s := PRGetString(i)
+	if s == nil {
+		runError("PF_changelevel: bad level name")
+		return
 	}
-	cbuf.AddText(fmt.Sprintf("changelevel %s\n", s))
+	cbuf.AddText(fmt.Sprintf("changelevel %s\n", *s))
 }
