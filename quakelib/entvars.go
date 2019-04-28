@@ -5,6 +5,7 @@ package quakelib
 //#include "progdefs.h"
 import "C"
 import (
+	"fmt"
 	"quake/progs"
 	"unsafe"
 )
@@ -44,6 +45,47 @@ func EntVars(idx int) *progs.EntVars {
 	vp := v + uintptr(idx*entityFields*4)
 	return (*progs.EntVars)(unsafe.Pointer(vp))
 	//return (*progs.EntVars)(unsafe.Pointer(&virtmem[int(idx)*entityFields]))
+}
+
+func EntVarsSprint(idx int, d progs.Def) string {
+	v := uintptr(unsafe.Pointer(g_entvars))
+	vp := v + uintptr(idx*entityFields*4) + uintptr(int(d.Offset)*4)
+	// return *(*int32)(unsafe.Pointer(vp))
+	switch d.Type {
+	case progs.EV_Void:
+		return "void"
+	case progs.EV_String:
+		v := *(*int32)(unsafe.Pointer(vp))
+		s := PRGetString(int(v))
+		if s == nil {
+			return fmt.Sprintf("bad string %d", v)
+		}
+		return *s
+	case progs.EV_Float:
+		v := *(*float32)(unsafe.Pointer(vp))
+		return fmt.Sprintf("%5.1f", v)
+	case progs.EV_Vector:
+		v := *(*[3]float32)(unsafe.Pointer(vp))
+		return fmt.Sprintf("%5.1f %5.1f %5.1f", v[0], v[1], v[2])
+	case progs.EV_Entity:
+		v := *(*int32)(unsafe.Pointer(vp))
+		return fmt.Sprintf("entity %d", v)
+	case progs.EV_Field:
+		// TODO:
+		return "field"
+	case progs.EV_Function:
+		v := *(*int32)(unsafe.Pointer(vp))
+		f := progsdat.Functions[int(v)].SName
+		s := PRGetString(int(f))
+		if s == nil {
+			return fmt.Sprintf("bad function %d", v)
+		}
+		return fmt.Sprintf("%s()", *s)
+	case progs.EV_Pointer:
+		return "pointer"
+	default: // also EV_Bad
+		return fmt.Sprintf("bad type %d", d.Type)
+	}
 }
 
 func RawEntVarsI(idx, off int) int32 {

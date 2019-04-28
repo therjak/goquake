@@ -26,12 +26,12 @@ func edictAlloc() int {
 	return int(C.ED_Alloc())
 }
 
-// For debugging
 //export ED_Print
 func ED_Print(ed C.int) {
 	edictPrint(int(ed))
 }
 
+// For debugging
 func edictPrint(ed int) {
 	if edictNum(ed).free != 0 {
 		conPrintf("FREE\n")
@@ -39,7 +39,7 @@ func edictPrint(ed int) {
 	}
 	conSafePrintf("\nEDICT %d:\n", ed)
 	for i := 1; i < len(progsdat.FieldDefs); i++ {
-		d := &progsdat.FieldDefs[i]
+		d := progsdat.FieldDefs[i]
 		name := PRGetString(int(d.SName))
 		if name == nil {
 			continue
@@ -49,20 +49,12 @@ func edictPrint(ed int) {
 			// skip _x, _y, _z vars
 			continue
 		}
-
+		// TODO: skip 0 values
 		conSafePrintf(*name)
 		for ; l < 15; l++ {
 			conSafePrintf(" ")
 		}
-		// t := d.Type &^ defSaveGlobal
-		// if t == ev_vector {
-		//	v = RawEntVarsI(ed, d.Offset)
-		//	v = RawEntVarsI(ed, d.Offset + 1)
-		//	v = RawEntVarsI(ed, d.Offset + 2)
-		// } else {
-		//	v = RawEntVarsI(ed, d.Offset)
-		// }
-		//conSafePrintf("%s\n", PR_ValueString(d.Type, (eval_t *)v));
+		conSafePrintf("%s\n", EntVarsSprint(ed, d))
 	}
 }
 
