@@ -326,11 +326,6 @@ static void PR_CheckEmptyString(const char *s) {
   if (s[0] <= ' ') PR_RunError("Bad string");
 }
 
-static void PF_precache_file(void) {  // precache_file is only used to copy
-                                      // files with qcc, it does nothing
-  Set_Pr_globalsi(OFS_RETURN, Pr_globalsi(OFS_PARM0));
-}
-
 static void PF_precache_sound(void) {
   const char *s;
   int i;

@@ -570,18 +570,20 @@ func PF_Find() {
 	progsdat.RawGlobalsI[progs.OffsetReturn] = 0
 }
 
+// precache_file is only used to copy  files with qcc, it does nothing
+//export PF_precache_file
+func PF_precache_file() {
+	progsdat.RawGlobalsI[progs.OffsetReturn] = progsdat.RawGlobalsI[progs.OffsetParm0]
+}
+
 /*
 // THERJAK
 static void PR_CheckEmptyString(const char *s) {
   if (s[0] <= ' ') PR_RunError("Bad string");
 }
+*/
 
-// THERJAK
-static void PF_precache_file(void) {  // precache_file is only used to copy
-                                      // files with qcc, it does nothing
-  Set_Pr_globalsi(OFS_RETURN, Pr_globalsi(OFS_PARM0));
-}
-
+/*
 // THERJAK
 static void PF_precache_sound(void) {
   const char *s;
