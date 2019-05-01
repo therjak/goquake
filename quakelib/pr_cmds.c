@@ -610,27 +610,6 @@ static void PF_makestatic(void) {
 
 //=============================================================================
 
-/*
-==============
-PF_setspawnparms
-==============
-*/
-static void PF_setspawnparms(void) {
-  int i;
-  int client;
-
-  i = Pr_globalsi(OFS_PARM0);
-  if (i < 1 || i > SVS_GetMaxClients()) PR_RunError("Entity is not a client");
-
-  // copy spawn parms out of the client_t
-  client = i - 1;
-
-  for (i = 0; i < NUM_SPAWN_PARMS; i++)
-    Set_pr_global_struct_parm(i, GetClientSpawnParam(client, i));
-}
-
-static void PF_Fixme(void) { PR_RunError("unimplemented builtin"); }
-
 static builtin_t pr_builtin[] = {
     PF_Fixme,
     PF_makevectors,  // void(entity e) makevectors		= #1

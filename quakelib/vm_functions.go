@@ -1120,22 +1120,28 @@ static void PF_makestatic(void) {
   // throw the entity away now
   edictFree(ent);
 }
-
-// THERJAK
-static void PF_setspawnparms(void) {
-  int i;
-  int client;
-
-  i = Pr_globalsi(OFS_PARM0);
-  if (i < 1 || i > SVS_GetMaxClients()) PR_RunError("Entity is not a client");
-
-  // copy spawn parms out of the client_t
-  client = i - 1;
-
-  for (i = 0; i < NUM_SPAWN_PARMS; i++)
-    Set_pr_global_struct_parm(i, GetClientSpawnParam(client, i));
-}
 */
+
+//export PF_setspawnparms
+func PF_setspawnparms() {
+	i := int(progsdat.RawGlobalsI[progs.OffsetParm0])
+	if i < 1 || i > svs.maxClients {
+		runError("Entity is not a client")
+		return
+	}
+
+	// copy spawn parms out of the client_t
+	client := sv_clients[i-1]
+
+	for i := 0; i < NUM_SPAWN_PARMS; i++ {
+		progsdat.Globals.Parm[i] = client.spawnParams[i]
+	}
+}
+
+//export PF_Fixme
+func PF_Fixme() {
+	runError("unimplemented builtin")
+}
 
 //export PF_changelevel
 func PF_changelevel() {

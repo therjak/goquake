@@ -46,6 +46,10 @@ const (
 	FL_JUMPRELEASED
 )
 
+const (
+	NUM_SPAWN_PARMS = 16
+)
+
 type ServerStatic struct {
 	maxClients        int
 	maxClientsLimit   int
