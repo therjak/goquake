@@ -7,6 +7,7 @@ import "C"
 
 import (
 	"quake/cmd"
+	"quake/conlog"
 	"quake/progs"
 )
 
@@ -34,10 +35,10 @@ func ED_Print(ed C.int) {
 // For debugging
 func edictPrint(ed int) {
 	if edictNum(ed).free != 0 {
-		conPrintf("FREE\n")
+		conlog.Printf("FREE\n")
 		return
 	}
-	conSafePrintf("\nEDICT %d:\n", ed)
+	conlog.SafePrintf("\nEDICT %d:\n", ed)
 	for i := 1; i < len(progsdat.FieldDefs); i++ {
 		d := progsdat.FieldDefs[i]
 		name := PRGetString(int(d.SName))
@@ -50,11 +51,11 @@ func edictPrint(ed int) {
 			continue
 		}
 		// TODO: skip 0 values
-		conSafePrintf(*name)
+		conlog.SafePrintf(*name)
 		for ; l < 15; l++ {
-			conSafePrintf(" ")
+			conlog.SafePrintf(" ")
 		}
-		conSafePrintf("%s\n", EntVarsSprint(ed, d))
+		conlog.SafePrintf("%s\n", EntVarsSprint(ed, d))
 	}
 }
 
@@ -74,7 +75,7 @@ func edictPrintEdicts() {
 		return
 	}
 
-	conPrintf("%d entities\n", sv.numEdicts)
+	conlog.Printf("%d entities\n", sv.numEdicts)
 	for i := 0; i < sv.numEdicts; i++ {
 		edictPrint(i)
 	}
@@ -93,7 +94,7 @@ func edictPrintEdictFunc() {
 
 	i := cmd.CmdArgv(1).Int()
 	if i < 0 || i >= sv.numEdicts {
-		conPrintf("Bad edict number\n")
+		conlog.Printf("Bad edict number\n")
 		return
 	}
 	edictPrint(i)
@@ -130,9 +131,9 @@ func edictCount() {
 		}
 	}
 
-	conPrintf("num_edicts:%3d\n", sv.numEdicts)
-	conPrintf("active    :%3d\n", active)
-	conPrintf("view      :%3d\n", models)
-	conPrintf("touch     :%3d\n", solid)
-	conPrintf("step      :%3d\n", step)
+	conlog.Printf("num_edicts:%3d\n", sv.numEdicts)
+	conlog.Printf("active    :%3d\n", active)
+	conlog.Printf("view      :%3d\n", models)
+	conlog.Printf("touch     :%3d\n", solid)
+	conlog.Printf("step      :%3d\n", step)
 }

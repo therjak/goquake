@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"quake/cmd"
+	"quake/conlog"
 	"quake/cvars"
 	"quake/execute"
 	"quake/progs"
@@ -46,7 +47,7 @@ func hostGod(args []cmd.QArg) {
 	const flag = progs.FlagGodMode
 	switch len(args) {
 	default:
-		conPrintf("god [value] : toggle god mode. values: 0 = off, 1 = on\n")
+		conlog.Printf("god [value] : toggle god mode. values: 0 = off, 1 = on\n")
 		return
 	case 0:
 		f = f ^ flag
@@ -75,7 +76,7 @@ func hostNoTarget(args []cmd.QArg) {
 	const flag = progs.FlagNoTarget
 	switch len(args) {
 	default:
-		conPrintf("notarget [value] : toggle notarget mode. values: 0 = off, 1 = on\n")
+		conlog.Printf("notarget [value] : toggle notarget mode. values: 0 = off, 1 = on\n")
 		return
 	case 0:
 		f = f ^ flag
@@ -103,7 +104,7 @@ func hostFly(args []cmd.QArg) {
 	m := int32(ev.MoveType)
 	switch len(args) {
 	default:
-		conPrintf("fly [value] : toggle fly mode. values: 0 = off, 1 = on\n")
+		conlog.Printf("fly [value] : toggle fly mode. values: 0 = off, 1 = on\n")
 		return
 	case 0:
 		if m != progs.MoveTypeFly {
@@ -128,8 +129,8 @@ func hostColor(args []cmd.QArg) {
 	t := c >> 4
 	b := c & 0x0f
 	if len(args) == 0 {
-		conPrintf("\"color\" is \"%d %d\"\n", t, b)
-		conPrintf("color <0-13> [0-13]\n")
+		conlog.Printf("\"color\" is \"%d %d\"\n", t, b)
+		conlog.Printf("color <0-13> [0-13]\n")
 		return
 	}
 	t = args[0].Int()
@@ -197,7 +198,7 @@ func hostPause(args []cmd.QArg) {
 
 func hostBegin(args []cmd.QArg) {
 	if execute.IsSrcCommand() {
-		conPrintf("begin is not valid from the console\n")
+		conlog.Printf("begin is not valid from the console\n")
 		return
 	}
 	HostClient().spawned = true
@@ -577,6 +578,6 @@ func findViewThingEV() *progs.EntVars {
 			return ev
 		}
 	}
-	conPrintf("No viewthing on map\n")
+	conlog.Printf("No viewthing on map\n")
 	return nil
 }

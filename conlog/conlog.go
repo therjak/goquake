@@ -10,7 +10,7 @@ var (
 func SetPrintf(f func(string, ...interface{})) {
 	p = f
 }
-func SetSavePrintf(f func(string, ...interface{})) {
+func SetSafePrintf(f func(string, ...interface{})) {
 	sp = f
 }
 

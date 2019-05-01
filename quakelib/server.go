@@ -11,6 +11,7 @@ import (
 	"log"
 	"quake/cmd"
 	cmdl "quake/commandline"
+	"quake/conlog"
 	"quake/cvars"
 	"quake/execute"
 	"quake/math/vec"
@@ -150,19 +151,19 @@ func Set_SV_Player(p int) {
 func svProtocol(args []cmd.QArg) {
 	switch len(args) {
 	default:
-		conSafePrintf("usage: sv_protocol <protocol>\n")
+		conlog.SafePrintf("usage: sv_protocol <protocol>\n")
 	case 0:
-		conPrintf(`"sv_protocol" is "%v"`+"\n", sv_protocol)
+		conlog.Printf(`"sv_protocol" is "%v"`+"\n", sv_protocol)
 	case 1:
 		i := args[0].Int()
 		switch i {
 		case protocol.NetQuake, protocol.FitzQuake, protocol.RMQ:
 			sv_protocol = i
 			if sv.active {
-				conPrintf("changes will not take effect until the next level load.\n")
+				conlog.Printf("changes will not take effect until the next level load.\n")
 			}
 		default:
-			conPrintf("sv_protocol must be %v or %v or %v\n",
+			conlog.Printf("sv_protocol must be %v or %v or %v\n",
 				protocol.NetQuake, protocol.FitzQuake, protocol.RMQ)
 		}
 	}
@@ -551,7 +552,7 @@ func (s *Server) StartSound(entity, channel, volume int, sample string, attenuat
 			return
 		}
 	}
-	conPrintf("SV_StartSound: %s not precacheed", sample)
+	conlog.Printf("SV_StartSound: %s not precacheed", sample)
 }
 
 func (s *Server) sendStartSound(entity, channel, volume, soundnum int, attenuation float32) {
@@ -940,12 +941,12 @@ func CheckVelocity(ent *progs.EntVars) {
 	for i := 0; i < 3; i++ {
 		if ent.Velocity[i] != ent.Velocity[i] {
 			s := PRGetString(int(ent.ClassName))
-			conPrintf("Got a NaN velocity on %s\n", *s)
+			conlog.Printf("Got a NaN velocity on %s\n", *s)
 			ent.Velocity[i] = 0
 		}
 		if ent.Origin[i] != ent.Origin[i] {
 			s := PRGetString(int(ent.ClassName))
-			conPrintf("Got a NaN origin on %s\n", *s)
+			conlog.Printf("Got a NaN origin on %s\n", *s)
 			ent.Origin[i] = 0
 		}
 		if ent.Velocity[i] > maxVelocity {

@@ -7,6 +7,7 @@ import (
 	"log"
 	"math/rand"
 	"quake/cbuf"
+	"quake/conlog"
 	"quake/cvars"
 	"quake/math"
 	"quake/math/vec"
@@ -21,7 +22,7 @@ import (
 
 func runError(format string, v ...interface{}) {
 	// TODO: see PR_RunError
-	conPrintf(format, v...)
+	conlog.Printf(format, v...)
 }
 
 /*
@@ -185,7 +186,7 @@ func PF_ambientsound() {
 	pos := vec.VFromA(*progsdat.Globals.Parm0f())
 	sample := PRGetString(int(progsdat.RawGlobalsI[progs.OffsetParm1]))
 	if sample == nil {
-		conPrintf("no precache: %v\n", pos)
+		conlog.Printf("no precache: %v\n", pos)
 		return
 	}
 	volume := progsdat.RawGlobalsF[progs.OffsetParm2] * 255
@@ -202,7 +203,7 @@ func PF_ambientsound() {
 	}()
 
 	if soundnum == -1 {
-		conPrintf("no precache: %v\n", sample)
+		conlog.Printf("no precache: %v\n", sample)
 		return
 	}
 
@@ -269,7 +270,7 @@ func PF_sound() {
 
 //export PF_break
 func PF_break() {
-	conPrintf("break statement\n")
+	conlog.Printf("break statement\n")
 	runtime.Breakpoint()
 }
 
@@ -286,7 +287,7 @@ func PF_traceline() {
 	// FIXME FIXME FIXME: Why do we hit this with certain progs.dat ??
 	if cvars.Developer.Bool() {
 		if !vec.Equal(v1, v1) || !vec.Equal(v2, v2) {
-			conPrintf("NAN in traceline:\nv1(%v %v %v) v2(%v %v %v)\nentity %v\n",
+			conlog.Printf("NAN in traceline:\nv1(%v %v %v) v2(%v %v %v)\nentity %v\n",
 				v1.X, v1.Y, v1.Z, v2.X, v2.Y, v2.Z, ent)
 		}
 	}

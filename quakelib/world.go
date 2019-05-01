@@ -9,6 +9,7 @@ import "C"
 import (
 	"container/ring"
 	"log"
+	"quake/conlog"
 	"quake/math"
 	"quake/math/vec"
 	"quake/model"
@@ -644,7 +645,7 @@ func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 vec.Vec
 			trace.endpos[0] = C.float(mid.X)
 			trace.endpos[1] = C.float(mid.Y)
 			trace.endpos[2] = C.float(mid.Z)
-			conPrintf("backup past 0\n")
+			conlog.Printf("backup past 0\n")
 			return false
 		}
 		midf = math.Lerp(p1f, p2f, frac)

@@ -13,9 +13,9 @@ import (
 
 func echo(args []cmd.QArg) {
 	for _, a := range args {
-		ConPrintStr("%s ", a)
+		conlog.Printf("%s ", a)
 	}
-	ConPrintStr("\n")
+	conlog.Printf("\n")
 }
 
 func printCmdList(args []cmd.QArg) {
@@ -87,15 +87,15 @@ func executeCommandLineScripts(_ []cmd.QArg) {
 
 func execFile(args []cmd.QArg) {
 	if len(args) != 1 {
-		ConPrintStr("exec <filename> : execute a script file\n")
+		conlog.Printf("exec <filename> : execute a script file\n")
 		return
 	}
 	b, err := filesystem.GetFileContents(args[0].String())
 	if err != nil {
-		ConPrintStr("couldn't exec %v\n", args[0])
+		conlog.Printf("couldn't exec %v\n", args[0])
 		return
 	}
-	ConPrintStr("execing %v\n", args[0])
+	conlog.Printf("execing %v\n", args[0])
 	cbuf.InsertText(string(b))
 }
 

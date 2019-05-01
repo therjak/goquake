@@ -122,6 +122,7 @@ func SVClientPrintf(format string, v ...interface{}) {
 	HostClient().ClientPrint(s)
 }
 
+//do not use. use conlog.Printf
 func conPrintf(format string, v ...interface{}) {
 	s := fmt.Sprintf(format, v...)
 	cstr := C.CString(s)
@@ -130,23 +131,25 @@ func conPrintf(format string, v ...interface{}) {
 	C.Con_PrintStr(cstr)
 }
 
-func ConPrintStr(format string, v ...interface{}) {
+//do not use. use conlog.Printf
+func conPrintStr(format string, v ...interface{}) {
 	s := fmt.Sprintf(format, v...)
 	cstr := C.CString(s)
 	defer C.free(unsafe.Pointer(cstr))
 	C.Con_PrintStr(cstr)
 }
 
+//do not use. use conlog.SafePrintf
 func conSafePrintf(format string, v ...interface{}) {
 	tmp := ScreenDisabled()
 	screenDisabled = true
 	defer SetScreenDisabled(tmp)
-	ConPrintStr(format, v...)
+	conPrintStr(format, v...)
 }
 
 func init() {
 	conlog.SetPrintf(conPrintf)
-	conlog.SetSavePrintf(conSafePrintf)
+	conlog.SetSafePrintf(conSafePrintf)
 }
 
 const (
@@ -157,7 +160,7 @@ const (
 //export ConPrintBar
 func ConPrintBar() {
 	if consoleLineWidth >= len(quakeBar) {
-		ConPrintStr(quakeBar)
+		conlog.Printf(quakeBar)
 	} else {
 		var b strings.Builder
 		b.WriteByte('\x1d')
@@ -165,5 +168,6 @@ func ConPrintBar() {
 			b.WriteByte('\x1e')
 		}
 		b.WriteByte('\x1f')
+		conlog.Printf(b.String())
 	}
 }
