@@ -322,28 +322,6 @@ PF_dprint
 */
 static void PF_dprint(void) { Con_DPrintf("%s", PF_VarString(0)); }
 
-static void PF_ftos(void) {
-  float v;
-  char *s;
-
-  v = Pr_globalsf(OFS_PARM0);
-  s = PR_GetTempString();
-  if (v == (int)v)
-    sprintf(s, "%d", (int)v);
-  else
-    sprintf(s, "%5.1f", v);
-  Set_Pr_globalsi(OFS_RETURN, PR_SetEngineString(s));
-}
-
-static void PF_vtos(void) {
-  char *s;
-
-  s = PR_GetTempString();
-  sprintf(s, "'%5.1f %5.1f %5.1f'", Pr_globalsf(OFS_PARM0),
-          Pr_globalsf(OFS_PARM0 + 1), Pr_globalsf(OFS_PARM0 + 2));
-  Set_Pr_globalsi(OFS_RETURN, PR_SetEngineString(s));
-}
-
 static void PR_CheckEmptyString(const char *s) {
   if (s[0] <= ' ') PR_RunError("Bad string");
 }

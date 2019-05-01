@@ -501,40 +501,36 @@ func PF_findradius() {
 static void PF_dprint(void) {
 	Con_DPrintf("%s", PF_VarString(0));
 }
+*/
 
-// THERJAK
-static void PF_ftos(void) {
-  float v;
-  char *s;
-
-  v = Pr_globalsf(OFS_PARM0);
-  s = PR_GetTempString(); // this is just a 'get temp buffer' type of function
-  if (v == (int)v)
-    sprintf(s, "%d", (int)v);
-  else
-    sprintf(s, "%5.1f", v);
-  Set_Pr_globalsi(OFS_RETURN, PR_SetEngineString(s));
+//export PF_ftos
+func PF_ftos() {
+	v := progsdat.RawGlobalsF[progs.OffsetParm0]
+	s := func() string {
+		iv := int(v)
+		if v == float32(iv) {
+			return fmt.Sprintf("%d", iv)
+		}
+		return fmt.Sprintf("%5.1f", v)
+	}()
+	progsdat.RawGlobalsI[progs.OffsetReturn] = int32(PRSetEngineString(s))
 }
 
-*/
 //export PF_fabs
 func PF_fabs() {
 	f := progsdat.RawGlobalsF[progs.OffsetParm0]
 	progsdat.Globals.Returnf()[0] = math32.Abs(f)
 }
 
-/*
-
-// THERJAK
-static void PF_vtos(void) {
-  char *s;
-
-  s = PR_GetTempString(); // this is just a 'get temp buffer' type of function
-  sprintf(s, "'%5.1f %5.1f %5.1f'", Pr_globalsf(OFS_PARM0),
-          Pr_globalsf(OFS_PARM0 + 1), Pr_globalsf(OFS_PARM0 + 2));
-  Set_Pr_globalsi(OFS_RETURN, PR_SetEngineString(s));
+//export PF_vtos
+func PF_vtos() {
+	s := fmt.Sprintf("'%5.1f %5.1f %5.1f'",
+		progsdat.RawGlobalsF[progs.OffsetParm0],
+		progsdat.RawGlobalsF[progs.OffsetParm0+1],
+		progsdat.RawGlobalsF[progs.OffsetParm0+2])
+	progsdat.RawGlobalsI[progs.OffsetReturn] = int32(PRSetEngineString(s))
 }
-*/
+
 //export PF_Spawn
 func PF_Spawn() {
 	ed := edictAlloc()
