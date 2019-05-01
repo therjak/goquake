@@ -1060,69 +1060,72 @@ func PF_WriteEntity() {
 	}
 }
 
-/*
-// THERJAK
-static void PF_makestatic(void) {
-  int ent;
-  int i;
-  int bits = 0;  // johnfitz -- PROTOCOL_FITZQUAKE
+//export PF_makestatic
+func PF_makestatic() {
+	bits := 0
 
-  ent = Pr_globalsi(OFS_PARM0);
+	ent := int(progsdat.RawGlobalsI[progs.OffsetParm0])
 
-  // johnfitz -- don't send invisible static entities
-  if (edictNum(ent)->alpha == ENTALPHA_ZERO) {
-    edictFree(ent);
-    return;
-  }
-  // johnfitz
+	// don't send invisible static entities
+	if edictNum(ent).alpha == server.EntityAlphaZero {
+		edictFree(ent)
+		return
+	}
 
-  // johnfitz -- PROTOCOL_FITZQUAKE
-  if (SV_Protocol() == PROTOCOL_NETQUAKE) {
-    if (SV_ModelIndex(PR_GetString(EVars(ent)->model)) & 0xFF00 ||
-        (int)(EVars(ent)->frame) & 0xFF00) {
-      edictFree(ent);
-      return;  // can't display the correct model & frame, so don't show it at
-               // all
-    }
-  } else {
-    if (SV_ModelIndex(PR_GetString(EVars(ent)->model)) & 0xFF00)
-      bits |= B_LARGEMODEL;
-    if ((int)(EVars(ent)->frame) & 0xFF00) bits |= B_LARGEFRAME;
-    if (edictNum(ent)->alpha != ENTALPHA_DEFAULT) bits |= B_ALPHA;
-  }
+	mi := sv.ModelIndex(*PRGetString(int(EntVars(ent).Model)))
+	frame := int(EntVars(ent).Frame)
+	if sv.protocol == protocol.NetQuake {
+		if mi&0xFF00 != 0 ||
+			frame&0xFF00 != 0 {
+			edictFree(ent)
+			// can't display the correct model & frame, so don't show it at all
+			return
+		}
+	} else {
+		if mi&0xFF00 != 0 {
+			bits |= server.EntityBaselineLargeModel
+		}
+		if frame&0xFF00 != 0 {
+			bits |= server.EntityBaselineLargeFrame
+		}
+		if edictNum(ent).alpha != server.EntityAlphaDefault {
+			bits |= server.EntityBaselineAlpha
+		}
+	}
 
-  if (bits) {
-    SV_SO_WriteByte(svc_spawnstatic2);
-    SV_SO_WriteByte(bits);
-  } else
-    SV_SO_WriteByte(svc_spawnstatic);
+	if bits != 0 {
+		sv.signon.WriteByte(server.SpawnStatic2)
+		sv.signon.WriteByte(bits)
+	} else {
+		sv.signon.WriteByte(server.SpawnStatic)
+	}
 
-  if (bits & B_LARGEMODEL)
-    SV_SO_WriteShort(SV_ModelIndex(PR_GetString(EVars(ent)->model)));
-  else
-    SV_SO_WriteByte(SV_ModelIndex(PR_GetString(EVars(ent)->model)));
+	if bits&server.EntityBaselineLargeModel != 0 {
+		sv.signon.WriteShort(mi)
+	} else {
+		sv.signon.WriteByte(mi)
+	}
 
-  if (bits & B_LARGEFRAME)
-    SV_SO_WriteShort(EVars(ent)->frame);
-  else
-    SV_SO_WriteByte(EVars(ent)->frame);
-  // johnfitz
+	if bits&server.EntityBaselineLargeFrame != 0 {
+		sv.signon.WriteShort(frame)
+	} else {
+		sv.signon.WriteByte(frame)
+	}
 
-  SV_SO_WriteByte(EVars(ent)->colormap);
-  SV_SO_WriteByte(EVars(ent)->skin);
-  for (i = 0; i < 3; i++) {
-    SV_SO_WriteCoord(EVars(ent)->origin[i]);
-    SV_SO_WriteAngle(EVars(ent)->angles[i]);
-  }
+	sv.signon.WriteByte(int(EntVars(ent).ColorMap))
+	sv.signon.WriteByte(int(EntVars(ent).Skin))
+	for i := 0; i < 3; i++ {
+		sv.signon.WriteCoord(EntVars(ent).Origin[i], int(sv.protocolFlags))
+		sv.signon.WriteAngle(EntVars(ent).Angles[i], int(sv.protocolFlags))
+	}
 
-  // johnfitz -- PROTOCOL_FITZQUAKE
-  if (bits & B_ALPHA) SV_SO_WriteByte(edictNum(ent)->alpha);
-  // johnfitz
+	if bits&server.EntityBaselineAlpha != 0 {
+		sv.signon.WriteByte(int(edictNum(ent).alpha))
+	}
 
-  // throw the entity away now
-  edictFree(ent);
+	// throw the entity away now
+	edictFree(ent)
 }
-*/
 
 //export PF_setspawnparms
 func PF_setspawnparms() {

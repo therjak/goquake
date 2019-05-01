@@ -542,69 +542,6 @@ static void PF_aim(void) {
 
 //=============================================================================
 
-static void PF_makestatic(void) {
-  int ent;
-  int i;
-  int bits = 0;  // johnfitz -- PROTOCOL_FITZQUAKE
-
-  ent = Pr_globalsi(OFS_PARM0);
-
-  // johnfitz -- don't send invisible static entities
-  if (EDICT_NUM(ent)->alpha == ENTALPHA_ZERO) {
-    ED_Free(ent);
-    return;
-  }
-  // johnfitz
-
-  // johnfitz -- PROTOCOL_FITZQUAKE
-  if (SV_Protocol() == PROTOCOL_NETQUAKE) {
-    if (SV_ModelIndex(PR_GetString(EVars(ent)->model)) & 0xFF00 ||
-        (int)(EVars(ent)->frame) & 0xFF00) {
-      ED_Free(ent);
-      return;  // can't display the correct model & frame, so don't show it at
-               // all
-    }
-  } else {
-    if (SV_ModelIndex(PR_GetString(EVars(ent)->model)) & 0xFF00)
-      bits |= B_LARGEMODEL;
-    if ((int)(EVars(ent)->frame) & 0xFF00) bits |= B_LARGEFRAME;
-    if (EDICT_NUM(ent)->alpha != ENTALPHA_DEFAULT) bits |= B_ALPHA;
-  }
-
-  if (bits) {
-    SV_SO_WriteByte(svc_spawnstatic2);
-    SV_SO_WriteByte(bits);
-  } else
-    SV_SO_WriteByte(svc_spawnstatic);
-
-  if (bits & B_LARGEMODEL)
-    SV_SO_WriteShort(SV_ModelIndex(PR_GetString(EVars(ent)->model)));
-  else
-    SV_SO_WriteByte(SV_ModelIndex(PR_GetString(EVars(ent)->model)));
-
-  if (bits & B_LARGEFRAME)
-    SV_SO_WriteShort(EVars(ent)->frame);
-  else
-    SV_SO_WriteByte(EVars(ent)->frame);
-  // johnfitz
-
-  SV_SO_WriteByte(EVars(ent)->colormap);
-  SV_SO_WriteByte(EVars(ent)->skin);
-  for (i = 0; i < 3; i++) {
-    SV_SO_WriteCoord(EVars(ent)->origin[i]);
-    SV_SO_WriteAngle(EVars(ent)->angles[i]);
-  }
-
-  // johnfitz -- PROTOCOL_FITZQUAKE
-  if (bits & B_ALPHA) SV_SO_WriteByte(EDICT_NUM(ent)->alpha);
-  // johnfitz
-
-  // throw the entity away now
-  ED_Free(ent);
-}
-
-//=============================================================================
-
 static builtin_t pr_builtin[] = {
     PF_Fixme,
     PF_makevectors,  // void(entity e) makevectors		= #1

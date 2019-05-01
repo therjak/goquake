@@ -112,6 +112,18 @@ const (
 )
 
 const (
+	EntityBaselineLargeModel = (1 << iota) // modelindex is 16bit
+	EntityBaselineLargeFrame               // frame in 16bit
+	EntityBaselineAlpha                    // uses ENTALPHA_ENCODE
+)
+
+const (
+	EntityAlphaDefault = 0
+	EntityAlphaZero    = 1
+	EntityAlphaOne     = 255
+)
+
+const (
 	DEFAULT_VIEWHEIGHT = 22
 )
 
