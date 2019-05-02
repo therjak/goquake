@@ -1065,15 +1065,17 @@ func PF_makestatic() {
 	bits := 0
 
 	ent := int(progsdat.RawGlobalsI[progs.OffsetParm0])
+	e := edictNum(ent)
 
 	// don't send invisible static entities
-	if edictNum(ent).alpha == server.EntityAlphaZero {
+	if e.alpha == server.EntityAlphaZero {
 		edictFree(ent)
 		return
 	}
+	ev := EntVars(ent)
 
-	mi := sv.ModelIndex(*PRGetString(int(EntVars(ent).Model)))
-	frame := int(EntVars(ent).Frame)
+	mi := sv.ModelIndex(*PRGetString(int(ev.Model)))
+	frame := int(ev.Frame)
 	if sv.protocol == protocol.NetQuake {
 		if mi&0xFF00 != 0 ||
 			frame&0xFF00 != 0 {
@@ -1088,7 +1090,7 @@ func PF_makestatic() {
 		if frame&0xFF00 != 0 {
 			bits |= server.EntityBaselineLargeFrame
 		}
-		if edictNum(ent).alpha != server.EntityAlphaDefault {
+		if e.alpha != server.EntityAlphaDefault {
 			bits |= server.EntityBaselineAlpha
 		}
 	}
@@ -1112,15 +1114,15 @@ func PF_makestatic() {
 		sv.signon.WriteByte(frame)
 	}
 
-	sv.signon.WriteByte(int(EntVars(ent).ColorMap))
-	sv.signon.WriteByte(int(EntVars(ent).Skin))
+	sv.signon.WriteByte(int(ev.ColorMap))
+	sv.signon.WriteByte(int(ev.Skin))
 	for i := 0; i < 3; i++ {
-		sv.signon.WriteCoord(EntVars(ent).Origin[i], int(sv.protocolFlags))
-		sv.signon.WriteAngle(EntVars(ent).Angles[i], int(sv.protocolFlags))
+		sv.signon.WriteCoord(ev.Origin[i], int(sv.protocolFlags))
+		sv.signon.WriteAngle(ev.Angles[i], int(sv.protocolFlags))
 	}
 
 	if bits&server.EntityBaselineAlpha != 0 {
-		sv.signon.WriteByte(int(edictNum(ent).alpha))
+		sv.signon.WriteByte(int(e.alpha))
 	}
 
 	// throw the entity away now

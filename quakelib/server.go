@@ -366,41 +366,6 @@ func SV_MS_Len() C.int {
 	return C.int(msgBuf.Len())
 }
 
-//export SV_SO_WriteByte
-func SV_SO_WriteByte(v C.int) {
-	sv.signon.WriteByte(int(v))
-}
-
-//export SV_SO_WriteChar
-func SV_SO_WriteChar(v C.int) {
-	sv.signon.WriteChar(int(v))
-}
-
-//export SV_SO_WriteShort
-func SV_SO_WriteShort(v C.int) {
-	sv.signon.WriteShort(int(v))
-}
-
-//export SV_SO_WriteLong
-func SV_SO_WriteLong(v C.int) {
-	sv.signon.WriteLong(int(v))
-}
-
-//export SV_SO_WriteAngle
-func SV_SO_WriteAngle(v C.float) {
-	sv.signon.WriteAngle(float32(v), int(sv.protocolFlags))
-}
-
-//export SV_SO_WriteCoord
-func SV_SO_WriteCoord(v C.float) {
-	sv.signon.WriteCoord(float32(v), int(sv.protocolFlags))
-}
-
-//export SV_SO_WriteString
-func SV_SO_WriteString(s *C.char) {
-	sv.signon.WriteString(C.GoString(s))
-}
-
 //export SV_SO_Len
 func SV_SO_Len() C.int {
 	return C.int(sv.signon.Len())
@@ -957,6 +922,102 @@ func CheckVelocity(ent *progs.EntVars) {
 			ent.Velocity[i] = maxVelocity
 		} else if ent.Velocity[i] < -maxVelocity {
 			ent.Velocity[i] = -maxVelocity
+		}
+	}
+}
+
+//export SV_CreateBaseline
+func SV_CreateBaseline() {
+	sv.CreateBaseline()
+}
+
+func (s *Server) CreateBaseline() {
+	for entnum := 0; entnum < s.numEdicts; entnum++ {
+		e := edictNum(entnum)
+		if e.free != 0 {
+			continue
+		}
+		sev := EntVars(entnum)
+		if entnum > svs.maxClients && sev.ModelIndex == 0 {
+			continue
+		}
+
+		e.baseline.origin[0] = C.float(sev.Origin[0])
+		e.baseline.origin[1] = C.float(sev.Origin[1])
+		e.baseline.origin[2] = C.float(sev.Origin[2])
+		e.baseline.angles[0] = C.float(sev.Angles[0])
+		e.baseline.angles[1] = C.float(sev.Angles[1])
+		e.baseline.angles[2] = C.float(sev.Angles[2])
+
+		e.baseline.frame = C.ushort(sev.Frame)
+		e.baseline.skin = C.uchar(sev.Skin)
+		if entnum > 0 && entnum <= svs.maxClients {
+			e.baseline.colormap = C.uchar(entnum)
+			e.baseline.modelindex = C.ushort(s.ModelIndex("progs/player.mdl"))
+			e.baseline.alpha = server.EntityAlphaDefault
+		} else {
+			e.baseline.colormap = 0
+			e.baseline.modelindex = C.ushort(s.ModelIndex(*PRGetString(int(sev.Model))))
+			e.baseline.alpha = e.alpha
+		}
+
+		bits := 0
+		mi := int(e.baseline.modelindex)
+		frame := int(e.baseline.frame)
+		if s.protocol == protocol.NetQuake {
+			if mi&0xFF00 != 0 {
+				mi = 0
+				e.baseline.modelindex = 0
+			}
+			if frame&0xFF00 != 0 {
+				frame = 0
+				e.baseline.frame = 0
+			}
+			e.baseline.alpha = server.EntityAlphaDefault
+		} else {
+			if mi&0xFF00 != 0 {
+				bits |= server.EntityBaselineLargeModel
+			}
+			if frame&0xFF00 != 0 {
+				bits |= server.EntityBaselineLargeFrame
+			}
+			if e.alpha != server.EntityAlphaDefault {
+				bits |= server.EntityBaselineAlpha
+			}
+		}
+
+		if bits != 0 {
+			s.signon.WriteByte(server.SpawnBaseline2)
+		} else {
+			s.signon.WriteByte(server.SpawnBaseline)
+		}
+
+		s.signon.WriteShort(entnum)
+		if bits != 0 {
+			s.signon.WriteByte(bits)
+		}
+
+		if bits&server.EntityBaselineLargeModel != 0 {
+			s.signon.WriteShort(mi)
+		} else {
+			s.signon.WriteByte(mi)
+		}
+
+		if bits&server.EntityBaselineLargeFrame != 0 {
+			s.signon.WriteShort(frame)
+		} else {
+			s.signon.WriteByte(frame)
+		}
+
+		s.signon.WriteByte(int(e.baseline.colormap))
+		s.signon.WriteByte(int(e.baseline.skin))
+		for i := 0; i < 3; i++ {
+			s.signon.WriteCoord(float32(e.baseline.origin[i]), int(s.protocolFlags))
+			s.signon.WriteAngle(float32(e.baseline.angles[i]), int(s.protocolFlags))
+		}
+
+		if bits&server.EntityBaselineAlpha != 0 {
+			s.signon.WriteByte(int(e.alpha))
 		}
 	}
 }
