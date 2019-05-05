@@ -2,7 +2,6 @@ package quakelib
 
 // void SV_DropClient(int,int);
 // void SV_SetIdealPitch();
-// void PR_ExecuteProgram(int p);
 // void SV_WriteEntitiesToClient(int clent);
 import "C"
 
@@ -87,7 +86,7 @@ type Server struct {
 
 	modelPrecache []string
 	soundPrecache []string
-	lightStyles   []string
+	lightStyles   [64]string
 
 	name      string // map name
 	modelName string // maps/<name>.bsp, for model_precache[0]
@@ -404,7 +403,7 @@ func SV_ClearDatagram() {
 func (s *Server) SendDatagram(c *SVClient) bool {
 	b := msgBuf.Bytes()
 	// If there is space add the server datagram
-	if len(b)+s.datagram.Len() < 32000 {
+	if len(b)+s.datagram.Len() < protocol.MaxDatagram {
 		b = append(b, s.datagram.Bytes()...)
 	}
 	if c.netConnection.SendUnreliableMessage(b) == -1 {
@@ -819,7 +818,7 @@ func ConnectClient(n int) {
 	if sv.loadGame {
 		new.spawnParams = old.spawnParams
 	} else {
-		C.PR_ExecuteProgram(C.int(progsdat.Globals.SetNewParms))
+		PRExecuteProgram(progsdat.Globals.SetNewParms)
 		new.spawnParams = progsdat.Globals.Parm
 	}
 	sv_clients[n] = new
@@ -887,13 +886,13 @@ func (s *Server) Impact(e1, e2 int) {
 	if ent1.Touch != 0 && ent1.Solid != SOLID_NOT {
 		progsdat.Globals.Self = int32(e1)
 		progsdat.Globals.Other = int32(e2)
-		C.PR_ExecuteProgram(C.int(ent1.Touch))
+		PRExecuteProgram(ent1.Touch)
 	}
 
 	if ent2.Touch != 0 && ent2.Solid != SOLID_NOT {
 		progsdat.Globals.Self = int32(e2)
 		progsdat.Globals.Other = int32(e1)
-		C.PR_ExecuteProgram(C.int(ent2.Touch))
+		PRExecuteProgram(ent2.Touch)
 	}
 
 	progsdat.Globals.Self = oldSelf

@@ -703,30 +703,27 @@ func PF_droptofloor() {
 	}
 }
 
-/* TODO
-static void PF_lightstyle(void) {
-  int style;
-  const char *val;
-  int j;
+//export PF_lightstyle
+func PF_lightstyle() {
+	style := int(progsdat.RawGlobalsF[progs.OffsetParm0])
+	vi := progsdat.RawGlobalsI[progs.OffsetParm1]
+	val := *PRGetString(int(vi))
 
-  style = Pr_globalsf(OFS_PARM0);
-  val = PR_GetString(Pr_globalsi(OFS_PARM1));
+	sv.lightStyles[style] = val
 
-  // change the string in sv
-  sv.lightstyles[style] = val;
+	// send message to all clients on this server
+	if sv.state != ServerStateActive {
+		return
+	}
 
-  // send message to all clients on this server
-  if (SV_State() != ss_active) return;
-
-  for (j = 0; j < SVS_GetMaxClients(); j++) {
-    if (GetClientActive(j) || GetClientSpawned(j)) {
-      ClientWriteChar(j, svc_lightstyle);
-      ClientWriteChar(j, style);
-      ClientWriteString(j, val);
-    }
-  }
+	for _, c := range sv_clients {
+		if c.active || c.spawned {
+			c.msg.WriteChar(server.LightStyle)
+			c.msg.WriteChar(style)
+			c.msg.WriteString(val)
+		}
+	}
 }
-*/
 
 //export PF_rint
 func PF_rint() {

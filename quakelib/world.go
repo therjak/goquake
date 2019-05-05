@@ -3,7 +3,6 @@ package quakelib
 //#include "trace.h"
 //#include "edict.h"
 //#include "cgo_help.h"
-//void PR_ExecuteProgram(int p);
 import "C"
 
 import (
@@ -199,7 +198,7 @@ func SV_TouchLinks(e int, a *areaNode) {
 		progsdat.Globals.Self = int32(touch)
 		progsdat.Globals.Other = int32(e)
 		progsdat.Globals.Time = sv.time
-		C.PR_ExecuteProgram(C.int(tv.Touch))
+		PRExecuteProgram(tv.Touch)
 
 		progsdat.Globals.Self = oldSelf
 		progsdat.Globals.Other = oldOther

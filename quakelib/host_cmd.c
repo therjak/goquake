@@ -807,6 +807,7 @@ void Host_Loadgame_f(void) {
   for (i = 0; i < MAX_LIGHTSTYLES; i++) {
     fscanf(f, "%s\n", str);
     sv.lightstyles[i] = (const char *)Hunk_Strdup(str, "lightstyles");
+    SetSVLightStyles(i, sv.lightstyles[i]);
   }
 
   // load the edicts out of the savegame file
@@ -933,131 +934,6 @@ void Host_Kill_f(void) {
   Set_pr_global_struct_time(SV_Time());
   Set_pr_global_struct_self(SV_Player());
   PR_ExecuteProgram(Pr_global_struct_ClientKill());
-}
-
-//===========================================================================
-
-/*
-==================
-Host_Spawn_f
-==================
-*/
-void Host_Spawn_f(void) {
-  int i;
-  int ent;
-  entvars_t *entv;
-
-  if (IsSrcCommand()) {
-    Con_Printf("spawn is not valid from the console\n");
-    return;
-  }
-
-  if (GetClientSpawned(HostClient())) {
-    Con_Printf("Spawn not valid -- allready spawned\n");
-    return;
-  }
-
-  // run the entrance script
-  if (SV_LoadGame()) {  // loaded games are fully inited allready
-    // if this is the last client to be connected, unpause
-    SV_SetPaused(false);
-  } else {
-    // set up the edict
-    ent = GetClientEdictId(HostClient());
-    entv = EVars(ent);
-
-    TT_ClearEntVars(entv);
-    entv->colormap = ent;
-    entv->team = (GetClientColors(HostClient()) & 15) + 1;
-    // TODO(therjak): This is a memory leak!!!
-    Sys_Print("Memory Leaking");
-    char *name = GetClientName(HostClient());
-    entv->netname = PR_SetEngineString(name);
-
-    // copy spawn parms out of the client_t
-    for (i = 0; i < NUM_SPAWN_PARMS; i++)
-      Set_pr_global_struct_parm(i, GetClientSpawnParam(HostClient(), i));
-    // call the spawn function
-    Set_pr_global_struct_time(SV_Time());
-    Set_pr_global_struct_self(SV_Player());
-    PR_ExecuteProgram(Pr_global_struct_ClientConnect());
-
-    if ((Sys_DoubleTime() - ClientConnectTime(HostClient())) <= SV_Time()) {
-      char *name = GetClientName(HostClient());
-      Sys_Print_S("%v entered the game\n", name);
-      free(name);
-    }
-
-    PR_ExecuteProgram(Pr_global_struct_PutClientInServer());
-  }
-
-  // send all current names, colors, and frag counts
-  ClientClearMessage(HostClient());
-
-  // send time of update
-  ClientWriteByte(HostClient(), svc_time);
-  ClientWriteFloat(HostClient(), SV_Time());
-
-  for (i = 0; i < SVS_GetMaxClients(); i++) {
-    ClientWriteByte(HostClient(), svc_updatename);
-    ClientWriteByte(HostClient(), i);
-    char *name = GetClientName(i);
-    ClientWriteString(HostClient(), name);
-    free(name);
-    ClientWriteByte(HostClient(), svc_updatefrags);
-    ClientWriteByte(HostClient(), i);
-    ClientWriteShort(HostClient(), GetClientOldFrags(i));
-    ClientWriteByte(HostClient(), svc_updatecolors);
-    ClientWriteByte(HostClient(), i);
-    ClientWriteByte(HostClient(), GetClientColors(i));
-  }
-
-  // send all current light styles
-  for (i = 0; i < MAX_LIGHTSTYLES; i++) {
-    ClientWriteByte(HostClient(), svc_lightstyle);
-    ClientWriteByte(HostClient(), (char)i);
-    ClientWriteString(HostClient(), sv.lightstyles[i]);
-  }
-
-  //
-  // send some stats
-  //
-  ClientWriteByte(HostClient(), svc_updatestat);
-  ClientWriteByte(HostClient(), STAT_TOTALSECRETS);
-  ClientWriteLong(HostClient(), Pr_global_struct_total_secrets());
-
-  ClientWriteByte(HostClient(), svc_updatestat);
-  ClientWriteByte(HostClient(), STAT_TOTALMONSTERS);
-  ClientWriteLong(HostClient(), Pr_global_struct_total_monsters());
-
-  ClientWriteByte(HostClient(), svc_updatestat);
-  ClientWriteByte(HostClient(), STAT_SECRETS);
-  ClientWriteLong(HostClient(), Pr_global_struct_found_secrets());
-
-  ClientWriteByte(HostClient(), svc_updatestat);
-  ClientWriteByte(HostClient(), STAT_MONSTERS);
-  ClientWriteLong(HostClient(), Pr_global_struct_killed_monsters());
-
-  //
-  // send a fixangle
-  // Never send a roll angle, because savegames can catch the server
-  // in a state where it is expecting the client to correct the angle
-  // and it won't happen if the game was just loaded, so you wind up
-  // with a permanent head tilt
-  ent = 1 + HostClient();
-  ClientWriteByte(HostClient(), svc_setangle);
-  for (i = 0; i < 2; i++)
-    ClientWriteAngle(HostClient(), EVars(ent)->angles[i]);
-  ClientWriteAngle(HostClient(), 0);
-  {
-    SV_MS_Clear();
-    SV_MS_SetMaxLen(MAX_DATAGRAM);
-    SV_WriteClientdataToMessage(SV_Player());
-    ClientWriteSVMSG(HostClient());
-  }
-  ClientWriteByte(HostClient(), svc_signonnum);
-  ClientWriteByte(HostClient(), 3);
-  SetClientSendSignon(HostClient(), true);
 }
 
 /*
@@ -1350,7 +1226,6 @@ void Host_InitCommands(void) {
   Cmd_AddCommand("setpos", Host_SetPos_f);  // QuakeSpasm
 
   Cmd_AddCommand("kill", Host_Kill_f);
-  Cmd_AddCommand("spawn", Host_Spawn_f);
   Cmd_AddCommand("prespawn", Host_PreSpawn_f);
   Cmd_AddCommand("kick", Host_Kick_f);
   Cmd_AddCommand("load", Host_Loadgame_f);

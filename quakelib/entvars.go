@@ -98,6 +98,10 @@ func RawEntVarsI(idx, off int) int32 {
 func TT_ClearEntVars(e *C.entvars_t) {
 	C.memset(unsafe.Pointer(e), 0, C.ulong(entityFields*4))
 }
+func TTClearEntVars(idx int) {
+	ev := EVars(C.int(idx))
+	TT_ClearEntVars(ev)
+}
 
 // progs.EntVars
 /*

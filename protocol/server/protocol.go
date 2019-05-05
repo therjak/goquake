@@ -85,6 +85,28 @@ const (
 )
 
 const (
+	MaxClientStats = 32
+)
+
+const (
+	StatHealth = iota
+	StatFrags
+	StatWeapon
+	StatAmmo
+	StatArmor
+	StatWeaponFrame
+	StatShells
+	StatNails
+	StatRockets
+	StatCells
+	StatActiveWeapon
+	StatTotalSecrets
+	StatTotalMonsters
+	StatSecrets  // bumped on client side by svc_foundsecret
+	StatMonsters // bumped by svc_killedmonster
+)
+
+const (
 	GameCoop       = iota
 	GameDeathmatch = iota
 )

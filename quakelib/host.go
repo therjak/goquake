@@ -1,6 +1,5 @@
 package quakelib
 
-//int HostClient(void);
 import "C"
 
 import (
@@ -88,8 +87,7 @@ func Host_PreSpawn_f() {
 		conlog.Printf("prespawn is not valid from the console\n")
 		return
 	}
-	cid := C.HostClient()
-	c := sv_clients[int(cid)]
+	c := HostClient()
 	if c.spawned {
 		conlog.Printf("prespawn not valid -- already spawned\n")
 		return

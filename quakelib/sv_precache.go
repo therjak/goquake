@@ -80,11 +80,5 @@ func ExistSVSoundPrecache(i C.int) C.int {
 //export SetSVLightStyles
 func SetSVLightStyles(i C.int, c *C.char) {
 	s := C.GoString(c)
-	if int(i) == len(sv.lightStyles) {
-		sv.lightStyles = append(sv.lightStyles, s)
-	} else if int(i) > len(sv.lightStyles) {
-		log.Printf("WTF: SetSVLightStyles")
-	} else {
-		sv.lightStyles[int(i)] = s
-	}
+	sv.lightStyles[int(i)] = s
 }

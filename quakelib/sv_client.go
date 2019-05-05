@@ -98,8 +98,6 @@ func SV_CheckForNewClients() {
 //export SV_ClientPrint2
 func SV_ClientPrint2(client C.int, msg *C.char) {
 	sv_clients[int(client)].ClientPrint(C.GoString(msg))
-	//	ClientWriteByte(client, server.Print)
-	//	ClientWriteString(client, msg)
 }
 
 //export SV_BroadcastPrint2

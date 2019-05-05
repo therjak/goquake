@@ -423,36 +423,6 @@ static void PF_walkmove(void) {
 }
 
 /*
-===============
-PF_lightstyle
-
-void(float style, string value) lightstyle
-===============
-*/
-static void PF_lightstyle(void) {
-  int style;
-  const char *val;
-  int j;
-
-  style = Pr_globalsf(OFS_PARM0);
-  val = PR_GetString(Pr_globalsi(OFS_PARM1));
-
-  // change the string in sv
-  sv.lightstyles[style] = val;
-
-  // send message to all clients on this server
-  if (SV_State() != ss_active) return;
-
-  for (j = 0; j < SVS_GetMaxClients(); j++) {
-    if (GetClientActive(j) || GetClientSpawned(j)) {
-      ClientWriteChar(j, svc_lightstyle);
-      ClientWriteChar(j, style);
-      ClientWriteString(j, val);
-    }
-  }
-}
-
-/*
 =============
 PF_aim
 
