@@ -313,6 +313,7 @@ void host_status_clientPrintf(const char *fmt, ...) {
   SV_ClientPrint2(HostClient(), string);
 }
 
+// THERJAK
 void Host_Status_f(void) {
   int seconds;
   int minutes;
@@ -367,6 +368,7 @@ qboolean noclip_anglehack;
 Host_Noclip_f
 ==================
 */
+// THERJAK just ignore noclip_anglehack
 void Host_Noclip_f(void) {
   if (IsSrcCommand()) {
     Cmd_ForwardToServer();
@@ -416,6 +418,7 @@ Host_SetPos_f
 adapted from fteqw, originally by Alex Shadowalker
 ====================
 */
+// THERJAK just igroner noclip_anglehack
 void Host_SetPos_f(void) {
   if (IsSrcCommand()) {
     Cmd_ForwardToServer();
@@ -879,6 +882,7 @@ void Host_Loadgame_f(void) {
 Host_Name_f
 ======================
 */
+// THERJAK
 void Host_Name_f(void) {
   char newName[32];
 
@@ -920,6 +924,7 @@ void Host_Name_f(void) {
 Host_Kill_f
 ==================
 */
+// THERJAK
 void Host_Kill_f(void) {
   if (IsSrcCommand()) {
     Cmd_ForwardToServer();
@@ -943,6 +948,7 @@ Host_Kick_f
 Kicks a user off of the server
 ==================
 */
+// THERJAK
 void Host_Kick_f(void) {
   const char *who;
   const char *message = NULL;
@@ -1021,7 +1027,7 @@ DEBUGGING TOOLS
 
 ===============================================================================
 */
-
+// THERJAK
 entvars_t *FindViewthingEV(void) {
   int i;
   entvars_t *ev;

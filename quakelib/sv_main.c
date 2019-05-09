@@ -72,6 +72,7 @@ crosses a waterline.
 int fatbytes;
 byte fatpvs[MAX_MAP_LEAFS / 8];
 
+// THERJAK
 void SV_AddToFatPVS(
     vec3_t org, mnode_t *node,
     qmodel_t *worldmodel)  // johnfitz -- added worldmodel as a parameter
@@ -114,6 +115,7 @@ Calculates a PVS that is the inclusive or of all leafs within 8 pixels of the
 given point.
 =============
 */
+// THERJAK
 byte *SV_FatPVS(
     vec3_t org,
     qmodel_t *worldmodel)  // johnfitz -- added worldmodel as a parameter
@@ -377,6 +379,7 @@ Grabs the current state of each client for saving across the
 transition to another level
 ================
 */
+// THERJAK
 void SV_SaveSpawnparms(void) {
   int i, j;
 
