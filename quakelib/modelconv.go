@@ -25,10 +25,9 @@ func SVSetModel(m *C.qmodel_t, idx C.int, localModel C.int) {
 	nm := func() *model.QModel {
 		cm, ok := models[name]
 		if ok {
-			log.Printf("SetModel: %d, %s cached", idx, name)
 			return cm
 		}
-		log.Printf("SetModel: %d, %s new", idx, name)
+		log.Printf("TODO!!! SetModel: %d, %s new", idx, name)
 		return convCModel(m, localModel != 0)
 	}()
 	if int(idx) == len(sv.models) {
@@ -49,7 +48,11 @@ func init() {
 
 //export LoadModelGo
 func LoadModelGo(name *C.char) {
-	mods, err := bsp.LoadModel(C.GoString(name))
+	loadModel(C.GoString(name))
+}
+
+func loadModel(name string) {
+	mods, err := bsp.LoadModel(name)
 	if err != nil {
 		log.Printf("LoadModel err: %v", err)
 	}

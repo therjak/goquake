@@ -105,47 +105,6 @@ static void PF_makevectors(void) {
   Set_pr_global_struct_v_up(u[0], u[1], u[2]);
 }
 
-static void PF_setmodel(void) {
-  int i;
-  int mi;
-  const char *m, **check;
-  qmodel_t *mod;
-  int e;
-  PF_setmodel2();
-
-  e = Pr_globalsi(OFS_PARM0);
-  mi = Pr_globalsi(OFS_PARM1);
-  m = PR_GetString(mi);
-
-  // check to see if model was properly precached
-  i = ElementOfSVModelPrecache(m);
-  if (i == -1) {
-    PR_RunError("no precache: %s", m);
-  }
-  mod = sv.models[i];  // Mod_ForName (m, true);
-  Sys_Print_S("sm1 nn: ", mod->name);
-
-  if (mod) {
-    if (mod->Type == mod_brush) {
-      Sys_Print_F("mms n: ", mod->clipmins[0]);
-      Sys_Print_F("mms n: ", mod->clipmins[1]);
-      Sys_Print_F("mms n: ", mod->clipmins[2]);
-      Sys_Print_F("mms n: ", mod->clipmaxs[0]);
-      Sys_Print_F("mms n: ", mod->clipmaxs[1]);
-      Sys_Print_F("mms n: ", mod->clipmaxs[2]);
-    } else {
-      /*
-  Sys_Print_F("mms n: ", minvec[0]);
-  Sys_Print_F("mms m: ", minvec[1]);
-  Sys_Print_F("mms m: ", minvec[2]);
-  Sys_Print_F("mms m: ", maxvec[0]);
-  Sys_Print_F("mms m: ", maxvec[1]);
-  Sys_Print_F("mms m: ", maxvec[2]);
-  */
-    }
-  }
-}
-
 /*
 =================
 PF_bprint
@@ -324,29 +283,6 @@ static void PF_dprint(void) { Con_DPrintf("%s", PF_VarString(0)); }
 
 static void PR_CheckEmptyString(const char *s) {
   if (s[0] <= ' ') PR_RunError("Bad string");
-}
-
-static void PF_precache_sound(void) {
-  const char *s;
-  int i;
-
-  if (SV_State() != ss_loading)
-    PR_RunError("PF_Precache_*: Precache can only be done in spawn functions");
-
-  s = PR_GetString(Pr_globalsi(OFS_PARM0));
-  Set_Pr_globalsi(OFS_RETURN, Pr_globalsi(OFS_PARM0));
-  PR_CheckEmptyString(s);
-
-  if (ElementOfSVSoundPrecache(s) != -1) {
-    return;
-  }
-  for (i = 0; i < MAX_SOUNDS; i++) {
-    if (!ExistSVSoundPrecache(i)) {
-      SetSVSoundPrecache(i, s);
-      return;
-    }
-  }
-  PR_RunError("PF_precache_sound: overflow");
 }
 
 static void PF_precache_model(void) {

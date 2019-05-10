@@ -61,8 +61,8 @@ func PF_setsize() {
 	LinkEdict(e, false)
 }
 
-//export PF_setmodel2
-func PF_setmodel2() {
+//export PF_setmodel
+func PF_setmodel() {
 
 	e := int(progsdat.RawGlobalsI[progs.OffsetParm0])
 	mi := progsdat.RawGlobalsI[progs.OffsetParm1]
@@ -91,15 +91,15 @@ func PF_setmodel2() {
 	mod := sv.models[idx]
 	if mod != nil {
 		if mod.Type == model.ModBrush {
-			log.Printf("ModBrush")
-			log.Printf("mins: %v, maxs: %v", mod.ClipMins, mod.ClipMaxs)
+			// log.Printf("ModBrush")
+			// log.Printf("mins: %v, maxs: %v", mod.ClipMins, mod.ClipMaxs)
 			setMinMaxSize(ev, mod.ClipMins, mod.ClipMaxs)
 		} else {
-			log.Printf("!!!ModBrush")
+			// log.Printf("!!!ModBrush")
 			setMinMaxSize(ev, mod.Mins, mod.Maxs)
 		}
 	} else {
-		log.Printf("No Mod")
+		// log.Printf("No Mod")
 		setMinMaxSize(ev, vec.Vec3{}, vec.Vec3{})
 	}
 	LinkEdict(e, false)
@@ -583,56 +583,79 @@ static void PR_CheckEmptyString(const char *s) {
 }
 */
 
+//export PF_precache_sound
+func PF_precache_sound() {
+	if sv.state != ServerStateLoading {
+		runError("PF_Precache_*: Precache can only be done in spawn functions")
+		return
+	}
+
+	si := progsdat.RawGlobalsI[progs.OffsetParm0]
+	s := *PRGetString(int(si))
+	progsdat.RawGlobalsI[progs.OffsetReturn] = si
+	//PR_CheckEmptyString(s);
+
+	exist := func(s string) bool {
+		for _, e := range sv.soundPrecache {
+			if e == s {
+				return true
+			}
+		}
+		return false
+	}
+	if exist(s) {
+		return
+	}
+	if len(sv.soundPrecache) >= 2048 {
+		runError("PF_precache_sound: overflow")
+		return
+	}
+	sv.soundPrecache = append(sv.soundPrecache, s)
+}
+
+// export PF_precache_model
+func PF_precache_model() {
+	if sv.state != ServerStateLoading {
+		runError("PF_Precache_*: Precache can only be done in spawn functions")
+		return
+	}
+
+	si := progsdat.RawGlobalsI[progs.OffsetParm0]
+	s := *PRGetString(int(si))
+	progsdat.RawGlobalsI[progs.OffsetReturn] = si
+	//PR_CheckEmptyString(s);
+
+	exist := func(s string) bool {
+		for _, e := range sv.modelPrecache {
+			if e == s {
+				return true
+			}
+		}
+		return false
+	}
+	if exist(s) {
+		return
+	}
+	if len(sv.modelPrecache) >= 2048 {
+		runError("PF_precache_sound: overflow")
+		return
+	}
+	sv.modelPrecache = append(sv.modelPrecache, s)
+	m, ok := models[s]
+	if !ok {
+		// This needs to load all models for this function to work
+		// currently it does not read spr files
+		loadModel(s)
+		m, ok = models[s]
+		if !ok {
+			log.Printf("Model could not be loaded: %s", s)
+			return
+		}
+	}
+	sv.models = append(sv.models, m)
+}
+
 /*
-// THERJAK
-static void PF_precache_sound(void) {
-  const char *s;
-  int i;
-
-  if (SV_State() != ss_loading)
-    PR_RunError("PF_Precache_*: Precache can only be done in spawn functions");
-
-  s = PR_GetString(Pr_globalsi(OFS_PARM0));
-  Set_Pr_globalsi(OFS_RETURN, Pr_globalsi(OFS_PARM0));
-  PR_CheckEmptyString(s);
-
-  if (ElementOfSVSoundPrecache(s) != -1) {
-    return;
-  }
-  for (i = 0; i < MAX_SOUNDS; i++) {
-    if (!ExistSVSoundPrecache(i)) {
-      SetSVSoundPrecache(i, s);
-      return;
-    }
-  }
-  PR_RunError("PF_precache_sound: overflow");
-}
-
-static void PF_precache_model(void) {
-  const char *s;
-  int i;
-
-  if (SV_State() != ss_loading)
-    PR_RunError("PF_Precache_*: Precache can only be done in spawn functions");
-
-  s = PR_GetString(Pr_globalsi(OFS_PARM0));
-  Set_Pr_globalsi(OFS_RETURN, Pr_globalsi(OFS_PARM0));
-  PR_CheckEmptyString(s);
-
-  if (ElementOfSVModelPrecache(s) != -1) {
-    return;
-  }
-  for (i = 0; i < MAX_MODELS; i++) {
-    if (!ExistSVModelPrecache(i)) {
-      SetSVModelPrecache(i, s);
-      sv.models[i] = Mod_ForName(s, true);
-      SVSetModel(sv.models[i], i, false);
-      return;
-    }
-  }
-  PR_RunError("PF_precache_model: overflow");
-}
-
 static void PF_coredump(void) { ED_PrintEdicts(); }
 
 static void PF_traceon(void) { pr_trace = true; }
