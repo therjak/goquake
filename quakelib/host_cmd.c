@@ -775,70 +775,6 @@ void Host_Loadgame_f(void) {
 //============================================================================
 
 /*
-======================
-Host_Name_f
-======================
-*/
-// THERJAK
-void Host_Name_f(void) {
-  char newName[32];
-
-  if (Cmd_Argc() == 1) {
-    Con_Printf("\"name\" is \"%s\"\n", Cvar_GetString(&cl_name));
-    return;
-  }
-  if (Cmd_Argc() == 2)
-    q_strlcpy(newName, Cmd_Argv(1), sizeof(newName));
-  else
-    q_strlcpy(newName, Cmd_Args(), sizeof(newName));
-  newName[15] = 0;  // client_t structure actually says name[32].
-
-  if (IsSrcCommand()) {
-    if (Q_strcmp(Cvar_GetString(&cl_name), newName) == 0) return;
-    Cvar_Set("_cl_name", newName);
-    if (CLS_GetState() == ca_connected) Cmd_ForwardToServer();
-    return;
-  }
-
-  char *name = GetClientName(HostClient());
-  if (name[0] && strcmp(name, "unconnected")) {
-    if (Q_strcmp(name, newName) != 0)
-      Con_Printf("%s renamed to %s\n", name, newName);
-  }
-  SetClientName(HostClient(), newName);
-  free(name);
-  EVars(GetClientEdictId(HostClient()))->netname = PR_SetEngineString(newName);
-
-  // send notification to all clients
-
-  SV_RD_WriteByte(svc_updatename);
-  SV_RD_WriteByte(HostClient());
-  SV_RD_WriteString(newName);
-}
-
-/*
-==================
-Host_Kill_f
-==================
-*/
-// THERJAK
-void Host_Kill_f(void) {
-  if (IsSrcCommand()) {
-    Cmd_ForwardToServer();
-    return;
-  }
-
-  if (EVars(SV_Player())->health <= 0) {
-    SV_ClientPrintf2(HostClient(), "Can't suicide -- allready dead!\n");
-    return;
-  }
-
-  Set_pr_global_struct_time(SV_Time());
-  Set_pr_global_struct_self(SV_Player());
-  PR_ExecuteProgram(Pr_global_struct_ClientKill());
-}
-
-/*
 ==================
 Host_Kick_f
 
@@ -1111,9 +1047,7 @@ void Host_InitCommands(void) {
   Cmd_AddCommand("changelevel", Host_Changelevel_f);
   Cmd_AddCommand("connect", Host_Connect_f);
   Cmd_AddCommand("reconnect", Host_Reconnect_f);
-  Cmd_AddCommand("name", Host_Name_f);
 
-  Cmd_AddCommand("kill", Host_Kill_f);
   Cmd_AddCommand("prespawn", Host_PreSpawn_f);
   Cmd_AddCommand("kick", Host_Kick_f);
   Cmd_AddCommand("load", Host_Loadgame_f);

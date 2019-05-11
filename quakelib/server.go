@@ -425,16 +425,6 @@ func (s *Server) SendDatagram(c *SVClient) bool {
 	return true
 }
 
-//export SV_RD_WriteByte
-func SV_RD_WriteByte(v C.int) {
-	sv.reliableDatagram.WriteByte(int(v))
-}
-
-//export SV_RD_WriteString
-func SV_RD_WriteString(s *C.char) {
-	sv.reliableDatagram.WriteString(C.GoString(s))
-}
-
 func (s *Server) SendReliableDatagram() {
 	b := s.reliableDatagram.Bytes()
 	for _, cl := range sv_clients {
@@ -808,15 +798,8 @@ func (s *Server) WriteClientdataToMessage(e *progs.EntVars, alpha byte) {
 	}
 }
 
-/*
-Initializes a client_t for a new net connection.  This will only be called
-once for a player each game, not once for each level change.
-*/
-//export SV_ConnectClient
-func SV_ConnectClient(n C.int) {
-	ConnectClient(int(n))
-}
-
+// Initializes a client_t for a new net connection.  This will only be called
+//once for a player each game, not once for each level change.
 func ConnectClient(n int) {
 	old := sv_clients[n]
 	new := &SVClient{

@@ -15,20 +15,22 @@ import (
 )
 
 func init() {
-	cmd.AddCommand("god", hostGod)
-	cmd.AddCommand("notarget", hostNoTarget)
-	cmd.AddCommand("fly", hostFly)
-	cmd.AddCommand("noclip", hostNoClip)
-	cmd.AddCommand("setpos", hostSetPos)
-	cmd.AddCommand("give", hostGive)
+	cmd.AddCommand("begin", hostBegin)
 	cmd.AddCommand("color", hostColor)
+	cmd.AddCommand("fly", hostFly)
+	cmd.AddCommand("give", hostGive)
+	cmd.AddCommand("god", hostGod)
+	cmd.AddCommand("kill", hostKill)
+	cmd.AddCommand("name", hostName)
+	cmd.AddCommand("noclip", hostNoClip)
+	cmd.AddCommand("notarget", hostNoTarget)
+	cmd.AddCommand("pause", hostPause)
 	cmd.AddCommand("ping", hostPing)
 	cmd.AddCommand("say", hostSayAll)
 	cmd.AddCommand("say_team", hostSayTeam)
-	cmd.AddCommand("tell", hostTell)
-	cmd.AddCommand("pause", hostPause)
-	cmd.AddCommand("begin", hostBegin)
+	cmd.AddCommand("setpos", hostSetPos)
 	cmd.AddCommand("spawn", hostSpawn)
+	cmd.AddCommand("tell", hostTell)
 }
 
 func qFormatI(b int32) string {
@@ -762,4 +764,69 @@ func hostSetPos(args []cmd.QArg) {
 	}
 
 	LinkEdict(sv_player, false)
+}
+
+func hostName(args []cmd.QArg) {
+	if len(args) == 0 {
+		conPrintf("\"name\" is %q\n", cvars.ClientName.String())
+		return
+	}
+	newName := func() string {
+		if len(args) == 1 {
+			return args[0].String()
+		}
+		b := strings.Builder{}
+		b.WriteString(args[0].String())
+		for _, a := range args[1:] {
+			b.WriteRune(' ')
+			b.WriteString(a.String())
+		}
+		return b.String()
+	}()
+	// client_t structure says name[32]
+	if len(newName) > 15 {
+		newName = newName[:15]
+	}
+
+	if execute.IsSrcCommand() {
+		if cvars.ClientName.String() == newName {
+			return
+		}
+		cvars.ClientName.SetByString(newName)
+		if cls.state == ca_connected {
+			forwardToServer("name", args)
+		}
+		return
+	}
+
+	c := HostClient()
+	if len(c.name) != 0 && c.name != "unconnected" && c.name != newName {
+		conPrintf("%s renamed to %s\n", c.name, newName)
+	}
+	c.name = newName
+	EntVars(c.edictId).NetName = int32(PRSetEngineString(newName))
+
+	// send notification to all clients
+	rd := &sv.reliableDatagram
+	rd.WriteByte(server.UpdateName)
+	rd.WriteByte(HostClientID())
+	rd.WriteString(newName)
+}
+
+func hostKill(args []cmd.QArg) {
+	if execute.IsSrcCommand() {
+		forwardToServer("kill", args)
+		return
+	}
+
+	ev := EntVars(sv_player)
+
+	if ev.Health <= 0 {
+		HostClient().Printf("Can't suicide -- allready dead!\n")
+		return
+	}
+
+	progsdat.Globals.Time = sv.time
+	progsdat.Globals.Self = int32(sv_player)
+	PRExecuteProgram(progsdat.Globals.ClientKill)
 }

@@ -12,7 +12,6 @@ typedef struct movecmd_s {
 	float upmove;
 } movecmd_t;
 #endif // _MOVEDEF_h
-void SV_ConnectClient(int);
 */
 import "C"
 
@@ -158,7 +157,7 @@ func CheckForNewClients() {
 			}
 			foundFree = true
 			c.netConnection = con
-			C.SV_ConnectClient(C.int(c.id))
+			ConnectClient(c.id)
 			break
 		}
 		if !foundFree {
