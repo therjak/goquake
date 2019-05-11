@@ -523,7 +523,8 @@ void SV_RunClients(void) {
   int i;
   movecmd_t move = {0, 0, 0};
 
-  for (i = 0, host_client = 0; i < SVS_GetMaxClients(); i++, host_client++) {
+  for (i = 0; i < SVS_GetMaxClients(); i++) {
+    SetHost_Client(i);
     if (!GetClientActive(HostClient())) continue;
 
     Set_SV_Player(GetClientEdictId(HostClient()));
@@ -543,4 +544,5 @@ void SV_RunClients(void) {
     if (!SV_Paused() && (SVS_GetMaxClients() > 1 || GetKeyDest() == key_game))
       SV_ClientThink(HostClient());
   }
+  SetHost_Client(i);
 }

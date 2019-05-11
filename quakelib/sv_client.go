@@ -14,7 +14,6 @@ typedef struct movecmd_s {
 #endif // _MOVEDEF_h
 void SV_DropClient(int, int);
 void SV_ConnectClient(int);
-int HostClient(void);
 */
 import "C"
 
@@ -122,7 +121,7 @@ func HostClient() *SVClient {
 }
 
 func HostClientID() int {
-	return int(C.HostClient())
+	return Host_Client()
 }
 
 func (c *SVClient) ClientPrint(msg string) {

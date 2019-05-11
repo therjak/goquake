@@ -102,7 +102,18 @@ var (
 	}
 	sv_protocol int
 	sv_player   int
+	host_client int
 )
+
+//export Host_Client
+func Host_Client() int {
+	return host_client
+}
+
+//export SetHost_Client
+func SetHost_Client(c int) {
+	host_client = c
+}
 
 //export SV_NameInt
 func SV_NameInt() *C.char {
@@ -1020,3 +1031,126 @@ func (s *Server) CreateBaseline() {
 		}
 	}
 }
+
+//Grabs the current state of each client for saving across the
+//transition to another level
+//export SV_SaveSpawnparms
+func SV_SaveSpawnparms() {
+	svs.serverFlags = int(progsdat.Globals.ServerFlags)
+
+	for _, c := range sv_clients {
+		if !c.active {
+			continue
+		}
+		// call the progs to get default spawn parms for the new client
+		progsdat.Globals.Self = int32(c.edictId)
+		PRExecuteProgram(progsdat.Globals.SetChangeParms)
+		c.spawnParams = progsdat.Globals.Parm
+	}
+}
+
+// Called when the player is getting totally kicked off the host
+// if (crash = true), don't bother sending signofs
+/*
+void SV_DropClient(int client, qboolean crash) {
+  int saveSelf;
+  int i;
+
+  if (!crash) {
+    // send any final messages (don't check for errors)
+    if (ClientCanSendMessage(client)) {
+      ClientWriteByte(client, svc_disconnect);
+      ClientSendMessage(client);
+    }
+
+    if (GetClientSpawned(client)) {
+      // call the prog function for removing a client
+      // this will set the body to a dead frame, among other things
+      saveSelf = Pr_global_struct_self();
+      Set_pr_global_struct_self(GetClientEdictId(client));
+      PR_ExecuteProgram(Pr_global_struct_ClientDisconnect());
+      Set_pr_global_struct_self(saveSelf);
+    }
+    char *name = GetClientName(client);
+    Sys_Print_S("Client %v removed\n", name);
+    free(name);
+  }
+
+  // break the net connection
+  ClientClose(client);
+
+  // send notification to all clients
+  for (i = 0; i < SVS_GetMaxClients(); i++) {
+    if (!GetClientActive(i)) continue;
+    ClientWriteByte(i, svc_updatename);
+    ClientWriteByte(i, client);
+    ClientWriteString(i, "");
+    ClientWriteByte(i, svc_updatefrags);
+    ClientWriteByte(i, client);
+    ClientWriteShort(i, 0);
+    ClientWriteByte(i, svc_updatecolors);
+    ClientWriteByte(i, client);
+    ClientWriteByte(i, 0);
+  }
+}
+*/
+
+// THE FOLLOWING IS ONLY NEEDED FOR SV_WRITEENTITIESTOCLIENT
+
+/*
+The PVS must include a small area around the client to allow head bobbing
+or other small motion on the client side.  Otherwise, a bob might cause an
+entity that should be visible to not show up, especially when the bob
+crosses a waterline.
+*/
+/*
+int fatbytes;
+byte fatpvs[MAX_MAP_LEAFS / 8];
+
+void SV_AddToFatPVS(
+    vec3_t org, mnode_t *node,
+    qmodel_t *worldmodel)  // johnfitz -- added worldmodel as a parameter
+{
+  int i;
+  byte *pvs;
+  mplane_t *plane;
+  float d;
+
+  while (1) {
+    // if this is a leaf, accumulate the pvs bits
+    if (node->contents < 0) {
+      if (node->contents != CONTENTS_SOLID) {
+        pvs = Mod_LeafPVS((mleaf_t *)node,
+                          worldmodel);  // johnfitz -- worldmodel as a parameter
+        for (i = 0; i < fatbytes; i++) fatpvs[i] |= pvs[i];
+      }
+      return;
+    }
+
+    plane = node->plane;
+    d = DotProduct(org, plane->normal) - plane->dist;
+    if (d > 8)
+      node = node->children[0];
+    else if (d < -8)
+      node = node->children[1];
+    else {  // go down both
+      SV_AddToFatPVS(org, node->children[0],
+                     worldmodel);  // johnfitz -- worldmodel as a parameter
+      node = node->children[1];
+    }
+  }
+}
+
+//Calculates a PVS that is the inclusive or of all leafs within 8 pixels of the
+//given point.
+byte *SV_FatPVS(
+    vec3_t org,
+    qmodel_t *worldmodel)  // johnfitz -- added worldmodel as a parameter
+{
+  fatbytes = (worldmodel->numleafs + 31) >> 3;
+  Q_memset(fatpvs, 0, fatbytes);
+  SV_AddToFatPVS(org, worldmodel->nodes,
+                 worldmodel);  // johnfitz -- worldmodel as a parameter
+  return fatpvs;
+}
+*/

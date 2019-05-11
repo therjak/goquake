@@ -373,32 +373,6 @@ SERVER SPAWNING
 
 /*
 ================
-SV_SaveSpawnparms
-
-Grabs the current state of each client for saving across the
-transition to another level
-================
-*/
-// THERJAK
-void SV_SaveSpawnparms(void) {
-  int i, j;
-
-  SVS_SetServerFlags(Pr_global_struct_serverflags());
-
-  for (i = 0, host_client = 0; i < SVS_GetMaxClients(); i++, host_client++) {
-    if (!GetClientActive(HostClient())) continue;
-
-    // call the progs to get default spawn parms for the new client
-    Set_pr_global_struct_self(GetClientEdictId(HostClient()));
-    PR_ExecuteProgram(Pr_global_struct_SetChangeParms());
-    for (j = 0; j < NUM_SPAWN_PARMS; j++) {
-      SetClientSpawnParam(HostClient(), j, Pr_global_struct_parm(j));
-    }
-  }
-}
-
-/*
-================
 SV_SpawnServer
 
 This is called at the start of each level

@@ -970,10 +970,11 @@ void Host_Kick_f(void) {
     i = Cmd_ArgvAsInt(2) - 1;
     if (i < 0 || i >= SVS_GetMaxClients()) return;
     if (!GetClientActive(i)) return;
-    host_client = i;
+    SetHost_Client(i);
     byNumber = true;
   } else {
-    for (i = 0, host_client = 0; i < SVS_GetMaxClients(); i++, host_client++) {
+    for (i = 0; i < SVS_GetMaxClients(); i++) {
+      SetHost_Client(i);
       if (!GetClientActive(HostClient())) continue;
 
       char *name = GetClientName(HostClient());
@@ -983,6 +984,7 @@ void Host_Kick_f(void) {
       }
       free(name);
     }
+    SetHost_Client(i);
   }
   char *name = NULL;
   if (i < SVS_GetMaxClients()) {
@@ -997,7 +999,7 @@ void Host_Kick_f(void) {
     }
 
     // can't kick yourself!
-    if (host_client == save) return;
+    if (HostClient() == save) return;
 
     if (Cmd_Argc() > 2) {
       message = COM_Parse(Cmd_Args());
@@ -1017,7 +1019,7 @@ void Host_Kick_f(void) {
   }
   free(name);
 
-  host_client = save;
+  SetHost_Client(save);
 }
 
 /*
