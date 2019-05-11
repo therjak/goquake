@@ -95,7 +95,7 @@ func SV_CheckForNewClients() {
 
 //export SV_ClientPrint2
 func SV_ClientPrint2(client C.int, msg *C.char) {
-	sv_clients[int(client)].ClientPrint(C.GoString(msg))
+	sv_clients[int(client)].Printf(C.GoString(msg))
 }
 
 //export SV_BroadcastPrint2
@@ -110,7 +110,7 @@ func SV_BroadcastPrintf(format string, v ...interface{}) {
 func SV_BroadcastPrint(m string) {
 	for _, c := range sv_clients {
 		if c.active && c.spawned {
-			c.ClientPrint(m)
+			c.Printf(m)
 		}
 	}
 }
@@ -123,7 +123,11 @@ func HostClientID() int {
 	return Host_Client()
 }
 
-func (c *SVClient) ClientPrint(msg string) {
+func (c *SVClient) Printf(format string, v ...interface{}) {
+	c.print(fmt.Sprintf(format, v...))
+}
+
+func (c *SVClient) print(msg string) {
 	c.msg.WriteByte(server.Print)
 	c.msg.WriteString(msg)
 }

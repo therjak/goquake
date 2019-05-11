@@ -364,109 +364,6 @@ void Host_Status_f(void) {
 qboolean noclip_anglehack;
 
 /*
-==================
-Host_Noclip_f
-==================
-*/
-// THERJAK just ignore noclip_anglehack
-void Host_Noclip_f(void) {
-  if (IsSrcCommand()) {
-    Cmd_ForwardToServer();
-    return;
-  }
-
-  if (Pr_global_struct_deathmatch()) return;
-  entvars_t *pent = EVars(SV_Player());
-  float *movetype = &pent->movetype;
-
-  // johnfitz -- allow user to explicitly set noclip to on or off
-  switch (Cmd_Argc()) {
-    case 1:
-      if (*movetype != MOVETYPE_NOCLIP) {
-        noclip_anglehack = true;
-        *movetype = MOVETYPE_NOCLIP;
-        SV_ClientPrintf2(HostClient(), "noclip ON\n");
-      } else {
-        noclip_anglehack = false;
-        *movetype = MOVETYPE_WALK;
-        SV_ClientPrintf2(HostClient(), "noclip OFF\n");
-      }
-      break;
-    case 2:
-      if (Cmd_ArgvAsInt(1)) {
-        noclip_anglehack = true;
-        *movetype = MOVETYPE_NOCLIP;
-        SV_ClientPrintf2(HostClient(), "noclip ON\n");
-      } else {
-        noclip_anglehack = false;
-        *movetype = MOVETYPE_WALK;
-        SV_ClientPrintf2(HostClient(), "noclip OFF\n");
-      }
-      break;
-    default:
-      Con_Printf(
-          "noclip [value] : toggle noclip mode. values: 0 = off, 1 = on\n");
-      break;
-  }
-  // johnfitz
-}
-
-/*
-====================
-Host_SetPos_f
-
-adapted from fteqw, originally by Alex Shadowalker
-====================
-*/
-// THERJAK just igroner noclip_anglehack
-void Host_SetPos_f(void) {
-  if (IsSrcCommand()) {
-    Cmd_ForwardToServer();
-    return;
-  }
-
-  if (Pr_global_struct_deathmatch()) return;
-  entvars_t *pent = EVars(SV_Player());
-
-  if (Cmd_Argc() != 7 && Cmd_Argc() != 4) {
-    SV_ClientPrintf2(HostClient(), "usage:\n");
-    SV_ClientPrintf2(HostClient(), "   setpos <x> <y> <z>\n");
-    SV_ClientPrintf2(HostClient(),
-                     "   setpos <x> <y> <z> <pitch> <yaw> <roll>\n");
-    SV_ClientPrintf2(HostClient(), "current values:\n");
-    SV_ClientPrintf2(HostClient(), "   %i %i %i %i %i %i\n",
-                     (int)pent->origin[0], (int)pent->origin[1],
-                     (int)pent->origin[2], (int)pent->v_angle[0],
-                     (int)pent->v_angle[1], (int)pent->v_angle[2]);
-    return;
-  }
-
-  if (pent->movetype != MOVETYPE_NOCLIP) {
-    noclip_anglehack = true;
-    pent->movetype = MOVETYPE_NOCLIP;
-    SV_ClientPrintf2(HostClient(), "noclip ON\n");
-  }
-
-  // make sure they're not going to whizz away from it
-  pent->velocity[0] = 0;
-  pent->velocity[1] = 0;
-  pent->velocity[2] = 0;
-
-  pent->origin[0] = Cmd_ArgvAsDouble(1);
-  pent->origin[1] = Cmd_ArgvAsDouble(2);
-  pent->origin[2] = Cmd_ArgvAsDouble(3);
-
-  if (Cmd_Argc() == 7) {
-    pent->angles[0] = Cmd_ArgvAsDouble(4);
-    pent->angles[1] = Cmd_ArgvAsDouble(5);
-    pent->angles[2] = Cmd_ArgvAsDouble(6);
-    pent->fixangle = 1;
-  }
-
-  SV_LinkEdict(SV_Player(), false);
-}
-
-/*
 ===============================================================================
 
 SERVER TRANSITIONS
@@ -1029,21 +926,6 @@ DEBUGGING TOOLS
 
 ===============================================================================
 */
-// THERJAK
-entvars_t *FindViewthingEV(void) {
-  int i;
-  entvars_t *ev;
-
-  for (i = 0; i < SV_NumEdicts(); i++) {
-    ev = EVars(i);
-    if (!strcmp(PR_GetString(ev->classname), "viewthing")) {
-      return ev;
-    }
-  }
-  Con_Printf("No viewthing on map\n");
-  return NULL;
-}
-
 /*
 ==================
 Host_Viewmodel_f
@@ -1230,8 +1112,6 @@ void Host_InitCommands(void) {
   Cmd_AddCommand("connect", Host_Connect_f);
   Cmd_AddCommand("reconnect", Host_Reconnect_f);
   Cmd_AddCommand("name", Host_Name_f);
-  Cmd_AddCommand("noclip", Host_Noclip_f);
-  Cmd_AddCommand("setpos", Host_SetPos_f);  // QuakeSpasm
 
   Cmd_AddCommand("kill", Host_Kill_f);
   Cmd_AddCommand("prespawn", Host_PreSpawn_f);

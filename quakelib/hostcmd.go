@@ -18,7 +18,8 @@ func init() {
 	cmd.AddCommand("god", hostGod)
 	cmd.AddCommand("notarget", hostNoTarget)
 	cmd.AddCommand("fly", hostFly)
-	// cmd.AddCommand("noclip", hostNoClip) -- anglehack
+	cmd.AddCommand("noclip", hostNoClip)
+	cmd.AddCommand("setpos", hostSetPos)
 	cmd.AddCommand("give", hostGive)
 	cmd.AddCommand("color", hostColor)
 	cmd.AddCommand("ping", hostPing)
@@ -62,8 +63,7 @@ func hostGod(args []cmd.QArg) {
 		}
 	}
 	ev.Flags = float32(f)
-	HostClient().ClientPrint(fmt.Sprintf(
-		"godmode %v\n", qFormatI(f&flag)))
+	HostClient().Printf("godmode %v\n", qFormatI(f&flag))
 }
 
 func hostNoTarget(args []cmd.QArg) {
@@ -91,8 +91,7 @@ func hostNoTarget(args []cmd.QArg) {
 		}
 	}
 	ev.Flags = float32(f)
-	HostClient().ClientPrint(fmt.Sprintf(
-		"notarget %v\n", qFormatI(f&flag)))
+	HostClient().Printf("notarget %v\n", qFormatI(f&flag))
 }
 
 func hostFly(args []cmd.QArg) {
@@ -123,8 +122,7 @@ func hostFly(args []cmd.QArg) {
 		}
 	}
 	ev.MoveType = float32(m)
-	HostClient().ClientPrint(fmt.Sprintf(
-		"flymode %v\n", qFormatI(m&progs.MoveTypeFly)))
+	HostClient().Printf("flymode %v\n", qFormatI(m&progs.MoveTypeFly))
 }
 
 func hostColor(args []cmd.QArg) {
@@ -178,7 +176,7 @@ func hostPause(args []cmd.QArg) {
 		return
 	}
 	if cvars.Pausable.String() != "1" {
-		HostClient().ClientPrint("Pause not allowed.\n")
+		HostClient().Printf("Pause not allowed.\n")
 		return
 	}
 	sv.paused = !sv.paused
@@ -498,7 +496,7 @@ func hostTell(args []cmd.QArg) {
 			continue
 		}
 		// TODO: We check without case check. Are names unique ignoring the case?
-		c.ClientPrint(text)
+		c.Printf(text)
 	}
 }
 
@@ -525,7 +523,7 @@ func hostSay(team bool, args []cmd.QArg) {
 			EntVars(c.edictId).Team != EntVars(HostClient().edictId).Team {
 			continue
 		}
-		c.ClientPrint(text)
+		c.Printf(text)
 	}
 	if cls.state == ca_dedicated {
 		log.Printf(text)
@@ -565,13 +563,12 @@ func hostPing(args []cmd.QArg) {
 		forwardToServer("ping", args)
 		return
 	}
-	HostClient().ClientPrint("Client ping times:\n")
+	HostClient().Printf("Client ping times:\n")
 	for _, c := range sv_clients {
 		if !c.active {
 			continue
 		}
-		HostClient().ClientPrint(fmt.Sprintf(
-			"%4d %s\n", int(c.PingTime()*1000), c.name))
+		HostClient().Printf("%4d %s\n", int(c.PingTime()*1000), c.name)
 	}
 }
 
@@ -683,4 +680,86 @@ func hostSpawn(args []cmd.QArg) {
 	c.msg.WriteByte(server.SignonNum)
 	c.msg.WriteByte(3)
 	c.sendSignon = true
+}
+
+func hostNoClip(args []cmd.QArg) {
+	if execute.IsSrcCommand() {
+		forwardToServer("noclip", args)
+		return
+	}
+
+	if progsdat.Globals.DeathMatch != 0 {
+		return
+	}
+	ev := EntVars(sv_player)
+	m := int32(ev.MoveType)
+	switch len(args) {
+	default:
+		conlog.Printf("noclip [value] : toggle noclip mode. values: 0 = off, 1 = on\n")
+		return
+	case 0:
+		if m != progs.MoveTypeNoClip {
+			m = progs.MoveTypeNoClip
+		} else {
+			m = progs.MoveTypeWalk
+		}
+	case 1:
+		if args[0].Bool() {
+			m = progs.MoveTypeNoClip
+		} else {
+			m = progs.MoveTypeWalk
+		}
+	}
+	ev.MoveType = float32(m)
+	HostClient().Printf("noclip %v\n", qFormatI(m&progs.MoveTypeNoClip))
+}
+
+func hostSetPos(args []cmd.QArg) {
+	if execute.IsSrcCommand() {
+		forwardToServer("setpos", args)
+		return
+	}
+
+	if progsdat.Globals.DeathMatch != 0 {
+		return
+	}
+
+	ev := EntVars(sv_player)
+	if len(args) != 6 && len(args) != 3 {
+		c := HostClient()
+		c.Printf("usage:\n")
+		c.Printf("   setpos <x> <y> <z>\n")
+		c.Printf("   setpos <x> <y> <z> <pitch> <yaw> <roll>\n")
+		c.Printf("current values:\n")
+		c.Printf("   %d %d %d %d %d %d\n",
+			int(ev.Origin[0]), int(ev.Origin[1]),
+			int(ev.Origin[2]), int(ev.VAngle[0]),
+			int(ev.VAngle[1]), int(ev.VAngle[2]))
+		return
+	}
+
+	m := int32(ev.MoveType)
+	if m != progs.MoveTypeNoClip {
+		ev.MoveType = float32(progs.MoveTypeNoClip)
+		HostClient().Printf("noclip ON\n")
+	}
+	// make sure they're not going to whizz away from it
+	ev.Velocity = [3]float32{0, 0, 0}
+
+	ev.Origin = [3]float32{
+		args[0].Float32(),
+		args[1].Float32(),
+		args[2].Float32(),
+	}
+
+	if len(args) == 6 {
+		ev.Angles = [3]float32{
+			args[3].Float32(),
+			args[4].Float32(),
+			args[5].Float32(),
+		}
+		ev.FixAngle = 1
+	}
+
+	LinkEdict(sv_player, false)
 }

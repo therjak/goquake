@@ -1,5 +1,7 @@
 package quakelib
 
+//#include "q_stdinc.h"
+//#include "progdefs.h"
 // void SV_SetIdealPitch();
 // void SV_WriteEntitiesToClient(int clent);
 import "C"
@@ -1058,6 +1060,18 @@ func SV_DropClient(client C.int, crash C.int) {
 func SVDropClient(client int, crash bool) {
 	c := sv_clients[client]
 	c.Drop(crash)
+}
+
+//export FindViewthingEV
+func FindViewthingEV() *C.entvars_t {
+	for i := 0; i < sv.numEdicts; i++ {
+		ev := EntVars(i)
+		if *PRGetString(int(ev.ClassName)) == "viewthing" {
+			return EVars(C.int(i))
+		}
+	}
+	conPrintf("No viewthing on map\n")
+	return nil
 }
 
 // THE FOLLOWING IS ONLY NEEDED FOR SV_WRITEENTITIESTOCLIENT

@@ -119,7 +119,7 @@ func REPORT_STR(in *C.char) {
 func SVClientPrintf(format string, v ...interface{}) {
 	s := fmt.Sprintf(format, v...)
 	log.Print(s)
-	HostClient().ClientPrint(s)
+	HostClient().Printf(s)
 }
 
 //do not use. use conlog.Printf

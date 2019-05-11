@@ -69,6 +69,14 @@ func (a QArg) Int() int {
 	return int(r)
 }
 
+func (a QArg) Float32() float32 {
+	r, err := strconv.ParseFloat(a.a, 32)
+	if err != nil {
+		return 0
+	}
+	return float32(r)
+}
+
 func (a QArg) Float64() float64 {
 	r, err := strconv.ParseFloat(a.a, 64)
 	if err != nil {
