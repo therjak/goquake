@@ -1,6 +1,5 @@
 package quakelib
 
-// void SV_DropClient(int,int);
 // void SV_SetIdealPitch();
 // void SV_WriteEntitiesToClient(int clent);
 import "C"
@@ -418,7 +417,7 @@ func (s *Server) SendDatagram(c *SVClient) bool {
 		b = append(b, s.datagram.Bytes()...)
 	}
 	if c.netConnection.SendUnreliableMessage(b) == -1 {
-		C.SV_DropClient(C.int(c.id), 1)
+		c.Drop(true)
 		return false
 	}
 	return true
@@ -1051,49 +1050,15 @@ func SV_SaveSpawnparms() {
 
 // Called when the player is getting totally kicked off the host
 // if (crash = true), don't bother sending signofs
-/*
-void SV_DropClient(int client, qboolean crash) {
-  int saveSelf;
-  int i;
-
-  if (!crash) {
-    // send any final messages (don't check for errors)
-    if (ClientCanSendMessage(client)) {
-      ClientWriteByte(client, svc_disconnect);
-      ClientSendMessage(client);
-    }
-
-    if (GetClientSpawned(client)) {
-      // call the prog function for removing a client
-      // this will set the body to a dead frame, among other things
-      saveSelf = Pr_global_struct_self();
-      Set_pr_global_struct_self(GetClientEdictId(client));
-      PR_ExecuteProgram(Pr_global_struct_ClientDisconnect());
-      Set_pr_global_struct_self(saveSelf);
-    }
-    char *name = GetClientName(client);
-    Sys_Print_S("Client %v removed\n", name);
-    free(name);
-  }
-
-  // break the net connection
-  ClientClose(client);
-
-  // send notification to all clients
-  for (i = 0; i < SVS_GetMaxClients(); i++) {
-    if (!GetClientActive(i)) continue;
-    ClientWriteByte(i, svc_updatename);
-    ClientWriteByte(i, client);
-    ClientWriteString(i, "");
-    ClientWriteByte(i, svc_updatefrags);
-    ClientWriteByte(i, client);
-    ClientWriteShort(i, 0);
-    ClientWriteByte(i, svc_updatecolors);
-    ClientWriteByte(i, client);
-    ClientWriteByte(i, 0);
-  }
+//export SV_DropClient
+func SV_DropClient(client C.int, crash C.int) {
+	SVDropClient(int(client), crash != 0)
 }
-*/
+
+func SVDropClient(client int, crash bool) {
+	c := sv_clients[client]
+	c.Drop(crash)
+}
 
 // THE FOLLOWING IS ONLY NEEDED FOR SV_WRITEENTITIESTOCLIENT
 

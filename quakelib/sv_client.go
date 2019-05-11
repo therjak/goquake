@@ -12,7 +12,6 @@ typedef struct movecmd_s {
 	float upmove;
 } movecmd_t;
 #endif // _MOVEDEF_h
-void SV_DropClient(int, int);
 void SV_ConnectClient(int);
 */
 import "C"
@@ -432,7 +431,7 @@ func SetClientOverflowed(num, v C.int) {
 
 func (cl *SVClient) SendNop() {
 	if cl.netConnection.SendUnreliableMessage([]byte{server.Nop}) == -1 {
-		C.SV_DropClient(C.int(cl.id), 1 /* crashed == true */)
+		cl.Drop(true)
 	}
 	cl.lastMessage = host.time
 }
@@ -440,6 +439,45 @@ func (cl *SVClient) SendNop() {
 //export SV_SendNop
 func SV_SendNop(num C.int) {
 	sv_clients[int(num)].SendNop()
+}
+
+func (cl *SVClient) Drop(crash bool) {
+	if !crash {
+		// send any final messages (don't check for errors)
+		if cl.CanSendMessage() {
+			cl.msg.WriteByte(server.Disconnect)
+			cl.SendMessage()
+		}
+
+		if cl.spawned {
+			// call the prog function for removing a client
+			// this will set the body to a dead frame, among other things
+			saveSelf := progsdat.Globals.Self
+			progsdat.Globals.Self = int32(cl.edictId)
+			PRExecuteProgram(progsdat.Globals.ClientDisconnect)
+			progsdat.Globals.Self = saveSelf
+		}
+		log.Printf("Client %s removed", cl.name)
+	}
+
+	// break the net connection
+	cl.Close()
+
+	// send notification to all clients
+	for _, c := range sv_clients {
+		if !c.active {
+			continue
+		}
+		c.msg.WriteByte(server.UpdateName)
+		c.msg.WriteByte(cl.id)
+		c.msg.WriteString("")
+		c.msg.WriteByte(server.UpdateFrags)
+		c.msg.WriteByte(cl.id)
+		c.msg.WriteShort(0)
+		c.msg.WriteByte(server.UpdateColors)
+		c.msg.WriteByte(cl.id)
+		c.msg.WriteByte(0)
+	}
 }
 
 //export SV_SendDisconnectToAll

@@ -121,8 +121,6 @@ int HostClient(void);
 
 void SV_Init(void);
 
-void SV_DropClient(int client, qboolean crash);
-
 void SV_SendClientMessages(void);
 
 void SV_SetIdealPitch(void);
