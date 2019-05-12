@@ -277,90 +277,6 @@ void Host_Mods_f(void) {
     Con_SafePrintf("no mods found\n");
 }
 
-//==============================================================================
-
-/*
-=============
-Host_Mapname_f -- johnfitz
-=============
-*/
-void Host_Mapname_f(void) {
-  if (SV_Active()) {
-    Con_Printf("\"mapname\" is \"%s\"\n", SV_Name());
-    return;
-  }
-
-  if (CLS_GetState() == ca_connected) {
-    Con_Printf("\"mapname\" is \"%s\"\n", cl.mapname);
-    return;
-  }
-
-  Con_Printf("no map loaded\n");
-}
-
-/*
-==================
-Host_Status_f
-==================
-*/
-void host_status_clientPrintf(const char *fmt, ...) {
-  va_list argptr;
-  char string[1024];
-
-  va_start(argptr, fmt);
-  q_vsnprintf(string, sizeof(string), fmt, argptr);
-  va_end(argptr);
-  SV_ClientPrint2(HostClient(), string);
-}
-
-// THERJAK
-void Host_Status_f(void) {
-  int seconds;
-  int minutes;
-  int hours = 0;
-  int j;
-  void (*print_fn)(const char *fmt, ...)
-      __fp_attribute__((__format__(__printf__, 1, 2)));
-
-  if (IsSrcCommand()) {
-    if (!SV_Active()) {
-      Cmd_ForwardToServer();
-      return;
-    }
-    print_fn = Con_Printf;
-  } else {
-    print_fn = host_status_clientPrintf;
-  }
-
-  print_fn("host:    %s\n", Cvar_GetString(&hostname));
-  print_fn("version: %4.2f\n", VERSION);
-  if (NETtcpipAvailable()) print_fn("tcp/ip:  %s\n", my_tcpip_address);
-  print_fn("map:     %s\n", SV_Name());
-  int active = 0;
-  for (j = 0; j < SVS_GetMaxClients(); j++) {
-    if (GetClientActive(j)) {
-      active++;
-    }
-  }
-  print_fn("players: %i active (%i max)\n\n", active, SVS_GetMaxClients());
-  for (j = 0; j < SVS_GetMaxClients(); j++) {
-    if (!GetClientActive(j)) continue;
-    seconds = (int)(NET_GetTime() - ClientConnectTime(j));
-    minutes = seconds / 60;
-    if (minutes) {
-      seconds -= (minutes * 60);
-      hours = minutes / 60;
-      if (hours) minutes -= (hours * 60);
-    } else
-      hours = 0;
-    char *name = GetClientName(j);
-    print_fn("#%-2u %-16.16s  %3i  %2i:%02i:%02i\n", j + 1, name,
-             (int)EVars(GetClientEdictId(j))->frags, hours, minutes, seconds);
-    free(name);
-    print_fn("   %s\n", NET_QSocketGetAddressString(j));
-  }
-}
-
 qboolean noclip_anglehack;
 
 /*
@@ -1038,9 +954,7 @@ void Host_InitCommands(void) {
   Cmd_AddCommand("mods", Host_Mods_f);  // johnfitz
   Cmd_AddCommand("games",
                  Host_Mods_f);  // as an alias to "mods" -- S.A. / QuakeSpasm
-  Cmd_AddCommand("mapname", Host_Mapname_f);  // johnfitz
 
-  Cmd_AddCommand("status", Host_Status_f);
   Cmd_AddCommand("quit", Host_Quit_f);
   Cmd_AddCommand("map", Host_Map_f);
   Cmd_AddCommand("restart", Host_Restart_f);

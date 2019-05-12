@@ -7,11 +7,13 @@ import (
 	"quake/conlog"
 	"quake/cvars"
 	"quake/execute"
+	"quake/net"
 	"quake/progs"
 	"quake/protocol"
 	"quake/protocol/server"
 	"quake/qtime"
 	"strings"
+	"time"
 )
 
 func init() {
@@ -26,11 +28,13 @@ func init() {
 	cmd.AddCommand("notarget", hostNoTarget)
 	cmd.AddCommand("pause", hostPause)
 	cmd.AddCommand("ping", hostPing)
+	cmd.AddCommand("status", hostStatus)
 	cmd.AddCommand("say", hostSayAll)
 	cmd.AddCommand("say_team", hostSayTeam)
 	cmd.AddCommand("setpos", hostSetPos)
 	cmd.AddCommand("spawn", hostSpawn)
 	cmd.AddCommand("tell", hostTell)
+	cmd.AddCommand("mapname", hostMapName)
 }
 
 func qFormatI(b int32) string {
@@ -829,4 +833,55 @@ func hostKill(args []cmd.QArg) {
 	progsdat.Globals.Time = sv.time
 	progsdat.Globals.Self = int32(sv_player)
 	PRExecuteProgram(progsdat.Globals.ClientKill)
+}
+
+func hostStatus(args []cmd.QArg) {
+	if execute.IsSrcCommand() {
+		if !sv.active {
+			forwardToServer("kill", args)
+			return
+		}
+
+	}
+	printf := func() func(format string, v ...interface{}) {
+		if execute.IsSrcCommand() {
+			return conPrintf
+		}
+		return HostClient().Printf
+	}()
+
+	printf("host:    %s\n", cvars.HostName.String())
+	printf("version: %4.2f\n", VERSION)
+	printf("tcp/ip:  %s\n", net.Address())
+	printf("map:     %s\n", sv.name)
+	active := 0
+	for _, c := range sv_clients {
+		if c.active {
+			active++
+		}
+	}
+	printf("players: %d active (%d max)\n\n", active, svs.maxClients)
+	ntime := net.Time()
+	for i, c := range sv_clients {
+		if !c.active {
+			continue
+		}
+		d := time.Duration(ntime - c.ConnectTime())
+		ev := EntVars(c.edictId)
+		printf("#%-2d %-16.16s  %3d  %s\n", i+1, c.name, int(ev.Frags), d.String())
+		printf("   %s\n", c.Address())
+	}
+}
+
+func hostMapName(args []cmd.QArg) {
+	if sv.active {
+		conPrintf("%q is %q\n", "mapname", sv.name)
+		return
+	}
+	if cls.state == ca_connected {
+		// TODO
+		// conPrintf("%q is %q\n", "mapname", cl.mapname)
+		return
+	}
+	conPrintf("no map loaded\n")
 }

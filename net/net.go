@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"os"
 	"quake/qtime"
 	"strconv"
 	"strings"
@@ -46,8 +47,6 @@ var (
 	loopServer         *Connection
 	loopConnectPending = false
 	port               = 26000
-	myip               = "127.0.0.1"
-	serverName         = "127.0.0.1" //"MyServer"
 )
 
 func Port() int {
@@ -58,12 +57,23 @@ func SetPort(p int) {
 	port = p
 }
 
-func MyIP() string {
-	return myip
+func Address() string {
+	ia, err := net.InterfaceAddrs()
+	if err != nil {
+		return ""
+	}
+	if len(ia) == 0 {
+		return ""
+	}
+	return ia[0].String()
 }
 
 func ServerName() string {
-	return serverName
+	n, err := os.Hostname()
+	if err != nil {
+		return ""
+	}
+	return n
 }
 
 func (c *Connection) ConnectTime() float64 {

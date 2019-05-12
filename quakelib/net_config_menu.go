@@ -256,7 +256,7 @@ func (m *qNetConfigMenu) Draw() {
 	drawPic((320-p.width)/2, 4, p)
 	drawString(52, 32, fmt.Sprintf("%s - TCP/IP", m.text))
 	drawString(60, 52, "Address:")
-	drawString(60+9*8, 52, net.MyIP())
+	drawString(60+9*8, 52, net.Address())
 
 	for _, item := range m.items {
 		item.Draw()

@@ -377,11 +377,6 @@ func (cl *SVClient) Close() {
 	cl.oldFrags = -999999
 }
 
-//export ClientConnectTime
-func ClientConnectTime(num C.int) C.double {
-	return C.double(sv_clients[int(num)].ConnectTime())
-}
-
 func (cl *SVClient) ConnectTime() float64 {
 	return cl.netConnection.ConnectTime()
 }
