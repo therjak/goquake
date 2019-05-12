@@ -52,11 +52,6 @@ func IN_SendKeyEvents() {
 	sendKeyEvents()
 }
 
-//export IN_Commands
-func IN_Commands() {
-	// some joystick stuff
-}
-
 type mouseFilter struct{}
 
 func (mouseFilter) FilterEvent(e sdl.Event, userdata interface{}) bool {

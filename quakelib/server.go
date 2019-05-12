@@ -571,22 +571,12 @@ func (s *Server) sendStartSound(entity, channel, volume, soundnum int, attenuati
 	s.datagram.WriteCoord(ev.Origin[2]+0.5*(ev.Mins[2]+ev.Maxs[2]), flags)
 }
 
-//export SV_CleanupEnts
-func SV_CleanupEnts() {
-	sv.CleanupEntvarEffects()
-}
-
 func (s *Server) CleanupEntvarEffects() {
 	for i := 1; i < s.numEdicts; i++ {
 		ev := EntVars(i)
 		eff := int(ev.Effects)
 		ev.Effects = float32(eff &^ server.EffectMuzzleFlash)
 	}
-}
-
-//export SV_WriteClientdataToMessage
-func SV_WriteClientdataToMessage(ent C.int) {
-	sv.WriteClientdataToMessage(EntVars(int(ent)), EntityAlpha(int(ent)))
 }
 
 func (s *Server) WriteClientdataToMessage(e *progs.EntVars, alpha byte) {
@@ -820,11 +810,6 @@ func ConnectClient(n int) {
 	new.SendServerinfo()
 }
 
-//export SV_SendClientDatagram
-func SV_SendClientDatagram(c C.int) C.int {
-	return b2i(sv.SendClientDatagram(sv_clients[int(c)]))
-}
-
 func (s *Server) SendClientDatagram(c *SVClient) bool {
 	msgBuf.ClearMessage()
 	msgBufMaxLen = net.MAX_DATAGRAM
@@ -839,11 +824,6 @@ func (s *Server) SendClientDatagram(c *SVClient) bool {
 	C.SV_WriteEntitiesToClient(C.int(c.edictId))
 
 	return s.SendDatagram(c)
-}
-
-//export SV_UpdateToReliableMessages
-func SV_UpdateToReliableMessages() {
-	sv.UpdateToReliableMessages()
 }
 
 func (s *Server) UpdateToReliableMessages() {

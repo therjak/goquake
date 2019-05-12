@@ -74,29 +74,9 @@ func MENU_SetState(s C.m_state_e) {
 	}
 }
 
-//export M_Menu_Options_f
-func M_Menu_Options_f() {
-	enterMenuOptions()
-}
-
 //export M_ToggleMenu_f
 func M_ToggleMenu_f() {
 	toggleMenu()
-}
-
-//export M_Menu_Setup_f
-func M_Menu_Setup_f() {
-	enterNetSetupMenu()
-}
-
-//export M_Menu_Keys_f
-func M_Menu_Keys_f() {
-	enterMenuKeys()
-}
-
-//export M_Menu_Help_f
-func M_Menu_Help_f() {
-	enterMenuHelp()
 }
 
 //export M_Menu_Main_f
@@ -104,29 +84,9 @@ func M_Menu_Main_f() {
 	enterMenuMain()
 }
 
-//export M_Menu_SinglePlayer_f
-func M_Menu_SinglePlayer_f() {
-	enterSinglePlayerMenu()
-}
-
-//export M_Menu_MultiPlayer_f
-func M_Menu_MultiPlayer_f() {
-	enterMultiPlayerMenu()
-}
-
 //export M_Menu_Quit_f
 func M_Menu_Quit_f() {
 	enterQuitMenu()
-}
-
-//export M_Menu_Load_f
-func M_Menu_Load_f() {
-	enterLoadMenu()
-}
-
-//export M_Menu_Save_f
-func M_Menu_Save_f() {
-	enterSaveMenu()
 }
 
 //export M_Menu_LanConfig_f

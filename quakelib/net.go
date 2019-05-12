@@ -13,25 +13,6 @@ var (
 	listening      = false
 )
 
-func udp_init() bool {
-	return true
-	// contolAddr, err := net.ResolveUDPAddr("udp", ":0")
-	//if err != nil {
-	//	return -1
-	//}
-	// serverAddr...
-
-	// server:
-	// serverCon, err := net.ListenUDP("udp", severAddr)
-	// handle err
-	// defer serverCon.Close()
-	// buf := make([]byte, 1024)
-	// n, addr, err := serverCon.ReadFromUDP(buf)
-	// -> received n bytes from addr
-	// n, err := serverCon.WriteTo(buf, addr)
-	// -> send n bytes to addr
-}
-
 func init() {
 	cmd.AddCommand("listen", listenCmd)
 	cmd.AddCommand("port", portCmd)
