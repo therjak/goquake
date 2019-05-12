@@ -962,7 +962,6 @@ void Host_InitCommands(void) {
   Cmd_AddCommand("connect", Host_Connect_f);
   Cmd_AddCommand("reconnect", Host_Reconnect_f);
 
-  Cmd_AddCommand("prespawn", Host_PreSpawn_f);
   Cmd_AddCommand("kick", Host_Kick_f);
   Cmd_AddCommand("load", Host_Loadgame_f);
   Cmd_AddCommand("save", Host_Savegame_f);

@@ -4,11 +4,8 @@ import "C"
 
 import (
 	cmdl "quake/commandline"
-	"quake/conlog"
 	"quake/cvars"
-	"quake/execute"
 	"quake/math"
-	svc "quake/protocol/server"
 	"quake/qtime"
 )
 
@@ -79,23 +76,6 @@ func Host_FilterTime() int {
 		return 1
 	}
 	return 0
-}
-
-//export Host_PreSpawn_f
-func Host_PreSpawn_f() {
-	if execute.IsSrcCommand() {
-		conlog.Printf("prespawn is not valid from the console\n")
-		return
-	}
-	c := HostClient()
-	if c.spawned {
-		conlog.Printf("prespawn not valid -- already spawned\n")
-		return
-	}
-	c.msg.WriteBytes(sv.signon.Bytes())
-	c.msg.WriteByte(svc.SignonNum)
-	c.msg.WriteByte(2)
-	c.sendSignon = true
 }
 
 //export Host_FindMaxClients

@@ -35,6 +35,7 @@ func init() {
 	cmd.AddCommand("spawn", hostSpawn)
 	cmd.AddCommand("tell", hostTell)
 	cmd.AddCommand("mapname", hostMapName)
+	cmd.AddCommand("prespawn", hostPreSpawn)
 }
 
 func qFormatI(b int32) string {
@@ -42,6 +43,22 @@ func qFormatI(b int32) string {
 		return "OFF"
 	}
 	return "ON"
+}
+
+func hostPreSpawn(args []cmd.QArg) {
+	if execute.IsSrcCommand() {
+		conlog.Printf("prespawn is not valid from the console\n")
+		return
+	}
+	c := HostClient()
+	if c.spawned {
+		conlog.Printf("prespawn not valid -- already spawned\n")
+		return
+	}
+	c.msg.WriteBytes(sv.signon.Bytes())
+	c.msg.WriteByte(server.SignonNum)
+	c.msg.WriteByte(2)
+	c.sendSignon = true
 }
 
 func hostGod(args []cmd.QArg) {

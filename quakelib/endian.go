@@ -32,35 +32,16 @@ func little32(in uint32) uint32 {
 	return binary.LittleEndian.Uint32(bytes)
 }
 
-//export BigShort
-func BigShort(in C.short) C.short {
-	a := big16(uint16(in))
-	return C.short(a)
-}
-
 //export LittleShort
 func LittleShort(in C.short) C.short {
 	a := little16(uint16(in))
 	return C.short(a)
 }
 
-//export BigLong
-func BigLong(in C.long) C.long {
-	a := big32(uint32(in))
-	return C.long(a)
-}
-
 //export LittleLong
 func LittleLong(in C.long) C.long {
 	a := little32(uint32(in))
 	return C.long(a)
-}
-
-//export BigFloat
-func BigFloat(in C.float) C.float {
-	bits := math.Float32bits(float32(in))
-	a := big32(bits)
-	return C.float(math.Float32frombits(a))
 }
 
 //export LittleFloat
