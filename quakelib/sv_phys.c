@@ -39,6 +39,7 @@ void SV_Physics_Toss(int ent);
 SV_CheckAllEnts
 ================
 */
+//THERJAK
 void SV_CheckAllEnts(void) {
   int e;
   int check;
@@ -67,6 +68,7 @@ in a frame.  Not used for pushmove objects, because they must be exact.
 Returns false if the entity removed itself.
 =============
 */
+//THERJAK
 qboolean SV_RunThink(int e) {
   float thinktime;
   float oldframe;  // johnfitz
@@ -113,7 +115,7 @@ returns the blocked flags (1 = floor, 2 = step / wall)
 ==================
 */
 #define STOP_EPSILON 0.1
-
+//THERJAK
 int ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce) {
   float backoff;
   float change;
@@ -147,6 +149,7 @@ If steptrace is not NULL, the trace of any vertical wall hit will be stored
 ============
 */
 #define MAX_CLIP_PLANES 5
+//THERJAK
 int SV_FlyMove(int ent, float time, trace_t *steptrace) {
   int bumpcount, numbumps;
   vec3_t dir;
@@ -269,6 +272,7 @@ SV_AddGravity
 
 ============
 */
+//THERJAK
 void SV_AddGravity(int ent) {
   float ent_gravity;
   eval_t *val;
@@ -298,6 +302,7 @@ SV_PushEntity
 Does not change the entities velocity at all
 ============
 */
+//THERJAK
 trace_t SV_PushEntity(int ent, vec3_t push) {
   trace_t trace;
   vec3_t end;
@@ -493,6 +498,7 @@ This is a big hack to try and fix the rare case of getting stuck in the world
 clipping hull.
 =============
 */
+//THERJAK
 void SV_CheckStuck(int ent) {
   int i, j;
   int z;
@@ -533,6 +539,7 @@ void SV_CheckStuck(int ent) {
 SV_CheckWater
 =============
 */
+//THERJAK
 qboolean SV_CheckWater(int ent) {
   vec3_t point;
   int cont;
@@ -567,6 +574,7 @@ SV_WallFriction
 
 ============
 */
+//THERJAK
 void SV_WallFriction(int ent, trace_t *trace) {
   vec3_t forward, right, up;
   float d, i;

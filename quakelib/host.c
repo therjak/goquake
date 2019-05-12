@@ -125,6 +125,7 @@ void Host_Error(const char *error, ...) {
   longjmp(host_abortserver, 1);
 }
 
+//THERJAK
 void Host_Version_f(void) {
   Con_Printf("Quake Version %1.2f\n", VERSION);
   Con_Printf("QuakeSpasm Version %1.2f.%d\n", QUAKESPASM_VERSION,
@@ -268,6 +269,7 @@ Host_ShutdownServer
 This only happens at the end of a game, not between levels
 ==================
 */
+//THERJAK
 void Host_ShutdownServer(qboolean crash) {
   int i;
   int count;
