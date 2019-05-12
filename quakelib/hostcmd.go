@@ -838,7 +838,7 @@ func hostKill(args []cmd.QArg) {
 func hostStatus(args []cmd.QArg) {
 	if execute.IsSrcCommand() {
 		if !sv.active {
-			forwardToServer("kill", args)
+			forwardToServer("status", args)
 			return
 		}
 

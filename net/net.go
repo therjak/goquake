@@ -71,6 +71,7 @@ func Address() string {
 func ServerName() string {
 	n, err := os.Hostname()
 	if err != nil {
+		log.Printf("Could not get hostname: %v", err)
 		return ""
 	}
 	return n
