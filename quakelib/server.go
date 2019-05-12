@@ -1057,6 +1057,68 @@ func FindViewthingEV() *C.entvars_t {
 	return nil
 }
 
+//export SV_SendClientMessages
+func SV_SendClientMessages() {
+	sv.SendClientMessages()
+}
+
+func (s *Server) SendClientMessages() {
+	// update frags, names, etc
+	s.UpdateToReliableMessages()
+
+	// build individual updates
+	for _, c := range sv_clients {
+		if !c.active {
+			continue
+		}
+
+		if c.spawned {
+			if !s.SendClientDatagram(c) {
+				continue
+			}
+		} else {
+			// the player isn't totally in the game yet
+			// send small keepalive messages if too much time has passed
+			// send a full message when the next signon stage has been requested
+			// some other message data (name changes, etc) may accumulate
+			// between signon stages
+			if !c.sendSignon {
+				if host.time-c.lastMessage > 5 {
+					c.SendNop()
+				}
+				// don't send out non-signon messages
+				continue
+			}
+		}
+
+		// check for an overflowed message.  Should only happen
+		// on a very fucked up connection that backs up a lot, then
+		// changes level
+		if false { // GetClientOverflowed(i) {
+			c.Drop(true)
+			// SetClientOverflowed(i, false)
+			continue
+		}
+
+		if c.msg.HasMessage() {
+			if !c.CanSendMessage() {
+				continue
+			}
+
+			if c.SendMessage() == -1 {
+				// if the message couldn't send, kick off
+				c.Drop(true)
+			}
+			c.msg.ClearMessage()
+			c.lastMessage = host.time
+			c.sendSignon = false
+		}
+	}
+
+	// clear muzzle flashes
+	s.CleanupEntvarEffects()
+}
+
 // THE FOLLOWING IS ONLY NEEDED FOR SV_WRITEENTITIESTOCLIENT
 
 /*

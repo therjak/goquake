@@ -306,64 +306,6 @@ stats:
 }
 
 /*
-=======================
-SV_SendClientMessages
-=======================
-*/
-void SV_SendClientMessages(void) {
-  int i;
-
-  // update frags, names, etc
-  SV_UpdateToReliableMessages();
-
-  // build individual updates
-  for (i = 0; i < SVS_GetMaxClients(); i++) {
-    if (!GetClientActive(i)) continue;
-
-    if (GetClientSpawned(i)) {
-      if (!SV_SendClientDatagram(i)) continue;
-    } else {
-      // the player isn't totally in the game yet
-      // send small keepalive messages if too much time has passed
-      // send a full message when the next signon stage has been requested
-      // some other message data (name changes, etc) may accumulate
-      // between signon stages
-      if (!GetClientSendSignon(i)) {
-        if (HostRealTime() - GetClientLastMessage(i) > 5) SV_SendNop(i);
-        continue;  // don't send out non-signon messages
-      }
-    }
-
-    // check for an overflowed message.  Should only happen
-    // on a very fucked up connection that backs up a lot, then
-    // changes level
-    if (GetClientOverflowed(i)) {
-      SV_DropClient(i, true);
-      SetClientOverflowed(i, false);
-      continue;
-    }
-
-    if (ClientHasMessage(i)) {
-      if (!ClientCanSendMessage(i)) {
-        //				I_Printf ("can't write\n");
-        continue;
-      }
-
-      if (ClientSendMessage(i) == -1) {
-        // if the message couldn't send, kick off
-        SV_DropClient(i, true);
-      }
-      ClientClearMessage(i);
-      SetClientLastMessage(i);
-      SetClientSendSignon(i, false);
-    }
-  }
-
-  // clear muzzle flashes
-  SV_CleanupEnts();
-}
-
-/*
 ==============================================================================
 
 SERVER SPAWNING
