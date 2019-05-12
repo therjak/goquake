@@ -377,7 +377,7 @@ func (cl *SVClient) Close() {
 	cl.oldFrags = -999999
 }
 
-func (cl *SVClient) ConnectTime() float64 {
+func (cl *SVClient) ConnectTime() time.Duration {
 	return cl.netConnection.ConnectTime()
 }
 

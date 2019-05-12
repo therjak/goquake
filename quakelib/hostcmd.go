@@ -615,7 +615,7 @@ func hostSpawn(args []cmd.QArg) {
 		progsdat.Globals.Time = sv.time
 		progsdat.Globals.Self = int32(sv_player)
 		PRExecuteProgram(progsdat.Globals.ClientConnect)
-		if qtime.QTime().Seconds()-c.ConnectTime() <= float64(sv.time) {
+		if (qtime.QTime() - c.ConnectTime()).Seconds() <= float64(sv.time) {
 			log.Printf("%v entered the game\n", c.name)
 		}
 		PRExecuteProgram(progsdat.Globals.PutClientInServer)
@@ -866,9 +866,10 @@ func hostStatus(args []cmd.QArg) {
 		if !c.active {
 			continue
 		}
-		d := time.Duration(ntime - c.ConnectTime())
+		d := ntime - c.ConnectTime()
+		d = d.Truncate(time.Second)
 		ev := EntVars(c.edictId)
-		printf("#%-2d %-16.16s  %3d  %s\n", i+1, c.name, int(ev.Frags), d.String())
+		printf("#%-2d %-16.16s  %3d  %9s\n", i+1, c.name, int(ev.Frags), d.String())
 		printf("   %s\n", c.Address())
 	}
 }

@@ -76,8 +76,8 @@ func ServerName() string {
 	return n
 }
 
-func (c *Connection) ConnectTime() float64 {
-	return c.connectTime.Seconds()
+func (c *Connection) ConnectTime() time.Duration {
+	return c.connectTime
 }
 
 func (c *Connection) Address() string {
@@ -92,8 +92,8 @@ func SetTime() {
 	netTime = qtime.QTime()
 }
 
-func Time() float64 {
-	return netTime.Seconds()
+func Time() time.Duration {
+	return netTime
 }
 
 func Connect(host string) (*Connection, error) {
