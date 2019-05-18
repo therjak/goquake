@@ -14,6 +14,7 @@ import (
 	"quake/conlog"
 	"quake/cvars"
 	"quake/execute"
+	"quake/math"
 	"quake/math/vec"
 	"quake/model"
 	"quake/net"
@@ -1097,6 +1098,73 @@ func (s *Server) SendClientMessages() {
 
 	// clear muzzle flashes
 	s.CleanupEntvarEffects()
+}
+
+//export SV_CheckAllEnts
+func SV_CheckAllEnts() {
+	// see if any solid entities are inside the final position
+	for e := 1; e < sv.numEdicts; e++ {
+		if edictNum(e).free != 0 {
+			continue
+		}
+		mt := EntVars(e).MoveType
+		if mt == progs.MoveTypePush ||
+			mt == progs.MoveTypeNone ||
+			mt == progs.MoveTypeNoClip {
+			continue
+		}
+
+		if testEntityPosition(e) {
+			conPrintf("entity in invalid position\n")
+		}
+	}
+}
+
+//export SV_RunThink
+func SV_RunThink(e C.int) C.int {
+	return b2i(runThink(int(e)))
+}
+
+// Runs thinking code if time.  There is some play in the exact time the think
+// function will be called, because it is called before any movement is done
+// in a frame.  Not used for pushmove objects, because they must be exact.
+// Returns false if the entity removed itself.
+func runThink(e int) bool {
+	thinktime := EntVars(e).NextThink
+	if thinktime <= 0 || thinktime > sv.time+float32(host.frameTime) {
+		return true
+	}
+
+	if thinktime < sv.time {
+		// don't let things stay in the past.
+		// it is possible to start that way
+		// by a trigger with a local time.
+		thinktime = sv.time
+	}
+
+	oldframe := EntVars(e).Frame
+
+	ev := EntVars(e)
+	ev.NextThink = 0
+	progsdat.Globals.Time = thinktime
+	progsdat.Globals.Self = int32(e)
+	progsdat.Globals.Other = 0
+	PRExecuteProgram(ev.Think)
+
+	// capture interval to nextthink here and send it to client for better
+	// lerp timing, but only if interval is not 0.1 (which client assumes)
+	ed := edictNum(e)
+	ed.sendinterval = b2i(false)
+	if ed.free == 0 && ev.NextThink != 0 &&
+		(ev.MoveType == progs.MoveTypeStep || ev.Frame != oldframe) {
+		i := math.Round((ev.NextThink - thinktime) * 255)
+		// 25 and 26 are close enough to 0.1 to not send
+		if i >= 0 && i < 256 && i != 25 && i != 26 {
+			ed.sendinterval = b2i(true)
+		}
+	}
+
+	return ed.free == 0
 }
 
 // THE FOLLOWING IS ONLY NEEDED FOR SV_WRITEENTITIESTOCLIENT

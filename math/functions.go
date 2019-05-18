@@ -11,3 +11,7 @@ func Lerp(a, b, frac float32) float32 {
 func RoundToEven(x float32) float32 {
 	return float32(gmath.RoundToEven(float64(x)))
 }
+
+func Round(x float32) float32 {
+	return float32(gmath.Round(float64(x)))
+}
