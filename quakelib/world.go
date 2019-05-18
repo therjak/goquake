@@ -18,7 +18,7 @@ import (
 const (
 	MOVE_NORMAL = iota
 	MOVE_NOMONSTERS
-	MOVE_MISSLE
+	MOVE_MISSILE
 )
 
 const (
@@ -736,7 +736,7 @@ func svMove(start, mins, maxs, end vec.Vec3, typ, ed int) C.trace_t {
 		mins2: mins,
 		maxs2: maxs,
 	}
-	if typ == MOVE_MISSLE {
+	if typ == MOVE_MISSILE {
 		clip.mins2 = vec.Vec3{-15, -15, -15}
 		clip.maxs2 = vec.Vec3{15, 15, 15}
 	}

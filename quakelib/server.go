@@ -2,6 +2,7 @@ package quakelib
 
 //#include "q_stdinc.h"
 //#include "progdefs.h"
+//#include "trace.h"
 // void SV_SetIdealPitch();
 // void SV_WriteEntitiesToClient(int clent);
 import "C"
@@ -1165,6 +1166,46 @@ func runThink(e int) bool {
 	}
 
 	return ed.free == 0
+}
+
+//export SV_PushEntity
+func SV_PushEntity(ent C.int, push *C.float) C.trace_t {
+	p := p2v3(push)
+	return pushEntity(int(ent), p)
+}
+
+//Does not change the entities velocity at all
+func pushEntity(e int, push vec.Vec3) C.trace_t {
+	// trace_t trace;
+	// vec3_t end;
+	ev := EntVars(e)
+	origin := vec.VFromA(ev.Origin)
+	mins := vec.VFromA(ev.Mins)
+	maxs := vec.VFromA(ev.Maxs)
+	end := vec.Add(origin, push)
+
+	tr := func() C.trace_t {
+		if ev.MoveType == progs.MoveTypeFlyMissile {
+			return svMove(origin, mins, maxs, end, MOVE_MISSILE, e)
+		}
+		if ev.Solid == SOLID_TRIGGER || ev.Solid == SOLID_NOT {
+			// only clip against bmodels
+			return svMove(origin, mins, maxs, end, MOVE_NOMONSTERS, e)
+		}
+
+		return svMove(origin, mins, maxs, end, MOVE_NORMAL, e)
+	}()
+
+	ev.Origin[0] = float32(tr.endpos[0])
+	ev.Origin[1] = float32(tr.endpos[1])
+	ev.Origin[2] = float32(tr.endpos[2])
+	LinkEdict(e, true)
+
+	if tr.entp != 0 {
+		sv.Impact(e, int(tr.entn))
+	}
+
+	return tr
 }
 
 // THE FOLLOWING IS ONLY NEEDED FOR SV_WRITEENTITIESTOCLIENT

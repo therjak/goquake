@@ -61,7 +61,7 @@ const (
 	MoveTypeToss
 	MoveTypePush
 	MoveTypeNoClip
-	MoveTypeFlyMissle
+	MoveTypeFlyMissile
 	MoveTypeBounce
 )
 

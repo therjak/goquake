@@ -225,39 +225,6 @@ PUSHMOVE
 
 /*
 ============
-SV_PushEntity
-
-Does not change the entities velocity at all
-============
-*/
-//THERJAK
-trace_t SV_PushEntity(int ent, vec3_t push) {
-  trace_t trace;
-  vec3_t end;
-
-  VectorAdd(EVars(ent)->origin, push, end);
-
-  if (EVars(ent)->movetype == MOVETYPE_FLYMISSILE)
-    trace = SV_Move(EVars(ent)->origin, EVars(ent)->mins, EVars(ent)->maxs, end,
-                    MOVE_MISSILE, ent);
-  else if (EVars(ent)->solid == SOLID_TRIGGER || EVars(ent)->solid == SOLID_NOT)
-    // only clip against bmodels
-    trace = SV_Move(EVars(ent)->origin, EVars(ent)->mins, EVars(ent)->maxs, end,
-                    MOVE_NOMONSTERS, ent);
-  else
-    trace = SV_Move(EVars(ent)->origin, EVars(ent)->mins, EVars(ent)->maxs, end,
-                    MOVE_NORMAL, ent);
-
-  VectorCopy(trace.endpos, EVars(ent)->origin);
-  SV_LinkEdict(ent, true);
-
-  if (trace.entp) SV_Impact(ent, trace.entn);
-
-  return trace;
-}
-
-/*
-============
 SV_PushMove
 ============
 */
