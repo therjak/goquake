@@ -3,6 +3,7 @@ package quakelib
 //#include "q_stdinc.h"
 //#include "progdefs.h"
 //#include "trace.h"
+//#include "cgo_help.h"
 // void SV_SetIdealPitch();
 // void SV_WriteEntitiesToClient(int clent);
 import "C"
@@ -22,6 +23,8 @@ import (
 	"quake/progs"
 	"quake/protocol"
 	"quake/protocol/server"
+
+	"github.com/chewxy/math32"
 )
 
 const (
@@ -1206,6 +1209,77 @@ func pushEntity(e int, push vec.Vec3) C.trace_t {
 	}
 
 	return tr
+}
+
+// Slide off of the impacting object
+// returns the blocked flags (1 = floor, 2 = step / wall)
+//export ClipVelocity
+func ClipVelocity(in, normal, out *C.float, overbounce C.float) C.int {
+	ret, o := clipVelocity(p2v3(in), p2v3(normal), float32(overbounce))
+	*C.cfp(0, out) = C.float(o.X)
+	*C.cfp(1, out) = C.float(o.Y)
+	*C.cfp(2, out) = C.float(o.Z)
+	return C.int(ret)
+}
+
+func clipVelocity(in, normal vec.Vec3, overbounce float32) (int, vec.Vec3) {
+	blocked := func() int {
+		switch {
+		case normal.Z > 0:
+			return 1 // floor
+		case normal.Z == 0:
+			return 2 // step
+		default:
+			return 0
+		}
+	}()
+
+	backoff := vec.Dot(in, normal) * overbounce
+
+	e := func(x float32) float32 {
+		const EPSILON = 0.1
+		if x > -EPSILON && x < EPSILON {
+			return 0
+		}
+		return x
+	}
+
+	out := vec.Vec3{
+		e(in.X - normal.X*backoff),
+		e(in.Y - normal.Y*backoff),
+		e(in.Z - normal.Z*backoff),
+	}
+
+	return blocked, out
+}
+
+//export SV_WallFriction
+func SV_WallFriction(ent int, trace *C.trace_t) {
+	const deg = math32.Pi * 2 / 360
+
+	ev := EntVars(ent)
+	sp, cp := math32.Sincos(ev.VAngle[0] * deg) // PITCH
+	sy, cy := math32.Sincos(ev.VAngle[1] * deg) // YAW
+	forward := vec.Vec3{cp * cy, cp * sy, -sp}
+	planeNormal := vec.Vec3{
+		float32(trace.plane.normal[0]),
+		float32(trace.plane.normal[1]),
+		float32(trace.plane.normal[2]),
+	}
+	d := vec.Dot(planeNormal, forward)
+
+	d += 0.5
+	if d >= 0 {
+		return
+	}
+
+	// cut the tangential velocity
+	v := vec.VFromA(ev.Velocity)
+	i := vec.Dot(planeNormal, v)
+	into := planeNormal.Scale(i)
+	side := vec.Sub(v, into)
+	ev.Velocity[0] = side.X * (1 + d)
+	ev.Velocity[1] = side.Y * (1 + d)
 }
 
 // THE FOLLOWING IS ONLY NEEDED FOR SV_WRITEENTITIESTOCLIENT

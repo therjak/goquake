@@ -1,7 +1,7 @@
 package vec
 
 import (
-	m "math"
+	"github.com/chewxy/math32"
 )
 
 type Vec3 struct {
@@ -29,7 +29,7 @@ func (v *Vec3) Idx(i int) float32 {
 
 // Length returns the length of the vector
 func (v *Vec3) Length() float32 {
-	return float32(m.Sqrt(float64(Dot(*v, *v))))
+	return math32.Sqrt(Dot(*v, *v))
 }
 
 // Add returns a + b
@@ -109,4 +109,24 @@ func MinMax(a, b Vec3) (Vec3, Vec3) {
 	r.Y, s.Y = minmax(a.Y, b.Y)
 	r.Z, s.Z = minmax(a.Z, b.Z)
 	return r, s
+}
+
+func AngleVectors(angles Vec3) (forward, right, up Vec3) {
+	deg := math32.Pi * 2 / 360
+	sp, cp := math32.Sincos(angles.X * deg) // PITCH
+	sy, cy := math32.Sincos(angles.Y * deg) // YAW
+	sr, cr := math32.Sincos(angles.Z * deg) // ROLL
+
+	forward = Vec3{cp * cy, cp * sy, -sp}
+	right = Vec3{
+		(-1*sr*sp*cy + -1*cr*-sy),
+		(-1*sr*sp*sy + -1*cr*cy),
+		-1 * sr * cp,
+	}
+	up = Vec3{
+		(cr*sp*cy + -sr*-sy),
+		(cr*sp*sy + -sr*cy),
+		cr * cp,
+	}
+	return
 }

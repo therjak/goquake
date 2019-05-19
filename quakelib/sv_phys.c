@@ -35,36 +35,6 @@ cvar_t sv_freezenonclients;
 void SV_Physics_Toss(int ent);
 
 /*
-==================
-ClipVelocity
-
-Slide off of the impacting object
-returns the blocked flags (1 = floor, 2 = step / wall)
-==================
-*/
-#define STOP_EPSILON 0.1
-//THERJAK
-int ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce) {
-  float backoff;
-  float change;
-  int i, blocked;
-
-  blocked = 0;
-  if (normal[2] > 0) blocked |= 1;  // floor
-  if (!normal[2]) blocked |= 2;     // step
-
-  backoff = DotProduct(in, normal) * overbounce;
-
-  for (i = 0; i < 3; i++) {
-    change = normal[i] * backoff;
-    out[i] = in[i] - change;
-    if (out[i] > -STOP_EPSILON && out[i] < STOP_EPSILON) out[i] = 0;
-  }
-
-  return blocked;
-}
-
-/*
 ============
 SV_FlyMove
 
@@ -461,33 +431,6 @@ qboolean SV_CheckWater(int ent) {
   }
 
   return EVars(ent)->waterlevel > 1;
-}
-
-/*
-============
-SV_WallFriction
-
-============
-*/
-//THERJAK
-void SV_WallFriction(int ent, trace_t *trace) {
-  vec3_t forward, right, up;
-  float d, i;
-  vec3_t into, side;
-
-  AngleVectors(EVars(ent)->v_angle, forward, right, up);
-  d = DotProduct(trace->plane.normal, forward);
-
-  d += 0.5;
-  if (d >= 0) return;
-
-  // cut the tangential velocity
-  i = DotProduct(trace->plane.normal, EVars(ent)->velocity);
-  VectorScale(trace->plane.normal, i, into);
-  VectorSubtract(EVars(ent)->velocity, into, side);
-
-  EVars(ent)->velocity[0] = side[0] * (1 + d);
-  EVars(ent)->velocity[1] = side[1] * (1 + d);
 }
 
 /*
