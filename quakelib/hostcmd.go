@@ -789,7 +789,7 @@ func hostSetPos(args []cmd.QArg) {
 
 func hostName(args []cmd.QArg) {
 	if len(args) == 0 {
-		conPrintf("\"name\" is %q\n", cvars.ClientName.String())
+		conlog.Printf("\"name\" is %q\n", cvars.ClientName.String())
 		return
 	}
 	newName := func() string {
@@ -822,7 +822,7 @@ func hostName(args []cmd.QArg) {
 
 	c := HostClient()
 	if len(c.name) != 0 && c.name != "unconnected" && c.name != newName {
-		conPrintf("%s renamed to %s\n", c.name, newName)
+		conlog.Printf("%s renamed to %s\n", c.name, newName)
 	}
 	c.name = newName
 	EntVars(c.edictId).NetName = int32(PRSetEngineString(newName))
@@ -862,7 +862,7 @@ func hostStatus(args []cmd.QArg) {
 	}
 	printf := func() func(format string, v ...interface{}) {
 		if execute.IsSrcCommand() {
-			return conPrintf
+			return conlog.Printf
 		}
 		return HostClient().Printf
 	}()
@@ -893,13 +893,13 @@ func hostStatus(args []cmd.QArg) {
 
 func hostMapName(args []cmd.QArg) {
 	if sv.active {
-		conPrintf("%q is %q\n", "mapname", sv.name)
+		conlog.Printf("%q is %q\n", "mapname", sv.name)
 		return
 	}
 	if cls.state == ca_connected {
 		// TODO
-		// conPrintf("%q is %q\n", "mapname", cl.mapname)
+		// conlog.Printf("%q is %q\n", "mapname", cl.mapname)
 		return
 	}
-	conPrintf("no map loaded\n")
+	conlog.Printf("no map loaded\n")
 }

@@ -347,63 +347,6 @@ void SV_Physics_Pusher(int ent) {
   }
 }
 
-/*
-===============================================================================
-
-CLIENT MOVEMENT
-
-===============================================================================
-*/
-
-/*
-=============
-SV_CheckStuck
-
-This is a big hack to try and fix the rare case of getting stuck in the world
-clipping hull.
-=============
-*/
-//THERJAK
-void SV_CheckStuck(int ent) {
-  int i, j;
-  int z;
-  vec3_t org;
-
-  if (!SV_TestEntityPosition(ent)) {
-    VectorCopy(EVars(ent)->origin, EVars(ent)->oldorigin);
-    return;
-  }
-
-  VectorCopy(EVars(ent)->origin, org);
-  VectorCopy(EVars(ent)->oldorigin, EVars(ent)->origin);
-  if (!SV_TestEntityPosition(ent)) {
-    Con_DPrintf("Unstuck.\n");
-    SV_LinkEdict(ent, true);
-    return;
-  }
-
-  for (z = 0; z < 18; z++)
-    for (i = -1; i <= 1; i++)
-      for (j = -1; j <= 1; j++) {
-        EVars(ent)->origin[0] = org[0] + i;
-        EVars(ent)->origin[1] = org[1] + j;
-        EVars(ent)->origin[2] = org[2] + z;
-        if (!SV_TestEntityPosition(ent)) {
-          Con_DPrintf("Unstuck.\n");
-          SV_LinkEdict(ent, true);
-          return;
-        }
-      }
-
-  VectorCopy(org, EVars(ent)->origin);
-  Con_DPrintf("player is stuck.\n");
-}
-
-/*
-=============
-SV_CheckWater
-=============
-*/
 //THERJAK
 qboolean SV_CheckWater(int ent) {
   vec3_t point;

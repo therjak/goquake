@@ -1038,7 +1038,7 @@ func FindViewthingEV() *C.entvars_t {
 			return EVars(C.int(i))
 		}
 	}
-	conPrintf("No viewthing on map\n")
+	conlog.Printf("No viewthing on map\n")
 	return nil
 }
 
@@ -1119,7 +1119,7 @@ func SV_CheckAllEnts() {
 		}
 
 		if testEntityPosition(e) {
-			conPrintf("entity in invalid position\n")
+			conlog.Printf("entity in invalid position\n")
 		}
 	}
 }
@@ -1280,6 +1280,49 @@ func SV_WallFriction(ent int, trace *C.trace_t) {
 	side := vec.Sub(v, into)
 	ev.Velocity[0] = side.X * (1 + d)
 	ev.Velocity[1] = side.Y * (1 + d)
+}
+
+// This is a big hack to try and fix the rare case of getting stuck in the world
+// clipping hull.
+//export SV_CheckStuck
+func SV_CheckStuck(ent int) {
+	/*
+	  int i, j;
+	  int z;
+	  vec3_t org;
+	*/
+
+	ev := EntVars(ent)
+	if !testEntityPosition(ent) {
+		ev.OldOrigin = ev.Origin
+		return
+	}
+
+	org := ev.Origin
+	ev.Origin = ev.OldOrigin
+	if !testEntityPosition(ent) {
+		conlog.Printf("Unstuck.\n") // debug
+		LinkEdict(ent, true)
+		return
+	}
+
+	for z := float32(0); z < 18; z++ {
+		for i := float32(-1); i <= 1; i++ {
+			for j := float32(-1); j <= 1; j++ {
+				ev.Origin[0] = org[0] + i
+				ev.Origin[1] = org[1] + j
+				ev.Origin[2] = org[2] + z
+				if !testEntityPosition(ent) {
+					conlog.Printf("Unstuck.\n")
+					LinkEdict(ent, true)
+					return
+				}
+			}
+		}
+	}
+
+	ev.Origin = org
+	conlog.Printf("player is stuck.\n")
 }
 
 // THE FOLLOWING IS ONLY NEEDED FOR SV_WRITEENTITIESTOCLIENT
