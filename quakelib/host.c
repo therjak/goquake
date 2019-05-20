@@ -125,14 +125,6 @@ void Host_Error(const char *error, ...) {
   longjmp(host_abortserver, 1);
 }
 
-//THERJAK
-void Host_Version_f(void) {
-  Con_Printf("Quake Version %1.2f\n", VERSION);
-  Con_Printf("QuakeSpasm Version %1.2f.%d\n", QUAKESPASM_VERSION,
-             QUAKESPASM_VER_PATCH);
-  Con_Printf("Exe: " __TIME__ " " __DATE__ "\n");
-}
-
 /*
 =================
 SV_BroadcastPrintf
@@ -164,8 +156,6 @@ Host_InitLocal
 ======================
 */
 void Host_InitLocal(void) {
-  Cmd_AddCommand("version", Host_Version_f);
-
   Host_InitCommands();
 
   Cvar_FakeRegister(&host_speeds, "host_speeds");
@@ -260,58 +250,6 @@ void SV_ClientPrintf2(int client, const char *fmt, ...) {
   q_vsnprintf(string, sizeof(string), fmt, argptr);
   va_end(argptr);
   SV_ClientPrint2(client, string);
-}
-
-/*
-==================
-Host_ShutdownServer
-
-This only happens at the end of a game, not between levels
-==================
-*/
-//THERJAK
-void Host_ShutdownServer(qboolean crash) {
-  int i;
-  int count;
-  double start;
-
-  if (!SV_Active()) return;
-
-  SV_SetActive(false);
-
-  // stop all client sounds immediately
-  if (CLS_GetState() == ca_connected) CL_Disconnect();
-
-  // flush any pending messages - like the score!!!
-  start = Sys_DoubleTime();
-  do {
-    count = 0;
-    for (i = 0; i < SVS_GetMaxClients(); i++) {
-      if (GetClientActive(i) && ClientHasMessage(i)) {
-        if (ClientCanSendMessage(i)) {
-          ClientSendMessage(i);
-          ClientClearMessage(i);
-        } else {
-          ClientGetMessage(i);
-          count++;
-        }
-      }
-    }
-    if ((Sys_DoubleTime() - start) > 3.0) break;
-  } while (count);
-
-  // make sure all the clients know we're disconnecting
-  SV_SendDisconnectToAll();
-
-  for (i = 0; i < SVS_GetMaxClients(); i++)
-    if (GetClientActive(i)) SV_DropClient(i, crash);
-
-  //
-  // clear structures
-  //
-  //	memset (&sv, 0, sizeof(sv)); // ServerSpawn already do this by
-  // Host_ClearMemory
-  CreateSVClients();
 }
 
 /*

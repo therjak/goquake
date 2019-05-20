@@ -1,5 +1,8 @@
 package quakelib
 
+// void CL_Disconnect(void);
+import "C"
+
 import (
 	"fmt"
 	"log"
@@ -36,6 +39,7 @@ func init() {
 	cmd.AddCommand("tell", hostTell)
 	cmd.AddCommand("mapname", hostMapName)
 	cmd.AddCommand("prespawn", hostPreSpawn)
+	cmd.AddCommand("version", hostVersion)
 }
 
 func qFormatI(b int32) string {
@@ -43,6 +47,11 @@ func qFormatI(b int32) string {
 		return "OFF"
 	}
 	return "ON"
+}
+
+func hostVersion(args []cmd.QArg) {
+	conlog.Printf("Quake Version %1.2f\n", VERSION)
+	conlog.Printf("QuakeSpasm Version %1.2f.%d\n", QUAKESPASM_VERSION, QUAKESPASM_VER_PATCH)
 }
 
 func hostPreSpawn(args []cmd.QArg) {
@@ -902,4 +911,55 @@ func hostMapName(args []cmd.QArg) {
 		return
 	}
 	conlog.Printf("no map loaded\n")
+}
+
+// This only happens at the end of a game, not between levels
+//export Host_ShutdownServer
+func Host_ShutdownServer(crash C.int) {
+	hostShutdownServer(crash != 0)
+}
+
+func hostShutdownServer(crash bool) {
+	if !sv.active {
+		return
+	}
+
+	sv.active = false
+
+	// stop all client sounds immediately
+	if cls.state == ca_connected {
+		C.CL_Disconnect()
+	}
+
+	// flush any pending messages - like the score!!!
+	start := qtime.QTime()
+	count := 1
+	for count != 0 {
+		count = 0
+		for _, c := range sv_clients {
+			if c.active && c.msg.HasMessage() {
+				if c.CanSendMessage() {
+					c.SendMessage()
+					c.msg.ClearMessage()
+				} else {
+					c.GetMessage()
+					count++
+				}
+			}
+		}
+		if (qtime.QTime() - start).Seconds() > 3.0 {
+			break
+		}
+	}
+
+	// make sure all the clients know we're disconnecting
+	SendToAll([]byte{server.Disconnect})
+
+	for _, c := range sv_clients {
+		if c.active {
+			c.Drop(crash)
+		}
+	}
+
+	CreateSVClients()
 }
