@@ -1,6 +1,5 @@
 package quakelib
 
-// void CL_Disconnect(void);
 import "C"
 
 import (
@@ -928,7 +927,7 @@ func hostShutdownServer(crash bool) {
 
 	// stop all client sounds immediately
 	if cls.state == ca_connected {
-		C.CL_Disconnect()
+		cls.Disconnect()
 	}
 
 	// flush any pending messages - like the score!!!

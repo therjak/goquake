@@ -116,11 +116,6 @@ void CL_Disconnect(void) {
   CL_SetIntermission(0);
 }
 
-void CL_Disconnect_f(void) {
-  CL_Disconnect();
-  if (SV_Active()) Host_ShutdownServer(false);
-}
-
 /*
 =====================
 CL_EstablishConnection
@@ -702,7 +697,6 @@ void CL_Init(void) {
   Cvar_FakeRegister(&sensitivity, "sensitivity");
 
   Cmd_AddCommand("entities", CL_PrintEntities_f);
-  Cmd_AddCommand("disconnect", CL_Disconnect_f);
   Cmd_AddCommand("record", CL_Record_f);
   Cmd_AddCommand("stop", CL_Stop_f);
   Cmd_AddCommand("playdemo", CL_PlayDemo_f);

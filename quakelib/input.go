@@ -5,7 +5,6 @@ package quakelib
 
 // void Char_Event(int key);
 // void Key_Event(int key, int down);
-// void CL_Disconnect(void);
 // int Key_TextEntry(void);
 import "C"
 
@@ -455,7 +454,7 @@ func sendKeyEvents() {
 		case *sdl.MouseMotionEvent:
 			handleMouseMotionEvent(t)
 		case *sdl.QuitEvent:
-			C.CL_Disconnect()
+			cls.Disconnect()
 			Sys_Quit()
 		default:
 			break

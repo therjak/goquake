@@ -1,6 +1,7 @@
 package quakelib
 
 //void V_StopPitchDrift(void);
+//void CL_Disconnect(void);
 import "C"
 
 import (
@@ -17,6 +18,10 @@ import (
 	"quake/stat"
 	"unsafe"
 )
+
+func init() {
+	cmd.AddCommand("disconnect", clDisconnect)
+}
 
 const (
 	ca_dedicated    = 0
@@ -869,5 +874,63 @@ func CLS_Connect(host *C.char) C.int {
 	} else {
 		cls.connection = c
 		return 1
+	}
+}
+
+/*
+//Sends a disconnect message to the server
+//This is also called on Host_Error, so it shouldn't cause any errors
+// export CL_Disconnect
+void CL_Disconnect(void) {
+  cls.Disconnect()
+}
+*/
+
+func (c *ClientStatic) Disconnect() {
+	C.CL_Disconnect()
+}
+
+/*
+func (c *ClientStatic) Disconnect() {
+  if (GetKeyDest() == key_message)
+    Key_EndChat();  // don't get stuck in chat mode
+
+  // stop sounds (especially looping!)
+  S_StopAllSounds(true);
+
+  // if running a local server, shut it down
+  if (CLS_IsDemoPlayback())
+    CL_StopPlayback();
+  else if (CLS_GetState() == ca_connected) {
+    if (CLS_IsDemoRecording()) CL_Stop_f();
+
+    Con_DPrintf("Sending clc_disconnect\n");
+    CLSMessageClear();
+    CLSMessageWriteByte(clc_disconnect);
+    CLSMessageSendUnreliable();
+    CLSMessageClear();
+    CLS_NET_Close();
+
+    CLS_SetState(ca_disconnected);
+    if (SV_Active()) Host_ShutdownServer(false);
+  }
+
+  CLS_SetDemoPlayback(false);
+  CLS_SetTimeDemo(false);
+  CLS_SetDemoPaused(false);
+  CLS_SetSignon(0);
+  CL_SetIntermission(0);
+}
+*/
+
+//export CL_Disconnect_f
+func CL_Disconnect_f() {
+	clDisconnect([]cmd.QArg{})
+}
+
+func clDisconnect(args []cmd.QArg) {
+	cls.Disconnect()
+	if sv.active {
+		hostShutdownServer(false)
 	}
 }

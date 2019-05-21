@@ -1,7 +1,6 @@
 package quakelib
 
 // void V_StopPitchDrift(void);
-// void CL_Disconnect(void);
 import "C"
 
 import (
@@ -158,7 +157,7 @@ func send(v userView, m userMove) {
 
 	if cls.connection.SendUnreliableMessage(b.Bytes()) == -1 {
 		conlog.Printf("CL_SendMove: lost server connection\n")
-		C.CL_Disconnect()
+		cls.Disconnect()
 	}
 }
 
