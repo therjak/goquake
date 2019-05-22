@@ -4,6 +4,7 @@ package quakelib
 //#define KEYDEST_T
 //typedef enum { key_game, key_console, key_message, key_menu } keydest_t;
 //#endif
+//void Key_EndChat(void);
 import "C"
 
 import (
@@ -40,4 +41,8 @@ func SetKeyDest(k C.keydest_t) {
 	case C.key_menu:
 		keyDestination = keys.Menu
 	}
+}
+
+func keyEndChat() {
+	C.Key_EndChat()
 }
