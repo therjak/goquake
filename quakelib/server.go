@@ -1325,14 +1325,11 @@ func SV_CheckStuck(ent int) {
 //2 = wall / step
 //4 = dead stop
 //If steptrace is not NULL, the trace of any vertical wall hit will be stored
-// export SV_FlyMove
+//export SV_FlyMove
 func SV_FlyMove(ent int, time float32, steptrace *C.trace_t) int {
 	const MAX_CLIP_PLANES = 5
-	/*
-	  vec3_t dir;
-	  float d;
-	  vec3_t planes[MAX_CLIP_PLANES];
-	*/
+	planes := [MAX_CLIP_PLANES]vec.Vec3{}
+
 	numbumps := 4
 
 	blocked := 0
@@ -1408,17 +1405,22 @@ func SV_FlyMove(ent int, time float32, steptrace *C.trace_t) int {
 			return 3
 		}
 
-		//  VectorCopy(trace.plane.normal, planes[numplanes]);
+		planes[numplanes] = vec.Vec3{
+			float32(trace.plane.normal[0]),
+			float32(trace.plane.normal[1]),
+			float32(trace.plane.normal[2]),
+		}
 		numplanes++
 
 		// modify original_velocity so it parallels all of the clip planes
 		new_velocity := vec.Vec3{}
-		for i := 0; i < numplanes; i++ {
+		i := 0
+		for i = 0; i < numplanes; i++ {
 			j := 0
-			_, new_velocity = clipVelocity(original_velocity, vec.Vec3{} /*planes[i]*/, 1)
+			_, new_velocity = clipVelocity(original_velocity, planes[i], 1)
 			for j = 0; j < numplanes; j++ {
 				if j != i {
-					if vec.Dot(new_velocity, vec.Vec3{} /*planes[j]*/) < 0 {
+					if vec.Dot(new_velocity, planes[j]) < 0 {
 						break // not ok
 					}
 				}
@@ -1428,20 +1430,20 @@ func SV_FlyMove(ent int, time float32, steptrace *C.trace_t) int {
 			}
 		}
 
-		/*
-		   if (i != numplanes) {  // go along this plane
-		     VectorCopy(new_velocity, EVars(ent)->velocity);
-		   } else {  // go along the crease
-		     if (numplanes != 2) {
-		       //	Con_Printf ("clip velocity, numplanes == %i\n",numplanes);
-		       VectorCopy(vec3_origin, EVars(ent)->velocity);
-		       return 7;
-		     }
-		     CrossProduct(planes[0], planes[1], dir);
-		     d = DotProduct(dir, EVars(ent)->velocity);
-		     VectorScale(dir, d, EVars(ent)->velocity);
-		   }
-		*/
+		if i != numplanes { // go along this plane
+			ev.Velocity = new_velocity.Array()
+		} else { // go along the crease
+			if numplanes != 2 {
+				//	conlog.Printf ("clip velocity, numplanes == %i\n",numplanes)
+				ev.Velocity = [3]float32{0, 0, 0}
+				return 7
+			}
+			dir := vec.Cross(planes[0], planes[1])
+			d := vec.Dot(dir, vec.VFromA(ev.Velocity))
+			sd := dir.Scale(d)
+			ev.Velocity = sd.Array()
+		}
+
 		// if original velocity is against the original velocity, stop dead
 		// to avoid tiny occilations in sloping corners
 		if vec.Dot(vec.VFromA(ev.Velocity), primal_velocity) <= 0 {

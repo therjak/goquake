@@ -36,141 +36,11 @@ void SV_Physics_Toss(int ent);
 
 /*
 ============
-SV_FlyMove
-
-The basic solid body movement clip that slides along multiple planes
-Returns the clipflags if the velocity was modified (hit something solid)
-1 = floor
-2 = wall / step
-4 = dead stop
-If steptrace is not NULL, the trace of any vertical wall hit will be stored
-============
-*/
-#define MAX_CLIP_PLANES 5
-//THERJAK
-int SV_FlyMove(int ent, float time, trace_t *steptrace) {
-  int bumpcount, numbumps;
-  vec3_t dir;
-  float d;
-  int numplanes;
-  vec3_t planes[MAX_CLIP_PLANES];
-  vec3_t primal_velocity, original_velocity, new_velocity;
-  int i, j;
-  trace_t trace;
-  vec3_t end;
-  float time_left;
-  int blocked;
-
-  numbumps = 4;
-
-  blocked = 0;
-  VectorCopy(EVars(ent)->velocity, original_velocity);
-  VectorCopy(EVars(ent)->velocity, primal_velocity);
-  numplanes = 0;
-
-  time_left = time;
-
-  for (bumpcount = 0; bumpcount < numbumps; bumpcount++) {
-    if (!EVars(ent)->velocity[0] && !EVars(ent)->velocity[1] &&
-        !EVars(ent)->velocity[2])
-      break;
-
-    for (i = 0; i < 3; i++)
-      end[i] = EVars(ent)->origin[i] + time_left * EVars(ent)->velocity[i];
-
-    trace = SV_Move(EVars(ent)->origin, EVars(ent)->mins, EVars(ent)->maxs, end,
-                    false, ent);
-
-    if (trace.allsolid) {  // entity is trapped in another solid
-      VectorCopy(vec3_origin, EVars(ent)->velocity);
-      return 3;
-    }
-
-    if (trace.fraction > 0) {  // actually covered some distance
-      VectorCopy(trace.endpos, EVars(ent)->origin);
-      VectorCopy(EVars(ent)->velocity, original_velocity);
-      numplanes = 0;
-    }
-
-    if (trace.fraction == 1) break;  // moved the entire distance
-
-    if (!trace.entp) Go_Error("SV_FlyMove: !trace.ent");
-
-    if (trace.plane.normal[2] > 0.7) {
-      blocked |= 1;  // floor
-      if (EVars(trace.entn)->solid == SOLID_BSP) {
-        EVars(ent)->flags = (int)EVars(ent)->flags | FL_ONGROUND;
-        EVars(ent)->groundentity = trace.entn;
-      }
-    }
-    if (!trace.plane.normal[2]) {
-      blocked |= 2;                       // step
-      if (steptrace) *steptrace = trace;  // save for player extrafriction
-    }
-
-    //
-    // run the impact function
-    //
-    SV_Impact(ent, trace.entn);
-    if (EDICT_NUM(ent)->free) break;  // removed by the impact function
-
-    time_left -= time_left * trace.fraction;
-
-    // cliped to another plane
-    if (numplanes >= MAX_CLIP_PLANES) {  // this shouldn't really happen
-      VectorCopy(vec3_origin, EVars(ent)->velocity);
-      return 3;
-    }
-
-    VectorCopy(trace.plane.normal, planes[numplanes]);
-    numplanes++;
-
-    //
-    // modify original_velocity so it parallels all of the clip planes
-    //
-    for (i = 0; i < numplanes; i++) {
-      ClipVelocity(original_velocity, planes[i], new_velocity, 1);
-      for (j = 0; j < numplanes; j++)
-        if (j != i) {
-          if (DotProduct(new_velocity, planes[j]) < 0) break;  // not ok
-        }
-      if (j == numplanes) break;
-    }
-
-    if (i != numplanes) {  // go along this plane
-      VectorCopy(new_velocity, EVars(ent)->velocity);
-    } else {  // go along the crease
-      if (numplanes != 2) {
-        //				Con_Printf ("clip velocity, numplanes ==
-        //%i\n",numplanes);
-        VectorCopy(vec3_origin, EVars(ent)->velocity);
-        return 7;
-      }
-      CrossProduct(planes[0], planes[1], dir);
-      d = DotProduct(dir, EVars(ent)->velocity);
-      VectorScale(dir, d, EVars(ent)->velocity);
-    }
-
-    //
-    // if original velocity is against the original velocity, stop dead
-    // to avoid tiny occilations in sloping corners
-    //
-    if (DotProduct(EVars(ent)->velocity, primal_velocity) <= 0) {
-      VectorCopy(vec3_origin, EVars(ent)->velocity);
-      return blocked;
-    }
-  }
-
-  return blocked;
-}
-
-/*
-============
 SV_AddGravity
 
 ============
 */
-//THERJAK
+// THERJAK
 void SV_AddGravity(int ent) {
   float ent_gravity;
   eval_t *val;
@@ -347,7 +217,7 @@ void SV_Physics_Pusher(int ent) {
   }
 }
 
-//THERJAK
+// THERJAK
 qboolean SV_CheckWater(int ent) {
   vec3_t point;
   int cont;

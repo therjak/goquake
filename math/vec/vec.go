@@ -81,6 +81,15 @@ func DoublePrecDot(a Vec3, b Vec3) float32 {
 	return float32(p(a.X, b.X) + p(a.Y, b.Y) + p(a.Z, b.Z))
 }
 
+// Cross returns a cross b
+func Cross(a, b Vec3) Vec3 {
+	return Vec3{
+		a.Y*b.Z - a.Z*b.Y,
+		a.Z*b.X - a.X*b.Z,
+		a.X*b.Y - a.Y*b.X,
+	}
+}
+
 // Lerp computes a weighted average between two points
 func Lerp(a, b Vec3, frac float32) Vec3 {
 	fi := 1 - frac
