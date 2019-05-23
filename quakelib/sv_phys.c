@@ -217,35 +217,6 @@ void SV_Physics_Pusher(int ent) {
   }
 }
 
-// THERJAK
-qboolean SV_CheckWater(int ent) {
-  vec3_t point;
-  int cont;
-
-  point[0] = EVars(ent)->origin[0];
-  point[1] = EVars(ent)->origin[1];
-  point[2] = EVars(ent)->origin[2] + EVars(ent)->mins[2] + 1;
-
-  EVars(ent)->waterlevel = 0;
-  EVars(ent)->watertype = CONTENTS_EMPTY;
-  cont = SV_PointContents(point);
-  if (cont <= CONTENTS_WATER) {
-    EVars(ent)->watertype = cont;
-    EVars(ent)->waterlevel = 1;
-    point[2] = EVars(ent)->origin[2] +
-               (EVars(ent)->mins[2] + EVars(ent)->maxs[2]) * 0.5;
-    cont = SV_PointContents(point);
-    if (cont <= CONTENTS_WATER) {
-      EVars(ent)->waterlevel = 2;
-      point[2] = EVars(ent)->origin[2] + EVars(ent)->view_ofs[2];
-      cont = SV_PointContents(point);
-      if (cont <= CONTENTS_WATER) EVars(ent)->waterlevel = 3;
-    }
-  }
-
-  return EVars(ent)->waterlevel > 1;
-}
-
 /*
 =====================
 SV_TryUnstick

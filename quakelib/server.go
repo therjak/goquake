@@ -1454,6 +1454,41 @@ func SV_FlyMove(ent int, time float32, steptrace *C.trace_t) int {
 	return blocked
 }
 
+//export SV_CheckWater
+func SV_CheckWater(ent int) C.int {
+	return b2i(svCheckWater(ent))
+}
+
+func svCheckWater(ent int) bool {
+	ev := EntVars(ent)
+	point := vec.Vec3{
+		ev.Origin[0],
+		ev.Origin[1],
+		ev.Origin[2] + ev.Mins[2] + 1,
+	}
+
+	ev.WaterLevel = 0
+	ev.WaterType = CONTENTS_EMPTY
+
+	cont := pointContents(point)
+	if cont <= CONTENTS_WATER {
+		ev.WaterType = float32(cont)
+		ev.WaterLevel = 1
+		point.Z = ev.Origin[2] + (ev.Mins[2]+ev.Maxs[2])*0.5
+		cont = pointContents(point)
+		if cont <= CONTENTS_WATER {
+			ev.WaterLevel = 2
+			point.Z = ev.Origin[2] + ev.ViewOfs[2]
+			cont = pointContents(point)
+			if cont <= CONTENTS_WATER {
+				ev.WaterLevel = 3
+			}
+		}
+	}
+
+	return ev.WaterLevel > 1
+}
+
 // THE FOLLOWING IS ONLY NEEDED FOR SV_WRITEENTITIESTOCLIENT
 
 /*
