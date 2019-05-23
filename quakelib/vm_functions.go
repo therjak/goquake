@@ -710,7 +710,7 @@ func PF_droptofloor() {
 	end := vec.VFromA(ev.Origin)
 	end.Z -= 256
 
-	trace := svMove(start, mins, maxs, end, 0, ent)
+	trace := svMove(start, mins, maxs, end, MOVE_NORMAL, ent)
 
 	if trace.fraction == 1 || trace.allsolid != 0 {
 		progsdat.Globals.Returnf()[0] = 0

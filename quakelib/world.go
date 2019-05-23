@@ -704,7 +704,7 @@ func SV_TestEntityPosition(ent C.int) C.int {
 func testEntityPosition(ent int) bool {
 	ev := EntVars(ent)
 	trace := svMove(vec.VFromA(ev.Origin), vec.VFromA(ev.Mins),
-		vec.VFromA(ev.Maxs), vec.VFromA(ev.Origin), 0, ent)
+		vec.VFromA(ev.Maxs), vec.VFromA(ev.Origin), MOVE_NORMAL, ent)
 	return trace.startsolid != 0
 }
 
@@ -791,7 +791,7 @@ func expensiveCheckBottom(ent int, mins, maxs vec.Vec3) bool {
 		level,
 	}
 	stop := vec.Vec3{start.X, start.Y, below}
-	trace := svMove(start, vec.Vec3{}, vec.Vec3{}, stop, 1 /*true*/, ent)
+	trace := svMove(start, vec.Vec3{}, vec.Vec3{}, stop, MOVE_NOMONSTERS, ent)
 
 	if trace.fraction == 1.0 {
 		return false
@@ -809,7 +809,7 @@ func expensiveCheckBottom(ent int, mins, maxs vec.Vec3) bool {
 	for _, p := range d {
 		start := vec.Vec3{p.X, p.Y, level}
 		stop := vec.Vec3{p.X, p.Y, below}
-		trace := svMove(start, vec.Vec3{}, vec.Vec3{}, stop, 1 /*true*/, ent)
+		trace := svMove(start, vec.Vec3{}, vec.Vec3{}, stop, MOVE_NOMONSTERS, ent)
 
 		if trace.fraction != 1.0 && trace.endpos[2] > bottom {
 			bottom = trace.endpos[2]

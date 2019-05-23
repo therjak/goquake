@@ -1286,12 +1286,6 @@ func SV_WallFriction(ent int, trace *C.trace_t) {
 // clipping hull.
 //export SV_CheckStuck
 func SV_CheckStuck(ent int) {
-	/*
-	  int i, j;
-	  int z;
-	  vec3_t org;
-	*/
-
 	ev := EntVars(ent)
 	if !testEntityPosition(ent) {
 		ev.OldOrigin = ev.Origin
@@ -1323,6 +1317,139 @@ func SV_CheckStuck(ent int) {
 
 	ev.Origin = org
 	conlog.Printf("player is stuck.\n")
+}
+
+//The basic solid body movement clip that slides along multiple planes
+//Returns the clipflags if the velocity was modified (hit something solid)
+//1 = floor
+//2 = wall / step
+//4 = dead stop
+//If steptrace is not NULL, the trace of any vertical wall hit will be stored
+// export SV_FlyMove
+func SV_FlyMove(ent int, time float32, steptrace *C.trace_t) int {
+	const MAX_CLIP_PLANES = 5
+	/*
+	  vec3_t dir;
+	  float d;
+	  vec3_t planes[MAX_CLIP_PLANES];
+	*/
+	numbumps := 4
+
+	blocked := 0
+	ev := EntVars(ent)
+	original_velocity := vec.VFromA(ev.Velocity)
+	primal_velocity := vec.VFromA(ev.Velocity)
+	numplanes := 0
+
+	time_left := time
+
+	for bumpcount := 0; bumpcount < numbumps; bumpcount++ {
+		if ev.Velocity == [3]float32{0, 0, 0} {
+			break
+		}
+
+		origin := vec.VFromA(ev.Origin)
+		mins := vec.VFromA(ev.Mins)
+		maxs := vec.VFromA(ev.Maxs)
+		velocity := vec.VFromA(ev.Velocity)
+		end := vec.Vec3{
+			origin.X + time_left*velocity.X,
+			origin.Y + time_left*velocity.Y,
+			origin.Z + time_left*velocity.Z,
+		}
+
+		trace := svMove(origin, mins, maxs, end, MOVE_NORMAL, ent)
+
+		if trace.allsolid != 0 {
+			// entity is trapped in another solid
+			ev.Velocity = [3]float32{0, 0, 0}
+			return 3
+		}
+
+		if trace.fraction > 0 {
+			// actually covered some distance
+			ev.Origin[0] = float32(trace.endpos[0])
+			ev.Origin[1] = float32(trace.endpos[1])
+			ev.Origin[2] = float32(trace.endpos[2])
+			original_velocity = vec.VFromA(ev.Velocity)
+			numplanes = 0
+		}
+		if trace.fraction == 1 {
+			// moved the entire distance
+			break
+		}
+		if trace.entp == 0 {
+			Error("SV_FlyMove: !trace.ent")
+		}
+		if trace.plane.normal[2] > 0.7 {
+			blocked |= 1 // floor
+			if EntVars(int(trace.entn)).Solid == SOLID_BSP {
+				ev.Flags = float32(int(ev.Flags) | FL_ONGROUND)
+				ev.GroundEntity = int32(trace.entn)
+			}
+		}
+		if trace.plane.normal[2] == 0 {
+			blocked |= 2 // step
+			if steptrace != nil {
+				*steptrace = trace // save for player extrafriction
+			}
+		}
+		sv.Impact(ent, int(trace.entn))
+		if edictNum(ent).free != 0 {
+			// removed by the impact function
+			break
+		}
+		time_left -= time_left * float32(trace.fraction)
+
+		// cliped to another plane
+		if numplanes >= MAX_CLIP_PLANES {
+			// this shouldn't really happen
+			ev.Velocity = [3]float32{0, 0, 0}
+			return 3
+		}
+
+		//  VectorCopy(trace.plane.normal, planes[numplanes]);
+		numplanes++
+
+		// modify original_velocity so it parallels all of the clip planes
+		new_velocity := vec.Vec3{}
+		for i := 0; i < numplanes; i++ {
+			j := 0
+			_, new_velocity = clipVelocity(original_velocity, vec.Vec3{} /*planes[i]*/, 1)
+			for j = 0; j < numplanes; j++ {
+				if j != i {
+					if vec.Dot(new_velocity, vec.Vec3{} /*planes[j]*/) < 0 {
+						break // not ok
+					}
+				}
+			}
+			if j == numplanes {
+				break
+			}
+		}
+
+		/*
+		   if (i != numplanes) {  // go along this plane
+		     VectorCopy(new_velocity, EVars(ent)->velocity);
+		   } else {  // go along the crease
+		     if (numplanes != 2) {
+		       //	Con_Printf ("clip velocity, numplanes == %i\n",numplanes);
+		       VectorCopy(vec3_origin, EVars(ent)->velocity);
+		       return 7;
+		     }
+		     CrossProduct(planes[0], planes[1], dir);
+		     d = DotProduct(dir, EVars(ent)->velocity);
+		     VectorScale(dir, d, EVars(ent)->velocity);
+		   }
+		*/
+		// if original velocity is against the original velocity, stop dead
+		// to avoid tiny occilations in sloping corners
+		if vec.Dot(vec.VFromA(ev.Velocity), primal_velocity) <= 0 {
+			ev.Velocity = [3]float32{0, 0, 0}
+			return blocked
+		}
+	}
+	return blocked
 }
 
 // THE FOLLOWING IS ONLY NEEDED FOR SV_WRITEENTITIESTOCLIENT
