@@ -14,6 +14,7 @@ possible, no move is done, false is returned, and
 pr_global_struct->trace_normal is set to the normal of the blocking wall
 =============
 */
+// THERJAK
 qboolean SV_movestep(int ent, vec3_t move, qboolean relink) {
   float dz;
   vec3_t oldorg, neworg, end;
@@ -32,8 +33,7 @@ qboolean SV_movestep(int ent, vec3_t move, qboolean relink) {
       VectorAdd(EVars(ent)->origin, move, neworg);
       enemy = EVars(ent)->enemy;
       if (i == 0 && enemy != 0) {
-        dz = EVars(ent)->origin[2] -
-             EVars(EVars(ent)->enemy)->origin[2];
+        dz = EVars(ent)->origin[2] - EVars(EVars(ent)->enemy)->origin[2];
         if (dz > 40) neworg[2] -= 8;
         if (dz < 30) neworg[2] += 8;
       }
@@ -61,15 +61,14 @@ qboolean SV_movestep(int ent, vec3_t move, qboolean relink) {
   VectorCopy(neworg, end);
   end[2] -= STEPSIZE * 2;
 
-  trace = SV_Move(neworg, EVars(ent)->mins, EVars(ent)->maxs, end, false,
-                  ent);
+  trace = SV_Move(neworg, EVars(ent)->mins, EVars(ent)->maxs, end, false, ent);
 
   if (trace.allsolid) return false;
 
   if (trace.startsolid) {
     neworg[2] -= STEPSIZE;
-    trace = SV_Move(neworg, EVars(ent)->mins, EVars(ent)->maxs, end, false,
-                    ent);
+    trace =
+        SV_Move(neworg, EVars(ent)->mins, EVars(ent)->maxs, end, false, ent);
     if (trace.allsolid || trace.startsolid) return false;
   }
   if (trace.fraction == 1) {
@@ -90,8 +89,8 @@ qboolean SV_movestep(int ent, vec3_t move, qboolean relink) {
 
   if (!SV_CheckBottom(ent)) {
     if ((int)EVars(ent)->flags & FL_PARTIALGROUND) {  // entity had floor
-                                                       // mostly pulled out from
-                                                       // underneath it
+                                                      // mostly pulled out from
+                                                      // underneath it
       // and is trying to correct
       if (relink) SV_LinkEdict(ent, true);
       return true;
@@ -123,6 +122,7 @@ facing it.
 ======================
 */
 void PF_changeyaw(void);
+// THERJAK
 qboolean SV_StepDirection(int ent, float yaw, float dist) {
   vec3_t move, oldorigin;
   float delta;
@@ -156,6 +156,7 @@ SV_FixCheckBottom
 
 ======================
 */
+// THERJAK
 void SV_FixCheckBottom(entvars_t *ent) {
   //	Con_Printf ("SV_FixCheckBottom\n");
 
@@ -278,8 +279,7 @@ void SV_MoveToGoal(void) {
   }
 
   // if the next step hits the enemy, return immediately
-  if (EVars(ent)->enemy != 0 &&
-      SV_CloseEnough(EVars(ent), EVars(goal), dist))
+  if (EVars(ent)->enemy != 0 && SV_CloseEnough(EVars(ent), EVars(goal), dist))
     return;
 
   // bump around...

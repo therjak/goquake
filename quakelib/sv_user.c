@@ -23,6 +23,7 @@ cvar_t sv_altnoclip;
 SV_SetIdealPitch
 ===============
 */
+// THERJAK
 #define MAX_FORWARD 6
 void SV_SetIdealPitch(void) {
   float angleval, sinval, cosval;
@@ -83,6 +84,7 @@ SV_UserFriction
 
 ==================
 */
+// THERJAK
 void SV_UserFriction(int player) {
   float *vel;
   float speed, newspeed, control;
@@ -101,8 +103,7 @@ void SV_UserFriction(int player) {
   start[2] = origin[2] + EVars(player)->mins[2];
   stop[2] = start[2] - 34;
 
-  trace = SV_Move(start, vec3_origin, vec3_origin, stop, true,
-                  player);
+  trace = SV_Move(start, vec3_origin, vec3_origin, stop, true, player);
 
   if (trace.fraction == 1.0)
     friction = Cvar_GetValue(&sv_friction) * Cvar_GetValue(&sv_edgefriction);
@@ -129,6 +130,7 @@ SV_Accelerate
 */
 cvar_t sv_maxspeed;
 cvar_t sv_accelerate;
+// THERJAK
 void SV_Accelerate(float wishspeed, const vec3_t wishdir) {
   int i;
   float addspeed, accelspeed, currentspeed;
@@ -141,7 +143,7 @@ void SV_Accelerate(float wishspeed, const vec3_t wishdir) {
 
   for (i = 0; i < 3; i++) velocity[i] += accelspeed * wishdir[i];
 }
-
+// THERJAK
 void SV_AirAccelerate(float wishspeed, vec3_t wishveloc) {
   int i;
   float addspeed, wishspd, accelspeed, currentspeed;
@@ -156,7 +158,7 @@ void SV_AirAccelerate(float wishspeed, vec3_t wishveloc) {
 
   for (i = 0; i < 3; i++) velocity[i] += accelspeed * wishveloc[i];
 }
-
+// THERJAK
 void DropPunchAngle(int player) {
   float len;
 
@@ -224,9 +226,9 @@ void SV_WaterMove(int player, movecmd_t *cmd) {
   for (i = 0; i < 3; i++) velocity[i] += accelspeed * wishvel[i];
 }
 
+// THERJAK
 void SV_WaterJump(int player) {
-  if (SV_Time() > EVars(player)->teleport_time ||
-      !EVars(player)->waterlevel) {
+  if (SV_Time() > EVars(player)->teleport_time || !EVars(player)->waterlevel) {
     EVars(player)->flags = (int)EVars(player)->flags & ~FL_WATERJUMP;
     EVars(player)->teleport_time = 0;
   }
@@ -241,6 +243,7 @@ SV_NoclipMove -- johnfitz
 new, alternate noclip. old noclip is still handled in SV_AirMove
 ===================
 */
+// THERJAK
 void SV_NoclipMove(int player, movecmd_t *cmd) {
   AngleVectors(EVars(player)->v_angle, forward, right, up);
 
@@ -346,11 +349,9 @@ void SV_ClientThink(int client) {
   // walk
   //
   // johnfitz -- alternate noclip
-  if (entv->movetype == MOVETYPE_NOCLIP &&
-      Cvar_GetValue(&sv_altnoclip)) {
+  if (entv->movetype == MOVETYPE_NOCLIP && Cvar_GetValue(&sv_altnoclip)) {
     SV_NoclipMove(GetClientEdictId(client), &cmd);
-  } else if (entv->waterlevel >= 2 &&
-             entv->movetype != MOVETYPE_NOCLIP) {
+  } else if (entv->waterlevel >= 2 && entv->movetype != MOVETYPE_NOCLIP) {
     SV_WaterMove(GetClientEdictId(client), &cmd);
   } else {
     SV_AirMove(GetClientEdictId(client), &cmd);
