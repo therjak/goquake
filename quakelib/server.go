@@ -4,7 +4,6 @@ package quakelib
 //#include "progdefs.h"
 //#include "trace.h"
 //#include "cgo_help.h"
-// void SV_SetIdealPitch();
 // void SV_WriteEntitiesToClient(int clent);
 import "C"
 
@@ -599,7 +598,7 @@ func (s *Server) WriteClientdataToMessage(e *progs.EntVars, alpha byte) {
 	}
 
 	// send the current viewpos offset from the view entity
-	C.SV_SetIdealPitch() // how much to loop up/down ideally
+	SV_SetIdealPitch() // how much to loop up/down ideally
 
 	// a fixangle might get lost in a dropped packet.  Oh well.
 	if e.FixAngle != 0 {
@@ -1487,6 +1486,70 @@ func svCheckWater(ent int) bool {
 	}
 
 	return ev.WaterLevel > 1
+}
+
+func SV_SetIdealPitch() {
+	const MAX_FORWARD = 6
+	z := [MAX_FORWARD]float32{}
+	ev := EntVars(sv_player)
+	if int(ev.Flags)&FL_ONGROUND == 0 {
+		return
+	}
+
+	angleval := ev.Angles[1] * math32.Pi * 2 / 360 // YAW
+	sinval := math32.Sin(angleval)
+	cosval := math32.Cos(angleval)
+	for i := 0; i < MAX_FORWARD; i++ {
+		a := (i + 3) * 12
+		top := vec.Vec3{
+			ev.Origin[0] + cosval*float32(a),
+			ev.Origin[1] + sinval*float32(a),
+			ev.Origin[2] + ev.ViewOfs[2],
+		}
+		bottom := top
+		bottom.Z -= 160
+
+		tr := svMove(top, vec.Vec3{}, vec.Vec3{}, bottom, 1, sv_player)
+		if tr.allsolid != 0 {
+			// looking at a wall, leave ideal the way is was
+			return
+		}
+
+		if tr.fraction == 1 {
+			// near a dropoff
+			return
+		}
+
+		z[i] = top.Z + float32(tr.fraction)*(bottom.Z-top.Z)
+	}
+
+	// Original Quake has both dir and step as int but the code does not make any
+	// sense with ints (the 0.1 parts or the last line)
+	dir := float32(0)
+	steps := 0
+	for j := 1; j < MAX_FORWARD; j++ {
+		step := z[j] - z[j-1]
+		if step > -0.1 && step < 0.1 {
+			continue
+		}
+
+		if dir != 0 && (step-dir > 0.1 || step-dir < -0.1) {
+			return // mixed changes
+		}
+
+		steps++
+		dir = step
+	}
+
+	if dir == 0 {
+		ev.IdealPitch = 0
+		return
+	}
+
+	if steps < 2 {
+		return
+	}
+	ev.IdealPitch = -dir * cvars.ServerIdealPitchScale.Value()
 }
 
 // THE FOLLOWING IS ONLY NEEDED FOR SV_WRITEENTITIESTOCLIENT

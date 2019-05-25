@@ -19,72 +19,11 @@ cvar_t sv_edgefriction;
 cvar_t sv_altnoclip;
 
 /*
-===============
-SV_SetIdealPitch
-===============
-*/
-// THERJAK
-#define MAX_FORWARD 6
-void SV_SetIdealPitch(void) {
-  float angleval, sinval, cosval;
-  trace_t tr;
-  vec3_t top, bottom;
-  float z[MAX_FORWARD];
-  int i, j;
-  int step, dir, steps;
-
-  if (!((int)EVars(SV_Player())->flags & FL_ONGROUND)) return;
-
-  angleval = EVars(SV_Player())->angles[YAW] * M_PI * 2 / 360;
-  sinval = sin(angleval);
-  cosval = cos(angleval);
-
-  for (i = 0; i < MAX_FORWARD; i++) {
-    top[0] = EVars(SV_Player())->origin[0] + cosval * (i + 3) * 12;
-    top[1] = EVars(SV_Player())->origin[1] + sinval * (i + 3) * 12;
-    top[2] = EVars(SV_Player())->origin[2] + EVars(SV_Player())->view_ofs[2];
-
-    bottom[0] = top[0];
-    bottom[1] = top[1];
-    bottom[2] = top[2] - 160;
-
-    tr = SV_Move(top, vec3_origin, vec3_origin, bottom, 1, SV_Player());
-    if (tr.allsolid) return;  // looking at a wall, leave ideal the way is was
-
-    if (tr.fraction == 1) return;  // near a dropoff
-
-    z[i] = top[2] + tr.fraction * (bottom[2] - top[2]);
-  }
-
-  dir = 0;
-  steps = 0;
-  for (j = 1; j < i; j++) {
-    step = z[j] - z[j - 1];
-    if (step > -ON_EPSILON && step < ON_EPSILON) continue;
-
-    if (dir && (step - dir > ON_EPSILON || step - dir < -ON_EPSILON))
-      return;  // mixed changes
-
-    steps++;
-    dir = step;
-  }
-
-  if (!dir) {
-    EVars(SV_Player())->idealpitch = 0;
-    return;
-  }
-
-  if (steps < 2) return;
-  EVars(SV_Player())->idealpitch = -dir * Cvar_GetValue(&sv_idealpitchscale);
-}
-
-/*
 ==================
 SV_UserFriction
 
 ==================
 */
-// THERJAK
 void SV_UserFriction(int player) {
   float *vel;
   float speed, newspeed, control;
@@ -130,7 +69,6 @@ SV_Accelerate
 */
 cvar_t sv_maxspeed;
 cvar_t sv_accelerate;
-// THERJAK
 void SV_Accelerate(float wishspeed, const vec3_t wishdir) {
   int i;
   float addspeed, accelspeed, currentspeed;
@@ -143,7 +81,7 @@ void SV_Accelerate(float wishspeed, const vec3_t wishdir) {
 
   for (i = 0; i < 3; i++) velocity[i] += accelspeed * wishdir[i];
 }
-// THERJAK
+
 void SV_AirAccelerate(float wishspeed, vec3_t wishveloc) {
   int i;
   float addspeed, wishspd, accelspeed, currentspeed;
@@ -243,7 +181,6 @@ SV_NoclipMove -- johnfitz
 new, alternate noclip. old noclip is still handled in SV_AirMove
 ===================
 */
-// THERJAK
 void SV_NoclipMove(int player, movecmd_t *cmd) {
   AngleVectors(EVars(player)->v_angle, forward, right, up);
 

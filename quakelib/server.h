@@ -123,8 +123,6 @@ void SV_Init(void);
 
 void SV_SendClientMessages(void);
 
-void SV_SetIdealPitch(void);
-
 void SV_AddUpdates(void);
 
 void SV_AddClientToServer(int ret);
