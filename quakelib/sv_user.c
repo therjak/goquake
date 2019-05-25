@@ -96,16 +96,6 @@ void SV_AirAccelerate(float wishspeed, vec3_t wishveloc) {
 
   for (i = 0; i < 3; i++) velocity[i] += accelspeed * wishveloc[i];
 }
-// THERJAK
-void DropPunchAngle(int player) {
-  float len;
-
-  len = VectorNormalize(EVars(player)->punchangle);
-
-  len -= 10 * HostFrameTime();
-  if (len < 0) len = 0;
-  VectorScale(EVars(player)->punchangle, len, EVars(player)->punchangle);
-}
 
 /*
 ===================
@@ -162,16 +152,6 @@ void SV_WaterMove(int player, movecmd_t *cmd) {
   if (accelspeed > addspeed) accelspeed = addspeed;
 
   for (i = 0; i < 3; i++) velocity[i] += accelspeed * wishvel[i];
-}
-
-// THERJAK
-void SV_WaterJump(int player) {
-  if (SV_Time() > EVars(player)->teleport_time || !EVars(player)->waterlevel) {
-    EVars(player)->flags = (int)EVars(player)->flags & ~FL_WATERJUMP;
-    EVars(player)->teleport_time = 0;
-  }
-  EVars(player)->velocity[0] = EVars(player)->movedir[0];
-  EVars(player)->velocity[1] = EVars(player)->movedir[1];
 }
 
 /*

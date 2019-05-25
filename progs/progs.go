@@ -327,7 +327,7 @@ type EntVars struct {
 	DmgSave      float32
 	DmgInflictor int32
 	Owner        int32
-	Movedir      [3]float32
+	MoveDir      [3]float32
 	Message      int32
 	Sounds       float32
 	Noise        int32
