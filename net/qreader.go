@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	prfl "quake/protocol/flags"
+	"strings"
 )
 
 type QReader struct {
@@ -114,6 +115,21 @@ func (q *QReader) ReadAngle16(flags uint32) (float32, error) {
 	}
 	i, err := q.ReadInt16()
 	return float32(i) * (360.0 / 65536.0), err
+}
+
+func (q *QReader) ReadString() (string, error) {
+	sb := strings.Builder{}
+	for {
+		b, err := q.ReadByte()
+		if err != nil {
+			return "", err
+		}
+		if b == 0 {
+			break
+		}
+		sb.WriteByte(b)
+	}
+	return sb.String(), nil
 }
 
 // Len returns the number of bytes of the unread portion of the slice.

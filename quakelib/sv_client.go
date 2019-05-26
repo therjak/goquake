@@ -12,6 +12,7 @@ typedef struct movecmd_s {
 	float upmove;
 } movecmd_t;
 #endif // _MOVEDEF_h
+void SV_ReadClientMove(int client);
 */
 import "C"
 
@@ -19,10 +20,14 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"quake/conlog"
 	"quake/cvars"
+	"quake/execute"
 	"quake/net"
 	"quake/protocol"
+	"quake/protocol/client"
 	"quake/protocol/server"
+	"strings"
 	"time"
 	"unsafe"
 )
@@ -749,4 +754,85 @@ func (s *Server) ModelIndex(n string) int {
 	}
 	Error("SV_ModelIndex: model %v not precached", n)
 	return 0
+}
+
+// Returns false if the client should be killed
+func (c *SVClient) ReadClientMessage() bool {
+	hasPrefix := func(s, prefix string) bool {
+		return len(s) >= len(prefix) && strings.ToLower(s[0:len(prefix)]) == prefix
+	}
+	ret := 1
+outerloop:
+	for ret == 1 {
+		ret = c.GetMessage()
+		if ret == -1 {
+			log.Printf("SV_ReadClientMessage: ClientGetMessage failed\n")
+			return false
+		}
+		if ret == 0 {
+			return true
+		}
+
+		for {
+			if !c.active {
+				// a command caused an error
+				return false
+			}
+			if msg_badread {
+				// TODO: eleminate
+				log.Printf("SV_ReadClientMessage: badread 1\n")
+				return false
+			}
+			ccmd, err := netMessage.ReadInt8()
+			if err != nil {
+				continue outerloop
+			}
+			switch ccmd {
+			default:
+				log.Printf("SV_ReadClientMessage: unknown command char\n")
+				return false
+			case client.Nop:
+			case client.Disconnect:
+				return false
+			case client.Move:
+				C.SV_ReadClientMove(C.int(c.id))
+			case client.StringCmd:
+				s, err := netMessage.ReadString()
+				if err != nil {
+					log.Printf("SV_ReadClientMessage: badread 3 %v\n", err)
+					return false
+				}
+				switch {
+				default:
+					ret = 0
+					conlog.Printf("%s tried to %s\n", c.name, s)
+				case
+					hasPrefix(s, "status"),
+					hasPrefix(s, "god"),
+					hasPrefix(s, "notarget"),
+					hasPrefix(s, "fly"),
+					hasPrefix(s, "name"),
+					hasPrefix(s, "noclip"),
+					hasPrefix(s, "setpos"),
+					hasPrefix(s, "say"),
+					hasPrefix(s, "say_team"),
+					hasPrefix(s, "tell"),
+					hasPrefix(s, "color"),
+					hasPrefix(s, "kill"),
+					hasPrefix(s, "pause"),
+					hasPrefix(s, "spawn"),
+					hasPrefix(s, "begin"),
+					hasPrefix(s, "prespawn"),
+					hasPrefix(s, "kick"),
+					hasPrefix(s, "ping"),
+					hasPrefix(s, "give"),
+					hasPrefix(s, "ban"):
+					ret = 1
+					execute.Execute(s, execute.Client)
+				}
+			}
+		}
+	}
+
+	return true
 }

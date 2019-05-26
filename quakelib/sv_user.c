@@ -8,7 +8,7 @@ extern cvar_t sv_stopspeed;
 static vec3_t forward, right, up;
 
 // world
-float *angles;
+//float *angles;
 float *origin;
 float *velocity;
 
@@ -249,6 +249,7 @@ void SV_ClientThink(int client) {
   // angles
   // show 1/3 the pitch angle and all the roll angle
   cmd = GetClientMoveCmd(client);
+  float *angles;
   angles = entv->angles;
 
   VectorAdd(entv->v_angle, entv->punchangle, v_angle);
@@ -318,118 +319,6 @@ void SV_ReadClientMove(int client) {
 
   i = MSG_ReadByte();
   if (i) entv->impulse = i;
-}
-
-/*
-===================
-SV_ReadClientMessage
-
-Returns false if the client should be killed
-===================
-*/
-qboolean SV_ReadClientMessage(int client) {
-  int ret;
-  int ccmd;
-  const char *s;
-
-  do {
-  nextmsg:
-    ret = ClientGetMessage(client);
-    if (ret == -1) {
-      Sys_Print("SV_ReadClientMessage: ClientGetMessage failed\n");
-      return false;
-    }
-    if (!ret) return true;
-
-    while (1) {
-      if (!GetClientActive(client)) return false;  // a command caused an error
-
-      if (MSG_BadRead()) {
-        Sys_Print("SV_ReadClientMessage: badread\n");
-        return false;
-      }
-
-      ccmd = MSG_ReadChar();
-
-      switch (ccmd) {
-        case -1:
-          goto nextmsg;  // end of message
-
-        default:
-          Sys_Print("SV_ReadClientMessage: unknown command char\n");
-          return false;
-
-        case clc_nop:
-          //				Sys_Print ("clc_nop\n");
-          break;
-
-        case clc_stringcmd:
-          s = MSG_ReadString();
-          ret = 0;
-          if (q_strncasecmp(s, "status", 6) == 0)
-            ret = 1;
-          else if (q_strncasecmp(s, "god", 3) == 0)
-            ret = 1;
-          else if (q_strncasecmp(s, "notarget", 8) == 0)
-            ret = 1;
-          else if (q_strncasecmp(s, "fly", 3) == 0)
-            ret = 1;
-          else if (q_strncasecmp(s, "name", 4) == 0)
-            ret = 1;
-          else if (q_strncasecmp(s, "noclip", 6) == 0)
-            ret = 1;
-          else if (q_strncasecmp(s, "setpos", 6) == 0)
-            ret = 1;
-          else if (q_strncasecmp(s, "say", 3) == 0)
-            ret = 1;
-          else if (q_strncasecmp(s, "say_team", 8) == 0)
-            ret = 1;
-          else if (q_strncasecmp(s, "tell", 4) == 0)
-            ret = 1;
-          else if (q_strncasecmp(s, "color", 5) == 0)
-            ret = 1;
-          else if (q_strncasecmp(s, "kill", 4) == 0)
-            ret = 1;
-          else if (q_strncasecmp(s, "pause", 5) == 0)
-            ret = 1;
-          else if (q_strncasecmp(s, "spawn", 5) == 0)
-            ret = 1;
-          else if (q_strncasecmp(s, "begin", 5) == 0)
-            ret = 1;
-          else if (q_strncasecmp(s, "prespawn", 8) == 0)
-            ret = 1;
-          else if (q_strncasecmp(s, "kick", 4) == 0)
-            ret = 1;
-          else if (q_strncasecmp(s, "ping", 4) == 0)
-            ret = 1;
-          else if (q_strncasecmp(s, "give", 4) == 0)
-            ret = 1;
-          else if (q_strncasecmp(s, "ban", 3) == 0)
-            ret = 1;
-
-          if (ret == 1)
-            Cmd_ExecuteString(s, src_client);
-          else {
-            char *name = GetClientName(client);
-            Con_DPrintf("%s tried to %s\n", name, s);
-            free(name);
-          }
-          break;
-
-        case clc_disconnect:
-          //				Sys_Print ("SV_ReadClientMessage:
-          // client
-          // disconnected\n");
-          return false;
-
-        case clc_move:
-          SV_ReadClientMove(client);
-          break;
-      }
-    }
-  } while (ret == 1);
-
-  return true;
 }
 
 /*

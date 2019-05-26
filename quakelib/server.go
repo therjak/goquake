@@ -1579,6 +1579,12 @@ func SV_WaterJump(player int) {
 	ev.Velocity[1] = ev.MoveDir[1]
 }
 
+//Returns false if the client should be killed
+//export SV_ReadClientMessage
+func SV_ReadClientMessage(client int) C.int {
+	return b2i(sv_clients[client].ReadClientMessage())
+}
+
 // THE FOLLOWING IS ONLY NEEDED FOR SV_WRITEENTITIESTOCLIENT
 
 /*
