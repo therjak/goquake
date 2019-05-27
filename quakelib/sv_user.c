@@ -8,7 +8,7 @@ extern cvar_t sv_stopspeed;
 static vec3_t forward, right, up;
 
 // world
-//float *angles;
+// float *angles;
 float *origin;
 float *velocity;
 
@@ -275,50 +275,6 @@ void SV_ClientThink(int client) {
     SV_AirMove(GetClientEdictId(client), &cmd);
   }
   // johnfitz
-}
-
-/*
-===================
-SV_ReadClientMove
-===================
-*/
-void SV_ReadClientMove(int client) {
-  movecmd_t move;
-  entvars_t *entv = EVars(GetClientEdictId(client));
-
-  int i;
-  vec3_t angle;
-  int bits;
-
-  // read ping time
-  SetClientPingTime(client, GetClientNumPings(client) % NUM_PING_TIMES,
-                    SV_Time() - MSG_ReadFloat());
-  SetClientNumPings(client, (GetClientNumPings(client) + 1) % NUM_PING_TIMES);
-
-  // read current angles
-  for (i = 0; i < 3; i++)
-    // johnfitz -- 16-bit angles for PROTOCOL_FITZQUAKE
-    if (SV_Protocol() == PROTOCOL_NETQUAKE)
-      angle[i] = MSG_ReadAngle();
-    else
-      angle[i] = MSG_ReadAngle16();
-  // johnfitz
-
-  VectorCopy(angle, entv->v_angle);
-
-  // read movement
-  move.forwardmove = MSG_ReadShort();
-  move.sidemove = MSG_ReadShort();
-  move.upmove = MSG_ReadShort();
-  SetClientMoveCmd(client, move);
-
-  // read buttons
-  bits = MSG_ReadByte();
-  entv->button0 = bits & 1;
-  entv->button2 = (bits & 2) >> 1;
-
-  i = MSG_ReadByte();
-  if (i) entv->impulse = i;
 }
 
 /*

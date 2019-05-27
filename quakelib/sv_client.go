@@ -12,7 +12,6 @@ typedef struct movecmd_s {
 	float upmove;
 } movecmd_t;
 #endif // _MOVEDEF_h
-void SV_ReadClientMove(int client);
 */
 import "C"
 
@@ -780,7 +779,7 @@ outerloop:
 			}
 			if msg_badread {
 				// TODO: eleminate
-				log.Printf("SV_ReadClientMessage: badread 1\n")
+				log.Printf("SV_ReadClientMessage: badread\n")
 				return false
 			}
 			ccmd, err := netMessage.ReadInt8()
@@ -795,7 +794,72 @@ outerloop:
 			case client.Disconnect:
 				return false
 			case client.Move:
-				C.SV_ReadClientMove(C.int(c.id))
+				pt, err := netMessage.ReadFloat32()
+				if err != nil {
+					log.Printf("SV_ReadClientMessage: badread %v\n", err)
+					return false
+				}
+				c.pingTimes[c.numPings%len(c.pingTimes)] = sv.time - pt
+				c.numPings++
+				c.numPings %= len(c.pingTimes)
+
+				ev := EntVars(c.edictId)
+				readAngle := netMessage.ReadAngle16
+				if sv.protocol == protocol.NetQuake {
+					readAngle = netMessage.ReadAngle
+				}
+				x, err := readAngle(uint32(sv.protocolFlags))
+				if err != nil {
+					log.Printf("SV_ReadClientMessage: badread %v\n", err)
+					return false
+				}
+				y, err := readAngle(uint32(sv.protocolFlags))
+				if err != nil {
+					log.Printf("SV_ReadClientMessage: badread %v\n", err)
+					return false
+				}
+				z, err := readAngle(uint32(sv.protocolFlags))
+				if err != nil {
+					log.Printf("SV_ReadClientMessage: badread %v\n", err)
+					return false
+				}
+				ev.VAngle[0] = x
+				ev.VAngle[1] = y
+				ev.VAngle[2] = z
+
+				forward, err := netMessage.ReadInt16()
+				if err != nil {
+					log.Printf("SV_ReadClientMessage: badread %v\n", err)
+					return false
+				}
+				side, err := netMessage.ReadInt16()
+				if err != nil {
+					log.Printf("SV_ReadClientMessage: badread %v\n", err)
+					return false
+				}
+				upward, err := netMessage.ReadInt16()
+				if err != nil {
+					log.Printf("SV_ReadClientMessage: badread %v\n", err)
+					return false
+				}
+				c.cmd.forwardmove = C.float(forward)
+				c.cmd.sidemove = C.float(side)
+				c.cmd.upmove = C.float(upward)
+				bits, err := netMessage.ReadByte()
+				if err != nil {
+					log.Printf("SV_ReadClientMessage: badread %v\n", err)
+					return false
+				}
+				ev.Button0 = float32(bits & 1)
+				ev.Button2 = float32((bits & 2) >> 1)
+				impulse, err := netMessage.ReadByte()
+				if err != nil {
+					log.Printf("SV_ReadClientMessage: badread %v\n", err)
+					return false
+				}
+				if impulse != 0 {
+					ev.Impulse = float32(impulse)
+				}
 			case client.StringCmd:
 				s, err := netMessage.ReadString()
 				if err != nil {
