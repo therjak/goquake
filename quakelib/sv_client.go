@@ -182,74 +182,14 @@ func SetClientSpawnParam(c, n C.int, v C.float) {
 	sv_clients[int(c)].spawnParams[int(n)] = float32(v)
 }
 
-//export GetClientPingTime
-func GetClientPingTime(c, n C.int) C.float {
-	return C.float(sv_clients[int(c)].pingTimes[int(n)])
-}
-
-//export SetClientPingTime
-func SetClientPingTime(c, n C.int, v C.float) {
-	sv_clients[int(c)].pingTimes[int(n)] = float32(v)
-}
-
 //export GetClientName
 func GetClientName(n C.int) *C.char {
 	return C.CString(sv_clients[int(n)].name)
 }
 
-//export SetClientName
-func SetClientName(n C.int, c *C.char) {
-	sv_clients[int(n)].name = C.GoString(c)
-}
-
 //export GetClientMoveCmd
 func GetClientMoveCmd(n C.int) C.movecmd_t {
 	return sv_clients[int(n)].cmd
-}
-
-//export SetClientMoveCmd
-func SetClientMoveCmd(n C.int, c C.movecmd_t) {
-	sv_clients[int(n)].cmd = c
-}
-
-//export GetClientLastMessage
-func GetClientLastMessage(n C.int) C.double {
-	return C.double(sv_clients[int(n)].lastMessage)
-}
-
-//export SetClientLastMessage
-func SetClientLastMessage(n C.int) {
-	sv_clients[int(n)].lastMessage = host.time
-}
-
-//export GetClientOldFrags
-func GetClientOldFrags(n C.int) C.int {
-	return C.int(sv_clients[int(n)].oldFrags)
-}
-
-//export SetClientOldFrags
-func SetClientOldFrags(n C.int, v C.int) {
-	sv_clients[int(n)].oldFrags = int(v)
-}
-
-//export GetClientNumPings
-func GetClientNumPings(n C.int) C.int {
-	return C.int(sv_clients[int(n)].numPings)
-}
-
-//export SetClientNumPings
-func SetClientNumPings(n C.int, v C.int) {
-	sv_clients[int(n)].numPings = int(v)
-}
-
-//export GetClientColors
-func GetClientColors(n C.int) C.int {
-	return C.int(sv_clients[int(n)].colors)
-}
-
-//export SetClientColors
-func SetClientColors(n C.int, v C.int) {
-	sv_clients[int(n)].colors = int(v)
 }
 
 //export GetClientEdictId
@@ -267,58 +207,9 @@ func GetClientActive(n C.int) C.int {
 	return b2i(sv_clients[int(n)].active)
 }
 
-//export SetClientActive
-func SetClientActive(n C.int, v C.int) {
-	sv_clients[int(n)].active = (v != 0)
-}
-
-//export GetClientSpawned
-func GetClientSpawned(n C.int) C.int {
-	return b2i(sv_clients[int(n)].spawned)
-}
-
-//export SetClientSpawned
-func SetClientSpawned(n C.int, v C.int) {
-	sv_clients[int(n)].spawned = (v != 0)
-}
-
-//export GetClientSendSignon
-func GetClientSendSignon(n C.int) C.int {
-	return b2i(sv_clients[int(n)].sendSignon)
-}
-
-//export SetClientSendSignon
-func SetClientSendSignon(n C.int, v C.int) {
-	sv_clients[int(n)].sendSignon = (v != 0)
-}
-
 //export ClientWriteChar
 func ClientWriteChar(num, c C.int) {
 	sv_clients[int(num)].msg.WriteChar(int(c))
-}
-
-//export ClientWriteByte
-func ClientWriteByte(num, c C.int) {
-	sv_clients[int(num)].msg.WriteByte(int(c))
-}
-
-func ClientWriteByte2(num, c int) {
-	sv_clients[num].msg.WriteByte(c)
-}
-
-//export ClientWriteShort
-func ClientWriteShort(num, c C.int) {
-	sv_clients[int(num)].msg.WriteShort(int(c))
-}
-
-//export ClientWriteLong
-func ClientWriteLong(num, c C.int) {
-	sv_clients[int(num)].msg.WriteLong(int(c))
-}
-
-//export ClientWriteFloat
-func ClientWriteFloat(num C.int, f C.float) {
-	sv_clients[int(num)].msg.WriteFloat(float32(f))
 }
 
 //export ClientWriteString
@@ -326,53 +217,8 @@ func ClientWriteString(num C.int, s *C.char) {
 	sv_clients[int(num)].msg.WriteString(C.GoString(s))
 }
 
-func ClientWriteString2(num int, s string) {
-	sv_clients[num].msg.WriteString(s)
-}
-
-//export ClientWriteCoord
-func ClientWriteCoord(num C.int, f C.float) {
-	sv_clients[int(num)].msg.WriteCoord(float32(f), int(sv.protocolFlags))
-}
-
-//export ClientWriteAngle
-func ClientWriteAngle(num C.int, f C.float) {
-	sv_clients[int(num)].msg.WriteAngle(float32(f), int(sv.protocolFlags))
-}
-
-//export ClientWriteAngle16
-func ClientWriteAngle16(num C.int, f C.float) {
-	sv_clients[int(num)].msg.WriteAngle16(float32(f), int(sv.protocolFlags))
-}
-
-//export ClientWrite
-func ClientWrite(num C.int, data *C.uchar, length C.int) {
-	b := C.GoBytes(unsafe.Pointer(data), length)
-	sv_clients[int(num)].msg.WriteBytes(b)
-}
-
-//export ClientWriteSVMSG
-func ClientWriteSVMSG(num C.int) {
-	sv_clients[int(num)].msg.WriteBytes(msgBuf.Bytes())
-}
-
-//export ClientHasMessage
-func ClientHasMessage(num C.int) C.int {
-	return b2i(sv_clients[int(num)].msg.HasMessage())
-}
-
-//export ClientCanSendMessage
-func ClientCanSendMessage(num C.int) C.int {
-	return b2i(sv_clients[int(num)].CanSendMessage())
-}
-
 func (cl *SVClient) CanSendMessage() bool {
 	return cl.netConnection.CanSendMessage()
-}
-
-//export ClientClose
-func ClientClose(num C.int) {
-	sv_clients[int(num)].Close()
 }
 
 func (cl *SVClient) Close() {
@@ -402,35 +248,8 @@ func (cl *SVClient) Address() string {
 	return cl.netConnection.Address()
 }
 
-//export ClientClearMessage
-func ClientClearMessage(num C.int) {
-	sv_clients[int(num)].msg.ClearMessage()
-}
-
 func (cl *SVClient) SendMessage() int {
 	return cl.netConnection.SendMessage(cl.msg.Bytes())
-}
-
-//export ClientSendMessage
-func ClientSendMessage(num C.int) C.int {
-	return C.int(sv_clients[int(num)].SendMessage())
-}
-
-//export ClientGetMessage
-func ClientGetMessage(num C.int) C.int {
-	return C.int(sv_clients[int(num)].GetMessage())
-}
-
-//export GetClientOverflowed
-func GetClientOverflowed(num C.int) C.int {
-	// return b2i(sv_clients[int(num)].msg.Len() > 64000)
-	// Do we care?
-	return 0
-}
-
-//export SetClientOverflowed
-func SetClientOverflowed(num, v C.int) {
-	log.Printf("SetOverflow")
 }
 
 func (cl *SVClient) SendNop() {
@@ -438,11 +257,6 @@ func (cl *SVClient) SendNop() {
 		cl.Drop(true)
 	}
 	cl.lastMessage = host.time
-}
-
-//export SV_SendNop
-func SV_SendNop(num C.int) {
-	sv_clients[int(num)].SendNop()
 }
 
 func (cl *SVClient) Drop(crash bool) {
@@ -482,11 +296,6 @@ func (cl *SVClient) Drop(crash bool) {
 		c.msg.WriteByte(cl.id)
 		c.msg.WriteByte(0)
 	}
-}
-
-//export SV_SendDisconnectToAll
-func SV_SendDisconnectToAll() {
-	SendToAll([]byte{server.Disconnect})
 }
 
 func SendReconnectToAll() {
@@ -555,22 +364,6 @@ func (cl *SVClient) GetMessage() int {
 	return int(b)
 }
 
-//export MSG_BadRead
-func MSG_BadRead() C.int {
-	// poor mans error handling :(
-	return b2i(msg_badread)
-}
-
-//export MSG_ReadChar
-func MSG_ReadChar() C.int {
-	i, err := netMessage.ReadInt8()
-	if err != nil {
-		msg_badread = true
-		return -1
-	}
-	return C.int(i)
-}
-
 //export MSG_ReadByte
 func MSG_ReadByte() C.int {
 	i, err := netMessage.ReadByte()
@@ -579,96 +372,6 @@ func MSG_ReadByte() C.int {
 		return -1
 	}
 	return C.int(i)
-}
-
-//export MSG_ReadShort
-func MSG_ReadShort() C.int {
-	i, err := netMessage.ReadInt16()
-	if err != nil {
-		msg_badread = true
-		return -1
-	}
-	return C.int(i)
-}
-
-//export MSG_ReadLong
-func MSG_ReadLong() C.int {
-	i, err := netMessage.ReadInt32()
-	if err != nil {
-		msg_badread = true
-		return -1
-	}
-	return C.int(i)
-}
-
-//export MSG_ReadFloat
-func MSG_ReadFloat() C.float {
-	f, err := netMessage.ReadFloat32()
-	if err != nil {
-		msg_badread = true
-		return -1
-	}
-	return C.float(f)
-}
-
-//export MSG_ReadCoord16
-func MSG_ReadCoord16() C.float {
-	f, err := netMessage.ReadCoord16()
-	if err != nil {
-		msg_badread = true
-		return -1
-	}
-	return C.float(f)
-}
-
-//export MSG_ReadCoord24
-func MSG_ReadCoord24() C.float {
-	f, err := netMessage.ReadCoord24()
-	if err != nil {
-		msg_badread = true
-		return -1
-	}
-	return C.float(f)
-}
-
-//export MSG_ReadCoord32f
-func MSG_ReadCoord32f() C.float {
-	f, err := netMessage.ReadCoord32f()
-	if err != nil {
-		msg_badread = true
-		return -1
-	}
-	return C.float(f)
-}
-
-//export MSG_ReadCoord
-func MSG_ReadCoord() C.float {
-	f, err := netMessage.ReadCoord(cl.protocolFlags)
-	if err != nil {
-		msg_badread = true
-		return -1
-	}
-	return C.float(f)
-}
-
-//export MSG_ReadAngle
-func MSG_ReadAngle() C.float {
-	f, err := netMessage.ReadAngle(uint32(sv.protocolFlags))
-	if err != nil {
-		msg_badread = true
-		return -1
-	}
-	return C.float(f)
-}
-
-//export MSG_ReadAngle16
-func MSG_ReadAngle16() C.float {
-	f, err := netMessage.ReadAngle16(uint32(sv.protocolFlags))
-	if err != nil {
-		msg_badread = true
-		return -1
-	}
-	return C.float(f)
 }
 
 //export SV_SendServerinfo
@@ -733,15 +436,6 @@ func (c *SVClient) SendServerinfo() {
 
 	c.sendSignon = true
 	c.spawned = false
-}
-
-//export SV_ModelIndex
-func SV_ModelIndex(name *C.char) C.int {
-	if name == nil {
-		return 0
-	}
-	n := C.GoString(name)
-	return C.int(sv.ModelIndex(n))
 }
 
 func (s *Server) ModelIndex(n string) int {
