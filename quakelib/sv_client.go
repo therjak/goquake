@@ -13,6 +13,7 @@ typedef struct movecmd_s {
 } movecmd_t;
 #endif // _MOVEDEF_h
 */
+//void SV_ClientThink(int client);
 import "C"
 
 import (
@@ -22,6 +23,7 @@ import (
 	"quake/conlog"
 	"quake/cvars"
 	"quake/execute"
+	"quake/keys"
 	"quake/net"
 	"quake/protocol"
 	"quake/protocol/client"
@@ -899,4 +901,33 @@ outerloop:
 	}
 
 	return true
+}
+
+//export SV_RunClients
+func SV_RunClients() {
+	for i := 0; i < svs.maxClients; i++ {
+		host_client = i
+
+		hc := HostClient()
+		if !hc.active {
+			continue
+		}
+		sv_player = hc.edictId
+
+		if !hc.ReadClientMessage() {
+			hc.Drop(false)
+			continue
+		}
+
+		if !hc.spawned {
+			// clear client movement until a new packet is received
+			hc.cmd = C.movecmd_t{0, 0, 0}
+			continue
+		}
+
+		// always pause in single player if in console or menus
+		if !sv.paused && svs.maxClients > 1 || keyDestination == keys.Game {
+			C.SV_ClientThink(C.int(HostClientID()))
+		}
+	}
 }

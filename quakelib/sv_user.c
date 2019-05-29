@@ -277,35 +277,3 @@ void SV_ClientThink(int client) {
   // johnfitz
 }
 
-/*
-==================
-SV_RunClients
-==================
-*/
-void SV_RunClients(void) {
-  int i;
-  movecmd_t move = {0, 0, 0};
-
-  for (i = 0; i < SVS_GetMaxClients(); i++) {
-    SetHost_Client(i);
-    if (!GetClientActive(HostClient())) continue;
-
-    Set_SV_Player(GetClientEdictId(HostClient()));
-
-    if (!SV_ReadClientMessage(HostClient())) {
-      SV_DropClient(HostClient(), false);  // client misbehaved...
-      continue;
-    }
-
-    if (!GetClientSpawned(HostClient())) {
-      // clear client movement until a new packet is received
-      SetClientMoveCmd(HostClient(), move);
-      continue;
-    }
-
-    // always pause in single player if in console or menus
-    if (!SV_Paused() && (SVS_GetMaxClients() > 1 || GetKeyDest() == key_game))
-      SV_ClientThink(HostClient());
-  }
-  SetHost_Client(i);
-}
