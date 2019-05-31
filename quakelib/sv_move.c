@@ -151,19 +151,6 @@ qboolean SV_StepDirection(int ent, float yaw, float dist) {
 }
 
 /*
-======================
-SV_FixCheckBottom
-
-======================
-*/
-// THERJAK
-void SV_FixCheckBottom(entvars_t *ent) {
-  //	Con_Printf ("SV_FixCheckBottom\n");
-
-  ent->flags = (int)ent->flags | FL_PARTIALGROUND;
-}
-
-/*
 ================
 SV_NewChaseDir
 
@@ -239,7 +226,10 @@ void SV_NewChaseDir(int actor, entvars_t *enemy, float dist) {
   // if a bridge was pulled out from underneath a monster, it may not have
   // a valid standing position at all
 
-  if (!SV_CheckBottom(actor)) SV_FixCheckBottom(EVars(actor));
+  if (!SV_CheckBottom(actor)) {
+    entvars_t *ent = EVars(actor);
+    ent->flags = (int)ent->flags | FL_PARTIALGROUND;
+  }
 }
 
 /*
@@ -248,8 +238,10 @@ SV_CloseEnough
 
 ======================
 */
-qboolean SV_CloseEnough(entvars_t *ent, entvars_t *goal, float dist) {
+qboolean SV_CloseEnough(int e, int g, float dist) {
   int i;
+  entvars_t *ent = EVars(e);
+  entvars_t *goal = EVars(g);
 
   for (i = 0; i < 3; i++) {
     if (goal->absmin[i] > ent->absmax[i] + dist) return false;
@@ -279,7 +271,7 @@ void SV_MoveToGoal(void) {
   }
 
   // if the next step hits the enemy, return immediately
-  if (EVars(ent)->enemy != 0 && SV_CloseEnough(EVars(ent), EVars(goal), dist))
+  if (EVars(ent)->enemy != 0 && SV_CloseEnough(ent, goal, dist))
     return;
 
   // bump around...
