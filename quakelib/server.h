@@ -134,9 +134,6 @@ void SV_BroadcastPrintf(const char *fmt, ...)
 
 void SV_Physics(void);
 
-qboolean SV_CheckBottom(int ent);
-qboolean SV_movestep(int ent, vec3_t move, qboolean relink);
-
 void SV_MoveToGoal(void);
 
 void SV_CheckForNewClients(void);
