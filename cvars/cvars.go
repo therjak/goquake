@@ -41,7 +41,6 @@ var (
 	DeathMatch             *cvar.Cvar
 	DevStats               *cvar.Cvar
 	Developer              *cvar.Cvar
-	EdgeFriction           *cvar.Cvar
 	ExternalEnts           *cvar.Cvar
 	Fov                    *cvar.Cvar
 	FovAdapt               *cvar.Cvar
@@ -153,6 +152,7 @@ var (
 	ServerAccelerate       *cvar.Cvar
 	ServerAim              *cvar.Cvar
 	ServerAltNoClip        *cvar.Cvar
+	ServerEdgeFriction     *cvar.Cvar
 	ServerFreezeNonClients *cvar.Cvar
 	ServerFriction         *cvar.Cvar
 	ServerGravity          *cvar.Cvar
@@ -239,7 +239,6 @@ func init() {
 	DeathMatch = cvar.MustRegister("deathmatch", "0", cvar.NONE)
 	DevStats = cvar.MustRegister("devstats", "0", cvar.NONE)
 	Developer = cvar.MustRegister("developer", "0", cvar.NONE)
-	EdgeFriction = cvar.MustRegister("edgefriction", "2", cvar.NONE)
 	ExternalEnts = cvar.MustRegister("external_ents", "1", cvar.ARCHIVE)
 	Fov = cvar.MustRegister("fov", "90", cvar.NONE)
 	FovAdapt = cvar.MustRegister("fov_adapt", "1", cvar.ARCHIVE)
@@ -349,6 +348,7 @@ func init() {
 	ServerAccelerate = cvar.MustRegister("sv_accelerate", "10", cvar.NONE)
 	ServerAim = cvar.MustRegister("sv_aim", "1", cvar.NONE)
 	ServerAltNoClip = cvar.MustRegister("sv_altnoclip", "1", cvar.ARCHIVE)
+	ServerEdgeFriction = cvar.MustRegister("edgefriction", "2", cvar.NONE)
 	ServerFreezeNonClients = cvar.MustRegister("sv_freezenonclients", "0", cvar.NONE)
 	ServerFriction = cvar.MustRegister("sv_friction", "4", cvar.NOTIFY|cvar.SERVERINFO)
 	ServerGravity = cvar.MustRegister("sv_gravity", "800", cvar.NOTIFY|cvar.SERVERINFO)

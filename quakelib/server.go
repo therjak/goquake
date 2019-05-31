@@ -1552,33 +1552,6 @@ func SV_SetIdealPitch() {
 	ev.IdealPitch = -dir * cvars.ServerIdealPitchScale.Value()
 }
 
-//export DropPunchAngle
-func DropPunchAngle(player int) {
-	ev := EntVars(player)
-	pa := vec.VFromA(ev.PunchAngle)
-	len := pa.Length()
-	if len == 0 {
-		len = 1
-	}
-	len2 := 1 - (10 * float32(host.frameTime) / len)
-	if len2 < 0 {
-		len2 = 0
-	}
-	newPa := pa.Scale(len2)
-	ev.PunchAngle = newPa.Array()
-}
-
-//export SV_WaterJump
-func SV_WaterJump(player int) {
-	ev := EntVars(player)
-	if sv.time > ev.TeleportTime || ev.WaterLevel == 0 {
-		ev.Flags = float32(int(ev.Flags) &^ FL_WATERJUMP)
-		ev.TeleportTime = 0
-	}
-	ev.Velocity[0] = ev.MoveDir[0]
-	ev.Velocity[1] = ev.MoveDir[1]
-}
-
 //Returns false if the client should be killed
 //export SV_ReadClientMessage
 func SV_ReadClientMessage(client int) C.int {

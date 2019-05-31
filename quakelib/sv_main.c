@@ -14,6 +14,8 @@ extern qboolean pr_alpha_supported;  // johnfitz
 
 int ModelLeafIndex(mleaf_t *l) { return l - sv.worldmodel->leafs; }
 
+cvar_t sv_maxspeed;
+
 /*
 ===============
 SV_Init
@@ -22,36 +24,23 @@ SV_Init
 void SV_Init(void) {
   int i;
   const char *p;
-  extern cvar_t sv_maxvelocity;
   extern cvar_t sv_gravity;
   extern cvar_t sv_nostep;
   extern cvar_t sv_freezenonclients;
   extern cvar_t sv_friction;
-  extern cvar_t sv_edgefriction;
-  extern cvar_t sv_stopspeed;
-  extern cvar_t sv_maxspeed;
-  extern cvar_t sv_accelerate;
-  extern cvar_t sv_idealpitchscale;
   extern cvar_t sv_aim;
-  extern cvar_t sv_altnoclip;
 
   sv.edicts = NULL;  // ericw -- sv.edicts switched to use malloc()
 
-  Cvar_FakeRegister(&sv_maxvelocity, "sv_maxvelocity");
   Cvar_FakeRegister(&sv_gravity, "sv_gravity");
   Cvar_FakeRegister(&sv_friction, "sv_friction");
   Cvar_SetCallback(&sv_gravity, Host_Callback_Notify);
   Cvar_SetCallback(&sv_friction, Host_Callback_Notify);
-  Cvar_FakeRegister(&sv_edgefriction, "edgefriction");
-  Cvar_FakeRegister(&sv_stopspeed, "sv_stopspeed");
   Cvar_FakeRegister(&sv_maxspeed, "sv_maxspeed");
   Cvar_SetCallback(&sv_maxspeed, Host_Callback_Notify);
-  Cvar_FakeRegister(&sv_accelerate, "sv_accelerate");
-  Cvar_FakeRegister(&sv_idealpitchscale, "sv_idealpitchscale");
   Cvar_FakeRegister(&sv_aim, "sv_aim");
   Cvar_FakeRegister(&sv_nostep, "sv_nostep");
   Cvar_FakeRegister(&sv_freezenonclients, "sv_freezenonclients");
-  Cvar_FakeRegister(&sv_altnoclip, "sv_altnoclip");
 
   for (i = 0; i < MAX_MODELS; i++) sprintf(localmodels[i], "*%i", i);
 

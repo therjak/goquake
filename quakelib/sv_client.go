@@ -621,7 +621,7 @@ func SV_RunClients() {
 
 		// always pause in single player if in console or menus
 		if !sv.paused && svs.maxClients > 1 || keyDestination == keys.Game {
-			C.SV_ClientThink(C.int(HostClientID()))
+			hc.Think()
 		}
 	}
 }

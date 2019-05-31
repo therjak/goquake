@@ -28,8 +28,8 @@ func (v *Vec3) Idx(i int) float32 {
 }
 
 // Length returns the length of the vector
-func (v *Vec3) Length() float32 {
-	return math32.Sqrt(Dot(*v, *v))
+func (v Vec3) Length() float32 {
+	return math32.Sqrt(Dot(v, v))
 }
 
 // Add returns a + b
@@ -60,7 +60,7 @@ func (v Vec3) Scale(s float32) Vec3 {
 }
 
 // Normalize returns the normalized vector
-func (v *Vec3) Normalize() Vec3 {
+func (v Vec3) Normalize() Vec3 {
 	l := v.Length()
 	if l == 0 {
 		return Vec3{}
