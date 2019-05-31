@@ -3,17 +3,7 @@ package quakelib
 /*
 #include <stdlib.h>
 #include <string.h>
-
-#ifndef _MOVEDEF_h
-#define _MOVEDEF_h
-typedef struct movecmd_s {
-	float forwardmove;
-	float sidemove;
-	float upmove;
-} movecmd_t;
-#endif // _MOVEDEF_h
 */
-//void SV_ClientThink(int client);
 import "C"
 
 import (
@@ -33,6 +23,12 @@ import (
 	"unsafe"
 )
 
+type movecmd struct {
+	forwardmove float32
+	sidemove    float32
+	upmove      float32
+}
+
 type SVClient struct {
 	active     bool // false = client is free
 	spawned    bool // false = don't send datagrams
@@ -43,7 +39,7 @@ type SVClient struct {
 
 	netConnection *net.Connection // communications handle
 
-	cmd C.movecmd_t // movement
+	cmd movecmd // movement
 
 	// can be added to at any time, copied and clear once per frame
 	//  had max length of 64000
@@ -80,9 +76,9 @@ func CreateSVClients() {
 }
 
 //export CleanSVClient
-func CleanSVClient(n C.int) {
+func CleanSVClient(n int) {
 	// reset everything but netConnection, edictId
-	c := sv_clients[int(n)]
+	c := sv_clients[n]
 	nc := c.netConnection
 	ei := c.edictId
 	id := c.id
@@ -99,7 +95,7 @@ func SV_CheckForNewClients() {
 }
 
 //export SV_ClientPrint2
-func SV_ClientPrint2(client C.int, msg *C.char) {
+func SV_ClientPrint2(client int, msg *C.char) {
 	sv_clients[int(client)].Printf(C.GoString(msg))
 }
 
@@ -185,11 +181,6 @@ func SetClientSpawnParam(c, n C.int, v C.float) {
 //export GetClientName
 func GetClientName(n C.int) *C.char {
 	return C.CString(sv_clients[int(n)].name)
-}
-
-//export GetClientMoveCmd
-func GetClientMoveCmd(n C.int) C.movecmd_t {
-	return sv_clients[int(n)].cmd
 }
 
 //export GetClientEdictId
@@ -538,9 +529,9 @@ outerloop:
 					log.Printf("SV_ReadClientMessage: badread %v\n", err)
 					return false
 				}
-				c.cmd.forwardmove = C.float(forward)
-				c.cmd.sidemove = C.float(side)
-				c.cmd.upmove = C.float(upward)
+				c.cmd.forwardmove = float32(forward)
+				c.cmd.sidemove = float32(side)
+				c.cmd.upmove = float32(upward)
 				bits, err := netMessage.ReadByte()
 				if err != nil {
 					log.Printf("SV_ReadClientMessage: badread %v\n", err)
@@ -615,7 +606,7 @@ func SV_RunClients() {
 
 		if !hc.spawned {
 			// clear client movement until a new packet is received
-			hc.cmd = C.movecmd_t{0, 0, 0}
+			hc.cmd = movecmd{0, 0, 0}
 			continue
 		}
 
