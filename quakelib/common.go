@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"quake/cmd"
 	cmdl "quake/commandline"
+	"quake/conlog"
+	"quake/cvars"
 	"quake/filesystem"
 )
 
@@ -25,6 +27,10 @@ type qPath struct {
 func init() {
 	cmd.AddCommand("path", CmdPath)
 	cmd.AddCommand("game", CmdGame)
+
+	cvars.Developer.SetCallback(func() {
+		conlog.SetDeveloper(cvars.Developer.Value())
+	})
 }
 
 func CmdPath(args []cmd.QArg) {

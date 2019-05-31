@@ -499,8 +499,9 @@ func PF_findradius() {
 }
 
 /*
-static void PF_dprint(void) {
-	Con_DPrintf("%s", PF_VarString(0));
+//export PF_dprint
+func PF_dprint() {
+	conlog.DPrintf("%s", PF_VarString(0));
 }
 */
 

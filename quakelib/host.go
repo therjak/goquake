@@ -52,9 +52,6 @@ func (h *Host) UpdateTime() bool {
 	return true
 }
 
-func init() {
-}
-
 //export HostRealTime
 func HostRealTime() C.double {
 	return C.double(Time())

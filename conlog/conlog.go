@@ -1,10 +1,9 @@
 package conlog
 
-import ()
-
 var (
-	p  func(string, ...interface{})
-	sp func(string, ...interface{})
+	p   func(string, ...interface{})
+	sp  func(string, ...interface{})
+	dev float32
 )
 
 func SetPrintf(f func(string, ...interface{})) {
@@ -16,6 +15,22 @@ func SetSafePrintf(f func(string, ...interface{})) {
 
 func Printf(format string, v ...interface{}) {
 	p(format, v...)
+}
+
+func SetDeveloper(v float32) {
+	dev = v
+}
+
+func DPrintf(format string, v ...interface{}) {
+	if dev != 0 {
+		p(format, v...)
+	}
+}
+
+func DPrintf2(format string, v ...interface{}) {
+	if dev >= 2 {
+		p(format, v...)
+	}
 }
 
 func SafePrintf(format string, v ...interface{}) {

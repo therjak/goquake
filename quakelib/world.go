@@ -639,7 +639,7 @@ func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 vec.Vec
 			trace.endpos[0] = C.float(mid.X)
 			trace.endpos[1] = C.float(mid.Y)
 			trace.endpos[2] = C.float(mid.Z)
-			conlog.Printf("backup past 0\n")
+			conlog.DPrintf("backup past 0\n")
 			return false
 		}
 		midf = math.Lerp(p1f, p2f, frac)

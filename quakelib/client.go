@@ -904,7 +904,7 @@ func (c *ClientStatic) Disconnect() {
 			C.CL_Stop_f()
 		}
 
-		conlog.Printf("Sending clc_disconnect\n") // DEBUG
+		conlog.DPrintf("Sending clc_disconnect\n")
 		c.outMessage.Reset()
 		c.outMessage.WriteByte(clc.Disconnect)
 		b := c.outMessage.Bytes()
