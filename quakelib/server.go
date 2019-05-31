@@ -162,11 +162,6 @@ func SV_Player() int {
 	return sv_player
 }
 
-//export Set_SV_Player
-func Set_SV_Player(p int) {
-	sv_player = p
-}
-
 func svProtocol(args []cmd.QArg) {
 	switch len(args) {
 	default:
@@ -274,11 +269,6 @@ func SV_SetProtocolFlags(flags C.ushort) {
 	sv.protocolFlags = uint16(flags)
 }
 
-//export SV_ProtocolFlags
-func SV_ProtocolFlags() C.ushort {
-	return C.ushort(sv.protocolFlags)
-}
-
 //export SV_Paused
 func SV_Paused() C.int {
 	return b2i(sv.paused)
@@ -287,11 +277,6 @@ func SV_Paused() C.int {
 //export SV_SetPaused
 func SV_SetPaused(b C.int) {
 	sv.paused = (b != 0)
-}
-
-//export SV_LoadGame
-func SV_LoadGame() C.int {
-	return b2i(sv.loadGame)
 }
 
 //export SV_SetLoadGame
@@ -321,16 +306,6 @@ var (
 	msgBufMaxLen = 0
 )
 
-//export SV_MS_Clear
-func SV_MS_Clear() {
-	msgBuf.ClearMessage()
-}
-
-//export SV_MS_SetMaxLen
-func SV_MS_SetMaxLen(v C.int) {
-	msgBufMaxLen = int(v)
-}
-
 //export SV_MS_MaxLen
 func SV_MS_MaxLen() C.int {
 	return C.int(msgBufMaxLen)
@@ -341,24 +316,9 @@ func SV_MS_WriteByte(v C.int) {
 	msgBuf.WriteByte(int(v))
 }
 
-//export SV_MS_WriteChar
-func SV_MS_WriteChar(v C.int) {
-	msgBuf.WriteChar(int(v))
-}
-
 //export SV_MS_WriteShort
 func SV_MS_WriteShort(v C.int) {
 	msgBuf.WriteShort(int(v))
-}
-
-//export SV_MS_WriteLong
-func SV_MS_WriteLong(v C.int) {
-	msgBuf.WriteLong(int(v))
-}
-
-//export SV_MS_WriteFloat
-func SV_MS_WriteFloat(f C.float) {
-	msgBuf.WriteFloat(float32(f))
 }
 
 //export SV_MS_WriteAngle
@@ -369,11 +329,6 @@ func SV_MS_WriteAngle(v C.float) {
 //export SV_MS_WriteCoord
 func SV_MS_WriteCoord(v C.float) {
 	msgBuf.WriteCoord(float32(v), int(sv.protocolFlags))
-}
-
-//export SV_MS_WriteString
-func SV_MS_WriteString(s *C.char) {
-	msgBuf.WriteString(C.GoString(s))
 }
 
 //export SV_MS_Len
@@ -449,11 +404,6 @@ func SVS_SetServerFlags(flags C.int) {
 	svs.serverFlags = int(flags)
 }
 
-//export SVS_IsChangeLevelIssued
-func SVS_IsChangeLevelIssued() C.int {
-	return b2i(svs.changeLevelIssued)
-}
-
 //export SVS_SetChangeLevelIssued
 func SVS_SetChangeLevelIssued(s C.int) {
 	if s == 0 {
@@ -468,19 +418,9 @@ func SVS_GetMaxClients() C.int {
 	return C.int(svs.maxClients)
 }
 
-//export SVS_SetMaxClients
-func SVS_SetMaxClients(n C.int) {
-	svs.maxClients = int(n)
-}
-
 //export SVS_GetMaxClientsLimit
 func SVS_GetMaxClientsLimit() C.int {
 	return C.int(svs.maxClientsLimit)
-}
-
-//export SVS_SetMaxClientsLimit
-func SVS_SetMaxClientsLimit(n C.int) {
-	svs.maxClientsLimit = int(n)
 }
 
 //export SV_SendReconnect
@@ -849,11 +789,6 @@ func (s *Server) UpdateToReliableMessages() {
 	s.reliableDatagram.ClearMessage()
 }
 
-//export SV_Impact
-func SV_Impact(e1, e2 C.int) {
-	sv.Impact(int(e1), int(e2))
-}
-
 func (s *Server) Impact(e1, e2 int) {
 	oldSelf := progsdat.Globals.Self
 	oldOther := progsdat.Globals.Other
@@ -1101,26 +1036,6 @@ func (s *Server) SendClientMessages() {
 
 	// clear muzzle flashes
 	s.CleanupEntvarEffects()
-}
-
-//export SV_CheckAllEnts
-func SV_CheckAllEnts() {
-	// see if any solid entities are inside the final position
-	for e := 1; e < sv.numEdicts; e++ {
-		if edictNum(e).free != 0 {
-			continue
-		}
-		mt := EntVars(e).MoveType
-		if mt == progs.MoveTypePush ||
-			mt == progs.MoveTypeNone ||
-			mt == progs.MoveTypeNoClip {
-			continue
-		}
-
-		if testEntityPosition(e) {
-			conlog.Printf("entity in invalid position\n")
-		}
-	}
 }
 
 //export SV_RunThink
@@ -1550,12 +1465,6 @@ func SV_SetIdealPitch() {
 		return
 	}
 	ev.IdealPitch = -dir * cvars.ServerIdealPitchScale.Value()
-}
-
-//Returns false if the client should be killed
-//export SV_ReadClientMessage
-func SV_ReadClientMessage(client int) C.int {
-	return b2i(sv_clients[client].ReadClientMessage())
 }
 
 // THE FOLLOWING IS ONLY NEEDED FOR SV_WRITEENTITIESTOCLIENT

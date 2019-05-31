@@ -75,20 +75,6 @@ func CreateSVClients() {
 	}
 }
 
-//export CleanSVClient
-func CleanSVClient(n int) {
-	// reset everything but netConnection, edictId
-	c := sv_clients[n]
-	nc := c.netConnection
-	ei := c.edictId
-	id := c.id
-	sv_clients[int(n)] = &SVClient{
-		netConnection: nc,
-		edictId:       ei,
-		id:            id,
-	}
-}
-
 //export SV_CheckForNewClients
 func SV_CheckForNewClients() {
 	CheckForNewClients()

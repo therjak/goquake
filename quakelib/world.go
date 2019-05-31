@@ -55,11 +55,6 @@ var (
 	gArea       *areaNode
 )
 
-//export SV_ClearWorld
-func SV_ClearWorld() {
-	clearWorld()
-}
-
 // called after the world model has been loaded, before linking any entities
 func clearWorld() {
 	edictToRing = make(map[int]*ring.Ring)

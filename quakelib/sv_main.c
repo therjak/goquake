@@ -400,15 +400,8 @@ void SV_SpawnServer(const char *server) {
   //
   // clear world interaction links
   //
-  // SV_ClearWorld();
-
-  // SetSVSoundPrecache(0, dummy);
-  // SetSVModelPrecache(0, dummy);
-  // SetSVModelPrecache(1, SV_ModelName());
   for (i = 1; i < sv.worldmodel->numsubmodels; i++) {
-    // SetSVModelPrecache(1 + i, localmodels[i]);
     sv.models[i + 1] = Mod_ForName(localmodels[i], false);
-    // SVSetModel(sv.models[i + 1], i + 1, true);
   }
 
   //
