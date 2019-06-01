@@ -134,8 +134,6 @@ void SV_BroadcastPrintf(const char *fmt, ...)
 
 void SV_Physics(void);
 
-void SV_MoveToGoal(void);
-
 void SV_CheckForNewClients(void);
 void SV_RunClients(void);
 void SV_SaveSpawnparms();
