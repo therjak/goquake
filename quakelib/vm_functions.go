@@ -802,88 +802,84 @@ func PF_nextent() {
 	}
 }
 
-/*
 // Pick a vector for the player to shoot along
-cvar_t sv_aim;  // = {"sv_aim", "1", CVAR_NONE};  // ericw -- turn autoaim off
-                // by default. was 0.93
-static void PF_aim(void) {
-  int ent;
-  int check;
-  int bestent;
-  vec3_t start, dir, end, bestdir;
-  int i, j;
-  trace_t tr;
-  float dist, bestdist;
-  float speed;
+//export PF_aim
+func PF_aim() {
+	const DAMAGE_AIM = 2
+	ent := int(progsdat.Globals.Parm0[0])
+	ev := EntVars(ent)
+	// variable set but not used
+	// speed := progsdat.RawGlobalsF[progs.OffsetParm1]
 
-  ent = Pr_globalsi(OFS_PARM0);
-  speed = Pr_globalsf(OFS_PARM1);
-  (void)speed; // variable set but not used
+	start := vec.VFromA(ev.Origin)
+	start.Z += 20
 
-  VectorCopy(EVars(ent)->origin, start);
-  start[2] += 20;
+	// try sending a trace straight
+	dir := vec.VFromA(progsdat.Globals.VForward)
+	end := vec.Add(start, dir.Scale(2048))
+	tr := svMove(start, vec.Vec3{}, vec.Vec3{}, end, MOVE_NORMAL, ent)
+	if tr.entp != 0 {
+		tev := EntVars(int(tr.entn))
+		if tev.TakeDamage == DAMAGE_AIM &&
+			(!cvars.TeamPlay.Bool() || tev.Team <= 0 || ev.Team != tev.Team) {
+			*progsdat.Globals.Returnf() = progsdat.Globals.VForward
+			return
+		}
+	}
 
-  // try sending a trace straight
-  Pr_global_struct_v_forward(&dir[0], &dir[1], &dir[2]);
-  VectorMA(start, 2048, dir, end);
-  tr = SV_Move(start, vec3_origin, vec3_origin, end, false, ent);
-  if (tr.entp && EVars(tr.entn)->takedamage == DAMAGE_AIM &&
-      (!Cvar_GetValue(&teamplay) || EVars(ent)->team <= 0 ||
-       EVars(ent)->team != EVars(tr.entn)->team)) {
-    vec3_t r;
-    Pr_global_struct_v_forward(&r[0], &r[1], &r[2]);
-    Set_Pr_globalsf(OFS_RETURN, r[0]);
-    Set_Pr_globalsf(OFS_RETURN + 1, r[1]);
-    Set_Pr_globalsf(OFS_RETURN + 2, r[2]);
-    return;
-  }
+	// try all possible entities
+	bestdir := dir
+	bestdist := cvars.ServerAim.Value()
+	bestent := -1
 
-  // try all possible entities
-  VectorCopy(dir, bestdir);
-  bestdist = Cvar_GetValue(&sv_aim);
-  bestent = -1;
+	for check := 1; check < sv.numEdicts; check++ {
+		cev := EntVars(check)
+		if cev.TakeDamage != DAMAGE_AIM {
+			continue
+		}
+		if check == ent {
+			continue
+		}
+		if cvars.TeamPlay.Bool() && ev.Team > 0 && ev.Team == cev.Team {
+			// don't aim at teammate
+			continue
+		}
+		end := vec.Vec3{
+			cev.Origin[0] + 0.5*(cev.Mins[0]+cev.Maxs[0]),
+			cev.Origin[1] + 0.5*(cev.Mins[1]+cev.Maxs[1]),
+			cev.Origin[2] + 0.5*(cev.Mins[2]+cev.Maxs[2]),
+		}
+		dir = vec.Sub(end, start)
+		dir = dir.Normalize()
+		vforward := vec.VFromA(progsdat.Globals.VForward)
+		dist := vec.Dot(dir, vforward)
+		if dist < bestdist {
+			// to far to turn
+			continue
+		}
+		tr := svMove(start, vec.Vec3{}, vec.Vec3{}, end, MOVE_NORMAL, ent)
+		if int(tr.entn) == check {
+			// can shoot at this one
+			bestdist = dist
+			bestent = check
+		}
+	}
 
-  check = 1;
-  for (i = 1; i < SV_NumEdicts(); i++, check++) {
-    if (EVars(check)->takedamage != DAMAGE_AIM) continue;
-    if (check == ent) continue;
-    if (Cvar_GetValue(&teamplay) && EVars(ent)->team > 0 &&
-        EVars(ent)->team == EVars(check)->team)
-      continue;  // don't aim at teammate
-    for (j = 0; j < 3; j++)
-      end[j] = EVars(check)->origin[j] +
-               0.5 * (EVars(check)->mins[j] + EVars(check)->maxs[j]);
-    VectorSubtract(end, start, dir);
-    VectorNormalize(dir);
-    vec3_t vforward;
-    Pr_global_struct_v_forward(&vforward[0], &vforward[1], &vforward[2]);
-    dist = DotProduct(dir, vforward);
-    if (dist < bestdist) continue;  // to far to turn
-    tr = SV_Move(start, vec3_origin, vec3_origin, end, false, ent);
-    if (tr.entn == check) {  // can shoot at this one
-      bestdist = dist;
-      bestent = check;
-    }
-  }
-
-  if (bestent >= 0) {
-    VectorSubtract(EVars(bestent)->origin, EVars(ent)->origin, dir);
-    vec3_t vforward;
-    Pr_global_struct_v_forward(&vforward[0], &vforward[1], &vforward[2]);
-    dist = DotProduct(dir, vforward);
-    VectorScale(vforward, dist, end);
-    end[2] = dir[2];
-    VectorNormalize(end);
-    Set_Pr_globalsf(OFS_RETURN, end[0]);
-    Set_Pr_globalsf(OFS_RETURN + 1, end[1]);
-    Set_Pr_globalsf(OFS_RETURN + 2, end[2]);
-  } else {
-    Set_Pr_globalsf(OFS_RETURN, bestdir[0]);
-    Set_Pr_globalsf(OFS_RETURN + 1, bestdir[1]);
-    Set_Pr_globalsf(OFS_RETURN + 2, bestdir[2]);
-  }
+	if bestent >= 0 {
+		bev := EntVars(bestent)
+		borigin := vec.VFromA(bev.Origin)
+		eorigin := vec.VFromA(ev.Origin)
+		dir := vec.Sub(borigin, eorigin)
+		vforward := vec.VFromA(progsdat.Globals.VForward)
+		dist := vec.Dot(dir, vforward)
+		end := vforward.Scale(dist)
+		end.Z = dir.Z
+		end = end.Normalize()
+		*progsdat.Globals.Returnf() = end.Array()
+	} else {
+		*progsdat.Globals.Returnf() = bestdir.Array()
+	}
 }
-*/
 
 // This was a major timewaster in progs
 //export PF_changeyaw

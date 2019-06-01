@@ -28,7 +28,6 @@ void SV_Init(void) {
   extern cvar_t sv_nostep;
   extern cvar_t sv_freezenonclients;
   extern cvar_t sv_friction;
-  extern cvar_t sv_aim;
 
   sv.edicts = NULL;  // ericw -- sv.edicts switched to use malloc()
 
@@ -38,7 +37,6 @@ void SV_Init(void) {
   Cvar_SetCallback(&sv_friction, Host_Callback_Notify);
   Cvar_FakeRegister(&sv_maxspeed, "sv_maxspeed");
   Cvar_SetCallback(&sv_maxspeed, Host_Callback_Notify);
-  Cvar_FakeRegister(&sv_aim, "sv_aim");
   Cvar_FakeRegister(&sv_nostep, "sv_nostep");
   Cvar_FakeRegister(&sv_freezenonclients, "sv_freezenonclients");
 
