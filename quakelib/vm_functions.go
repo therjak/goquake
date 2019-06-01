@@ -375,7 +375,6 @@ static int PF_newcheckclient(int check) {
 // If (self.origin + self.viewofs) is not in the PVS of the current target,
 // it is not returned at all.
 #define MAX_CHECK 16
-static int c_invis, c_notvis;
 static void PF_checkclient(void) {
   int ent;
   int self;
@@ -402,13 +401,11 @@ static void PF_checkclient(void) {
   leaf = Mod_PointInLeaf(view, sv.worldmodel);
   l = (leaf - sv.worldmodel->leafs) - 1;
   if ((l < 0) || !(checkpvs[l >> 3] & (1 << (l & 7)))) {
-    c_notvis++;
 	  progsdat.RawGlobalsI[progs.OffsetReturn] = 0;
     return;
   }
 
   // might be able to see it
-  c_invis++;
 	progsdat.RawGlobalsI[progs.OffsetReturn] = int32(ent);
 }
 */
