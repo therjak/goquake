@@ -35,7 +35,7 @@ teleported.
 */
 //export PF_setorigin
 func PF_setorigin() {
-	e := int(progsdat.RawGlobalsI[progs.OffsetParm0])
+	e := int(progsdat.Globals.Parm0[0])
 	ev := EntVars(e)
 	ev.Origin = *progsdat.Globals.Parm1f()
 
@@ -54,7 +54,7 @@ func setMinMaxSize(ev *progs.EntVars, min, max vec.Vec3) {
 
 //export PF_setsize
 func PF_setsize() {
-	e := int(progsdat.RawGlobalsI[progs.OffsetParm0])
+	e := int(progsdat.Globals.Parm0[0])
 	min := vec.VFromA(*progsdat.Globals.Parm1f())
 	max := vec.VFromA(*progsdat.Globals.Parm2f())
 	setMinMaxSize(EntVars(e), min, max)
@@ -64,8 +64,8 @@ func PF_setsize() {
 //export PF_setmodel
 func PF_setmodel() {
 
-	e := int(progsdat.RawGlobalsI[progs.OffsetParm0])
-	mi := progsdat.RawGlobalsI[progs.OffsetParm1]
+	e := int(progsdat.Globals.Parm0[0])
+	mi := progsdat.Globals.Parm1[0]
 	m := PRGetString(int(mi))
 	if m == nil {
 		runError("no precache: %d", mi)
@@ -184,7 +184,7 @@ func PF_particle() {
 func PF_ambientsound() {
 	large := false
 	pos := vec.VFromA(*progsdat.Globals.Parm0f())
-	sample := PRGetString(int(progsdat.RawGlobalsI[progs.OffsetParm1]))
+	sample := PRGetString(int(progsdat.Globals.Parm1[0]))
 	if sample == nil {
 		conlog.Printf("no precache: %v\n", pos)
 		return
@@ -244,9 +244,9 @@ func PF_ambientsound() {
 // Larger attenuations will drop off.
 //export PF_sound
 func PF_sound() {
-	entity := progsdat.RawGlobalsI[progs.OffsetParm0]
+	entity := progsdat.Globals.Parm0[0]
 	channel := progsdat.RawGlobalsF[progs.OffsetParm1]
-	sample := PRGetString(int(progsdat.RawGlobalsI[progs.OffsetParm2]))
+	sample := PRGetString(int(progsdat.Globals.Parm2[0]))
 	if sample == nil {
 		runError("PF_sound: no sample")
 		return
@@ -282,7 +282,7 @@ func PF_traceline() {
 	v1 := vec.VFromA(*progsdat.Globals.Parm0f())
 	v2 := vec.VFromA(*progsdat.Globals.Parm1f())
 	nomonsters := progsdat.RawGlobalsF[progs.OffsetParm2]
-	ent := int(progsdat.RawGlobalsI[progs.OffsetParm3])
+	ent := int(progsdat.Globals.Parm3[0])
 
 	// FIXME FIXME FIXME: Why do we hit this with certain progs.dat ??
 	if cvars.Developer.Bool() {
@@ -391,7 +391,7 @@ static void PF_checkclient(void) {
   // return check if it might be visible
   ent = SV_LastCheck();
   if (edictNum(ent).free || EVars(ent)->health <= 0) {
-	  progsdat.RawGlobalsI[progs.OffsetReturn] = 0;
+	  progsdat.Globals.Return[0] = 0;
     return;
   }
 
@@ -401,24 +401,24 @@ static void PF_checkclient(void) {
   leaf = Mod_PointInLeaf(view, sv.worldmodel);
   l = (leaf - sv.worldmodel->leafs) - 1;
   if ((l < 0) || !(checkpvs[l >> 3] & (1 << (l & 7)))) {
-	  progsdat.RawGlobalsI[progs.OffsetReturn] = 0;
+	  progsdat.Globals.Return[0] = 0;
     return;
   }
 
   // might be able to see it
-	progsdat.RawGlobalsI[progs.OffsetReturn] = int32(ent);
+	progsdat.Globals.Return[0] = int32(ent);
 }
 */
 
 // Sends text over to the client's execution buffer
 //export PF_stuffcmd
 func PF_stuffcmd() {
-	entnum := int(progsdat.RawGlobalsI[progs.OffsetParm0])
+	entnum := int(progsdat.Globals.Parm0[0])
 	if entnum < 1 || entnum > svs.maxClients {
 		runError("Parm 0 not a client")
 		return
 	}
-	str := PRGetString(int(progsdat.RawGlobalsI[progs.OffsetParm1]))
+	str := PRGetString(int(progsdat.Globals.Parm1[0]))
 	if str == nil {
 		runError("stuffcmd: no string")
 		return
@@ -432,7 +432,7 @@ func PF_stuffcmd() {
 // Sends text over to the client's execution buffer
 //export PF_localcmd
 func PF_localcmd() {
-	str := PRGetString(int(progsdat.RawGlobalsI[progs.OffsetParm0]))
+	str := PRGetString(int(progsdat.Globals.Parm0[0]))
 	if str == nil {
 		runError("localcmd: no string")
 		return
@@ -442,7 +442,7 @@ func PF_localcmd() {
 
 //export PF_cvar
 func PF_cvar() {
-	str := PRGetString(int(progsdat.RawGlobalsI[progs.OffsetParm0]))
+	str := PRGetString(int(progsdat.Globals.Parm0[0]))
 	if str == nil {
 		runError("PF_cvar: no string")
 		return
@@ -452,12 +452,12 @@ func PF_cvar() {
 
 //export PF_cvar_set
 func PF_cvar_set() {
-	name := PRGetString(int(progsdat.RawGlobalsI[progs.OffsetParm0]))
+	name := PRGetString(int(progsdat.Globals.Parm0[0]))
 	if name == nil {
 		runError("PF_cvar_set: no name string")
 		return
 	}
-	val := PRGetString(int(progsdat.RawGlobalsI[progs.OffsetParm1]))
+	val := PRGetString(int(progsdat.Globals.Parm1[0]))
 	if val == nil {
 		runError("PF_cvar_set: no val string")
 		return
@@ -492,7 +492,7 @@ func PF_findradius() {
 		chain = int32(ent)
 	}
 
-	progsdat.RawGlobalsI[progs.OffsetReturn] = chain
+	progsdat.Globals.Return[0] = chain
 }
 
 /*
@@ -512,7 +512,7 @@ func PF_ftos() {
 		}
 		return fmt.Sprintf("%5.1f", v)
 	}()
-	progsdat.RawGlobalsI[progs.OffsetReturn] = int32(PRSetEngineString(s))
+	progsdat.Globals.Return[0] = int32(PRSetEngineString(s))
 }
 
 //export PF_fabs
@@ -523,30 +523,28 @@ func PF_fabs() {
 
 //export PF_vtos
 func PF_vtos() {
-	s := fmt.Sprintf("'%5.1f %5.1f %5.1f'",
-		progsdat.RawGlobalsF[progs.OffsetParm0],
-		progsdat.RawGlobalsF[progs.OffsetParm0+1],
-		progsdat.RawGlobalsF[progs.OffsetParm0+2])
-	progsdat.RawGlobalsI[progs.OffsetReturn] = int32(PRSetEngineString(s))
+	p := *progsdat.Globals.Parm0f()
+	s := fmt.Sprintf("'%5.1f %5.1f %5.1f'", p[0], p[1], p[2])
+	progsdat.Globals.Return[0] = int32(PRSetEngineString(s))
 }
 
 //export PF_Spawn
 func PF_Spawn() {
 	ed := edictAlloc()
-	progsdat.RawGlobalsI[progs.OffsetReturn] = int32(ed)
+	progsdat.Globals.Return[0] = int32(ed)
 }
 
 //export PF_Remove
 func PF_Remove() {
-	ed := progsdat.RawGlobalsI[progs.OffsetParm0]
+	ed := progsdat.Globals.Parm0[0]
 	edictFree(int(ed))
 }
 
 //export PF_Find
 func PF_Find() {
-	e := progsdat.RawGlobalsI[progs.OffsetParm0]
-	f := progsdat.RawGlobalsI[progs.OffsetParm1]
-	s := PRGetString(int(progsdat.RawGlobalsI[progs.OffsetParm2]))
+	e := progsdat.Globals.Parm0[0]
+	f := progsdat.Globals.Parm1[0]
+	s := PRGetString(int(progsdat.Globals.Parm2[0]))
 	if s == nil {
 		runError("PF_Find: bad search string")
 		return
@@ -561,17 +559,17 @@ func PF_Find() {
 			continue
 		}
 		if *t == *s {
-			progsdat.RawGlobalsI[progs.OffsetReturn] = int32(e)
+			progsdat.Globals.Return[0] = int32(e)
 			return
 		}
 	}
-	progsdat.RawGlobalsI[progs.OffsetReturn] = 0
+	progsdat.Globals.Return[0] = 0
 }
 
 // precache_file is only used to copy  files with qcc, it does nothing
 //export PF_precache_file
 func PF_precache_file() {
-	progsdat.RawGlobalsI[progs.OffsetReturn] = progsdat.RawGlobalsI[progs.OffsetParm0]
+	progsdat.Globals.Return[0] = progsdat.Globals.Parm0[0]
 }
 
 /*
@@ -588,9 +586,9 @@ func PF_precache_sound() {
 		return
 	}
 
-	si := progsdat.RawGlobalsI[progs.OffsetParm0]
+	si := progsdat.Globals.Parm0[0]
 	s := *PRGetString(int(si))
-	progsdat.RawGlobalsI[progs.OffsetReturn] = si
+	progsdat.Globals.Return[0] = si
 	//PR_CheckEmptyString(s);
 
 	exist := func(s string) bool {
@@ -618,9 +616,9 @@ func PF_precache_model() {
 		return
 	}
 
-	si := progsdat.RawGlobalsI[progs.OffsetParm0]
+	si := progsdat.Globals.Parm0[0]
 	s := *PRGetString(int(si))
-	progsdat.RawGlobalsI[progs.OffsetReturn] = si
+	progsdat.Globals.Return[0] = si
 	//PR_CheckEmptyString(s);
 
 	exist := func(s string) bool {
@@ -653,14 +651,21 @@ func PF_precache_model() {
 	sv.models = append(sv.models, m)
 }
 
-/*
-static void PF_coredump(void) { ED_PrintEdicts(); }
+//export PF_coredump
+func PF_coredump() {
+	edictPrintEdicts()
+}
 
+//export PF_eprint
+func PF_eprint() {
+	edictPrint(int(progsdat.Globals.Parm0[0]))
+}
+
+/*
 static void PF_traceon(void) { pr_trace = true; }
 
 static void PF_traceoff(void) { pr_trace = false; }
 
-static void PF_eprint(void) { ED_PrintNum(Pr_globalsi(OFS_PARM0)); }
 */
 
 /*
@@ -727,7 +732,7 @@ func PF_droptofloor() {
 //export PF_lightstyle
 func PF_lightstyle() {
 	style := int(progsdat.RawGlobalsF[progs.OffsetParm0])
-	vi := progsdat.RawGlobalsI[progs.OffsetParm1]
+	vi := progsdat.Globals.Parm1[0]
 	val := *PRGetString(int(vi))
 
 	sv.lightStyles[style] = val
@@ -766,7 +771,7 @@ func PF_ceil() {
 
 //export PF_checkbottom
 func PF_checkbottom() {
-	entnum := int(progsdat.RawGlobalsI[progs.OffsetParm0])
+	entnum := int(progsdat.Globals.Parm0[0])
 	f := float32(0)
 	if checkBottom(entnum) {
 		f = 1
@@ -783,15 +788,15 @@ func PF_pointcontents() {
 
 //export PF_nextent
 func PF_nextent() {
-	i := progsdat.RawGlobalsI[progs.OffsetParm0]
+	i := progsdat.Globals.Parm0[0]
 	for {
 		i++
 		if int(i) == sv.numEdicts {
-			progsdat.RawGlobalsI[progs.OffsetReturn] = 0
+			progsdat.Globals.Return[0] = 0
 			return
 		}
 		if edictNum(int(i)).free == 0 {
-			progsdat.RawGlobalsI[progs.OffsetReturn] = i
+			progsdat.Globals.Return[0] = i
 			return
 		}
 	}
@@ -1040,7 +1045,7 @@ func PF_WriteCoord() {
 //export PF_WriteString
 func PF_WriteString() {
 	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
-	i := int(progsdat.RawGlobalsI[progs.OffsetParm1])
+	i := int(progsdat.Globals.Parm1[0])
 	msg := PRGetString(i)
 	if msg == nil {
 		runError("PF_WriteString: bad string")
@@ -1082,7 +1087,7 @@ func PF_WriteEntity() {
 func PF_makestatic() {
 	bits := 0
 
-	ent := int(progsdat.RawGlobalsI[progs.OffsetParm0])
+	ent := int(progsdat.Globals.Parm0[0])
 	e := edictNum(ent)
 
 	// don't send invisible static entities
@@ -1149,7 +1154,7 @@ func PF_makestatic() {
 
 //export PF_setspawnparms
 func PF_setspawnparms() {
-	i := int(progsdat.RawGlobalsI[progs.OffsetParm0])
+	i := int(progsdat.Globals.Parm0[0])
 	if i < 1 || i > svs.maxClients {
 		runError("Entity is not a client")
 		return
@@ -1176,7 +1181,7 @@ func PF_changelevel() {
 	}
 	svs.changeLevelIssued = true
 
-	i := int(progsdat.RawGlobalsI[progs.OffsetParm0])
+	i := int(progsdat.Globals.Parm0[0])
 	s := PRGetString(i)
 	if s == nil {
 		runError("PF_changelevel: bad level name")
