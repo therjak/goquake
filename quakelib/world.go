@@ -710,15 +710,6 @@ func testEntityPosition(ent int) bool {
 // nomonsters is used for line of sight or edge testing where monsters
 // shouldn't be considered solid objects
 // passedict is explicitly excluded from clipping checks (normally NULL)
-//export SV_Move
-func SV_Move(st, mi, ma, en *C.float, ty C.int, ed C.int) C.trace_t {
-	start := p2v3(st)
-	mins := p2v3(mi)
-	maxs := p2v3(ma)
-	end := p2v3(en)
-	return svMove(start, mins, maxs, end, int(ty), int(ed))
-}
-
 func svMove(start, mins, maxs, end vec.Vec3, typ, ed int) C.trace_t {
 	clip := moveClip{
 		trace: clipMoveToEntity(0, start, mins, maxs, end),
@@ -742,11 +733,6 @@ func svMove(start, mins, maxs, end vec.Vec3, typ, ed int) C.trace_t {
 	clipToLinks(gArea, &clip)
 
 	return clip.trace
-}
-
-//export SV_CheckBottom
-func SV_CheckBottom(ent C.int) C.int {
-	return b2i(checkBottom(int(ent)))
 }
 
 const (

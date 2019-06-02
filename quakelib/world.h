@@ -29,7 +29,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define MOVE_NOMONSTERS 1
 #define MOVE_MISSILE 2
 
-int SV_PointContents(vec3_t p);
 // returns the CONTENTS_* value from the world at the given point.
 // does not check any entities at all
 // the non-true version remaps the water current contents to content_water
