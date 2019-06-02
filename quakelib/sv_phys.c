@@ -187,6 +187,7 @@ SV_Physics_Pusher
 
 ================
 */
+//THERJAK
 void SV_Physics_Pusher(int ent) {
   float thinktime;
   float oldltime;
@@ -227,6 +228,7 @@ Try fixing by pushing one pixel in each direction.
 This is a hack, but in the interest of good gameplay...
 ======================
 */
+//THERJAK
 int SV_TryUnstick(int ent, vec3_t oldvel) {
   int i;
   vec3_t oldorg;
@@ -304,6 +306,7 @@ Only used by players
 ======================
 */
 #define STEPSIZE 18
+//THERJAK
 void SV_WalkMove(int ent) {
   vec3_t upmove, downmove;
   vec3_t oldorg, oldvel;
@@ -393,6 +396,7 @@ SV_Physics_Client
 Player character actions
 ================
 */
+//THERJAK
 void SV_Physics_Client(int ent, int num) {
   if (!GetClientActive(num - 1)) return;  // unconnected slot
 
@@ -464,6 +468,7 @@ SV_Physics_None
 Non moving objects can only think
 =============
 */
+//THERJAK
 void SV_Physics_None(int ent) {
   // regular thinking
   SV_RunThink(ent);
@@ -476,6 +481,7 @@ SV_Physics_Noclip
 A moving object that doesn't obey physics
 =============
 */
+//THERJAK
 void SV_Physics_Noclip(int ent) {
   // regular thinking
   if (!SV_RunThink(ent)) return;
@@ -502,6 +508,7 @@ SV_CheckWaterTransition
 
 =============
 */
+//THERJAK
 void SV_CheckWaterTransition(int ent) {
   int cont;
 
@@ -535,6 +542,7 @@ SV_Physics_Toss
 Toss, bounce, and fly movement.  When onground, do nothing.
 =============
 */
+//THERJAK
 void SV_Physics_Toss(int ent) {
   trace_t trace;
   vec3_t move;
@@ -605,6 +613,7 @@ This is also used for objects that have become still on the ground, but
 will fall if the floor is pulled out from under them.
 =============
 */
+//THERJAK
 void SV_Physics_Step(int ent) {
   qboolean hitsound;
 
@@ -640,6 +649,7 @@ SV_Physics
 
 ================
 */
+//THERJAK
 void SV_Physics(void) {
   int i;
   int entity_cap;  // For sv_freezenonclients
