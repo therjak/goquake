@@ -688,89 +688,6 @@ void Host_Loadgame_f(void) {
   }
 }
 
-//============================================================================
-
-/*
-==================
-Host_Kick_f
-
-Kicks a user off of the server
-==================
-*/
-/*
-void Host_Kick_f(void) {
-  const char *who;
-  const char *message = NULL;
-  int save;
-  int i;
-  qboolean byNumber = false;
-
-  if (IsSrcCommand()) {
-    if (!SV_Active()) {
-      Cmd_ForwardToServer();
-      return;
-    }
-  } else if (Pr_global_struct_deathmatch())
-    return;
-
-  save = HostClient();
-
-  if (Cmd_Argc() > 2 && Q_strcmp(Cmd_Argv(1), "#") == 0) {
-    i = Cmd_ArgvAsInt(2) - 1;
-    if (i < 0 || i >= SVS_GetMaxClients()) return;
-    if (!GetClientActive(i)) return;
-    SetHost_Client(i);
-    byNumber = true;
-  } else {
-    for (i = 0; i < SVS_GetMaxClients(); i++) {
-      SetHost_Client(i);
-      if (!GetClientActive(HostClient())) continue;
-
-      char *name = GetClientName(HostClient());
-      if (q_strcasecmp(name, Cmd_Argv(1)) == 0) {
-        free(name);
-        break;
-      }
-      free(name);
-    }
-    SetHost_Client(i);
-  }
-  char *name = NULL;
-  if (i < SVS_GetMaxClients()) {
-    if (IsSrcCommand())
-      if (CLS_GetState() == ca_dedicated)
-        who = "Console";
-      else
-        who = Cvar_GetString(&cl_name);
-    else {
-      name = GetClientName(save);
-      who = name;
-    }
-
-    // can't kick yourself!
-    if (HostClient() == save) return;
-
-    if (Cmd_Argc() > 2) {
-      message = COM_Parse(Cmd_Args());
-      if (byNumber) {
-        message++;               // skip the #
-        while (*message == ' ')  // skip white space
-          message++;
-        message += strlen(Cmd_Argv(2));  // skip the number
-      }
-      while (*message && *message == ' ') message++;
-    }
-    if (message)
-      SV_ClientPrintf2(HostClient(), "Kicked by %s: %s\n", who, message);
-    else
-      SV_ClientPrintf2(HostClient(), "Kicked by %s\n", who);
-    SV_DropClient(HostClient(), false);
-  }
-  free(name);
-
-  SetHost_Client(save);
-}
-*/
 /*
 ===============================================================================
 
@@ -962,7 +879,6 @@ void Host_InitCommands(void) {
   Cmd_AddCommand("connect", Host_Connect_f);
   Cmd_AddCommand("reconnect", Host_Reconnect_f);
 
-  //  Cmd_AddCommand("kick", Host_Kick_f);
   Cmd_AddCommand("load", Host_Loadgame_f);
   Cmd_AddCommand("save", Host_Savegame_f);
 

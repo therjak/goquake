@@ -1014,6 +1014,7 @@ func hostKick(args []cmd.QArg) {
 	}
 	if host_client == toKick.id {
 		// can't kick yourself!
+		// This does not prevent the server from kicking itself!
 		return
 	}
 	who := func() string {
