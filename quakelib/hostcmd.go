@@ -39,6 +39,7 @@ func init() {
 	cmd.AddCommand("mapname", hostMapName)
 	cmd.AddCommand("prespawn", hostPreSpawn)
 	cmd.AddCommand("version", hostVersion)
+	cmd.AddCommand("kick", hostKick)
 }
 
 func qFormatI(b int32) string {
@@ -961,4 +962,75 @@ func hostShutdownServer(crash bool) {
 	}
 
 	CreateSVClients()
+}
+
+// Kicks a user off of the server
+func hostKick(args []cmd.QArg) {
+	if len(args) == 0 {
+		return
+	}
+	if execute.IsSrcCommand() {
+		if !sv.active {
+			forwardToServer("kick", args)
+			return
+		}
+	} else if progsdat.Globals.DeathMatch != 0 {
+		return
+	}
+
+	var toKick *SVClient
+	var message string
+
+	if len(args) > 1 && args[0].String() == "#" {
+		i := args[1].Int() - 1
+		if i < 0 || i >= svs.maxClients {
+			return
+		}
+		toKick = sv_clients[i]
+		if !toKick.active {
+			return
+		}
+		if len(args) > 2 {
+			// skip # and number
+			message = concatArgs(args[2:])
+		}
+	} else {
+		for _, c := range sv_clients {
+			if !c.active {
+				continue
+			}
+			if c.name == args[0].String() {
+				toKick = c
+				if len(args) > 1 {
+					// skip name
+					message = concatArgs(args[1:])
+				}
+				break
+			}
+		}
+	}
+	if toKick == nil {
+		return
+	}
+	if host_client == toKick.id {
+		// can't kick yourself!
+		return
+	}
+	who := func() string {
+		if execute.IsSrcCommand() {
+			if cls.state == ca_dedicated {
+				return "Console"
+			} else {
+				return cvars.ClientName.String()
+			}
+		}
+		return HostClient().name
+	}()
+
+	if message != "" {
+		toKick.Printf("Kicked by %s: %s\n", who, message)
+	} else {
+		toKick.Printf("Kicked by %s\n", who)
+	}
+	toKick.Drop(false)
 }

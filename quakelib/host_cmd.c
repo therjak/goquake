@@ -697,7 +697,7 @@ Host_Kick_f
 Kicks a user off of the server
 ==================
 */
-// THERJAK
+/*
 void Host_Kick_f(void) {
   const char *who;
   const char *message = NULL;
@@ -770,7 +770,7 @@ void Host_Kick_f(void) {
 
   SetHost_Client(save);
 }
-
+*/
 /*
 ===============================================================================
 
@@ -962,7 +962,7 @@ void Host_InitCommands(void) {
   Cmd_AddCommand("connect", Host_Connect_f);
   Cmd_AddCommand("reconnect", Host_Reconnect_f);
 
-  Cmd_AddCommand("kick", Host_Kick_f);
+  //  Cmd_AddCommand("kick", Host_Kick_f);
   Cmd_AddCommand("load", Host_Loadgame_f);
   Cmd_AddCommand("save", Host_Savegame_f);
 
