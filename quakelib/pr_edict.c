@@ -330,6 +330,7 @@ ED_Write
 For savegames
 =============
 */
+// THERJAK -- this is important
 void ED_Write(FILE *f, int ed) {
   ddef_t *d;
   int *v;
@@ -386,6 +387,7 @@ FIXME: need to tag constants, doesn't really work
 ED_WriteGlobals
 =============
 */
+// THERJAK -- this is important
 void ED_WriteGlobals(FILE *f) {
   ddef_t *def;
   int i;
@@ -417,6 +419,7 @@ void ED_WriteGlobals(FILE *f) {
 ED_ParseGlobals
 =============
 */
+// THERJAK -- this is important
 void ED_ParseGlobals(const char *data) {
   char keyname[64];
   ddef_t *key;
@@ -529,6 +532,7 @@ ed should be a properly initialized empty edict.
 Used for initial level load and for savegames.
 ====================
 */
+// THERJAK -- this is important
 const char *ED_ParseEdict(const char *data, int ent) {
   ddef_t *key;
   char keyname[256];
@@ -629,6 +633,7 @@ Used for both fresh maps and savegame loads.  A fresh map would also need
 to call ED_CallSpawnFunctions () to let the objects initialize themselves.
 ================
 */
+// THERJAK- this is important
 void ED_LoadFromFile(const char *data) {
   dfunction_t *func;
   int inhibit = 0;
