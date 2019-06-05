@@ -1,7 +1,6 @@
 package quakelib
 
 //#include "edict.h"
-//void ED_Free(int ed);
 //int ED_Alloc(void);
 import "C"
 
@@ -19,8 +18,33 @@ func edictNum(i int) *C.edict_t {
 	return C.EDICT_NUM(C.int(i))
 }
 
+// Marks the edict as free
+// FIXME: walk all entities and NULL out references to this entity
 func edictFree(i int) {
-	C.ED_Free(C.int(i))
+	// unlink from world bsp
+	UnlinkEdict(i)
+
+	e := edictNum(i)
+	e.free = b2i(true)
+	e.alpha = 0
+	e.freetime = C.float(sv.time)
+
+	ev := EntVars(i)
+	ev.Model = 0
+	ev.TakeDamage = 0
+	ev.ModelIndex = 0
+	ev.ColorMap = 0
+	ev.Skin = 0
+	ev.Frame = 0
+	ev.Origin = [3]float32{}
+	ev.Angles = [3]float32{}
+	ev.NextThink = -1
+	ev.Solid = 0
+}
+
+//export ED_Free
+func ED_Free(ed int) {
+	edictFree(ed)
 }
 
 func edictAlloc() int {

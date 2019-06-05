@@ -109,34 +109,6 @@ int ED_Alloc(void) {
   return i;
 }
 
-/*
-=================
-ED_Free
-
-Marks the edict as free
-FIXME: walk all entities and NULL out references to this entity
-=================
-*/
-void ED_Free(int ed) {
-  SV_UnlinkEdict(ed);  // unlink from world bsp
-
-  EDICT_NUM(ed)->free = true;
-  EVars(ed)->model = 0;
-  EVars(ed)->takedamage = 0;
-  EVars(ed)->modelindex = 0;
-  EVars(ed)->colormap = 0;
-  EVars(ed)->skin = 0;
-  EVars(ed)->frame = 0;
-  VectorCopy(vec3_origin, EVars(ed)->origin);
-  VectorCopy(vec3_origin, EVars(ed)->angles);
-  EVars(ed)->nextthink = -1;
-  EVars(ed)->solid = 0;
-  EDICT_NUM(ed)->alpha =
-      ENTALPHA_DEFAULT;  // johnfitz -- reset alpha for next entity
-
-  EDICT_NUM(ed)->freetime = SV_Time();
-}
-
 //===========================================================================
 
 /*
@@ -890,11 +862,6 @@ edict_t *AllocEdicts() {
 void FreeEdicts(edict_t *e) {
   FreeEntvars();
   free(e);
-}
-
-entvars_t *EdictV(edict_t *e) {
-  int n = NUM_FOR_EDICT(e);
-  return EVars(n);
 }
 
 unsigned char EAlpha(int num) { return EDICT_NUM(num)->alpha; }

@@ -17,8 +17,6 @@ typedef union eval_s {
   int edict;
 } eval_t;
 
-entvars_t *EdictV(edict_t *e);
-
 //============================================================================
 
 extern dprograms_t *progs;
@@ -35,7 +33,6 @@ void PR_Profile_f(void);
 void TT_ClearEdict(int e);
 
 int ED_Alloc(void);
-void ED_Free(int ed);
 
 void ED_Write(FILE *f, int ed);
 const char *ED_ParseEdict(const char *data, int ent);
