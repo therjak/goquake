@@ -30,10 +30,6 @@ void PR_LoadProgs(void);
 
 void PR_Profile_f(void);
 
-void TT_ClearEdict(int e);
-
-int ED_Alloc(void);
-
 void ED_Write(FILE *f, int ed);
 const char *ED_ParseEdict(const char *data, int ent);
 

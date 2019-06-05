@@ -1,7 +1,6 @@
 package quakelib
 
 //#include "edict.h"
-//int ED_Alloc(void);
 import "C"
 
 import (
@@ -47,8 +46,42 @@ func ED_Free(ed int) {
 	edictFree(ed)
 }
 
+// Sets everything to NULL
+func edClearEdict(e int) {
+	TTClearEntVars(e)
+	edictNum(e).free = b2i(false)
+}
+
+// Either finds a free edict, or allocates a new one.
+// Try to avoid reusing an entity that was recently freed, because it
+// can cause the client to think the entity morphed into something else
+// instead of being removed and recreated, which can cause interpolated
+// angles and bad trails.
 func edictAlloc() int {
-	return int(C.ED_Alloc())
+	i := svs.maxClients + 1
+	for ; i < sv.numEdicts; i++ {
+		e := edictNum(i)
+		// the first couple seconds of server time can involve a lot of
+		// freeing and allocating, so relax the replacement policy
+		if e.free != 0 && (e.freetime < 2 || sv.time-float32(e.freetime) > 0.5) {
+			edClearEdict(i)
+			return i
+		}
+	}
+
+	if i == sv.maxEdicts {
+		HostError("ED_Alloc: no free edicts (max_edicts is %d)", sv.maxEdicts)
+	}
+
+	sv.numEdicts++
+	TTClearEdict(i)
+
+	return i
+}
+
+//export ED_Alloc
+func ED_Alloc() int {
+	return edictAlloc()
 }
 
 //export ED_Print

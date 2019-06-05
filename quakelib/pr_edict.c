@@ -59,56 +59,6 @@ cvar_t saved2;
 cvar_t saved3;
 cvar_t saved4;
 
-/*
-=================
-ED_ClearEdict
-
-Sets everything to NULL
-=================
-*/
-void ED_ClearEdict(int e) {
-  TT_ClearEntVars(EVars(e));
-  EDICT_NUM(e)->free = false;
-}
-
-/*
-=================
-ED_Alloc
-
-Either finds a free edict, or allocates a new one.
-Try to avoid reusing an entity that was recently freed, because it
-can cause the client to think the entity morphed into something else
-instead of being removed and recreated, which can cause interpolated
-angles and bad trails.
-=================
-*/
-int ED_Alloc(void) {
-  int i;
-  edict_t *e;
-
-  for (i = SVS_GetMaxClients() + 1; i < SV_NumEdicts(); i++) {
-    e = EDICT_NUM(i);
-    // the first couple seconds of server time can involve a lot of
-    // freeing and allocating, so relax the replacement policy
-    if (e->free && (e->freetime < 2 || SV_Time() - e->freetime > 0.5)) {
-      ED_ClearEdict(i);
-      return i;
-    }
-  }
-
-  if (i == SV_MaxEdicts())  // johnfitz -- use sv.max_edicts instead of
-                            // MAX_EDICTS
-    Host_Error("ED_Alloc: no free edicts (max_edicts is %i)", SV_MaxEdicts());
-
-  SV_SetNumEdicts(SV_NumEdicts() + 1);
-  TT_ClearEdict(i);
-  // ericw -- switched sv.edicts to malloc(), so
-  // we are accessing uninitialized memory and
-  // must fully zero it, not just ED_ClearEdict
-
-  return i;
-}
-
 //===========================================================================
 
 /*
@@ -831,12 +781,6 @@ void PR_LoadProgs(void) {
       pr_alpha_supported = true;
     // johnfitz
   }
-}
-
-void TT_ClearEdict(int e) {
-  edict_t *ent = EDICT_NUM(e);
-  memset(ent, 0, sizeof(edict_t));
-  TT_ClearEntVars(EVars(e));
 }
 
 edict_t *EDICT_NUM(int n) {

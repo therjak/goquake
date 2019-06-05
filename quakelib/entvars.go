@@ -3,6 +3,7 @@ package quakelib
 //#include <stdlib.h>
 //#include "q_stdinc.h"
 //#include "progdefs.h"
+//#include "edict.h"
 import "C"
 import (
 	"fmt"
@@ -98,9 +99,21 @@ func RawEntVarsI(idx, off int) int32 {
 func TT_ClearEntVars(e *C.entvars_t) {
 	C.memset(unsafe.Pointer(e), 0, C.ulong(entityFields*4))
 }
+
 func TTClearEntVars(idx int) {
 	ev := EVars(C.int(idx))
 	TT_ClearEntVars(ev)
+}
+
+//export TT_ClearEdict
+func TT_ClearEdict(e int) {
+	TTClearEdict(e)
+}
+
+func TTClearEdict(e int) {
+	ent := edictNum(e)
+	C.memset(unsafe.Pointer(ent), 0, C.sizeof_edict_t)
+	TTClearEntVars(e)
 }
 
 // progs.EntVars
