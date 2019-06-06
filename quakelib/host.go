@@ -4,6 +4,7 @@ import "C"
 
 import (
 	cmdl "quake/commandline"
+	"quake/cvar"
 	"quake/cvars"
 	"quake/math"
 	"quake/qtime"
@@ -106,4 +107,11 @@ func Host_FindMaxClients() {
 	} else {
 		cvars.DeathMatch.SetByString("0")
 	}
+}
+
+func hostCallbackNotify(cv *cvar.Cvar) {
+	if !sv.active {
+		return
+	}
+	SV_BroadcastPrintf("\"%s\" changed to \"%s\"\n", cv.Name(), cv.String())
 }
