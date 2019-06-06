@@ -23,7 +23,6 @@ solid_edge items only clip against bsp models.
 
 */
 
-cvar_t sv_friction;
 cvar_t sv_gravity;
 cvar_t sv_nostep;
 cvar_t sv_freezenonclients;

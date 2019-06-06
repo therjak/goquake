@@ -3,8 +3,6 @@
 #include <dirent.h>
 #endif
 
-extern cvar_t pausable;
-
 int current_skill;
 
 void Mod_Print(void);

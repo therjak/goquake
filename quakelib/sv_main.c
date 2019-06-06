@@ -14,8 +14,6 @@ extern qboolean pr_alpha_supported;  // johnfitz
 
 int ModelLeafIndex(mleaf_t *l) { return l - sv.worldmodel->leafs; }
 
-cvar_t sv_maxspeed;
-
 /*
 ===============
 SV_Init
@@ -27,16 +25,10 @@ void SV_Init(void) {
   extern cvar_t sv_gravity;
   extern cvar_t sv_nostep;
   extern cvar_t sv_freezenonclients;
-  extern cvar_t sv_friction;
 
   sv.edicts = NULL;  // ericw -- sv.edicts switched to use malloc()
 
   Cvar_FakeRegister(&sv_gravity, "sv_gravity");
-  Cvar_FakeRegister(&sv_friction, "sv_friction");
-  Cvar_SetCallback(&sv_gravity, Host_Callback_Notify);
-  Cvar_SetCallback(&sv_friction, Host_Callback_Notify);
-  Cvar_FakeRegister(&sv_maxspeed, "sv_maxspeed");
-  Cvar_SetCallback(&sv_maxspeed, Host_Callback_Notify);
   Cvar_FakeRegister(&sv_nostep, "sv_nostep");
   Cvar_FakeRegister(&sv_freezenonclients, "sv_freezenonclients");
 

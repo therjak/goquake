@@ -4,6 +4,7 @@ import "C"
 
 import (
 	cmdl "quake/commandline"
+	"quake/conlog"
 	"quake/cvar"
 	"quake/cvars"
 	"quake/math"
@@ -114,4 +115,21 @@ func hostCallbackNotify(cv *cvar.Cvar) {
 		return
 	}
 	SV_BroadcastPrintf("\"%s\" changed to \"%s\"\n", cv.Name(), cv.String())
+}
+
+func init() {
+	cvars.ServerGravity.SetCallback(hostCallbackNotify)
+	cvars.ServerFriction.SetCallback(hostCallbackNotify)
+	cvars.ServerMaxSpeed.SetCallback(hostCallbackNotify)
+	cvars.TimeLimit.SetCallback(hostCallbackNotify)
+	cvars.FragLimit.SetCallback(hostCallbackNotify)
+	cvars.TeamPlay.SetCallback(hostCallbackNotify)
+	cvars.NoExit.SetCallback(hostCallbackNotify)
+
+	cvars.MaxEdicts.SetCallback(func(cv *cvar.Cvar) {
+		// TODO: clamp it here?
+		if cls.state == ca_connected || sv.active {
+			conlog.Printf("Changes to max_edicts will not take effect until the next time a map is loaded.\n")
+		}
+	})
 }

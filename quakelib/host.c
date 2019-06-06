@@ -36,15 +36,11 @@ cvar_t host_maxfps;
 cvar_t host_timescale;
 cvar_t max_edicts;
 cvar_t serverprofile;
-cvar_t fraglimit;
-cvar_t timelimit;
 cvar_t teamplay;
 cvar_t samelevel;
-cvar_t noexit;
 cvar_t skill;
 cvar_t deathmatch;
 cvar_t coop;
-cvar_t pausable;
 cvar_t developer;
 cvar_t temp1;
 cvar_t devstats;
@@ -53,19 +49,6 @@ devstats_t dev_stats, dev_peakstats;
 overflowtimes_t dev_overflows;  // this stores the last time overflow messages
                                 // were displayed, not the last time overflows
                                 // occured
-
-/*
-================
-Max_Edicts_f -- johnfitz
-================
-*/
-static void Max_Edicts_f(cvar_t *var) {
-  // TODO: clamp it here?
-  if (CLS_GetState() == ca_connected || SV_Active())
-    Con_Printf(
-        "Changes to max_edicts will not take effect until the next time a map "
-        "is loaded.\n");
-}
 
 /*
 ================
@@ -143,13 +126,6 @@ void SV_BroadcastPrintf(const char *fmt, ...) {
   SV_BroadcastPrint2(string);
 }
 
-/* cvar callback functions : */
-void Host_Callback_Notify(cvar_t *var) {
-  if (SV_Active())
-    SV_BroadcastPrintf("\"%s\" changed to \"%s\"\n", Cvar_GetName(var),
-                       Cvar_GetString(var));
-}
-
 /*
 =======================
 Host_InitLocal
@@ -161,23 +137,14 @@ void Host_InitLocal(void) {
   Cvar_FakeRegister(&host_speeds, "host_speeds");
   Cvar_FakeRegister(&host_timescale, "host_timescale");
   Cvar_FakeRegister(&max_edicts, "max_edicts");
-  Cvar_SetCallback(&max_edicts, Max_Edicts_f);
   Cvar_FakeRegister(&devstats, "devstats");
   Cvar_FakeRegister(&serverprofile, "serverprofile");
-  Cvar_FakeRegister(&fraglimit, "fraglimit");
-  Cvar_SetCallback(&fraglimit, Host_Callback_Notify);
-  Cvar_FakeRegister(&timelimit, "timelimit");
-  Cvar_SetCallback(&timelimit, Host_Callback_Notify);
   Cvar_FakeRegister(&teamplay, "teamplay");
-  Cvar_SetCallback(&teamplay, Host_Callback_Notify);
   Cvar_FakeRegister(&samelevel, "samelevel");
-  Cvar_FakeRegister(&noexit, "noexit");
-  Cvar_SetCallback(&noexit, Host_Callback_Notify);
   Cvar_FakeRegister(&skill, "skill");
   Cvar_FakeRegister(&developer, "developer");
   Cvar_FakeRegister(&coop, "coop");
   Cvar_FakeRegister(&deathmatch, "deathmatch");
-  Cvar_FakeRegister(&pausable, "pausable");
   Cvar_FakeRegister(&temp1, "temp1");
 
   Host_FindMaxClients();
