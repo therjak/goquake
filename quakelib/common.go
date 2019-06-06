@@ -9,6 +9,7 @@ import (
 	"quake/cmd"
 	cmdl "quake/commandline"
 	"quake/conlog"
+	"quake/cvar"
 	"quake/cvars"
 	"quake/filesystem"
 )
@@ -28,8 +29,8 @@ func init() {
 	cmd.AddCommand("path", CmdPath)
 	cmd.AddCommand("game", CmdGame)
 
-	cvars.Developer.SetCallback(func() {
-		conlog.SetDeveloper(cvars.Developer.Value())
+	cvars.Developer.SetCallback(func(cv *cvar.Cvar) {
+		conlog.SetDeveloper(cv.Value())
 	})
 }
 

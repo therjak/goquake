@@ -161,7 +161,7 @@ func CvarSetCallback(id C.int, f C.cvarcallback_t) {
 		log.Println(err)
 		return
 	}
-	cv.SetCallback(func() {
+	cv.SetCallback(func(_ *cvar.Cvar) {
 		C.CallCvarCallback(id, f)
 	})
 }

@@ -33,7 +33,7 @@ cvar_rom = 1 << 6
 cvar_registered = 1 << 10
 cvar_callback = 1 << 16
 */
-type CallbackFunc func()
+type CallbackFunc func(cv *Cvar)
 
 type Cvar struct {
 	archive    bool
@@ -73,7 +73,7 @@ func (cv *Cvar) SetByString(s string) {
 	pf, _ := strconv.ParseFloat(cv.stringValue, 32)
 	cv.value = float32(pf)
 	if cv.callback != nil {
-		cv.callback()
+		cv.callback(cv)
 	}
 }
 

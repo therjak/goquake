@@ -13,6 +13,7 @@ import (
 	"quake/cbuf"
 	"quake/cmd"
 	"quake/conlog"
+	"quake/cvar"
 	"quake/cvars"
 	"quake/keys"
 	"quake/math"
@@ -235,7 +236,7 @@ var (
 )
 
 func init() {
-	f := func() {
+	f := func(_ *cvar.Cvar) {
 		recalc_refdef = true
 		UpdateConsoleSize()
 	}
@@ -268,7 +269,7 @@ func b2s(b bool) string {
 }
 
 func init() {
-	f := func() { videoChanged = true }
+	f := func(_ *cvar.Cvar) { videoChanged = true }
 	cvars.VideoFullscreen.SetCallback(f)
 	cvars.VideoWidth.SetCallback(f)
 	cvars.VideoHeight.SetCallback(f)
@@ -276,12 +277,12 @@ func init() {
 	cvars.VideoVerticalSync.SetCallback(f)
 	cvars.VideoDesktopFullscreen.SetCallback(f)
 	cvars.VideoBorderLess.SetCallback(f)
-	cvars.VideoFsaa.SetCallback(func() {
+	cvars.VideoFsaa.SetCallback(func(cv *cvar.Cvar) {
 		if !videoInitialized {
 			return
 		}
 		conlog.Printf("%s %d requires engine restart to take effect\n",
-			cvars.VideoFsaa.Name(), int(cvars.VideoFsaa.Value()))
+			cv.Name(), int(cv.Value()))
 	})
 }
 

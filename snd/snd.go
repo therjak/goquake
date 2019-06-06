@@ -12,6 +12,7 @@ import (
 	"log"
 	"path/filepath"
 	"quake/commandline"
+	"quake/cvar"
 	"quake/cvars"
 	"quake/filesystem"
 	"quake/math/vec"
@@ -325,7 +326,7 @@ func Block() {
 
 // gets called when window gains focus
 func Unblock() {
-	onVolumeChange()
+	onVolumeChange(nil)
 }
 
 type Sound struct {
@@ -654,7 +655,7 @@ func readFMT(c chunk) waveFmt {
 	return f
 }
 
-func onVolumeChange() {
+func onVolumeChange(_ *cvar.Cvar) {
 	if cvars.Volume == nil || !soundFlag {
 		return
 	}
