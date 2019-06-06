@@ -9,6 +9,7 @@ import (
 	"quake/conlog"
 	"quake/cvars"
 	"quake/execute"
+	"quake/keys"
 	"quake/net"
 	"quake/progs"
 	"quake/protocol"
@@ -40,6 +41,19 @@ func init() {
 	cmd.AddCommand("prespawn", hostPreSpawn)
 	cmd.AddCommand("version", hostVersion)
 	cmd.AddCommand("kick", hostKick)
+	cmd.AddCommand("quit", hostQuit)
+}
+
+func hostQuit(args []cmd.QArg) {
+	if keyDestination != keys.Console && cls.state != ca_dedicated {
+		enterQuitMenu()
+		return
+	}
+	cls.Disconnect()
+
+	hostShutdownServer(false)
+
+	Sys_Quit()
 }
 
 func qFormatI(b int32) string {

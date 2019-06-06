@@ -299,7 +299,7 @@ SV_SpawnServer
 This is called at the start of each level
 ================
 */
-extern float scr_centertime_off;
+//THERJAK-convert after PR_LoadProgs is no longer needed in c
 void SV_SpawnServer(const char *server) {
   static char dummy[8] = {0, 0, 0, 0, 0, 0, 0, 0};
   int ent;
@@ -309,7 +309,6 @@ void SV_SpawnServer(const char *server) {
   if (Cvar_GetString(&hostname)[0] == 0) {
     Cvar_Set("hostname", "UNNAMED");
   }
-  scr_centertime_off = 0;
 
   Con_DPrintf("SpawnServer: %s\n", server);
   SVS_SetChangeLevelIssued(false);  // now safe to issue another

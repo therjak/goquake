@@ -7,23 +7,6 @@ int current_skill;
 
 void Mod_Print(void);
 
-/*
-==================
-Host_Quit_f
-==================
-*/
-
-void Host_Quit_f(void) {
-  if (GetKeyDest() != key_console && CLS_GetState() != ca_dedicated) {
-    M_Menu_Quit_f();
-    return;
-  }
-  CL_Disconnect();
-  Host_ShutdownServer(false);
-
-  Sys_Quit();
-}
-
 //==============================================================================
 // johnfitz -- extramaps management
 //==============================================================================
@@ -870,7 +853,6 @@ void Host_InitCommands(void) {
   Cmd_AddCommand("games",
                  Host_Mods_f);  // as an alias to "mods" -- S.A. / QuakeSpasm
 
-  Cmd_AddCommand("quit", Host_Quit_f);
   Cmd_AddCommand("map", Host_Map_f);
   Cmd_AddCommand("restart", Host_Restart_f);
   Cmd_AddCommand("changelevel", Host_Changelevel_f);

@@ -84,11 +84,6 @@ func M_Menu_Main_f() {
 	enterMenuMain()
 }
 
-//export M_Menu_Quit_f
-func M_Menu_Quit_f() {
-	enterQuitMenu()
-}
-
 //export M_Menu_LanConfig_f
 func M_Menu_LanConfig_f() {
 	enterNetJoinGameMenu()

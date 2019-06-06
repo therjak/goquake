@@ -1,13 +1,11 @@
 package quakelib
 
-// void Host_Quit_f(void);
-import "C"
-
 import (
+	"quake/cmd"
 	"quake/keys"
 )
 
 func enterQuitMenu() {
 	keyDestination = keys.Console
-	C.Host_Quit_f()
+	hostQuit([]cmd.QArg{})
 }
