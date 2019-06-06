@@ -287,7 +287,7 @@ func (m *qGameOptionsMenu) Accept() {
 	cbuf.AddText("listen 0\n") // this seems to be a workaround to get the port set
 
 	m.items[1].Accept() // maxPlayersMenuItem
-	//SCR_BeginLoadingPlaque();
+	SCR_BeginLoadingPlaque()
 	m.items[7].Accept() // episodeMenuItem
 }
 

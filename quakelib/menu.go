@@ -204,10 +204,7 @@ func toggleMenu() {
 			enterMenuMain()
 			return
 		}
-
-		IN_Activate()
-		keyDestination = keys.Game
-		qmenu.state = menu.None
+		enterMenuNone()
 		return
 	}
 	if keyDestination == keys.Console {
@@ -215,6 +212,12 @@ func toggleMenu() {
 	} else {
 		enterMenuMain()
 	}
+}
+
+func enterMenuNone() {
+	IN_Activate()
+	keyDestination = keys.Game
+	qmenu.state = menu.None
 }
 
 func toggleConsole() {

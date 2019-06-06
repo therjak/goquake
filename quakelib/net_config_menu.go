@@ -138,6 +138,7 @@ func (m *serverNameMenuItem) DrawCursor() {
 func (m *serverNameMenuItem) Enter() {
 	qmenu.playEnterSound = true
 	m.accepter.Accept()
+	enterMenuNone()
 	cbuf.AddText(fmt.Sprintf("connect \"%s\"\n", m.serverName))
 }
 
