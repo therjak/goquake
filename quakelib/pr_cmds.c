@@ -94,6 +94,7 @@ Writes new values for v_forward, v_up, and v_right based on angles
 makevectors(vector)
 ==============
 */
+// THERJAK
 static void PF_makevectors(void) {
   vec3_t b, f, r, u;
   b[0] = Pr_globalsf(OFS_PARM0);
