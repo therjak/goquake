@@ -87,26 +87,6 @@ static void PF_objerror(void) {
 }
 
 /*
-==============
-PF_makevectors
-
-Writes new values for v_forward, v_up, and v_right based on angles
-makevectors(vector)
-==============
-*/
-// THERJAK
-static void PF_makevectors(void) {
-  vec3_t b, f, r, u;
-  b[0] = Pr_globalsf(OFS_PARM0);
-  b[1] = Pr_globalsf(OFS_PARM0 + 1);
-  b[2] = Pr_globalsf(OFS_PARM0 + 2);
-  AngleVectors(b, f, r, u);
-  Set_pr_global_struct_v_forward(f[0], f[1], f[2]);
-  Set_pr_global_struct_v_right(r[0], r[1], r[2]);
-  Set_pr_global_struct_v_up(u[0], u[1], u[2]);
-}
-
-/*
 =================
 PF_bprint
 

@@ -779,6 +779,16 @@ func PF_checkbottom() {
 	progsdat.Globals.Returnf()[0] = f
 }
 
+// Writes new values for v_forward, v_up, and v_right based on angles makevectors(vector)
+//export PF_makevectors
+func PF_makevectors() {
+	v := vec.VFromA(*progsdat.Globals.Parm0f())
+	f, r, u := vec.AngleVectors(v)
+	progsdat.Globals.VForward = f.Array()
+	progsdat.Globals.VRight = r.Array()
+	progsdat.Globals.VUp = u.Array()
+}
+
 //export PF_pointcontents
 func PF_pointcontents() {
 	v := vec.VFromA(*progsdat.Globals.Parm0f())
