@@ -53,7 +53,7 @@ const (
 	// [byte]  used for the signon sequence
 	SignonNum = 25
 	// [string] to put in center of the screen
-	Centerprint   = 26
+	CenterPrint   = 26
 	KilledMonster = 27
 	FoundSecret   = 28
 	// [coord3] [byte] samp [byte] vol [byte] aten

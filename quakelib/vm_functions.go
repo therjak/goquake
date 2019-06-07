@@ -25,6 +25,43 @@ func runError(format string, v ...interface{}) {
 	conlog.Printf(format, v...)
 }
 
+// broadcast print to everyone on server
+//export PF_bprint
+func PF_bprint() {
+	s := vmVarString(0)
+	SV_BroadcastPrint(s)
+}
+
+// single print to a specific client
+//export PF_sprint
+func PF_sprint() {
+	e := int(progsdat.Globals.Parm0[0])
+	s := vmVarString(1)
+	if e < 1 || e > svs.maxClients {
+		conlog.Printf("tried to sprint to a non-client\n")
+		return
+	}
+	e--
+	c := sv_clients[e]
+	c.msg.WriteChar(server.Print)
+	c.msg.WriteString(s)
+}
+
+// single print to a specific client
+//export PF_centerprint
+func PF_centerprint() {
+	e := int(progsdat.Globals.Parm0[0])
+	s := vmVarString(1)
+	if e < 1 || e > svs.maxClients {
+		conlog.Printf("tried to sprint to a non-client\n")
+		return
+	}
+	e--
+	c := sv_clients[e]
+	c.msg.WriteChar(server.CenterPrint)
+	c.msg.WriteString(s)
+}
+
 /*
 This is the only valid way to move an object without using the physics
 of the world (setting velocity and waiting).  Directly changing origin

@@ -36,3 +36,16 @@ func DPrintf2(format string, v ...interface{}) {
 func SafePrintf(format string, v ...interface{}) {
 	sp(format, v...)
 }
+
+func Warning(format string, v ...interface{}) {
+	SafePrintf("\x02Warning: ")
+	Printf(format, v...)
+}
+
+func DWarning(format string, v ...interface{}) {
+	if dev == 0 {
+		return
+	}
+	SafePrintf("\x02Warning: ")
+	Printf(format, v...)
+}

@@ -20,6 +20,14 @@ dfunction_t *pr_xfunction;
 int pr_xstatement;
 int pr_argc;
 
+int GetPRArgC() {
+  return pr_argc;
+}
+
+int GetPRXStatement() {
+  return pr_xstatement;
+}
+
 static const char *pr_opnames[] = {
     "DONE",
 

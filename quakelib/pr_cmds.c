@@ -1,14 +1,5 @@
 #include "quakedef.h"
 
-#define STRINGTEMP_BUFFERS 16
-#define STRINGTEMP_LENGTH 1024
-static char pr_string_temp[STRINGTEMP_BUFFERS][STRINGTEMP_LENGTH];
-static byte pr_string_tempindex = 0;
-
-static char *PR_GetTempString(void) {
-  return pr_string_temp[(STRINGTEMP_BUFFERS - 1) & ++pr_string_tempindex];
-}
-
 #define RETURN_EDICT(e) (Set_Pr_globalsi(OFS_RETURN, e))
 
 /*
@@ -84,78 +75,6 @@ static void PF_objerror(void) {
 
   // Host_Error ("Program error"); //johnfitz -- by design, this should not be
   // fatal
-}
-
-/*
-=================
-PF_bprint
-
-broadcast print to everyone on server
-
-bprint(value)
-=================
-*/
-static void PF_bprint(void) {
-  char *s;
-
-  s = PF_VarString(0);
-  SV_BroadcastPrintf("%s", s);
-}
-
-/*
-=================
-PF_sprint
-
-single print to a specific client
-
-sprint(clientent, value)
-=================
-*/
-static void PF_sprint(void) {
-  char *s;
-  int client;
-  int entnum;
-
-  entnum = Pr_globalsi(OFS_PARM0);
-  s = PF_VarString(1);
-
-  if (entnum < 1 || entnum > SVS_GetMaxClients()) {
-    Con_Printf("tried to sprint to a non-client\n");
-    return;
-  }
-
-  client = entnum - 1;
-
-  ClientWriteChar(client, svc_print);
-  ClientWriteString(client, s);
-}
-
-/*
-=================
-PF_centerprint
-
-single print to a specific client
-
-centerprint(clientent, value)
-=================
-*/
-static void PF_centerprint(void) {
-  char *s;
-  int client;
-  int entnum;
-
-  entnum = Pr_globalsi(OFS_PARM0);
-  s = PF_VarString(1);
-
-  if (entnum < 1 || entnum > SVS_GetMaxClients()) {
-    Con_Printf("tried to sprint to a non-client\n");
-    return;
-  }
-
-  client = entnum - 1;
-
-  ClientWriteChar(client, svc_centerprint);
-  ClientWriteString(client, s);
 }
 
 static byte checkpvs[MAX_MAP_LEAFS / 8];
