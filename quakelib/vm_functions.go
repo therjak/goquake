@@ -721,12 +721,15 @@ func PF_eprint() {
 	edictPrint(int(progsdat.Globals.Parm0[0]))
 }
 
-/*
-static void PF_traceon(void) { pr_trace = true; }
+//export PF_traceon
+func PF_traceon() {
+	vmTraceOn()
+}
 
-static void PF_traceoff(void) { pr_trace = false; }
-
-*/
+//export PF_traceoff
+func PF_traceoff() {
+	vmTraceOff()
+}
 
 /*
 static void PF_walkmove(void) {

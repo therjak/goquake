@@ -4,6 +4,7 @@ package quakelib
 // int GetPRArgC();
 // int GetPRXStatement();
 // int GetPRXFuncName();
+// void SetPRTrace(int t);
 import "C"
 
 import (
@@ -49,4 +50,12 @@ func vmVarString(first int) string {
 		conlog.DWarning("PF_VarString: %d characters exceeds standard limit of 255.\n", b.Len())
 	}
 	return b.String()
+}
+
+func vmTraceOn() {
+	C.SetPRTrace(1)
+}
+
+func vmTraceOff() {
+	C.SetPRTrace(0)
 }

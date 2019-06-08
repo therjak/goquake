@@ -133,10 +133,6 @@ static void PF_precache_model(void) {
   PR_RunError("PF_precache_model: overflow");
 }
 
-static void PF_traceon(void) { pr_trace = true; }
-
-static void PF_traceoff(void) { pr_trace = false; }
-
 /*
 ===============
 PF_walkmove

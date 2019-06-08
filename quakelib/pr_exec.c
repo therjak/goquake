@@ -32,6 +32,10 @@ int GetPRXFuncName() {
   return pr_xfunction->s_name;
 }
 
+void SetPRTrace(int t) {
+  pr_trace = t;
+}
+
 static const char *pr_opnames[] = {
     "DONE",
 
