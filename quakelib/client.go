@@ -24,6 +24,7 @@ import (
 
 func init() {
 	cmd.AddCommand("disconnect", clDisconnect)
+	cmd.AddCommand("reconnect", clReconnect)
 }
 
 const (
@@ -868,18 +869,6 @@ func CLS_NET_CanSendMessage() C.int {
 	return b2i(cls.connection.CanSendMessage())
 }
 
-//export CLS_Connect
-func CLS_Connect(host *C.char) C.int {
-	c, err := net.Connect(C.GoString(host))
-	if err != nil {
-		cls.connection = nil
-		return 0
-	} else {
-		cls.connection = c
-		return 1
-	}
-}
-
 //Sends a disconnect message to the server
 //This is also called on Host_Error, so it shouldn't cause any errors
 //export CL_Disconnect
@@ -935,4 +924,55 @@ func clDisconnect(args []cmd.QArg) {
 	if sv.active {
 		hostShutdownServer(false)
 	}
+}
+
+// This command causes the client to wait for the signon messages again.
+// This is sent just before a server changes levels
+func clReconnect(args []cmd.QArg) {
+	if cls.demoPlayback {
+		return
+	}
+	SCR_BeginLoadingPlaque()
+	// need new connection messages
+	cls.signon = 0
+}
+
+//export Host_Reconnect_f
+func Host_Reconnect_f() {
+	clReconnect([]cmd.QArg{})
+}
+
+//export CL_EstablishConnection
+func CL_EstablishConnection(host *C.char) {
+	clEstablishConnection(C.GoString(host))
+}
+
+// Host should be either "local" or a net address to be passed on
+func clEstablishConnection(host string) {
+	if cls.state == ca_dedicated {
+		return
+	}
+
+	if cls.demoPlayback {
+		return
+	}
+
+	cls.Disconnect()
+
+	c, err := net.Connect(host)
+	if err != nil {
+		// TODO: this is bad, looks like orig just quits this call without returning
+		// and waits for the next sdl input.
+		cls.connection = nil
+		HostError("CLS_Connect: connect failed\n")
+	}
+	cls.connection = c
+	conlog.DPrintf("CL_EstablishConnection: connected to %s\n", host)
+
+	// not in the demo loop now
+	cls.demoNum = -1
+	cls.state = ca_connected
+	// need all the signon messages before playing
+	cls.signon = 0
+	cls.outMessage.WriteByte(clc.Nop)
 }

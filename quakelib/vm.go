@@ -3,6 +3,7 @@ package quakelib
 // void PR_ExecuteProgram(int p);
 // int GetPRArgC();
 // int GetPRXStatement();
+// int GetPRXFuncName();
 import "C"
 
 import (
@@ -21,6 +22,15 @@ func prArgC() int {
 
 func prXStatement() int {
 	return int(C.GetPRXStatement())
+}
+
+func vmFuncName() string {
+	id := C.GetPRXFuncName()
+	s := PRGetString(int(id))
+	if s != nil {
+		return *s
+	}
+	return ""
 }
 
 func vmVarString(first int) string {

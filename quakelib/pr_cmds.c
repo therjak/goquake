@@ -10,73 +10,6 @@
 ===============================================================================
 */
 
-static char *PF_VarString(int first) {
-  int i;
-  static char out[1024];
-  size_t s;
-
-  out[0] = 0;
-  s = 0;
-  for (i = first; i < pr_argc; i++) {
-    s = q_strlcat(out, PR_GetString(Pr_globalsi(OFS_PARM0 + i * 3)),
-                  sizeof(out));
-    if (s >= sizeof(out)) {
-      Con_Warning("PF_VarString: overflow (string truncated)\n");
-      return out;
-    }
-  }
-  if (s > 255)
-    Con_DWarning("PF_VarString: %i characters exceeds standard limit of 255.\n",
-                 (int)s);
-  return out;
-}
-
-/*
-=================
-PF_error
-
-This is a TERMINAL error, which will kill off the entire server.
-Dumps self.
-
-error(value)
-=================
-*/
-static void PF_error(void) {
-  char *s;
-
-  s = PF_VarString(0);
-  Con_Printf("======SERVER ERROR in %s:\n%s\n",
-             PR_GetString(pr_xfunction->s_name), s);
-  ED_PrintNum(Pr_global_struct_self());
-
-  Host_Error("Program error");
-}
-
-/*
-=================
-PF_objerror
-
-Dumps out self, then an error message.  The program is aborted and self is
-removed, but the level can continue.
-
-objerror(value)
-=================
-*/
-static void PF_objerror(void) {
-  char *s;
-  int ed;
-
-  s = PF_VarString(0);
-  Con_Printf("======OBJECT ERROR in %s:\n%s\n",
-             PR_GetString(pr_xfunction->s_name), s);
-  ed = Pr_global_struct_self();
-  ED_PrintNum(ed);
-  ED_Free(ed);
-
-  // Host_Error ("Program error"); //johnfitz -- by design, this should not be
-  // fatal
-}
-
 static byte checkpvs[MAX_MAP_LEAFS / 8];
 
 static int PF_newcheckclient(int check) {
@@ -170,13 +103,6 @@ static void PF_checkclient(void) {
   // might be able to see it
   RETURN_EDICT(ent);
 }
-
-/*
-=========
-PF_dprint
-=========
-*/
-static void PF_dprint(void) { Con_DPrintf("%s", PF_VarString(0)); }
 
 static void PR_CheckEmptyString(const char *s) {
   if (s[0] <= ' ') PR_RunError("Bad string");

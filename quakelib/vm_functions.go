@@ -25,6 +25,35 @@ func runError(format string, v ...interface{}) {
 	conlog.Printf(format, v...)
 }
 
+// Dumps out self, then an error message.  The program is aborted and self is
+// removed, but the level can continue.
+//export PF_objerror
+func PF_objerror() {
+	s := vmVarString(0)
+	fs := vmFuncName()
+	conlog.Printf("======OBJECT ERROR in %s:\n%s\n", fs, s)
+	ed := int(progsdat.Globals.Self)
+	edictPrint(ed)
+	edictFree(ed)
+}
+
+// This is a TERMINAL error, which will kill off the entire server.
+// Dumps self.
+//export PF_error
+func PF_error() {
+	s := vmVarString(0)
+	fs := vmFuncName()
+	conlog.Printf("======SERVER ERROR in %s:\n%s\n", fs, s)
+	edictPrint(int(progsdat.Globals.Self))
+	HostError("Program error")
+}
+
+//export PF_dprint
+func PF_dprint() {
+	s := vmVarString(0)
+	conlog.DPrintf(s)
+}
+
 // broadcast print to everyone on server
 //export PF_bprint
 func PF_bprint() {
@@ -531,13 +560,6 @@ func PF_findradius() {
 
 	progsdat.Globals.Return[0] = chain
 }
-
-/*
-//export PF_dprint
-func PF_dprint() {
-	conlog.DPrintf("%s", PF_VarString(0));
-}
-*/
 
 //export PF_ftos
 func PF_ftos() {

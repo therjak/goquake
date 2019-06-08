@@ -379,21 +379,6 @@ void Host_Restart_f(void) {
 }
 
 /*
-==================
-Host_Reconnect_f
-
-This command causes the client to wait for the signon messages again.
-This is sent just before a server changes levels
-==================
-*/
-void Host_Reconnect_f(void) {
-  if (CLS_IsDemoPlayback())  // cross-map demo playback fix from Baker
-    return;
-  SCR_BeginLoadingPlaque();
-  CLS_SetSignon(0);  // need new connection messages
-}
-
-/*
 =====================
 Host_Connect_f
 
@@ -857,7 +842,6 @@ void Host_InitCommands(void) {
   Cmd_AddCommand("restart", Host_Restart_f);
   Cmd_AddCommand("changelevel", Host_Changelevel_f);
   Cmd_AddCommand("connect", Host_Connect_f);
-  Cmd_AddCommand("reconnect", Host_Reconnect_f);
 
   Cmd_AddCommand("load", Host_Loadgame_f);
   Cmd_AddCommand("save", Host_Savegame_f);

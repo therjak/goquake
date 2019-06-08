@@ -28,6 +28,10 @@ int GetPRXStatement() {
   return pr_xstatement;
 }
 
+int GetPRXFuncName() {
+  return pr_xfunction->s_name;
+}
+
 static const char *pr_opnames[] = {
     "DONE",
 

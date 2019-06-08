@@ -79,33 +79,6 @@ void CL_ClearState(void) {
 
 /*
 =====================
-CL_EstablishConnection
-
-Host should be either "local" or a net address to be passed on
-=====================
-*/
-void CL_EstablishConnection(const char *host) {
-  if (CLS_GetState() == ca_dedicated) return;
-
-  if (CLS_IsDemoPlayback()) return;
-
-  CL_Disconnect();
-
-  if (!CLS_Connect(host)) {
-    // TODO: this is bad, looks like orig just quits this call without returning
-    // and waits for the next sdl input.
-    Host_Error("CLS_Connect: connect failed\n");
-  }
-  Con_DPrintf("CL_EstablishConnection: connected to %s\n", host);
-
-  CLS_StopDemoCycle();  // not in the demo loop now
-  CLS_SetState(ca_connected);
-  CLS_SetSignon(0);              // need all the signon messages before playing
-  CLSMessageWriteByte(clc_nop);  // NAT Fix from ProQuake
-}
-
-/*
-=====================
 CL_SignonReply
 
 An svc_signonnum has been received, perform a client side setup
