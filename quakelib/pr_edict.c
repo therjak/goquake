@@ -821,9 +821,6 @@ PR_Init
 ===============
 */
 void PR_Init(void) {
-  Cmd_AddCommand("edict", ED_PrintEdict_f);
-  Cmd_AddCommand("edicts", ED_PrintEdicts);
-  Cmd_AddCommand("edictcount", ED_Count);
   Cmd_AddCommand("profile", PR_Profile_f);
   Cvar_FakeRegister(&nomonsters, "nomonsters");
   Cvar_FakeRegister(&gamecfg, "gamecfg");

@@ -7,6 +7,7 @@ import (
 	"log"
 	"math/rand"
 	"quake/cbuf"
+	"quake/cmd"
 	"quake/conlog"
 	"quake/cvars"
 	"quake/math"
@@ -712,7 +713,7 @@ func PF_precache_model() {
 
 //export PF_coredump
 func PF_coredump() {
-	edictPrintEdicts()
+	edictPrintEdicts([]cmd.QArg{})
 }
 
 //export PF_eprint

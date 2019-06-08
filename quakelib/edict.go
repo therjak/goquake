@@ -13,6 +13,12 @@ const (
 	defSaveGlobal = 1 << 15
 )
 
+func init() {
+	cmd.AddCommand("edict", edictPrintEdictFunc)
+	cmd.AddCommand("edicts", edictPrintEdicts)
+	cmd.AddCommand("edictcount", edictCount)
+}
+
 func edictNum(i int) *C.edict_t {
 	return C.EDICT_NUM(C.int(i))
 }
@@ -122,12 +128,7 @@ func ED_PrintNum(ent C.int) {
 }
 
 // For debugging, prints all the entities in the current server
-//export ED_PrintEdicts
-func ED_PrintEdicts() {
-	edictPrintEdicts()
-}
-
-func edictPrintEdicts() {
+func edictPrintEdicts(_ []cmd.QArg) {
 	if !sv.active {
 		return
 	}
@@ -138,18 +139,13 @@ func edictPrintEdicts() {
 	}
 }
 
-// For debugging, prints a single edicy
-//export ED_PrintEdict_f
-func ED_PrintEdict_f() {
-	edictPrintEdictFunc()
-}
-
-func edictPrintEdictFunc() {
-	if !sv.active {
+// For debugging, prints a single edict
+func edictPrintEdictFunc(args []cmd.QArg) {
+	if !sv.active || len(args) == 0 {
 		return
 	}
 
-	i := cmd.CmdArgv(1).Int()
+	i := args[0].Int()
 	if i < 0 || i >= sv.numEdicts {
 		conlog.Printf("Bad edict number\n")
 		return
@@ -158,12 +154,7 @@ func edictPrintEdictFunc() {
 }
 
 // For debugging
-//export ED_Count
-func ED_Count() {
-	edictCount()
-}
-
-func edictCount() {
+func edictCount(_ []cmd.QArg) {
 	if !sv.active {
 		return
 	}
