@@ -66,9 +66,9 @@ func (q *qphysics) pusher(ent int) {
 
 // Player has come to a dead stop, possibly due to the problem with limited
 // float precision at some angle joins in the BSP hull.
-
+//
 // Try fixing by pushing one pixel in each direction.
-
+//
 // This is a hack, but in the interest of good gameplay...
 func (q *qphysics) tryUnstick(ent int, oldvel vec.Vec3) int {
 	ev := EntVars(ent)
@@ -238,7 +238,6 @@ func SV_Physics_None(ent int) {
 
 // Non moving objects can only think
 func (q *qphysics) none(ent int) {
-	// regular thinking
 	runThink(ent)
 }
 
@@ -249,7 +248,6 @@ func SV_Physics_Noclip(ent int) {
 
 //A moving object that doesn't obey physics
 func (q *qphysics) noClip(ent int) {
-	// regular thinking
 	if !runThink(ent) {
 		return
 	}
@@ -314,33 +312,29 @@ func SV_Physics_Toss(ent int) {
 
 // Toss, bounce, and fly movement.  When onground, do nothing.
 func (q *qphysics) toss(ent int) {
-	// regular thinking
 	if !runThink(ent) {
 		return
 	}
 
 	ev := EntVars(ent)
-	// if onground, return without moving
 	if int(ev.Flags)&FL_ONGROUND != 0 {
 		return
 	}
 	CheckVelocity(ev)
 
-	// add gravity
 	if ev.MoveType != progs.MoveTypeFly &&
 		ev.MoveType != progs.MoveTypeFlyMissile {
 		q.addGravity(ent)
 	}
 
 	time := float32(host.frameTime)
-	// move angles
+
 	av := vec.VFromA(ev.AVelocity)
 	av = av.Scale(time)
 	angles := vec.VFromA(ev.Angles)
 	na := vec.Add(angles, av)
 	ev.Angles = na.Array()
 
-	// move origin
 	velocity := vec.VFromA(ev.Velocity)
 	move := velocity.Scale(time)
 	trace := pushEntity(ent, move)
@@ -377,6 +371,43 @@ func (q *qphysics) toss(ent int) {
 		}
 	}
 
-	// check for in water
+	q.checkWaterTransition(ent)
+}
+
+//export SV_Physics_Step
+func SV_Physics_Step(ent int) {
+	physics.step(ent)
+}
+
+// Monsters freefall when they don't have a ground entity, otherwise
+// all movement is done with discrete steps.
+
+// This is also used for objects that have become still on the ground, but
+// will fall if the floor is pulled out from under them.
+func (q *qphysics) step(ent int) {
+	ev := EntVars(ent)
+
+	// freefall if not onground
+	if int(ev.Flags)&(FL_ONGROUND|FL_FLY|FL_SWIM) == 0 {
+		hitSound := ev.Velocity[2] < cvars.ServerGravity.Value()*-0.1
+
+		time := float32(host.frameTime)
+		q.addGravity(ent)
+		CheckVelocity(ev)
+		SV_FlyMove(ent, time, nil)
+		LinkEdict(ent, true)
+
+		if int(ev.Flags)&FL_ONGROUND != 0 {
+			// just hit ground
+			if hitSound {
+				sv.StartSound(ent, 0, 255, "demon/dland2.wav", 1)
+			}
+		}
+	}
+
+	if !runThink(ent) {
+		return
+	}
+
 	q.checkWaterTransition(ent)
 }

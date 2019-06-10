@@ -249,55 +249,6 @@ void SV_Physics_Client(int ent, int num) {
 }
 
 /*
-===============================================================================
-
-STEPPING MOVEMENT
-
-===============================================================================
-*/
-
-/*
-=============
-SV_Physics_Step
-
-Monsters freefall when they don't have a ground entity, otherwise
-all movement is done with discrete steps.
-
-This is also used for objects that have become still on the ground, but
-will fall if the floor is pulled out from under them.
-=============
-*/
-//THERJAK
-void SV_Physics_Step(int ent) {
-  qboolean hitsound;
-
-  // freefall if not onground
-  if (!((int)EVars(ent)->flags & (FL_ONGROUND | FL_FLY | FL_SWIM))) {
-    if (EVars(ent)->velocity[2] < Cvar_GetValue(&sv_gravity) * -0.1)
-      hitsound = true;
-    else
-      hitsound = false;
-
-    SV_AddGravity(ent);
-    SV_CheckVelocity(ent);
-    SV_FlyMove(ent, HostFrameTime(), NULL);
-    SV_LinkEdict(ent, true);
-
-    if ((int)EVars(ent)->flags & FL_ONGROUND)  // just hit ground
-    {
-      if (hitsound) SV_StartSound(ent, 0, "demon/dland2.wav", 255, 1);
-    }
-  }
-
-  // regular thinking
-  SV_RunThink(ent);
-
-  SV_CheckWaterTransition(ent);
-}
-
-//============================================================================
-
-/*
 ================
 SV_Physics
 
