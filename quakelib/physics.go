@@ -2,6 +2,7 @@ package quakelib
 
 //#include "trace.h"
 //void SV_PushMove(int pusher, float movetime);
+//void SV_AddGravity(int ent);
 import "C"
 
 import (
@@ -24,12 +25,16 @@ var (
 	physics qphysics
 )
 
+func (q *qphysics) addGravity(ent int) {
+	C.SV_AddGravity(C.int(ent))
+}
+
 //export SV_Physics_Pusher
 func SV_Physics_Pusher(ent int) {
 	physics.pusher(ent)
 }
 
-func (p *qphysics) pusher(ent int) {
+func (q *qphysics) pusher(ent int) {
 	ev := EntVars(ent)
 	oldltime := float64(ev.LTime)
 	thinktime := float64(ev.NextThink)
@@ -65,7 +70,7 @@ func (p *qphysics) pusher(ent int) {
 // Try fixing by pushing one pixel in each direction.
 
 // This is a hack, but in the interest of good gameplay...
-func (p *qphysics) tryUnstick(ent int, oldvel vec.Vec3) int {
+func (q *qphysics) tryUnstick(ent int, oldvel vec.Vec3) int {
 	ev := EntVars(ent)
 	oldorg := ev.Origin
 
@@ -97,6 +102,29 @@ func (p *qphysics) tryUnstick(ent int, oldvel vec.Vec3) int {
 	ev.Velocity = [3]float32{0, 0, 0}
 	// still not moving
 	return 7
+}
+
+func (q *qphysics) wallFriction(ent int, planeNormal vec.Vec3) {
+	const deg = math32.Pi * 2 / 360
+
+	ev := EntVars(ent)
+	sp, cp := math32.Sincos(ev.VAngle[0] * deg) // PITCH
+	sy, cy := math32.Sincos(ev.VAngle[1] * deg) // YAW
+	forward := vec.Vec3{cp * cy, cp * sy, -sp}
+	d := vec.Dot(planeNormal, forward)
+
+	d += 0.5
+	if d >= 0 {
+		return
+	}
+
+	// cut the tangential velocity
+	v := vec.VFromA(ev.Velocity)
+	i := vec.Dot(planeNormal, v)
+	into := planeNormal.Scale(i)
+	side := vec.Sub(v, into)
+	ev.Velocity[0] = side.X * (1 + d)
+	ev.Velocity[1] = side.Y * (1 + d)
 }
 
 //export SV_WalkMove
@@ -177,7 +205,12 @@ func (q *qphysics) walkMove(ent int) {
 
 	// extra friction based on view angle
 	if clip&2 != 0 {
-		SV_WallFriction(ent, &steptrace)
+		planeNormal := vec.Vec3{
+			float32(steptrace.plane.normal[0]),
+			float32(steptrace.plane.normal[1]),
+			float32(steptrace.plane.normal[2]),
+		}
+		q.wallFriction(ent, planeNormal)
 	}
 
 	// move down
@@ -272,4 +305,78 @@ func (q *qphysics) checkWaterTransition(ent int) {
 	}
 	ev.WaterType = CONTENTS_EMPTY
 	ev.WaterLevel = float32(cont) // TODO: why?
+}
+
+//export SV_Physics_Toss
+func SV_Physics_Toss(ent int) {
+	physics.toss(ent)
+}
+
+// Toss, bounce, and fly movement.  When onground, do nothing.
+func (q *qphysics) toss(ent int) {
+	// regular thinking
+	if !runThink(ent) {
+		return
+	}
+
+	ev := EntVars(ent)
+	// if onground, return without moving
+	if int(ev.Flags)&FL_ONGROUND != 0 {
+		return
+	}
+	CheckVelocity(ev)
+
+	// add gravity
+	if ev.MoveType != progs.MoveTypeFly &&
+		ev.MoveType != progs.MoveTypeFlyMissile {
+		q.addGravity(ent)
+	}
+
+	time := float32(host.frameTime)
+	// move angles
+	av := vec.VFromA(ev.AVelocity)
+	av = av.Scale(time)
+	angles := vec.VFromA(ev.Angles)
+	na := vec.Add(angles, av)
+	ev.Angles = na.Array()
+
+	// move origin
+	velocity := vec.VFromA(ev.Velocity)
+	move := velocity.Scale(time)
+	trace := pushEntity(ent, move)
+
+	if trace.fraction == 1 {
+		return
+	}
+	if edictNum(ent).free != 0 {
+		return
+	}
+
+	backOff := func() float32 {
+		if ev.MoveType == progs.MoveTypeBounce {
+			return 1.5
+		}
+		return 1
+	}()
+
+	n := vec.Vec3{
+		float32(trace.plane.normal[0]),
+		float32(trace.plane.normal[1]),
+		float32(trace.plane.normal[2]),
+	}
+	_, velocity = clipVelocity(velocity, n, backOff)
+	ev.Velocity = velocity.Array()
+
+	// stop if on ground
+	if trace.plane.normal[2] > 0.7 {
+		if ev.Velocity[2] < 60 || ev.MoveType != progs.MoveTypeBounce {
+			ev.Flags = float32(int(ev.Flags) | FL_ONGROUND)
+			ev.GroundEntity = int32(trace.entn)
+			ev.Velocity = [3]float32{0, 0, 0}
+			ev.AVelocity = [3]float32{0, 0, 0}
+		}
+	}
+
+	// check for in water
+	q.checkWaterTransition(ent)
 }

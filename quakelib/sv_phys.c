@@ -29,8 +29,6 @@ cvar_t sv_freezenonclients;
 
 #define MOVE_EPSILON 0.01
 
-void SV_Physics_Toss(int ent);
-
 /*
 ============
 SV_AddGravity
@@ -248,65 +246,6 @@ void SV_Physics_Client(int ent, int num) {
   Set_pr_global_struct_time(SV_Time());
   Set_pr_global_struct_self(ent);
   PR_ExecuteProgram(Pr_global_struct_PlayerPostThink());
-}
-
-/*
-=============
-SV_Physics_Toss
-
-Toss, bounce, and fly movement.  When onground, do nothing.
-=============
-*/
-//THERJAK
-void SV_Physics_Toss(int ent) {
-  trace_t trace;
-  vec3_t move;
-  float backoff;
-
-  // regular thinking
-  if (!SV_RunThink(ent)) return;
-
-  // if onground, return without moving
-  if (((int)EVars(ent)->flags & FL_ONGROUND)) return;
-
-  SV_CheckVelocity(ent);
-
-  // add gravity
-  if (EVars(ent)->movetype != MOVETYPE_FLY &&
-      EVars(ent)->movetype != MOVETYPE_FLYMISSILE)
-    SV_AddGravity(ent);
-
-  // move angles
-  VectorMA(EVars(ent)->angles, HostFrameTime(), EVars(ent)->avelocity,
-           EVars(ent)->angles);
-
-  // move origin
-  VectorScale(EVars(ent)->velocity, HostFrameTime(), move);
-  trace = SV_PushEntity(ent, move);
-  if (trace.fraction == 1) return;
-  if (EDICT_NUM(ent)->free) return;
-
-  if (EVars(ent)->movetype == MOVETYPE_BOUNCE)
-    backoff = 1.5;
-  else
-    backoff = 1;
-
-  ClipVelocity(EVars(ent)->velocity, trace.plane.normal, EVars(ent)->velocity,
-               backoff);
-
-  // stop if on ground
-  if (trace.plane.normal[2] > 0.7) {
-    if (EVars(ent)->velocity[2] < 60 ||
-        EVars(ent)->movetype != MOVETYPE_BOUNCE) {
-      EVars(ent)->flags = (int)EVars(ent)->flags | FL_ONGROUND;
-      EVars(ent)->groundentity = trace.entn;
-      VectorCopy(vec3_origin, EVars(ent)->velocity);
-      VectorCopy(vec3_origin, EVars(ent)->avelocity);
-    }
-  }
-
-  // check for in water
-  SV_CheckWaterTransition(ent);
 }
 
 /*
