@@ -358,7 +358,7 @@ func (q *qphysics) toss(ent int) {
 		float32(trace.plane.normal[1]),
 		float32(trace.plane.normal[2]),
 	}
-	_, velocity = clipVelocity(velocity, n, backOff)
+	_, velocity = q.clipVelocity(velocity, n, backOff)
 	ev.Velocity = velocity.Array()
 
 	// stop if on ground
@@ -545,7 +545,7 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *C.trace_t) int {
 		i := 0
 		for i = 0; i < numplanes; i++ {
 			j := 0
-			_, new_velocity = clipVelocity(original_velocity, planes[i], 1)
+			_, new_velocity = q.clipVelocity(original_velocity, planes[i], 1)
 			for j = 0; j < numplanes; j++ {
 				if j != i {
 					if vec.Dot(new_velocity, planes[j]) < 0 {
@@ -610,6 +610,39 @@ func (q *qphysics) checkWater(ent int) bool {
 	}
 
 	return ev.WaterLevel > 1
+}
+
+// Slide off of the impacting object
+// returns the blocked flags (1 = floor, 2 = step / wall) and clipped velocity
+func (q *qphysics) clipVelocity(in, normal vec.Vec3, overbounce float32) (int, vec.Vec3) {
+	blocked := func() int {
+		switch {
+		case normal.Z > 0:
+			return 1 // floor
+		case normal.Z == 0:
+			return 2 // step
+		default:
+			return 0
+		}
+	}()
+
+	backoff := vec.Dot(in, normal) * overbounce
+
+	e := func(x float32) float32 {
+		const EPSILON = 0.1
+		if x > -EPSILON && x < EPSILON {
+			return 0
+		}
+		return x
+	}
+
+	out := vec.Vec3{
+		e(in.X - normal.X*backoff),
+		e(in.Y - normal.Y*backoff),
+		e(in.Z - normal.Z*backoff),
+	}
+
+	return blocked, out
 }
 
 //export SV_Physics_Client

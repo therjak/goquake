@@ -1125,39 +1125,6 @@ func pushEntity(e int, push vec.Vec3) C.trace_t {
 	return tr
 }
 
-// Slide off of the impacting object
-// returns the blocked flags (1 = floor, 2 = step / wall) and clipped velocity
-func clipVelocity(in, normal vec.Vec3, overbounce float32) (int, vec.Vec3) {
-	blocked := func() int {
-		switch {
-		case normal.Z > 0:
-			return 1 // floor
-		case normal.Z == 0:
-			return 2 // step
-		default:
-			return 0
-		}
-	}()
-
-	backoff := vec.Dot(in, normal) * overbounce
-
-	e := func(x float32) float32 {
-		const EPSILON = 0.1
-		if x > -EPSILON && x < EPSILON {
-			return 0
-		}
-		return x
-	}
-
-	out := vec.Vec3{
-		e(in.X - normal.X*backoff),
-		e(in.Y - normal.Y*backoff),
-		e(in.Z - normal.Z*backoff),
-	}
-
-	return blocked, out
-}
-
 func SV_SetIdealPitch() {
 	const MAX_FORWARD = 6
 	z := [MAX_FORWARD]float32{}
