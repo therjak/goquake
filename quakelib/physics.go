@@ -90,7 +90,7 @@ func (q *qphysics) tryUnstick(ent int, oldvel vec.Vec3) int {
 		ev.Velocity = oldvel.Array()
 		ev.Velocity[2] = 0 // TODO: why?
 		steptrace := C.trace_t{}
-		clip := SV_FlyMove(ent, 0.1, &steptrace)
+		clip := q.flyMove(ent, 0.1, &steptrace)
 		if math32.Abs(oldorg[1]-ev.Origin[1]) > 4 ||
 			math32.Abs(oldorg[0]-ev.Origin[0]) > 4 {
 			conlog.DPrintf("unstuck!\n")
@@ -146,7 +146,7 @@ func (q *qphysics) walkMove(ent int) {
 
 	time := float32(host.frameTime)
 	steptrace := C.trace_t{}
-	clip := SV_FlyMove(ent, time, &steptrace)
+	clip := q.flyMove(ent, time, &steptrace)
 
 	if (clip & 2) == 0 {
 		// move didn't block on a step
@@ -191,7 +191,7 @@ func (q *qphysics) walkMove(ent int) {
 	// move forward
 	ev.Velocity = oldVelocity.Array()
 	ev.Velocity[2] = 0
-	clip = SV_FlyMove(ent, time, &steptrace)
+	clip = q.flyMove(ent, time, &steptrace)
 
 	// check for stuckness, possibly due to the limited precision of floats
 	// in the clipping hulls
@@ -394,7 +394,7 @@ func (q *qphysics) step(ent int) {
 		time := float32(host.frameTime)
 		q.addGravity(ent)
 		CheckVelocity(ev)
-		SV_FlyMove(ent, time, nil)
+		q.flyMove(ent, time, nil)
 		LinkEdict(ent, true)
 
 		if int(ev.Flags)&FL_ONGROUND != 0 {
@@ -410,4 +410,271 @@ func (q *qphysics) step(ent int) {
 	}
 
 	q.checkWaterTransition(ent)
+}
+
+// This is a big hack to try and fix the rare case of getting stuck in the world
+// clipping hull.
+func (q *qphysics) checkStuck(ent int) {
+	ev := EntVars(ent)
+	if !testEntityPosition(ent) {
+		ev.OldOrigin = ev.Origin
+		return
+	}
+
+	org := ev.Origin
+	ev.Origin = ev.OldOrigin
+	if !testEntityPosition(ent) {
+		conlog.Printf("Unstuck.\n") // debug
+		LinkEdict(ent, true)
+		return
+	}
+
+	for z := float32(0); z < 18; z++ {
+		for i := float32(-1); i <= 1; i++ {
+			for j := float32(-1); j <= 1; j++ {
+				ev.Origin[0] = org[0] + i
+				ev.Origin[1] = org[1] + j
+				ev.Origin[2] = org[2] + z
+				if !testEntityPosition(ent) {
+					conlog.Printf("Unstuck.\n")
+					LinkEdict(ent, true)
+					return
+				}
+			}
+		}
+	}
+
+	ev.Origin = org
+	conlog.Printf("player is stuck.\n")
+}
+
+//The basic solid body movement clip that slides along multiple planes
+//Returns the clipflags if the velocity was modified (hit something solid)
+//1 = floor
+//2 = wall / step
+//4 = dead stop
+//If steptrace is not NULL, the trace of any vertical wall hit will be stored
+func (q *qphysics) flyMove(ent int, time float32, steptrace *C.trace_t) int {
+	const MAX_CLIP_PLANES = 5
+	planes := [MAX_CLIP_PLANES]vec.Vec3{}
+
+	numbumps := 4
+
+	blocked := 0
+	ev := EntVars(ent)
+	original_velocity := vec.VFromA(ev.Velocity)
+	primal_velocity := vec.VFromA(ev.Velocity)
+	numplanes := 0
+
+	time_left := time
+
+	for bumpcount := 0; bumpcount < numbumps; bumpcount++ {
+		if ev.Velocity == [3]float32{0, 0, 0} {
+			break
+		}
+
+		origin := vec.VFromA(ev.Origin)
+		mins := vec.VFromA(ev.Mins)
+		maxs := vec.VFromA(ev.Maxs)
+		velocity := vec.VFromA(ev.Velocity)
+		end := vec.Vec3{
+			origin.X + time_left*velocity.X,
+			origin.Y + time_left*velocity.Y,
+			origin.Z + time_left*velocity.Z,
+		}
+
+		trace := svMove(origin, mins, maxs, end, MOVE_NORMAL, ent)
+
+		if trace.allsolid != 0 {
+			// entity is trapped in another solid
+			ev.Velocity = [3]float32{0, 0, 0}
+			return 3
+		}
+
+		if trace.fraction > 0 {
+			// actually covered some distance
+			ev.Origin[0] = float32(trace.endpos[0])
+			ev.Origin[1] = float32(trace.endpos[1])
+			ev.Origin[2] = float32(trace.endpos[2])
+			original_velocity = vec.VFromA(ev.Velocity)
+			numplanes = 0
+		}
+		if trace.fraction == 1 {
+			// moved the entire distance
+			break
+		}
+		if trace.entp == 0 {
+			Error("SV_FlyMove: !trace.ent")
+		}
+		if trace.plane.normal[2] > 0.7 {
+			blocked |= 1 // floor
+			if EntVars(int(trace.entn)).Solid == SOLID_BSP {
+				ev.Flags = float32(int(ev.Flags) | FL_ONGROUND)
+				ev.GroundEntity = int32(trace.entn)
+			}
+		}
+		if trace.plane.normal[2] == 0 {
+			blocked |= 2 // step
+			if steptrace != nil {
+				*steptrace = trace // save for player extrafriction
+			}
+		}
+		sv.Impact(ent, int(trace.entn))
+		if edictNum(ent).free != 0 {
+			// removed by the impact function
+			break
+		}
+		time_left -= time_left * float32(trace.fraction)
+
+		// cliped to another plane
+		if numplanes >= MAX_CLIP_PLANES {
+			// this shouldn't really happen
+			ev.Velocity = [3]float32{0, 0, 0}
+			return 3
+		}
+
+		planes[numplanes] = vec.Vec3{
+			float32(trace.plane.normal[0]),
+			float32(trace.plane.normal[1]),
+			float32(trace.plane.normal[2]),
+		}
+		numplanes++
+
+		// modify original_velocity so it parallels all of the clip planes
+		new_velocity := vec.Vec3{}
+		i := 0
+		for i = 0; i < numplanes; i++ {
+			j := 0
+			_, new_velocity = clipVelocity(original_velocity, planes[i], 1)
+			for j = 0; j < numplanes; j++ {
+				if j != i {
+					if vec.Dot(new_velocity, planes[j]) < 0 {
+						break // not ok
+					}
+				}
+			}
+			if j == numplanes {
+				break
+			}
+		}
+
+		if i != numplanes { // go along this plane
+			ev.Velocity = new_velocity.Array()
+		} else { // go along the crease
+			if numplanes != 2 {
+				//	conlog.Printf ("clip velocity, numplanes == %i\n",numplanes)
+				ev.Velocity = [3]float32{0, 0, 0}
+				return 7
+			}
+			dir := vec.Cross(planes[0], planes[1])
+			d := vec.Dot(dir, vec.VFromA(ev.Velocity))
+			sd := dir.Scale(d)
+			ev.Velocity = sd.Array()
+		}
+
+		// if original velocity is against the original velocity, stop dead
+		// to avoid tiny occilations in sloping corners
+		if vec.Dot(vec.VFromA(ev.Velocity), primal_velocity) <= 0 {
+			ev.Velocity = [3]float32{0, 0, 0}
+			return blocked
+		}
+	}
+	return blocked
+}
+
+func (q *qphysics) checkWater(ent int) bool {
+	ev := EntVars(ent)
+	point := vec.Vec3{
+		ev.Origin[0],
+		ev.Origin[1],
+		ev.Origin[2] + ev.Mins[2] + 1,
+	}
+
+	ev.WaterLevel = 0
+	ev.WaterType = CONTENTS_EMPTY
+
+	cont := pointContents(point)
+	if cont <= CONTENTS_WATER {
+		ev.WaterType = float32(cont)
+		ev.WaterLevel = 1
+		point.Z = ev.Origin[2] + (ev.Mins[2]+ev.Maxs[2])*0.5
+		cont = pointContents(point)
+		if cont <= CONTENTS_WATER {
+			ev.WaterLevel = 2
+			point.Z = ev.Origin[2] + ev.ViewOfs[2]
+			cont = pointContents(point)
+			if cont <= CONTENTS_WATER {
+				ev.WaterLevel = 3
+			}
+		}
+	}
+
+	return ev.WaterLevel > 1
+}
+
+//export SV_Physics_Client
+func SV_Physics_Client(ent, num int) {
+	physics.playerActions(ent, num)
+}
+
+// Player character actions
+func (q *qphysics) playerActions(ent, num int) {
+	if !sv_clients[num-1].active {
+		// unconnected slot
+		return
+	}
+
+	progsdat.Globals.Time = sv.time
+	progsdat.Globals.Self = int32(ent)
+	PRExecuteProgram(progsdat.Globals.PlayerPreThink)
+
+	ev := EntVars(ent)
+	CheckVelocity(ev)
+
+	switch int(ev.MoveType) {
+	case progs.MoveTypeNone:
+		if !runThink(ent) {
+			return
+		}
+
+	case progs.MoveTypeWalk:
+		if !runThink(ent) {
+			return
+		}
+		if !q.checkWater(ent) && int(ev.Flags)&FL_WATERJUMP == 0 {
+			q.addGravity(ent)
+		}
+		q.checkStuck(ent)
+		q.walkMove(ent)
+
+	case progs.MoveTypeToss, progs.MoveTypeBounce:
+		q.toss(ent)
+
+	case progs.MoveTypeFly:
+		if !runThink(ent) {
+			return
+		}
+		time := float32(host.frameTime)
+		q.flyMove(ent, time, nil)
+
+	case progs.MoveTypeNoClip:
+		if !runThink(ent) {
+			return
+		}
+		time := float32(host.frameTime)
+		v := vec.VFromA(ev.Velocity)
+		v = v.Scale(time)
+		origin := vec.VFromA(ev.Origin)
+		no := vec.Add(origin, v)
+		ev.Origin = no.Array()
+
+	default:
+		Error("SV_Physics_client: bad movetype %v", ev.MoveType)
+	}
+
+	LinkEdict(ent, true)
+
+	progsdat.Globals.Time = sv.time
+	progsdat.Globals.Self = int32(ent)
+	PRExecuteProgram(progsdat.Globals.PlayerPostThink)
 }
