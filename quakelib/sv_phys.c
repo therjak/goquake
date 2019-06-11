@@ -184,7 +184,8 @@ SV_Physics
 
 ================
 */
-//THERJAK
+// THERJAK
+/*
 void SV_Physics(void) {
   int i;
   int entity_cap;  // For sv_freezenonclients
@@ -239,4 +240,4 @@ void SV_Physics(void) {
   if (!Cvar_GetValue(&sv_freezenonclients)) {
     SV_SetTime(SV_Time() + HostFrameTime());
   }
-}
+}*/

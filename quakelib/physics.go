@@ -711,3 +711,66 @@ func (q *qphysics) playerActions(ent, num int) {
 	progsdat.Globals.Self = int32(ent)
 	PRExecuteProgram(progsdat.Globals.PlayerPostThink)
 }
+
+//export SV_Physics
+func SV_Physics() {
+	RunPhysics()
+}
+
+func RunPhysics() {
+	// let the progs know that a new frame has started
+	progsdat.Globals.Time = sv.time
+	progsdat.Globals.Self = 0
+	progsdat.Globals.Other = 0
+	PRExecuteProgram(progsdat.Globals.PlayerPostThink)
+
+	freezeNonClients := cvars.ServerFreezeNonClients.Bool()
+	entityCap := func() int {
+		if freezeNonClients {
+			// Only run physics on clients and the world
+			return svs.maxClients + 1
+		}
+		return sv.numEdicts
+	}()
+
+	for i := 0; i < entityCap; i++ {
+		if edictNum(i).free != 0 {
+			continue
+		}
+		if progsdat.Globals.ForceRetouch != 0 {
+			// force retouch even for stationary
+			LinkEdict(i, true)
+		}
+		q := qphysics{}
+		if i > 0 && i <= svs.maxClients {
+			q.playerActions(i, i)
+		} else {
+			mt := EntVars(i).MoveType
+			switch mt {
+			case progs.MoveTypePush:
+				q.pusher(i)
+			case progs.MoveTypeNone:
+				q.none(i)
+			case progs.MoveTypeNoClip:
+				q.noClip(i)
+			case progs.MoveTypeStep:
+				q.step(i)
+			case progs.MoveTypeToss,
+				progs.MoveTypeBounce,
+				progs.MoveTypeFly,
+				progs.MoveTypeFlyMissile:
+				q.toss(i)
+			default:
+				Error("SV_Physics: bad movetype %v", mt)
+			}
+		}
+	}
+
+	if progsdat.Globals.ForceRetouch != 0 {
+		progsdat.Globals.ForceRetouch--
+	}
+
+	if !freezeNonClients {
+		sv.time += float32(host.frameTime)
+	}
+}
