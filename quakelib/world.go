@@ -77,7 +77,7 @@ func createAreaNode(depth int, mins, maxs vec.Vec3) *areaNode {
 	}
 	s := vec.Sub(maxs, mins)
 	an.axis = func() int {
-		if s.X > s.Y {
+		if s[0] > s[1] {
 			return 0
 		}
 		return 1
@@ -91,14 +91,14 @@ func createAreaNode(depth int, mins, maxs vec.Vec3) *areaNode {
 
 	switch an.axis {
 	case 0:
-		maxs1.X = an.dist
-		mins2.X = an.dist
+		maxs1[0] = an.dist
+		mins2[0] = an.dist
 	case 1:
-		maxs1.Y = an.dist
-		mins2.Y = an.dist
+		maxs1[1] = an.dist
+		mins2[1] = an.dist
 	case 2:
-		maxs1.Z = an.dist
-		mins2.Z = an.dist
+		maxs1[2] = an.dist
+		mins2[2] = an.dist
 	}
 
 	an.children[0] = createAreaNode(depth+1, mins2, maxs2)
@@ -330,36 +330,36 @@ func boxOnPlaneSide(mins, maxs vec.Vec3, p *model.Plane) int {
 		n := p.Normal
 		switch p.SignBits {
 		case 0:
-			d1 := n.X*maxs.X + n.Y*maxs.Y + n.Z*maxs.Z
-			d2 := n.X*mins.X + n.Y*mins.Y + n.Z*mins.Z
+			d1 := n[0]*maxs[0] + n[1]*maxs[1] + n[2]*maxs[2]
+			d2 := n[0]*mins[0] + n[1]*mins[1] + n[2]*mins[2]
 			return d1, d2
 		case 1:
-			d1 := n.X*mins.X + n.Y*maxs.Y + n.Z*maxs.Z
-			d2 := n.X*maxs.X + n.Y*mins.Y + n.Z*mins.Z
+			d1 := n[0]*mins[0] + n[1]*maxs[1] + n[2]*maxs[2]
+			d2 := n[0]*maxs[0] + n[1]*mins[1] + n[2]*mins[2]
 			return d1, d2
 		case 2:
-			d1 := n.X*maxs.X + n.Y*mins.Y + n.Z*maxs.Z
-			d2 := n.X*mins.X + n.Y*maxs.Y + n.Z*mins.Z
+			d1 := n[0]*maxs[0] + n[1]*mins[1] + n[2]*maxs[2]
+			d2 := n[0]*mins[0] + n[1]*maxs[1] + n[2]*mins[2]
 			return d1, d2
 		case 3:
-			d1 := n.X*mins.X + n.Y*mins.Y + n.Z*maxs.Z
-			d2 := n.X*maxs.X + n.Y*maxs.Y + n.Z*mins.Z
+			d1 := n[0]*mins[0] + n[1]*mins[1] + n[2]*maxs[2]
+			d2 := n[0]*maxs[0] + n[1]*maxs[1] + n[2]*mins[2]
 			return d1, d2
 		case 4:
-			d1 := n.X*maxs.X + n.Y*maxs.Y + n.Z*mins.Z
-			d2 := n.X*mins.X + n.Y*mins.Y + n.Z*maxs.Z
+			d1 := n[0]*maxs[0] + n[1]*maxs[1] + n[2]*mins[2]
+			d2 := n[0]*mins[0] + n[1]*mins[1] + n[2]*maxs[2]
 			return d1, d2
 		case 5:
-			d1 := n.X*mins.X + n.Y*maxs.Y + n.Z*mins.Z
-			d2 := n.X*maxs.X + n.Y*mins.Y + n.Z*maxs.Z
+			d1 := n[0]*mins[0] + n[1]*maxs[1] + n[2]*mins[2]
+			d2 := n[0]*maxs[0] + n[1]*mins[1] + n[2]*maxs[2]
 			return d1, d2
 		case 6:
-			d1 := n.X*maxs.X + n.Y*mins.Y + n.Z*mins.Z
-			d2 := n.X*mins.X + n.Y*maxs.Y + n.Z*maxs.Z
+			d1 := n[0]*maxs[0] + n[1]*mins[1] + n[2]*mins[2]
+			d2 := n[0]*mins[0] + n[1]*maxs[1] + n[2]*maxs[2]
 			return d1, d2
 		case 7:
-			d1 := n.X*mins.X + n.Y*mins.Y + n.Z*mins.Z
-			d2 := n.X*maxs.X + n.Y*maxs.Y + n.Z*maxs.Z
+			d1 := n[0]*mins[0] + n[1]*mins[1] + n[2]*mins[2]
+			d2 := n[0]*maxs[0] + n[1]*maxs[1] + n[2]*maxs[2]
 			return d1, d2
 		default:
 			Error("BoxOnPlaneSide: Bad signbits")
@@ -399,12 +399,12 @@ func clipToLinks(a *areaNode, clip *moveClip) {
 			continue
 		}
 
-		if clip.boxmaxs.X < tv.AbsMin[0] ||
-			clip.boxmaxs.Y < tv.AbsMin[1] ||
-			clip.boxmaxs.Z < tv.AbsMin[2] ||
-			clip.boxmins.X > tv.AbsMax[0] ||
-			clip.boxmins.Y > tv.AbsMax[1] ||
-			clip.boxmins.Z > tv.AbsMax[2] {
+		if clip.boxmaxs[0] < tv.AbsMin[0] ||
+			clip.boxmaxs[1] < tv.AbsMin[1] ||
+			clip.boxmaxs[2] < tv.AbsMin[2] ||
+			clip.boxmins[0] > tv.AbsMax[0] ||
+			clip.boxmins[1] > tv.AbsMax[1] ||
+			clip.boxmins[2] > tv.AbsMax[2] {
 			continue
 		}
 
@@ -477,22 +477,22 @@ func initBoxHull() {
 		boxHull.Planes[i].Type = byte(i >> 1)
 		switch i >> 1 {
 		case 0:
-			boxHull.Planes[i].Normal.X = 1
+			boxHull.Planes[i].Normal[0] = 1
 		case 1:
-			boxHull.Planes[i].Normal.Y = 1
+			boxHull.Planes[i].Normal[1] = 1
 		case 2:
-			boxHull.Planes[i].Normal.Z = 1
+			boxHull.Planes[i].Normal[2] = 1
 		}
 	}
 }
 
 func hullForBox(mins, maxs vec.Vec3) *model.Hull {
-	boxHull.Planes[0].Dist = maxs.X
-	boxHull.Planes[1].Dist = mins.X
-	boxHull.Planes[2].Dist = maxs.Y
-	boxHull.Planes[3].Dist = mins.Y
-	boxHull.Planes[4].Dist = maxs.Z
-	boxHull.Planes[5].Dist = mins.Z
+	boxHull.Planes[0].Dist = maxs[0]
+	boxHull.Planes[1].Dist = mins[0]
+	boxHull.Planes[2].Dist = maxs[1]
+	boxHull.Planes[3].Dist = mins[1]
+	boxHull.Planes[4].Dist = maxs[2]
+	boxHull.Planes[5].Dist = mins[2]
 	return &boxHull
 }
 
@@ -505,7 +505,7 @@ func hullForEntity(ent *progs.EntVars, mins, maxs vec.Vec3) (*model.Hull, vec.Ve
 		if m == nil || m.Type != model.ModBrush {
 			Error("MOVETYPE_PUSH with a non bsp model")
 		}
-		s := maxs.X - mins.X
+		s := maxs[0] - mins[0]
 		h := func() *model.Hull {
 			if s < 3 {
 				return &m.Hulls[0]
@@ -621,14 +621,14 @@ func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 vec.Vec
 	}
 	// the other side of the node is solid, this is the impact point
 	if side == 0 {
-		trace.plane.normal[0] = C.float(plane.Normal.X)
-		trace.plane.normal[1] = C.float(plane.Normal.Y)
-		trace.plane.normal[2] = C.float(plane.Normal.Z)
+		trace.plane.normal[0] = C.float(plane.Normal[0])
+		trace.plane.normal[1] = C.float(plane.Normal[1])
+		trace.plane.normal[2] = C.float(plane.Normal[2])
 		trace.plane.dist = C.float(plane.Dist)
 	} else {
-		trace.plane.normal[0] = C.float(-plane.Normal.X)
-		trace.plane.normal[1] = C.float(-plane.Normal.Y)
-		trace.plane.normal[2] = C.float(-plane.Normal.Z)
+		trace.plane.normal[0] = C.float(-plane.Normal[0])
+		trace.plane.normal[1] = C.float(-plane.Normal[1])
+		trace.plane.normal[2] = C.float(-plane.Normal[2])
 		trace.plane.dist = C.float(-plane.Dist)
 	}
 	for hullPointContents(h, h.FirstClipNode, mid) == CONTENTS_SOLID {
@@ -636,9 +636,9 @@ func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 vec.Vec
 		frac -= 0.1
 		if frac < 0 {
 			trace.fraction = C.float(midf)
-			trace.endpos[0] = C.float(mid.X)
-			trace.endpos[1] = C.float(mid.Y)
-			trace.endpos[2] = C.float(mid.Z)
+			trace.endpos[0] = C.float(mid[0])
+			trace.endpos[1] = C.float(mid[1])
+			trace.endpos[2] = C.float(mid[2])
 			conlog.DPrintf("backup past 0\n")
 			return false
 		}
@@ -646,9 +646,9 @@ func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 vec.Vec
 		mid = vec.Lerp(p1, p2, frac)
 	}
 	trace.fraction = C.float(midf)
-	trace.endpos[0] = C.float(mid.X)
-	trace.endpos[1] = C.float(mid.Y)
-	trace.endpos[2] = C.float(mid.Z)
+	trace.endpos[0] = C.float(mid[0])
+	trace.endpos[1] = C.float(mid[1])
+	trace.endpos[2] = C.float(mid[2])
 
 	return false
 }
@@ -657,18 +657,18 @@ func clipMoveToEntity(ent int, start, mins, maxs, end vec.Vec3) C.trace_t {
 	var trace C.trace_t
 	trace.fraction = 1
 	trace.allsolid = b2i(true)
-	trace.endpos[0] = C.float(end.X)
-	trace.endpos[1] = C.float(end.Y)
-	trace.endpos[2] = C.float(end.Z)
+	trace.endpos[0] = C.float(end[0])
+	trace.endpos[1] = C.float(end[1])
+	trace.endpos[2] = C.float(end[2])
 	hull, offset := hullForEntity(EntVars(ent), mins, maxs)
 	startL := vec.Sub(start, offset)
 	endL := vec.Sub(end, offset)
 	recursiveHullCheck(hull, hull.FirstClipNode, 0, 1, startL, endL, &trace)
 
 	if trace.fraction != 1 {
-		trace.endpos[0] += C.float(offset.X)
-		trace.endpos[1] += C.float(offset.Y)
-		trace.endpos[2] += C.float(offset.Z)
+		trace.endpos[0] += C.float(offset[0])
+		trace.endpos[1] += C.float(offset[1])
+		trace.endpos[2] += C.float(offset[2])
 	}
 	if trace.fraction < 1 || trace.startsolid != 0 {
 		trace.entn = C.int(ent)
@@ -685,9 +685,9 @@ func (c *moveClip) moveBounds(s, e vec.Vec3) {
 
 func p2v3(p *C.float) vec.Vec3 {
 	return vec.Vec3{
-		X: float32(C.cf(0, p)),
-		Y: float32(C.cf(1, p)),
-		Z: float32(C.cf(2, p)),
+		float32(C.cf(0, p)),
+		float32(C.cf(1, p)),
+		float32(C.cf(2, p)),
 	}
 }
 
@@ -750,10 +750,10 @@ func checkBottom(ent int) bool {
 	// if all of the points under the corners are solid world, don't bother
 	// with the tougher checks
 	d := []vec.Vec3{
-		vec.Vec3{mins.X, mins.Y, mins.Z - 1},
-		vec.Vec3{mins.X, maxs.Y, mins.Z - 1},
-		vec.Vec3{maxs.X, mins.Y, mins.Z - 1},
-		vec.Vec3{maxs.X, maxs.Y, mins.Z - 1},
+		vec.Vec3{mins[0], mins[1], mins[2] - 1},
+		vec.Vec3{mins[0], maxs[1], mins[2] - 1},
+		vec.Vec3{maxs[0], mins[1], mins[2] - 1},
+		vec.Vec3{maxs[0], maxs[1], mins[2] - 1},
 	}
 	for _, start := range d {
 		if pointContents(start) != CONTENTS_SOLID {
@@ -764,14 +764,14 @@ func checkBottom(ent int) bool {
 }
 
 func expensiveCheckBottom(ent int, mins, maxs vec.Vec3) bool {
-	level := mins.Z
-	below := mins.Z - 2*kStepSize
+	level := mins[2]
+	below := mins[2] - 2*kStepSize
 	start := vec.Vec3{
-		(mins.X + maxs.X) * 0.5,
-		(mins.Y + maxs.Y) * 0.5,
+		(mins[0] + maxs[0]) * 0.5,
+		(mins[1] + maxs[1]) * 0.5,
 		level,
 	}
-	stop := vec.Vec3{start.X, start.Y, below}
+	stop := vec.Vec3{start[0], start[1], below}
 	trace := svMove(start, vec.Vec3{}, vec.Vec3{}, stop, MOVE_NOMONSTERS, ent)
 
 	if trace.fraction == 1.0 {
@@ -781,15 +781,15 @@ func expensiveCheckBottom(ent int, mins, maxs vec.Vec3) bool {
 	bottom := trace.endpos[2]
 
 	d := []vec.Vec3{
-		vec.Vec3{mins.X, mins.Y, 0},
-		vec.Vec3{mins.X, maxs.Y, 0},
-		vec.Vec3{maxs.X, mins.Y, 0},
-		vec.Vec3{maxs.X, maxs.Y, 0},
+		vec.Vec3{mins[0], mins[1], 0},
+		vec.Vec3{mins[0], maxs[1], 0},
+		vec.Vec3{maxs[0], mins[1], 0},
+		vec.Vec3{maxs[0], maxs[1], 0},
 	}
 
 	for _, p := range d {
-		start := vec.Vec3{p.X, p.Y, level}
-		stop := vec.Vec3{p.X, p.Y, below}
+		start := vec.Vec3{p[0], p[1], level}
+		stop := vec.Vec3{p[0], p[1], below}
 		trace := svMove(start, vec.Vec3{}, vec.Vec3{}, stop, MOVE_NOMONSTERS, ent)
 
 		if trace.fraction != 1.0 && trace.endpos[2] > bottom {

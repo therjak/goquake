@@ -66,7 +66,7 @@ func cfloatToVec3(f *C.float) vec.Vec3 {
 	a := C.cf(0, f)
 	b := C.cf(1, f)
 	c := C.cf(2, f)
-	return vec.Vec3{X: float32(a), Y: float32(b), Z: float32(c)}
+	return vec.Vec3{float32(a), float32(b), float32(c)}
 }
 
 //export S_Update

@@ -4,26 +4,24 @@ import (
 	"github.com/chewxy/math32"
 )
 
-type Vec3 struct {
-	X, Y, Z float32
-}
+type Vec3 [3]float32
 
 func VFromA(a [3]float32) Vec3 {
 	return Vec3{a[0], a[1], a[2]}
 }
 
 func (v *Vec3) Array() [3]float32 {
-	return [3]float32{v.X, v.Y, v.Z}
+	return *v
 }
 
 func (v *Vec3) Idx(i int) float32 {
 	switch i {
 	default:
-		return v.X
+		return v[0]
 	case 1:
-		return v.Y
+		return v[1]
 	case 2:
-		return v.Z
+		return v[2]
 	}
 }
 
@@ -35,27 +33,27 @@ func (v Vec3) Length() float32 {
 // Add returns a + b
 func Add(a, b Vec3) Vec3 {
 	return Vec3{
-		X: a.X + b.X,
-		Y: a.Y + b.Y,
-		Z: a.Z + b.Z,
+		a[0] + b[0],
+		a[1] + b[1],
+		a[2] + b[2],
 	}
 }
 
 // Sub returns a - b
 func Sub(a, b Vec3) Vec3 {
 	return Vec3{
-		X: a.X - b.X,
-		Y: a.Y - b.Y,
-		Z: a.Z - b.Z,
+		a[0] - b[0],
+		a[1] - b[1],
+		a[2] - b[2],
 	}
 }
 
 // Scale returns the vector multiplied by the skalar s
 func (v Vec3) Scale(s float32) Vec3 {
 	return Vec3{
-		X: v.X * s,
-		Y: v.Y * s,
-		Z: v.Z * s,
+		v[0] * s,
+		v[1] * s,
+		v[2] * s,
 	}
 }
 
@@ -70,7 +68,7 @@ func (v Vec3) Normalize() Vec3 {
 
 // Dot returns a dot b
 func Dot(a Vec3, b Vec3) float32 {
-	return a.X*b.X + a.Y*b.Y + a.Z*b.Z
+	return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]
 }
 
 // DoublePrecDot return a dot b calculated in double precision
@@ -78,15 +76,15 @@ func DoublePrecDot(a Vec3, b Vec3) float32 {
 	p := func(x, y float32) float64 {
 		return float64(x) * float64(y)
 	}
-	return float32(p(a.X, b.X) + p(a.Y, b.Y) + p(a.Z, b.Z))
+	return float32(p(a[0], b[0]) + p(a[1], b[1]) + p(a[2], b[2]))
 }
 
 // Cross returns a cross b
 func Cross(a, b Vec3) Vec3 {
 	return Vec3{
-		a.Y*b.Z - a.Z*b.Y,
-		a.Z*b.X - a.X*b.Z,
-		a.X*b.Y - a.Y*b.X,
+		a[1]*b[2] - a[2]*b[1],
+		a[2]*b[0] - a[0]*b[2],
+		a[0]*b[1] - a[1]*b[0],
 	}
 }
 
@@ -94,16 +92,16 @@ func Cross(a, b Vec3) Vec3 {
 func Lerp(a, b Vec3, frac float32) Vec3 {
 	fi := 1 - frac
 	return Vec3{
-		fi*a.X + frac*b.X,
-		fi*a.Y + frac*b.Y,
-		fi*a.Z + frac*b.Z,
+		fi*a[0] + frac*b[0],
+		fi*a[1] + frac*b[1],
+		fi*a[2] + frac*b[2],
 	}
 }
 
 // Equal returns a == b
-func Equal(a Vec3, b Vec3) bool {
-	return a.X == b.X && a.Y == b.Y && a.Z == b.Z
-}
+// func Equal(a Vec3, b Vec3) bool {
+// 	return a == b
+// }
 
 func minmax(a, b float32) (float32, float32) {
 	if a < b {
@@ -114,17 +112,17 @@ func minmax(a, b float32) (float32, float32) {
 
 func MinMax(a, b Vec3) (Vec3, Vec3) {
 	var r, s Vec3
-	r.X, s.X = minmax(a.X, b.X)
-	r.Y, s.Y = minmax(a.Y, b.Y)
-	r.Z, s.Z = minmax(a.Z, b.Z)
+	r[0], s[0] = minmax(a[0], b[0])
+	r[1], s[1] = minmax(a[1], b[1])
+	r[2], s[2] = minmax(a[2], b[2])
 	return r, s
 }
 
 func AngleVectors(angles Vec3) (forward, right, up Vec3) {
 	deg := math32.Pi * 2 / 360
-	sp, cp := math32.Sincos(angles.X * deg) // PITCH
-	sy, cy := math32.Sincos(angles.Y * deg) // YAW
-	sr, cr := math32.Sincos(angles.Z * deg) // ROLL
+	sp, cp := math32.Sincos(angles[0] * deg) // PITCH
+	sy, cy := math32.Sincos(angles[1] * deg) // YAW
+	sr, cr := math32.Sincos(angles[2] * deg) // ROLL
 
 	forward = Vec3{cp * cy, cp * sy, -sp}
 	right = Vec3{

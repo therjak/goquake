@@ -58,12 +58,12 @@ func (c *SVClient) noclipMove() {
 	umove := float32(c.cmd.upmove)
 
 	velocity := vec.Vec3{
-		forward.X*fmove + right.X*smove,
-		forward.Y*fmove + right.Y*smove,
-		forward.Z*fmove + right.Z*smove,
+		forward[0]*fmove + right[0]*smove,
+		forward[1]*fmove + right[1]*smove,
+		forward[2]*fmove + right[2]*smove,
 	}
 	// doubled to match running speed
-	velocity.Z += umove * 2
+	velocity[2] += umove * 2
 
 	max := cvars.ServerMaxSpeed.Value()
 	if velocity.Length() > max {
@@ -84,16 +84,16 @@ func (c *SVClient) waterMove() {
 	umove := float32(c.cmd.upmove)
 
 	wishvel := vec.Vec3{
-		forward.X*fmove + right.X*smove,
-		forward.Y*fmove + right.Y*smove,
-		forward.Z*fmove + right.Z*smove,
+		forward[0]*fmove + right[0]*smove,
+		forward[1]*fmove + right[1]*smove,
+		forward[2]*fmove + right[2]*smove,
 	}
 
 	if fmove == 0 && smove == 0 && umove == 0 {
 		// drift towards bottom
-		wishvel.Z -= 60
+		wishvel[2] -= 60
 	} else {
-		wishvel.Z += umove
+		wishvel[2] += umove
 	}
 
 	wishspeed := wishvel.Length()
@@ -139,19 +139,19 @@ func (c *SVClient) userFriction() {
 	ev := EntVars(c.edictId)
 	velocity := vec.VFromA(ev.Velocity)
 	origin := vec.VFromA(ev.Origin)
-	speed := math32.Sqrt(velocity.X*velocity.X + velocity.Y*velocity.Y)
+	speed := math32.Sqrt(velocity[0]*velocity[0] + velocity[1]*velocity[1])
 	if speed == 0 {
 		return
 	}
 
 	// if the leading edge is over a dropoff, increase friction
 	start := vec.Vec3{
-		origin.X + velocity.X/speed*16,
-		origin.Y + velocity.Y/speed*16,
-		origin.Z + ev.Mins[2],
+		origin[0] + velocity[0]/speed*16,
+		origin[1] + velocity[1]/speed*16,
+		origin[2] + ev.Mins[2],
 	}
 	stop := start
-	stop.Z -= 34
+	stop[2] -= 34
 
 	trace := svMove(start, vec.Vec3{}, vec.Vec3{}, stop, 1, c.edictId)
 
@@ -191,13 +191,13 @@ func (c *SVClient) airMove() {
 	}
 
 	wishvel := vec.Vec3{
-		forward.X*fmove + right.X*smove,
-		forward.Y*fmove + right.Y*smove,
+		forward[0]*fmove + right[0]*smove,
+		forward[1]*fmove + right[1]*smove,
 		0,
 	}
 
 	if ev.MoveType != progs.MoveTypeWalk {
-		wishvel.Z = umove
+		wishvel[2] = umove
 	}
 
 	wishspeed := wishvel.Length()
@@ -272,10 +272,10 @@ func (c *SVClient) Think() {
 
 	// show 1/3 the pitch angle and all the roll angle
 	vAngle := vec.Add(vec.VFromA(ev.VAngle), vec.VFromA(ev.PunchAngle))
-	angles.Z = CalcRoll(angles, vec.VFromA(ev.Velocity)) * 4 // ROLL
+	angles[2] = CalcRoll(angles, vec.VFromA(ev.Velocity)) * 4 // ROLL
 	if ev.FixAngle == 0 {
-		angles.X = -vAngle.X / 3 // PITCH
-		angles.Y = vAngle.Y      // YAW
+		angles[0] = -vAngle[0] / 3 // PITCH
+		angles[1] = vAngle[1]      // YAW
 	}
 	ev.Angles = angles.Array()
 

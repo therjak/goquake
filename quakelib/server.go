@@ -346,9 +346,9 @@ func (s *Server) StartParticle(org, dir vec.Vec3, color, count int) {
 		return
 	}
 	s.datagram.WriteByte(server.Particle)
-	s.datagram.WriteCoord(org.X, int(s.protocolFlags))
-	s.datagram.WriteCoord(org.Y, int(s.protocolFlags))
-	s.datagram.WriteCoord(org.Z, int(s.protocolFlags))
+	s.datagram.WriteCoord(org[0], int(s.protocolFlags))
+	s.datagram.WriteCoord(org[1], int(s.protocolFlags))
+	s.datagram.WriteCoord(org[2], int(s.protocolFlags))
 	df := func(d float32) int {
 		v := d * 16
 		if v > 127 {
@@ -359,9 +359,9 @@ func (s *Server) StartParticle(org, dir vec.Vec3, color, count int) {
 		}
 		return int(v)
 	}
-	s.datagram.WriteChar(df(dir.X))
-	s.datagram.WriteChar(df(dir.Y))
-	s.datagram.WriteChar(df(dir.Z))
+	s.datagram.WriteChar(df(dir[0]))
+	s.datagram.WriteChar(df(dir[1]))
+	s.datagram.WriteChar(df(dir[2]))
 	s.datagram.WriteByte(count)
 	s.datagram.WriteByte(color)
 }
@@ -1144,7 +1144,7 @@ func SV_SetIdealPitch() {
 			ev.Origin[2] + ev.ViewOfs[2],
 		}
 		bottom := top
-		bottom.Z -= 160
+		bottom[2] -= 160
 
 		tr := svMove(top, vec.Vec3{}, vec.Vec3{}, bottom, 1, sv_player)
 		if tr.allsolid != 0 {
@@ -1157,7 +1157,7 @@ func SV_SetIdealPitch() {
 			return
 		}
 
-		z[i] = top.Z + float32(tr.fraction)*(bottom.Z-top.Z)
+		z[i] = top[2] + float32(tr.fraction)*(bottom[2]-top[2])
 	}
 
 	// Original Quake has both dir and step as int but the code does not make any

@@ -197,9 +197,9 @@ func convHulls(h *[4]C.hull_t) [4]model.Hull {
 
 func v3v3(v C.vec3_t) vec.Vec3 {
 	return vec.Vec3{
-		X: float32(v[0]),
-		Y: float32(v[1]),
-		Z: float32(v[2]),
+		float32(v[0]),
+		float32(v[1]),
+		float32(v[2]),
 	}
 }
 

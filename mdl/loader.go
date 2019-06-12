@@ -56,12 +56,12 @@ func calcAliasBounds(mod *qm.QModel, ah *aliashdr,
 				float32(poseverts[i][j].PackedPosition[1])*pheader.Scale[1] + pheader.ScaleOrigin[1],
 				float32(poseverts[i][j].PackedPosition[2])*pheader.Scale[0] + pheader.ScaleOrigin[2],
 			}
-			mod.Mins.X = min(mod.Mins.X, v.X)
-			mod.Mins.Y = min(mod.Mins.Y, v.Y)
-			mod.Mins.Z = min(mod.Mins.Z, v.Z)
-			mod.Maxs.X = max(mod.Maxs.X, v.X)
-			mod.Maxs.Y = max(mod.Maxs.Y, v.Y)
-			mod.Maxs.Z = max(mod.Maxs.Z, v.Z)
+			mod.Mins[0] = min(mod.Mins[0], v[0])
+			mod.Mins[1] = min(mod.Mins[1], v[1])
+			mod.Mins[2] = min(mod.Mins[2], v[2])
+			mod.Maxs[0] = max(mod.Maxs[0], v[0])
+			mod.Maxs[1] = max(mod.Maxs[1], v[1])
+			mod.Maxs[2] = max(mod.Maxs[2], v[2])
 		}
 	}
 }

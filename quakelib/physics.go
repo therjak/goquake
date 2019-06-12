@@ -123,8 +123,8 @@ func (q *qphysics) wallFriction(ent int, planeNormal vec.Vec3) {
 	i := vec.Dot(planeNormal, v)
 	into := planeNormal.Scale(i)
 	side := vec.Sub(v, into)
-	ev.Velocity[0] = side.X * (1 + d)
-	ev.Velocity[1] = side.Y * (1 + d)
+	ev.Velocity[0] = side[0] * (1 + d)
+	ev.Velocity[1] = side[1] * (1 + d)
 }
 
 //export SV_WalkMove
@@ -183,7 +183,7 @@ func (q *qphysics) walkMove(ent int) {
 	// back to start pos
 	ev.Origin = oldOrigin
 	upMove := vec.Vec3{0, 0, STEPSIZE}
-	downMove := vec.Vec3{0, 0, -STEPSIZE + oldVelocity.Z*time}
+	downMove := vec.Vec3{0, 0, -STEPSIZE + oldVelocity[2]*time}
 
 	// move up
 	pushEntity(ent, upMove) // FIXME: don't link?
@@ -478,9 +478,9 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *C.trace_t) int {
 		maxs := vec.VFromA(ev.Maxs)
 		velocity := vec.VFromA(ev.Velocity)
 		end := vec.Vec3{
-			origin.X + time_left*velocity.X,
-			origin.Y + time_left*velocity.Y,
-			origin.Z + time_left*velocity.Z,
+			origin[0] + time_left*velocity[0],
+			origin[1] + time_left*velocity[1],
+			origin[2] + time_left*velocity[2],
 		}
 
 		trace := svMove(origin, mins, maxs, end, MOVE_NORMAL, ent)
@@ -597,11 +597,11 @@ func (q *qphysics) checkWater(ent int) bool {
 	if cont <= CONTENTS_WATER {
 		ev.WaterType = float32(cont)
 		ev.WaterLevel = 1
-		point.Z = ev.Origin[2] + (ev.Mins[2]+ev.Maxs[2])*0.5
+		point[2] = ev.Origin[2] + (ev.Mins[2]+ev.Maxs[2])*0.5
 		cont = pointContents(point)
 		if cont <= CONTENTS_WATER {
 			ev.WaterLevel = 2
-			point.Z = ev.Origin[2] + ev.ViewOfs[2]
+			point[2] = ev.Origin[2] + ev.ViewOfs[2]
 			cont = pointContents(point)
 			if cont <= CONTENTS_WATER {
 				ev.WaterLevel = 3
@@ -617,9 +617,9 @@ func (q *qphysics) checkWater(ent int) bool {
 func (q *qphysics) clipVelocity(in, normal vec.Vec3, overbounce float32) (int, vec.Vec3) {
 	blocked := func() int {
 		switch {
-		case normal.Z > 0:
+		case normal[2] > 0:
 			return 1 // floor
-		case normal.Z == 0:
+		case normal[2] == 0:
 			return 2 // step
 		default:
 			return 0
@@ -637,9 +637,9 @@ func (q *qphysics) clipVelocity(in, normal vec.Vec3, overbounce float32) (int, v
 	}
 
 	out := vec.Vec3{
-		e(in.X - normal.X*backoff),
-		e(in.Y - normal.Y*backoff),
-		e(in.Z - normal.Z*backoff),
+		e(in[0] - normal[0]*backoff),
+		e(in[1] - normal[1]*backoff),
+		e(in[2] - normal[2]*backoff),
 	}
 
 	return blocked, out

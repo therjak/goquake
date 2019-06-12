@@ -10,7 +10,7 @@ var (
 
 func TestBasics(t *testing.T) {
 	v := Vec3{1, 2, 3}
-	if v.X != 1 || v.Y != 2 || v.Z != 3 {
+	if v[0] != 1 || v[1] != 2 || v[2] != 3 {
 		t.Errorf("Vector construction is not obvious")
 	}
 }
@@ -36,16 +36,16 @@ func TestLength(t *testing.T) {
 func TestAdd(t *testing.T) {
 	v := Vec3{1, 2, 3}
 	got := Add(NULL, v)
-	if !Equal(v, got) {
+	if v != got {
 		t.Errorf("Adding a null vector changed the vector")
 	}
 	got = Add(v, NULL)
-	if !Equal(v, got) {
+	if v != got {
 		t.Errorf("Adding a null vector changed the vector")
 	}
 	got = Add(v, v)
 	want := Vec3{2, 4, 6}
-	if !Equal(got, want) {
+	if got != want {
 		t.Errorf("Add(%v,%v) = %v want %v", v, v, got, want)
 	}
 }
@@ -53,17 +53,17 @@ func TestAdd(t *testing.T) {
 func TestSub(t *testing.T) {
 	v := Vec3{1, 2, 3}
 	got := Sub(v, NULL)
-	if !Equal(v, got) {
+	if v != got {
 		t.Errorf("Substracting a null vector changed the vector")
 	}
 	got = Sub(v, v)
-	if !Equal(got, NULL) {
+	if got != NULL {
 		t.Errorf("Sub(%v,%v) = %v want %v", v, v, got, NULL)
 	}
 	v2 := Vec3{9, 7, 5}
 	got = Sub(v2, v)
 	want := Vec3{8, 5, 2}
-	if !Equal(got, want) {
+	if got != want {
 		t.Errorf("Sub(%v,%v) = %v want %v", v2, v, got, want)
 	}
 }
@@ -71,16 +71,16 @@ func TestSub(t *testing.T) {
 func TestScale(t *testing.T) {
 	v := Vec3{1, 2, 3}
 	got := Add(NULL, v)
-	if !Equal(v, got) {
+	if v != got {
 		t.Errorf("Adding a null vector changed the vector")
 	}
 	got = Add(v, NULL)
-	if !Equal(v, got) {
+	if v != got {
 		t.Errorf("Adding a null vector changed the vector")
 	}
 	got = Add(v, v)
 	want := Vec3{2, 4, 6}
-	if !Equal(got, want) {
+	if got != want {
 		t.Errorf("Add(%v,%v) = %v want %v", v, v, got, want)
 	}
 
@@ -95,10 +95,10 @@ func TestDot(t *testing.T) {
 func TestEqual(t *testing.T) {
 	v1 := Vec3{2, 3, 4}
 	v2 := Vec3{4, 3, 2}
-	if !Equal(v1, v1) {
+	if v1 != v1 {
 		t.Errorf("Vectors are not considered equal to them self")
 	}
-	if Equal(v1, v2) {
+	if v1 == v2 {
 		t.Errorf("Vectors %v and %v are considered equal", v1, v2)
 	}
 }

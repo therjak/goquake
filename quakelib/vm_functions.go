@@ -110,7 +110,7 @@ func PF_setorigin() {
 }
 
 func setMinMaxSize(ev *progs.EntVars, min, max vec.Vec3) {
-	if min.X > max.X || min.Y > max.Y || min.Z > max.Z {
+	if min[0] > max[0] || min[1] > max[1] || min[2] > max[2] {
 		runError("backwards mins/maxs")
 	}
 	ev.Mins = min.Array()
@@ -190,10 +190,10 @@ func PF_vlen() {
 func PF_vectoyaw() {
 	v := vec.VFromA(*progsdat.Globals.Parm0f())
 	yaw := func() float32 {
-		if v.X == 0 && v.Y == 0 {
+		if v[0] == 0 && v[1] == 0 {
 			return 0
 		}
-		y := (math32.Atan2(v.Y, v.X) * 180) / math32.Pi
+		y := (math32.Atan2(v[1], v[0]) * 180) / math32.Pi
 		y = math32.Trunc(y)
 		if y < 0 {
 			y += 360
@@ -207,22 +207,22 @@ func PF_vectoyaw() {
 func PF_vectoangles() {
 	v := vec.VFromA(*progsdat.Globals.Parm0f())
 	yaw, pitch := func() (float32, float32) {
-		if v.X == 0 && v.Y == 0 {
+		if v[0] == 0 && v[1] == 0 {
 			p := func() float32 {
-				if v.Z > 0 {
+				if v[2] > 0 {
 					return 90
 				}
 				return 270
 			}()
 			return 0, p
 		}
-		y := (math32.Atan2(v.Y, v.X) * 180) / math32.Pi
+		y := (math32.Atan2(v[1], v[0]) * 180) / math32.Pi
 		y = math32.Trunc(y)
 		if y < 0 {
 			y += 360
 		}
-		forward := math32.Sqrt(v.X*v.X + v.Y*v.Y)
-		p := (math32.Atan2(v.Z, forward) * 180) / math32.Pi
+		forward := math32.Sqrt(v[0]*v[0] + v[1]*v[1])
+		p := (math32.Atan2(v[2], forward) * 180) / math32.Pi
 		p = math32.Trunc(p)
 		if p < 0 {
 			p += 360
@@ -289,9 +289,9 @@ func PF_ambientsound() {
 		sv.signon.WriteByte(server.SpawnStaticSound)
 	}
 
-	sv.signon.WriteCoord(pos.X, int(sv.protocolFlags))
-	sv.signon.WriteCoord(pos.Y, int(sv.protocolFlags))
-	sv.signon.WriteCoord(pos.Z, int(sv.protocolFlags))
+	sv.signon.WriteCoord(pos[0], int(sv.protocolFlags))
+	sv.signon.WriteCoord(pos[1], int(sv.protocolFlags))
+	sv.signon.WriteCoord(pos[2], int(sv.protocolFlags))
 
 	if large {
 		sv.signon.WriteShort(soundnum)
@@ -353,16 +353,16 @@ func PF_traceline() {
 
 	// FIXME FIXME FIXME: Why do we hit this with certain progs.dat ??
 	if cvars.Developer.Bool() {
-		if !vec.Equal(v1, v1) || !vec.Equal(v2, v2) {
+		if v1 != v1 || v2 != v2 {
 			conlog.Printf("NAN in traceline:\nv1(%v %v %v) v2(%v %v %v)\nentity %v\n",
-				v1.X, v1.Y, v1.Z, v2.X, v2.Y, v2.Z, ent)
+				v1[0], v1[1], v1[2], v2[0], v2[1], v2[2], ent)
 		}
 	}
 
-	if !vec.Equal(v1, v1) {
+	if v1 != v1 {
 		v1 = vec.Vec3{}
 	}
-	if !vec.Equal(v2, v2) {
+	if v2 != v2 {
 		v2 = vec.Vec3{}
 	}
 
@@ -774,7 +774,7 @@ func PF_droptofloor() {
 	mins := vec.VFromA(ev.Mins)
 	maxs := vec.VFromA(ev.Maxs)
 	end := vec.VFromA(ev.Origin)
-	end.Z -= 256
+	end[2] -= 256
 
 	trace := svMove(start, mins, maxs, end, MOVE_NORMAL, ent)
 
@@ -885,7 +885,7 @@ func PF_aim() {
 	// speed := progsdat.RawGlobalsF[progs.OffsetParm1]
 
 	start := vec.VFromA(ev.Origin)
-	start.Z += 20
+	start[2] += 20
 
 	// try sending a trace straight
 	dir := vec.VFromA(progsdat.Globals.VForward)
@@ -946,7 +946,7 @@ func PF_aim() {
 		vforward := vec.VFromA(progsdat.Globals.VForward)
 		dist := vec.Dot(dir, vforward)
 		end := vforward.Scale(dist)
-		end.Z = dir.Z
+		end[2] = dir[2]
 		end = end.Normalize()
 		*progsdat.Globals.Returnf() = end.Array()
 	} else {

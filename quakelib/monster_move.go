@@ -36,12 +36,12 @@ func monsterMoveStep(ent int, move vec.Vec3, relink bool) bool {
 			neworg := vec.Add(origin, move)
 			enemy := int(ev.Enemy)
 			if i == 0 && enemy != 0 {
-				dz := origin.Z - EntVars(enemy).Origin[2]
+				dz := origin[2] - EntVars(enemy).Origin[2]
 				if dz > 40 {
-					neworg.Z -= 8
+					neworg[2] -= 8
 				}
 				if dz < 30 {
-					neworg.Z += 8
+					neworg[2] += 8
 				}
 			}
 			trace := svMove(origin, mins, maxs, neworg, MOVE_NORMAL, ent)
@@ -74,15 +74,15 @@ func monsterMoveStep(ent int, move vec.Vec3, relink bool) bool {
 	neworg := vec.Add(oldorg, move)
 
 	// push down from a step height above the wished position
-	neworg.Z += STEPSIZE
+	neworg[2] += STEPSIZE
 	end := neworg
-	end.Z -= STEPSIZE * 2
+	end[2] -= STEPSIZE * 2
 	trace := svMove(neworg, mins, maxs, end, MOVE_NORMAL, ent)
 	if trace.allsolid != 0 {
 		return false
 	}
 	if trace.startsolid != 0 {
-		neworg.Z -= STEPSIZE
+		neworg[2] -= STEPSIZE
 		trace = svMove(neworg, mins, maxs, end, MOVE_NORMAL, ent)
 		if trace.allsolid != 0 || trace.startsolid != 0 {
 			return false
