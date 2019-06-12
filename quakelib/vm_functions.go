@@ -113,10 +113,9 @@ func setMinMaxSize(ev *progs.EntVars, min, max vec.Vec3) {
 	if min[0] > max[0] || min[1] > max[1] || min[2] > max[2] {
 		runError("backwards mins/maxs")
 	}
-	ev.Mins = min.Array()
-	ev.Maxs = max.Array()
-	s := vec.Sub(max, min)
-	ev.Size = s.Array()
+	ev.Mins = min
+	ev.Maxs = max
+	ev.Size = vec.Sub(max, min)
 }
 
 //export PF_setsize
@@ -175,8 +174,7 @@ func PF_setmodel() {
 //export PF_normalize
 func PF_normalize() {
 	v := vec.VFromA(*progsdat.Globals.Parm0f())
-	vn := v.Normalize()
-	*progsdat.Globals.Returnf() = vn.Array()
+	*progsdat.Globals.Returnf() = v.Normalize()
 }
 
 //export PF_vlen
@@ -847,9 +845,9 @@ func PF_checkbottom() {
 func PF_makevectors() {
 	v := vec.VFromA(*progsdat.Globals.Parm0f())
 	f, r, u := vec.AngleVectors(v)
-	progsdat.Globals.VForward = f.Array()
-	progsdat.Globals.VRight = r.Array()
-	progsdat.Globals.VUp = u.Array()
+	progsdat.Globals.VForward = f
+	progsdat.Globals.VRight = r
+	progsdat.Globals.VUp = u
 }
 
 //export PF_pointcontents
@@ -948,9 +946,9 @@ func PF_aim() {
 		end := vforward.Scale(dist)
 		end[2] = dir[2]
 		end = end.Normalize()
-		*progsdat.Globals.Returnf() = end.Array()
+		*progsdat.Globals.Returnf() = end
 	} else {
-		*progsdat.Globals.Returnf() = bestdir.Array()
+		*progsdat.Globals.Returnf() = bestdir
 	}
 }
 

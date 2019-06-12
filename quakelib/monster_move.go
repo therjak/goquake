@@ -56,7 +56,7 @@ func monsterMoveStep(ent int, move vec.Vec3, relink bool) bool {
 					return false
 				}
 
-				ev.Origin = endpos.Array()
+				ev.Origin = endpos
 				if relink {
 					LinkEdict(ent, true)
 				}
@@ -93,7 +93,7 @@ func monsterMoveStep(ent int, move vec.Vec3, relink bool) bool {
 		// if monster had the ground pulled out, go ahead and fall
 		if flags&FL_PARTIALGROUND != 0 {
 			neworg = vec.Add(oldorg, move)
-			ev.Origin = neworg.Array()
+			ev.Origin = neworg
 			if relink {
 				LinkEdict(ent, true)
 			}
@@ -109,7 +109,7 @@ func monsterMoveStep(ent int, move vec.Vec3, relink bool) bool {
 		float32(trace.endpos[2]),
 	}
 	// check point traces down for dangling corners
-	ev.Origin = endpos.Array()
+	ev.Origin = endpos
 
 	if !checkBottom(ent) {
 		if flags&FL_PARTIALGROUND != 0 {
@@ -120,7 +120,7 @@ func monsterMoveStep(ent int, move vec.Vec3, relink bool) bool {
 			}
 			return true
 		}
-		ev.Origin = oldorg.Array()
+		ev.Origin = oldorg
 		return false
 	}
 

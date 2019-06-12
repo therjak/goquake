@@ -20,8 +20,7 @@ func (c *SVClient) accelerate(wishspeed float32, wishdir vec.Vec3) {
 	if accelspeed > addspeed {
 		accelspeed = addspeed
 	}
-	velocity = vec.Add(velocity, wishdir.Scale(accelspeed))
-	ev.Velocity = velocity.Array()
+	ev.Velocity = vec.Add(velocity, wishdir.Scale(accelspeed))
 }
 
 func (c *SVClient) airAccelerate(wishspeed float32, wishveloc vec.Vec3) {
@@ -44,8 +43,7 @@ func (c *SVClient) airAccelerate(wishspeed float32, wishveloc vec.Vec3) {
 	if accelspeed > addspeed {
 		accelspeed = addspeed
 	}
-	velocity = vec.Add(velocity, wishveloc.Scale(accelspeed))
-	ev.Velocity = velocity.Array()
+	ev.Velocity = vec.Add(velocity, wishveloc.Scale(accelspeed))
 }
 
 func (c *SVClient) noclipMove() {
@@ -70,7 +68,7 @@ func (c *SVClient) noclipMove() {
 		velocity = velocity.Normalize()
 		velocity = velocity.Scale(max)
 	}
-	ev.Velocity = velocity.Array()
+	ev.Velocity = velocity
 }
 
 func (c *SVClient) waterMove() {
@@ -130,9 +128,7 @@ func (c *SVClient) waterMove() {
 	if accelspeed > addspeed {
 		accelspeed = addspeed
 	}
-	velocity = vec.Add(velocity, wishvel.Scale(accelspeed))
-
-	ev.Velocity = velocity.Array()
+	ev.Velocity = vec.Add(velocity, wishvel.Scale(accelspeed))
 }
 
 func (c *SVClient) userFriction() {
@@ -174,8 +170,7 @@ func (c *SVClient) userFriction() {
 		return
 	}
 	newspeed /= speed
-	velocity = velocity.Scale(newspeed)
-	ev.Velocity = velocity.Array()
+	ev.Velocity = velocity.Scale(newspeed)
 }
 
 func (c *SVClient) airMove() {
@@ -216,7 +211,7 @@ func (c *SVClient) airMove() {
 
 	onground := int(ev.Flags)&FL_ONGROUND != 0
 	if ev.MoveType == progs.MoveTypeNoClip {
-		ev.Velocity = wishvel.Array()
+		ev.Velocity = wishvel
 	} else if onground {
 		c.userFriction()
 		c.accelerate(wishspeed, wishdir)
@@ -237,8 +232,7 @@ func (c *SVClient) DropPunchAngle() {
 	if len2 < 0 {
 		len2 = 0
 	}
-	newPa := pa.Scale(len2)
-	ev.PunchAngle = newPa.Array()
+	ev.PunchAngle = pa.Scale(len2)
 }
 
 func (c *SVClient) WaterJump() {
@@ -277,7 +271,7 @@ func (c *SVClient) Think() {
 		angles[0] = -vAngle[0] / 3 // PITCH
 		angles[1] = vAngle[1]      // YAW
 	}
-	ev.Angles = angles.Array()
+	ev.Angles = angles
 
 	if int(ev.Flags)&FL_WATERJUMP != 0 {
 		c.WaterJump()

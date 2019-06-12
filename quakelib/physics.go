@@ -87,7 +87,7 @@ func (q *qphysics) tryUnstick(ent int, oldvel vec.Vec3) int {
 	} {
 		pushEntity(ent, dir)
 		// retry the original move
-		ev.Velocity = oldvel.Array()
+		ev.Velocity = oldvel
 		ev.Velocity[2] = 0 // TODO: why?
 		steptrace := C.trace_t{}
 		clip := q.flyMove(ent, 0.1, &steptrace)
@@ -189,7 +189,7 @@ func (q *qphysics) walkMove(ent int) {
 	pushEntity(ent, upMove) // FIXME: don't link?
 
 	// move forward
-	ev.Velocity = oldVelocity.Array()
+	ev.Velocity = oldVelocity
 	ev.Velocity[2] = 0
 	clip = q.flyMove(ent, time, &steptrace)
 
@@ -257,14 +257,12 @@ func (q *qphysics) noClip(ent int) {
 	av := vec.VFromA(ev.AVelocity)
 	av = av.Scale(time)
 	angles := vec.VFromA(ev.Angles)
-	na := vec.Add(angles, av)
-	ev.Angles = na.Array()
+	ev.Angles = vec.Add(angles, av)
 
 	v := vec.VFromA(ev.Velocity)
 	v = v.Scale(time)
 	origin := vec.VFromA(ev.Origin)
-	no := vec.Add(origin, v)
-	ev.Origin = no.Array()
+	ev.Origin = vec.Add(origin, v)
 
 	LinkEdict(ent, false)
 }
@@ -332,8 +330,7 @@ func (q *qphysics) toss(ent int) {
 	av := vec.VFromA(ev.AVelocity)
 	av = av.Scale(time)
 	angles := vec.VFromA(ev.Angles)
-	na := vec.Add(angles, av)
-	ev.Angles = na.Array()
+	ev.Angles = vec.Add(angles, av)
 
 	velocity := vec.VFromA(ev.Velocity)
 	move := velocity.Scale(time)
@@ -359,7 +356,7 @@ func (q *qphysics) toss(ent int) {
 		float32(trace.plane.normal[2]),
 	}
 	_, velocity = q.clipVelocity(velocity, n, backOff)
-	ev.Velocity = velocity.Array()
+	ev.Velocity = velocity
 
 	// stop if on ground
 	if trace.plane.normal[2] > 0.7 {
@@ -559,7 +556,7 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *C.trace_t) int {
 		}
 
 		if i != numplanes { // go along this plane
-			ev.Velocity = new_velocity.Array()
+			ev.Velocity = new_velocity
 		} else { // go along the crease
 			if numplanes != 2 {
 				//	conlog.Printf ("clip velocity, numplanes == %i\n",numplanes)
@@ -568,8 +565,7 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *C.trace_t) int {
 			}
 			dir := vec.Cross(planes[0], planes[1])
 			d := vec.Dot(dir, vec.VFromA(ev.Velocity))
-			sd := dir.Scale(d)
-			ev.Velocity = sd.Array()
+			ev.Velocity = dir.Scale(d)
 		}
 
 		// if original velocity is against the original velocity, stop dead
@@ -698,8 +694,7 @@ func (q *qphysics) playerActions(ent, num int) {
 		v := vec.VFromA(ev.Velocity)
 		v = v.Scale(time)
 		origin := vec.VFromA(ev.Origin)
-		no := vec.Add(origin, v)
-		ev.Origin = no.Array()
+		ev.Origin = vec.Add(origin, v)
 
 	default:
 		Error("SV_Physics_client: bad movetype %v", ev.MoveType)

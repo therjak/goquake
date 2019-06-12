@@ -10,21 +10,6 @@ func VFromA(a [3]float32) Vec3 {
 	return Vec3{a[0], a[1], a[2]}
 }
 
-func (v *Vec3) Array() [3]float32 {
-	return *v
-}
-
-func (v *Vec3) Idx(i int) float32 {
-	switch i {
-	default:
-		return v[0]
-	case 1:
-		return v[1]
-	case 2:
-		return v[2]
-	}
-}
-
 // Length returns the length of the vector
 func (v Vec3) Length() float32 {
 	return math32.Sqrt(Dot(v, v))
@@ -97,11 +82,6 @@ func Lerp(a, b Vec3, frac float32) Vec3 {
 		fi*a[2] + frac*b[2],
 	}
 }
-
-// Equal returns a == b
-// func Equal(a Vec3, b Vec3) bool {
-// 	return a == b
-// }
 
 func minmax(a, b float32) (float32, float32) {
 	if a < b {

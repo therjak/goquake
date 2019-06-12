@@ -82,7 +82,7 @@ func createAreaNode(depth int, mins, maxs vec.Vec3) *areaNode {
 		}
 		return 1
 	}()
-	an.dist = 0.5 * (maxs.Idx(an.axis) + mins.Idx(an.axis))
+	an.dist = 0.5 * (maxs[an.axis] + mins[an.axis])
 
 	mins1 := mins
 	mins2 := mins
@@ -318,10 +318,10 @@ func findTouchedLeafs(e int, node model.Node) {
 
 func boxOnPlaneSide(mins, maxs vec.Vec3, p *model.Plane) int {
 	if p.Type < 3 {
-		if p.Dist <= mins.Idx(int(p.Type)) {
+		if p.Dist <= mins[int(p.Type)] {
 			return 1
 		}
-		if p.Dist >= maxs.Idx(int(p.Type)) {
+		if p.Dist >= maxs[int(p.Type)] {
 			return 2
 		}
 		return 3
@@ -446,10 +446,10 @@ func clipToLinks(a *areaNode, clip *moveClip) {
 	if a.axis == -1 {
 		return
 	}
-	if clip.boxmaxs.Idx(a.axis) > a.dist {
+	if clip.boxmaxs[a.axis] > a.dist {
 		clipToLinks(a.children[0], clip)
 	}
-	if clip.boxmins.Idx(a.axis) < a.dist {
+	if clip.boxmins[a.axis] < a.dist {
 		clipToLinks(a.children[1], clip)
 	}
 }
@@ -532,7 +532,7 @@ func hullPointContents(h *model.Hull, num int, p vec.Vec3) int {
 		plane := node.Plane
 		d := func() float32 {
 			if plane.Type < 3 {
-				return p.Idx(int(plane.Type)) - plane.Dist
+				return p[int(plane.Type)] - plane.Dist
 			}
 			return vec.DoublePrecDot(plane.Normal, p) - plane.Dist
 		}()
@@ -577,8 +577,8 @@ func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 vec.Vec
 	plane := node.Plane
 	t1, t2 := func() (float32, float32) {
 		if plane.Type < 3 {
-			return (p1.Idx(int(plane.Type)) - plane.Dist),
-				(p2.Idx(int(plane.Type)) - plane.Dist)
+			return (p1[int(plane.Type)] - plane.Dist),
+				(p2[int(plane.Type)] - plane.Dist)
 		} else {
 			return vec.DoublePrecDot(plane.Normal, p1) - plane.Dist,
 				vec.DoublePrecDot(plane.Normal, p2) - plane.Dist
