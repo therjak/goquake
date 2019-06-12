@@ -62,8 +62,15 @@ func loadProgs() (*prog, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Could not read strings: %v", err)
 	}
-	// alpha
+
 	a := false
+	for _, f := range fd {
+		n, ok := sr[int(f.SName)]
+		if ok && n == "alpha" {
+			a = true
+			break
+		}
+	}
 
 	ez := int(hdr.EntityFields)
 
