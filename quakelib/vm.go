@@ -27,11 +27,11 @@ func prXStatement() int {
 
 func vmFuncName() string {
 	id := C.GetPRXFuncName()
-	s := PRGetString(int(id))
-	if s != nil {
-		return *s
+	s, err := progsdat.String(int(id))
+	if err != nil {
+		return ""
 	}
-	return ""
+	return s
 }
 
 func vmVarString(first int) string {
@@ -39,12 +39,12 @@ func vmVarString(first int) string {
 
 	for i := first; i < prArgC(); i++ {
 		idx := progsdat.RawGlobalsI[progs.OffsetParm0+i*3]
-		s := PRGetString(int(idx))
-		if s == nil {
+		s, err := progsdat.String(int(idx))
+		if err != nil {
 			conlog.DWarning("PF_VarString: nil string.\n")
 			break
 		}
-		b.WriteString(*s)
+		b.WriteString(s)
 	}
 	if b.Len() > 255 {
 		conlog.DWarning("PF_VarString: %d characters exceeds standard limit of 255.\n", b.Len())

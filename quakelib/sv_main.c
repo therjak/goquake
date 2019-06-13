@@ -350,8 +350,8 @@ void SV_SpawnServer(const char *server) {
   }
 
   // load progs to get entity field count
-  PR_LoadProgs();
   PR_LoadProgsGo();
+  PR_LoadProgs();
 
   // allocate server memory
   /* Host_ClearMemory() called above already cleared the whole sv structure */

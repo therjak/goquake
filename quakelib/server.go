@@ -600,9 +600,9 @@ func (s *Server) WriteClientdataToMessage(e *progs.EntVars, alpha byte) {
 	bits |= server.SU_WEAPON
 
 	wmi := 0
-	wms := PRGetString(int(e.WeaponModel))
-	if wms != nil {
-		wmi = s.ModelIndex(*wms)
+	wms, err := progsdat.String(int(e.WeaponModel))
+	if err == nil {
+		wmi = s.ModelIndex(wms)
 	}
 
 	if s.protocol != protocol.NetQuake {
@@ -822,13 +822,13 @@ func CheckVelocity(ent *progs.EntVars) {
 	maxVelocity := cvars.ServerMaxVelocity.Value()
 	for i := 0; i < 3; i++ {
 		if ent.Velocity[i] != ent.Velocity[i] {
-			s := PRGetString(int(ent.ClassName))
-			conlog.Printf("Got a NaN velocity on %s\n", *s)
+			s, _ := progsdat.String(int(ent.ClassName))
+			conlog.Printf("Got a NaN velocity on %s\n", s)
 			ent.Velocity[i] = 0
 		}
 		if ent.Origin[i] != ent.Origin[i] {
-			s := PRGetString(int(ent.ClassName))
-			conlog.Printf("Got a NaN origin on %s\n", *s)
+			s, _ := progsdat.String(int(ent.ClassName))
+			conlog.Printf("Got a NaN origin on %s\n", s)
 			ent.Origin[i] = 0
 		}
 		if ent.Velocity[i] > maxVelocity {
@@ -870,7 +870,11 @@ func (s *Server) CreateBaseline() {
 			e.baseline.alpha = server.EntityAlphaDefault
 		} else {
 			e.baseline.colormap = 0
-			e.baseline.modelindex = C.ushort(s.ModelIndex(*PRGetString(int(sev.Model))))
+			str, err := progsdat.String(int(sev.Model))
+			if err != nil {
+				log.Printf("Error in CreateBaseline: %v", err)
+			}
+			e.baseline.modelindex = C.ushort(s.ModelIndex(str))
 			e.baseline.alpha = e.alpha
 		}
 
@@ -966,9 +970,14 @@ func SVDropClient(client int, crash bool) {
 
 //export FindViewthingEV
 func FindViewthingEV() *C.entvars_t {
+	// the go implementation is 'findViewThingEV'
 	for i := 0; i < sv.numEdicts; i++ {
 		ev := EntVars(i)
-		if *PRGetString(int(ev.ClassName)) == "viewthing" {
+		s, err := progsdat.String(int(ev.ClassName))
+		if err != nil {
+			continue
+		}
+		if s == "viewthing" {
 			return EVars(C.int(i))
 		}
 	}

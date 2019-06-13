@@ -57,11 +57,11 @@ func EntVarsSprint(idx int, d progs.Def) string {
 		return "void"
 	case progs.EV_String:
 		v := *(*int32)(unsafe.Pointer(vp))
-		s := PRGetString(int(v))
-		if s == nil {
+		s, err := progsdat.String(int(v))
+		if err != nil {
 			return fmt.Sprintf("bad string %d", v)
 		}
-		return *s
+		return s
 	case progs.EV_Float:
 		v := *(*float32)(unsafe.Pointer(vp))
 		return fmt.Sprintf("%5.1f", v)
@@ -77,11 +77,11 @@ func EntVarsSprint(idx int, d progs.Def) string {
 	case progs.EV_Function:
 		v := *(*int32)(unsafe.Pointer(vp))
 		f := progsdat.Functions[int(v)].SName
-		s := PRGetString(int(f))
-		if s == nil {
+		s, err := progsdat.String(int(f))
+		if err != nil {
 			return fmt.Sprintf("bad function %d", v)
 		}
-		return fmt.Sprintf("%s()", *s)
+		return fmt.Sprintf("%s()", s)
 	case progs.EV_Pointer:
 		return "pointer"
 	default: // also EV_Bad

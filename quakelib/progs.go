@@ -8,99 +8,52 @@ import (
 )
 
 var (
-	progsdat        *progs.LoadedProg
-	engineStrings   []string
-	engineStringMap map[string]int
+	progsdat *progs.LoadedProg
 )
-
-func init() {
-	engineStringMap = make(map[string]int)
-}
 
 //export PR_LoadProgsGo
 func PR_LoadProgsGo() {
+	log.Printf("LOADING PROGS")
 	p, err := progs.LoadProgs()
 	if err != nil {
 		log.Fatalf("Failed to load progs.dat: %v", err)
 	}
 	progsdat = p
-	fillEngineStrings(p.Strings)
-}
-
-func fillEngineStrings(ks map[int]string) {
-	// just ignore duplicates
-	for k, v := range ks {
-		_, ok := engineStringMap[v]
-		if !ok {
-			engineStringMap[v] = k
-		}
-	}
 }
 
 //export ED_NewString
 func ED_NewString(str *C.char) C.int {
 	s := C.GoString(str)
-	i := EDNewString(s)
+	i := progsdat.NewString(s)
 	return C.int(i)
-}
-
-func EDNewString(s string) int {
-	// TODO:
-	// replace \n with '\n' and all other \x with just '\'
-	engineStrings = append(engineStrings, s)
-	i := len(engineStrings)
-	engineStringMap[s] = -i
-	return -i
 }
 
 //export PR_SetEngineString
 func PR_SetEngineString(str *C.char) C.int {
 	s := C.GoString(str)
-	i := PRSetEngineString(s)
+	if len(s) == 0 && progsdat == nil {
+		log.Printf("Trying to add an empty string in PR_SetEngineString")
+		return 0
+	}
+	if progsdat == nil {
+		log.Printf("Trying to add: '%s' before PR_LoadProgsGo, len %v", s, len(s))
+	}
+	i := progsdat.AddString(s)
 	return C.int(i)
-}
-
-func PRSetEngineString(s string) int {
-	/*
-		v, ok := engineStringMap[s]
-		if ok {
-			log.Printf("PR_SetEngineString1 %v, %d", s, v)
-			return C.int(v)
-		}
-	*/
-	engineStrings = append(engineStrings, s)
-	i := len(engineStrings)
-	engineStringMap[s] = -i
-	return -i
 }
 
 //export PR_GetString
 func PR_GetString(num C.int) *C.char {
 	n := int(num)
-	s := PRGetString(n)
-	if s == nil {
+	if progsdat == nil {
+		return nil
+	}
+	s, err := progsdat.String(n)
+	if err != nil {
 		return nil
 	}
 	// TODO: FIX memory leak
-	return C.CString(*s)
-}
-
-func PRGetString(n int) *string {
-	if n >= 0 {
-		s, ok := progsdat.Strings[n]
-		if !ok {
-			log.Printf("PR_GetStringInt: request of %v, is unknown", n)
-			return nil
-		}
-		return &s
-	}
-	// n is negative, so -(n + 1) is our index
-	index := -(n + 1)
-	if len(engineStrings) <= index {
-		log.Printf("PR_GetStringInt: request of %v, is unknown", n)
-		return nil
-	}
-	return &engineStrings[index]
+	return C.CString(s)
 }
 
 //export Pr_globalsf

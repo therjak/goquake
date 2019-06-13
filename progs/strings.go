@@ -19,6 +19,7 @@ func LoadProgs() (*LoadedProg, error) {
 		return nil, err
 	}
 	r := &LoadedProg{lp, make([]string, 0)} // , make(map[string]int)}
+	r.AddString("")
 	// r.fillEngineStrings(r.Strings)
 	return r, nil
 }

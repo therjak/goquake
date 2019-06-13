@@ -104,17 +104,17 @@ func edictPrint(ed int) {
 	conlog.SafePrintf("\nEDICT %d:\n", ed)
 	for i := 1; i < len(progsdat.FieldDefs); i++ {
 		d := progsdat.FieldDefs[i]
-		name := PRGetString(int(d.SName))
-		if name == nil {
+		name, err := progsdat.String(int(d.SName))
+		if err != nil {
 			continue
 		}
-		l := len(*name)
-		if l > 1 && (*name)[l-2] == '_' {
+		l := len(name)
+		if l > 1 && (name)[l-2] == '_' {
 			// skip _x, _y, _z vars
 			continue
 		}
 		// TODO: skip 0 values
-		conlog.SafePrintf(*name)
+		conlog.SafePrintf(name)
 		for ; l < 15; l++ {
 			conlog.SafePrintf(" ")
 		}

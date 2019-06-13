@@ -228,7 +228,7 @@ func hostPause(args []cmd.QArg) {
 	sv.paused = !sv.paused
 
 	ev := EntVars(sv_player)
-	playerName := *PRGetString(int(ev.NetName))
+	playerName, _ := progsdat.String(int(ev.NetName))
 	SV_BroadcastPrintf("%s %s the game\n", playerName, func() string {
 		if sv.paused {
 			return "paused"
@@ -621,8 +621,8 @@ func hostPing(args []cmd.QArg) {
 func findViewThingEV() *progs.EntVars {
 	for i := 0; i < sv.numEdicts; i++ {
 		ev := EntVars(i)
-		name := PRGetString(int(ev.ClassName))
-		if name != nil && *name == "viewthing" {
+		name, err := progsdat.String(int(ev.ClassName))
+		if err != nil && name == "viewthing" {
 			return ev
 		}
 	}
@@ -650,7 +650,7 @@ func hostSpawn(args []cmd.QArg) {
 		ev := EntVars(c.edictId)
 		ev.ColorMap = float32(c.edictId)
 		ev.Team = float32((c.colors & 15) + 1)
-		ev.NetName = int32(PRSetEngineString(c.name))
+		ev.NetName = int32(progsdat.AddString(c.name))
 		progsdat.Globals.Parm = c.spawnParams
 		progsdat.Globals.Time = sv.time
 		progsdat.Globals.Self = int32(sv_player)
@@ -848,7 +848,7 @@ func hostName(args []cmd.QArg) {
 		conlog.Printf("%s renamed to %s\n", c.name, newName)
 	}
 	c.name = newName
-	EntVars(c.edictId).NetName = int32(PRSetEngineString(newName))
+	EntVars(c.edictId).NetName = int32(progsdat.AddString(newName))
 
 	// send notification to all clients
 	rd := &sv.reliableDatagram

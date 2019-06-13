@@ -132,15 +132,15 @@ func PF_setmodel() {
 
 	e := int(progsdat.Globals.Parm0[0])
 	mi := progsdat.Globals.Parm1[0]
-	m := PRGetString(int(mi))
-	if m == nil {
+	m, err := progsdat.String(int(mi))
+	if err != nil {
 		runError("no precache: %d", mi)
 		return
 	}
 
 	idx := -1
 	for i, mp := range sv.modelPrecache {
-		if mp == *m {
+		if mp == m {
 			idx = i
 			break
 		}
@@ -249,8 +249,8 @@ func PF_particle() {
 func PF_ambientsound() {
 	large := false
 	pos := vec.VFromA(*progsdat.Globals.Parm0f())
-	sample := PRGetString(int(progsdat.Globals.Parm1[0]))
-	if sample == nil {
+	sample, err := progsdat.String(int(progsdat.Globals.Parm1[0]))
+	if err != nil {
 		conlog.Printf("no precache: %v\n", pos)
 		return
 	}
@@ -260,7 +260,7 @@ func PF_ambientsound() {
 	// check to see if samp was properly precached
 	soundnum := func() int {
 		for i, m := range sv.soundPrecache {
-			if m == *sample {
+			if m == sample {
 				return i
 			}
 		}
@@ -311,8 +311,8 @@ func PF_ambientsound() {
 func PF_sound() {
 	entity := progsdat.Globals.Parm0[0]
 	channel := progsdat.RawGlobalsF[progs.OffsetParm1]
-	sample := PRGetString(int(progsdat.Globals.Parm2[0]))
-	if sample == nil {
+	sample, err := progsdat.String(int(progsdat.Globals.Parm2[0]))
+	if err != nil {
 		runError("PF_sound: no sample")
 		return
 	}
@@ -330,7 +330,7 @@ func PF_sound() {
 	if channel < 0 || channel > 7 {
 		HostError("SV_StartSound: channel = %v", channel)
 	}
-	sv.StartSound(int(entity), int(channel), int(volume), *sample, attenuation)
+	sv.StartSound(int(entity), int(channel), int(volume), sample, attenuation)
 }
 
 //export PF_break
@@ -483,51 +483,51 @@ func PF_stuffcmd() {
 		runError("Parm 0 not a client")
 		return
 	}
-	str := PRGetString(int(progsdat.Globals.Parm1[0]))
-	if str == nil {
+	str, err := progsdat.String(int(progsdat.Globals.Parm1[0]))
+	if err != nil {
 		runError("stuffcmd: no string")
 		return
 	}
 
 	c := sv_clients[entnum-1]
 	c.msg.WriteByte(server.StuffText)
-	c.msg.WriteString(*str)
+	c.msg.WriteString(str)
 }
 
 // Sends text over to the client's execution buffer
 //export PF_localcmd
 func PF_localcmd() {
-	str := PRGetString(int(progsdat.Globals.Parm0[0]))
-	if str == nil {
+	str, err := progsdat.String(int(progsdat.Globals.Parm0[0]))
+	if err != nil {
 		runError("localcmd: no string")
 		return
 	}
-	cbuf.AddText(*str)
+	cbuf.AddText(str)
 }
 
 //export PF_cvar
 func PF_cvar() {
-	str := PRGetString(int(progsdat.Globals.Parm0[0]))
-	if str == nil {
+	str, err := progsdat.String(int(progsdat.Globals.Parm0[0]))
+	if err != nil {
 		runError("PF_cvar: no string")
 		return
 	}
-	progsdat.Globals.Returnf()[0] = CvarVariableValue(*str)
+	progsdat.Globals.Returnf()[0] = CvarVariableValue(str)
 }
 
 //export PF_cvar_set
 func PF_cvar_set() {
-	name := PRGetString(int(progsdat.Globals.Parm0[0]))
-	if name == nil {
+	name, err := progsdat.String(int(progsdat.Globals.Parm0[0]))
+	if err != nil {
 		runError("PF_cvar_set: no name string")
 		return
 	}
-	val := PRGetString(int(progsdat.Globals.Parm1[0]))
-	if val == nil {
+	val, err := progsdat.String(int(progsdat.Globals.Parm1[0]))
+	if err != nil {
 		runError("PF_cvar_set: no val string")
 		return
 	}
-	cvarSet(*name, *val)
+	cvarSet(name, val)
 }
 
 // Returns a chain of entities that have origins within a spherical area
@@ -570,7 +570,7 @@ func PF_ftos() {
 		}
 		return fmt.Sprintf("%5.1f", v)
 	}()
-	progsdat.Globals.Return[0] = int32(PRSetEngineString(s))
+	progsdat.Globals.Return[0] = int32(progsdat.AddString(s))
 }
 
 //export PF_fabs
@@ -583,7 +583,7 @@ func PF_fabs() {
 func PF_vtos() {
 	p := *progsdat.Globals.Parm0f()
 	s := fmt.Sprintf("'%5.1f %5.1f %5.1f'", p[0], p[1], p[2])
-	progsdat.Globals.Return[0] = int32(PRSetEngineString(s))
+	progsdat.Globals.Return[0] = int32(progsdat.AddString(s))
 }
 
 //export PF_Spawn
@@ -602,8 +602,8 @@ func PF_Remove() {
 func PF_Find() {
 	e := progsdat.Globals.Parm0[0]
 	f := progsdat.Globals.Parm1[0]
-	s := PRGetString(int(progsdat.Globals.Parm2[0]))
-	if s == nil {
+	s, err := progsdat.String(int(progsdat.Globals.Parm2[0]))
+	if err != nil {
 		runError("PF_Find: bad search string")
 		return
 	}
@@ -612,11 +612,11 @@ func PF_Find() {
 			continue
 		}
 		ti := RawEntVarsI(int(e), int(f))
-		t := PRGetString(int(ti))
-		if t == nil {
+		t, err := progsdat.String(int(ti))
+		if err != nil {
 			continue
 		}
-		if *t == *s {
+		if t == s {
 			progsdat.Globals.Return[0] = int32(e)
 			return
 		}
@@ -645,8 +645,11 @@ func PF_precache_sound() {
 	}
 
 	si := progsdat.Globals.Parm0[0]
-	s := *PRGetString(int(si))
 	progsdat.Globals.Return[0] = si
+	s, err := progsdat.String(int(si))
+	if err != nil {
+		// same result as PR_CheckEmptyString
+	}
 	//PR_CheckEmptyString(s);
 
 	exist := func(s string) bool {
@@ -675,8 +678,11 @@ func PF_precache_model() {
 	}
 
 	si := progsdat.Globals.Parm0[0]
-	s := *PRGetString(int(si))
 	progsdat.Globals.Return[0] = si
+	s, err := progsdat.String(int(si))
+	if err != nil {
+		// same result as PR_CheckEmptyString
+	}
 	//PR_CheckEmptyString(s);
 
 	exist := func(s string) bool {
@@ -794,7 +800,11 @@ func PF_droptofloor() {
 func PF_lightstyle() {
 	style := int(progsdat.RawGlobalsF[progs.OffsetParm0])
 	vi := progsdat.Globals.Parm1[0]
-	val := *PRGetString(int(vi))
+	val, err := progsdat.String(int(vi))
+	if err != nil {
+		log.Printf("Invalid light style: %v", err)
+		return
+	}
 
 	sv.lightStyles[style] = val
 
@@ -1113,20 +1123,20 @@ func PF_WriteCoord() {
 func PF_WriteString() {
 	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
 	i := int(progsdat.Globals.Parm1[0])
-	msg := PRGetString(i)
-	if msg == nil {
+	msg, err := progsdat.String(i)
+	if err != nil {
 		runError("PF_WriteString: bad string")
 		return
 	}
 	switch dest {
 	case MSG_ONE:
-		sv_clients[writeClient()].msg.WriteString(*msg)
+		sv_clients[writeClient()].msg.WriteString(msg)
 	case MSG_INIT:
-		sv.signon.WriteString(*msg)
+		sv.signon.WriteString(msg)
 	case MSG_BROADCAST:
-		sv.datagram.WriteString(*msg)
+		sv.datagram.WriteString(msg)
 	case MSG_ALL:
-		sv.reliableDatagram.WriteString(*msg)
+		sv.reliableDatagram.WriteString(msg)
 	default:
 		runError("WriteDest: bad destination")
 	}
@@ -1164,7 +1174,12 @@ func PF_makestatic() {
 	}
 	ev := EntVars(ent)
 
-	mi := sv.ModelIndex(*PRGetString(int(ev.Model)))
+	m, err := progsdat.String(int(ev.Model))
+	if err != nil {
+		log.Printf("Error in PF_makstatic: %v", err)
+		return
+	}
+	mi := sv.ModelIndex(m)
 	frame := int(ev.Frame)
 	if sv.protocol == protocol.NetQuake {
 		if mi&0xFF00 != 0 ||
@@ -1249,10 +1264,10 @@ func PF_changelevel() {
 	svs.changeLevelIssued = true
 
 	i := int(progsdat.Globals.Parm0[0])
-	s := PRGetString(i)
-	if s == nil {
+	s, err := progsdat.String(i)
+	if err != nil {
 		runError("PF_changelevel: bad level name")
 		return
 	}
-	cbuf.AddText(fmt.Sprintf("changelevel %s\n", *s))
+	cbuf.AddText(fmt.Sprintf("changelevel %s\n", s))
 }

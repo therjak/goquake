@@ -740,7 +740,7 @@ void PR_LoadProgs(void) {
   pr_stringssize = progs->numstrings;
   if (pr_knownstrings) Z_Free((void *)pr_knownstrings);
   pr_knownstrings = NULL;
-  PR_SetEngineString("");
+  // PR_SetEngineString(""); -- done in go version
 
   pr_globaldefs = (ddef_t *)((byte *)progs + progs->ofs_globaldefs);
   pr_fielddefs = (ddef_t *)((byte *)progs + progs->ofs_fielddefs);
