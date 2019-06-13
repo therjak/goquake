@@ -10,7 +10,7 @@ import (
 	"unsafe"
 )
 
-type LoadedProg struct {
+type prog struct {
 	CRC uint16
 	// The progs.dat expects an edict to have EdictSize 32bit values
 	EdictSize   int
@@ -26,7 +26,7 @@ type LoadedProg struct {
 	Strings     map[int]string
 }
 
-func LoadProgs() (*LoadedProg, error) {
+func loadProgs() (*prog, error) {
 	var crcVal uint16
 	b, err := filesystem.GetFileContents("progs.dat")
 	if err != nil {
@@ -67,7 +67,7 @@ func LoadProgs() (*LoadedProg, error) {
 
 	ez := int(hdr.EntityFields)
 
-	return &LoadedProg{
+	return &prog{
 		CRC:         crcVal,
 		EdictSize:   ez,
 		Header:      hdr,

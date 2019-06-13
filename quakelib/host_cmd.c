@@ -385,6 +385,7 @@ Host_Connect_f
 User command to connect to server
 =====================
 */
+// THERJAK
 void Host_Connect_f(void) {
   char name[MAX_QPATH];
 
