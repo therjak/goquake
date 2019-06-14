@@ -600,7 +600,7 @@ func (s *Server) WriteClientdataToMessage(e *progs.EntVars, alpha byte) {
 	bits |= server.SU_WEAPON
 
 	wmi := 0
-	wms, err := progsdat.String(int(e.WeaponModel))
+	wms, err := progsdat.String(e.WeaponModel)
 	if err == nil {
 		wmi = s.ModelIndex(wms)
 	}
@@ -822,12 +822,12 @@ func CheckVelocity(ent *progs.EntVars) {
 	maxVelocity := cvars.ServerMaxVelocity.Value()
 	for i := 0; i < 3; i++ {
 		if ent.Velocity[i] != ent.Velocity[i] {
-			s, _ := progsdat.String(int(ent.ClassName))
+			s, _ := progsdat.String(ent.ClassName)
 			conlog.Printf("Got a NaN velocity on %s\n", s)
 			ent.Velocity[i] = 0
 		}
 		if ent.Origin[i] != ent.Origin[i] {
-			s, _ := progsdat.String(int(ent.ClassName))
+			s, _ := progsdat.String(ent.ClassName)
 			conlog.Printf("Got a NaN origin on %s\n", s)
 			ent.Origin[i] = 0
 		}
@@ -870,7 +870,7 @@ func (s *Server) CreateBaseline() {
 			e.baseline.alpha = server.EntityAlphaDefault
 		} else {
 			e.baseline.colormap = 0
-			str, err := progsdat.String(int(sev.Model))
+			str, err := progsdat.String(sev.Model)
 			if err != nil {
 				log.Printf("Error in CreateBaseline: %v", err)
 			}
@@ -973,7 +973,7 @@ func FindViewthingEV() *C.entvars_t {
 	// the go implementation is 'findViewThingEV'
 	for i := 0; i < sv.numEdicts; i++ {
 		ev := EntVars(i)
-		s, err := progsdat.String(int(ev.ClassName))
+		s, err := progsdat.String(ev.ClassName)
 		if err != nil {
 			continue
 		}

@@ -48,7 +48,7 @@ func PR_GetString(num C.int) *C.char {
 	if progsdat == nil {
 		return nil
 	}
-	s, err := progsdat.String(n)
+	s, err := progsdat.String(int32(n))
 	if err != nil {
 		return nil
 	}

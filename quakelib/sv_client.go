@@ -378,7 +378,7 @@ func (c *SVClient) SendServerinfo() {
 		m.WriteByte(server.GameCoop)
 	}
 
-	s, err := progsdat.String(int(EntVars(0).Message))
+	s, err := progsdat.String(EntVars(0).Message)
 	if err != nil {
 		s = ""
 	}

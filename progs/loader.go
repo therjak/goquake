@@ -23,7 +23,7 @@ type prog struct {
 	RawGlobalsI []int32
 	RawGlobalsF []float32
 	Alpha       bool
-	Strings     map[int]string
+	Strings     map[int32]string
 }
 
 func loadProgs() (*prog, error) {
@@ -65,7 +65,7 @@ func loadProgs() (*prog, error) {
 
 	a := false
 	for _, f := range fd {
-		n, ok := sr[int(f.SName)]
+		n, ok := sr[f.SName]
 		if ok && n == "alpha" {
 			a = true
 			break
@@ -167,7 +167,7 @@ func readGlobals(pr *Header, file io.ReadSeeker) (*GlobalVars, []int32, []float3
 	return (*GlobalVars)(gp), v, vf, nil
 }
 
-func readStrings(pr *Header, file io.ReadSeeker) (map[int]string, error) {
+func readStrings(pr *Header, file io.ReadSeeker) (map[int32]string, error) {
 	_, err := file.Seek(int64(pr.OffsetStrings), io.SeekStart)
 	if err != nil {
 		return nil, err
@@ -177,12 +177,12 @@ func readStrings(pr *Header, file io.ReadSeeker) (map[int]string, error) {
 		return nil, err
 	}
 	bs := bytes.Split(b, []byte{0x00})
-	m := make(map[int]string)
-	idx := 0
+	m := make(map[int32]string)
+	idx := int32(0)
 	for _, s := range bs {
 		m[idx] = string(s)
 		// log.Printf("ProgsString: [%d] '%X' l:%d", idx, s, len(s))
-		idx += len(s) + 1
+		idx += int32(len(s)) + 1
 	}
 	return m, nil
 }

@@ -104,7 +104,7 @@ func edictPrint(ed int) {
 	conlog.SafePrintf("\nEDICT %d:\n", ed)
 	for i := 1; i < len(progsdat.FieldDefs); i++ {
 		d := progsdat.FieldDefs[i]
-		name, err := progsdat.String(int(d.SName))
+		name, err := progsdat.String(d.SName)
 		if err != nil {
 			continue
 		}

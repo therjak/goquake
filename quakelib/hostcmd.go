@@ -228,7 +228,7 @@ func hostPause(args []cmd.QArg) {
 	sv.paused = !sv.paused
 
 	ev := EntVars(sv_player)
-	playerName, _ := progsdat.String(int(ev.NetName))
+	playerName, _ := progsdat.String(ev.NetName)
 	SV_BroadcastPrintf("%s %s the game\n", playerName, func() string {
 		if sv.paused {
 			return "paused"
@@ -621,7 +621,7 @@ func hostPing(args []cmd.QArg) {
 func findViewThingEV() *progs.EntVars {
 	for i := 0; i < sv.numEdicts; i++ {
 		ev := EntVars(i)
-		name, err := progsdat.String(int(ev.ClassName))
+		name, err := progsdat.String(ev.ClassName)
 		if err != nil && name == "viewthing" {
 			return ev
 		}

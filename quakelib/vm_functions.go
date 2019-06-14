@@ -132,7 +132,7 @@ func PF_setmodel() {
 
 	e := int(progsdat.Globals.Parm0[0])
 	mi := progsdat.Globals.Parm1[0]
-	m, err := progsdat.String(int(mi))
+	m, err := progsdat.String(mi)
 	if err != nil {
 		runError("no precache: %d", mi)
 		return
@@ -249,7 +249,7 @@ func PF_particle() {
 func PF_ambientsound() {
 	large := false
 	pos := vec.VFromA(*progsdat.Globals.Parm0f())
-	sample, err := progsdat.String(int(progsdat.Globals.Parm1[0]))
+	sample, err := progsdat.String(progsdat.Globals.Parm1[0])
 	if err != nil {
 		conlog.Printf("no precache: %v\n", pos)
 		return
@@ -311,7 +311,7 @@ func PF_ambientsound() {
 func PF_sound() {
 	entity := progsdat.Globals.Parm0[0]
 	channel := progsdat.RawGlobalsF[progs.OffsetParm1]
-	sample, err := progsdat.String(int(progsdat.Globals.Parm2[0]))
+	sample, err := progsdat.String(progsdat.Globals.Parm2[0])
 	if err != nil {
 		runError("PF_sound: no sample")
 		return
@@ -483,7 +483,7 @@ func PF_stuffcmd() {
 		runError("Parm 0 not a client")
 		return
 	}
-	str, err := progsdat.String(int(progsdat.Globals.Parm1[0]))
+	str, err := progsdat.String(progsdat.Globals.Parm1[0])
 	if err != nil {
 		runError("stuffcmd: no string")
 		return
@@ -497,7 +497,7 @@ func PF_stuffcmd() {
 // Sends text over to the client's execution buffer
 //export PF_localcmd
 func PF_localcmd() {
-	str, err := progsdat.String(int(progsdat.Globals.Parm0[0]))
+	str, err := progsdat.String(progsdat.Globals.Parm0[0])
 	if err != nil {
 		runError("localcmd: no string")
 		return
@@ -507,7 +507,7 @@ func PF_localcmd() {
 
 //export PF_cvar
 func PF_cvar() {
-	str, err := progsdat.String(int(progsdat.Globals.Parm0[0]))
+	str, err := progsdat.String(progsdat.Globals.Parm0[0])
 	if err != nil {
 		runError("PF_cvar: no string")
 		return
@@ -517,12 +517,12 @@ func PF_cvar() {
 
 //export PF_cvar_set
 func PF_cvar_set() {
-	name, err := progsdat.String(int(progsdat.Globals.Parm0[0]))
+	name, err := progsdat.String(progsdat.Globals.Parm0[0])
 	if err != nil {
 		runError("PF_cvar_set: no name string")
 		return
 	}
-	val, err := progsdat.String(int(progsdat.Globals.Parm1[0]))
+	val, err := progsdat.String(progsdat.Globals.Parm1[0])
 	if err != nil {
 		runError("PF_cvar_set: no val string")
 		return
@@ -602,7 +602,7 @@ func PF_Remove() {
 func PF_Find() {
 	e := progsdat.Globals.Parm0[0]
 	f := progsdat.Globals.Parm1[0]
-	s, err := progsdat.String(int(progsdat.Globals.Parm2[0]))
+	s, err := progsdat.String(progsdat.Globals.Parm2[0])
 	if err != nil {
 		runError("PF_Find: bad search string")
 		return
@@ -612,7 +612,7 @@ func PF_Find() {
 			continue
 		}
 		ti := RawEntVarsI(int(e), int(f))
-		t, err := progsdat.String(int(ti))
+		t, err := progsdat.String(ti)
 		if err != nil {
 			continue
 		}
@@ -646,7 +646,7 @@ func PF_precache_sound() {
 
 	si := progsdat.Globals.Parm0[0]
 	progsdat.Globals.Return[0] = si
-	s, err := progsdat.String(int(si))
+	s, err := progsdat.String(si)
 	if err != nil {
 		// same result as PR_CheckEmptyString
 	}
@@ -679,7 +679,7 @@ func PF_precache_model() {
 
 	si := progsdat.Globals.Parm0[0]
 	progsdat.Globals.Return[0] = si
-	s, err := progsdat.String(int(si))
+	s, err := progsdat.String(si)
 	if err != nil {
 		// same result as PR_CheckEmptyString
 	}
@@ -800,7 +800,7 @@ func PF_droptofloor() {
 func PF_lightstyle() {
 	style := int(progsdat.RawGlobalsF[progs.OffsetParm0])
 	vi := progsdat.Globals.Parm1[0]
-	val, err := progsdat.String(int(vi))
+	val, err := progsdat.String(vi)
 	if err != nil {
 		log.Printf("Invalid light style: %v", err)
 		return
@@ -1122,7 +1122,7 @@ func PF_WriteCoord() {
 //export PF_WriteString
 func PF_WriteString() {
 	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
-	i := int(progsdat.Globals.Parm1[0])
+	i := progsdat.Globals.Parm1[0]
 	msg, err := progsdat.String(i)
 	if err != nil {
 		runError("PF_WriteString: bad string")
@@ -1174,7 +1174,7 @@ func PF_makestatic() {
 	}
 	ev := EntVars(ent)
 
-	m, err := progsdat.String(int(ev.Model))
+	m, err := progsdat.String(ev.Model)
 	if err != nil {
 		log.Printf("Error in PF_makstatic: %v", err)
 		return
@@ -1263,7 +1263,7 @@ func PF_changelevel() {
 	}
 	svs.changeLevelIssued = true
 
-	i := int(progsdat.Globals.Parm0[0])
+	i := progsdat.Globals.Parm0[0]
 	s, err := progsdat.String(i)
 	if err != nil {
 		runError("PF_changelevel: bad level name")

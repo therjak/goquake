@@ -27,7 +27,7 @@ func prXStatement() int {
 
 func vmFuncName() string {
 	id := C.GetPRXFuncName()
-	s, err := progsdat.String(int(id))
+	s, err := progsdat.String(int32(id))
 	if err != nil {
 		return ""
 	}
@@ -39,7 +39,7 @@ func vmVarString(first int) string {
 
 	for i := first; i < prArgC(); i++ {
 		idx := progsdat.RawGlobalsI[progs.OffsetParm0+i*3]
-		s, err := progsdat.String(int(idx))
+		s, err := progsdat.String(idx)
 		if err != nil {
 			conlog.DWarning("PF_VarString: nil string.\n")
 			break
