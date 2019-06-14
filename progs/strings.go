@@ -22,18 +22,18 @@ func LoadProgs() (*LoadedProg, error) {
 	return r, nil
 }
 
-func (p *LoadedProg) NewString(s string) int {
+func (p *LoadedProg) NewString(s string) int32 {
 	// TODO:
 	// replace \n with '\n' and all other \x with just '\'
 	p.engineStrings = append(p.engineStrings, s)
-	i := len(p.engineStrings)
+	i := int32(len(p.engineStrings))
 	return -i
 }
 
-func (p *LoadedProg) AddString(s string) int {
+func (p *LoadedProg) AddString(s string) int32 {
 	for i, es := range p.engineStrings {
 		if es == s {
-			return -(i + 1) // see String func
+			return int32(-(i + 1)) // see String func
 		}
 	}
 	return p.NewString(s)

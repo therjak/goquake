@@ -8,7 +8,7 @@ func TestEngineStringsEDNewString(t *testing.T) {
 	s := "Test"
 	p := LoadedProg{}
 	idx := p.NewString(s)
-	rs, err := p.String(int32(idx))
+	rs, err := p.String(idx)
 	if err != nil {
 		t.Errorf("Could not return string")
 	}
@@ -21,7 +21,7 @@ func TestEngineStringsSetEngineString(t *testing.T) {
 	s := "Test"
 	p := LoadedProg{}
 	idx := p.AddString(s)
-	rs, err := p.String(int32(idx))
+	rs, err := p.String(idx)
 	if err != nil {
 		t.Errorf("Could not return string")
 	}

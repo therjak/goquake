@@ -570,7 +570,7 @@ func PF_ftos() {
 		}
 		return fmt.Sprintf("%5.1f", v)
 	}()
-	progsdat.Globals.Return[0] = int32(progsdat.AddString(s))
+	progsdat.Globals.Return[0] = progsdat.AddString(s)
 }
 
 //export PF_fabs
@@ -583,7 +583,7 @@ func PF_fabs() {
 func PF_vtos() {
 	p := *progsdat.Globals.Parm0f()
 	s := fmt.Sprintf("'%5.1f %5.1f %5.1f'", p[0], p[1], p[2])
-	progsdat.Globals.Return[0] = int32(progsdat.AddString(s))
+	progsdat.Globals.Return[0] = progsdat.AddString(s)
 }
 
 //export PF_Spawn

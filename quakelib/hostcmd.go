@@ -650,7 +650,7 @@ func hostSpawn(args []cmd.QArg) {
 		ev := EntVars(c.edictId)
 		ev.ColorMap = float32(c.edictId)
 		ev.Team = float32((c.colors & 15) + 1)
-		ev.NetName = int32(progsdat.AddString(c.name))
+		ev.NetName = progsdat.AddString(c.name)
 		progsdat.Globals.Parm = c.spawnParams
 		progsdat.Globals.Time = sv.time
 		progsdat.Globals.Self = int32(sv_player)
@@ -848,7 +848,7 @@ func hostName(args []cmd.QArg) {
 		conlog.Printf("%s renamed to %s\n", c.name, newName)
 	}
 	c.name = newName
-	EntVars(c.edictId).NetName = int32(progsdat.AddString(newName))
+	EntVars(c.edictId).NetName = progsdat.AddString(newName)
 
 	// send notification to all clients
 	rd := &sv.reliableDatagram
