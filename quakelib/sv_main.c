@@ -14,6 +14,7 @@ extern qboolean pr_alpha_supported;  // johnfitz
 
 int ModelLeafIndex(mleaf_t *l) { return l - sv.worldmodel->leafs; }
 
+cvar_t sv_gravity;
 /*
 ===============
 SV_Init
@@ -22,7 +23,6 @@ SV_Init
 void SV_Init(void) {
   int i;
   const char *p;
-  extern cvar_t sv_gravity;
 
   sv.edicts = NULL;  // ericw -- sv.edicts switched to use malloc()
 

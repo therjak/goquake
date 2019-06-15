@@ -1,7 +1,6 @@
 package quakelib
 
 //#include "trace.h"
-//void SV_PushMove(int pusher, float movetime);
 import "C"
 
 import (
@@ -13,11 +12,126 @@ import (
 	"github.com/chewxy/math32"
 )
 
-func pushMove(pusher int, movetime float32) {
-	C.SV_PushMove(C.int(pusher), C.float(movetime))
+type qphysics struct {
 }
 
-type qphysics struct {
+/*
+pushmove objects do not obey gravity, and do not interact with each other or
+trigger fields, but block normal movement and push normal objects when they
+move.
+
+onground is set for toss objects when they come to a complete rest.  it is set
+for steping or walking objects
+
+doors, plats, etc are SOLID_BSP, and MOVETYPE_PUSH
+bonus items are SOLID_TRIGGER touch, and MOVETYPE_TOSS
+corpses are SOLID_NOT and MOVETYPE_TOSS
+crates are SOLID_BBOX and MOVETYPE_TOSS
+walking monsters are SOLID_SLIDEBOX and MOVETYPE_STEP
+flying/floating monsters are SOLID_SLIDEBOX and MOVETYPE_FLY
+
+solid_edge items only clip against bsp models.
+*/
+func (q *qphysics) pushMove(pusher int, movetime float32) {
+	pev := EntVars(pusher)
+	if pev.Velocity == [3]float32{} {
+		pev.LTime += movetime
+		return
+	}
+
+	move := vec.Vec3(pev.Velocity).Scale(movetime)
+	mins := vec.Add(pev.AbsMin, move)
+	maxs := vec.Add(pev.AbsMax, move)
+	pushOrigin := vec.Vec3(pev.Origin)
+
+	// move the pusher to it's final position
+	pev.Origin = vec.Add(pev.Origin, move)
+	pev.LTime += movetime
+	LinkEdict(pusher, false)
+
+	type moved struct {
+		ent    int
+		origin vec.Vec3
+	}
+	movedEnts := []moved{}
+
+	// see if any solid entities are inside the final position
+	for c := 1; c < sv.numEdicts; c++ {
+		if edictNum(c).free != 0 {
+			continue
+		}
+		cev := EntVars(c)
+		switch cev.MoveType {
+		case progs.MoveTypePush, progs.MoveTypeNone, progs.MoveTypeNoClip:
+			continue
+		}
+
+		// if the entity is standing on the pusher, it will definitely be moved
+		if !(int(cev.Flags)&FL_ONGROUND != 0 && cev.GroundEntity == int32(pusher)) {
+			if cev.AbsMin[0] >= maxs[0] ||
+				cev.AbsMin[1] >= maxs[1] ||
+				cev.AbsMin[2] >= maxs[2] ||
+				cev.AbsMax[0] <= mins[0] ||
+				cev.AbsMax[1] <= mins[1] ||
+				cev.AbsMax[2] <= mins[2] {
+				continue
+			}
+			// see if the ent's bbox is inside the pusher's final position
+			if !testEntityPosition(c) {
+				continue
+			}
+		}
+
+		// remove the onground flag for non-players
+		if cev.MoveType != progs.MoveTypeWalk {
+			cev.Flags = float32(int(cev.Flags) &^ FL_ONGROUND)
+		}
+
+		entOrigin := cev.Origin
+		movedEnts = append(movedEnts, moved{c, cev.Origin})
+
+		// try moving the contacted entity
+		pev.Solid = SOLID_NOT
+		pushEntity(c, move)
+		pev.Solid = SOLID_BSP
+
+		// if it is still inside the pusher, block
+		if testEntityPosition(c) {
+			// fail the move
+			if cev.Mins[0] == cev.Maxs[0] {
+				continue
+			}
+			switch cev.Solid {
+			case SOLID_NOT, SOLID_TRIGGER:
+				// corpse
+				cev.Mins[0] = 0
+				cev.Mins[1] = 0
+				cev.Maxs = cev.Mins
+				continue
+			}
+			cev.Origin = entOrigin
+			LinkEdict(c, true)
+
+			pev.Origin = pushOrigin
+			LinkEdict(pusher, false)
+			pev.LTime -= movetime
+
+			// if the pusher has a "blocked" function, call it
+			// otherwise, just stay in place until the obstacle is gone
+			if pev.Blocked != 0 {
+				progsdat.Globals.Self = int32(pusher)
+				progsdat.Globals.Other = int32(c)
+				PRExecuteProgram(pev.Blocked)
+			}
+
+			// move back any entities we already moved
+			for _, m := range movedEnts {
+				EntVars(m.ent).Origin = m.origin
+				LinkEdict(m.ent, false)
+			}
+			return
+		}
+	}
 }
 
 var (
@@ -55,7 +169,7 @@ func (q *qphysics) pusher(ent int) {
 
 	if movetime != 0 {
 		// advances ent->v.ltime if not blocked
-		pushMove(ent, movetime)
+		q.pushMove(ent, movetime)
 	}
 
 	if thinktime > oldltime && thinktime <= float64(ev.LTime) {
