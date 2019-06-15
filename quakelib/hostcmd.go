@@ -43,6 +43,7 @@ func init() {
 	cmd.AddCommand("version", hostVersion)
 	cmd.AddCommand("kick", hostKick)
 	cmd.AddCommand("quit", hostQuit)
+	cmd.AddCommand("connect", hostConnect)
 }
 
 func hostQuit(args []cmd.QArg) {
@@ -997,4 +998,19 @@ func hostKick(args []cmd.QArg) {
 		toKick.Printf("Kicked by %s\n", who)
 	}
 	toKick.Drop(false)
+}
+
+// User command to connect to server
+func hostConnect(args []cmd.QArg) {
+	if len(args) == 0 {
+		return
+	}
+	// stop demo loop in case this fails
+	cls.demoNum = -1
+	if cls.demoPlayback {
+		cls.demoPlayback = false
+		cls.Disconnect()
+	}
+	clEstablishConnection(args[0].String())
+	clReconnect([]cmd.QArg{})
 }

@@ -379,27 +379,6 @@ void Host_Restart_f(void) {
 }
 
 /*
-=====================
-Host_Connect_f
-
-User command to connect to server
-=====================
-*/
-// THERJAK
-void Host_Connect_f(void) {
-  char name[MAX_QPATH];
-
-  CLS_StopDemoCycle();  // stop demo loop in case this fails
-  if (CLS_IsDemoPlayback()) {
-    CL_StopPlayback();
-    CL_Disconnect();
-  }
-  q_strlcpy(name, Cmd_Argv(1), sizeof(name));
-  CL_EstablishConnection(name);
-  Host_Reconnect_f();
-}
-
-/*
 ===============================================================================
 
 LOAD / SAVE GAME
@@ -759,7 +738,6 @@ void Host_InitCommands(void) {
   Cmd_AddCommand("map", Host_Map_f);
   Cmd_AddCommand("restart", Host_Restart_f);
   Cmd_AddCommand("changelevel", Host_Changelevel_f);
-  Cmd_AddCommand("connect", Host_Connect_f);
 
   Cmd_AddCommand("load", Host_Loadgame_f);
   Cmd_AddCommand("save", Host_Savegame_f);
