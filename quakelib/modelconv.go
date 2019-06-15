@@ -61,6 +61,25 @@ func loadModel(name string) {
 	}
 }
 
+//export CLSetWorldModel
+func CLSetWorldModel(m *C.qmodel_t) {
+	name := C.GoString(&m.name[0])
+	cm, ok := models[name]
+	if ok {
+		cl.worldModel = cm
+		return
+	}
+	mods, err := bsp.LoadModel(name)
+	if err != nil {
+		log.Printf("CL - LoadModel err: %v", err)
+	}
+	for _, m := range mods {
+		if m.Name == name {
+			cl.worldModel = m
+		}
+	}
+}
+
 //export SVSetWorldModel
 func SVSetWorldModel(m *C.qmodel_t) {
 	// This has already a lot of SV_SpawnServer

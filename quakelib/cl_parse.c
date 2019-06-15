@@ -490,6 +490,7 @@ void CL_ParseServerInfo(void) {
 
   // local state
   cl_entities[0].model = cl.worldmodel = cl.model_precache[1];
+  CLSetWorldModel(cl.worldmodel); // notify the go side
 
   R_NewMap();
 

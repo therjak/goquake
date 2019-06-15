@@ -14,6 +14,7 @@ import (
 	"quake/input"
 	"quake/keys"
 	"quake/math"
+	"quake/model"
 	"quake/net"
 	clc "quake/protocol/client"
 	svc "quake/protocol/server"
@@ -173,6 +174,8 @@ type Client struct {
 	// gametype
 	// levelname
 	//
+	worldModel *model.QModel
+
 	stats ClientStats
 }
 
