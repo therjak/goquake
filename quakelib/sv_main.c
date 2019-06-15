@@ -204,9 +204,7 @@ void SV_WriteEntitiesToClient(int clent) {
     // johnfitz -- alpha
     if (pr_alpha_supported) {
       // TODO: find a cleaner place to put this code
-      eval_t *val;
-      val = GetEdictFieldValue(EVars(ent), "alpha");
-      if (val) EDICT_NUM(ent)->alpha = ENTALPHA_ENCODE(val->_float);
+      UpdateEdictAlpha(ent);
     }
 
     // don't send invisible entities unless they have effects

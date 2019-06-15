@@ -143,37 +143,6 @@ static dfunction_t *ED_FindFunction(const char *fn_name) {
 
 /*
 ============
-GetEdictFieldValue
-============
-*/
-eval_t *GetEdictFieldValue(entvars_t *ev, const char *field) {
-  ddef_t *def = NULL;
-  int i;
-  static int rep = 0;
-
-  for (i = 0; i < GEFV_CACHESIZE; i++) {
-    if (!strcmp(field, gefvCache[i].field)) {
-      def = gefvCache[i].pcache;
-      goto Done;
-    }
-  }
-
-  def = ED_FindField(field);
-
-  if (strlen(field) < MAX_FIELD_LEN) {
-    gefvCache[rep].pcache = def;
-    strcpy(gefvCache[rep].field, field);
-    rep ^= 1;
-  }
-
-Done:
-  if (!def) return NULL;
-
-  return (eval_t *)((char *)ev + def->ofs * 4);
-}
-
-/*
-============
 PR_ValueString
 (etype_t type, eval_t *val)
 
@@ -192,7 +161,7 @@ static const char *PR_ValueString(int type, eval_t *val) {
       sprintf(line, "%s", PR_GetString(val->string));
       break;
     case ev_entity:
-      sprintf(line, "entity %i", NUM_FOR_EDICT(EDICT_NUM(val->edict)));
+      sprintf(line, "entity %i", val->edict);
       break;
     case ev_function:
       f = pr_functions + val->function;
@@ -244,7 +213,7 @@ static const char *PR_UglyValueString(int type, eval_t *val) {
       sprintf(line, "%s", PR_GetString(val->string));
       break;
     case ev_entity:
-      sprintf(line, "%i", NUM_FOR_EDICT(EDICT_NUM(val->edict)));
+      sprintf(line, "%i", val->edict);
       break;
     case ev_function:
       f = pr_functions + val->function;
@@ -791,16 +760,6 @@ void PR_LoadProgs(void) {
 edict_t *EDICT_NUM(int n) {
   if (n < 0 || n >= SV_MaxEdicts()) Host_Error("EDICT_NUM: bad number %i", n);
   return (edict_t *)((byte *)sv.edicts + (n) * sizeof(edict_t));
-}
-
-int NUM_FOR_EDICT(edict_t *e) {
-  int b;
-
-  b = (byte *)e - (byte *)sv.edicts;
-  b = b / sizeof(edict_t);
-
-  if (b < 0 || b >= SV_NumEdicts()) Host_Error("NUM_FOR_EDICT: bad pointer");
-  return b;
 }
 
 edict_t *AllocEdicts() {

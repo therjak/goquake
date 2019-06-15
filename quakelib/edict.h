@@ -12,8 +12,8 @@ typedef struct edict_s {
   int leafnums[MAX_ENT_LEAFS];
 
   entity_state_t baseline;
-  unsigned char alpha; /* johnfitz -- hack to support alpha since it's not part
-                          of entvars_t */
+  /* johnfitz -- hack to support alpha since it's not part of entvars_t */
+  unsigned char alpha; 
   int sendinterval;    /* johnfitz -- send time until nextthink to client for
                                better lerp timing */
 
@@ -24,6 +24,5 @@ typedef struct edict_s {
 } edict_t;
 
 edict_t *EDICT_NUM(int n);
-int NUM_FOR_EDICT(edict_t *e);
 
 #endif  // _QUAKE_EDICT_H

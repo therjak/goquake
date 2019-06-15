@@ -58,9 +58,4 @@ extern unsigned short pr_crc;
 void PR_RunError(const char *error, ...);
 //    __attribute__((__format__(__printf__, 1, 2), __noreturn__));
 
-void ED_PrintEdicts(void);
-void ED_PrintNum(int ent);
-
-eval_t *GetEdictFieldValue(entvars_t *ev, const char *field);
-
 #endif /* _QUAKE_PROGS_H */

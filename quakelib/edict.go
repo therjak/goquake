@@ -6,6 +6,7 @@ import "C"
 import (
 	"quake/cmd"
 	"quake/conlog"
+	"quake/math"
 	"quake/progs"
 )
 
@@ -88,11 +89,6 @@ func edictAlloc() int {
 //export ED_Alloc
 func ED_Alloc() int {
 	return edictAlloc()
-}
-
-//export ED_Print
-func ED_Print(ed C.int) {
-	edictPrint(int(ed))
 }
 
 // For debugging
@@ -184,4 +180,20 @@ func edictCount(_ []cmd.QArg) {
 	conlog.Printf("view      :%3d\n", models)
 	conlog.Printf("touch     :%3d\n", solid)
 	conlog.Printf("step      :%3d\n", step)
+}
+
+func entAlphaEncode(a float32) byte {
+	if a == 0 {
+		return 0 //ENTALPHA_DEFAULT
+	}
+	return byte(math.Clamp32(1, math.Round(a*254.0+1), 255))
+}
+
+//export UpdateEdictAlpha
+func UpdateEdictAlpha(ent int) {
+	v, err := EntVarsFieldValue(ent, "alpha")
+	if err != nil {
+		return
+	}
+	edictNum(ent).alpha = C.uchar(entAlphaEncode(v))
 }
