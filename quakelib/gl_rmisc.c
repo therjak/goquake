@@ -18,7 +18,6 @@ extern cvar_t r_waterwarp;
 extern cvar_t r_oldskyleaf;
 extern cvar_t r_drawworld;
 extern cvar_t r_showtris;
-extern cvar_t r_showbboxes;
 extern cvar_t r_lerpmodels;
 extern cvar_t r_lerpmove;
 extern cvar_t r_nolerp_list;
@@ -177,7 +176,6 @@ void R_Init(void) {
   Cvar_SetCallback(&r_oldskyleaf, R_VisChanged);
   Cvar_FakeRegister(&r_drawworld, "r_drawworld");
   Cvar_FakeRegister(&r_showtris, "r_showtris");
-  Cvar_FakeRegister(&r_showbboxes, "r_showbboxes");
   Cvar_FakeRegister(&gl_farclip, "gl_farclip");
   Cvar_FakeRegister(&gl_fullbrights, "gl_fullbrights");
   Cvar_SetCallback(&gl_fullbrights, GL_Fullbrights_f);

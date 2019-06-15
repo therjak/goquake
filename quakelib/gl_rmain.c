@@ -72,7 +72,6 @@ cvar_t gl_overbright_models;  // = {"gl_overbright_models", "1", CVAR_ARCHIVE};
 cvar_t r_oldskyleaf;          // = {"r_oldskyleaf", "0", CVAR_NONE};
 cvar_t r_drawworld;           // = {"r_drawworld", "1", CVAR_NONE};
 cvar_t r_showtris;            // = {"r_showtris", "0", CVAR_NONE};
-cvar_t r_showbboxes;          // = {"r_showbboxes", "0", CVAR_NONE};
 cvar_t r_lerpmodels;          // = {"r_lerpmodels", "1", CVAR_NONE};
 cvar_t r_lerpmove;            // = {"r_lerpmove", "1", CVAR_NONE};
 cvar_t r_nolerp_list;         // = {"r_nolerp_list",
@@ -691,56 +690,6 @@ void R_EmitWireBox(vec3_t mins, vec3_t maxs) {
 
 /*
 ================
-R_ShowBoundingBoxes -- johnfitz
-
-draw bounding boxes -- the server-side boxes, not the renderer cullboxes
-================
-*/
-void R_ShowBoundingBoxes(void) {
-  vec3_t mins, maxs;
-  int ed;
-  int i;
-
-  if (!Cvar_GetValue(&r_showbboxes) || cl.maxclients > 1 ||
-      !Cvar_GetValue(&r_drawentities) || !SV_Active())
-    return;
-
-  glDisable(GL_DEPTH_TEST);
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  GL_PolygonOffset(OFFSET_SHOWTRIS);
-  glDisable(GL_TEXTURE_2D);
-  glDisable(GL_CULL_FACE);
-  glColor3f(1, 1, 1);
-
-  for (i = 0, ed = 1; i < SV_NumEdicts();
-       i++, ed++) {
-    if (ed == SV_Player()) continue;  // don't draw player's own bbox
-
-    if (EVars(ed)->mins[0] == EVars(ed)->maxs[0] &&
-        EVars(ed)->mins[1] == EVars(ed)->maxs[1] &&
-        EVars(ed)->mins[2] == EVars(ed)->maxs[2]) {
-      // point entity
-      R_EmitWirePoint(EVars(ed)->origin);
-    } else {
-      // box entity
-      VectorAdd(EVars(ed)->mins, EVars(ed)->origin, mins);
-      VectorAdd(EVars(ed)->maxs, EVars(ed)->origin, maxs);
-      R_EmitWireBox(mins, maxs);
-    }
-  }
-
-  glColor3f(1, 1, 1);
-  glEnable(GL_TEXTURE_2D);
-  glEnable(GL_CULL_FACE);
-  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-  GL_PolygonOffset(OFFSET_NONE);
-  glEnable(GL_DEPTH_TEST);
-
-  Sbar_Changed();  // so we don't get dots collecting on the statusbar
-}
-
-/*
-================
 R_ShowTris -- johnfitz
 ================
 */
@@ -889,8 +838,6 @@ void R_RenderScene(void) {
   R_DrawViewModel();  // johnfitz -- moved here from R_RenderView
 
   R_ShowTris();  // johnfitz
-
-  R_ShowBoundingBoxes();  // johnfitz
 }
 
 /*
