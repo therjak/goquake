@@ -579,18 +579,6 @@ func hostPing(args []cmd.QArg) {
 	}
 }
 
-func findViewThingEV() *progs.EntVars {
-	for i := 0; i < sv.numEdicts; i++ {
-		ev := EntVars(i)
-		name, err := progsdat.String(ev.ClassName)
-		if err != nil && name == "viewthing" {
-			return ev
-		}
-	}
-	conlog.Printf("No viewthing on map\n")
-	return nil
-}
-
 func hostSpawn(args []cmd.QArg) {
 	if execute.IsSrcCommand() {
 		conlog.Printf("spawn is not valid from the console\n")

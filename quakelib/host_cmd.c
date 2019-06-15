@@ -662,47 +662,6 @@ DEBUGGING TOOLS
 
 ===============================================================================
 */
-/*
-==================
-Host_Viewmodel_f
-==================
-*/
-void Host_Viewmodel_f(void) {
-  entvars_t *e;
-  qmodel_t *m;
-
-  e = FindViewthingEV();
-  if (!e) return;
-
-  m = Mod_ForName(Cmd_Argv(1), false);
-  if (!m) {
-    Con_Printf("Can't load %s\n", Cmd_Argv(1));
-    return;
-  }
-
-  e->frame = 0;
-  cl.model_precache[(int)e->modelindex] = m;
-}
-
-/*
-==================
-Host_Viewframe_f
-==================
-*/
-void Host_Viewframe_f(void) {
-  entvars_t *e;
-  int f;
-  qmodel_t *m;
-
-  e = FindViewthingEV();
-  if (!e) return;
-  m = cl.model_precache[(int)e->modelindex];
-
-  f = Cmd_ArgvAsInt(1);
-  if (f >= m->numframes) f = m->numframes - 1;
-
-  e->frame = f;
-}
 
 void PrintFrameName(qmodel_t *m, int frame) {
   aliashdr_t *hdr;
@@ -714,48 +673,6 @@ void PrintFrameName(qmodel_t *m, int frame) {
 
   Con_Printf("frame %i: %s\n", frame, pframedesc->name);
 }
-
-/*
-==================
-Host_Viewnext_f
-==================
-*/
-void Host_Viewnext_f(void) {
-  entvars_t *e;
-  qmodel_t *m;
-
-  e = FindViewthingEV();
-  if (!e) return;
-  m = cl.model_precache[(int)e->modelindex];
-
-  e->frame = e->frame + 1;
-  if (e->frame >= m->numframes) {
-    e->frame = m->numframes - 1;
-  }
-
-  PrintFrameName(m, e->frame);
-}
-
-/*
-==================
-Host_Viewprev_f
-==================
-*/
-void Host_Viewprev_f(void) {
-  entvars_t *e;
-  qmodel_t *m;
-
-  e = FindViewthingEV();
-  if (!e) return;
-
-  m = cl.model_precache[(int)e->modelindex];
-
-  e->frame = e->frame - 1;
-  if (e->frame < 0) e->frame = 0;
-
-  PrintFrameName(m, e->frame);
-}
-
 /*
 ===============================================================================
 
@@ -850,11 +767,6 @@ void Host_InitCommands(void) {
   Cmd_AddCommand("startdemos", Host_Startdemos_f);
   Cmd_AddCommand("demos", Host_Demos_f);
   Cmd_AddCommand("stopdemo", Host_Stopdemo_f);
-
-  Cmd_AddCommand("viewmodel", Host_Viewmodel_f);
-  Cmd_AddCommand("viewframe", Host_Viewframe_f);
-  Cmd_AddCommand("viewnext", Host_Viewnext_f);
-  Cmd_AddCommand("viewprev", Host_Viewprev_f);
 
   Cmd_AddCommand("mcache", Mod_Print);
 }

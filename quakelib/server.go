@@ -968,23 +968,6 @@ func SVDropClient(client int, crash bool) {
 	c.Drop(crash)
 }
 
-//export FindViewthingEV
-func FindViewthingEV() *C.entvars_t {
-	// the go implementation is 'findViewThingEV'
-	for i := 0; i < sv.numEdicts; i++ {
-		ev := EntVars(i)
-		s, err := progsdat.String(ev.ClassName)
-		if err != nil {
-			continue
-		}
-		if s == "viewthing" {
-			return EVars(C.int(i))
-		}
-	}
-	conlog.Printf("No viewthing on map\n")
-	return nil
-}
-
 //export SV_SendClientMessages
 func SV_SendClientMessages() {
 	sv.SendClientMessages()
