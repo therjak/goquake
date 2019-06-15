@@ -55,7 +55,7 @@ func (p *LoadedProg) String(n int32) (string, error) {
 	return p.engineStrings[index], nil
 }
 
-func (p *LoadedProg) findFieldDef(name string) (Def, error) {
+func (p *LoadedProg) FindFieldDef(name string) (Def, error) {
 	for _, d := range p.FieldDefs {
 		n, err := p.String(d.SName)
 		if err != nil {
@@ -68,7 +68,7 @@ func (p *LoadedProg) findFieldDef(name string) (Def, error) {
 	return Def{}, fmt.Errorf("FieldDef '%s' not found", name)
 }
 
-func (p *LoadedProg) findGlobalDef(name string) (Def, error) {
+func (p *LoadedProg) FindGlobalDef(name string) (Def, error) {
 	for _, d := range p.GlobalDefs {
 		n, err := p.String(d.SName)
 		if err != nil {
@@ -81,7 +81,7 @@ func (p *LoadedProg) findGlobalDef(name string) (Def, error) {
 	return Def{}, fmt.Errorf("GlobalDef '%s' not found", name)
 }
 
-func (p *LoadedProg) findFunction(name string) (Function, error) {
+func (p *LoadedProg) FindFunction(name string) (Function, error) {
 	for _, f := range p.Functions {
 		n, err := p.String(f.SName)
 		if err != nil {

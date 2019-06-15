@@ -95,6 +95,17 @@ func RawEntVarsI(idx, off int) int32 {
 	return *(*int32)(unsafe.Pointer(vp))
 }
 
+func EntVarsFieldValue(idx int, name string) (float32, error) {
+	// Orig returns the union 'eval_t' but afterwards it is always a float32
+	d, err := progsdat.FindFieldDef(name)
+	if err != nil {
+		return 0, err
+	}
+	v := uintptr(unsafe.Pointer(g_entvars))
+	vp := v + uintptr(idx*entityFields*4) + uintptr(d.Offset*4)
+	return *(*float32)(unsafe.Pointer(vp)), nil
+}
+
 //export TT_ClearEntVars
 func TT_ClearEntVars(e *C.entvars_t) {
 	C.memset(unsafe.Pointer(e), 0, C.ulong(entityFields*4))

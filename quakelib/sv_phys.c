@@ -30,27 +30,6 @@ cvar_t sv_freezenonclients;
 #define MOVE_EPSILON 0.01
 
 /*
-============
-SV_AddGravity
-
-============
-*/
-// THERJAK
-void SV_AddGravity(int ent) {
-  float ent_gravity;
-  eval_t *val;
-
-  val = GetEdictFieldValue(EVars(ent), "gravity");
-  if (val && val->_float)
-    ent_gravity = val->_float;
-  else
-    ent_gravity = 1.0;
-
-  EVars(ent)->velocity[2] -=
-      ent_gravity * Cvar_GetValue(&sv_gravity) * HostFrameTime();
-}
-
-/*
 ===============================================================================
 
 PUSHMOVE

@@ -2,7 +2,6 @@ package quakelib
 
 //#include "trace.h"
 //void SV_PushMove(int pusher, float movetime);
-//void SV_AddGravity(int ent);
 import "C"
 
 import (
@@ -26,7 +25,11 @@ var (
 )
 
 func (q *qphysics) addGravity(ent int) {
-	C.SV_AddGravity(C.int(ent))
+	val, err := EntVarsFieldValue(ent, "gravity")
+	if err != nil || val == 0 {
+		val = 1.0
+	}
+	EntVars(ent).Velocity[2] -= val * cvars.ServerGravity.Value() * float32(host.frameTime)
 }
 
 //export SV_Physics_Pusher
