@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"quake/cmd"
+	cmdl "quake/commandline"
 	"quake/conlog"
 	"quake/cvars"
 	"quake/execute"
@@ -426,79 +427,39 @@ func hostGive(args []cmd.QArg) {
 	        }
 	      }
 	      break;
-
-	    // johnfitz -- give armour
-	    case 'a':
-	      if (v > 150) {
-	        pent->armortype = 0.8;
-	        pent->armorvalue = v;
-	        pent->items =
-	            pent->items -
-	            ((int)(pent->items) & (int)(IT_ARMOR1 | IT_ARMOR2 | IT_ARMOR3)) +
-	            IT_ARMOR3;
-	      } else if (v > 100) {
-	        pent->armortype = 0.6;
-	        pent->armorvalue = v;
-	        pent->items =
-	            pent->items -
-	            ((int)(pent->items) & (int)(IT_ARMOR1 | IT_ARMOR2 | IT_ARMOR3)) +
-	            IT_ARMOR2;
-	      } else if (v >= 0) {
-	        pent->armortype = 0.3;
-	        pent->armorvalue = v;
-	        pent->items =
-	            pent->items -
-	            ((int)(pent->items) & (int)(IT_ARMOR1 | IT_ARMOR2 | IT_ARMOR3)) +
-	            IT_ARMOR1;
-	      }
-	      break;
-	      // johnfitz
 	  }
-
-	  // johnfitz -- update currentammo to match new ammo (so statusbar updates
-	  // correctly)
-	  switch ((int)(pent->weapon)) {
-	    case IT_SHOTGUN:
-	    case IT_SUPER_SHOTGUN:
-	      pent->currentammo = pent->ammo_shells;
-	      break;
-	    case IT_NAILGUN:
-	    case IT_SUPER_NAILGUN:
-	    case RIT_LAVA_SUPER_NAILGUN:
-	      pent->currentammo = pent->ammo_nails;
-	      break;
-	    case IT_GRENADE_LAUNCHER:
-	    case IT_ROCKET_LAUNCHER:
-	    case RIT_MULTI_GRENADE:
-	    case RIT_MULTI_ROCKET:
-	      pent->currentammo = pent->ammo_rockets;
-	      break;
-	    case IT_LIGHTNING:
-	    case HIT_LASER_CANNON:
-	    case HIT_MJOLNIR:
-	      pent->currentammo = pent->ammo_cells;
-	      break;
-	    case RIT_LAVA_NAILGUN:  // same as IT_AXE
-	      if (CMLRogue()) pent->currentammo = pent->ammo_nails;
-	      break;
-	    case RIT_PLASMA_GUN:  // same as HIT_PROXIMITY_GUN
-	      if (CMLRogue()) pent->currentammo = pent->ammo_cells;
-	      if (CMLHipnotic()) pent->currentammo = pent->ammo_rockets;
-	      break;
-	  }
-	  // johnfitz
 	*/
 
 	// Update currentammo to update statusbar correctly
-	switch int(ev.Weapon) {
-	case progs.ItemShotgun, progs.ItemSuperShotgun:
+	switch ev.Weapon {
+	case progs.ItemShotgun,
+		progs.ItemSuperShotgun:
 		ev.CurrentAmmo = ev.AmmoShells
-	case progs.ItemNailgun, progs.ItemSuperNailgun:
+	case progs.ItemNailgun,
+		progs.ItemSuperNailgun,
+		progs.RogueItemLavaSuperNailgun:
 		ev.CurrentAmmo = ev.AmmoNails
-	case progs.ItemGrenadeLauncher, progs.ItemRocketLauncher:
+	case progs.ItemGrenadeLauncher,
+		progs.ItemRocketLauncher,
+		progs.RogueItemMultiGrenade,
+		progs.RogueItemMultiRocket:
 		ev.CurrentAmmo = ev.AmmoRockets
-	case progs.ItemLightning:
+	case progs.ItemLightning,
+		progs.HipnoticItemLaserCannon,
+		progs.HipnoticItemMjolnir:
 		ev.CurrentAmmo = ev.AmmoCells
+	case progs.RogueItemLavaNailgun:
+		// This is the same as ItemAxe so we need to be more carefull
+		if cmdl.Rogue() {
+			ev.CurrentAmmo = ev.AmmoNails
+		}
+	case progs.RogueItemPlasmaGun:
+		// This is the same as HipnoticItemProximityGun, so be more carefull
+		if cmdl.Rogue() {
+			ev.CurrentAmmo = ev.AmmoCells
+		} else if cmdl.Hipnotic() {
+			ev.CurrentAmmo = ev.AmmoRockets
+		}
 	}
 }
 
