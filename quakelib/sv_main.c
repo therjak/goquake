@@ -23,14 +23,10 @@ void SV_Init(void) {
   int i;
   const char *p;
   extern cvar_t sv_gravity;
-  extern cvar_t sv_nostep;
-  extern cvar_t sv_freezenonclients;
 
   sv.edicts = NULL;  // ericw -- sv.edicts switched to use malloc()
 
   Cvar_FakeRegister(&sv_gravity, "sv_gravity");
-  Cvar_FakeRegister(&sv_nostep, "sv_nostep");
-  Cvar_FakeRegister(&sv_freezenonclients, "sv_freezenonclients");
 
   for (i = 0; i < MAX_MODELS; i++) sprintf(localmodels[i], "*%i", i);
 
