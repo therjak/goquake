@@ -24,19 +24,19 @@ const (
 )
 
 type header struct { // dsprite_t
-	name           [4]byte // "IDSP"
-	version        int32   // SPRITE_VERSION
-	typ            int32   // SPR_SINGLE or SPR_GROUP
-	boundingRadius float32
-	maxWidth       int32
-	maxHeight      int32
-	frameCount     int32
-	beamLength     float32
-	syncType       int32 // ST_SYNC or ST_RAND
+	Name           [4]byte // "IDSP"
+	Version        int32   // SPRITE_VERSION
+	Typ            int32   // SPR_SINGLE or SPR_GROUP
+	BoundingRadius float32
+	MaxWidth       int32
+	MaxHeight      int32
+	FrameCount     int32
+	BeamLength     float32
+	SyncType       int32 // ST_SYNC or ST_RAND
 }
 
 type frame struct {
-	origin [2]int32
-	width  int32
-	height int32
+	Origin [2]int32
+	Width  int32
+	Height int32
 }

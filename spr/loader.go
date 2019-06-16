@@ -1,6 +1,9 @@
 package spr
 
 import (
+	"bytes"
+	"encoding/binary"
+	"fmt"
 	"quake/math/vec"
 	qm "quake/model"
 )
@@ -14,15 +17,35 @@ func Load(name string, data []byte) ([]*qm.QModel, error) {
 	mod := &qm.QModel{
 		Name: name,
 		Type: qm.ModSprite,
-		Mins: vec.Vec3{999999, 999999, 999999},
-		// YMins: vec.Vec3{999999,999999,999999},
-		// RMins: vec.Vec3{999999,999999,999999},
-		Maxs: vec.Vec3{-999999, -999999, -999999},
-		// YMaxs: vec.Vec3{-999999,-999999,-999999},
-		// RMaxs: vec.Vec3{-999999,-999999,-999999},
 	}
+	buf := bytes.NewReader(data)
+	h := header{}
+	err := binary.Read(buf, binary.LittleEndian, &h)
+	if err != nil {
+		return nil, err
+	}
+	if h.Version != spriteVersion {
+		return nil, fmt.Errorf("%s has wrong version number (%d should be %d)", name, h.Version, spriteVersion)
+	}
+	mod.Mins = vec.Vec3{
+		float32(-h.MaxWidth / 2),
+		float32(-h.MaxWidth / 2),
+		float32(-h.MaxHeight / 2),
+	}
+	mod.Maxs = vec.Vec3{
+		float32(h.MaxWidth / 2),
+		float32(h.MaxWidth / 2),
+		float32(h.MaxHeight / 2),
+	}
+	mod.FrameCount = int(h.FrameCount)
+	if mod.FrameCount < 1 {
+		return nil, fmt.Errorf("Mod_LoadSpriteModel: Invalid # of frames: %v", mod.FrameCount)
+	}
+	mod.SyncType = int(h.SyncType)
 
-	// TODO: load the actual model
+	// TODO: load the 'extra data' filled in cache.data
+	//       it gets accessed in r_sprite.c
+	// Do something better than this hacky cache.data + random cast
 	ret = append(ret, mod)
 	return ret, nil
 }

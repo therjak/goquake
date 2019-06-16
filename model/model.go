@@ -120,6 +120,7 @@ type QModel struct {
 	MarkSurfaces []*Surface
 
 	FrameCount int
+	SyncType   int
 
 	Hulls [MAX_MAP_HULLS]Hull
 	// textures
