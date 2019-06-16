@@ -6,35 +6,14 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"quake/filesystem"
 	"quake/math/vec"
-	"quake/mdl"
 	qm "quake/model"
 )
 
-var (
-	polyMagic   = [4]byte{'I', 'D', 'P', 'O'}
-	spriteMagic = [4]byte{'I', 'D', 'S', 'P'}
-)
-
-func LoadModel(name string) ([]*qm.QModel, error) {
-	// TODO: move the cache
-
-	b, err := filesystem.GetFileContents(name)
-	if err != nil {
-		return nil, err
-	}
-	var magic [4]byte
-	copy(magic[:], b)
-	switch magic {
-	case polyMagic:
-		return mdl.Load(name, b)
-	case spriteMagic:
-		// LoadSpriteModel, this is a .spr
-	default:
-		return LoadBSP(name, b)
-	}
-	return nil, nil
+func init() {
+	qm.Register(bspVersion, Load)
+	qm.Register(bsp2Version_2psb, Load)
+	qm.Register(bsp2Version_bsp2, Load)
 }
 
 const (
@@ -43,7 +22,7 @@ const (
 	bsp2Version_bsp2 = '2'<<24 | 'P'<<16 | 'S'<<8 | 'B'
 )
 
-func LoadBSP(name string, data []byte) ([]*qm.QModel, error) {
+func Load(name string, data []byte) ([]*qm.QModel, error) {
 	var ret []*qm.QModel
 	mod := &qm.QModel{
 		Name: name,

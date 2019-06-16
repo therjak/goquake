@@ -10,6 +10,10 @@ type aliashdr struct {
 	VerticeCount int
 }
 
+func init() {
+	qm.Register(Magic, Load)
+}
+
 func Load(name string, data []byte) ([]*qm.QModel, error) {
 	var ret []*qm.QModel
 	mod := &qm.QModel{

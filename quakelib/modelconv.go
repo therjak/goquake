@@ -14,7 +14,6 @@ import "C"
 import (
 	"fmt"
 	"log"
-	"quake/bsp"
 	"quake/math/vec"
 	"quake/model"
 )
@@ -52,7 +51,7 @@ func LoadModelGo(name *C.char) {
 }
 
 func loadModel(name string) {
-	mods, err := bsp.LoadModel(name)
+	mods, err := model.Load(name)
 	if err != nil {
 		log.Printf("LoadModel err: %v", err)
 	}
@@ -69,7 +68,7 @@ func CLSetWorldModel(m *C.qmodel_t) {
 		cl.worldModel = cm
 		return
 	}
-	mods, err := bsp.LoadModel(name)
+	mods, err := model.Load(name)
 	if err != nil {
 		log.Printf("CL - LoadModel err: %v", err)
 	}

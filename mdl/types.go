@@ -19,6 +19,10 @@ const (
 	DT_FACE_FRONT = 0x0010
 )
 
+const (
+	Magic = 'O'<<24 | 'P'<<16 | 'D'<<8 | 'I'
+)
+
 type header struct { // mdl_t
 	ID             int32
 	Version        int32
