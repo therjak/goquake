@@ -20,7 +20,8 @@ const (
 )
 
 const (
-	Magic = 'O'<<24 | 'P'<<16 | 'D'<<8 | 'I'
+	aliasVersion = 6
+	Magic        = 'O'<<24 | 'P'<<16 | 'D'<<8 | 'I'
 )
 
 type header struct { // mdl_t
@@ -42,7 +43,7 @@ type header struct { // mdl_t
 }
 
 // list found at baseskin + siknsizes
-type skinVertex struct { // stvert_t
+type skinVertex struct { // stvert_t, texture coordinates
 	Onseam int32 // 0 or 0x20
 	S      int32 // position horizontally, [0,SkinWidth[
 	T      int32 // position vertically, [0,SkinHeight[

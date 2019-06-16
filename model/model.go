@@ -102,6 +102,8 @@ type QModel struct {
 	Name string
 	Type ModType
 
+	Flags int
+
 	Mins     vec.Vec3
 	Maxs     vec.Vec3
 	ClipMins vec.Vec3
