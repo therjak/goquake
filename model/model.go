@@ -85,6 +85,7 @@ const (
 const (
 	MAX_MAP_HULLS = 4
 	MAX_MODELS    = 2048
+	MAX_MAP_LEAFS = 70000
 )
 
 type Submodel struct {

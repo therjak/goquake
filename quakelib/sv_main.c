@@ -48,9 +48,7 @@ int fatbytes;
 byte fatpvs[MAX_MAP_LEAFS / 8];
 
 // THERJAK
-void SV_AddToFatPVS(
-    vec3_t org, mnode_t *node,
-    qmodel_t *worldmodel)  // johnfitz -- added worldmodel as a parameter
+void SV_AddToFatPVS(vec3_t org, mnode_t *node, qmodel_t *worldmodel)
 {
   int i;
   byte *pvs;
@@ -61,8 +59,7 @@ void SV_AddToFatPVS(
     // if this is a leaf, accumulate the pvs bits
     if (node->contents < 0) {
       if (node->contents != CONTENTS_SOLID) {
-        pvs = Mod_LeafPVS((mleaf_t *)node,
-                          worldmodel);  // johnfitz -- worldmodel as a parameter
+        pvs = Mod_LeafPVS((mleaf_t *)node, worldmodel);  
         for (i = 0; i < fatbytes; i++) fatpvs[i] |= pvs[i];
       }
       return;
@@ -75,8 +72,7 @@ void SV_AddToFatPVS(
     else if (d < -8)
       node = node->children[1];
     else {  // go down both
-      SV_AddToFatPVS(org, node->children[0],
-                     worldmodel);  // johnfitz -- worldmodel as a parameter
+      SV_AddToFatPVS(org, node->children[0], worldmodel);
       node = node->children[1];
     }
   }
@@ -93,12 +89,11 @@ given point.
 // THERJAK
 byte *SV_FatPVS(
     vec3_t org,
-    qmodel_t *worldmodel)  // johnfitz -- added worldmodel as a parameter
+    qmodel_t *worldmodel)
 {
   fatbytes = (worldmodel->numleafs + 31) >> 3;
   Q_memset(fatpvs, 0, fatbytes);
-  SV_AddToFatPVS(org, worldmodel->nodes,
-                 worldmodel);  // johnfitz -- worldmodel as a parameter
+  SV_AddToFatPVS(org, worldmodel->nodes, worldmodel);
   return fatpvs;
 }
 

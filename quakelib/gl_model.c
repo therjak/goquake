@@ -74,6 +74,7 @@ Mod_PointInLeaf
 ===============
 */
 mleaf_t *Mod_PointInLeaf(vec3_t p, qmodel_t *model) {
+  // THERJAK: Already converted as (QModel).PointInLeaf
   mnode_t *node;
   float d;
   mplane_t *plane;
