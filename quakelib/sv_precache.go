@@ -1,6 +1,5 @@
 package quakelib
 
-// unsigned char EAlpha(int num);
 import "C"
 
 import (
@@ -12,7 +11,7 @@ import (
 // sv.lightStyles
 
 func EntityAlpha(num int) byte {
-	return byte(C.EAlpha(C.int(num)))
+	return EDICT_ALPHA(num)
 }
 
 //export SetSVModelPrecache

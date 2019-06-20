@@ -24,6 +24,28 @@ func edictNum(i int) *C.edict_t {
 	return C.EDICT_NUM(C.int(i))
 }
 
+//export EDICT_FREE
+func EDICT_FREE(n int) int {
+	return int(edictNum(n).free)
+}
+
+//export EDICT_SETFREE
+func EDICT_SETFREE(n, free int) {
+	edictNum(n).free = C.int(free)
+}
+
+//export EDICT_ALPHA
+func EDICT_ALPHA(n int) byte {
+	return byte(edictNum(n).alpha)
+}
+
+// unsigned char EAlpha(int num) { return EDICT_NUM(num)->alpha; }
+
+//export EDICT_SETALPHA
+func EDICT_SETALPHA(n int, alpha byte) {
+	edictNum(n).alpha = C.uchar(alpha)
+}
+
 // Marks the edict as free
 // FIXME: walk all entities and NULL out references to this entity
 func edictFree(i int) {

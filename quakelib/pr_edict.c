@@ -762,23 +762,6 @@ edict_t *EDICT_NUM(int n) {
   return (edict_t *)((byte *)sv.edicts + (n) * sizeof(edict_t));
 }
 
-int EDICT_FREE(int n) {
-  return EDICT_NUM(n)->free;
-}
-
-void EDICT_SETFREE(int n, int free){
-  EDICT_NUM(n)->free = free;
-}
-
-unsigned char EDICT_ALPHA(int n) {
-  return EDICT_NUM(n)->alpha;
-}
-unsigned char EAlpha(int num) { return EDICT_NUM(num)->alpha; }
-
-void EDICT_SETALPHA(int n, unsigned char alpha){
-  EDICT_NUM(n)->alpha = alpha;
-}
-
 edict_t *AllocEdicts() {
   AllocEntvars(SV_MaxEdicts(), progs->entityfields);
   return (edict_t *)malloc(SV_MaxEdicts() * sizeof(edict_t));
