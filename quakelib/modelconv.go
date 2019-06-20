@@ -9,9 +9,9 @@ import (
 	"quake/model"
 )
 
-//export SVSetModel
-func SVSetModel(m *C.qmodel_t, idx C.int, localModel C.int) {
-	name := C.GoString(&m.name[0])
+//export SVSetModelByName
+func SVSetModelByName(n *C.char, idx int, localModel int) {
+	name := C.GoString(n)
 	nm := func() *model.QModel {
 		cm, ok := models[name]
 		if ok {
@@ -36,12 +36,22 @@ func init() {
 	models = make(map[string]*model.QModel)
 }
 
+//export ModClearAllGo
+func ModClearAllGo() {
+	models = make(map[string]*model.QModel)
+}
+
 //export LoadModelGo
 func LoadModelGo(name *C.char) {
 	loadModel(C.GoString(name))
 }
 
 func loadModel(name string) {
+	_, ok := models[name]
+	if ok {
+		// No need, already loaded
+		return
+	}
 	mods, err := model.Load(name)
 	if err != nil {
 		log.Printf("LoadModel err: %v", err)
@@ -70,10 +80,10 @@ func CLSetWorldModel(m *C.qmodel_t) {
 	}
 }
 
-//export SVSetWorldModel
-func SVSetWorldModel(m *C.qmodel_t) {
+//export SVSetWorldModelByName
+func SVSetWorldModelByName(n *C.char) {
 	// This has already a lot of SV_SpawnServer
-	name := C.GoString(&m.name[0])
+	name := C.GoString(n)
 	log.Printf("New world: %s", name)
 	sv.worldModel = nil
 	sv.modelPrecache = sv.modelPrecache[:0]

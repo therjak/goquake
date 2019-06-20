@@ -23,8 +23,8 @@ static void PF_precache_model(void) {
   for (i = 0; i < MAX_MODELS; i++) {
     if (!ExistSVModelPrecache(i)) {
       SetSVModelPrecache(i, s);
-      sv.models[i] = Mod_ForName(s, true);
-      SVSetModel(sv.models[i], i, false);
+      LoadModelGo(s);
+      SVSetModelByName(s, i, false);
       return;
     }
   }

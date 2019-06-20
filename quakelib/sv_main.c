@@ -12,8 +12,6 @@ extern qboolean pr_alpha_supported;  // johnfitz
 
 //============================================================================
 
-int ModelLeafIndex(mleaf_t *l) { return l - sv.worldmodel->leafs; }
-
 cvar_t sv_gravity;
 /*
 ===============
@@ -177,29 +175,20 @@ void SV_SpawnServer(const char *server) {
 
   SV_SetName(server);
   SV_SetModelName("maps/%s.bsp", server);
+  LoadModelGo(SV_ModelName());
   sv.worldmodel = Mod_ForName(SV_ModelName(), false);
   if (!sv.worldmodel) {
     Con_Printf("Couldn't spawn server %s\n", SV_ModelName());
     SV_SetActive(false);
     return;
   }
-  SVSetWorldModel(sv.worldmodel);
-  sv.models[1] = sv.worldmodel;
+  SVSetWorldModelByName(SV_ModelName());
 
-  //
-  // clear world interaction links
-  //
-  for (i = 1; i < sv.worldmodel->numsubmodels; i++) {
-    sv.models[i + 1] = Mod_ForName(localmodels[i], false);
-  }
-
-  //
   // load the rest of the entities
-  //
   ent = 0;
   TT_ClearEntVars(EVars(ent));
   EDICT_SETFREE(ent, false);
-  EVars(ent)->model = PR_SetEngineString(sv.worldmodel->name);
+  EVars(ent)->model = PR_SetEngineString(SV_ModelName());
   EVars(ent)->modelindex = 1;  // world model
   EVars(ent)->solid = SOLID_BSP;
   EVars(ent)->movetype = MOVETYPE_PUSH;

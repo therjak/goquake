@@ -31,11 +31,9 @@ typedef enum { ss_loading, ss_active } server_state_t;
 
 typedef struct {
   struct qmodel_s *worldmodel;
-  struct qmodel_s *models[MAX_MODELS];
   const char *lightstyles[MAX_LIGHTSTYLES];
 } server_t;
 
-int ModelLeafIndex(mleaf_t *l);
 const char *SV_Name();
 const char *SV_ModelName();
 
