@@ -33,9 +33,6 @@ typedef struct {
   struct qmodel_s *worldmodel;
   struct qmodel_s *models[MAX_MODELS];
   const char *lightstyles[MAX_LIGHTSTYLES];
-  edict_t *edicts;  // can NOT be array indexed, because
-                    // edict_t is variable sized, but can
-                    // be used to reference the world ent
 } server_t;
 
 int ModelLeafIndex(mleaf_t *l);

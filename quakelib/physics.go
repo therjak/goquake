@@ -58,7 +58,7 @@ func (q *qphysics) pushMove(pusher int, movetime float32) {
 
 	// see if any solid entities are inside the final position
 	for c := 1; c < sv.numEdicts; c++ {
-		if edictNum(c).free != 0 {
+		if edictNum(c).Free {
 			continue
 		}
 		cev := EntVars(c)
@@ -457,7 +457,7 @@ func (q *qphysics) toss(ent int) {
 	if trace.fraction == 1 {
 		return
 	}
-	if edictNum(ent).free != 0 {
+	if edictNum(ent).Free {
 		return
 	}
 
@@ -635,7 +635,7 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *C.trace_t) int {
 			}
 		}
 		sv.Impact(ent, int(trace.entn))
-		if edictNum(ent).free != 0 {
+		if edictNum(ent).Free {
 			// removed by the impact function
 			break
 		}
@@ -847,7 +847,7 @@ func RunPhysics() {
 	}()
 
 	for i := 0; i < entityCap; i++ {
-		if edictNum(i).free != 0 {
+		if edictNum(i).Free {
 			continue
 		}
 		if progsdat.Globals.ForceRetouch != 0 {

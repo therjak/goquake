@@ -538,7 +538,7 @@ func PF_findradius() {
 	rad := progsdat.RawGlobalsF[progs.OffsetParm1]
 
 	for ent := 1; ent < sv.numEdicts; ent++ {
-		if edictNum(ent).free != 0 {
+		if edictNum(ent).Free {
 			continue
 		}
 		ev := EntVars(ent)
@@ -608,7 +608,7 @@ func PF_Find() {
 		return
 	}
 	for e++; int(e) < sv.numEdicts; e++ {
-		if edictNum(int(e)).free != 0 {
+		if edictNum(int(e)).Free {
 			continue
 		}
 		ti := RawEntVarsI(int(e), int(f))
@@ -876,7 +876,7 @@ func PF_nextent() {
 			progsdat.Globals.Return[0] = 0
 			return
 		}
-		if edictNum(int(i)).free == 0 {
+		if edictNum(int(i)).Free {
 			progsdat.Globals.Return[0] = i
 			return
 		}
@@ -1168,7 +1168,7 @@ func PF_makestatic() {
 	e := edictNum(ent)
 
 	// don't send invisible static entities
-	if e.alpha == server.EntityAlphaZero {
+	if e.Alpha == server.EntityAlphaZero {
 		edictFree(ent)
 		return
 	}
@@ -1195,7 +1195,7 @@ func PF_makestatic() {
 		if frame&0xFF00 != 0 {
 			bits |= server.EntityBaselineLargeFrame
 		}
-		if e.alpha != server.EntityAlphaDefault {
+		if e.Alpha != server.EntityAlphaDefault {
 			bits |= server.EntityBaselineAlpha
 		}
 	}
@@ -1227,7 +1227,7 @@ func PF_makestatic() {
 	}
 
 	if bits&server.EntityBaselineAlpha != 0 {
-		sv.signon.WriteByte(int(e.alpha))
+		sv.signon.WriteByte(int(e.Alpha))
 	}
 
 	// throw the entity away now

@@ -83,6 +83,8 @@ type Server struct {
 	numEdicts int
 	maxEdicts int
 
+	edicts []Edict
+
 	protocol      uint16
 	protocolFlags int
 
@@ -846,7 +848,7 @@ func SV_CreateBaseline() {
 func (s *Server) CreateBaseline() {
 	for entnum := 0; entnum < s.numEdicts; entnum++ {
 		e := edictNum(entnum)
-		if e.free != 0 {
+		if e.Free {
 			continue
 		}
 		sev := EntVars(entnum)
@@ -854,42 +856,38 @@ func (s *Server) CreateBaseline() {
 			continue
 		}
 
-		e.baseline.origin[0] = C.float(sev.Origin[0])
-		e.baseline.origin[1] = C.float(sev.Origin[1])
-		e.baseline.origin[2] = C.float(sev.Origin[2])
-		e.baseline.angles[0] = C.float(sev.Angles[0])
-		e.baseline.angles[1] = C.float(sev.Angles[1])
-		e.baseline.angles[2] = C.float(sev.Angles[2])
+		e.Baseline.Origin = sev.Origin
+		e.Baseline.Angles = sev.Angles
 
-		e.baseline.frame = C.ushort(sev.Frame)
-		e.baseline.skin = C.uchar(sev.Skin)
+		e.Baseline.Frame = uint16(sev.Frame)
+		e.Baseline.Skin = byte(sev.Skin)
 		if entnum > 0 && entnum <= svs.maxClients {
-			e.baseline.colormap = C.uchar(entnum)
-			e.baseline.modelindex = C.ushort(s.ModelIndex("progs/player.mdl"))
-			e.baseline.alpha = server.EntityAlphaDefault
+			e.Baseline.ColorMap = byte(entnum)
+			e.Baseline.ModelIndex = uint16(s.ModelIndex("progs/player.mdl"))
+			e.Baseline.Alpha = server.EntityAlphaDefault
 		} else {
-			e.baseline.colormap = 0
+			e.Baseline.ColorMap = 0
 			str, err := progsdat.String(sev.Model)
 			if err != nil {
 				log.Printf("Error in CreateBaseline: %v", err)
 			}
-			e.baseline.modelindex = C.ushort(s.ModelIndex(str))
-			e.baseline.alpha = e.alpha
+			e.Baseline.ModelIndex = uint16(s.ModelIndex(str))
+			e.Baseline.Alpha = e.Alpha
 		}
 
 		bits := 0
-		mi := int(e.baseline.modelindex)
-		frame := int(e.baseline.frame)
+		mi := int(e.Baseline.ModelIndex)
+		frame := int(e.Baseline.Frame)
 		if s.protocol == protocol.NetQuake {
 			if mi&0xFF00 != 0 {
 				mi = 0
-				e.baseline.modelindex = 0
+				e.Baseline.ModelIndex = 0
 			}
 			if frame&0xFF00 != 0 {
 				frame = 0
-				e.baseline.frame = 0
+				e.Baseline.Frame = 0
 			}
-			e.baseline.alpha = server.EntityAlphaDefault
+			e.Baseline.Alpha = server.EntityAlphaDefault
 		} else {
 			if mi&0xFF00 != 0 {
 				bits |= server.EntityBaselineLargeModel
@@ -897,7 +895,7 @@ func (s *Server) CreateBaseline() {
 			if frame&0xFF00 != 0 {
 				bits |= server.EntityBaselineLargeFrame
 			}
-			if e.alpha != server.EntityAlphaDefault {
+			if e.Alpha != server.EntityAlphaDefault {
 				bits |= server.EntityBaselineAlpha
 			}
 		}
@@ -925,15 +923,15 @@ func (s *Server) CreateBaseline() {
 			s.signon.WriteByte(frame)
 		}
 
-		s.signon.WriteByte(int(e.baseline.colormap))
-		s.signon.WriteByte(int(e.baseline.skin))
+		s.signon.WriteByte(int(e.Baseline.ColorMap))
+		s.signon.WriteByte(int(e.Baseline.Skin))
 		for i := 0; i < 3; i++ {
-			s.signon.WriteCoord(float32(e.baseline.origin[i]), s.protocolFlags)
-			s.signon.WriteAngle(float32(e.baseline.angles[i]), s.protocolFlags)
+			s.signon.WriteCoord(float32(e.Baseline.Origin[i]), s.protocolFlags)
+			s.signon.WriteAngle(float32(e.Baseline.Angles[i]), s.protocolFlags)
 		}
 
 		if bits&server.EntityBaselineAlpha != 0 {
-			s.signon.WriteByte(int(e.alpha))
+			s.signon.WriteByte(int(e.Alpha))
 		}
 	}
 }
@@ -1063,17 +1061,17 @@ func runThink(e int) bool {
 	// capture interval to nextthink here and send it to client for better
 	// lerp timing, but only if interval is not 0.1 (which client assumes)
 	ed := edictNum(e)
-	ed.sendinterval = b2i(false)
-	if ed.free == 0 && ev.NextThink != 0 &&
+	ed.SendInterval = false
+	if !ed.Free && ev.NextThink != 0 &&
 		(ev.MoveType == progs.MoveTypeStep || ev.Frame != oldframe) {
 		i := math.Round((ev.NextThink - thinktime) * 255)
 		// 25 and 26 are close enough to 0.1 to not send
 		if i >= 0 && i < 256 && i != 25 && i != 26 {
-			ed.sendinterval = b2i(true)
+			ed.SendInterval = true
 		}
 	}
 
-	return ed.free == 0
+	return !ed.Free
 }
 
 //export SV_PushEntity
@@ -1215,9 +1213,8 @@ func (s *Server) WriteEntitiesToClient(clent int) {
 			}
 
 			// ignore if not touching a PV leaf
-			i := C.int(0)
+			i := 0
 			for ; i < edict.num_leafs; i++ {
-				//log.Printf("leafnums[i]=%d, len(pvs)=%d", edict.leafnums[i], len(pvs))
 				if pvs[edict.leafnums[i]/8]&(1<<(uint(edict.leafnums[i])&7)) != 0 {
 					break
 				}
@@ -1247,21 +1244,21 @@ func (s *Server) WriteEntitiesToClient(clent int) {
 		bits := 0
 
 		for i := uint32(0); i < 3; i++ {
-			miss := ev.Origin[i] - float32(edict.baseline.origin[i])
+			miss := ev.Origin[i] - edict.Baseline.Origin[i]
 			if miss < -0.1 || miss > 0.1 {
 				bits |= server.U_ORIGIN1 << i
 			}
 		}
 
-		if ev.Angles[0] != float32(edict.baseline.angles[0]) {
+		if ev.Angles[0] != edict.Baseline.Angles[0] {
 			bits |= server.U_ANGLE1
 		}
 
-		if ev.Angles[1] != float32(edict.baseline.angles[1]) {
+		if ev.Angles[1] != edict.Baseline.Angles[1] {
 			bits |= server.U_ANGLE2
 		}
 
-		if ev.Angles[2] != float32(edict.baseline.angles[2]) {
+		if ev.Angles[2] != edict.Baseline.Angles[2] {
 			bits |= server.U_ANGLE3
 		}
 
@@ -1269,23 +1266,23 @@ func (s *Server) WriteEntitiesToClient(clent int) {
 			bits |= server.U_STEP // don't mess up the step animation
 		}
 
-		if ev.ColorMap != float32(edict.baseline.colormap) {
+		if ev.ColorMap != float32(edict.Baseline.ColorMap) {
 			bits |= server.U_COLORMAP
 		}
 
-		if ev.Skin != float32(edict.baseline.skin) {
+		if ev.Skin != float32(edict.Baseline.Skin) {
 			bits |= server.U_SKIN
 		}
 
-		if ev.Frame != float32(edict.baseline.frame) {
+		if ev.Frame != float32(edict.Baseline.Frame) {
 			bits |= server.U_FRAME
 		}
 
-		if ev.Effects != float32(edict.baseline.effects) {
+		if ev.Effects != float32(edict.Baseline.Effects) {
 			bits |= server.U_EFFECTS
 		}
 
-		if ev.ModelIndex != float32(edict.baseline.modelindex) {
+		if ev.ModelIndex != float32(edict.Baseline.ModelIndex) {
 			bits |= server.U_MODEL
 		}
 
@@ -1295,13 +1292,13 @@ func (s *Server) WriteEntitiesToClient(clent int) {
 		//     }
 
 		// don't send invisible entities unless they have effects
-		if edict.alpha == server.EntityAlphaZero && ev.Effects == 0 {
+		if edict.Alpha == server.EntityAlphaZero && ev.Effects == 0 {
 			continue
 		}
 
 		// fitzquake
 		if s.protocol != protocol.NetQuake {
-			if edict.baseline.alpha != edict.alpha {
+			if edict.Baseline.Alpha != edict.Alpha {
 				bits |= server.U_ALPHA
 			}
 			if bits&server.U_FRAME != 0 &&
@@ -1312,7 +1309,7 @@ func (s *Server) WriteEntitiesToClient(clent int) {
 				int(ev.ModelIndex)&0xFF00 != 0 {
 				bits |= server.U_MODEL2
 			}
-			if edict.sendinterval != 0 {
+			if edict.SendInterval {
 				bits |= server.U_LERPFINISH
 			}
 			if bits >= 65536 {
@@ -1386,7 +1383,7 @@ func (s *Server) WriteEntitiesToClient(clent int) {
 		}
 
 		if bits&server.U_ALPHA != 0 {
-			msgBuf.WriteByte(int(edict.alpha))
+			msgBuf.WriteByte(int(edict.Alpha))
 		}
 		if bits&server.U_FRAME2 != 0 {
 			msgBuf.WriteByte(int(ev.Frame) >> 8)

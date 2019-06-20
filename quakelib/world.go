@@ -1,7 +1,6 @@
 package quakelib
 
 //#include "trace.h"
-//#include "edict.h"
 //#include "cgo_help.h"
 import "C"
 
@@ -199,7 +198,7 @@ func LinkEdict(e int, touchTriggers bool) {
 		return // don't add the world
 	}
 	ed := edictNum(e)
-	if ed.free != 0 {
+	if ed.Free {
 		return
 	}
 	ev := EntVars(e)
@@ -273,7 +272,7 @@ func findTouchedLeafs(e int, node model.Node, world *model.QModel) {
 	if node.Contents() < 0 {
 		// This is a leaf
 		ed := edictNum(e)
-		if ed.num_leafs == C.MAX_ENT_LEAFS {
+		if ed.num_leafs == MAX_ENT_LEAFS {
 			return
 		}
 		leaf := node.(*model.MLeaf)
@@ -291,7 +290,7 @@ func findTouchedLeafs(e int, node model.Node, world *model.QModel) {
 			debug.PrintStack()
 		}
 
-		ed.leafnums[ed.num_leafs] = C.int(leafNum)
+		ed.leafnums[ed.num_leafs] = leafNum
 		ed.num_leafs++
 		return
 	}

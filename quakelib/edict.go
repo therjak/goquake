@@ -1,12 +1,12 @@
 package quakelib
 
-//#include "edict.h"
 import "C"
 
 import (
 	"quake/cmd"
 	"quake/conlog"
 	"quake/math"
+	"quake/math/vec"
 	"quake/progs"
 )
 
@@ -20,30 +20,64 @@ func init() {
 	cmd.AddCommand("edictcount", edictCount)
 }
 
-func edictNum(i int) *C.edict_t {
-	return C.EDICT_NUM(C.int(i))
+type EntityState struct {
+	Origin     vec.Vec3
+	Angles     vec.Vec3
+	ModelIndex uint16
+	Frame      uint16
+	ColorMap   byte
+	Skin       byte
+	Alpha      byte
+	Effects    int
+}
+
+type Edict struct {
+	Free bool
+
+	num_leafs int
+	leafnums  [MAX_ENT_LEAFS]int
+
+	Baseline     EntityState
+	Alpha        byte // hack to support alpha since it's not part of entvars_t
+	SendInterval bool // send time until nextthink to client for better lerp timing
+
+	FreeTime float32 // sv.time when the object was freed
+}
+
+func edictNum(i int) *Edict {
+	return &sv.edicts[i]
 }
 
 //export EDICT_FREE
-func EDICT_FREE(n int) int {
-	return int(edictNum(n).free)
+func EDICT_FREE(n int) C.int {
+	return b2i(edictNum(n).Free)
 }
 
 //export EDICT_SETFREE
 func EDICT_SETFREE(n, free int) {
-	edictNum(n).free = C.int(free)
+	edictNum(n).Free = (free != 0)
 }
 
 //export EDICT_ALPHA
 func EDICT_ALPHA(n int) byte {
-	return byte(edictNum(n).alpha)
+	return edictNum(n).Alpha
 }
-
-// unsigned char EAlpha(int num) { return EDICT_NUM(num)->alpha; }
 
 //export EDICT_SETALPHA
 func EDICT_SETALPHA(n int, alpha byte) {
-	edictNum(n).alpha = C.uchar(alpha)
+	edictNum(n).Alpha = alpha
+}
+
+//export AllocEdicts
+func AllocEdicts() {
+	AllocEntvars(sv.maxEdicts, progsdat.EdictSize)
+	sv.edicts = make([]Edict, sv.maxEdicts)
+}
+
+//export FreeEdicts
+func FreeEdicts() {
+	FreeEntvars()
+	sv.edicts = sv.edicts[:0]
 }
 
 // Marks the edict as free
@@ -53,9 +87,9 @@ func edictFree(i int) {
 	UnlinkEdict(i)
 
 	e := edictNum(i)
-	e.free = b2i(true)
-	e.alpha = 0
-	e.freetime = C.float(sv.time)
+	e.Free = true
+	e.Alpha = 0
+	e.FreeTime = sv.time
 
 	ev := EntVars(i)
 	ev.Model = 0
@@ -78,7 +112,7 @@ func ED_Free(ed int) {
 // Sets everything to NULL
 func edClearEdict(e int) {
 	TTClearEntVars(e)
-	edictNum(e).free = b2i(false)
+	edictNum(e).Free = false
 }
 
 // Either finds a free edict, or allocates a new one.
@@ -92,7 +126,7 @@ func edictAlloc() int {
 		e := edictNum(i)
 		// the first couple seconds of server time can involve a lot of
 		// freeing and allocating, so relax the replacement policy
-		if e.free != 0 && (e.freetime < 2 || sv.time-float32(e.freetime) > 0.5) {
+		if e.Free && (e.FreeTime < 2 || sv.time-e.FreeTime > 0.5) {
 			edClearEdict(i)
 			return i
 		}
@@ -115,7 +149,7 @@ func ED_Alloc() int {
 
 // For debugging
 func edictPrint(ed int) {
-	if edictNum(ed).free != 0 {
+	if edictNum(ed).Free {
 		conlog.Printf("FREE\n")
 		return
 	}
@@ -182,7 +216,7 @@ func edictCount(_ []cmd.QArg) {
 	solid := 0
 	step := 0
 	for i := 0; i < sv.numEdicts; i++ {
-		if edictNum(i).free != 0 {
+		if edictNum(i).Free {
 			continue
 		}
 		active++
@@ -217,5 +251,5 @@ func UpdateEdictAlpha(ent int) {
 	if err != nil {
 		return
 	}
-	edictNum(ent).alpha = C.uchar(entAlphaEncode(v))
+	edictNum(ent).Alpha = entAlphaEncode(v)
 }

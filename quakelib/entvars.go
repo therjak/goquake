@@ -3,7 +3,6 @@ package quakelib
 //#include <stdlib.h>
 //#include "q_stdinc.h"
 //#include "progdefs.h"
-//#include "edict.h"
 import "C"
 import (
 	"fmt"
@@ -19,9 +18,9 @@ var (
 )
 
 //export AllocEntvars
-func AllocEntvars(edicts C.int, entityfields C.int) {
-	entityFields = int(entityfields)
-	maxEdicts = int(edicts)
+func AllocEntvars(edicts int, entityfields int) {
+	entityFields = entityfields
+	maxEdicts = edicts
 	// virtmem = make([]int32, maxEdicts*entityFields)
 	v := C.malloc(C.ulong(edicts * entityfields * 4))
 	g_entvars = (*C.entvars_t)(v)
@@ -123,7 +122,7 @@ func TT_ClearEdict(e int) {
 
 func TTClearEdict(e int) {
 	ent := edictNum(e)
-	C.memset(unsafe.Pointer(ent), 0, C.sizeof_edict_t)
+	*ent = Edict{}
 	TTClearEntVars(e)
 }
 

@@ -24,8 +24,6 @@ void SV_Init(void) {
   int i;
   const char *p;
 
-  sv.edicts = NULL;  // ericw -- sv.edicts switched to use malloc()
-
   Cvar_FakeRegister(&sv_gravity, "sv_gravity");
 
   for (i = 0; i < MAX_MODELS; i++) sprintf(localmodels[i], "*%i", i);
@@ -159,7 +157,7 @@ void SV_SpawnServer(const char *server) {
   /* Host_ClearMemory() called above already cleared the whole sv structure */
   SV_SetMaxEdicts(CLAMP(MIN_EDICTS, (int)Cvar_GetValue(&max_edicts),
                         MAX_EDICTS));  // johnfitz -- max_edicts cvar
-  sv.edicts = AllocEdicts();
+  AllocEdicts();
   // ericw -- sv.edicts switched to use malloc()
 
   // leave slots at start for clients only

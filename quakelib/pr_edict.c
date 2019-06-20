@@ -757,21 +757,6 @@ void PR_LoadProgs(void) {
   }
 }
 
-edict_t *EDICT_NUM(int n) {
-  if (n < 0 || n >= SV_MaxEdicts()) Host_Error("EDICT_NUM: bad number %i", n);
-  return (edict_t *)((byte *)sv.edicts + (n) * sizeof(edict_t));
-}
-
-edict_t *AllocEdicts() {
-  AllocEntvars(SV_MaxEdicts(), progs->entityfields);
-  return (edict_t *)malloc(SV_MaxEdicts() * sizeof(edict_t));
-}
-
-void FreeEdicts(edict_t *e) {
-  FreeEntvars();
-  free(e);
-}
-
 /*
 ===============
 PR_Init
