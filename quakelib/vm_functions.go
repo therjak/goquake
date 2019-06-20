@@ -389,49 +389,65 @@ func PF_traceline() {
 	}
 }
 
-/*
-static byte checkpvs[MAX_MAP_LEAFS / 8];
+var (
+	checkpvs []byte // to cache results
+)
 
-static int PF_newcheckclient(int check) {
-  int i;
-  byte *pvs;
-  int ent;
-  mleaf_t *leaf;
-  vec3_t org;
+func init() {
+	checkpvs = make([]byte, model.MAX_MAP_LEAFS/8)
+}
 
-  // cycle to the next one
+func PF_newcheckclient(check int) int {
+	// cycle to the next one
+	if check < 1 {
+		check = 1
+	}
+	if check > svs.maxClients {
+		check = svs.maxClients
+	}
 
-  if (check < 1) check = 1;
-  if (check > SVS_GetMaxClients()) check = SVS_GetMaxClients();
+	i := check + 1
+	if check == svs.maxClients {
+		i = 1
+	}
+	ent := 0
 
-  if (check == SVS_GetMaxClients()) {
-    i = 1;
-  } else {
-    i = check + 1;
-  }
+	for ; ; i++ {
+		if i == svs.maxClients+1 {
+			i = 1
+		}
 
-  for (;; i++) {
-    if (i == SVS_GetMaxClients() + 1) i = 1;
+		ent = i
 
-    ent = i;
+		if i == check {
+			// didn't find anything else
+			break
+		}
 
-    if (i == check) break;  // didn't find anything else
+		if edictNum(ent).Free {
+			continue
+		}
+		ev := EntVars(ent)
+		if ev.Health <= 0 {
+			continue
+		}
+		if int(ev.Flags)&FL_NOTARGET != 0 {
+			continue
+		}
 
-    if (edictNum(ent).free) continue;
-    if (EVars(ent)->health <= 0) continue;
-    if ((int)EVars(ent)->flags & FL_NOTARGET) continue;
+		// anything that is a client, or has a client as an enemy
+		break
+	}
 
-    // anything that is a client, or has a client as an enemy
-    break;
-  }
+	ev := EntVars(ent)
+	// get the PVS for the entity
+	org := vec.Add(ev.Origin, ev.ViewOfs)
+	leaf, _ := sv.worldModel.PointInLeaf(org)
+	pvs := sv.worldModel.LeafPVS(leaf)
 
-  // get the PVS for the entity
-  VectorAdd(EVars(ent)->origin, EVars(ent)->view_ofs, org);
-  leaf = Mod_PointInLeaf(org, sv.worldmodel);
-  pvs = Mod_LeafPVS(leaf, sv.worldmodel);
-  memcpy(checkpvs, pvs, (sv.worldmodel->numleafs + 7) >> 3);
-
-  return i;
+	// we care only about the first (len(sv.worldModel.Leafs)+7)/8 bytes
+	copy(checkpvs, pvs)
+	return i
 }
 
 // Returns a client (or object that has a client enemy) that would be a
@@ -439,41 +455,44 @@ static int PF_newcheckclient(int check) {
 // If there are more than one valid options, they are cycled each frame
 // If (self.origin + self.viewofs) is not in the PVS of the current target,
 // it is not returned at all.
-#define MAX_CHECK 16
-static void PF_checkclient(void) {
-  int ent;
-  int self;
-  mleaf_t *leaf;
-  int l;
-  vec3_t view;
+//export PF_checkclient
+func PF_checkclient() {
+	// find a new check if on a new frame
+	if sv.time-sv.lastCheckTime >= 0.1 {
+		sv.lastCheck = PF_newcheckclient(sv.lastCheck)
+		sv.lastCheckTime = sv.time
+	}
 
-  // find a new check if on a new frame
-  if (SV_Time() - SV_LastCheckTime() >= 0.1) {
-    SV_SetLastCheck(PF_newcheckclient(SV_LastCheck()));
-    SV_SetLastCheckTime(SV_Time());
-  }
+	// return check if it might be visible
+	ent := sv.lastCheck
+	if edictNum(ent).Free || EntVars(ent).Health <= 0 {
+		progsdat.Globals.Return[0] = 0
+		return
+	}
 
-  // return check if it might be visible
-  ent = SV_LastCheck();
-  if (edictNum(ent).free || EVars(ent)->health <= 0) {
-	  progsdat.Globals.Return[0] = 0;
-    return;
-  }
+	// if current entity can't possibly see the check entity, return 0
+	self := int(progsdat.Globals.Self)
+	es := EntVars(self)
+	view := vec.Add(es.Origin, es.ViewOfs)
+	leaf, _ := sv.worldModel.PointInLeaf(view)
+	leafNum := -2
+	for i, l := range sv.worldModel.Leafs {
+		if l == leaf {
+			leafNum = i - 1 // -1 to remove the solid 0 leaf
+		}
+	}
+	if leafNum == -2 {
+		log.Printf("checkclient: Got leafnum -2, len(leafs)= %d", len(sv.worldModel.Leafs))
+	}
 
-  // if current entity can't possibly see the check entity, return 0
-  self = Pr_global_struct_self();
-  VectorAdd(EVars(self)->origin, EVars(self)->view_ofs, view);
-  leaf = Mod_PointInLeaf(view, sv.worldmodel);
-  l = (leaf - sv.worldmodel->leafs) - 1;
-  if ((l < 0) || !(checkpvs[l >> 3] & (1 << (l & 7)))) {
-	  progsdat.Globals.Return[0] = 0;
-    return;
-  }
+	if (leafNum < 0) || (checkpvs[leafNum/8]&(1<<(uint(leafNum)&7)) == 0) {
+		progsdat.Globals.Return[0] = 0
+		return
+	}
 
-  // might be able to see it
-	progsdat.Globals.Return[0] = int32(ent);
+	// might be able to see it
+	progsdat.Globals.Return[0] = int32(ent)
 }
-*/
 
 // Sends text over to the client's execution buffer
 //export PF_stuffcmd
