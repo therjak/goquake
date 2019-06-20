@@ -278,18 +278,17 @@ func findTouchedLeafs(e int, node model.Node, world *model.QModel) {
 		}
 		leaf := node.(*model.MLeaf)
 		leafNum := -2
-		for i, l := range world.Leafs { // := 0; i < len(world.Leafs); i++ {
+		for i, l := range world.Leafs {
 			if l == leaf {
-				leafNum = i - 1 // why -1 ?
+				leafNum = i - 1 // -1 to remove the solid 0 leaf
 				if i == 0 {
 					log.Printf("Got leafnum -1")
 				}
 			}
 		}
 		if leafNum == -2 {
-			log.Printf("Got leafnum -2, %d, len(leafs)= %d", leaf.Index, len(world.Leafs))
+			log.Printf("Got leafnum -2, len(leafs)= %d", len(world.Leafs))
 			debug.PrintStack()
-			leafNum = leaf.Index - 1
 		}
 
 		ed.leafnums[ed.num_leafs] = C.int(leafNum)

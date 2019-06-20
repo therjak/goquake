@@ -82,7 +82,6 @@ type MLeaf struct {
 	// NumMarkSurfaces   int == len(MarkSurfaces)
 	Key               int
 	AmbientSoundLevel [4]byte
-	Index             int
 }
 
 type Efrag struct{}
