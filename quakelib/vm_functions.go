@@ -287,9 +287,9 @@ func PF_ambientsound() {
 		sv.signon.WriteByte(server.SpawnStaticSound)
 	}
 
-	sv.signon.WriteCoord(pos[0], int(sv.protocolFlags))
-	sv.signon.WriteCoord(pos[1], int(sv.protocolFlags))
-	sv.signon.WriteCoord(pos[2], int(sv.protocolFlags))
+	sv.signon.WriteCoord(pos[0], sv.protocolFlags)
+	sv.signon.WriteCoord(pos[1], sv.protocolFlags)
+	sv.signon.WriteCoord(pos[2], sv.protocolFlags)
 
 	if large {
 		sv.signon.WriteShort(soundnum)
@@ -1089,13 +1089,13 @@ func PF_WriteAngle() {
 	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
 	switch dest {
 	case MSG_ONE:
-		sv_clients[writeClient()].msg.WriteAngle(msg, int(sv.protocolFlags))
+		sv_clients[writeClient()].msg.WriteAngle(msg, sv.protocolFlags)
 	case MSG_INIT:
-		sv.signon.WriteAngle(msg, int(sv.protocolFlags))
+		sv.signon.WriteAngle(msg, sv.protocolFlags)
 	case MSG_BROADCAST:
-		sv.datagram.WriteAngle(msg, int(sv.protocolFlags))
+		sv.datagram.WriteAngle(msg, sv.protocolFlags)
 	case MSG_ALL:
-		sv.reliableDatagram.WriteAngle(msg, int(sv.protocolFlags))
+		sv.reliableDatagram.WriteAngle(msg, sv.protocolFlags)
 	default:
 		runError("WriteDest: bad destination")
 	}
@@ -1107,13 +1107,13 @@ func PF_WriteCoord() {
 	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
 	switch dest {
 	case MSG_ONE:
-		sv_clients[writeClient()].msg.WriteCoord(msg, int(sv.protocolFlags))
+		sv_clients[writeClient()].msg.WriteCoord(msg, sv.protocolFlags)
 	case MSG_INIT:
-		sv.signon.WriteCoord(msg, int(sv.protocolFlags))
+		sv.signon.WriteCoord(msg, sv.protocolFlags)
 	case MSG_BROADCAST:
-		sv.datagram.WriteCoord(msg, int(sv.protocolFlags))
+		sv.datagram.WriteCoord(msg, sv.protocolFlags)
 	case MSG_ALL:
-		sv.reliableDatagram.WriteCoord(msg, int(sv.protocolFlags))
+		sv.reliableDatagram.WriteCoord(msg, sv.protocolFlags)
 	default:
 		runError("WriteDest: bad destination")
 	}
@@ -1222,8 +1222,8 @@ func PF_makestatic() {
 	sv.signon.WriteByte(int(ev.ColorMap))
 	sv.signon.WriteByte(int(ev.Skin))
 	for i := 0; i < 3; i++ {
-		sv.signon.WriteCoord(ev.Origin[i], int(sv.protocolFlags))
-		sv.signon.WriteAngle(ev.Angles[i], int(sv.protocolFlags))
+		sv.signon.WriteCoord(ev.Origin[i], sv.protocolFlags)
+		sv.signon.WriteAngle(ev.Angles[i], sv.protocolFlags)
 	}
 
 	if bits&server.EntityBaselineAlpha != 0 {

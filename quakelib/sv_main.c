@@ -47,7 +47,6 @@ crosses a waterline.
 int fatbytes;
 byte fatpvs[MAX_MAP_LEAFS / 8];
 
-// THERJAK
 void SV_AddToFatPVS(vec3_t org, mnode_t *node, qmodel_t *worldmodel)
 {
   int i;
@@ -77,7 +76,6 @@ void SV_AddToFatPVS(vec3_t org, mnode_t *node, qmodel_t *worldmodel)
     }
   }
 }
-
 /*
 =============
 SV_FatPVS
@@ -86,7 +84,6 @@ Calculates a PVS that is the inclusive or of all leafs within 8 pixels of the
 given point.
 =============
 */
-// THERJAK
 byte *SV_FatPVS(
     vec3_t org,
     qmodel_t *worldmodel)
@@ -96,190 +93,6 @@ byte *SV_FatPVS(
   SV_AddToFatPVS(org, worldmodel->nodes, worldmodel);
   return fatpvs;
 }
-
-//=============================================================================
-
-/*
-=============
-SV_WriteEntitiesToClient
-
-=============
-*/
-void SV_WriteEntitiesToClient(int clent) {
-  int e, i;
-  int bits;
-  byte *pvs;
-  vec3_t org;
-  float miss;
-  int ent;
-
-  // find the client's PVS
-  VectorAdd(EVars(clent)->origin, EVars(clent)->view_ofs, org);
-  pvs = SV_FatPVS(org, sv.worldmodel);
-
-  // send over all entities (excpet the client) that touch the pvs
-  ent = 1;
-  for (e = 1; e < SV_NumEdicts(); e++, ent++) {
-    if (ent != clent)  // clent is ALLWAYS sent
-    {
-      // ignore ents without visible models
-      if (!EVars(ent)->modelindex || !PR_GetString(EVars(ent)->model)[0])
-        continue;
-
-      // johnfitz -- don't send model>255 entities if protocol is 15
-      if (SV_Protocol() == PROTOCOL_NETQUAKE &&
-          (int)EVars(ent)->modelindex & 0xFF00)
-        continue;
-
-      // ignore if not touching a PV leaf
-      for (i = 0; i < EDICT_NUM(ent)->num_leafs; i++)
-        if (pvs[EDICT_NUM(ent)->leafnums[i] >> 3] &
-            (1 << (EDICT_NUM(ent)->leafnums[i] & 7)))
-          break;
-
-      // ericw -- added ent->num_leafs < MAX_ENT_LEAFS condition.
-      //
-      // if ent->num_leafs == MAX_ENT_LEAFS, the ent is visible from too many
-      // leafs
-      // for us to say whether it's in the PVS, so don't try to vis cull it.
-      // this commonly happens with rotators, because they often have huge
-      // bboxes
-      // spanning the entire map, or really tall lifts, etc.
-      if (i == EDICT_NUM(ent)->num_leafs &&
-          EDICT_NUM(ent)->num_leafs < MAX_ENT_LEAFS)
-        continue;  // not visible
-    }
-
-    // johnfitz -- max size for protocol 15 is 18 bytes, not 16 as originally
-    // assumed here.  And, for protocol 85 the max size is actually 24 bytes.
-    if (SV_MS_Len() + 24 > SV_MS_MaxLen()) {
-      // johnfitz -- less spammy overflow message
-      if (!dev_overflows.packetsize ||
-          dev_overflows.packetsize + CONSOLE_RESPAM_TIME < HostRealTime()) {
-        Con_Printf("Packet overflow!\n");
-        dev_overflows.packetsize = HostRealTime();
-      }
-      goto stats;
-      // johnfitz
-    }
-
-    // send an update
-    bits = 0;
-
-    for (i = 0; i < 3; i++) {
-      miss = EVars(ent)->origin[i] - EDICT_NUM(ent)->baseline.origin[i];
-      if (miss < -0.1 || miss > 0.1) bits |= U_ORIGIN1 << i;
-    }
-
-    if (EVars(ent)->angles[0] != EDICT_NUM(ent)->baseline.angles[0])
-      bits |= U_ANGLE1;
-
-    if (EVars(ent)->angles[1] != EDICT_NUM(ent)->baseline.angles[1])
-      bits |= U_ANGLE2;
-
-    if (EVars(ent)->angles[2] != EDICT_NUM(ent)->baseline.angles[2])
-      bits |= U_ANGLE3;
-
-    if (EVars(ent)->movetype == MOVETYPE_STEP)
-      bits |= U_STEP;  // don't mess up the step animation
-
-    if (EDICT_NUM(ent)->baseline.colormap != EVars(ent)->colormap)
-      bits |= U_COLORMAP;
-
-    if (EDICT_NUM(ent)->baseline.skin != EVars(ent)->skin) bits |= U_SKIN;
-
-    if (EDICT_NUM(ent)->baseline.frame != EVars(ent)->frame) bits |= U_FRAME;
-
-    if (EDICT_NUM(ent)->baseline.effects != EVars(ent)->effects)
-      bits |= U_EFFECTS;
-
-    if (EDICT_NUM(ent)->baseline.modelindex != EVars(ent)->modelindex)
-      bits |= U_MODEL;
-
-    // johnfitz -- alpha
-    if (pr_alpha_supported) {
-      // TODO: find a cleaner place to put this code
-      UpdateEdictAlpha(ent);
-    }
-
-    // don't send invisible entities unless they have effects
-    if (EDICT_NUM(ent)->alpha == ENTALPHA_ZERO && !EVars(ent)->effects)
-      continue;
-    // johnfitz
-
-    // johnfitz -- PROTOCOL_FITZQUAKE
-    if (SV_Protocol() != PROTOCOL_NETQUAKE) {
-      if (EDICT_NUM(ent)->baseline.alpha != EDICT_NUM(ent)->alpha)
-        bits |= U_ALPHA;
-      if (bits & U_FRAME && (int)EVars(ent)->frame & 0xFF00) bits |= U_FRAME2;
-      if (bits & U_MODEL && (int)EVars(ent)->modelindex & 0xFF00)
-        bits |= U_MODEL2;
-      if (EDICT_NUM(ent)->sendinterval) bits |= U_LERPFINISH;
-      if (bits >= 65536) bits |= U_EXTEND1;
-      if (bits >= 16777216) bits |= U_EXTEND2;
-    }
-    // johnfitz
-
-    if (e >= 256) bits |= U_LONGENTITY;
-
-    if (bits >= 256) bits |= U_MOREBITS;
-
-    //
-    // write the message
-    //
-    SV_MS_WriteByte(bits | U_SIGNAL);
-
-    if (bits & U_MOREBITS) SV_MS_WriteByte(bits >> 8);
-
-    // johnfitz -- PROTOCOL_FITZQUAKE
-    if (bits & U_EXTEND1) SV_MS_WriteByte(bits >> 16);
-    if (bits & U_EXTEND2) SV_MS_WriteByte(bits >> 24);
-    // johnfitz
-
-    if (bits & U_LONGENTITY)
-      SV_MS_WriteShort(e);
-    else
-      SV_MS_WriteByte(e);
-
-    if (bits & U_MODEL) SV_MS_WriteByte(EVars(ent)->modelindex);
-    if (bits & U_FRAME) SV_MS_WriteByte(EVars(ent)->frame);
-    if (bits & U_COLORMAP) SV_MS_WriteByte(EVars(ent)->colormap);
-    if (bits & U_SKIN) SV_MS_WriteByte(EVars(ent)->skin);
-    if (bits & U_EFFECTS) SV_MS_WriteByte(EVars(ent)->effects);
-    if (bits & U_ORIGIN1) SV_MS_WriteCoord(EVars(ent)->origin[0]);
-    if (bits & U_ANGLE1) SV_MS_WriteAngle(EVars(ent)->angles[0]);
-    if (bits & U_ORIGIN2) SV_MS_WriteCoord(EVars(ent)->origin[1]);
-    if (bits & U_ANGLE2) SV_MS_WriteAngle(EVars(ent)->angles[1]);
-    if (bits & U_ORIGIN3) SV_MS_WriteCoord(EVars(ent)->origin[2]);
-    if (bits & U_ANGLE3) SV_MS_WriteAngle(EVars(ent)->angles[2]);
-
-    // johnfitz -- PROTOCOL_FITZQUAKE
-    if (bits & U_ALPHA) SV_MS_WriteByte(EDICT_NUM(ent)->alpha);
-    if (bits & U_FRAME2) SV_MS_WriteByte((int)EVars(ent)->frame >> 8);
-    if (bits & U_MODEL2) SV_MS_WriteByte((int)EVars(ent)->modelindex >> 8);
-    if (bits & U_LERPFINISH)
-      SV_MS_WriteByte(
-          (byte)(Q_rint((EVars(ent)->nextthink - SV_Time()) * 255)));
-    // johnfitz
-  }
-
-// johnfitz -- devstats
-stats:
-  if (SV_MS_Len() > 1024 && dev_peakstats.packetsize <= 1024)
-    Con_DWarning("%i byte packet exceeds standard limit of 1024.\n",
-                 SV_MS_Len());
-  dev_stats.packetsize = SV_MS_Len();
-  dev_peakstats.packetsize = q_max(SV_MS_Len(), dev_peakstats.packetsize);
-  // johnfitz
-}
-
-/*
-==============================================================================
-
-SERVER SPAWNING
-
-==============================================================================
-*/
 
 /*
 ================

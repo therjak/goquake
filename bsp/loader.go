@@ -44,7 +44,7 @@ func Load(name string, data []byte) ([]*qm.QModel, error) {
 	}
 	switch h.Version {
 	case bspVersion:
-		log.Printf("Got V0 bsp: %v", h)
+		log.Printf("Got V0 bsp %s: %v", name, h)
 		// TODO: loadVertexes(fs(h.Vertexes, data),ret)
 		// TODO: loadEdgesV0(fs(h.Edges, data),ret)
 		// TODO: loadSurfaceEdges(fs(h.SurfaceEdges, data),ret)
@@ -149,7 +149,9 @@ func Load(name string, data []byte) ([]*qm.QModel, error) {
 			m.ClipMins = sub.Mins
 			m.ClipMaxs = sub.Maxs
 			// }
-			m.Leafs = m.Leafs[:sub.VisLeafCount]
+
+			// VisLeafCount does not include the solid leaf 0, m.Leafs should still have it
+			m.Leafs = m.Leafs[:sub.VisLeafCount+1]
 
 			ret = append(ret, &m)
 		}

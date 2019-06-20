@@ -13,29 +13,13 @@ import (
 	"quake/math/vec"
 	"quake/model"
 	"quake/progs"
+	"runtime/debug"
 )
 
 const (
 	MOVE_NORMAL = iota
 	MOVE_NOMONSTERS
 	MOVE_MISSILE
-)
-
-const (
-	CONTENTS_EMPTY        = -1
-	CONTENTS_SOLID        = -2
-	CONTENTS_WATER        = -3
-	CONTENTS_SLIME        = -4
-	CONTENTS_LAVA         = -5
-	CONTENTS_SKY          = -6
-	CONTENTS_ORIGIN       = -7
-	CONTENTS_CLIP         = -8
-	CONTENTS_CURRENT_0    = -9
-	CONTENTS_CURRENT_90   = -10
-	CONTENTS_CURRENT_180  = -11
-	CONTENTS_CURRENT_270  = -12
-	CONTENTS_CURRENT_UP   = -13
-	CONTENTS_CURRENT_DOWN = -14
 )
 
 const (
@@ -248,7 +232,7 @@ func LinkEdict(e int, touchTriggers bool) {
 
 	ed.num_leafs = 0
 	if ev.ModelIndex != 0 {
-		findTouchedLeafs(e, sv.worldModel.Node)
+		findTouchedLeafs(e, sv.worldModel.Node, sv.worldModel)
 	}
 
 	if ev.Solid == SOLID_NOT {
@@ -282,8 +266,8 @@ func LinkEdict(e int, touchTriggers bool) {
 	}
 }
 
-func findTouchedLeafs(e int, node model.Node) {
-	if node.Contents() == CONTENTS_SOLID {
+func findTouchedLeafs(e int, node model.Node, world *model.QModel) {
+	if node.Contents() == model.CONTENTS_SOLID {
 		return
 	}
 	if node.Contents() < 0 {
@@ -293,11 +277,19 @@ func findTouchedLeafs(e int, node model.Node) {
 			return
 		}
 		leaf := node.(*model.MLeaf)
-		leafNum := -1
-		for i := 0; i < len(sv.worldModel.Leafs); i++ {
-			if sv.worldModel.Leafs[i] == leaf {
+		leafNum := -2
+		for i, l := range world.Leafs { // := 0; i < len(world.Leafs); i++ {
+			if l == leaf {
 				leafNum = i - 1 // why -1 ?
+				if i == 0 {
+					log.Printf("Got leafnum -1")
+				}
 			}
+		}
+		if leafNum == -2 {
+			log.Printf("Got leafnum -2, %d, len(leafs)= %d", leaf.Index, len(world.Leafs))
+			debug.PrintStack()
+			leafNum = leaf.Index - 1
 		}
 
 		ed.leafnums[ed.num_leafs] = C.int(leafNum)
@@ -309,10 +301,10 @@ func findTouchedLeafs(e int, node model.Node) {
 	ev := EntVars(e)
 	sides := boxOnPlaneSide(vec.VFromA(ev.AbsMin), vec.VFromA(ev.AbsMax), splitplane)
 	if sides&1 != 0 {
-		findTouchedLeafs(e, n.Children[0])
+		findTouchedLeafs(e, n.Children[0], world)
 	}
 	if sides&2 != 0 {
-		findTouchedLeafs(e, n.Children[1])
+		findTouchedLeafs(e, n.Children[1], world)
 	}
 }
 
@@ -468,9 +460,9 @@ func initBoxHull() {
 		boxHull.Planes[i] = &model.Plane{}
 		boxHull.ClipNodes[i].Plane = boxHull.Planes[i]
 		side := i & 1
-		boxHull.ClipNodes[i].Children[side] = CONTENTS_EMPTY
+		boxHull.ClipNodes[i].Children[side] = model.CONTENTS_EMPTY
 		if i == 5 {
-			boxHull.ClipNodes[i].Children[side^1] = CONTENTS_SOLID
+			boxHull.ClipNodes[i].Children[side^1] = model.CONTENTS_SOLID
 		} else {
 			boxHull.ClipNodes[i].Children[side^1] = i + 1
 		}
@@ -558,9 +550,9 @@ func pointContents(p vec.Vec3) int {
 //TODO: export?
 func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 vec.Vec3, trace *C.trace_t) bool {
 	if num < 0 { // check for empty
-		if num != CONTENTS_SOLID {
+		if num != model.CONTENTS_SOLID {
 			trace.allsolid = b2i(false)
-			if num == CONTENTS_EMPTY {
+			if num == model.CONTENTS_EMPTY {
 				trace.inopen = b2i(true)
 			} else {
 				trace.inwater = b2i(true)
@@ -613,7 +605,7 @@ func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 vec.Vec
 	if !recursiveHullCheck(h, node.Children[side], p1f, midf, p1, mid, trace) {
 		return false
 	}
-	if hullPointContents(h, node.Children[side^1], mid) != CONTENTS_SOLID {
+	if hullPointContents(h, node.Children[side^1], mid) != model.CONTENTS_SOLID {
 		return recursiveHullCheck(h, node.Children[side^1], midf, p2f, mid, p2, trace)
 	}
 	if trace.allsolid != 0 {
@@ -631,7 +623,7 @@ func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 vec.Vec
 		trace.plane.normal[2] = C.float(-plane.Normal[2])
 		trace.plane.dist = C.float(-plane.Dist)
 	}
-	for hullPointContents(h, h.FirstClipNode, mid) == CONTENTS_SOLID {
+	for hullPointContents(h, h.FirstClipNode, mid) == model.CONTENTS_SOLID {
 		// shouldn't really happen, but does occasionally
 		frac -= 0.1
 		if frac < 0 {
@@ -756,7 +748,7 @@ func checkBottom(ent int) bool {
 		vec.Vec3{maxs[0], maxs[1], mins[2] - 1},
 	}
 	for _, start := range d {
-		if pointContents(start) != CONTENTS_SOLID {
+		if pointContents(start) != model.CONTENTS_SOLID {
 			return expensiveCheckBottom(ent, mins, maxs)
 		}
 	}

@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"quake/math"
 	"quake/math/vec"
+	"quake/model"
 	"quake/progs"
 
 	"github.com/chewxy/math32"
@@ -51,7 +52,7 @@ func monsterMoveStep(ent int, move vec.Vec3, relink bool) bool {
 					float32(trace.endpos[1]),
 					float32(trace.endpos[2]),
 				}
-				if flags&FL_SWIM != 0 && pointContents(endpos) == CONTENTS_EMPTY {
+				if flags&FL_SWIM != 0 && pointContents(endpos) == model.CONTENTS_EMPTY {
 					// swim monster left water
 					return false
 				}

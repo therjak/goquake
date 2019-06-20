@@ -82,7 +82,6 @@ BOPS_Error
 Split out like this for ASM to call.
 ==================
 */
-void BOPS_Error(void) __attribute__((__noreturn__));
 void BOPS_Error(void) { (void)Go_Error("BoxOnPlaneSide:  Bad signbits"); }
 
 /*

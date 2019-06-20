@@ -183,3 +183,33 @@ const (
 	SU_UNUSED30     = (1 << iota)
 	SU_EXTEND3      = (1 << iota) // another byte to follow, future expansion
 )
+
+// if the high bit of the servercmd is set, the low bits are fast update flags:
+// svc_update can pass all of the fast update bits, plus more
+const (
+	U_MOREBITS = (1 << iota)
+	U_ORIGIN1
+	U_ORIGIN2
+	U_ORIGIN3
+	U_ANGLE2
+	U_STEP
+	U_FRAME
+	U_SIGNAL // just differentiates from other updates
+	U_ANGLE1
+	U_ANGLE3
+	U_MODEL
+	U_COLORMAP
+	U_SKIN
+	U_EFFECTS
+	U_LONGENTITY
+	U_EXTEND1
+	U_ALPHA      // 1 byte, uses ENTALPHA_ENCODE, not sent if equal to baseline
+	U_FRAME2     // 1 byte, this is .frame & 0xFF00 (second byte)
+	U_MODEL2     // 1 byte, this is .modelindex & 0xFF00 (second byte)
+	U_LERPFINISH // 1 byte, 0.0-1.0 maps to 0-255, not sent if exactly 0.1, this is ent->v.nextthink - sv.time, used for lerping
+	U_SCALE      // 1 byte, for PROTOCOL_RMQ PRFL_EDICTSCALE, currently read but ignored
+	U_UNUSED21
+	U_UNUSED22
+	U_EXTEND2             // another byte to follow, future expansion
+	U_TRANS   = (1 << 15) // PROTOCOL_NEHAHRA transparency
+)

@@ -7,6 +7,7 @@ import (
 	"quake/conlog"
 	"quake/cvars"
 	"quake/math/vec"
+	"quake/model"
 	"quake/progs"
 
 	"github.com/chewxy/math32"
@@ -402,8 +403,8 @@ func (q *qphysics) checkWaterTransition(ent int) {
 		return
 	}
 
-	if cont <= CONTENTS_WATER {
-		if ev.WaterType == CONTENTS_EMPTY {
+	if cont <= model.CONTENTS_WATER {
+		if ev.WaterType == model.CONTENTS_EMPTY {
 			// just crossed into water
 			sv.StartSound(ent, 0, 255, "misc/h2ohit1.wav", 1)
 		}
@@ -412,11 +413,11 @@ func (q *qphysics) checkWaterTransition(ent int) {
 		return
 	}
 
-	if ev.WaterType != CONTENTS_EMPTY {
+	if ev.WaterType != model.CONTENTS_EMPTY {
 		// just crossed into water
 		sv.StartSound(ent, 0, 255, "misc/h2ohit1.wav", 1)
 	}
-	ev.WaterType = CONTENTS_EMPTY
+	ev.WaterType = model.CONTENTS_EMPTY
 	ev.WaterLevel = float32(cont) // TODO: why?
 }
 
@@ -704,19 +705,19 @@ func (q *qphysics) checkWater(ent int) bool {
 	}
 
 	ev.WaterLevel = 0
-	ev.WaterType = CONTENTS_EMPTY
+	ev.WaterType = model.CONTENTS_EMPTY
 
 	cont := pointContents(point)
-	if cont <= CONTENTS_WATER {
+	if cont <= model.CONTENTS_WATER {
 		ev.WaterType = float32(cont)
 		ev.WaterLevel = 1
 		point[2] = ev.Origin[2] + (ev.Mins[2]+ev.Maxs[2])*0.5
 		cont = pointContents(point)
-		if cont <= CONTENTS_WATER {
+		if cont <= model.CONTENTS_WATER {
 			ev.WaterLevel = 2
 			point[2] = ev.Origin[2] + ev.ViewOfs[2]
 			cont = pointContents(point)
-			if cont <= CONTENTS_WATER {
+			if cont <= model.CONTENTS_WATER {
 				ev.WaterLevel = 3
 			}
 		}

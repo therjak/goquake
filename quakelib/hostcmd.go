@@ -664,9 +664,9 @@ func hostSpawn(args []cmd.QArg) {
 	// with a permanent head tilt
 	cid := HostClientID() + 1
 	c.msg.WriteByte(server.SetAngle)
-	c.msg.WriteAngle(EntVars(cid).Angles[0], int(sv.protocolFlags))
-	c.msg.WriteAngle(EntVars(cid).Angles[1], int(sv.protocolFlags))
-	c.msg.WriteAngle(0, int(sv.protocolFlags))
+	c.msg.WriteAngle(EntVars(cid).Angles[0], sv.protocolFlags)
+	c.msg.WriteAngle(EntVars(cid).Angles[1], sv.protocolFlags)
+	c.msg.WriteAngle(0, sv.protocolFlags)
 
 	msgBuf.ClearMessage()
 	msgBufMaxLen = protocol.MaxDatagram

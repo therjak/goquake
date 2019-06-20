@@ -4,6 +4,23 @@ import (
 	"quake/math/vec"
 )
 
+const (
+	CONTENTS_EMPTY        = -1
+	CONTENTS_SOLID        = -2
+	CONTENTS_WATER        = -3
+	CONTENTS_SLIME        = -4
+	CONTENTS_LAVA         = -5
+	CONTENTS_SKY          = -6
+	CONTENTS_ORIGIN       = -7
+	CONTENTS_CLIP         = -8
+	CONTENTS_CURRENT_0    = -9
+	CONTENTS_CURRENT_90   = -10
+	CONTENTS_CURRENT_180  = -11
+	CONTENTS_CURRENT_270  = -12
+	CONTENTS_CURRENT_UP   = -13
+	CONTENTS_CURRENT_DOWN = -14
+)
+
 type Plane struct {
 	Normal   vec.Vec3
 	Dist     float32
@@ -65,6 +82,7 @@ type MLeaf struct {
 	// NumMarkSurfaces   int == len(MarkSurfaces)
 	Key               int
 	AmbientSoundLevel [4]byte
+	Index             int
 }
 
 type Efrag struct{}

@@ -4,7 +4,6 @@ package quakelib
 //#include "progdefs.h"
 //#include "trace.h"
 //#include "cgo_help.h"
-// void SV_WriteEntitiesToClient(int clent);
 import "C"
 
 import (
@@ -85,7 +84,7 @@ type Server struct {
 	maxEdicts int
 
 	protocol      uint16
-	protocolFlags uint16
+	protocolFlags int
 
 	state ServerState // some actions are only valid during load
 
@@ -266,7 +265,7 @@ func SV_Protocol() C.ushort {
 
 //export SV_SetProtocolFlags
 func SV_SetProtocolFlags(flags C.ushort) {
-	sv.protocolFlags = uint16(flags)
+	sv.protocolFlags = int(flags)
 }
 
 //export SV_Paused
@@ -323,12 +322,12 @@ func SV_MS_WriteShort(v C.int) {
 
 //export SV_MS_WriteAngle
 func SV_MS_WriteAngle(v C.float) {
-	msgBuf.WriteAngle(float32(v), int(sv.protocolFlags))
+	msgBuf.WriteAngle(float32(v), sv.protocolFlags)
 }
 
 //export SV_MS_WriteCoord
 func SV_MS_WriteCoord(v C.float) {
-	msgBuf.WriteCoord(float32(v), int(sv.protocolFlags))
+	msgBuf.WriteCoord(float32(v), sv.protocolFlags)
 }
 
 //export SV_MS_Len
@@ -346,9 +345,9 @@ func (s *Server) StartParticle(org, dir vec.Vec3, color, count int) {
 		return
 	}
 	s.datagram.WriteByte(server.Particle)
-	s.datagram.WriteCoord(org[0], int(s.protocolFlags))
-	s.datagram.WriteCoord(org[1], int(s.protocolFlags))
-	s.datagram.WriteCoord(org[2], int(s.protocolFlags))
+	s.datagram.WriteCoord(org[0], s.protocolFlags)
+	s.datagram.WriteCoord(org[1], s.protocolFlags)
+	s.datagram.WriteCoord(org[2], s.protocolFlags)
 	df := func(d float32) int {
 		v := d * 16
 		if v > 127 {
@@ -509,7 +508,7 @@ func (s *Server) sendStartSound(entity, channel, volume, soundnum int, attenuati
 		s.datagram.WriteByte(soundnum)
 	}
 	ev := EntVars(entity)
-	flags := int(s.protocolFlags)
+	flags := s.protocolFlags
 	s.datagram.WriteCoord(ev.Origin[0]+0.5*(ev.Mins[0]+ev.Maxs[0]), flags)
 	s.datagram.WriteCoord(ev.Origin[1]+0.5*(ev.Mins[1]+ev.Maxs[1]), flags)
 	s.datagram.WriteCoord(ev.Origin[2]+0.5*(ev.Mins[2]+ev.Maxs[2]), flags)
@@ -524,7 +523,7 @@ func (s *Server) CleanupEntvarEffects() {
 }
 
 func (s *Server) WriteClientdataToMessage(e *progs.EntVars, alpha byte) {
-	flags := int(s.protocolFlags)
+	flags := s.protocolFlags
 	if e.DmgTake != 0 || e.DmgSave != 0 {
 		other := EntVars(int(e.DmgInflictor))
 		msgBuf.WriteByte(server.Damage)
@@ -765,7 +764,7 @@ func (s *Server) SendClientDatagram(c *SVClient) bool {
 
 	s.WriteClientdataToMessage(EntVars(c.edictId), EntityAlpha(c.edictId))
 
-	C.SV_WriteEntitiesToClient(C.int(c.edictId))
+	s.WriteEntitiesToClient(c.edictId)
 
 	return s.SendDatagram(c)
 }
@@ -929,8 +928,8 @@ func (s *Server) CreateBaseline() {
 		s.signon.WriteByte(int(e.baseline.colormap))
 		s.signon.WriteByte(int(e.baseline.skin))
 		for i := 0; i < 3; i++ {
-			s.signon.WriteCoord(float32(e.baseline.origin[i]), int(s.protocolFlags))
-			s.signon.WriteAngle(float32(e.baseline.angles[i]), int(s.protocolFlags))
+			s.signon.WriteCoord(float32(e.baseline.origin[i]), s.protocolFlags)
+			s.signon.WriteAngle(float32(e.baseline.angles[i]), s.protocolFlags)
 		}
 
 		if bits&server.EntityBaselineAlpha != 0 {
@@ -1181,62 +1180,231 @@ func SV_SetIdealPitch() {
 	ev.IdealPitch = -dir * cvars.ServerIdealPitchScale.Value()
 }
 
-// THE FOLLOWING IS ONLY NEEDED FOR SV_WRITEENTITIESTOCLIENT
+const (
+	MAX_ENT_LEAFS = 32
+)
 
-/*
-The PVS must include a small area around the client to allow head bobbing
-or other small motion on the client side.  Otherwise, a bob might cause an
-entity that should be visible to not show up, especially when the bob
-crosses a waterline.
-*/
-/*
-int fatbytes;
-byte fatpvs[MAX_MAP_LEAFS / 8];
+func (s *Server) WriteEntitiesToClient(clent int) {
+	// TODO: this looks like the worst case for any branch prediction
+	// probably worth to get a better implementation
 
-void SV_AddToFatPVS(
-    vec3_t org, mnode_t *node,
-    qmodel_t *worldmodel)  // johnfitz -- added worldmodel as a parameter
-{
-  int i;
-  byte *pvs;
-  mplane_t *plane;
-  float d;
+	cev := EntVars(clent)
+	org := vec.Add(cev.Origin, cev.ViewOfs)
+	// find the client's PVS
+	pvs := s.worldModel.FatPVS(org)
 
-  while (1) {
-    // if this is a leaf, accumulate the pvs bits
-    if (node->contents < 0) {
-      if (node->contents != CONTENTS_SOLID) {
-        pvs = Mod_LeafPVS((mleaf_t *)node,
-                          worldmodel);  // johnfitz -- worldmodel as a parameter
-        for (i = 0; i < fatbytes; i++) fatpvs[i] |= pvs[i];
-      }
-      return;
-    }
+	// send over all entities (except the client) that touch the pvs
+	for ent := 1; ent < s.numEdicts; ent++ {
+		ev := EntVars(ent)
+		edict := edictNum(ent)
 
-    plane = node->plane;
-    d = DotProduct(org, plane->normal) - plane->dist;
-    if (d > 8)
-      node = node->children[0];
-    else if (d < -8)
-      node = node->children[1];
-    else {  // go down both
-      SV_AddToFatPVS(org, node->children[0],
-                     worldmodel);  // johnfitz -- worldmodel as a parameter
-      node = node->children[1];
-    }
-  }
+		// check if we need to send this edict
+		if ent != clent {
+			// clent is ALLWAYS sent
+
+			// ignore ents without visible models
+			mn, err := progsdat.String(ev.Model)
+			if ev.ModelIndex == 0 || err != nil || len(mn) == 0 {
+				continue
+			}
+
+			// don't send model>255 entities if protocol is 15
+			if s.protocol == protocol.NetQuake &&
+				int(ev.ModelIndex)&0xFF00 != 0 {
+				continue
+			}
+
+			// ignore if not touching a PV leaf
+			i := C.int(0)
+			for ; i < edict.num_leafs; i++ {
+				//log.Printf("leafnums[i]=%d, len(pvs)=%d", edict.leafnums[i], len(pvs))
+				if pvs[edict.leafnums[i]>>3]&(1<<(uint(edict.leafnums[i])&7)) != 0 {
+					break
+				}
+			}
+
+			// if ent->num_leafs == MAX_ENT_LEAFS, the ent is visible from too many leafs
+			// for us to say whether it's in the PVS, so don't try to vis cull it.
+			// this commonly happens with rotators, because they often have huge bboxes
+			// spanning the entire map, or really tall lifts, etc.
+			if i == edict.num_leafs &&
+				edict.num_leafs < MAX_ENT_LEAFS {
+				continue // not visible
+			}
+		}
+		// max size for protocol 15 is 18 bytes.
+		// for protocol 85 the max size is 24 bytes.
+		if msgBuf.Len()+24 > msgBufMaxLen {
+			// if (!dev_overflows.packetsize ||
+			//  dev_overflows.packetsize + CONSOLE_RESPAM_TIME < HostRealTime()) {
+			conlog.Printf("Packet overflow!\n")
+			//  dev_overflows.packetsize = HostRealTime();
+			//}
+			//goto stats;
+		}
+
+		// send an update
+		bits := 0
+
+		for i := uint32(0); i < 3; i++ {
+			miss := ev.Origin[i] - float32(edict.baseline.origin[i])
+			if miss < -0.1 || miss > 0.1 {
+				bits |= server.U_ORIGIN1 << i
+			}
+		}
+
+		if ev.Angles[0] != float32(edict.baseline.angles[0]) {
+			bits |= server.U_ANGLE1
+		}
+
+		if ev.Angles[1] != float32(edict.baseline.angles[1]) {
+			bits |= server.U_ANGLE2
+		}
+
+		if ev.Angles[2] != float32(edict.baseline.angles[2]) {
+			bits |= server.U_ANGLE3
+		}
+
+		if ev.MoveType == progs.MoveTypeStep {
+			bits |= server.U_STEP // don't mess up the step animation
+		}
+
+		if ev.ColorMap != float32(edict.baseline.colormap) {
+			bits |= server.U_COLORMAP
+		}
+
+		if ev.Skin != float32(edict.baseline.skin) {
+			bits |= server.U_SKIN
+		}
+
+		if ev.Frame != float32(edict.baseline.frame) {
+			bits |= server.U_FRAME
+		}
+
+		if ev.Effects != float32(edict.baseline.effects) {
+			bits |= server.U_EFFECTS
+		}
+
+		if ev.ModelIndex != float32(edict.baseline.modelindex) {
+			bits |= server.U_MODEL
+		}
+
+		//     if (pr_alpha_supported) {
+		// TODO: find a cleaner place to put this code
+		//       UpdateEdictAlpha(ent);
+		//     }
+
+		// don't send invisible entities unless they have effects
+		if edict.alpha == server.EntityAlphaZero && ev.Effects == 0 {
+			continue
+		}
+
+		// fitzquake
+		if s.protocol != protocol.NetQuake {
+			if edict.baseline.alpha != edict.alpha {
+				bits |= server.U_ALPHA
+			}
+			if bits&server.U_FRAME != 0 &&
+				int(ev.Frame)&0xFF00 != 0 {
+				bits |= server.U_FRAME2
+			}
+			if bits&server.U_MODEL != 0 &&
+				int(ev.ModelIndex)&0xFF00 != 0 {
+				bits |= server.U_MODEL2
+			}
+			if edict.sendinterval != 0 {
+				bits |= server.U_LERPFINISH
+			}
+			if bits >= 65536 {
+				bits |= server.U_EXTEND1
+			}
+			if bits >= 16777216 {
+				bits |= server.U_EXTEND2
+			}
+		}
+
+		if ent >= 256 {
+			bits |= server.U_LONGENTITY
+		}
+
+		if bits >= 256 {
+			bits |= server.U_MOREBITS
+		}
+
+		// write the message
+		msgBuf.WriteByte(bits | server.U_SIGNAL)
+
+		if bits&server.U_MOREBITS != 0 {
+			msgBuf.WriteByte(bits >> 8)
+		}
+
+		if bits&server.U_EXTEND1 != 0 {
+			msgBuf.WriteByte(bits >> 16)
+		}
+		if bits&server.U_EXTEND2 != 0 {
+			msgBuf.WriteByte(bits >> 24)
+		}
+
+		if bits&server.U_LONGENTITY != 0 {
+			msgBuf.WriteShort(ent)
+		} else {
+			msgBuf.WriteByte(ent)
+		}
+
+		if bits&server.U_MODEL != 0 {
+			msgBuf.WriteByte(int(ev.ModelIndex))
+		}
+		if bits&server.U_FRAME != 0 {
+			msgBuf.WriteByte(int(ev.Frame))
+		}
+		if bits&server.U_COLORMAP != 0 {
+			msgBuf.WriteByte(int(ev.ColorMap))
+		}
+		if bits&server.U_SKIN != 0 {
+			msgBuf.WriteByte(int(ev.Skin))
+		}
+		if bits&server.U_EFFECTS != 0 {
+			msgBuf.WriteByte(int(ev.Effects))
+		}
+		if bits&server.U_ORIGIN1 != 0 {
+			msgBuf.WriteCoord(ev.Origin[0], s.protocolFlags)
+		}
+		if bits&server.U_ANGLE1 != 0 {
+			msgBuf.WriteAngle(ev.Angles[0], s.protocolFlags)
+		}
+		if bits&server.U_ORIGIN2 != 0 {
+			msgBuf.WriteCoord(ev.Origin[1], s.protocolFlags)
+		}
+		if bits&server.U_ANGLE2 != 0 {
+			msgBuf.WriteAngle(ev.Angles[1], s.protocolFlags)
+		}
+		if bits&server.U_ORIGIN3 != 0 {
+			msgBuf.WriteCoord(ev.Origin[2], s.protocolFlags)
+		}
+		if bits&server.U_ANGLE3 != 0 {
+			msgBuf.WriteAngle(ev.Angles[2], s.protocolFlags)
+		}
+
+		if bits&server.U_ALPHA != 0 {
+			msgBuf.WriteByte(int(edict.alpha))
+		}
+		if bits&server.U_FRAME2 != 0 {
+			msgBuf.WriteByte(int(ev.Frame) >> 8)
+		}
+		if bits&server.U_MODEL2 != 0 {
+			msgBuf.WriteByte(int(ev.ModelIndex) >> 8)
+		}
+		if bits&server.U_LERPFINISH != 0 {
+			msgBuf.WriteByte(int(math.Round((ev.NextThink - sv.time) * 255)))
+		}
+	}
+
+	/*
+	   stats:
+	     if (SV_MS_Len() > 1024 && dev_peakstats.packetsize <= 1024)
+	       Con_DWarning("%i byte packet exceeds standard limit of 1024.\n",
+	                    SV_MS_Len());
+	     dev_stats.packetsize = SV_MS_Len();
+	     dev_peakstats.packetsize = q_max(SV_MS_Len(), dev_peakstats.packetsize);
+	*/
 }
-
-//Calculates a PVS that is the inclusive or of all leafs within 8 pixels of the
-//given point.
-byte *SV_FatPVS(
-    vec3_t org,
-    qmodel_t *worldmodel)  // johnfitz -- added worldmodel as a parameter
-{
-  fatbytes = (worldmodel->numleafs + 31) >> 3;
-  Q_memset(fatpvs, 0, fatbytes);
-  SV_AddToFatPVS(org, worldmodel->nodes,
-                 worldmodel);  // johnfitz -- worldmodel as a parameter
-  return fatpvs;
-}
-*/

@@ -12,7 +12,7 @@ func (m *QModel) PointInLeaf(p vec.Vec3) (*MLeaf, error) {
 		return nil, fmt.Errorf("Mod_PointInLeaf: bad model")
 	}
 
-	node := Node(m.Nodes[0])
+	node := m.Node
 	for {
 		if node.Contents() < 0 {
 			return node.(*MLeaf), nil
@@ -30,7 +30,7 @@ func (m *QModel) PointInLeaf(p vec.Vec3) (*MLeaf, error) {
 }
 
 func (m *QModel) DecompressVis(in []byte) []byte {
-	row := (len(m.Leafs) + 7) / 8
+	row := (len(m.Leafs) + 7) >> 3
 
 	if len(in) == 0 {
 		// no vis info, so make all visible
@@ -65,25 +65,69 @@ func (m *QModel) DecompressVis(in []byte) []byte {
 			}
 		}
 	}
-	if j > row {
-		log.Printf("Strange vis data in model %s", m.Name)
-	}
-	return decompressedVis[:row]
+	return decompressedVis[:row] // should this be :j?
 }
 
 var (
 	noVis           []byte
 	decompressedVis []byte
+	fatpvs          []byte
 )
 
 func init() {
 	noVis = bytes.Repeat([]byte{0xff}, MAX_MAP_LEAFS/8)
 	decompressedVis = make([]byte, MAX_MAP_LEAFS/8)
+	fatpvs = make([]byte, MAX_MAP_LEAFS/8)
 }
 
 func (m *QModel) LeafPVS(leaf *MLeaf) []byte {
-	// if (leaf == model->leafs) { // What should this actually do?
-	//	return noVis
-	//}
+	if leaf == m.Leafs[0] { // What should this actually do?
+		return noVis
+	}
 	return m.DecompressVis(leaf.CompressedVis)
+}
+
+/*
+The PVS must include a small area around the client to allow head bobbing
+or other small motion on the client side.  Otherwise, a bob might cause an
+entity that should be visible to not show up, especially when the bob
+crosses a waterline.
+*/
+func (m *QModel) addToFatPVS(org vec.Vec3, n Node, fpvs *[]byte) {
+	node := n
+	for {
+		if node.Contents() < 0 {
+			// if this is a leaf, accumulate the pvs bits
+			if node.Contents() != CONTENTS_SOLID {
+				pvs := m.LeafPVS(node.(*MLeaf))
+				for i := range *fpvs {
+					(*fpvs)[i] = pvs[i]
+				}
+			}
+			return
+		}
+		no := node.(*MNode)
+		plane := no.Plane
+		d := vec.Dot(org, plane.Normal) - plane.Dist
+		if d > 8 {
+			node = no.Children[0]
+		} else if d < -8 {
+			node = no.Children[1]
+		} else { // go down both
+			m.addToFatPVS(org, no.Children[0], fpvs)
+			node = no.Children[1]
+		}
+	}
+}
+
+//Calculates a PVS that is the inclusive or of all leafs within 8 pixels of the
+//given point.
+func (m *QModel) FatPVS(org vec.Vec3) []byte {
+	fatbytes := ((len(m.Leafs) + 7) >> 3)
+	pvs := fatpvs[:fatbytes]
+	for i := range pvs {
+		pvs[i] = 0
+	}
+	m.addToFatPVS(org, m.Node, &pvs)
+	return pvs
 }
