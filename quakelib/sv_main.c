@@ -200,7 +200,7 @@ void SV_SpawnServer(const char *server) {
   //
   ent = 0;
   TT_ClearEntVars(EVars(ent));
-  EDICT_NUM(ent)->free = false;
+  EDICT_SETFREE(ent, false);
   EVars(ent)->model = PR_SetEngineString(sv.worldmodel->name);
   EVars(ent)->modelindex = 1;  // world model
   EVars(ent)->solid = SOLID_BSP;

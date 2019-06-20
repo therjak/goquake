@@ -277,7 +277,7 @@ void Host_ServerFrame(void) {
   // johnfitz -- devstats
   if (CLS_GetSignon() == SIGNONS) {
     for (i = 0, active = 0; i < SV_NumEdicts(); i++) {
-      if (!EDICT_NUM(i)->free) active++;
+      if (!EDICT_FREE(i)) active++;
     }
     if (active > 600 && dev_peakstats.edicts <= 600)
       Con_DWarning("%i edicts exceeds standard limit of 600.\n", active);

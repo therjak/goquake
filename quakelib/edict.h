@@ -24,5 +24,10 @@ typedef struct edict_s {
 } edict_t;
 
 edict_t *EDICT_NUM(int n);
+int EDICT_FREE(int n);
+void EDICT_SETFREE(int n, int free);
+
+unsigned char EDICT_ALPHA(int n);
+void EDICT_SETALPHA(int n, unsigned char alpha);
 
 #endif  // _QUAKE_EDICT_H

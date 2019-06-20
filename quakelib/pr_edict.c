@@ -309,7 +309,7 @@ void ED_Write(FILE *f, int ed) {
 
   fprintf(f, "{\n");
 
-  if (EDICT_NUM(ed)->free) {
+  if (EDICT_FREE(ed)) {
     fprintf(f, "}\n");
     return;
   }
@@ -335,8 +335,8 @@ void ED_Write(FILE *f, int ed) {
 
   // johnfitz -- save entity alpha manually when progs.dat doesn't know about
   // alpha
-  if (!pr_alpha_supported && EDICT_NUM(ed)->alpha != ENTALPHA_DEFAULT)
-    fprintf(f, "\"alpha\" \"%f\"\n", ENTALPHA_TOSAVE(EDICT_NUM(ed)->alpha));
+  if (!pr_alpha_supported && EDICT_ALPHA(ed) != ENTALPHA_DEFAULT)
+    fprintf(f, "\"alpha\" \"%f\"\n", ENTALPHA_TOSAVE(EDICT_ALPHA(ed)));
   // johnfitz
 
   fprintf(f, "}\n");
@@ -558,7 +558,7 @@ const char *ED_ParseEdict(const char *data, int ent) {
     // johnfitz -- hack to support .alpha even when progs.dat doesn't know about
     // it
     if (!strcmp(keyname, "alpha"))
-      EDICT_NUM(ent)->alpha = ENTALPHA_ENCODE(atof(com_token));
+      EDICT_SETALPHA(ent, ENTALPHA_ENCODE(atof(com_token)));
     // johnfitz
 
     key = ED_FindField(keyname);
@@ -582,7 +582,7 @@ const char *ED_ParseEdict(const char *data, int ent) {
       Host_Error("ED_ParseEdict: parse error");
   }
 
-  if (!init) EDICT_NUM(ent)->free = true;
+  if (!init) EDICT_SETFREE(ent, true);
 
   return data;
 }
@@ -762,6 +762,23 @@ edict_t *EDICT_NUM(int n) {
   return (edict_t *)((byte *)sv.edicts + (n) * sizeof(edict_t));
 }
 
+int EDICT_FREE(int n) {
+  return EDICT_NUM(n)->free;
+}
+
+void EDICT_SETFREE(int n, int free){
+  EDICT_NUM(n)->free = free;
+}
+
+unsigned char EDICT_ALPHA(int n) {
+  return EDICT_NUM(n)->alpha;
+}
+unsigned char EAlpha(int num) { return EDICT_NUM(num)->alpha; }
+
+void EDICT_SETALPHA(int n, unsigned char alpha){
+  EDICT_NUM(n)->alpha = alpha;
+}
+
 edict_t *AllocEdicts() {
   AllocEntvars(SV_MaxEdicts(), progs->entityfields);
   return (edict_t *)malloc(SV_MaxEdicts() * sizeof(edict_t));
@@ -771,8 +788,6 @@ void FreeEdicts(edict_t *e) {
   FreeEntvars();
   free(e);
 }
-
-unsigned char EAlpha(int num) { return EDICT_NUM(num)->alpha; }
 
 /*
 ===============

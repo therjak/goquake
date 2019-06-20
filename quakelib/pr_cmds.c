@@ -37,7 +37,7 @@ static int PF_newcheckclient(int check) {
 
     if (i == check) break;  // didn't find anything else
 
-    if (EDICT_NUM(ent)->free) continue;
+    if (EDICT_FREE(ent)) continue;
     if (EVars(ent)->health <= 0) continue;
     if ((int)EVars(ent)->flags & FL_NOTARGET) continue;
 
@@ -85,7 +85,7 @@ static void PF_checkclient(void) {
 
   // return check if it might be visible
   ent = SV_LastCheck();
-  if (EDICT_NUM(ent)->free || EVars(ent)->health <= 0) {
+  if (EDICT_FREE(ent) || EVars(ent)->health <= 0) {
     RETURN_EDICT(0);
     return;
   }

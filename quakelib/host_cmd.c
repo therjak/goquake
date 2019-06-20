@@ -606,7 +606,7 @@ void Host_Loadgame_f(void) {
       ED_ParseGlobals(start);
     } else {  // parse an edict
       if (entnum < SV_NumEdicts()) {
-        EDICT_NUM(entnum)->free = false;
+        EDICT_SETFREE(entnum, false);
         TT_ClearEntVars(EVars(entnum));
       } else {
         TT_ClearEdict(entnum);
@@ -614,7 +614,7 @@ void Host_Loadgame_f(void) {
       ED_ParseEdict(start, entnum);
 
       // link it into the bsp tree
-      if (!EDICT_NUM(entnum)->free) SV_LinkEdict(entnum, false);
+      if (!EDICT_FREE(entnum)) SV_LinkEdict(entnum, false);
     }
 
     entnum++;

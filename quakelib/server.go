@@ -1218,7 +1218,7 @@ func (s *Server) WriteEntitiesToClient(clent int) {
 			i := C.int(0)
 			for ; i < edict.num_leafs; i++ {
 				//log.Printf("leafnums[i]=%d, len(pvs)=%d", edict.leafnums[i], len(pvs))
-				if pvs[edict.leafnums[i]>>3]&(1<<(uint(edict.leafnums[i])&7)) != 0 {
+				if pvs[edict.leafnums[i]/8]&(1<<(uint(edict.leafnums[i])&7)) != 0 {
 					break
 				}
 			}

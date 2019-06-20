@@ -30,7 +30,7 @@ func (m *QModel) PointInLeaf(p vec.Vec3) (*MLeaf, error) {
 }
 
 func (m *QModel) DecompressVis(in []byte) []byte {
-	row := (len(m.Leafs) + 7) >> 3
+	row := (len(m.Leafs) + 6) / 8 // (len(Leafs) - 'leaf[0]' + 7)/8
 
 	if len(in) == 0 {
 		// no vis info, so make all visible
@@ -81,7 +81,7 @@ func init() {
 }
 
 func (m *QModel) LeafPVS(leaf *MLeaf) []byte {
-	if leaf == m.Leafs[0] { // What should this actually do?
+	if leaf == m.Leafs[0] { // Leaf 0 is a solid leaf
 		return noVis
 	}
 	return m.DecompressVis(leaf.CompressedVis)
@@ -123,7 +123,7 @@ func (m *QModel) addToFatPVS(org vec.Vec3, n Node, fpvs *[]byte) {
 //Calculates a PVS that is the inclusive or of all leafs within 8 pixels of the
 //given point.
 func (m *QModel) FatPVS(org vec.Vec3) []byte {
-	fatbytes := ((len(m.Leafs) + 7) >> 3)
+	fatbytes := (len(m.Leafs) + 6) / 8 // (len(Leafs) - 'leaf[0]' + 7)/8
 	pvs := fatpvs[:fatbytes]
 	for i := range pvs {
 		pvs[i] = 0
