@@ -119,29 +119,14 @@ func Host_Client() int {
 	return host_client
 }
 
-//export SetHost_Client
-func SetHost_Client(c int) {
-	host_client = c
-}
-
 //export SV_NameInt
 func SV_NameInt() *C.char {
 	return C.CString(sv.name)
 }
 
-//export SV_SetName
-func SV_SetName(n *C.char) {
-	sv.name = C.GoString(n)
-}
-
 //export SV_ModelNameInt
 func SV_ModelNameInt() *C.char {
 	return C.CString(sv.modelName)
-}
-
-//export SV_SetModelName
-func SV_SetModelName(n *C.char, s *C.char) {
-	sv.modelName = fmt.Sprintf(C.GoString(n), C.GoString(s))
 }
 
 //export SV_State
@@ -150,20 +135,6 @@ func SV_State() int {
 		return 0
 	}
 	return 1
-}
-
-//export SV_SetState
-func SV_SetState(s C.int) {
-	if s == 0 {
-		sv.state = ServerStateLoading
-	} else {
-		sv.state = ServerStateActive
-	}
-}
-
-//export SV_Player
-func SV_Player() int {
-	return sv_player
 }
 
 func svProtocol(args []cmd.QArg) {
@@ -208,16 +179,6 @@ func SV_Init_Go() {
 	}
 }
 
-//export SV_LastCheck
-func SV_LastCheck() C.int {
-	return C.int(sv.lastCheck)
-}
-
-//export SV_SetLastCheck
-func SV_SetLastCheck(c C.int) {
-	sv.lastCheck = int(c)
-}
-
 //export SV_Time
 func SV_Time() C.float {
 	return C.float(sv.time)
@@ -228,16 +189,6 @@ func SV_SetTime(t C.float) {
 	sv.time = float32(t)
 }
 
-//export SV_LastCheckTime
-func SV_LastCheckTime() C.float {
-	return C.float(sv.lastCheckTime)
-}
-
-//export SV_SetLastCheckTime
-func SV_SetLastCheckTime(t C.float) {
-	sv.lastCheckTime = float32(t)
-}
-
 //export SV_NumEdicts
 func SV_NumEdicts() C.int {
 	return C.int(sv.numEdicts)
@@ -246,31 +197,6 @@ func SV_NumEdicts() C.int {
 //export SV_SetNumEdicts
 func SV_SetNumEdicts(n C.int) {
 	sv.numEdicts = int(n)
-}
-
-//export SV_MaxEdicts
-func SV_MaxEdicts() C.int {
-	return C.int(sv.maxEdicts)
-}
-
-//export SV_SetMaxEdicts
-func SV_SetMaxEdicts(n C.int) {
-	sv.maxEdicts = int(n)
-}
-
-//export SV_SetProtocol
-func SV_SetProtocol() {
-	sv.protocol = uint16(sv_protocol)
-}
-
-//export SV_Protocol
-func SV_Protocol() C.ushort {
-	return C.ushort(sv.protocol)
-}
-
-//export SV_SetProtocolFlags
-func SV_SetProtocolFlags(flags C.ushort) {
-	sv.protocolFlags = int(flags)
 }
 
 //export SV_Paused
@@ -300,50 +226,10 @@ func SV_Active() C.int {
 	return b2i(sv.active)
 }
 
-//export SV_SetActive
-func SV_SetActive(v C.int) {
-	sv.active = (v != 0)
-}
-
 var (
 	msgBuf       = net.Message{}
 	msgBufMaxLen = 0
 )
-
-//export SV_MS_MaxLen
-func SV_MS_MaxLen() C.int {
-	return C.int(msgBufMaxLen)
-}
-
-//export SV_MS_WriteByte
-func SV_MS_WriteByte(v C.int) {
-	msgBuf.WriteByte(int(v))
-}
-
-//export SV_MS_WriteShort
-func SV_MS_WriteShort(v C.int) {
-	msgBuf.WriteShort(int(v))
-}
-
-//export SV_MS_WriteAngle
-func SV_MS_WriteAngle(v C.float) {
-	msgBuf.WriteAngle(float32(v), sv.protocolFlags)
-}
-
-//export SV_MS_WriteCoord
-func SV_MS_WriteCoord(v C.float) {
-	msgBuf.WriteCoord(float32(v), sv.protocolFlags)
-}
-
-//export SV_MS_Len
-func SV_MS_Len() C.int {
-	return C.int(msgBuf.Len())
-}
-
-//export SV_SO_Len
-func SV_SO_Len() C.int {
-	return C.int(sv.signon.Len())
-}
 
 func (s *Server) StartParticle(org, dir vec.Vec3, color, count int) {
 	if s.datagram.Len()+16 > net.MAX_DATAGRAM {
@@ -398,23 +284,9 @@ func (s *Server) SendReliableDatagram() {
 	s.reliableDatagram.ClearMessage()
 }
 
-//export SVS_GetServerFlags
-func SVS_GetServerFlags() C.int {
-	return C.int(svs.serverFlags)
-}
-
 //export SVS_SetServerFlags
 func SVS_SetServerFlags(flags C.int) {
 	svs.serverFlags = int(flags)
-}
-
-//export SVS_SetChangeLevelIssued
-func SVS_SetChangeLevelIssued(s C.int) {
-	if s == 0 {
-		svs.changeLevelIssued = false
-		return
-	}
-	svs.changeLevelIssued = true
 }
 
 //export SVS_GetMaxClients
@@ -427,7 +299,6 @@ func SVS_GetMaxClientsLimit() C.int {
 	return C.int(svs.maxClientsLimit)
 }
 
-//export SV_SendReconnect
 func SV_SendReconnect() {
 	SendReconnectToAll()
 	if !cmdl.Dedicated() {
@@ -445,12 +316,6 @@ allready running on that entity/channel pair.
 An attenuation of 0 will play full volume everywhere in the level.
 Larger attenuations will drop off.  (max 4 attenuation)
 */
-//export SV_StartSound
-func SV_StartSound(entity, channel C.int, sample *C.char, volume C.int,
-	attenuation C.float) {
-	sv.StartSound(int(entity), int(channel), int(volume), C.GoString(sample), float32(attenuation))
-}
-
 func (s *Server) StartSound(entity, channel, volume int, sample string, attenuation float32) {
 	if volume < 0 || volume > 255 {
 		HostError("SV_StartSound: volume = %d", volume)
@@ -953,11 +818,6 @@ func SV_SaveSpawnparms() {
 
 // Called when the player is getting totally kicked off the host
 // if (crash = true), don't bother sending signofs
-//export SV_DropClient
-func SV_DropClient(client C.int, crash C.int) {
-	SVDropClient(int(client), crash != 0)
-}
-
 func SVDropClient(client int, crash bool) {
 	c := sv_clients[client]
 	c.Drop(crash)
@@ -1025,11 +885,6 @@ func (s *Server) SendClientMessages() {
 	s.CleanupEntvarEffects()
 }
 
-//export SV_RunThink
-func SV_RunThink(e C.int) C.int {
-	return b2i(runThink(int(e)))
-}
-
 // Runs thinking code if time.  There is some play in the exact time the think
 // function will be called, because it is called before any movement is done
 // in a frame.  Not used for pushmove objects, because they must be exact.
@@ -1070,12 +925,6 @@ func runThink(e int) bool {
 	}
 
 	return !ed.Free
-}
-
-//export SV_PushEntity
-func SV_PushEntity(ent C.int, push *C.float) C.trace_t {
-	p := p2v3(push)
-	return pushEntity(int(ent), p)
 }
 
 //Does not change the entities velocity at all

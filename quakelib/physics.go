@@ -147,11 +147,6 @@ func (q *qphysics) addGravity(ent int) {
 	EntVars(ent).Velocity[2] -= val * cvars.ServerGravity.Value() * float32(host.frameTime)
 }
 
-//export SV_Physics_Pusher
-func SV_Physics_Pusher(ent int) {
-	physics.pusher(ent)
-}
-
 func (q *qphysics) pusher(ent int) {
 	ev := EntVars(ent)
 	oldltime := float64(ev.LTime)
@@ -243,11 +238,6 @@ func (q *qphysics) wallFriction(ent int, planeNormal vec.Vec3) {
 	side := vec.Sub(v, into)
 	ev.Velocity[0] = side[0] * (1 + d)
 	ev.Velocity[1] = side[1] * (1 + d)
-}
-
-//export SV_WalkMove
-func SV_WalkMove(ent int) {
-	physics.walkMove(ent)
 }
 
 // Only used by players
@@ -349,19 +339,9 @@ func (q *qphysics) walkMove(ent int) {
 	ev.Velocity = noStepVelocity
 }
 
-//export SV_Physics_None
-func SV_Physics_None(ent int) {
-	physics.none(ent)
-}
-
 // Non moving objects can only think
 func (q *qphysics) none(ent int) {
 	runThink(ent)
-}
-
-//export SV_Physics_Noclip
-func SV_Physics_Noclip(ent int) {
-	physics.noClip(ent)
 }
 
 //A moving object that doesn't obey physics
@@ -419,11 +399,6 @@ func (q *qphysics) checkWaterTransition(ent int) {
 	}
 	ev.WaterType = model.CONTENTS_EMPTY
 	ev.WaterLevel = float32(cont) // TODO: why?
-}
-
-//export SV_Physics_Toss
-func SV_Physics_Toss(ent int) {
-	physics.toss(ent)
 }
 
 // Toss, bounce, and fly movement.  When onground, do nothing.
@@ -487,11 +462,6 @@ func (q *qphysics) toss(ent int) {
 	}
 
 	q.checkWaterTransition(ent)
-}
-
-//export SV_Physics_Step
-func SV_Physics_Step(ent int) {
-	physics.step(ent)
 }
 
 // Monsters freefall when they don't have a ground entity, otherwise
@@ -757,11 +727,6 @@ func (q *qphysics) clipVelocity(in, normal vec.Vec3, overbounce float32) (int, v
 	}
 
 	return blocked, out
-}
-
-//export SV_Physics_Client
-func SV_Physics_Client(ent, num int) {
-	physics.playerActions(ent, num)
 }
 
 // Player character actions

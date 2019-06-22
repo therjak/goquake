@@ -27,20 +27,6 @@ func ED_NewString(str *C.char) C.int {
 	return C.int(i)
 }
 
-//export PR_SetEngineString
-func PR_SetEngineString(str *C.char) C.int {
-	s := C.GoString(str)
-	if len(s) == 0 && progsdat == nil {
-		log.Printf("Trying to add an empty string in PR_SetEngineString")
-		return 0
-	}
-	if progsdat == nil {
-		log.Printf("Trying to add: '%s' before PR_LoadProgsGo, len %v", s, len(s))
-	}
-	i := progsdat.AddString(s)
-	return C.int(i)
-}
-
 //export PR_GetString
 func PR_GetString(num C.int) *C.char {
 	n := int(num)
@@ -85,46 +71,12 @@ func Pr_global_struct_time() float32 {
 	return progsdat.Globals.Time
 }
 
-/*
-//export Set_pr_global_struct_mapname
-func Set_pr_global_struct_mapname(n int32) {
-	progsdat.Globals.MapName = n
-}
-*/
-
 //export Set_pr_global_struct_self
 func Set_pr_global_struct_self(s int32) {
 	progsdat.Globals.Self = s
 }
 
-//export Set_pr_global_struct_other
-func Set_pr_global_struct_other(o int32) {
-	progsdat.Globals.Other = o
-}
-
-//export Set_pr_global_struct_time
-func Set_pr_global_struct_time(t float32) {
-	progsdat.Globals.Time = t
-}
-
 //export Set_pr_global_struct_frametime
 func Set_pr_global_struct_frametime(t float32) {
 	progsdat.Globals.FrameTime = t
-}
-
-/*
-//export Set_pr_global_struct_deathmatch
-func Set_pr_global_struct_deathmatch(t float32) {
-	progsdat.Globals.DeathMatch = t
-}
-
-//export Set_pr_global_struct_coop
-func Set_pr_global_struct_coop(t float32) {
-	progsdat.Globals.Coop = t
-}
-*/
-
-//export Set_pr_global_struct_serverflags
-func Set_pr_global_struct_serverflags(t float32) {
-	progsdat.Globals.ServerFlags = t
 }

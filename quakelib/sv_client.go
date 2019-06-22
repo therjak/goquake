@@ -79,16 +79,6 @@ func SV_CheckForNewClients() {
 	CheckForNewClients()
 }
 
-//export SV_ClientPrint2
-func SV_ClientPrint2(client int, msg *C.char) {
-	sv_clients[int(client)].Printf(C.GoString(msg))
-}
-
-//export SV_BroadcastPrint2
-func SV_BroadcastPrint2(msg *C.char) {
-	SV_BroadcastPrint(C.GoString(msg))
-}
-
 func SV_BroadcastPrintf(format string, v ...interface{}) {
 	SV_BroadcastPrint(fmt.Sprintf(format, v...))
 }
@@ -163,34 +153,14 @@ func SetClientSpawnParam(c, n C.int, v C.float) {
 	sv_clients[int(c)].spawnParams[int(n)] = float32(v)
 }
 
-//export GetClientName
-func GetClientName(n C.int) *C.char {
-	return C.CString(sv_clients[int(n)].name)
-}
-
 //export GetClientEdictId
 func GetClientEdictId(n C.int) C.int {
 	return C.int(sv_clients[int(n)].edictId)
 }
 
-//export SetClientEdictId
-func SetClientEdictId(n C.int, v C.int) {
-	sv_clients[int(n)].edictId = int(v)
-}
-
 //export GetClientActive
 func GetClientActive(n C.int) C.int {
 	return b2i(sv_clients[int(n)].active)
-}
-
-//export ClientWriteChar
-func ClientWriteChar(num, c C.int) {
-	sv_clients[int(num)].msg.WriteChar(int(c))
-}
-
-//export ClientWriteString
-func ClientWriteString(num C.int, s *C.char) {
-	sv_clients[int(num)].msg.WriteString(C.GoString(s))
 }
 
 func (cl *SVClient) CanSendMessage() bool {
@@ -348,11 +318,6 @@ func MSG_ReadByte() C.int {
 		return -1
 	}
 	return C.int(i)
-}
-
-//export SV_SendServerinfo
-func SV_SendServerinfo(client C.int) {
-	sv_clients[int(client)].SendServerinfo()
 }
 
 func (c *SVClient) SendServerinfo() {
