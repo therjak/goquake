@@ -6,6 +6,7 @@ static void PR_CheckEmptyString(const char *s) {
   if (s[0] <= ' ') PR_RunError("Bad string");
 }
 
+// THERJAK
 static void PF_precache_model(void) {
   const char *s;
   int i;

@@ -219,6 +219,7 @@ void Host_GetConsoleCommands(void) {
 Host_ServerFrame
 ==================
 */
+// THERJAK
 void Host_ServerFrame(void) {
   int i, active;  // johnfitz
 
