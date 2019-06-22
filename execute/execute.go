@@ -23,7 +23,7 @@ func SetExecutors(e []func([]cmd.QArg) bool) {
 
 func Execute(s string, source int) {
 	cmdSource = source
-	cmd.CmdParseString(s)
+	cmd.Parse(s)
 
 	args := cmd.Args()
 	if len(args) == 0 {

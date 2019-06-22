@@ -228,35 +228,35 @@ func CL_SetStats(s, v C.int) {
 
 func cl_stats(s int) int {
 	switch s {
-	case stat.HEALTH:
+	case stat.Health:
 		return cl.stats.health
-	case stat.FRAGS:
+	case stat.Frags:
 		return cl.stats.frags
-	case stat.WEAPON:
+	case stat.Weapon:
 		return cl.stats.weapon
-	case stat.AMMO:
+	case stat.Ammo:
 		return cl.stats.ammo
-	case stat.ARMOR:
+	case stat.Armor:
 		return cl.stats.armor
-	case stat.WEAPONFRAME:
+	case stat.WeaponFrame:
 		return cl.stats.weaponFrame
-	case stat.SHELLS:
+	case stat.Shells:
 		return cl.stats.shells
-	case stat.NAILS:
+	case stat.Nails:
 		return cl.stats.nails
-	case stat.ROCKETS:
+	case stat.Rockets:
 		return cl.stats.rockets
-	case stat.CELLS:
+	case stat.Cells:
 		return cl.stats.cells
-	case stat.ACTIVEWEAPON:
+	case stat.ActiveWeapon:
 		return cl.stats.activeWeapon
-	case stat.TOTALSECRETS:
+	case stat.TotalSecrets:
 		return cl.stats.totalSecrets
-	case stat.TOTALMONSTERS:
+	case stat.TotalMonsters:
 		return cl.stats.totalMonsters
-	case stat.SECRETS:
+	case stat.Secrets:
 		return cl.stats.secrets
-	case stat.MONSTERS:
+	case stat.Monsters:
 		return cl.stats.monsters
 	default:
 		log.Printf("Unknown cl stat %v", s)
@@ -266,35 +266,35 @@ func cl_stats(s int) int {
 
 func cl_setStats(s, v int) {
 	switch s {
-	case stat.HEALTH:
+	case stat.Health:
 		cl.stats.health = v
-	case stat.FRAGS:
+	case stat.Frags:
 		cl.stats.frags = v
-	case stat.WEAPON:
+	case stat.Weapon:
 		cl.stats.weapon = v
-	case stat.AMMO:
+	case stat.Ammo:
 		cl.stats.ammo = v
-	case stat.ARMOR:
+	case stat.Armor:
 		cl.stats.armor = v
-	case stat.WEAPONFRAME:
+	case stat.WeaponFrame:
 		cl.stats.weaponFrame = v
-	case stat.SHELLS:
+	case stat.Shells:
 		cl.stats.shells = v
-	case stat.NAILS:
+	case stat.Nails:
 		cl.stats.nails = v
-	case stat.ROCKETS:
+	case stat.Rockets:
 		cl.stats.rockets = v
-	case stat.CELLS:
+	case stat.Cells:
 		cl.stats.cells = v
-	case stat.ACTIVEWEAPON:
+	case stat.ActiveWeapon:
 		cl.stats.activeWeapon = v
-	case stat.TOTALSECRETS:
+	case stat.TotalSecrets:
 		cl.stats.totalSecrets = v
-	case stat.TOTALMONSTERS:
+	case stat.TotalMonsters:
 		cl.stats.totalMonsters = v
-	case stat.SECRETS:
+	case stat.Secrets:
 		cl.stats.secrets = v
-	case stat.MONSTERS:
+	case stat.Monsters:
 		cl.stats.monsters = v
 	default:
 		log.Printf("Unknown cl set stat %v", s)
@@ -608,7 +608,7 @@ func executeOnServer(args []cmd.QArg) {
 	}
 	if len(args) > 0 {
 		cls.outMessage.WriteByte(clc.StringCmd)
-		cls.outMessage.WriteString(cmd.CmdArgs())
+		cls.outMessage.WriteString(cmd.Full())
 		cls.outMessage.WriteByte(0)
 	}
 }
@@ -625,7 +625,7 @@ func forwardToServer(c string, args []cmd.QArg) {
 	cls.outMessage.WriteString(c)
 	if len(args) > 0 {
 		cls.outMessage.WriteString(" ")
-		cls.outMessage.WriteString(cmd.CmdArgs())
+		cls.outMessage.WriteString(cmd.Full())
 	} else {
 		cls.outMessage.WriteString("\n")
 	}

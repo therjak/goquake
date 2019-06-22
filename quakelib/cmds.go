@@ -32,7 +32,7 @@ func printCmdList(args []cmd.QArg) {
 }
 
 func printFullCmdList() {
-	cmds := cmd.Cmd_List()
+	cmds := cmd.List()
 	for _, c := range cmds {
 		conlog.SafePrintf("  %s\n", c)
 	}
@@ -40,7 +40,7 @@ func printFullCmdList() {
 }
 
 func printPartialCmdList(part string) {
-	cmds := cmd.Cmd_List()
+	cmds := cmd.List()
 	count := 0
 	for _, c := range cmds {
 		if strings.HasPrefix(c, part) {

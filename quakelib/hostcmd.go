@@ -492,7 +492,7 @@ func hostTell(args []cmd.QArg) {
 	}
 
 	cn := HostClient().name
-	// TODO: should we realy concat or use cmd.CmdArgs?
+	// TODO: should we realy concat or use cmd.Full?
 	ms := concatArgs(args[1:])
 	text := fmt.Sprintf("%s: %s", cn, ms)
 

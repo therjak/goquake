@@ -9,7 +9,7 @@ import (
 )
 
 type header struct {
-	Id     [4]byte
+	ID     [4]byte
 	Offset int32
 	Size   int32
 }
@@ -63,7 +63,7 @@ func (p *Pack) init() error {
 		return err
 	}
 	magic := []byte("PACK")
-	if !bytes.Equal(magic, h.Id[:]) {
+	if !bytes.Equal(magic, h.ID[:]) {
 		return errors.New("Not a pack")
 	}
 	r, err := p.f.Seek(int64(h.Offset), 0)

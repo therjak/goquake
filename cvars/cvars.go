@@ -163,7 +163,7 @@ var (
 	ServerProfile          *cvar.Cvar
 	ServerStopSpeed        *cvar.Cvar
 	ShowPause              *cvar.Cvar
-	ShowRam                *cvar.Cvar
+	ShowRAM                *cvar.Cvar
 	ShowTurtle             *cvar.Cvar
 	Skill                  *cvar.Cvar
 	SoundFilterQuality     *cvar.Cvar
@@ -359,7 +359,7 @@ func init() {
 	ServerProfile = cvar.MustRegister("serverprofile", "0", cvar.NONE)
 	ServerStopSpeed = cvar.MustRegister("sv_stopspeed", "100", cvar.NONE)
 	ShowPause = cvar.MustRegister("showpause", "1", cvar.NONE)
-	ShowRam = cvar.MustRegister("showram", "1", cvar.NONE)
+	ShowRAM = cvar.MustRegister("showram", "1", cvar.NONE)
 	ShowTurtle = cvar.MustRegister("showturtle", "0", cvar.NONE)
 	Skill = cvar.MustRegister("skill", "1", cvar.NONE)
 	SoundFilterQuality = cvar.MustRegister("snd_filterquality", "1", cvar.NONE) // 5 on win, 1 on all other

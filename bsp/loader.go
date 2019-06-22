@@ -13,14 +13,14 @@ import (
 
 func init() {
 	qm.Register(bspVersion, Load)
-	qm.Register(bsp2Version_2psb, Load)
-	qm.Register(bsp2Version_bsp2, Load)
+	qm.Register(bsp2Version2psb, Load)
+	qm.Register(bsp2Versionbsp2, Load)
 }
 
 const (
-	bspVersion       = 29
-	bsp2Version_2psb = 'B'<<24 | 'S'<<16 | 'P'<<8 | '2'
-	bsp2Version_bsp2 = '2'<<24 | 'P'<<16 | 'S'<<8 | 'B'
+	bspVersion      = 29
+	bsp2Version2psb = 'B'<<24 | 'S'<<16 | 'P'<<8 | '2'
+	bsp2Versionbsp2 = '2'<<24 | 'P'<<16 | 'S'<<8 | 'B'
 )
 
 func Load(name string, data []byte) ([]*qm.QModel, error) {
@@ -157,9 +157,9 @@ func Load(name string, data []byte) ([]*qm.QModel, error) {
 			ret = append(ret, &m)
 		}
 
-	case bsp2Version_2psb:
+	case bsp2Version2psb:
 		log.Printf("Got V1 bsp: %v", h)
-	case bsp2Version_bsp2:
+	case bsp2Versionbsp2:
 		log.Printf("Got V2 bsp: %v", h)
 	default:
 		log.Printf("Version %v", h.Version)

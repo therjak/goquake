@@ -1,23 +1,23 @@
 package stat
 
 const (
-	HEALTH = iota
-	FRAGS
-	WEAPON
-	AMMO
-	ARMOR
-	WEAPONFRAME
-	SHELLS
-	NAILS
-	ROCKETS
-	CELLS
-	ACTIVEWEAPON
-	TOTALSECRETS
-	TOTALMONSTERS
-	SECRETS
-	MONSTERS
+	Health = iota
+	Frags
+	Weapon
+	Ammo
+	Armor
+	WeaponFrame
+	Shells
+	Nails
+	Rockets
+	Cells
+	ActiveWeapon
+	TotalSecrets
+	TotalMonsters
+	Secrets
+	Monsters
 )
 
 const (
-	MAX_CL = 32
+	MaxCl = 32
 )

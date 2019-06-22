@@ -26,8 +26,8 @@ func AddCommand(name string, f QFunc) error {
 	return nil
 }
 
-func Exists(cmd_name string) bool {
-	name := strings.ToLower(cmd_name)
+func Exists(cmdName string) bool {
+	name := strings.ToLower(cmdName)
 	_, ok := commands[name]
 	return ok
 }
@@ -44,9 +44,9 @@ func Execute(n []QArg) bool {
 	return false
 }
 
-func Cmd_List() []string {
+func List() []string {
 	cmds := make([]string, 0, len(commands))
-	for c, _ := range commands {
+	for c := range commands {
 		cmds = append(cmds, c)
 	}
 	sort.Strings(cmds)
@@ -121,24 +121,24 @@ func Args() []QArg {
 	return args.args
 }
 
-func CmdArgc() int {
+func Argc() int {
 	return args.Argc()
 }
 
-func CmdArgs() string {
+func Full() string {
 	return args.full
 }
 
-func CmdArgv(i int) QArg {
+func Argv(i int) QArg {
 	return args.Argv(i)
 }
 
-func CmdArgvAsDouble(i int) float64 {
+func ArgvAsDouble(i int) float64 {
 	r := args.Argv(i).Float64()
 	return r
 }
 
-func CmdParseString(s string) {
+func Parse(s string) {
 	defer func() {
 		if len(args.args) > 0 {
 			s := strings.TrimLeftFunc(s, unicode.IsSpace)
