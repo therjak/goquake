@@ -109,24 +109,6 @@ void Host_Error(const char *error, ...) {
 }
 
 /*
-=================
-SV_BroadcastPrintf
-
-Sends text to all active clients
-=================
-*/
-
-void SV_BroadcastPrintf(const char *fmt, ...) {
-  va_list argptr;
-  char string[1024];
-
-  va_start(argptr, fmt);
-  q_vsnprintf(string, sizeof(string), fmt, argptr);
-  va_end(argptr);
-  SV_BroadcastPrint2(string);
-}
-
-/*
 =======================
 Host_InitLocal
 ======================
@@ -182,24 +164,6 @@ void Host_WriteConfiguration(void) {
 
     fclose(f);
   }
-}
-
-/*
-=================
-SV_ClientPrintf
-
-Sends text across to be displayed
-FIXME: make this just a stuffed echo?
-=================
-*/
-void SV_ClientPrintf2(int client, const char *fmt, ...) {
-  va_list argptr;
-  char string[1024];
-
-  va_start(argptr, fmt);
-  q_vsnprintf(string, sizeof(string), fmt, argptr);
-  va_end(argptr);
-  SV_ClientPrint2(client, string);
 }
 
 /*

@@ -4,6 +4,8 @@ package quakelib
 //#include "progdefs.h"
 //#include "trace.h"
 //#include "cgo_help.h"
+//void Host_ClearMemory(void);
+//void PR_LoadProgs(void);
 import "C"
 
 import (
@@ -12,6 +14,7 @@ import (
 	"quake/cmd"
 	cmdl "quake/commandline"
 	"quake/conlog"
+	"quake/cvar"
 	"quake/cvars"
 	"quake/execute"
 	"quake/math"
@@ -840,11 +843,6 @@ func CheckVelocity(ent *progs.EntVars) {
 	}
 }
 
-//export SV_CreateBaseline
-func SV_CreateBaseline() {
-	sv.CreateBaseline()
-}
-
 func (s *Server) CreateBaseline() {
 	for entnum := 0; entnum < s.numEdicts; entnum++ {
 		e := edictNum(entnum)
@@ -1404,4 +1402,155 @@ func (s *Server) WriteEntitiesToClient(clent int) {
 	     dev_stats.packetsize = SV_MS_Len();
 	     dev_peakstats.packetsize = q_max(SV_MS_Len(), dev_peakstats.packetsize);
 	*/
+}
+
+func init() {
+	//if (Cvar_GetValue(&coop)) Cvar_Set("deathmatch", "0");
+	cvars.Skill.SetCallback(func(cv *cvar.Cvar) {
+		cs := float32(int(cv.Value() + 0.5))
+		cs = math.Clamp32(0, cs, 3)
+		if cv.Value() != cs { // Break recursion
+			cv.SetValue(cs)
+		}
+	})
+}
+
+//This is called at the start of each level
+//export SV_SpawnServer
+func SV_SpawnServer(server *C.char) {
+	sv.SpawnServer(C.GoString(server))
+}
+
+func (s *Server) SpawnServer(name string) {
+	// let's not have any servers with no name
+	if len(cvars.HostName.String()) == 0 {
+		cvars.HostName.SetByString("UNNAMED")
+	}
+
+	conlog.DPrintf("SpawnServer: %s\n", name)
+	// now safe to issue another
+	svs.changeLevelIssued = false
+
+	// tell all connected clients that we are going to a new level
+	if s.active {
+		SV_SendReconnect()
+	}
+
+	// set up the new server
+	C.Host_ClearMemory()
+
+	s.name = name
+	s.protocol = uint16(sv_protocol)
+
+	if s.protocol == protocol.RMQ {
+		s.protocolFlags = protocol.PRFL_INT32COORD | protocol.PRFL_SHORTANGLE
+	} else {
+		s.protocolFlags = 0
+	}
+
+	// load progs to get entity field count
+	LoadProgs()
+	C.PR_LoadProgs()
+
+	// allocate server memory
+	// Host_ClearMemory() called above already cleared the whole sv structure
+	s.maxEdicts = math.ClampI(MIN_EDICTS, int(cvars.MaxEdicts.Value()), MAX_EDICTS)
+	AllocEdicts()
+
+	// leave slots at start for clients only
+	s.numEdicts = svs.maxClients + 1
+	for i := 0; i < s.numEdicts; i++ {
+		ClearEdict(i)
+	}
+	for i := 0; i < svs.maxClients; i++ {
+		sv_clients[i].edictId = i + 1
+	}
+
+	s.state = ServerStateLoading
+	s.paused = false
+	s.time = 1.0
+	s.modelName = fmt.Sprintf("maps/%s.bsp", name)
+
+	loadModel(s.modelName)
+	log.Printf("New world: %s", s.modelName)
+	s.worldModel = nil
+	s.modelPrecache = s.modelPrecache[:0]
+	s.soundPrecache = s.soundPrecache[:0]
+	s.models = append(s.models, nil)
+	s.models = s.models[:1]
+	log.Printf("New world starts with %d models", len(s.models))
+	cm, ok := models[s.modelName]
+	if ok {
+		s.worldModel = cm
+	} else {
+		conlog.Printf("Couldn't spawn server %s\n", s.modelName)
+		s.active = false
+		return
+	}
+	s.modelPrecache = append(s.modelPrecache, string([]byte{0, 0, 0, 0, 0, 0, 0, 0}))
+	s.modelPrecache = append(s.modelPrecache, s.modelName)
+	s.soundPrecache = append(s.soundPrecache, string([]byte{0, 0, 0, 0, 0, 0, 0, 0}))
+	s.models = append(s.models, s.worldModel)
+	for i := 1; i < len(s.worldModel.Submodels); i++ {
+		nn := fmt.Sprintf("*%d", i)
+		nm, ok := models[nn]
+		if !ok {
+			log.Printf("Missing model %d", i)
+			continue
+		}
+		s.modelPrecache = append(s.modelPrecache, nn)
+		s.models = append(s.models, nm)
+	}
+
+	clearWorld()
+
+	// load the rest of the entities
+	TTClearEntVars(0)
+	sv.edicts[0].Free = false
+	ev := EntVars(0)
+	ev.Model = progsdat.AddString(s.modelName)
+	ev.ModelIndex = 1 // world model
+	ev.Solid = SOLID_BSP
+	ev.MoveType = progs.MoveTypePush
+
+	if cvars.Coop.Bool() {
+		progsdat.Globals.Coop = 1
+	} else {
+		progsdat.Globals.DeathMatch = cvars.DeathMatch.Value()
+	}
+	progsdat.Globals.MapName = progsdat.AddString(name)
+
+	// serverflags are for cross level information (sigils)
+	progsdat.Globals.ServerFlags = float32(svs.serverFlags)
+
+	loadEntities(sv.worldModel.Entities)
+
+	s.active = true
+
+	// all setup is completed, any further precache statements are errors
+	s.state = ServerStateActive
+
+	// run two frames to allow everything to settle
+	host.frameTime = 0.1
+	RunPhysics()
+	RunPhysics()
+
+	// create a baseline for more efficient communications
+	s.CreateBaseline()
+
+	// warn if signon buffer larger than standard server can handle
+	if s.signon.Len() > 8000-2 {
+		// max size that will fit into 8000-sized client->message buffer
+		// with 2 extra bytes on the end
+		conlog.DWarning("%d byte signon buffer exceeds standard limit of 7998.\n", s.signon.Len())
+	}
+
+	// send serverinfo to all connected clients
+	for i := 0; i < svs.maxClients; i++ {
+		if sv_clients[i].active {
+			sv_clients[i].SendServerinfo()
+		}
+	}
+
+	conlog.DPrintf("Server spawned.\n")
 }

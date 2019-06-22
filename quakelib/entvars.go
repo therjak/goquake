@@ -118,10 +118,10 @@ func TTClearEntVars(idx int) {
 
 //export TT_ClearEdict
 func TT_ClearEdict(e int) {
-	TTClearEdict(e)
+	ClearEdict(e)
 }
 
-func TTClearEdict(e int) {
+func ClearEdict(e int) {
 	ent := edictNum(e)
 	*ent = Edict{}
 	TTClearEntVars(e)

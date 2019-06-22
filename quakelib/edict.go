@@ -15,6 +15,9 @@ import (
 
 const (
 	defSaveGlobal = 1 << 15
+	MIN_EDICTS    = 265
+	MAX_EDICTS    = 32000 // edicts past 8192 can't play sounds in standard protocol
+
 )
 
 func init() {
@@ -112,12 +115,6 @@ func ED_Free(ed int) {
 	edictFree(ed)
 }
 
-// Sets everything to NULL
-func edClearEdict(e int) {
-	TTClearEntVars(e)
-	edictNum(e).Free = false
-}
-
 // Either finds a free edict, or allocates a new one.
 // Try to avoid reusing an entity that was recently freed, because it
 // can cause the client to think the entity morphed into something else
@@ -130,7 +127,8 @@ func edictAlloc() int {
 		// the first couple seconds of server time can involve a lot of
 		// freeing and allocating, so relax the replacement policy
 		if e.Free && (e.FreeTime < 2 || sv.time-e.FreeTime > 0.5) {
-			edClearEdict(i)
+			TTClearEntVars(i)
+			edictNum(i).Free = false
 			return i
 		}
 	}
@@ -140,7 +138,7 @@ func edictAlloc() int {
 	}
 
 	sv.numEdicts++
-	TTClearEdict(i)
+	ClearEdict(i)
 
 	return i
 }

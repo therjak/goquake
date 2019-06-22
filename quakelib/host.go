@@ -29,8 +29,8 @@ func FrameTime() float64 {
 	return host.frameTime
 }
 
-func Reset() {
-	host.frameTime = 0.1
+func (h *Host) Reset() {
+	h.frameTime = 0.1
 }
 
 // UpdateTime updates the host time.
@@ -62,11 +62,6 @@ func HostRealTime() C.double {
 //export HostFrameTime
 func HostFrameTime() C.double {
 	return C.double(FrameTime())
-}
-
-//export InitHostFrameTime
-func InitHostFrameTime() {
-	Reset()
 }
 
 //export Host_FilterTime

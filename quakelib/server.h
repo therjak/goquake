@@ -108,19 +108,8 @@ extern cvar_t coop;
 
 extern server_t sv;  // local server
 
-int HostClient(void);
-
 //===========================================================
 
 void SV_Init(void);
-
-void SV_ClientPrintf2(int client, const char *fmt, ...);
-//    __attribute__((__format__(__printf__, 1, 2)));
-void SV_BroadcastPrintf(const char *fmt, ...)
-    __attribute__((__format__(__printf__, 1, 2)));
-
-void SV_Physics(void);
-
-void SV_SpawnServer(const char *server);
 
 #endif /* _QUAKE_SERVER_H */

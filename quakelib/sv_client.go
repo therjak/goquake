@@ -65,7 +65,6 @@ var (
 	sv_clients []*SVClient
 )
 
-//export CreateSVClients
 func CreateSVClients() {
 	sv_clients = make([]*SVClient, svs.maxClientsLimit)
 	for i := range sv_clients {

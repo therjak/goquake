@@ -11,8 +11,7 @@ var (
 	progsdat *progs.LoadedProg
 )
 
-//export PR_LoadProgsGo
-func PR_LoadProgsGo() {
+func LoadProgs() {
 	log.Printf("LOADING PROGS")
 	p, err := progs.LoadProgs()
 	if err != nil {
@@ -86,10 +85,12 @@ func Pr_global_struct_time() float32 {
 	return progsdat.Globals.Time
 }
 
+/*
 //export Set_pr_global_struct_mapname
 func Set_pr_global_struct_mapname(n int32) {
 	progsdat.Globals.MapName = n
 }
+*/
 
 //export Set_pr_global_struct_self
 func Set_pr_global_struct_self(s int32) {
@@ -111,6 +112,7 @@ func Set_pr_global_struct_frametime(t float32) {
 	progsdat.Globals.FrameTime = t
 }
 
+/*
 //export Set_pr_global_struct_deathmatch
 func Set_pr_global_struct_deathmatch(t float32) {
 	progsdat.Globals.DeathMatch = t
@@ -120,6 +122,7 @@ func Set_pr_global_struct_deathmatch(t float32) {
 func Set_pr_global_struct_coop(t float32) {
 	progsdat.Globals.Coop = t
 }
+*/
 
 //export Set_pr_global_struct_serverflags
 func Set_pr_global_struct_serverflags(t float32) {
