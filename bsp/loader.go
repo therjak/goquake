@@ -3,6 +3,7 @@ package bsp
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -105,8 +106,8 @@ func Load(name string, data []byte) ([]*qm.QModel, error) {
 		}
 		mod.ClipNodes = mcn
 
-		// entities: TODO
-		// loadEntities(fs(h.Entities , data),ret)
+		// entities
+		mod.Entities = convertToJSON(fs(h.Entities, data))
 
 		submod, err := loadSubmodels(fs(h.Models, data))
 		if err != nil {
@@ -165,6 +166,23 @@ func Load(name string, data []byte) ([]*qm.QModel, error) {
 	}
 
 	return ret, nil
+}
+
+func convertToJSON(data []byte) []map[string]string {
+	data = bytes.ReplaceAll(data, []byte("\" \""), []byte("\": \""))
+	data = bytes.ReplaceAll(data, []byte("\n"), []byte{})
+	data = bytes.ReplaceAll(data, []byte("\"\""), []byte("\",\""))
+	data = bytes.ReplaceAll(data, []byte("}{"), []byte("},{"))
+	j := make([]byte, len(data)+1)
+	copy(j[1:], data)
+	j[0] = '['
+	j[len(j)-1] = ']'
+	var result []map[string]string
+	err := json.Unmarshal(j, &result)
+	if err != nil {
+		log.Printf("unmarshal err: %v", err)
+	}
+	return result
 }
 
 func buildPlanes(pls []*plane) []*qm.Plane {

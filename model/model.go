@@ -146,5 +146,7 @@ type QModel struct {
 	// textures
 	VisData []byte
 
+	Entities []map[string]string
+
 	Node Node
 }

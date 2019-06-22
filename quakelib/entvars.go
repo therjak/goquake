@@ -6,6 +6,7 @@ package quakelib
 import "C"
 import (
 	"fmt"
+	"quake/conlog"
 	"quake/progs"
 	"unsafe"
 )
@@ -124,6 +125,55 @@ func TTClearEdict(e int) {
 	ent := edictNum(e)
 	*ent = Edict{}
 	TTClearEntVars(e)
+}
+
+func EntVarsParsePair(e int, key progs.Def, val string) {
+	// edict number, key, value
+	// Def{Type, Offset, uint16, SName int32}
+	v := uintptr(unsafe.Pointer(g_entvars))
+	vp := v + uintptr(e*entityFields*4) + uintptr(key.Offset*4)
+	p := unsafe.Pointer(vp)
+	switch key.Type &^ (1 << 15) {
+	case progs.EV_String:
+		*(*int32)(p) = progsdat.NewString(val)
+	case progs.EV_Float:
+		var v float32
+		_, err := fmt.Sscanf(val, "%f", &v)
+		if err != nil {
+			conlog.Printf("Can't convert to float32 %s\n", val)
+		}
+		*(*float32)(p) = v
+	case progs.EV_Vector:
+		var v [3]float32
+		_, err := fmt.Sscanf(val, "%f %f %f", &v[0], &v[1], &v[2])
+		if err != nil {
+			conlog.Printf("Can't convert to [3]float32 %s\n", val)
+		}
+		*(*[3]float32)(p) = v
+	case progs.EV_Entity:
+		var v int32
+		_, err := fmt.Sscanf(val, "%d", &v)
+		if err != nil {
+			conlog.Printf("Can't convert to entity %s\n", val)
+			return
+		}
+		*(*int32)(p) = int32(v)
+	case progs.EV_Field:
+		d, err := progsdat.FindFieldDef(val)
+		if err != nil {
+			conlog.Printf("Can't find field %s\n", val)
+			return
+		}
+		*(*int32)(p) = progsdat.RawGlobalsI[d.Offset]
+	case progs.EV_Function:
+		idx, err := progsdat.FindFunction(val)
+		if err != nil {
+			conlog.Printf("Can't find function %s\n", val)
+			return
+		}
+		*(*int32)(p) = int32(idx)
+	default:
+	}
 }
 
 // progs.EntVars

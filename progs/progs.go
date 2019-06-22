@@ -154,7 +154,7 @@ type Header struct {
 }
 
 type Function struct {
-	FirstStatement int32
+	FirstStatement int32 // negative indicates a buildin
 	ParmStart      int32
 	Locals         int32
 	Profile        int32

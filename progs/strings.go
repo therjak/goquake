@@ -81,15 +81,15 @@ func (p *LoadedProg) FindGlobalDef(name string) (Def, error) {
 	return Def{}, fmt.Errorf("GlobalDef '%s' not found", name)
 }
 
-func (p *LoadedProg) FindFunction(name string) (Function, error) {
-	for _, f := range p.Functions {
+func (p *LoadedProg) FindFunction(name string) (int, error) {
+	for i, f := range p.Functions {
 		n, err := p.String(f.SName)
 		if err != nil {
 			continue
 		}
 		if name == n {
-			return f, nil
+			return i, nil
 		}
 	}
-	return Function{}, fmt.Errorf("Function '%s' not found", name)
+	return 0, fmt.Errorf("Function '%s' not found", name)
 }

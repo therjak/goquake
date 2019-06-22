@@ -61,6 +61,11 @@ func loadModel(name string) {
 	}
 }
 
+//export EDLoadEntitiesGo
+func EDLoadEntitiesGo() {
+	loadEntities(sv.worldModel.Entities)
+}
+
 //export CLSetWorldModel
 func CLSetWorldModel(m *C.qmodel_t) {
 	name := C.GoString(&m.name[0])

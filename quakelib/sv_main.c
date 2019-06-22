@@ -204,7 +204,7 @@ void SV_SpawnServer(const char *server) {
   // serverflags are for cross level information (sigils)
   Set_pr_global_struct_serverflags(SVS_GetServerFlags());
 
-  ED_LoadFromFile(sv.worldmodel->entities);
+  EDLoadEntitiesGo();
 
   SV_SetActive(true);
 

@@ -3,8 +3,11 @@ package quakelib
 import "C"
 
 import (
+	"fmt"
+	"log"
 	"quake/cmd"
 	"quake/conlog"
+	"quake/cvars"
 	"quake/math"
 	"quake/math/vec"
 	"quake/progs"
@@ -252,4 +255,101 @@ func UpdateEdictAlpha(ent int) {
 		return
 	}
 	edictNum(ent).Alpha = entAlphaEncode(v)
+}
+
+func parse(ed int, data map[string]string) {
+	if ed != 0 {
+		TTClearEntVars(ed)
+	}
+	for k, v := range data {
+		// some hacks...
+		if k == "angle" {
+			k = "angles"
+			v = fmt.Sprintf("0 %s 0", v)
+		}
+		if k == "light" {
+			k = "light_lev"
+		}
+		def, err := progsdat.FindFieldDef(k)
+		if err != nil {
+			if k != "sky" && k != "fog" && k != "alpha" {
+				log.Printf("Can't find field %s\n", k)
+				conlog.DPrintf("Can't find field %s\n", k)
+			}
+			continue
+		}
+		EntVarsParsePair(ed, def, v)
+	}
+}
+
+const (
+	SPAWNFLAG_NOT_EASY       = 256
+	SPAWNFLAG_NOT_MEDIUM     = 512
+	SPAWNFLAG_NOT_HARD       = 1024
+	SPAWNFLAG_NOT_DEATHMATCH = 2048
+)
+
+//The entities are directly placed in the array, rather than allocated with
+//ED_Alloc, because otherwise an error loading the map would have entity
+//number references out of order.
+//
+//Creates a server's entity / program execution context by
+//parsing textual entity definitions out of an ent file.
+//
+//Used for both fresh maps and savegame loads.  A fresh map would also need
+//to call ED_CallSpawnFunctions () to let the objects initialize themselves.
+func loadEntities(data []map[string]string) {
+	progsdat.Globals.Time = sv.time
+	inhibit := 0
+	eNr := -1
+
+	currentSkill := int(cvars.Skill.Value())
+	// parse ents
+	for _, j := range data {
+		if eNr < 0 {
+			eNr = 0
+		} else {
+			eNr = edictAlloc()
+		}
+		parse(eNr, j)
+
+		ev := EntVars(eNr)
+
+		// remove things from different skill levels or deathmatch
+		if cvars.DeathMatch.Bool() {
+			if (int(ev.SpawnFlags) & SPAWNFLAG_NOT_DEATHMATCH) != 0 {
+				edictFree(eNr)
+				inhibit++
+				continue
+			}
+		} else if (currentSkill == 0 && int(ev.SpawnFlags)&SPAWNFLAG_NOT_EASY != 0) ||
+			(currentSkill == 1 && int(ev.SpawnFlags)&SPAWNFLAG_NOT_MEDIUM != 0) ||
+			(currentSkill >= 2 && int(ev.SpawnFlags)&SPAWNFLAG_NOT_HARD != 0) {
+			edictFree(eNr)
+			inhibit++
+			continue
+		}
+
+		if ev.ClassName == 0 {
+			conlog.SafePrintf("No classname for:\n")
+			edictPrint(eNr)
+			edictFree(eNr)
+			continue
+		}
+
+		fname, _ := progsdat.String(ev.ClassName)
+		fidx, err := progsdat.FindFunction(fname)
+
+		if err != nil {
+			conlog.SafePrintf("No spawn function for:\n")
+			edictPrint(eNr)
+			edictFree(eNr)
+			continue
+		}
+
+		progsdat.Globals.Self = int32(eNr)
+		PRExecuteProgram(int32(fidx))
+	}
+
+	conlog.DPrintf("%d entities inhibited\n", inhibit)
 }
