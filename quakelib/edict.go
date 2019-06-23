@@ -22,7 +22,7 @@ const (
 
 func init() {
 	cmd.AddCommand("edict", edictPrintEdictFunc)
-	cmd.AddCommand("edicts", edictPrintEdicts)
+	cmd.AddCommand("edicts", func(_ []cmd.QArg, _ int) { edictPrintEdicts() })
 	cmd.AddCommand("edictcount", edictCount)
 }
 
@@ -181,7 +181,7 @@ func ED_PrintNum(ent C.int) {
 }
 
 // For debugging, prints all the entities in the current server
-func edictPrintEdicts(_ []cmd.QArg, _ int) {
+func edictPrintEdicts() {
 	if !sv.active {
 		return
 	}

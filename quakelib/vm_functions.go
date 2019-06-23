@@ -734,7 +734,7 @@ func PF_precache_model() {
 
 //export PF_coredump
 func PF_coredump() {
-	edictPrintEdicts([]cmd.QArg{}, sv_player)
+	edictPrintEdicts()
 }
 
 //export PF_eprint

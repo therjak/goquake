@@ -183,14 +183,14 @@ func hostStopDemo(_ []cmd.QArg, _ int) {
 }
 
 // Return to looping demos
-func hostDemos(_ []cmd.QArg, player int) {
+func hostDemos(_ []cmd.QArg, _ int) {
 	if cls.state == ca_dedicated {
 		return
 	}
 	if cls.demoNum == -1 {
 		cls.demoNum = 0
 	}
-	clDisconnect([]cmd.QArg{}, player)
+	clientDisconnect()
 	C.CL_NextDemo()
 }
 

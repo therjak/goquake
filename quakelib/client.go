@@ -24,8 +24,8 @@ import (
 )
 
 func init() {
-	cmd.AddCommand("disconnect", clDisconnect)
-	cmd.AddCommand("reconnect", clReconnect)
+	cmd.AddCommand("disconnect", func(args []cmd.QArg, _ int) { clientDisconnect() })
+	cmd.AddCommand("reconnect", func(args []cmd.QArg, _ int) { clientReconnect() })
 }
 
 const (
@@ -919,10 +919,10 @@ func (c *ClientStatic) Disconnect() {
 
 //export CL_Disconnect_f
 func CL_Disconnect_f() {
-	clDisconnect([]cmd.QArg{}, sv_player)
+	clientDisconnect()
 }
 
-func clDisconnect(args []cmd.QArg, _ int) {
+func clientDisconnect() {
 	cls.Disconnect()
 	if sv.active {
 		hostShutdownServer(false)
@@ -931,7 +931,7 @@ func clDisconnect(args []cmd.QArg, _ int) {
 
 // This command causes the client to wait for the signon messages again.
 // This is sent just before a server changes levels
-func clReconnect(args []cmd.QArg, _ int) {
+func clientReconnect() {
 	if cls.demoPlayback {
 		return
 	}
@@ -942,7 +942,7 @@ func clReconnect(args []cmd.QArg, _ int) {
 
 //export Host_Reconnect_f
 func Host_Reconnect_f() {
-	clReconnect([]cmd.QArg{}, sv_player)
+	clientReconnect()
 }
 
 //export CL_EstablishConnection

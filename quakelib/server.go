@@ -16,7 +16,6 @@ import (
 	"quake/conlog"
 	"quake/cvar"
 	"quake/cvars"
-	"quake/execute"
 	"quake/math"
 	"quake/math/vec"
 	"quake/model"
@@ -299,15 +298,15 @@ func SVS_GetMaxClientsLimit() C.int {
 	return C.int(svs.maxClientsLimit)
 }
 
-func SV_SendReconnect() {
+func (s *Server) sendReconnect() {
 	SendReconnectToAll()
 	if !cmdl.Dedicated() {
-		execute.Execute("reconnect\n", execute.Command, sv_player)
+		clientReconnect()
 	}
 }
 
 /*
-Each entity can have eight independant sound sources, like voice,
+Each entity can have eight independent sound sources, like voice,
 weapon, feet, etc.
 
 Channel 0 is an auto-allocate channel, the others override anything
@@ -392,7 +391,9 @@ func (s *Server) CleanupEntvarEffects() {
 	}
 }
 
-func (s *Server) WriteClientdataToMessage(e *progs.EntVars, alpha byte) {
+func (s *Server) WriteClientdataToMessage(player int) {
+	e := EntVars(player)
+	alpha := edictNum(player).Alpha
 	flags := s.protocolFlags
 	if e.DmgTake != 0 || e.DmgSave != 0 {
 		other := EntVars(int(e.DmgInflictor))
@@ -407,7 +408,7 @@ func (s *Server) WriteClientdataToMessage(e *progs.EntVars, alpha byte) {
 	}
 
 	// send the current viewpos offset from the view entity
-	SV_SetIdealPitch() // how much to loop up/down ideally
+	SV_SetIdealPitch(player) // how much to loop up/down ideally
 
 	// a fixangle might get lost in a dropped packet.  Oh well.
 	if e.FixAngle != 0 {
@@ -632,7 +633,7 @@ func (s *Server) SendClientDatagram(c *SVClient) bool {
 	msgBuf.WriteByte(server.Time)
 	msgBuf.WriteFloat(s.time)
 
-	s.WriteClientdataToMessage(EntVars(c.edictId), edictNum(c.edictId).Alpha)
+	s.WriteClientdataToMessage(c.edictId)
 
 	s.WriteEntitiesToClient(c.edictId)
 
@@ -961,10 +962,10 @@ func pushEntity(e int, push vec.Vec3) C.trace_t {
 	return tr
 }
 
-func SV_SetIdealPitch() {
+func SV_SetIdealPitch(player int) {
 	const MAX_FORWARD = 6
 	z := [MAX_FORWARD]float32{}
-	ev := EntVars(sv_player)
+	ev := EntVars(player)
 	if int(ev.Flags)&FL_ONGROUND == 0 {
 		return
 	}
@@ -982,7 +983,7 @@ func SV_SetIdealPitch() {
 		bottom := top
 		bottom[2] -= 160
 
-		tr := svMove(top, vec.Vec3{}, vec.Vec3{}, bottom, 1, sv_player)
+		tr := svMove(top, vec.Vec3{}, vec.Vec3{}, bottom, 1, player)
 		if tr.allsolid != 0 {
 			// looking at a wall, leave ideal the way is was
 			return
@@ -1282,7 +1283,7 @@ func (s *Server) SpawnServer(name string) {
 
 	// tell all connected clients that we are going to a new level
 	if s.active {
-		SV_SendReconnect()
+		s.sendReconnect()
 	}
 
 	// set up the new server

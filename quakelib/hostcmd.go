@@ -42,11 +42,11 @@ func init() {
 	cmd.AddCommand("prespawn", hostPreSpawn)
 	cmd.AddCommand("version", hostVersion)
 	cmd.AddCommand("kick", hostKick)
-	cmd.AddCommand("quit", hostQuit)
+	cmd.AddCommand("quit", func(_ []cmd.QArg, _ int) { hostQuit() })
 	cmd.AddCommand("connect", hostConnect)
 }
 
-func hostQuit(args []cmd.QArg, _ int) {
+func hostQuit() {
 	if keyDestination != keys.Console && cls.state != ca_dedicated {
 		enterQuitMenu()
 		return
@@ -670,7 +670,7 @@ func hostSpawn(args []cmd.QArg, player int) {
 
 	msgBuf.ClearMessage()
 	msgBufMaxLen = protocol.MaxDatagram
-	sv.WriteClientdataToMessage(EntVars(player), edictNum(player).Alpha)
+	sv.WriteClientdataToMessage(player)
 	c.msg.WriteBytes(msgBuf.Bytes())
 
 	c.msg.WriteByte(server.SignonNum)
@@ -1001,7 +1001,7 @@ func hostKick(args []cmd.QArg, _ int) {
 }
 
 // User command to connect to server
-func hostConnect(args []cmd.QArg, player int) {
+func hostConnect(args []cmd.QArg, _ int) {
 	if len(args) == 0 {
 		return
 	}
@@ -1012,5 +1012,5 @@ func hostConnect(args []cmd.QArg, player int) {
 		cls.Disconnect()
 	}
 	clEstablishConnection(args[0].String())
-	clReconnect([]cmd.QArg{}, player)
+	clientReconnect()
 }

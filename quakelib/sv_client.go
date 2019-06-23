@@ -392,7 +392,7 @@ func (s *Server) ModelIndex(n string) int {
 }
 
 // Returns false if the client should be killed
-func (c *SVClient) ReadClientMessage() bool {
+func (c *SVClient) ReadClientMessage(player int) bool {
 	hasPrefix := func(s, prefix string) bool {
 		return len(s) >= len(prefix) && strings.ToLower(s[0:len(prefix)]) == prefix
 	}
@@ -528,7 +528,7 @@ outerloop:
 					hasPrefix(s, "give"),
 					hasPrefix(s, "ban"):
 					ret = 1
-					execute.Execute(s, execute.Client, sv_player)
+					execute.Execute(s, execute.Client, player)
 				}
 			}
 		}
@@ -548,7 +548,7 @@ func SV_RunClients() {
 		}
 		sv_player = hc.edictId
 
-		if !hc.ReadClientMessage() {
+		if !hc.ReadClientMessage(hc.edictId) {
 			hc.Drop(false)
 			continue
 		}
