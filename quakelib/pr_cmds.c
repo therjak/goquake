@@ -1,37 +1,5 @@
 #include "quakedef.h"
 
-#define RETURN_EDICT(e) (Set_Pr_globalsi(OFS_RETURN, e))
-
-static void PR_CheckEmptyString(const char *s) {
-  if (s[0] <= ' ') PR_RunError("Bad string");
-}
-
-// THERJAK
-static void PF_precache_model(void) {
-  const char *s;
-  int i;
-
-  if (SV_State() != ss_loading)
-    PR_RunError("PF_Precache_*: Precache can only be done in spawn functions");
-
-  s = PR_GetString(Pr_globalsi(OFS_PARM0));
-  Set_Pr_globalsi(OFS_RETURN, Pr_globalsi(OFS_PARM0));
-  PR_CheckEmptyString(s);
-
-  if (ElementOfSVModelPrecache(s) != -1) {
-    return;
-  }
-  for (i = 0; i < MAX_MODELS; i++) {
-    if (!ExistSVModelPrecache(i)) {
-      SetSVModelPrecache(i, s);
-      LoadModelGo(s);
-      SVSetModelByName(s, i, false);
-      return;
-    }
-  }
-  PR_RunError("PF_precache_model: overflow");
-}
-
 /*
 ===============
 PF_walkmove

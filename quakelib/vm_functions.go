@@ -689,7 +689,7 @@ func PF_precache_sound() {
 	sv.soundPrecache = append(sv.soundPrecache, s)
 }
 
-// export PF_precache_model
+//export PF_precache_model
 func PF_precache_model() {
 	if sv.state != ServerStateLoading {
 		runError("PF_Precache_*: Precache can only be done in spawn functions")
@@ -700,9 +700,9 @@ func PF_precache_model() {
 	progsdat.Globals.Return[0] = si
 	s, err := progsdat.String(si)
 	if err != nil {
-		// same result as PR_CheckEmptyString
+		runError("Bad string")
+		return
 	}
-	//PR_CheckEmptyString(s);
 
 	exist := func(s string) bool {
 		for _, e := range sv.modelPrecache {
@@ -722,8 +722,6 @@ func PF_precache_model() {
 	sv.modelPrecache = append(sv.modelPrecache, s)
 	m, ok := models[s]
 	if !ok {
-		// This needs to load all models for this function to work
-		// currently it does not read spr files
 		loadModel(s)
 		m, ok = models[s]
 		if !ok {
