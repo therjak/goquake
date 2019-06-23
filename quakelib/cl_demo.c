@@ -118,17 +118,6 @@ int CL_GetDemoMessage(void) {
   return 1;
 }
 
-void CL_DemoCacheStartConnection() {
-  // This should cache messages before full connection to allow demo record
-  // after connection is done
-  /*
-      memcpy(demo_head[CLS_GetSignon()], net_message.daTa,
-      SB_GetCurSize(&net_message)); demo_head_size[CLS_GetSigon()] =
-      SB_GetCurSize(&net_message);
-      }
-  */
-}
-
 /*
 ====================
 CL_Stop_f

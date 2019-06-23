@@ -221,11 +221,6 @@ void CL_DecayLights(void);
 
 void CL_Init(void);
 
-void CL_Signon1(void);
-void CL_Signon2(void);
-void CL_Signon3(void);
-void CL_Signon4(void);
-
 void CL_NextDemo(void);
 
 //
@@ -233,9 +228,7 @@ void CL_NextDemo(void);
 //
 void CL_SendCmd(void);
 int CL_ReadFromServer(void);
-void CL_AdjustAngles();
 
-void CL_ParseTEnt(void);
 void CL_UpdateTEnts(void);
 
 void CL_ClearState(void);
@@ -245,8 +238,6 @@ void CL_ClearState(void);
 //
 void CL_StopPlayback(void);
 int CL_GetDemoMessage(void);
-void CL_WriteDemoMessage(void);
-void CL_DemoCacheStartConnection();
 
 void CL_Stop_f(void);
 void CL_Record_f(void);
@@ -257,7 +248,6 @@ void CL_TimeDemo_f(void);
 // cl_parse.c
 //
 void CL_ParseServerMessage(void);
-void CL_NewTranslation(int slot);
 
 //
 // view
