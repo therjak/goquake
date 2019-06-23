@@ -11,14 +11,14 @@ import (
 	"strings"
 )
 
-func echo(args []cmd.QArg) {
+func echo(args []cmd.QArg, _ int) {
 	for _, a := range args {
 		conlog.Printf("%s ", a)
 	}
 	conlog.Printf("\n")
 }
 
-func printCmdList(args []cmd.QArg) {
+func printCmdList(args []cmd.QArg, _ int) {
 	//TODO(therjak):
 	// this should probably print the syntax of cmdlist if len(args) > 1
 	switch len(args) {
@@ -55,7 +55,7 @@ func printPartialCmdList(part string) {
 // Commands lead with a +, and continue until a - or another +
 // quake +prog jctest.qp +cmd amlev1
 // quake -nosound +cmd amlev1
-func executeCommandLineScripts(_ []cmd.QArg) {
+func executeCommandLineScripts(_ []cmd.QArg, _ int) {
 	plus := false
 	cmd := ""
 	// args[0] is command name
@@ -85,7 +85,7 @@ func executeCommandLineScripts(_ []cmd.QArg) {
 	}
 }
 
-func execFile(args []cmd.QArg) {
+func execFile(args []cmd.QArg, _ int) {
 	if len(args) != 1 {
 		conlog.Printf("exec <filename> : execute a script file\n")
 		return

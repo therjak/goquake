@@ -137,7 +137,7 @@ func SV_State() int {
 	return 1
 }
 
-func svProtocol(args []cmd.QArg) {
+func svProtocol(args []cmd.QArg, _ int) {
 	switch len(args) {
 	default:
 		conlog.SafePrintf("usage: sv_protocol <protocol>\n")
@@ -302,7 +302,7 @@ func SVS_GetMaxClientsLimit() C.int {
 func SV_SendReconnect() {
 	SendReconnectToAll()
 	if !cmdl.Dedicated() {
-		execute.Execute("reconnect\n", execute.Command)
+		execute.Execute("reconnect\n", execute.Command, sv_player)
 	}
 }
 
@@ -632,7 +632,7 @@ func (s *Server) SendClientDatagram(c *SVClient) bool {
 	msgBuf.WriteByte(server.Time)
 	msgBuf.WriteFloat(s.time)
 
-	s.WriteClientdataToMessage(EntVars(c.edictId), EntityAlpha(c.edictId))
+	s.WriteClientdataToMessage(EntVars(c.edictId), edictNum(c.edictId).Alpha)
 
 	s.WriteEntitiesToClient(c.edictId)
 

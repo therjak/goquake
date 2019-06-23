@@ -14,14 +14,14 @@ const (
 
 var (
 	cmdSource = Client
-	executors []func([]cmd.QArg) bool
+	executors []func([]cmd.QArg, int) bool
 )
 
-func SetExecutors(e []func([]cmd.QArg) bool) {
+func SetExecutors(e []func([]cmd.QArg, int) bool) {
 	executors = e
 }
 
-func Execute(s string, source int) {
+func Execute(s string, source int, player int) {
 	cmdSource = source
 	cmd.Parse(s)
 
@@ -31,7 +31,7 @@ func Execute(s string, source int) {
 	}
 	name := args[0].String()
 	for _, e := range executors {
-		if e(args) {
+		if e(args, player) {
 			return
 		}
 	}

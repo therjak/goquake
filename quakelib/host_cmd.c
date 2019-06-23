@@ -694,34 +694,6 @@ void Host_Startdemos_f(void) {
   }
 }
 
-/*
-==================
-Host_Demos_f
-
-Return to looping demos
-==================
-*/
-void Host_Demos_f(void) {
-  if (CLS_GetState() == ca_dedicated) return;
-  if (CLS_IsDemoCycleStopped()) CLS_StartDemoCycle();
-  CL_Disconnect_f();
-  CL_NextDemo();
-}
-
-/*
-==================
-Host_Stopdemo_f
-
-Return to looping demos
-==================
-*/
-void Host_Stopdemo_f(void) {
-  if (CLS_GetState() == ca_dedicated) return;
-  if (!CLS_IsDemoPlayback()) return;
-  CL_StopPlayback();
-  CL_Disconnect();
-}
-
 //=============================================================================
 
 /*
@@ -743,8 +715,6 @@ void Host_InitCommands(void) {
   Cmd_AddCommand("save", Host_Savegame_f);
 
   Cmd_AddCommand("startdemos", Host_Startdemos_f);
-  Cmd_AddCommand("demos", Host_Demos_f);
-  Cmd_AddCommand("stopdemo", Host_Stopdemo_f);
 
   Cmd_AddCommand("mcache", Mod_Print);
 }

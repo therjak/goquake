@@ -1,8 +1,11 @@
 package quakelib
 
+//void CL_StopPlayback(void);
+//void CL_NextDemo(void);
 import "C"
 
 import (
+	"quake/cmd"
 	cmdl "quake/commandline"
 	"quake/conlog"
 	"quake/cvar"
@@ -165,4 +168,33 @@ func Host_ServerFrame() {
 
 	// send all messages to the clients
 	sv.SendClientMessages()
+}
+
+// Return to looping demos
+func hostStopDemo(_ []cmd.QArg, _ int) {
+	if cls.state == ca_dedicated {
+		return
+	}
+	if !cls.demoPlayback {
+		return
+	}
+	C.CL_StopPlayback()
+	cls.Disconnect()
+}
+
+// Return to looping demos
+func hostDemos(_ []cmd.QArg, player int) {
+	if cls.state == ca_dedicated {
+		return
+	}
+	if cls.demoNum == -1 {
+		cls.demoNum = 0
+	}
+	clDisconnect([]cmd.QArg{}, player)
+	C.CL_NextDemo()
+}
+
+func init() {
+	cmd.AddCommand("stopdemo", hostStopDemo)
+	cmd.AddCommand("demos", hostDemos)
 }

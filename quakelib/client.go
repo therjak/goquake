@@ -598,7 +598,7 @@ func CLSHasMessage() C.int {
 	return b2i(cls.outMessage.Len() > 0)
 }
 
-func executeOnServer(args []cmd.QArg) {
+func executeOnServer(args []cmd.QArg, _ int) {
 	if cls.state != ca_connected {
 		conlog.Printf("Can't \"cmd\", not connected\n")
 		return
@@ -919,10 +919,10 @@ func (c *ClientStatic) Disconnect() {
 
 //export CL_Disconnect_f
 func CL_Disconnect_f() {
-	clDisconnect([]cmd.QArg{})
+	clDisconnect([]cmd.QArg{}, sv_player)
 }
 
-func clDisconnect(args []cmd.QArg) {
+func clDisconnect(args []cmd.QArg, _ int) {
 	cls.Disconnect()
 	if sv.active {
 		hostShutdownServer(false)
@@ -931,7 +931,7 @@ func clDisconnect(args []cmd.QArg) {
 
 // This command causes the client to wait for the signon messages again.
 // This is sent just before a server changes levels
-func clReconnect(args []cmd.QArg) {
+func clReconnect(args []cmd.QArg, _ int) {
 	if cls.demoPlayback {
 		return
 	}
@@ -942,7 +942,7 @@ func clReconnect(args []cmd.QArg) {
 
 //export Host_Reconnect_f
 func Host_Reconnect_f() {
-	clReconnect([]cmd.QArg{})
+	clReconnect([]cmd.QArg{}, sv_player)
 }
 
 //export CL_EstablishConnection

@@ -111,7 +111,7 @@ func PF_setorigin() {
 
 func setMinMaxSize(ev *progs.EntVars, min, max vec.Vec3) {
 	if min[0] > max[0] || min[1] > max[1] || min[2] > max[2] {
-		runError("backwards mins/maxs")
+		conlog.DPrintf("backwards mins/maxs")
 	}
 	ev.Mins = min
 	ev.Maxs = max
@@ -734,7 +734,7 @@ func PF_precache_model() {
 
 //export PF_coredump
 func PF_coredump() {
-	edictPrintEdicts([]cmd.QArg{})
+	edictPrintEdicts([]cmd.QArg{}, sv_player)
 }
 
 //export PF_eprint

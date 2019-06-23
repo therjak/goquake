@@ -528,7 +528,7 @@ outerloop:
 					hasPrefix(s, "give"),
 					hasPrefix(s, "ban"):
 					ret = 1
-					execute.Execute(s, execute.Client)
+					execute.Execute(s, execute.Client, sv_player)
 				}
 			}
 		}

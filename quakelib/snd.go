@@ -119,18 +119,18 @@ func init() {
 	cmd.AddCommand("soundinfo", soundInfoCmd)
 }
 
-func playCmd(args []cmd.QArg) {
+func playCmd(args []cmd.QArg, _ int) {
 	log.Println("play CMD from snd")
 }
-func playVolCmd(args []cmd.QArg) {
+func playVolCmd(args []cmd.QArg, _ int) {
 	log.Println("play vol CMD from snd")
 }
-func stopSoundCmd(args []cmd.QArg) {
+func stopSoundCmd(args []cmd.QArg, _ int) {
 	log.Println("stop sound CMD from snd")
 }
-func soundListCmd(args []cmd.QArg) {
+func soundListCmd(args []cmd.QArg, _ int) {
 	log.Println("sound list CMD from snd")
 }
-func soundInfoCmd(args []cmd.QArg) {
+func soundInfoCmd(args []cmd.QArg, _ int) {
 	log.Println("sound info CMD from snd")
 }

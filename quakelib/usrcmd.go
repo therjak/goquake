@@ -205,5 +205,5 @@ func HandleMove() {
 }
 
 func init() {
-	cmd.AddCommand("impulse", func(args []cmd.QArg) { in_impulse = args[0].Int() })
+	cmd.AddCommand("impulse", func(args []cmd.QArg, _ int) { in_impulse = args[0].Int() })
 }

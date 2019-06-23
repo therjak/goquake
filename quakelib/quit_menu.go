@@ -7,5 +7,5 @@ import (
 
 func enterQuitMenu() {
 	keyDestination = keys.Console
-	hostQuit([]cmd.QArg{})
+	hostQuit([]cmd.QArg{}, sv_player)
 }

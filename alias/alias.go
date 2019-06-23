@@ -11,7 +11,7 @@ var (
 	aliases = make(map[string]string)
 )
 
-func alias(args []cmd.QArg) {
+func alias(args []cmd.QArg, _ int) {
 	switch c := len(args); c {
 	case 0:
 		listAliases()
@@ -73,7 +73,7 @@ func setAlias(args []cmd.QArg) {
 	aliases[name.String()] = strings.TrimSpace(command) + "\n"
 }
 
-func unalias(args []cmd.QArg) {
+func unalias(args []cmd.QArg, _ int) {
 	switch c := len(args); c {
 	case 1:
 		name := args[0].String()
@@ -89,7 +89,7 @@ func unalias(args []cmd.QArg) {
 	}
 }
 
-func unaliasAll(_ []cmd.QArg) {
+func unaliasAll(_ []cmd.QArg, _ int) {
 	aliases = make(map[string]string)
 }
 
@@ -98,7 +98,7 @@ func Get(name string) (string, bool) {
 	return a, ok
 }
 
-func Execute(args []cmd.QArg) bool {
+func Execute(args []cmd.QArg, _ int) bool {
 	if len(args) == 0 {
 		return false
 	}

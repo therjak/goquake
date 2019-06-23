@@ -229,8 +229,6 @@ void CL_Signon2(void);
 void CL_Signon3(void);
 void CL_Signon4(void);
 
-void CL_Disconnect(void);
-void CL_Disconnect_f(void);
 void CL_NextDemo(void);
 
 //

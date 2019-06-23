@@ -45,7 +45,6 @@ func Load(name string, data []byte) ([]*qm.QModel, error) {
 	}
 	switch h.Version {
 	case bspVersion:
-		log.Printf("Got V0 bsp %s: %v", name, h)
 		// TODO: loadVertexes(fs(h.Vertexes, data),ret)
 		// TODO: loadEdgesV0(fs(h.Edges, data),ret)
 		// TODO: loadSurfaceEdges(fs(h.SurfaceEdges, data),ret)

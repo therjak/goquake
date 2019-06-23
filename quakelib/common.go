@@ -34,11 +34,11 @@ func init() {
 	})
 }
 
-func CmdPath(args []cmd.QArg) {
+func CmdPath(args []cmd.QArg, _ int) {
 	// TODO
 	log.Printf("path called")
 }
-func CmdGame(args []cmd.QArg) {
+func CmdGame(args []cmd.QArg, _ int) {
 	// TODO
 }
 

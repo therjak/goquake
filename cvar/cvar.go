@@ -168,7 +168,7 @@ func MustRegister(n, v string, flag int) *Cvar {
 	return cv
 }
 
-func Execute(args []cmd.QArg) bool {
+func Execute(args []cmd.QArg, _ int) bool {
 	if len(args) == 0 {
 		return false
 	}

@@ -17,11 +17,11 @@ func init() {
 	cmd.AddCommand("wait", waitCmd)
 }
 
-func waitCmd(_ []cmd.QArg) {
+func waitCmd(_ []cmd.QArg, _ int) {
 	wait = true
 }
 
-func Execute() {
+func Execute(player int) {
 	for len(cbuf) != 0 {
 		i := 0
 		quote := false
@@ -47,7 +47,7 @@ func Execute() {
 			i++
 		}
 		cbuf = cbuf[i:]
-		execute.Execute(line, execute.Command)
+		execute.Execute(line, execute.Command, player)
 		if wait {
 			// wait for the next frame to continue executing
 			wait = false

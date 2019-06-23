@@ -72,19 +72,19 @@ func nextDemo() {
 }
 
 func init() {
-	cmd.AddCommand("togglemenu", func(_ []cmd.QArg) { toggleMenu() })
+	cmd.AddCommand("togglemenu", func(_ []cmd.QArg, _ int) { toggleMenu() })
 
-	cmd.AddCommand("menu_main", func(_ []cmd.QArg) { enterMenuMain() })
-	cmd.AddCommand("menu_singleplayer", func(_ []cmd.QArg) { enterSinglePlayerMenu() })
-	cmd.AddCommand("menu_load", func(_ []cmd.QArg) { enterLoadMenu() })
-	cmd.AddCommand("menu_save", func(_ []cmd.QArg) { enterSaveMenu() })
-	cmd.AddCommand("menu_multiplayer", func(_ []cmd.QArg) { enterMultiPlayerMenu() })
-	cmd.AddCommand("menu_setup", func(_ []cmd.QArg) { enterNetSetupMenu() })
-	cmd.AddCommand("menu_options", func(_ []cmd.QArg) { enterMenuOptions() })
-	cmd.AddCommand("menu_keys", func(_ []cmd.QArg) { enterMenuKeys() })
-	cmd.AddCommand("menu_video", func(_ []cmd.QArg) { enterMenuVideo() })
-	cmd.AddCommand("help", func(_ []cmd.QArg) { enterMenuHelp() })
-	cmd.AddCommand("menu_quit", func(_ []cmd.QArg) { enterQuitMenu() })
+	cmd.AddCommand("menu_main", func(_ []cmd.QArg, _ int) { enterMenuMain() })
+	cmd.AddCommand("menu_singleplayer", func(_ []cmd.QArg, _ int) { enterSinglePlayerMenu() })
+	cmd.AddCommand("menu_load", func(_ []cmd.QArg, _ int) { enterLoadMenu() })
+	cmd.AddCommand("menu_save", func(_ []cmd.QArg, _ int) { enterSaveMenu() })
+	cmd.AddCommand("menu_multiplayer", func(_ []cmd.QArg, _ int) { enterMultiPlayerMenu() })
+	cmd.AddCommand("menu_setup", func(_ []cmd.QArg, _ int) { enterNetSetupMenu() })
+	cmd.AddCommand("menu_options", func(_ []cmd.QArg, _ int) { enterMenuOptions() })
+	cmd.AddCommand("menu_keys", func(_ []cmd.QArg, _ int) { enterMenuKeys() })
+	cmd.AddCommand("menu_video", func(_ []cmd.QArg, _ int) { enterMenuVideo() })
+	cmd.AddCommand("help", func(_ []cmd.QArg, _ int) { enterMenuHelp() })
+	cmd.AddCommand("menu_quit", func(_ []cmd.QArg, _ int) { enterQuitMenu() })
 }
 
 // void Draw_Character(int cx, int line, int num);

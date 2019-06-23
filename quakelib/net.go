@@ -19,7 +19,7 @@ func init() {
 	cmd.AddCommand("maxplayers", maxPlayersCmd)
 }
 
-func listenCmd(args []cmd.QArg) {
+func listenCmd(args []cmd.QArg, _ int) {
 	switch c := len(args); c {
 	case 1:
 		arg := args[0].Bool()
@@ -40,7 +40,7 @@ func unlisten() {
 	net.StopListen()
 }
 
-func portCmd(args []cmd.QArg) {
+func portCmd(args []cmd.QArg, _ int) {
 	switch c := len(args); c {
 	default:
 		conlog.Printf("port is %d", net.Port())
@@ -59,7 +59,7 @@ func portCmd(args []cmd.QArg) {
 	}
 }
 
-func maxPlayersCmd(args []cmd.QArg) {
+func maxPlayersCmd(args []cmd.QArg, _ int) {
 	switch c := len(args); c {
 	default:
 		conlog.Printf("maxplayers is %d", svs.maxClients)

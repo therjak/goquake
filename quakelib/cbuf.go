@@ -7,7 +7,7 @@ import (
 
 //export Cbuf_Execute
 func Cbuf_Execute() {
-	cbuf.Execute()
+	cbuf.Execute(sv_player)
 }
 
 //export Cbuf_AddText

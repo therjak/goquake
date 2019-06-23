@@ -275,10 +275,6 @@ func (q *qphysics) walkMove(ent int) {
 		return
 	}
 
-	if sv_player != ent {
-		conlog.Printf("walkMove: sv_player != ent")
-		// the following was not done on EntVars(ent) but EntVars(sv_player)
-	}
 	if int(ev.Flags)&FL_WATERJUMP != 0 {
 		return
 	}

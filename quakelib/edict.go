@@ -181,7 +181,7 @@ func ED_PrintNum(ent C.int) {
 }
 
 // For debugging, prints all the entities in the current server
-func edictPrintEdicts(_ []cmd.QArg) {
+func edictPrintEdicts(_ []cmd.QArg, _ int) {
 	if !sv.active {
 		return
 	}
@@ -193,7 +193,7 @@ func edictPrintEdicts(_ []cmd.QArg) {
 }
 
 // For debugging, prints a single edict
-func edictPrintEdictFunc(args []cmd.QArg) {
+func edictPrintEdictFunc(args []cmd.QArg, _ int) {
 	if !sv.active || len(args) == 0 {
 		return
 	}
@@ -207,7 +207,7 @@ func edictPrintEdictFunc(args []cmd.QArg) {
 }
 
 // For debugging
-func edictCount(_ []cmd.QArg) {
+func edictCount(_ []cmd.QArg, _ int) {
 	if !sv.active {
 		return
 	}

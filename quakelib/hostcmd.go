@@ -46,7 +46,7 @@ func init() {
 	cmd.AddCommand("connect", hostConnect)
 }
 
-func hostQuit(args []cmd.QArg) {
+func hostQuit(args []cmd.QArg, _ int) {
 	if keyDestination != keys.Console && cls.state != ca_dedicated {
 		enterQuitMenu()
 		return
@@ -65,12 +65,12 @@ func qFormatI(b int32) string {
 	return "ON"
 }
 
-func hostVersion(args []cmd.QArg) {
+func hostVersion(args []cmd.QArg, _ int) {
 	conlog.Printf("Quake Version %1.2f\n", VERSION)
 	conlog.Printf("QuakeSpasm Version %1.2f.%d\n", QUAKESPASM_VERSION, QUAKESPASM_VER_PATCH)
 }
 
-func hostPreSpawn(args []cmd.QArg) {
+func hostPreSpawn(args []cmd.QArg, _ int) {
 	if execute.IsSrcCommand() {
 		conlog.Printf("prespawn is not valid from the console\n")
 		return
@@ -86,7 +86,7 @@ func hostPreSpawn(args []cmd.QArg) {
 	c.sendSignon = true
 }
 
-func hostGod(args []cmd.QArg) {
+func hostGod(args []cmd.QArg, player int) {
 	if execute.IsSrcCommand() {
 		forwardToServer("god", args)
 		return
@@ -94,7 +94,7 @@ func hostGod(args []cmd.QArg) {
 	if progsdat.Globals.DeathMatch != 0 {
 		return
 	}
-	ev := EntVars(sv_player)
+	ev := EntVars(player)
 	f := int32(ev.Flags)
 	const flag = progs.FlagGodMode
 	switch len(args) {
@@ -114,7 +114,7 @@ func hostGod(args []cmd.QArg) {
 	HostClient().Printf("godmode %v\n", qFormatI(f&flag))
 }
 
-func hostNoTarget(args []cmd.QArg) {
+func hostNoTarget(args []cmd.QArg, player int) {
 	if execute.IsSrcCommand() {
 		forwardToServer("notarget", args)
 		return
@@ -122,7 +122,7 @@ func hostNoTarget(args []cmd.QArg) {
 	if progsdat.Globals.DeathMatch != 0 {
 		return
 	}
-	ev := EntVars(sv_player)
+	ev := EntVars(player)
 	f := int32(ev.Flags)
 	const flag = progs.FlagNoTarget
 	switch len(args) {
@@ -142,7 +142,7 @@ func hostNoTarget(args []cmd.QArg) {
 	HostClient().Printf("notarget %v\n", qFormatI(f&flag))
 }
 
-func hostFly(args []cmd.QArg) {
+func hostFly(args []cmd.QArg, player int) {
 	if execute.IsSrcCommand() {
 		forwardToServer("fly", args)
 		return
@@ -150,7 +150,7 @@ func hostFly(args []cmd.QArg) {
 	if progsdat.Globals.DeathMatch != 0 {
 		return
 	}
-	ev := EntVars(sv_player)
+	ev := EntVars(player)
 	m := int32(ev.MoveType)
 	switch len(args) {
 	default:
@@ -173,7 +173,7 @@ func hostFly(args []cmd.QArg) {
 	HostClient().Printf("flymode %v\n", qFormatI(m&progs.MoveTypeFly))
 }
 
-func hostColor(args []cmd.QArg) {
+func hostColor(args []cmd.QArg, _ int) {
 	c := int(cvars.ClientColor.Value())
 	t := c >> 4
 	b := c & 0x0f
@@ -213,7 +213,7 @@ func hostColor(args []cmd.QArg) {
 	sv.reliableDatagram.WriteByte(c)
 }
 
-func hostPause(args []cmd.QArg) {
+func hostPause(args []cmd.QArg, player int) {
 	if cls.demoPlayback {
 		cls.demoPaused = !cls.demoPaused
 		cl.paused = cls.demoPaused
@@ -229,7 +229,7 @@ func hostPause(args []cmd.QArg) {
 	}
 	sv.paused = !sv.paused
 
-	ev := EntVars(sv_player)
+	ev := EntVars(player)
 	playerName, _ := progsdat.String(ev.NetName)
 	SV_BroadcastPrintf("%s %s the game\n", playerName, func() string {
 		if sv.paused {
@@ -247,7 +247,7 @@ func hostPause(args []cmd.QArg) {
 	}())
 }
 
-func hostBegin(args []cmd.QArg) {
+func hostBegin(args []cmd.QArg, _ int) {
 	if execute.IsSrcCommand() {
 		conlog.Printf("begin is not valid from the console\n")
 		return
@@ -255,7 +255,7 @@ func hostBegin(args []cmd.QArg) {
 	HostClient().spawned = true
 }
 
-func hostGive(args []cmd.QArg) {
+func hostGive(args []cmd.QArg, player int) {
 	if execute.IsSrcCommand() {
 		forwardToServer("give", args)
 		return
@@ -263,7 +263,7 @@ func hostGive(args []cmd.QArg) {
 	if progsdat.Globals.DeathMatch != 0 {
 		return
 	}
-	ev := EntVars(sv_player)
+	ev := EntVars(player)
 
 	if len(args) == 0 {
 		return
@@ -480,7 +480,7 @@ func concatArgs(args []cmd.QArg) string {
 	return string(b)
 }
 
-func hostTell(args []cmd.QArg) {
+func hostTell(args []cmd.QArg, _ int) {
 	if execute.IsSrcCommand() {
 		forwardToServer("tell", args)
 		return
@@ -538,7 +538,7 @@ func hostSay(team bool, args []cmd.QArg) {
 	}
 }
 
-func hostSayAll(args []cmd.QArg) {
+func hostSayAll(args []cmd.QArg, _ int) {
 	// say
 	if len(args) < 1 {
 		return
@@ -552,7 +552,7 @@ func hostSayAll(args []cmd.QArg) {
 	hostSay(false, args)
 }
 
-func hostSayTeam(args []cmd.QArg) {
+func hostSayTeam(args []cmd.QArg, _ int) {
 	// say_team
 	if len(args) < 1 {
 		return
@@ -566,7 +566,7 @@ func hostSayTeam(args []cmd.QArg) {
 	hostSay(true, args)
 }
 
-func hostPing(args []cmd.QArg) {
+func hostPing(args []cmd.QArg, _ int) {
 	if execute.IsSrcCommand() {
 		forwardToServer("ping", args)
 		return
@@ -580,7 +580,7 @@ func hostPing(args []cmd.QArg) {
 	}
 }
 
-func hostSpawn(args []cmd.QArg) {
+func hostSpawn(args []cmd.QArg, player int) {
 	if execute.IsSrcCommand() {
 		conlog.Printf("spawn is not valid from the console\n")
 		return
@@ -603,7 +603,7 @@ func hostSpawn(args []cmd.QArg) {
 		ev.NetName = progsdat.AddString(c.name)
 		progsdat.Globals.Parm = c.spawnParams
 		progsdat.Globals.Time = sv.time
-		progsdat.Globals.Self = int32(sv_player)
+		progsdat.Globals.Self = int32(player)
 		PRExecuteProgram(progsdat.Globals.ClientConnect)
 		if (qtime.QTime() - c.ConnectTime()).Seconds() <= float64(sv.time) {
 			log.Printf("%v entered the game\n", c.name)
@@ -670,7 +670,7 @@ func hostSpawn(args []cmd.QArg) {
 
 	msgBuf.ClearMessage()
 	msgBufMaxLen = protocol.MaxDatagram
-	sv.WriteClientdataToMessage(EntVars(sv_player), EntityAlpha(sv_player))
+	sv.WriteClientdataToMessage(EntVars(player), edictNum(player).Alpha)
 	c.msg.WriteBytes(msgBuf.Bytes())
 
 	c.msg.WriteByte(server.SignonNum)
@@ -678,7 +678,7 @@ func hostSpawn(args []cmd.QArg) {
 	c.sendSignon = true
 }
 
-func hostNoClip(args []cmd.QArg) {
+func hostNoClip(args []cmd.QArg, player int) {
 	if execute.IsSrcCommand() {
 		forwardToServer("noclip", args)
 		return
@@ -687,7 +687,7 @@ func hostNoClip(args []cmd.QArg) {
 	if progsdat.Globals.DeathMatch != 0 {
 		return
 	}
-	ev := EntVars(sv_player)
+	ev := EntVars(player)
 	m := int32(ev.MoveType)
 	switch len(args) {
 	default:
@@ -710,7 +710,7 @@ func hostNoClip(args []cmd.QArg) {
 	HostClient().Printf("noclip %v\n", qFormatI(m&progs.MoveTypeNoClip))
 }
 
-func hostSetPos(args []cmd.QArg) {
+func hostSetPos(args []cmd.QArg, player int) {
 	if execute.IsSrcCommand() {
 		forwardToServer("setpos", args)
 		return
@@ -720,7 +720,7 @@ func hostSetPos(args []cmd.QArg) {
 		return
 	}
 
-	ev := EntVars(sv_player)
+	ev := EntVars(player)
 	if len(args) != 6 && len(args) != 3 {
 		c := HostClient()
 		c.Printf("usage:\n")
@@ -757,10 +757,10 @@ func hostSetPos(args []cmd.QArg) {
 		ev.FixAngle = 1
 	}
 
-	LinkEdict(sv_player, false)
+	LinkEdict(player, false)
 }
 
-func hostName(args []cmd.QArg) {
+func hostName(args []cmd.QArg, _ int) {
 	if len(args) == 0 {
 		conlog.Printf("\"name\" is %q\n", cvars.ClientName.String())
 		return
@@ -807,13 +807,13 @@ func hostName(args []cmd.QArg) {
 	rd.WriteString(newName)
 }
 
-func hostKill(args []cmd.QArg) {
+func hostKill(args []cmd.QArg, player int) {
 	if execute.IsSrcCommand() {
 		forwardToServer("kill", args)
 		return
 	}
 
-	ev := EntVars(sv_player)
+	ev := EntVars(player)
 
 	if ev.Health <= 0 {
 		HostClient().Printf("Can't suicide -- allready dead!\n")
@@ -821,11 +821,11 @@ func hostKill(args []cmd.QArg) {
 	}
 
 	progsdat.Globals.Time = sv.time
-	progsdat.Globals.Self = int32(sv_player)
+	progsdat.Globals.Self = int32(player)
 	PRExecuteProgram(progsdat.Globals.ClientKill)
 }
 
-func hostStatus(args []cmd.QArg) {
+func hostStatus(args []cmd.QArg, _ int) {
 	if execute.IsSrcCommand() {
 		if !sv.active {
 			forwardToServer("status", args)
@@ -864,7 +864,7 @@ func hostStatus(args []cmd.QArg) {
 	}
 }
 
-func hostMapName(args []cmd.QArg) {
+func hostMapName(args []cmd.QArg, _ int) {
 	if sv.active {
 		conlog.Printf("%q is %q\n", "mapname", sv.name)
 		return
@@ -929,7 +929,7 @@ func hostShutdownServer(crash bool) {
 }
 
 // Kicks a user off of the server
-func hostKick(args []cmd.QArg) {
+func hostKick(args []cmd.QArg, _ int) {
 	if len(args) == 0 {
 		return
 	}
@@ -1001,7 +1001,7 @@ func hostKick(args []cmd.QArg) {
 }
 
 // User command to connect to server
-func hostConnect(args []cmd.QArg) {
+func hostConnect(args []cmd.QArg, player int) {
 	if len(args) == 0 {
 		return
 	}
@@ -1012,5 +1012,5 @@ func hostConnect(args []cmd.QArg) {
 		cls.Disconnect()
 	}
 	clEstablishConnection(args[0].String())
-	clReconnect([]cmd.QArg{})
+	clReconnect([]cmd.QArg{}, player)
 }

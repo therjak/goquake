@@ -176,7 +176,7 @@ func init() {
 	cmd.AddCommand("resetcfg", CvarResetCfg)
 }
 
-func printCvarList(args []cmd.QArg) {
+func printCvarList(args []cmd.QArg, _ int) {
 	// TODO(therjak):
 	// this should probably print the syntax of cvarlist if len(args) > 1
 	switch len(args) {
@@ -188,14 +188,14 @@ func printCvarList(args []cmd.QArg) {
 	}
 }
 
-func CvarResetAll(_ []cmd.QArg) {
+func CvarResetAll(_ []cmd.QArg, _ int) {
 	// bail if args not empty?
 	for _, cv := range cvar.All() {
 		cv.Reset()
 	}
 }
 
-func CvarResetCfg(_ []cmd.QArg) {
+func CvarResetCfg(_ []cmd.QArg, _ int) {
 	// bail if args not empty?
 	for _, cv := range cvar.All() {
 		if cv.Archive() {
@@ -233,7 +233,7 @@ func printPartialCvarList(p cmd.QArg) {
 	// in length print add ("beginning with \"%s\"", p)
 }
 
-func CvarToggle(args []cmd.QArg) {
+func CvarToggle(args []cmd.QArg, _ int) {
 	switch c := len(args); c {
 	case 1:
 		arg := args[0].String()
@@ -250,11 +250,12 @@ func CvarToggle(args []cmd.QArg) {
 	}
 }
 
-func CvarCycle(_ []cmd.QArg) {
+func CvarCycle(_ []cmd.QArg, _ int) {
+	log.Printf("TODO")
 	// TODO(therjak): implement
 }
 
-func CvarInc(args []cmd.QArg) {
+func CvarInc(args []cmd.QArg, _ int) {
 	switch c := len(args); c {
 	case 1:
 		arg := args[0].String()
@@ -267,7 +268,7 @@ func CvarInc(args []cmd.QArg) {
 	}
 }
 
-func CvarReset_f(args []cmd.QArg) {
+func CvarReset_f(args []cmd.QArg, _ int) {
 	switch c := len(args); c {
 	case 1:
 		arg := args[0].String()

@@ -14,7 +14,7 @@ import (
 //export Cmd_AddCommand
 func Cmd_AddCommand(cmd_name *C.char, f C.xcommand_t) {
 	name := C.GoString(cmd_name)
-	cmd.AddCommand(name, func(_ []cmd.QArg) { C.callQuakeFunc(f) })
+	cmd.AddCommand(name, func(_ []cmd.QArg, _ int) { C.callQuakeFunc(f) })
 }
 
 //export Cmd_Exists

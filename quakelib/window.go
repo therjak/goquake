@@ -301,7 +301,7 @@ func syncVideoCvars() {
 	videoChanged = false
 }
 
-func describeCurrentMode(_ []cmd.QArg) {
+func describeCurrentMode(_ []cmd.QArg, _ int) {
 	if window.Get() != nil {
 		w, h := window.Size()
 		fs := func() string {
@@ -314,7 +314,7 @@ func describeCurrentMode(_ []cmd.QArg) {
 	}
 }
 
-func describeModes(_ []cmd.QArg) {
+func describeModes(_ []cmd.QArg, _ int) {
 	count := 0
 	for _, m := range availableDisplayModes {
 		for _, d := range m.BitsPerPixel {
@@ -331,7 +331,7 @@ func init() {
 	cmd.AddCommand("vid_unlock", vidUnlock)
 }
 
-func vidUnlock(_ []cmd.QArg) {
+func vidUnlock(_ []cmd.QArg, _ int) {
 	videoLocked = false
 	syncVideoCvars()
 }

@@ -10,7 +10,7 @@ import (
 	"unicode/utf8"
 )
 
-type QFunc func([]QArg)
+type QFunc func([]QArg, int)
 
 var (
 	commands = make(map[string]QFunc)
@@ -32,13 +32,13 @@ func Exists(cmdName string) bool {
 	return ok
 }
 
-func Execute(n []QArg) bool {
+func Execute(n []QArg, player int) bool {
 	if len(n) == 0 {
 		return false
 	}
 	name := strings.ToLower(n[0].String())
 	if c, ok := commands[name]; ok {
-		c(n[1:])
+		c(n[1:], player)
 		return true
 	}
 	return false
