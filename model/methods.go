@@ -101,7 +101,7 @@ func (m *QModel) addToFatPVS(org vec.Vec3, n Node, fpvs *[]byte) {
 			if node.Contents() != CONTENTS_SOLID {
 				pvs := m.LeafPVS(node.(*MLeaf))
 				for i := range *fpvs {
-					(*fpvs)[i] = pvs[i]
+					(*fpvs)[i] |= pvs[i]
 				}
 			}
 			return
