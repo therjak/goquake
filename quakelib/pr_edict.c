@@ -603,8 +603,6 @@ void PR_LoadProgs(void) {
   if (!progs) Host_Error("PR_LoadProgs: couldn't load progs.dat");
   Con_DPrintf("Programs occupy %iK.\n", length / 1024);
 
-  pr_crc = CRC_Block(((byte *)progs), length);
-
   // byte swap the header
   for (i = 0; i < (int)sizeof(*progs) / 4; i++)
     ((int *)progs)[i] = LittleLong(((int *)progs)[i]);

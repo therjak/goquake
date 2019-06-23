@@ -7,7 +7,6 @@ import (
 	"log"
 	"math/rand"
 	"quake/cbuf"
-	"quake/cmd"
 	"quake/conlog"
 	"quake/cvars"
 	"quake/math"

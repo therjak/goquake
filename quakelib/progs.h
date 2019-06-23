@@ -42,11 +42,7 @@ extern int pr_numbuiltins;
 
 extern int pr_argc;
 
-extern qboolean pr_trace;
 extern dfunction_t *pr_xfunction;
-extern int pr_xstatement;
-
-extern unsigned short pr_crc;
 
 void PR_RunError(const char *error, ...);
 //    __attribute__((__format__(__printf__, 1, 2), __noreturn__));
