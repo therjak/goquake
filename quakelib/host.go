@@ -7,6 +7,7 @@ import (
 	"quake/conlog"
 	"quake/cvar"
 	"quake/cvars"
+	"quake/keys"
 	"quake/math"
 	"quake/qtime"
 )
@@ -127,4 +128,41 @@ func init() {
 			conlog.Printf("Changes to max_edicts will not take effect until the next time a map is loaded.\n")
 		}
 	})
+}
+
+//export Host_ServerFrame
+func Host_ServerFrame() {
+	// run the world state
+	progsdat.Globals.FrameTime = float32(host.frameTime)
+
+	// set the time and clear the general datagram
+	sv.datagram.ClearMessage()
+
+	// check for new clients
+	CheckForNewClients()
+
+	// read client messages
+	SV_RunClients()
+
+	// move things around and think
+	// always pause in single player if in console or menus
+	if !sv.paused && (svs.maxClients > 1 || keyDestination == keys.Game) {
+		RunPhysics()
+	}
+
+	/*
+	  int i, active;
+	  if (CLS_GetSignon() == SIGNONS) {
+	    for (i = 0, active = 0; i < SV_NumEdicts(); i++) {
+	      if (!EDICT_FREE(i)) active++;
+	    }
+	    if (active > 600 && dev_peakstats.edicts <= 600)
+	      Con_DWarning("%i edicts exceeds standard limit of 600.\n", active);
+	    dev_stats.edicts = active;
+	    dev_peakstats.edicts = q_max(active, dev_peakstats.edicts);
+	  }
+	*/
+
+	// send all messages to the clients
+	sv.SendClientMessages()
 }

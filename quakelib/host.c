@@ -216,48 +216,6 @@ void Host_GetConsoleCommands(void) {
 
 /*
 ==================
-Host_ServerFrame
-==================
-*/
-// THERJAK
-void Host_ServerFrame(void) {
-  int i, active;  // johnfitz
-
-  // run the world state
-  Set_pr_global_struct_frametime(HostFrameTime());
-
-  // set the time and clear the general datagram
-  SV_ClearDatagram();
-
-  // check for new clients
-  SV_CheckForNewClients();
-
-  // read client messages
-  SV_RunClients();
-
-  // move things around and think
-  // always pause in single player if in console or menus
-  if (!SV_Paused() && (SVS_GetMaxClients() > 1 || GetKeyDest() == key_game))
-    SV_Physics();
-
-  // johnfitz -- devstats
-  if (CLS_GetSignon() == SIGNONS) {
-    for (i = 0, active = 0; i < SV_NumEdicts(); i++) {
-      if (!EDICT_FREE(i)) active++;
-    }
-    if (active > 600 && dev_peakstats.edicts <= 600)
-      Con_DWarning("%i edicts exceeds standard limit of 600.\n", active);
-    dev_stats.edicts = active;
-    dev_peakstats.edicts = q_max(active, dev_peakstats.edicts);
-  }
-  // johnfitz
-
-  // send all messages to the clients
-  SV_SendClientMessages();
-}
-
-/*
-==================
 Host_Frame
 
 Runs all active servers
