@@ -95,9 +95,6 @@ typedef enum {
 // of server connections
 //
 typedef struct {
-  // personalization data sent to server
-  char spawnparms[MAX_MAPSTRING];  // to restart a level
-
   // demo loop control
   char demos[MAX_DEMOS][MAX_DEMONAME];  // when not playing
 

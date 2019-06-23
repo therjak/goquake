@@ -269,64 +269,6 @@ SERVER TRANSITIONS
 */
 
 /*
-======================
-Host_Map_f
-
-handle a
-map <servername>
-command from the console.  Active clients are kicked off.
-======================
-*/
-void Host_Map_f(void) {
-  int i;
-  char name[MAX_QPATH], *p;
-
-  if (Cmd_Argc() < 2)  // no map name given
-  {
-    if (CLS_GetState() == ca_dedicated) {
-      if (SV_Active())
-        Con_Printf("Current map: %s\n", SV_Name());
-      else
-        Con_Printf("Server not active\n");
-    } else if (CLS_GetState() == ca_connected) {
-      Con_Printf("Current map: %s ( %s )\n", cl.levelname, cl.mapname);
-    } else {
-      Con_Printf("map <levelname>: start a new server\n");
-    }
-    return;
-  }
-
-  if (!IsSrcCommand()) return;
-
-  CLS_StopDemoCycle();  // stop demo loop in case this fails
-
-  CL_Disconnect();
-  Host_ShutdownServer(false);
-
-  if (CLS_GetState() != ca_dedicated) IN_Activate();
-  SetKeyDest(key_game);  // remove console or menu
-  SCR_BeginLoadingPlaque();
-
-  SVS_SetServerFlags(0);  // haven't completed an episode yet
-  q_strlcpy(name, Cmd_Argv(1), sizeof(name));
-  // remove (any) trailing ".bsp" from mapname -- S.A.
-  p = strstr(name, ".bsp");
-  if (p && p[4] == '\0') *p = '\0';
-  SV_SpawnServer(name);
-  if (!SV_Active()) return;
-
-  if (CLS_GetState() != ca_dedicated) {
-    memset(cls.spawnparms, 0, MAX_MAPSTRING);
-    for (i = 2; i < Cmd_Argc(); i++) {
-      q_strlcat(cls.spawnparms, Cmd_Argv(i), MAX_MAPSTRING);
-      q_strlcat(cls.spawnparms, " ", MAX_MAPSTRING);
-    }
-
-    Cmd_ExecuteString("connect local", src_command);
-  }
-}
-
-/*
 ==================
 Host_Changelevel_f
 
@@ -707,7 +649,6 @@ void Host_InitCommands(void) {
   Cmd_AddCommand("games",
                  Host_Mods_f);  // as an alias to "mods" -- S.A. / QuakeSpasm
 
-  Cmd_AddCommand("map", Host_Map_f);
   Cmd_AddCommand("restart", Host_Restart_f);
   Cmd_AddCommand("changelevel", Host_Changelevel_f);
 

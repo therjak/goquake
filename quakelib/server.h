@@ -30,7 +30,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 typedef enum { ss_loading, ss_active } server_state_t;
 
 typedef struct {
-  struct qmodel_s *worldmodel;
   const char *lightstyles[MAX_LIGHTSTYLES];
 } server_t;
 

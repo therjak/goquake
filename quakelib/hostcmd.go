@@ -39,6 +39,7 @@ func init() {
 	cmd.AddCommand("spawn", hostSpawn)
 	cmd.AddCommand("tell", hostTell)
 	cmd.AddCommand("mapname", hostMapName)
+	cmd.AddCommand("map", hostMap)
 	cmd.AddCommand("prespawn", hostPreSpawn)
 	cmd.AddCommand("version", hostVersion)
 	cmd.AddCommand("kick", hostKick)
@@ -1013,4 +1014,64 @@ func hostConnect(args []cmd.QArg, _ int) {
 	}
 	clEstablishConnection(args[0].String())
 	clientReconnect()
+}
+
+// handle a
+// map <servername>
+// command from the console.  Active clients are kicked off.
+func hostMap(args []cmd.QArg, player int) {
+	if len(args) == 0 {
+		// no map name given
+		if cls.state == ca_dedicated {
+			if sv.active {
+				conlog.Printf("Current map: %s\n", sv.name)
+			} else {
+				conlog.Printf("Server not active\n")
+			}
+		} else if cls.state == ca_connected {
+			// conlog.Printf("Current map: %s ( %s )\n", cl.levelname, cl.mapname);
+		} else {
+			conlog.Printf("map <levelname>: start a new server\n")
+		}
+		return
+	}
+
+	if !execute.IsSrcCommand() {
+		return
+	}
+
+	// stop demo loop in case this fails
+	cls.demoNum = -1
+
+	cls.Disconnect()
+	hostShutdownServer(false)
+
+	if cls.state != ca_dedicated {
+		IN_Activate()
+	}
+
+	keyDestination = keys.Game // remove console or menu
+	SCR_BeginLoadingPlaque()
+
+	svs.serverFlags = 0 // haven't completed an episode yet
+
+	mapName := args[0].String()
+	mapName = strings.TrimSuffix(mapName, ".bsp")
+
+	sv.SpawnServer(mapName)
+	if !sv.active {
+		return
+	}
+
+	if cls.state != ca_dedicated {
+		var b strings.Builder
+		for _, a := range args[1:] {
+			b.WriteString(a.String())
+			b.WriteRune(' ')
+		}
+		cls.spawnParms = b.String()
+
+		clEstablishConnection("local")
+		clientReconnect()
+	}
 }

@@ -79,50 +79,6 @@ void CL_ClearState(void) {
 
 /*
 =====================
-CL_SignonReply
-
-An svc_signonnum has been received, perform a client side setup
-=====================
-*/
-void CL_SignonReply(void) {
-  char str[8192];
-
-  Con_DPrintf("CL_SignonReply: %i\n", CLS_GetSignon());
-
-  switch (CLS_GetSignon()) {
-    case 1:
-      CLSMessageWriteByte(clc_stringcmd);
-      CLSMessageWriteString("prespawn");
-      break;
-
-    case 2:
-      CLSMessageWriteByte(clc_stringcmd);
-      CLSMessageWriteString(va("name \"%s\"\n", Cvar_GetString(&cl_name)));
-
-      CLSMessageWriteByte(clc_stringcmd);
-      CLSMessageWriteString(va("color %i %i\n",
-                               ((int)Cvar_GetValue(&cl_color)) >> 4,
-                               ((int)Cvar_GetValue(&cl_color)) & 15));
-
-      CLSMessageWriteByte(clc_stringcmd);
-      sprintf(str, "spawn %s", cls.spawnparms);
-      CLSMessageWriteString(str);
-      break;
-
-    case 3:
-      CLSMessageWriteByte(clc_stringcmd);
-      CLSMessageWriteString("begin");
-      Cache_Report();  // print remaining memory
-      break;
-
-    case 4:
-      SCR_EndLoadingPlaque();  // allow normal screen updates
-      break;
-  }
-}
-
-/*
-=====================
 CL_NextDemo
 
 Called to play the next demo in the demo loop

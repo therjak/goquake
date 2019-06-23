@@ -7,6 +7,7 @@ import "C"
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"quake/cmd"
 	"quake/conlog"
@@ -124,8 +125,10 @@ type ClientStatic struct {
 	timeDemoLastFrame  int
 	timeDemoStartFrame int
 	timeDemoStartTime  float32
+	// personalization data sent to server
+	// to restart a level
+	spawnParms string
 	/*
-		spawnParms string
 		demos []string
 		demoFile 'filehandle'
 	*/
@@ -978,4 +981,39 @@ func clEstablishConnection(host string) {
 	// need all the signon messages before playing
 	cls.signon = 0
 	cls.outMessage.WriteByte(clc.Nop)
+}
+
+// An svc_signonnum has been received, perform a client side setup
+//export CL_SignonReply
+func CL_SignonReply() {
+	conlog.DPrintf("CL_SignonReply: %d\n", cls.signon)
+
+	switch cls.signon {
+	case 1:
+		cls.outMessage.WriteByte(clc.StringCmd)
+		cls.outMessage.WriteString("prespawn")
+		cls.outMessage.WriteByte(0)
+
+	case 2:
+		cls.outMessage.WriteByte(clc.StringCmd)
+		cls.outMessage.WriteString(fmt.Sprintf("name \"%s\"", cvars.ClientName.String()))
+		cls.outMessage.WriteByte(0)
+
+		color := int(cvars.ClientColor.Value())
+		cls.outMessage.WriteByte(clc.StringCmd)
+		cls.outMessage.WriteString(fmt.Sprintf("color %d %d\n", color>>4, color&15))
+		cls.outMessage.WriteByte(0)
+
+		cls.outMessage.WriteByte(clc.StringCmd)
+		cls.outMessage.WriteString(fmt.Sprintf("spawn %s", cls.spawnParms))
+		cls.outMessage.WriteByte(0)
+
+	case 3:
+		cls.outMessage.WriteByte(clc.StringCmd)
+		cls.outMessage.WriteString("begin")
+		cls.outMessage.WriteByte(0)
+
+	case 4:
+		SCR_EndLoadingPlaque() // allow normal screen updates
+	}
 }

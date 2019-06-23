@@ -3,6 +3,7 @@ package quakelib
 //#include <stdlib.h>
 // int SCR_ModalMessage(const char *text, float timeout);
 // void SCR_BeginLoadingPlaque(void);
+// void SCR_EndLoadingPlaque(void);
 import "C"
 
 import (
@@ -17,4 +18,8 @@ func ModalMessage(message string, timeout float32) bool {
 
 func SCR_BeginLoadingPlaque() {
 	C.SCR_BeginLoadingPlaque()
+}
+
+func SCR_EndLoadingPlaque() {
+	C.SCR_EndLoadingPlaque()
 }

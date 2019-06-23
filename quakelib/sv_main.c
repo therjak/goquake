@@ -6,8 +6,6 @@
 
 server_t sv;
 
-static char localmodels[MAX_MODELS][8];  // inline model names for precache
-
 extern qboolean pr_alpha_supported;  // johnfitz
 
 //============================================================================
@@ -23,8 +21,6 @@ void SV_Init(void) {
   const char *p;
 
   Cvar_FakeRegister(&sv_gravity, "sv_gravity");
-
-  for (i = 0; i < MAX_MODELS; i++) sprintf(localmodels[i], "*%i", i);
 
   SV_Init_Go();
 }
