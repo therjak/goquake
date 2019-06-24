@@ -46,12 +46,8 @@ func monsterMoveStep(ent int, move vec.Vec3, relink bool) bool {
 				}
 			}
 			trace := svMove(origin, mins, maxs, neworg, MOVE_NORMAL, ent)
-			if trace.fraction == 1 {
-				endpos := vec.Vec3{
-					float32(trace.endpos[0]),
-					float32(trace.endpos[1]),
-					float32(trace.endpos[2]),
-				}
+			if trace.Fraction == 1 {
+				endpos := trace.EndPos
 				if flags&FL_SWIM != 0 && pointContents(endpos) == model.CONTENTS_EMPTY {
 					// swim monster left water
 					return false
@@ -71,7 +67,7 @@ func monsterMoveStep(ent int, move vec.Vec3, relink bool) bool {
 		return false
 	}
 
-	oldorg := vec.VFromA(ev.Origin)
+	oldorg := ev.Origin
 	neworg := vec.Add(oldorg, move)
 
 	// push down from a step height above the wished position
@@ -79,18 +75,18 @@ func monsterMoveStep(ent int, move vec.Vec3, relink bool) bool {
 	end := neworg
 	end[2] -= STEPSIZE * 2
 	trace := svMove(neworg, mins, maxs, end, MOVE_NORMAL, ent)
-	if trace.allsolid != 0 {
+	if trace.AllSolid {
 		return false
 	}
-	if trace.startsolid != 0 {
+	if trace.StartSolid {
 		neworg[2] -= STEPSIZE
 		trace = svMove(neworg, mins, maxs, end, MOVE_NORMAL, ent)
-		if trace.allsolid != 0 || trace.startsolid != 0 {
+		if trace.AllSolid || trace.StartSolid {
 			return false
 		}
 	}
 
-	if trace.fraction == 1 {
+	if trace.Fraction == 1 {
 		// if monster had the ground pulled out, go ahead and fall
 		if flags&FL_PARTIALGROUND != 0 {
 			neworg = vec.Add(oldorg, move)
@@ -104,13 +100,8 @@ func monsterMoveStep(ent int, move vec.Vec3, relink bool) bool {
 		// walked off an edge
 		return false
 	}
-	endpos := vec.Vec3{
-		float32(trace.endpos[0]),
-		float32(trace.endpos[1]),
-		float32(trace.endpos[2]),
-	}
 	// check point traces down for dangling corners
-	ev.Origin = endpos
+	ev.Origin = trace.EndPos
 
 	if !checkBottom(ent) {
 		if flags&FL_PARTIALGROUND != 0 {
@@ -129,7 +120,7 @@ func monsterMoveStep(ent int, move vec.Vec3, relink bool) bool {
 		ev.Flags = float32(flags &^ FL_PARTIALGROUND)
 	}
 
-	ev.GroundEntity = int32(trace.entn)
+	ev.GroundEntity = int32(trace.EntNumber)
 	// the move is ok
 	if relink {
 		LinkEdict(ent, true)

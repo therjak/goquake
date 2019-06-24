@@ -223,7 +223,6 @@ typedef struct {
 #include "client.h"
 
 #include "gl_model.h"
-#include "world.h"
 
 #include "gl_texmgr.h"  //johnfitz
 #include "keys.h"

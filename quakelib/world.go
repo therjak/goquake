@@ -1,7 +1,5 @@
 package quakelib
 
-//#include "trace.h"
-//#include "cgo_help.h"
 import "C"
 
 import (
@@ -24,6 +22,23 @@ const (
 const (
 	DIST_EPSILON = 0.03125 // (1/32) to keep floating point happy
 )
+
+type plane struct {
+	Normal   vec.Vec3
+	Distance float32
+}
+
+type trace struct {
+	AllSolid   bool
+	StartSolid bool
+	InOpen     bool
+	InWater    bool
+	Fraction   float32
+	EndPos     vec.Vec3
+	Plane      plane
+	EntPointer bool
+	EntNumber  int
+}
 
 type areaNode struct {
 	axis          int
@@ -365,7 +380,7 @@ func boxOnPlaneSide(mins, maxs vec.Vec3, p *model.Plane) int {
 
 type moveClip struct {
 	boxmins, boxmaxs, mins, maxs, mins2, maxs2, start, end vec.Vec3
-	trace                                                  C.trace_t
+	trace                                                  trace
 	typ, edict                                             int
 }
 
@@ -399,7 +414,7 @@ func clipToLinks(a *areaNode, clip *moveClip) {
 			tv.Size[0] == 0 {
 			continue
 		}
-		if clip.trace.allsolid != 0 {
+		if clip.trace.AllSolid {
 			return
 		}
 		if clip.edict >= 0 {
@@ -410,20 +425,20 @@ func clipToLinks(a *areaNode, clip *moveClip) {
 				continue
 			}
 		}
-		trace := func() C.trace_t {
+		trace := func() trace {
 			if (int(tv.Flags) & FL_MONSTER) != 0 {
 				// this just makes monstern easier to hit with missiles
 				return clipMoveToEntity(touch, clip.start, clip.mins2, clip.maxs2, clip.end)
 			}
 			return clipMoveToEntity(touch, clip.start, clip.mins, clip.maxs, clip.end)
 		}()
-		if trace.allsolid != 0 || trace.startsolid != 0 ||
-			trace.fraction < clip.trace.fraction {
-			trace.entn = C.int(touch)
-			trace.entp = b2i(true)
-			if clip.trace.startsolid != 0 {
+		if trace.AllSolid || trace.StartSolid ||
+			trace.Fraction < clip.trace.Fraction {
+			trace.EntNumber = touch
+			trace.EntPointer = true
+			if clip.trace.StartSolid {
 				clip.trace = trace
-				clip.trace.startsolid = b2i(true)
+				clip.trace.StartSolid = true
 			} else {
 				clip.trace = trace
 			}
@@ -533,27 +548,22 @@ func hullPointContents(h *model.Hull, num int, p vec.Vec3) int {
 	return num
 }
 
-//export SV_PointContents
-func SV_PointContents(p *C.float) C.int {
-	return C.int(pointContents(p2v3(p)))
-}
-
 func pointContents(p vec.Vec3) int {
 	return hullPointContents(&sv.worldModel.Hulls[0], 0, p)
 }
 
 //TODO: export?
-func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 vec.Vec3, trace *C.trace_t) bool {
+func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 vec.Vec3, trace *trace) bool {
 	if num < 0 { // check for empty
 		if num != model.CONTENTS_SOLID {
-			trace.allsolid = b2i(false)
+			trace.AllSolid = false
 			if num == model.CONTENTS_EMPTY {
-				trace.inopen = b2i(true)
+				trace.InOpen = true
 			} else {
-				trace.inwater = b2i(true)
+				trace.InWater = true
 			}
 		} else {
-			trace.startsolid = b2i(true)
+			trace.StartSolid = true
 		}
 		return true
 	}
@@ -603,63 +613,53 @@ func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 vec.Vec
 	if hullPointContents(h, node.Children[side^1], mid) != model.CONTENTS_SOLID {
 		return recursiveHullCheck(h, node.Children[side^1], midf, p2f, mid, p2, trace)
 	}
-	if trace.allsolid != 0 {
+	if trace.AllSolid {
 		return false // never got out of the solid area
 	}
 	// the other side of the node is solid, this is the impact point
 	if side == 0 {
-		trace.plane.normal[0] = C.float(plane.Normal[0])
-		trace.plane.normal[1] = C.float(plane.Normal[1])
-		trace.plane.normal[2] = C.float(plane.Normal[2])
-		trace.plane.dist = C.float(plane.Dist)
+		trace.Plane.Normal = plane.Normal
+		trace.Plane.Distance = plane.Dist
 	} else {
-		trace.plane.normal[0] = C.float(-plane.Normal[0])
-		trace.plane.normal[1] = C.float(-plane.Normal[1])
-		trace.plane.normal[2] = C.float(-plane.Normal[2])
-		trace.plane.dist = C.float(-plane.Dist)
+		trace.Plane.Normal = vec.Sub(vec.Vec3{}, plane.Normal)
+		trace.Plane.Distance = -plane.Dist
 	}
 	for hullPointContents(h, h.FirstClipNode, mid) == model.CONTENTS_SOLID {
 		// shouldn't really happen, but does occasionally
 		frac -= 0.1
 		if frac < 0 {
-			trace.fraction = C.float(midf)
-			trace.endpos[0] = C.float(mid[0])
-			trace.endpos[1] = C.float(mid[1])
-			trace.endpos[2] = C.float(mid[2])
+			trace.Fraction = midf
+			trace.EndPos = mid
 			conlog.DPrintf("backup past 0\n")
 			return false
 		}
 		midf = math.Lerp(p1f, p2f, frac)
 		mid = vec.Lerp(p1, p2, frac)
 	}
-	trace.fraction = C.float(midf)
-	trace.endpos[0] = C.float(mid[0])
-	trace.endpos[1] = C.float(mid[1])
-	trace.endpos[2] = C.float(mid[2])
+	trace.Fraction = midf
+	trace.EndPos = mid
 
 	return false
 }
 
-func clipMoveToEntity(ent int, start, mins, maxs, end vec.Vec3) C.trace_t {
-	var trace C.trace_t
-	trace.fraction = 1
-	trace.allsolid = b2i(true)
-	trace.endpos[0] = C.float(end[0])
-	trace.endpos[1] = C.float(end[1])
-	trace.endpos[2] = C.float(end[2])
+func clipMoveToEntity(ent int, start, mins, maxs, end vec.Vec3) trace {
+	var trace trace
+	trace.Fraction = 1
+	trace.AllSolid = true
+	trace.EndPos = end
 	hull, offset := hullForEntity(EntVars(ent), mins, maxs)
 	startL := vec.Sub(start, offset)
 	endL := vec.Sub(end, offset)
 	recursiveHullCheck(hull, hull.FirstClipNode, 0, 1, startL, endL, &trace)
 
-	if trace.fraction != 1 {
-		trace.endpos[0] += C.float(offset[0])
-		trace.endpos[1] += C.float(offset[1])
-		trace.endpos[2] += C.float(offset[2])
+	if trace.Fraction != 1 {
+		trace.EndPos[0] += offset[0]
+		trace.EndPos[1] += offset[1]
+		trace.EndPos[2] += offset[2]
 	}
-	if trace.fraction < 1 || trace.startsolid != 0 {
-		trace.entn = C.int(ent)
-		trace.entp = b2i(true)
+	if trace.Fraction < 1 || trace.StartSolid {
+		trace.EntNumber = ent
+		trace.EntPointer = true
 	}
 	return trace
 }
@@ -670,14 +670,6 @@ func (c *moveClip) moveBounds(s, e vec.Vec3) {
 	c.boxmaxs = vec.Add(vec.Add(max, c.maxs2), vec.Vec3{1, 1, 1})
 }
 
-func p2v3(p *C.float) vec.Vec3 {
-	return vec.Vec3{
-		float32(C.cf(0, p)),
-		float32(C.cf(1, p)),
-		float32(C.cf(2, p)),
-	}
-}
-
 //export SV_TestEntityPosition
 func SV_TestEntityPosition(ent C.int) C.int {
 	return b2i(testEntityPosition(int(ent)))
@@ -685,9 +677,8 @@ func SV_TestEntityPosition(ent C.int) C.int {
 
 func testEntityPosition(ent int) bool {
 	ev := EntVars(ent)
-	trace := svMove(vec.VFromA(ev.Origin), vec.VFromA(ev.Mins),
-		vec.VFromA(ev.Maxs), vec.VFromA(ev.Origin), MOVE_NORMAL, ent)
-	return trace.startsolid != 0
+	trace := svMove(ev.Origin, ev.Mins, ev.Maxs, ev.Origin, MOVE_NORMAL, ent)
+	return trace.StartSolid
 }
 
 // mins and maxs are relative
@@ -697,7 +688,7 @@ func testEntityPosition(ent int) bool {
 // nomonsters is used for line of sight or edge testing where monsters
 // shouldn't be considered solid objects
 // passedict is explicitly excluded from clipping checks (normally NULL)
-func svMove(start, mins, maxs, end vec.Vec3, typ, ed int) C.trace_t {
+func svMove(start, mins, maxs, end vec.Vec3, typ, ed int) trace {
 	clip := moveClip{
 		trace: clipMoveToEntity(0, start, mins, maxs, end),
 		start: start,
@@ -730,9 +721,9 @@ const (
 //is not a staircase.
 func checkBottom(ent int) bool {
 	ev := EntVars(ent)
-	o := vec.VFromA(ev.Origin)
-	mins := vec.Add(o, vec.VFromA(ev.Mins))
-	maxs := vec.Add(o, vec.VFromA(ev.Maxs))
+	o := ev.Origin
+	mins := vec.Add(o, ev.Mins)
+	maxs := vec.Add(o, ev.Maxs)
 
 	// if all of the points under the corners are solid world, don't bother
 	// with the tougher checks
@@ -761,11 +752,11 @@ func expensiveCheckBottom(ent int, mins, maxs vec.Vec3) bool {
 	stop := vec.Vec3{start[0], start[1], below}
 	trace := svMove(start, vec.Vec3{}, vec.Vec3{}, stop, MOVE_NOMONSTERS, ent)
 
-	if trace.fraction == 1.0 {
+	if trace.Fraction == 1.0 {
 		return false
 	}
-	mid := trace.endpos[2]
-	bottom := trace.endpos[2]
+	mid := trace.EndPos[2]
+	bottom := trace.EndPos[2]
 
 	d := []vec.Vec3{
 		vec.Vec3{mins[0], mins[1], 0},
@@ -779,10 +770,10 @@ func expensiveCheckBottom(ent int, mins, maxs vec.Vec3) bool {
 		stop := vec.Vec3{p[0], p[1], below}
 		trace := svMove(start, vec.Vec3{}, vec.Vec3{}, stop, MOVE_NOMONSTERS, ent)
 
-		if trace.fraction != 1.0 && trace.endpos[2] > bottom {
-			bottom = trace.endpos[2]
+		if trace.Fraction != 1.0 && trace.EndPos[2] > bottom {
+			bottom = trace.EndPos[2]
 		}
-		if trace.fraction == 1.0 || mid-trace.endpos[2] > kStepSize {
+		if trace.Fraction == 1.0 || mid-trace.EndPos[2] > kStepSize {
 			return false
 		}
 	}

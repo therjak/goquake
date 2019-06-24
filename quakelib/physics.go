@@ -1,6 +1,5 @@
 package quakelib
 
-//#include "trace.h"
 import "C"
 
 import (
@@ -202,7 +201,7 @@ func (q *qphysics) tryUnstick(ent int, oldvel vec.Vec3) int {
 		// retry the original move
 		ev.Velocity = oldvel
 		ev.Velocity[2] = 0 // TODO: why?
-		steptrace := C.trace_t{}
+		steptrace := trace{}
 		clip := q.flyMove(ent, 0.1, &steptrace)
 		if math32.Abs(oldorg[1]-ev.Origin[1]) > 4 ||
 			math32.Abs(oldorg[0]-ev.Origin[0]) > 4 {
@@ -253,7 +252,7 @@ func (q *qphysics) walkMove(ent int) {
 	oldVelocity := vec.VFromA(ev.Velocity)
 
 	time := float32(host.frameTime)
-	steptrace := C.trace_t{}
+	steptrace := trace{}
 	clip := q.flyMove(ent, time, &steptrace)
 
 	if (clip & 2) == 0 {
@@ -309,21 +308,17 @@ func (q *qphysics) walkMove(ent int) {
 
 	// extra friction based on view angle
 	if clip&2 != 0 {
-		planeNormal := vec.Vec3{
-			float32(steptrace.plane.normal[0]),
-			float32(steptrace.plane.normal[1]),
-			float32(steptrace.plane.normal[2]),
-		}
+		planeNormal := steptrace.Plane.Normal
 		q.wallFriction(ent, planeNormal)
 	}
 
 	// move down
 	downTrace := pushEntity(ent, downMove) // FIXME: don't link?
 
-	if downTrace.plane.normal[2] > 0.7 {
+	if downTrace.Plane.Normal[2] > 0.7 {
 		if ev.Solid == SOLID_BSP {
 			ev.Flags = float32(int(ev.Flags) | FL_ONGROUND)
-			ev.GroundEntity = int32(downTrace.entn)
+			ev.GroundEntity = int32(downTrace.EntNumber)
 		}
 		return
 	}
@@ -348,14 +343,14 @@ func (q *qphysics) noClip(ent int) {
 	time := float32(host.frameTime)
 
 	ev := EntVars(ent)
-	av := vec.VFromA(ev.AVelocity)
+	av := vec.Vec3(ev.AVelocity)
 	av = av.Scale(time)
-	angles := vec.VFromA(ev.Angles)
+	angles := ev.Angles
 	ev.Angles = vec.Add(angles, av)
 
-	v := vec.VFromA(ev.Velocity)
+	v := vec.Vec3(ev.Velocity)
 	v = v.Scale(time)
-	origin := vec.VFromA(ev.Origin)
+	origin := ev.Origin
 	ev.Origin = vec.Add(origin, v)
 
 	LinkEdict(ent, false)
@@ -425,7 +420,7 @@ func (q *qphysics) toss(ent int) {
 	move := velocity.Scale(time)
 	trace := pushEntity(ent, move)
 
-	if trace.fraction == 1 {
+	if trace.Fraction == 1 {
 		return
 	}
 	if edictNum(ent).Free {
@@ -439,19 +434,15 @@ func (q *qphysics) toss(ent int) {
 		return 1
 	}()
 
-	n := vec.Vec3{
-		float32(trace.plane.normal[0]),
-		float32(trace.plane.normal[1]),
-		float32(trace.plane.normal[2]),
-	}
+	n := trace.Plane.Normal
 	_, velocity = q.clipVelocity(velocity, n, backOff)
 	ev.Velocity = velocity
 
 	// stop if on ground
-	if trace.plane.normal[2] > 0.7 {
+	if trace.Plane.Normal[2] > 0.7 {
 		if ev.Velocity[2] < 60 || ev.MoveType != progs.MoveTypeBounce {
 			ev.Flags = float32(int(ev.Flags) | FL_ONGROUND)
-			ev.GroundEntity = int32(trace.entn)
+			ev.GroundEntity = int32(trace.EntNumber)
 			ev.Velocity = [3]float32{0, 0, 0}
 			ev.AVelocity = [3]float32{0, 0, 0}
 		}
@@ -535,7 +526,7 @@ func (q *qphysics) checkStuck(ent int) {
 //2 = wall / step
 //4 = dead stop
 //If steptrace is not NULL, the trace of any vertical wall hit will be stored
-func (q *qphysics) flyMove(ent int, time float32, steptrace *C.trace_t) int {
+func (q *qphysics) flyMove(ent int, time float32, steptrace *trace) int {
 	const MAX_CLIP_PLANES = 5
 	planes := [MAX_CLIP_PLANES]vec.Vec3{}
 
@@ -566,46 +557,44 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *C.trace_t) int {
 
 		trace := svMove(origin, mins, maxs, end, MOVE_NORMAL, ent)
 
-		if trace.allsolid != 0 {
+		if trace.AllSolid {
 			// entity is trapped in another solid
 			ev.Velocity = [3]float32{0, 0, 0}
 			return 3
 		}
 
-		if trace.fraction > 0 {
+		if trace.Fraction > 0 {
 			// actually covered some distance
-			ev.Origin[0] = float32(trace.endpos[0])
-			ev.Origin[1] = float32(trace.endpos[1])
-			ev.Origin[2] = float32(trace.endpos[2])
-			original_velocity = vec.VFromA(ev.Velocity)
+			ev.Origin = trace.EndPos
+			original_velocity = ev.Velocity
 			numplanes = 0
 		}
-		if trace.fraction == 1 {
+		if trace.Fraction == 1 {
 			// moved the entire distance
 			break
 		}
-		if trace.entp == 0 {
+		if !trace.EntPointer {
 			Error("SV_FlyMove: !trace.ent")
 		}
-		if trace.plane.normal[2] > 0.7 {
+		if trace.Plane.Normal[2] > 0.7 {
 			blocked |= 1 // floor
-			if EntVars(int(trace.entn)).Solid == SOLID_BSP {
+			if EntVars(trace.EntNumber).Solid == SOLID_BSP {
 				ev.Flags = float32(int(ev.Flags) | FL_ONGROUND)
-				ev.GroundEntity = int32(trace.entn)
+				ev.GroundEntity = int32(trace.EntNumber)
 			}
 		}
-		if trace.plane.normal[2] == 0 {
+		if trace.Plane.Normal[2] == 0 {
 			blocked |= 2 // step
 			if steptrace != nil {
 				*steptrace = trace // save for player extrafriction
 			}
 		}
-		sv.Impact(ent, int(trace.entn))
+		sv.Impact(ent, trace.EntNumber)
 		if edictNum(ent).Free {
 			// removed by the impact function
 			break
 		}
-		time_left -= time_left * float32(trace.fraction)
+		time_left -= time_left * trace.Fraction
 
 		// cliped to another plane
 		if numplanes >= MAX_CLIP_PLANES {
@@ -614,11 +603,7 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *C.trace_t) int {
 			return 3
 		}
 
-		planes[numplanes] = vec.Vec3{
-			float32(trace.plane.normal[0]),
-			float32(trace.plane.normal[1]),
-			float32(trace.plane.normal[2]),
-		}
+		planes[numplanes] = trace.Plane.Normal
 		numplanes++
 
 		// modify original_velocity so it parallels all of the clip planes
@@ -648,13 +633,13 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *C.trace_t) int {
 				return 7
 			}
 			dir := vec.Cross(planes[0], planes[1])
-			d := vec.Dot(dir, vec.VFromA(ev.Velocity))
+			d := vec.Dot(dir, ev.Velocity)
 			ev.Velocity = dir.Scale(d)
 		}
 
 		// if original velocity is against the original velocity, stop dead
 		// to avoid tiny occilations in sloping corners
-		if vec.Dot(vec.VFromA(ev.Velocity), primal_velocity) <= 0 {
+		if vec.Dot(ev.Velocity, primal_velocity) <= 0 {
 			ev.Velocity = [3]float32{0, 0, 0}
 			return blocked
 		}

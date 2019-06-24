@@ -365,24 +365,22 @@ func PF_traceline() {
 
 	trace := svMove(v1, vec.Vec3{}, vec.Vec3{}, v2, int(nomonsters), ent)
 
-	progsdat.Globals.TraceAllSolid = float32(trace.allsolid)
-	progsdat.Globals.TraceStartSolid = float32(trace.startsolid)
-	progsdat.Globals.TraceFraction = float32(trace.fraction)
-	progsdat.Globals.TraceInWater = float32(trace.inwater)
-	progsdat.Globals.TraceInOpen = float32(trace.inopen)
-	progsdat.Globals.TraceEndPos = [3]float32{
-		float32(trace.endpos[0]),
-		float32(trace.endpos[1]),
-		float32(trace.endpos[2])}
-
-	progsdat.Globals.TracePlaneNormal = [3]float32{
-		float32(trace.plane.normal[0]),
-		float32(trace.plane.normal[1]),
-		float32(trace.plane.normal[2])}
-
-	progsdat.Globals.TracePlaneDist = float32(trace.plane.dist)
-	if trace.entp != 0 {
-		progsdat.Globals.TraceEnt = int32(trace.entn)
+	b2f := func(b bool) float32 {
+		if b {
+			return 1
+		}
+		return 0
+	}
+	progsdat.Globals.TraceAllSolid = b2f(trace.AllSolid)
+	progsdat.Globals.TraceStartSolid = b2f(trace.StartSolid)
+	progsdat.Globals.TraceFraction = trace.Fraction
+	progsdat.Globals.TraceInWater = b2f(trace.InWater)
+	progsdat.Globals.TraceInOpen = b2f(trace.InOpen)
+	progsdat.Globals.TraceEndPos = trace.EndPos
+	progsdat.Globals.TracePlaneNormal = trace.Plane.Normal
+	progsdat.Globals.TracePlaneDist = trace.Plane.Distance
+	if trace.EntPointer {
+		progsdat.Globals.TraceEnt = int32(trace.EntNumber)
 	} else {
 		progsdat.Globals.TraceEnt = 0
 	}
@@ -798,16 +796,13 @@ func PF_droptofloor() {
 
 	trace := svMove(start, mins, maxs, end, MOVE_NORMAL, ent)
 
-	if trace.fraction == 1 || trace.allsolid != 0 {
+	if trace.Fraction == 1 || trace.AllSolid {
 		progsdat.Globals.Returnf()[0] = 0
 	} else {
-		ev.Origin = [3]float32{
-			float32(trace.endpos[0]),
-			float32(trace.endpos[1]),
-			float32(trace.endpos[2])}
+		ev.Origin = trace.EndPos
 		LinkEdict(ent, false)
 		ev.Flags = float32(int(ev.Flags) | FL_ONGROUND)
-		ev.GroundEntity = int32(trace.entn)
+		ev.GroundEntity = int32(trace.EntNumber)
 		progsdat.Globals.Returnf()[0] = 1
 	}
 }
@@ -915,8 +910,8 @@ func PF_aim() {
 	dir := vec.VFromA(progsdat.Globals.VForward)
 	end := vec.Add(start, dir.Scale(2048))
 	tr := svMove(start, vec.Vec3{}, vec.Vec3{}, end, MOVE_NORMAL, ent)
-	if tr.entp != 0 {
-		tev := EntVars(int(tr.entn))
+	if tr.EntPointer {
+		tev := EntVars(int(tr.EntNumber))
 		if tev.TakeDamage == DAMAGE_AIM &&
 			(!cvars.TeamPlay.Bool() || tev.Team <= 0 || ev.Team != tev.Team) {
 			*progsdat.Globals.Returnf() = progsdat.Globals.VForward
@@ -948,14 +943,14 @@ func PF_aim() {
 		}
 		dir = vec.Sub(end, start)
 		dir = dir.Normalize()
-		vforward := vec.VFromA(progsdat.Globals.VForward)
+		vforward := progsdat.Globals.VForward
 		dist := vec.Dot(dir, vforward)
 		if dist < bestdist {
 			// to far to turn
 			continue
 		}
 		tr := svMove(start, vec.Vec3{}, vec.Vec3{}, end, MOVE_NORMAL, ent)
-		if int(tr.entn) == check {
+		if tr.EntNumber == check {
 			// can shoot at this one
 			bestdist = dist
 			bestent = check
@@ -964,10 +959,10 @@ func PF_aim() {
 
 	if bestent >= 0 {
 		bev := EntVars(bestent)
-		borigin := vec.VFromA(bev.Origin)
-		eorigin := vec.VFromA(ev.Origin)
+		borigin := bev.Origin
+		eorigin := ev.Origin
 		dir := vec.Sub(borigin, eorigin)
-		vforward := vec.VFromA(progsdat.Globals.VForward)
+		vforward := vec.Vec3(progsdat.Globals.VForward)
 		dist := vec.Dot(dir, vforward)
 		end := vforward.Scale(dist)
 		end[2] = dir[2]

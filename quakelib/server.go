@@ -2,7 +2,6 @@ package quakelib
 
 //#include "q_stdinc.h"
 //#include "progdefs.h"
-//#include "trace.h"
 //#include "cgo_help.h"
 //void Host_ClearMemory(void);
 //void PR_LoadProgs(void);
@@ -929,16 +928,16 @@ func runThink(e int) bool {
 }
 
 //Does not change the entities velocity at all
-func pushEntity(e int, push vec.Vec3) C.trace_t {
+func pushEntity(e int, push vec.Vec3) trace {
 	// trace_t trace;
 	// vec3_t end;
 	ev := EntVars(e)
-	origin := vec.VFromA(ev.Origin)
-	mins := vec.VFromA(ev.Mins)
-	maxs := vec.VFromA(ev.Maxs)
+	origin := ev.Origin
+	mins := ev.Mins
+	maxs := ev.Maxs
 	end := vec.Add(origin, push)
 
-	tr := func() C.trace_t {
+	tr := func() trace {
 		if ev.MoveType == progs.MoveTypeFlyMissile {
 			return svMove(origin, mins, maxs, end, MOVE_MISSILE, e)
 		}
@@ -950,13 +949,11 @@ func pushEntity(e int, push vec.Vec3) C.trace_t {
 		return svMove(origin, mins, maxs, end, MOVE_NORMAL, e)
 	}()
 
-	ev.Origin[0] = float32(tr.endpos[0])
-	ev.Origin[1] = float32(tr.endpos[1])
-	ev.Origin[2] = float32(tr.endpos[2])
+	ev.Origin = tr.EndPos
 	LinkEdict(e, true)
 
-	if tr.entp != 0 {
-		sv.Impact(e, int(tr.entn))
+	if tr.EntPointer {
+		sv.Impact(e, tr.EntNumber)
 	}
 
 	return tr
@@ -984,17 +981,17 @@ func SV_SetIdealPitch(player int) {
 		bottom[2] -= 160
 
 		tr := svMove(top, vec.Vec3{}, vec.Vec3{}, bottom, 1, player)
-		if tr.allsolid != 0 {
+		if tr.AllSolid {
 			// looking at a wall, leave ideal the way is was
 			return
 		}
 
-		if tr.fraction == 1 {
+		if tr.Fraction == 1 {
 			// near a dropoff
 			return
 		}
 
-		z[i] = top[2] + float32(tr.fraction)*(bottom[2]-top[2])
+		z[i] = top[2] + tr.Fraction*(bottom[2]-top[2])
 	}
 
 	// Original Quake has both dir and step as int but the code does not make any
