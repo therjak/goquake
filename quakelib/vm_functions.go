@@ -646,13 +646,6 @@ func PF_precache_file() {
 	progsdat.Globals.Return[0] = progsdat.Globals.Parm0[0]
 }
 
-/*
-// THERJAK
-static void PR_CheckEmptyString(const char *s) {
-  if (s[0] <= ' ') PR_RunError("Bad string");
-}
-*/
-
 //export PF_precache_sound
 func PF_precache_sound() {
 	if sv.state != ServerStateLoading {
@@ -664,9 +657,9 @@ func PF_precache_sound() {
 	progsdat.Globals.Return[0] = si
 	s, err := progsdat.String(si)
 	if err != nil {
-		// same result as PR_CheckEmptyString
+		runError("Bad string")
+		return
 	}
-	//PR_CheckEmptyString(s);
 
 	exist := func(s string) bool {
 		for _, e := range sv.soundPrecache {
