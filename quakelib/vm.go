@@ -13,6 +13,84 @@ import (
 	"strings"
 )
 
+const (
+	operatorDONE = iota
+	operatorMUL_F
+	operatorMUL_V
+	operatorMUL_FV
+	operatorMUL_VF
+	operatorDIV_F
+	operatorADD_F
+	operatorADD_V
+	operatorSUB_F
+	operatorSUB_V
+
+	operatorEQ_F
+	operatorEQ_V
+	operatorEQ_S
+	operatorEQ_E
+	operatorEQ_FNC
+
+	operatorNE_F
+	operatorNE_V
+	operatorNE_S
+	operatorNE_E
+	operatorNE_FNC
+
+	operatorLE
+	operatorGE
+	operatorLT
+	operatorGT
+
+	operatorLOAD_F
+	operatorLOAD_V
+	operatorLOAD_S
+	operatorLOAD_ENT
+	operatorLOAD_FLD
+	operatorLOAD_FNC
+
+	operatorADDRESS
+
+	operatorSTORE_F
+	operatorSTORE_V
+	operatorSTORE_S
+	operatorSTORE_ENT
+	operatorSTORE_FLD
+	operatorSTORE_FNC
+
+	operatorSTOREP_F
+	operatorSTOREP_V
+	operatorSTOREP_S
+	operatorSTOREP_ENT
+	operatorSTOREP_FLD
+	operatorSTOREP_FNC
+
+	operatorRETURN
+	operatorNOT_F
+	operatorNOT_V
+	operatorNOT_S
+	operatorNOT_ENT
+	operatorNOT_FNC
+	operatorIF
+	operatorIFNOT
+	operatorCALL0
+	operatorCALL1
+	operatorCALL2
+	operatorCALL3
+	operatorCALL4
+	operatorCALL5
+	operatorCALL6
+	operatorCALL7
+	operatorCALL8
+	operatorSTATE
+	operatorGOTO
+	operatorAND
+	operatorOR
+
+	operatorBITAND
+	operatorBITOR
+)
+
 var (
 	operationNames = []string{
 		"DONE",
@@ -99,6 +177,7 @@ type virtualMachine struct {
 	localStack []int32     // len(localStack) == localstack_used
 	statement  int32
 	trace      bool
+	prog       *progs.LoadedProg
 }
 
 const (
@@ -113,30 +192,123 @@ var (
 	}
 )
 
+func (v *virtualMachine) printStatement(s progs.Statement) {
+	if int(s.Operator) < len(operationNames) {
+		conlog.Printf("%10s ", operationNames[s.Operator])
+	}
+
+	if s.Operator == operatorIF || s.Operator == operatorIFNOT {
+		conlog.Printf("%sbranch %d", v.prog.GlobalString(s.A), s.A)
+	} else if s.Operator == operatorGOTO {
+		conlog.Printf("branch %d", s.A)
+	} else if d := s.Operator - operatorSTORE_F; d < 6 && d >= 0 {
+		conlog.Printf("%s", v.prog.GlobalString(s.A))
+		conlog.Printf("%s", v.prog.GlobalStringNoContents(s.B))
+	} else {
+		if s.A != 0 {
+			conlog.Printf("%s", v.prog.GlobalString(s.B))
+		}
+		if s.B != 0 {
+			conlog.Printf("%s", v.prog.GlobalString(s.B))
+		}
+		if s.C != 0 {
+			conlog.Printf("%s", v.prog.GlobalStringNoContents(s.C))
+		}
+	}
+	conlog.Printf("\n")
+}
+
+func (v *virtualMachine) printFunction(f *progs.Function) {
+	if f == nil {
+		conlog.Printf("<NO FUNCTION>\n")
+	} else {
+		file, _ := v.prog.String(f.SFile)
+		name, _ := v.prog.String(f.SName)
+		conlog.Printf("%12s : %s\n", file, name)
+	}
+}
+
+func (v *virtualMachine) stackTrace() {
+	v.printFunction(v.xfunction)
+	if len(v.stack) == 0 {
+		conlog.Printf("<NO STACK>\n")
+		return
+	}
+	for i := len(v.stack) - 1; i >= 0; i-- {
+		v.printFunction(v.stack[i].function)
+	}
+}
+
+/*
+func init() {
+	cmd.AddCommand("profile", PR_Profile_f)
+}
+
+void PR_Profile_f(void) {
+  int i, num;
+  int pmax;
+  dfunction_t *f, *best;
+
+  if (!SV_Active()) return;
+
+  num = 0;
+  do {
+    pmax = 0;
+    best = NULL;
+    for (i = 0; i < progs->numfunctions; i++) {
+      f = &pr_functions[i];
+      if (f->profile > pmax) {
+        pmax = f->profile;
+        best = f;
+      }
+    }
+    if (best) {
+      if (num < 10)
+        Con_Printf("%7i %s\n", best->profile, PR_GetString(best->s_name));
+      num++;
+      best->profile = 0;
+    }
+  } while (best);
+}
+
+*/
+// Aborts the currently executing function
+func (v *virtualMachine) RunError(format string, a ...interface{}) {
+	v.printStatement(v.prog.Statements[v.statement])
+	v.stackTrace()
+
+	conlog.Printf(format, a...)
+
+	// dump the stack so host_error can shutdown functions
+	v.stack = v.stack[:0]
+
+	HostError("Program error")
+}
+
 //Returns the new program statement counter
 func (v *virtualMachine) enterFunction(f *progs.Function) int32 {
 	if len(v.stack) == cap(v.stack) {
-		runError("stack overflow")
+		v.RunError("stack overflow")
 	}
 	v.stack = append(v.stack, stackElem{
 		statement: v.statement,
-		function:  f,
+		function:  v.xfunction,
 	})
 
 	// save off any locals that the new function steps on
 	c := f.Locals
 	if len(v.localStack)+int(c) > cap(v.localStack) {
-		runError("PR_ExecuteProgram: locals stack overflow\n")
+		v.RunError("PR_ExecuteProgram: locals stack overflow\n")
 	}
 	for i := int32(0); i < c; i++ {
-		v.localStack = append(v.localStack, progsdat.RawGlobalsI[f.ParmStart+i])
+		v.localStack = append(v.localStack, v.prog.RawGlobalsI[f.ParmStart+i])
 	}
 
 	// copy parameters
 	o := f.ParmStart
 	for i := int32(0); i < f.NumParms; i++ {
 		for j := byte(0); j < f.ParmSize[i]; j++ {
-			progsdat.RawGlobalsI[o] = progsdat.RawGlobalsI[progs.OffsetParm0+i*3+int32(j)]
+			v.prog.RawGlobalsI[o] = v.prog.RawGlobalsI[progs.OffsetParm0+i*3+int32(j)]
 			o++
 		}
 	}
@@ -153,12 +325,12 @@ func (v *virtualMachine) leaveFunction() int32 {
 	// Restore locals from the stack
 	c := int(v.xfunction.Locals)
 	if len(v.localStack) < c {
-		runError("PR_ExecuteProgram: locals stack underflow")
+		v.RunError("PR_ExecuteProgram: locals stack underflow")
 	}
 
 	nl := len(v.localStack) - c
 	for i := 0; i < c; i++ {
-		progsdat.RawGlobalsI[int(v.xfunction.ParmStart)+i] = v.localStack[nl+i]
+		v.prog.RawGlobalsI[int(v.xfunction.ParmStart)+i] = v.localStack[nl+i]
 	}
 	v.localStack = v.localStack[:nl]
 
