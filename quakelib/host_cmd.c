@@ -549,7 +549,7 @@ void Host_Loadgame_f(void) {
     } else {  // parse an edict
       if (entnum < SV_NumEdicts()) {
         EDICT_SETFREE(entnum, false);
-        TT_ClearEntVars(EVars(entnum));
+        TTClearEntVars(entnum);
       } else {
         TT_ClearEdict(entnum);
       }

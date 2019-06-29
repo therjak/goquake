@@ -106,11 +106,11 @@ func EntVarsFieldValue(idx int, name string) (float32, error) {
 	return *(*float32)(unsafe.Pointer(vp)), nil
 }
 
-//export TT_ClearEntVars
 func TT_ClearEntVars(e *C.entvars_t) {
 	C.memset(unsafe.Pointer(e), 0, C.ulong(entityFields*4))
 }
 
+//export TTClearEntVars
 func TTClearEntVars(idx int) {
 	ev := EVars(C.int(idx))
 	TT_ClearEntVars(ev)

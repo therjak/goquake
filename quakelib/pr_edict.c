@@ -512,7 +512,7 @@ const char *ED_ParseEdict(const char *data, int ent) {
 
   // clear it
   if (ent != 0)  // hack
-    TT_ClearEntVars(EVars(ent));
+    TTClearEntVars(ent);
 
   // go through all the dictionary pairs
   while (1) {
