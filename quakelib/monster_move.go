@@ -14,7 +14,7 @@ import (
 //The move will be adjusted for slopes and stairs, but if the move isn't
 //possible, no move is done, false is returned, and
 //pr_global_struct->trace_normal is set to the normal of the blocking wall
-func monsterMoveStep(ent int, move vec.Vec3, relink bool) bool {
+func (v *virtualMachine) monsterMoveStep(ent int, move vec.Vec3, relink bool) bool {
 	const STEPSIZE = 18
 	ev := EntVars(ent)
 	mins := vec.VFromA(ev.Mins)
@@ -47,7 +47,7 @@ func monsterMoveStep(ent int, move vec.Vec3, relink bool) bool {
 
 				ev.Origin = endpos
 				if relink {
-					LinkEdict(ent, true)
+					v.LinkEdict(ent, true)
 				}
 				return true
 			}
@@ -84,7 +84,7 @@ func monsterMoveStep(ent int, move vec.Vec3, relink bool) bool {
 			neworg = vec.Add(oldorg, move)
 			ev.Origin = neworg
 			if relink {
-				LinkEdict(ent, true)
+				v.LinkEdict(ent, true)
 			}
 			ev.Flags = float32(flags &^ FL_ONGROUND)
 			return true
@@ -100,7 +100,7 @@ func monsterMoveStep(ent int, move vec.Vec3, relink bool) bool {
 			// entity had floor mostly pulled out from underneath it
 			// and is trying to correct
 			if relink {
-				LinkEdict(ent, true)
+				v.LinkEdict(ent, true)
 			}
 			return true
 		}
@@ -115,7 +115,7 @@ func monsterMoveStep(ent int, move vec.Vec3, relink bool) bool {
 	ev.GroundEntity = int32(trace.EntNumber)
 	// the move is ok
 	if relink {
-		LinkEdict(ent, true)
+		v.LinkEdict(ent, true)
 	}
 	return true
 }
@@ -154,7 +154,7 @@ func changeYaw(ent int) {
 
 // Turns to the movement direction, and walks the current distance if
 // facing it.
-func monsterStepDirection(ent int, yaw, dist float32) bool {
+func (v *virtualMachine) monsterStepDirection(ent int, yaw, dist float32) bool {
 	ev := EntVars(ent)
 	ev.IdealYaw = yaw
 
@@ -169,21 +169,21 @@ func monsterStepDirection(ent int, yaw, dist float32) bool {
 	}
 
 	oldorigin := ev.Origin
-	if monsterMoveStep(ent, move, false) {
+	if v.monsterMoveStep(ent, move, false) {
 		delta := ev.Angles[1] - ev.IdealYaw
 		if delta > 45 && delta < 315 {
 			// not turned far enough, so don't take the step
 			ev.Origin = oldorigin
 		}
-		LinkEdict(ent, true)
+		v.LinkEdict(ent, true)
 		return true
 	}
 
-	LinkEdict(ent, true)
+	v.LinkEdict(ent, true)
 	return false
 }
 
-func monsterNewChaseDir(a, e int, dist float32) {
+func (v *virtualMachine) monsterNewChaseDir(a, e int, dist float32) {
 	const DI_NODIR = -1
 	actor := EntVars(a)
 	enemy := EntVars(e)
@@ -227,7 +227,7 @@ func monsterNewChaseDir(a, e int, dist float32) {
 			return 215
 		}()
 
-		if tdir != turnaround && monsterStepDirection(a, tdir, dist) {
+		if tdir != turnaround && v.monsterStepDirection(a, tdir, dist) {
 			return
 		}
 	}
@@ -240,34 +240,34 @@ func monsterNewChaseDir(a, e int, dist float32) {
 		d2 = tdir
 	}
 	if d1 != DI_NODIR && d1 != turnaround &&
-		monsterStepDirection(a, d1, dist) {
+		v.monsterStepDirection(a, d1, dist) {
 		return
 	}
 	if d2 != DI_NODIR && d2 != turnaround &&
-		monsterStepDirection(a, d2, dist) {
+		v.monsterStepDirection(a, d2, dist) {
 		return
 	}
 	// there is no direct path to the player, so pick another direction
-	if olddir != DI_NODIR && monsterStepDirection(a, olddir, dist) {
+	if olddir != DI_NODIR && v.monsterStepDirection(a, olddir, dist) {
 		return
 	}
 
 	// randomly determine direction of search
 	if rand.Intn(2) == 0 {
 		for tdir = 0; tdir <= 315; tdir += 45 {
-			if tdir != turnaround && monsterStepDirection(a, tdir, dist) {
+			if tdir != turnaround && v.monsterStepDirection(a, tdir, dist) {
 				return
 			}
 		}
 	} else {
 		for tdir = 315; tdir >= 0; tdir -= 45 {
-			if tdir != turnaround && monsterStepDirection(a, tdir, dist) {
+			if tdir != turnaround && v.monsterStepDirection(a, tdir, dist) {
 				return
 			}
 		}
 	}
 
-	if turnaround != DI_NODIR && monsterStepDirection(a, turnaround, dist) {
+	if turnaround != DI_NODIR && v.monsterStepDirection(a, turnaround, dist) {
 		return
 	}
 
@@ -295,7 +295,7 @@ func monsterCloseEnough(e, g int, dist float32) bool {
 }
 
 // this is part of vm_functions
-func monsterMoveToGoal() {
+func (v *virtualMachine) monsterMoveToGoal() {
 	ent := int(progsdat.Globals.Self)
 	ev := EntVars(ent)
 
@@ -313,7 +313,7 @@ func monsterMoveToGoal() {
 
 	// bump around...
 	if rand.Intn(3) == 0 ||
-		!monsterStepDirection(ent, ev.IdealYaw, dist) {
-		monsterNewChaseDir(ent, goal, dist)
+		!v.monsterStepDirection(ent, ev.IdealYaw, dist) {
+		v.monsterNewChaseDir(ent, goal, dist)
 	}
 }

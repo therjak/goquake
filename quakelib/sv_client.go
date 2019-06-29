@@ -218,7 +218,7 @@ func (cl *SVClient) Drop(crash bool) {
 			// this will set the body to a dead frame, among other things
 			saveSelf := progsdat.Globals.Self
 			progsdat.Globals.Self = int32(cl.edictId)
-			PRExecuteProgram(progsdat.Globals.ClientDisconnect)
+			vm.ExecuteProgram(progsdat.Globals.ClientDisconnect)
 			progsdat.Globals.Self = saveSelf
 		}
 		log.Printf("Client %s removed", cl.name)

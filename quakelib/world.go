@@ -111,10 +111,10 @@ func createAreaNode(depth int, mins, maxs vec.Vec3) *areaNode {
 // if touchtriggers, calls prog functions for the intersected triggers
 //export SV_UnlinkEdict
 func SV_UnlinkEdict(e C.int) {
-	UnlinkEdict(int(e))
+	vm.UnlinkEdict(int(e))
 }
 
-func UnlinkEdict(e int) {
+func (v *virtualMachine) UnlinkEdict(e int) {
 	r, ok := edictToRing[e]
 	if !ok {
 		return
@@ -164,7 +164,7 @@ func triggerEdicts(e int, a *areaNode) []int {
 	return ret
 }
 
-func SV_TouchLinks(e int, a *areaNode) {
+func (v *virtualMachine) touchLinks(e int, a *areaNode) {
 	te := triggerEdicts(e, a)
 	ev := EntVars(e)
 
@@ -191,7 +191,7 @@ func SV_TouchLinks(e int, a *areaNode) {
 		progsdat.Globals.Self = int32(touch)
 		progsdat.Globals.Other = int32(e)
 		progsdat.Globals.Time = sv.time
-		PRExecuteProgram(tv.Touch)
+		v.ExecuteProgram(tv.Touch)
 
 		progsdat.Globals.Self = oldSelf
 		progsdat.Globals.Other = oldOther
@@ -200,15 +200,15 @@ func SV_TouchLinks(e int, a *areaNode) {
 
 //export SV_LinkEdict
 func SV_LinkEdict(e C.int, touchTriggers C.int) {
-	LinkEdict(int(e), touchTriggers != 0)
+	vm.LinkEdict(int(e), touchTriggers != 0)
 }
 
 // Needs to be called any time an entity changes origin, mins, max,
 // or solid flags ent.v.modified
 // sets the related entvar.absmin and entvar.absmax
 // if touchTriggers calls prog functions for the intersected triggers
-func LinkEdict(e int, touchTriggers bool) {
-	UnlinkEdict(e)
+func (v *virtualMachine) LinkEdict(e int, touchTriggers bool) {
+	v.UnlinkEdict(e)
 	if e == 0 {
 		return // don't add the world
 	}
@@ -276,7 +276,7 @@ func LinkEdict(e int, touchTriggers bool) {
 	}
 
 	if touchTriggers {
-		SV_TouchLinks(e, gArea)
+		v.touchLinks(e, gArea)
 	}
 }
 

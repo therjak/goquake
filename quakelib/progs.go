@@ -18,6 +18,7 @@ func LoadProgs() {
 		log.Fatalf("Failed to load progs.dat: %v", err)
 	}
 	progsdat = p
+	vm.prog = p
 }
 
 //export ED_NewString

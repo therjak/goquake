@@ -616,7 +616,7 @@ func ConnectClient(n int) {
 	if sv.loadGame {
 		new.spawnParams = old.spawnParams
 	} else {
-		PRExecuteProgram(progsdat.Globals.SetNewParms)
+		vm.ExecuteProgram(progsdat.Globals.SetNewParms)
 		new.spawnParams = progsdat.Globals.Parm
 	}
 	sv_clients[n] = new
@@ -669,13 +669,13 @@ func (s *Server) Impact(e1, e2 int) {
 	if ent1.Touch != 0 && ent1.Solid != SOLID_NOT {
 		progsdat.Globals.Self = int32(e1)
 		progsdat.Globals.Other = int32(e2)
-		PRExecuteProgram(ent1.Touch)
+		vm.ExecuteProgram(ent1.Touch)
 	}
 
 	if ent2.Touch != 0 && ent2.Solid != SOLID_NOT {
 		progsdat.Globals.Self = int32(e2)
 		progsdat.Globals.Other = int32(e1)
-		PRExecuteProgram(ent2.Touch)
+		vm.ExecuteProgram(ent2.Touch)
 	}
 
 	progsdat.Globals.Self = oldSelf
@@ -811,7 +811,7 @@ func SV_SaveSpawnparms() {
 		}
 		// call the progs to get default spawn parms for the new client
 		progsdat.Globals.Self = int32(c.edictId)
-		PRExecuteProgram(progsdat.Globals.SetChangeParms)
+		vm.ExecuteProgram(progsdat.Globals.SetChangeParms)
 		c.spawnParams = progsdat.Globals.Parm
 	}
 }
@@ -909,7 +909,7 @@ func runThink(e int) bool {
 	progsdat.Globals.Time = thinktime
 	progsdat.Globals.Self = int32(e)
 	progsdat.Globals.Other = 0
-	PRExecuteProgram(ev.Think)
+	vm.ExecuteProgram(ev.Think)
 
 	// capture interval to nextthink here and send it to client for better
 	// lerp timing, but only if interval is not 0.1 (which client assumes)
@@ -950,7 +950,7 @@ func pushEntity(e int, push vec.Vec3) trace {
 	}()
 
 	ev.Origin = tr.EndPos
-	LinkEdict(e, true)
+	vm.LinkEdict(e, true)
 
 	if tr.EntPointer {
 		sv.Impact(e, tr.EntNumber)

@@ -1,12 +1,5 @@
 package quakelib
 
-// void PR_ExecuteProgram(int p);
-// int GetPRArgC();
-// int GetPRXStatement();
-// int GetPRXFuncName();
-// void SetPRTrace(int t);
-import "C"
-
 import (
 	"log"
 	"quake/conlog"
@@ -121,20 +114,8 @@ var (
 		"BITAND", "BITOR"}
 )
 
-func PRExecuteProgram(p int32) {
-	C.PR_ExecuteProgram(C.int(p))
-}
-
-func prArgC() int {
-	return int(C.GetPRArgC())
-}
-
-func prXStatement() int {
-	return int(C.GetPRXStatement())
-}
-
-func vmFuncName() string {
-	id := C.GetPRXFuncName()
+func (v *virtualMachine) funcName() string {
+	id := v.xfunction.SName
 	s, err := progsdat.String(int32(id))
 	if err != nil {
 		return ""
@@ -142,10 +123,10 @@ func vmFuncName() string {
 	return s
 }
 
-func vmVarString(first int) string {
+func (v *virtualMachine) varString(first int) string {
 	var b strings.Builder
 
-	for i := first; i < prArgC(); i++ {
+	for i := first; i < v.argc; i++ {
 		idx := progsdat.RawGlobalsI[progs.OffsetParm0+i*3]
 		s, err := progsdat.String(idx)
 		if err != nil {
@@ -158,14 +139,6 @@ func vmVarString(first int) string {
 		conlog.DWarning("PF_VarString: %d characters exceeds standard limit of 255.\n", b.Len())
 	}
 	return b.String()
-}
-
-func vmTraceOn() {
-	C.SetPRTrace(1)
-}
-
-func vmTraceOff() {
-	C.SetPRTrace(0)
 }
 
 type stackElem struct {

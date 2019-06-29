@@ -20,363 +20,42 @@ import (
 	"github.com/chewxy/math32"
 )
 
-//export SV_movestep
-func SV_movestep(ent int, move *C.float, relink int) C.int {
-	m := p2v3(move)
-	return b2i(monsterMoveStep(ent, m, relink != 0))
-}
-
-//export SV_MoveToGoal
-func SV_MoveToGoal() {
-	monsterMoveToGoal()
-}
-
-//export PF_Fixme
-func PF_Fixme() {
-	vm.fixme()
-}
-
-//export PF_objerror
-func PF_objerror() {
-	vm.objError()
-}
-
-//export PF_error
-func PF_error() {
-	vm.terminalError()
-}
-
-//export PF_dprint
-func PF_dprint() {
-	vm.dprint()
-}
-
-//export PF_bprint
-func PF_bprint() {
-	vm.bprint()
-}
-
-//export PF_sprint
-func PF_sprint() {
-	vm.sprint()
-}
-
-//export PF_centerprint
-func PF_centerprint() {
-	vm.centerPrint()
-}
-
-//export PF_setorigin
-func PF_setorigin() {
-	vm.setOrigin()
-}
-
-//export PF_setsize
-func PF_setsize() {
-	vm.setSize()
-}
-
-//export PF_setmodel
-func PF_setmodel() {
-	vm.setModel()
-}
-
-//export PF_normalize
-func PF_normalize() {
-	vm.normalize()
-}
-
-//export PF_vlen
-func PF_vlen() {
-	vm.vlen()
-}
-
-//export PF_vectoyaw
-func PF_vectoyaw() {
-	vm.vecToYaw()
-}
-
-//export PF_vectoangles
-func PF_vectoangles() {
-	vm.vecToAngles()
-}
-
-//export PF_random
-func PF_random() {
-	vm.random()
-}
-
-//export PF_particle
-func PF_particle() {
-	vm.particle()
-}
-
-//export PF_ambientsound
-func PF_ambientsound() {
-	vm.ambientSound()
-}
-
-//export PF_sound
-func PF_sound() {
-	vm.sound()
-}
-
-//export PF_break
-func PF_break() {
-	vm.doBreak()
-}
-
-//export PF_traceline
-func PF_traceline() {
-	vm.traceline()
-}
-
-//export PF_checkclient
-func PF_checkclient() {
-	vm.checkClient()
-}
-
-//export PF_stuffcmd
-func PF_stuffcmd() {
-	vm.stuffCmd()
-}
-
-//export PF_localcmd
-func PF_localcmd() {
-	vm.localCmd()
-}
-
-//export PF_cvar
-func PF_cvar() {
-	vm.cvar()
-}
-
-//export PF_cvar_set
-func PF_cvar_set() {
-	vm.cvarSet()
-}
-
-//export PF_findradius
-func PF_findradius() {
-	vm.findRadius()
-}
-
-//export PF_ftos
-func PF_ftos() {
-	vm.ftos()
-}
-
-//export PF_fabs
-func PF_fabs() {
-	vm.fabs()
-}
-
-//export PF_vtos
-func PF_vtos() {
-	vm.vtos()
-}
-
-//export PF_Spawn
-func PF_Spawn() {
-	vm.spawn()
-}
-
-//export PF_Remove
-func PF_Remove() {
-	vm.remove()
-}
-
-//export PF_Find
-func PF_Find() {
-	vm.find()
-}
-
-//export PF_precache_file
-func PF_precache_file() {
-	vm.precacheFile()
-}
-
-//export PF_precache_sound
-func PF_precache_sound() {
-	vm.precacheSound()
-}
-
-//export PF_precache_model
-func PF_precache_model() {
-	vm.precacheModel()
-}
-
-//export PF_coredump
-func PF_coredump() {
-	vm.coredump()
-}
-
-//export PF_eprint
-func PF_eprint() {
-	vm.eprint()
-}
-
-//export PF_traceon
-func PF_traceon() {
-	vm.traceOn()
-}
-
-//export PF_traceoff
-func PF_traceoff() {
-	vm.traceOff()
-}
-
-//export PF_walkmove
-func PF_walkmove() {
-	vm.walkMove()
-}
-
-//export PF_droptofloor
-func PF_droptofloor() {
-	vm.dropToFloor()
-}
-
-//export PF_lightstyle
-func PF_lightstyle() {
-	vm.lightStyle()
-}
-
-//export PF_rint
-func PF_rint() {
-	vm.rint()
-}
-
-//export PF_floor
-func PF_floor() {
-	vm.floor()
-}
-
-//export PF_ceil
-func PF_ceil() {
-	vm.ceil()
-}
-
-//export PF_checkbottom
-func PF_checkbottom() {
-	vm.checkBottom()
-}
-
-//export PF_makevectors
-func PF_makevectors() {
-	vm.makeVectors()
-}
-
-//export PF_pointcontents
-func PF_pointcontents() {
-	vm.pointContents()
-}
-
-//export PF_nextent
-func PF_nextent() {
-	vm.nextEnt()
-}
-
-//export PF_aim
-func PF_aim() {
-	vm.aim()
-}
-
-//export PF_changeyaw
-func PF_changeyaw() {
-	vm.changeYaw()
-}
-
-//export PF_WriteByte
-func PF_WriteByte() {
-	vm.writeByte()
-}
-
-//export PF_WriteChar
-func PF_WriteChar() {
-	vm.writeChar()
-}
-
-//export PF_WriteShort
-func PF_WriteShort() {
-	vm.writeShort()
-}
-
-//export PF_WriteLong
-func PF_WriteLong() {
-	vm.writeLong()
-}
-
-//export PF_WriteAngle
-func PF_WriteAngle() {
-	vm.writeAngle()
-}
-
-//export PF_WriteCoord
-func PF_WriteCoord() {
-	vm.writeCoord()
-}
-
-//export PF_WriteString
-func PF_WriteString() {
-	vm.writeString()
-}
-
-//export PF_WriteEntity
-func PF_WriteEntity() {
-	vm.writeEntity()
-}
-
-//export PF_makestatic
-func PF_makestatic() {
-	vm.makeStatic()
-}
-
-//export PF_changelevel
-func PF_changelevel() {
-	vm.changeLevel()
-}
-
-//export PF_setspawnparms
-func PF_setspawnparms() {
-	vm.setSpawnParms()
-}
-
 // Dumps out self, then an error message.  The program is aborted and self is
 // removed, but the level can continue.
 func (v *virtualMachine) objError() {
-	s := vmVarString(0)
-	fs := vmFuncName()
+	s := v.varString(0)
+	fs := v.funcName()
 	conlog.Printf("======OBJECT ERROR in %s:\n%s\n", fs, s)
-	ed := int(progsdat.Globals.Self)
+	ed := int(v.prog.Globals.Self)
 	edictPrint(ed)
-	edictFree(ed)
+	v.edictFree(ed)
 }
 
 // This is a TERMINAL error, which will kill off the entire server.
 // Dumps self.
 func (v *virtualMachine) terminalError() {
-	s := vmVarString(0)
-	fs := vmFuncName()
+	s := v.varString(0)
+	fs := v.funcName()
 	conlog.Printf("======SERVER ERROR in %s:\n%s\n", fs, s)
-	edictPrint(int(progsdat.Globals.Self))
+	edictPrint(int(v.prog.Globals.Self))
 	HostError("Program error")
 }
 
 func (v *virtualMachine) dprint() {
-	s := vmVarString(0)
+	s := v.varString(0)
 	conlog.DPrintf(s)
 }
 
 // broadcast print to everyone on server
 func (v *virtualMachine) bprint() {
-	s := vmVarString(0)
+	s := v.varString(0)
 	SV_BroadcastPrint(s)
 }
 
 // single print to a specific client
 func (v *virtualMachine) sprint() {
-	e := int(progsdat.Globals.Parm0[0])
-	s := vmVarString(1)
+	e := int(v.prog.Globals.Parm0[0])
+	s := v.varString(1)
 	if e < 1 || e > svs.maxClients {
 		conlog.Printf("tried to sprint to a non-client\n")
 		return
@@ -389,8 +68,8 @@ func (v *virtualMachine) sprint() {
 
 // single print to a specific client
 func (v *virtualMachine) centerPrint() {
-	e := int(progsdat.Globals.Parm0[0])
-	s := vmVarString(1)
+	e := int(v.prog.Globals.Parm0[0])
+	s := v.varString(1)
 	if e < 1 || e > svs.maxClients {
 		conlog.Printf("tried to sprint to a non-client\n")
 		return
@@ -410,11 +89,11 @@ This should be called when an object is spawned, and then only if it is
 teleported.
 */
 func (v *virtualMachine) setOrigin() {
-	e := int(progsdat.Globals.Parm0[0])
+	e := int(v.prog.Globals.Parm0[0])
 	ev := EntVars(e)
-	ev.Origin = *progsdat.Globals.Parm1f()
+	ev.Origin = *v.prog.Globals.Parm1f()
 
-	LinkEdict(e, false)
+	v.LinkEdict(e, false)
 }
 
 func setMinMaxSize(ev *progs.EntVars, min, max vec.Vec3) {
@@ -427,17 +106,17 @@ func setMinMaxSize(ev *progs.EntVars, min, max vec.Vec3) {
 }
 
 func (v *virtualMachine) setSize() {
-	e := int(progsdat.Globals.Parm0[0])
-	min := vec.VFromA(*progsdat.Globals.Parm1f())
-	max := vec.VFromA(*progsdat.Globals.Parm2f())
+	e := int(v.prog.Globals.Parm0[0])
+	min := *v.prog.Globals.Parm1f()
+	max := *v.prog.Globals.Parm2f()
 	setMinMaxSize(EntVars(e), min, max)
-	LinkEdict(e, false)
+	v.LinkEdict(e, false)
 }
 
 func (v *virtualMachine) setModel() {
-	e := int(progsdat.Globals.Parm0[0])
-	mi := progsdat.Globals.Parm1[0]
-	m, err := progsdat.String(mi)
+	e := int(v.prog.Globals.Parm0[0])
+	mi := v.prog.Globals.Parm1[0]
+	m, err := v.prog.String(mi)
 	if err != nil {
 		v.runError("no precache: %d", mi)
 		return
@@ -473,22 +152,22 @@ func (v *virtualMachine) setModel() {
 		// log.Printf("No Mod")
 		setMinMaxSize(ev, vec.Vec3{}, vec.Vec3{})
 	}
-	LinkEdict(e, false)
+	v.LinkEdict(e, false)
 }
 
 func (v *virtualMachine) normalize() {
-	ve := vec.VFromA(*progsdat.Globals.Parm0f())
-	*progsdat.Globals.Returnf() = ve.Normalize()
+	ve := vec.VFromA(*v.prog.Globals.Parm0f())
+	*v.prog.Globals.Returnf() = ve.Normalize()
 }
 
 func (v *virtualMachine) vlen() {
-	ve := vec.VFromA(*progsdat.Globals.Parm0f())
+	ve := vec.VFromA(*v.prog.Globals.Parm0f())
 	l := ve.Length()
-	progsdat.Globals.Returnf()[0] = l
+	v.prog.Globals.Returnf()[0] = l
 }
 
 func (v *virtualMachine) vecToYaw() {
-	ve := vec.VFromA(*progsdat.Globals.Parm0f())
+	ve := vec.VFromA(*v.prog.Globals.Parm0f())
 	yaw := func() float32 {
 		if ve[0] == 0 && ve[1] == 0 {
 			return 0
@@ -500,11 +179,11 @@ func (v *virtualMachine) vecToYaw() {
 		}
 		return y
 	}()
-	progsdat.Globals.Returnf()[0] = yaw
+	v.prog.Globals.Returnf()[0] = yaw
 }
 
 func (v *virtualMachine) vecToAngles() {
-	ve := vec.VFromA(*progsdat.Globals.Parm0f())
+	ve := vec.VFromA(*v.prog.Globals.Parm0f())
 	yaw, pitch := func() (float32, float32) {
 		if ve[0] == 0 && ve[1] == 0 {
 			p := func() float32 {
@@ -528,32 +207,32 @@ func (v *virtualMachine) vecToAngles() {
 		}
 		return y, p
 	}()
-	*progsdat.Globals.Returnf() = [3]float32{pitch, yaw, 0}
+	*v.prog.Globals.Returnf() = [3]float32{pitch, yaw, 0}
 }
 
 // Returns a number from 0 <= num < 1
 func (v *virtualMachine) random() {
-	progsdat.Globals.Returnf()[0] = rand.Float32()
+	v.prog.Globals.Returnf()[0] = rand.Float32()
 }
 
 func (v *virtualMachine) particle() {
-	org := vec.VFromA(*progsdat.Globals.Parm0f())
-	dir := vec.VFromA(*progsdat.Globals.Parm1f())
-	color := progsdat.RawGlobalsF[progs.OffsetParm2]
-	count := progsdat.RawGlobalsF[progs.OffsetParm3]
+	org := vec.VFromA(*v.prog.Globals.Parm0f())
+	dir := vec.VFromA(*v.prog.Globals.Parm1f())
+	color := v.prog.RawGlobalsF[progs.OffsetParm2]
+	count := v.prog.RawGlobalsF[progs.OffsetParm3]
 	sv.StartParticle(org, dir, int(color), int(count))
 }
 
 func (v *virtualMachine) ambientSound() {
 	large := false
-	pos := vec.VFromA(*progsdat.Globals.Parm0f())
-	sample, err := progsdat.String(progsdat.Globals.Parm1[0])
+	pos := vec.VFromA(*v.prog.Globals.Parm0f())
+	sample, err := v.prog.String(v.prog.Globals.Parm1[0])
 	if err != nil {
 		conlog.Printf("no precache: %v\n", pos)
 		return
 	}
-	volume := progsdat.RawGlobalsF[progs.OffsetParm2] * 255
-	attenuation := progsdat.RawGlobalsF[progs.OffsetParm3] * 64
+	volume := v.prog.RawGlobalsF[progs.OffsetParm2] * 255
+	attenuation := v.prog.RawGlobalsF[progs.OffsetParm3] * 64
 
 	// check to see if samp was properly precached
 	soundnum := func() int {
@@ -606,15 +285,15 @@ func (v *virtualMachine) ambientSound() {
 // An attenuation of 0 will play full volume everywhere in the level.
 // Larger attenuations will drop off.
 func (v *virtualMachine) sound() {
-	entity := progsdat.Globals.Parm0[0]
-	channel := progsdat.RawGlobalsF[progs.OffsetParm1]
-	sample, err := progsdat.String(progsdat.Globals.Parm2[0])
+	entity := v.prog.Globals.Parm0[0]
+	channel := v.prog.RawGlobalsF[progs.OffsetParm1]
+	sample, err := v.prog.String(v.prog.Globals.Parm2[0])
 	if err != nil {
 		v.runError("PF_sound: no sample")
 		return
 	}
-	volume := progsdat.RawGlobalsF[progs.OffsetParm3] * 255
-	attenuation := progsdat.RawGlobalsF[progs.OffsetParm4]
+	volume := v.prog.RawGlobalsF[progs.OffsetParm3] * 255
+	attenuation := v.prog.RawGlobalsF[progs.OffsetParm4]
 
 	if volume < 0 || volume > 255 {
 		HostError("SV_StartSound: volume = %v", volume)
@@ -639,10 +318,10 @@ func (v *virtualMachine) doBreak() {
 // Traces are blocked by bbox and exact bsp entityes, and also slide
 // box entities if the tryents flag is set.
 func (v *virtualMachine) traceline() {
-	v1 := vec.VFromA(*progsdat.Globals.Parm0f())
-	v2 := vec.VFromA(*progsdat.Globals.Parm1f())
-	nomonsters := progsdat.RawGlobalsF[progs.OffsetParm2]
-	ent := int(progsdat.Globals.Parm3[0])
+	v1 := vec.VFromA(*v.prog.Globals.Parm0f())
+	v2 := vec.VFromA(*v.prog.Globals.Parm1f())
+	nomonsters := v.prog.RawGlobalsF[progs.OffsetParm2]
+	ent := int(v.prog.Globals.Parm3[0])
 
 	// FIXME FIXME FIXME: Why do we hit this with certain progs.dat ??
 	if cvars.Developer.Bool() {
@@ -667,18 +346,18 @@ func (v *virtualMachine) traceline() {
 		}
 		return 0
 	}
-	progsdat.Globals.TraceAllSolid = b2f(trace.AllSolid)
-	progsdat.Globals.TraceStartSolid = b2f(trace.StartSolid)
-	progsdat.Globals.TraceFraction = trace.Fraction
-	progsdat.Globals.TraceInWater = b2f(trace.InWater)
-	progsdat.Globals.TraceInOpen = b2f(trace.InOpen)
-	progsdat.Globals.TraceEndPos = trace.EndPos
-	progsdat.Globals.TracePlaneNormal = trace.Plane.Normal
-	progsdat.Globals.TracePlaneDist = trace.Plane.Distance
+	v.prog.Globals.TraceAllSolid = b2f(trace.AllSolid)
+	v.prog.Globals.TraceStartSolid = b2f(trace.StartSolid)
+	v.prog.Globals.TraceFraction = trace.Fraction
+	v.prog.Globals.TraceInWater = b2f(trace.InWater)
+	v.prog.Globals.TraceInOpen = b2f(trace.InOpen)
+	v.prog.Globals.TraceEndPos = trace.EndPos
+	v.prog.Globals.TracePlaneNormal = trace.Plane.Normal
+	v.prog.Globals.TracePlaneDist = trace.Plane.Distance
 	if trace.EntPointer {
-		progsdat.Globals.TraceEnt = int32(trace.EntNumber)
+		v.prog.Globals.TraceEnt = int32(trace.EntNumber)
 	} else {
-		progsdat.Globals.TraceEnt = 0
+		v.prog.Globals.TraceEnt = 0
 	}
 }
 
@@ -758,12 +437,12 @@ func (v *virtualMachine) checkClient() {
 	// return check if it might be visible
 	ent := sv.lastCheck
 	if edictNum(ent).Free || EntVars(ent).Health <= 0 {
-		progsdat.Globals.Return[0] = 0
+		v.prog.Globals.Return[0] = 0
 		return
 	}
 
 	// if current entity can't possibly see the check entity, return 0
-	self := int(progsdat.Globals.Self)
+	self := int(v.prog.Globals.Self)
 	es := EntVars(self)
 	view := vec.Add(es.Origin, es.ViewOfs)
 	leaf, _ := sv.worldModel.PointInLeaf(view)
@@ -778,22 +457,22 @@ func (v *virtualMachine) checkClient() {
 	}
 
 	if (leafNum < 0) || (checkpvs[leafNum/8]&(1<<(uint(leafNum)&7)) == 0) {
-		progsdat.Globals.Return[0] = 0
+		v.prog.Globals.Return[0] = 0
 		return
 	}
 
 	// might be able to see it
-	progsdat.Globals.Return[0] = int32(ent)
+	v.prog.Globals.Return[0] = int32(ent)
 }
 
 // Sends text over to the client's execution buffer
 func (v *virtualMachine) stuffCmd() {
-	entnum := int(progsdat.Globals.Parm0[0])
+	entnum := int(v.prog.Globals.Parm0[0])
 	if entnum < 1 || entnum > svs.maxClients {
 		v.runError("Parm 0 not a client")
 		return
 	}
-	str, err := progsdat.String(progsdat.Globals.Parm1[0])
+	str, err := v.prog.String(v.prog.Globals.Parm1[0])
 	if err != nil {
 		v.runError("stuffcmd: no string")
 		return
@@ -806,7 +485,7 @@ func (v *virtualMachine) stuffCmd() {
 
 // Sends text over to the client's execution buffer
 func (v *virtualMachine) localCmd() {
-	str, err := progsdat.String(progsdat.Globals.Parm0[0])
+	str, err := v.prog.String(v.prog.Globals.Parm0[0])
 	if err != nil {
 		v.runError("localcmd: no string")
 		return
@@ -815,21 +494,21 @@ func (v *virtualMachine) localCmd() {
 }
 
 func (v *virtualMachine) cvar() {
-	str, err := progsdat.String(progsdat.Globals.Parm0[0])
+	str, err := v.prog.String(v.prog.Globals.Parm0[0])
 	if err != nil {
 		v.runError("PF_cvar: no string")
 		return
 	}
-	progsdat.Globals.Returnf()[0] = CvarVariableValue(str)
+	v.prog.Globals.Returnf()[0] = CvarVariableValue(str)
 }
 
 func (v *virtualMachine) cvarSet() {
-	name, err := progsdat.String(progsdat.Globals.Parm0[0])
+	name, err := v.prog.String(v.prog.Globals.Parm0[0])
 	if err != nil {
 		v.runError("PF_cvar_set: no name string")
 		return
 	}
-	val, err := progsdat.String(progsdat.Globals.Parm1[0])
+	val, err := v.prog.String(v.prog.Globals.Parm1[0])
 	if err != nil {
 		v.runError("PF_cvar_set: no val string")
 		return
@@ -896,7 +575,7 @@ func (v *virtualMachine) spawn() {
 
 func (v *virtualMachine) remove() {
 	ed := progsdat.Globals.Parm0[0]
-	edictFree(int(ed))
+	v.edictFree(int(ed))
 }
 
 func (v *virtualMachine) find() {
@@ -1012,46 +691,43 @@ func (v *virtualMachine) eprint() {
 }
 
 func (v *virtualMachine) traceOn() {
-	vmTraceOn()
+	v.trace = true
 }
 
 func (v *virtualMachine) traceOff() {
-	vmTraceOff()
+	v.trace = false
 }
 
 func (v *virtualMachine) walkMove() {
-	/*
-	   int ent;
-	   float yaw, dist;
-	   vec3_t move;
-	   dfunction_t *oldf;
-	   int oldself;
+	ent := int(v.prog.Globals.Self)
+	yaw := v.prog.Globals.Parm0f()[0]
+	dist := v.prog.Globals.Parm1f()[0]
+	ev := EntVars(ent)
 
-	   ent = Pr_global_struct_self();
-	   yaw = Pr_globalsf(OFS_PARM0);
-	   dist = Pr_globalsf(OFS_PARM1);
+	if int(ev.Flags)&(FL_ONGROUND|FL_FLY|FL_SWIM) == 0 {
+		(*(v.prog.Globals.Returnf()))[0] = 0
+		return
+	}
 
-	   if (!((int)EVars(ent)->flags & (FL_ONGROUND | FL_FLY | FL_SWIM))) {
-	     Set_Pr_globalsf(OFS_RETURN, 0);
-	     return;
-	   }
+	yaw = yaw * math32.Pi * 2 / 360
 
-	   yaw = yaw * M_PI * 2 / 360;
+	s, c := math32.Sincos(yaw)
+	move := vec.Vec3{c * dist, s * dist, 0}
 
-	   move[0] = cos(yaw) * dist;
-	   move[1] = sin(yaw) * dist;
-	   move[2] = 0;
+	// save program state, because monsterMoveStep may call other progs
+	oldf := v.xfunction
+	oldself := v.prog.Globals.Self
 
-	   // save program state, because SV_movestep may call other progs
-	   oldf = pr_xfunction;
-	   oldself = Pr_global_struct_self();
+	r := v.monsterMoveStep(ent, move, true)
+	if r {
+		(*(v.prog.Globals.Returnf()))[0] = 1
+	} else {
+		(*(v.prog.Globals.Returnf()))[0] = 0
+	}
 
-	   Set_Pr_globalsf(OFS_RETURN, SV_movestep(ent, move, true));
-
-	   // restore program state
-	   pr_xfunction = oldf;
-	   Set_pr_global_struct_self(oldself);
-	*/
+	// restore program state
+	v.xfunction = oldf
+	v.prog.Globals.Self = oldself
 }
 
 func (v *virtualMachine) dropToFloor() {
@@ -1069,7 +745,7 @@ func (v *virtualMachine) dropToFloor() {
 		progsdat.Globals.Returnf()[0] = 0
 	} else {
 		ev.Origin = trace.EndPos
-		LinkEdict(ent, false)
+		v.LinkEdict(ent, false)
 		ev.Flags = float32(int(ev.Flags) | FL_ONGROUND)
 		ev.GroundEntity = int32(trace.EntNumber)
 		progsdat.Globals.Returnf()[0] = 1
@@ -1403,7 +1079,7 @@ func (v *virtualMachine) makeStatic() {
 
 	// don't send invisible static entities
 	if e.Alpha == server.EntityAlphaZero {
-		edictFree(ent)
+		v.edictFree(ent)
 		return
 	}
 	ev := EntVars(ent)
@@ -1418,7 +1094,7 @@ func (v *virtualMachine) makeStatic() {
 	if sv.protocol == protocol.NetQuake {
 		if mi&0xFF00 != 0 ||
 			frame&0xFF00 != 0 {
-			edictFree(ent)
+			v.edictFree(ent)
 			// can't display the correct model & frame, so don't show it at all
 			return
 		}
@@ -1465,7 +1141,7 @@ func (v *virtualMachine) makeStatic() {
 	}
 
 	// throw the entity away now
-	edictFree(ent)
+	v.edictFree(ent)
 }
 
 func (v *virtualMachine) setSpawnParms() {
@@ -1504,5 +1180,5 @@ func (v *virtualMachine) changeLevel() {
 }
 
 func (v *virtualMachine) moveToGoal() {
-	monsterMoveToGoal()
+	v.monsterMoveToGoal()
 }

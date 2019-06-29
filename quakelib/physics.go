@@ -47,7 +47,7 @@ func (q *qphysics) pushMove(pusher int, movetime float32) {
 	// move the pusher to it's final position
 	pev.Origin = vec.Add(pev.Origin, move)
 	pev.LTime += movetime
-	LinkEdict(pusher, false)
+	vm.LinkEdict(pusher, false)
 
 	type moved struct {
 		ent    int
@@ -110,10 +110,10 @@ func (q *qphysics) pushMove(pusher int, movetime float32) {
 				continue
 			}
 			cev.Origin = entOrigin
-			LinkEdict(c, true)
+			vm.LinkEdict(c, true)
 
 			pev.Origin = pushOrigin
-			LinkEdict(pusher, false)
+			vm.LinkEdict(pusher, false)
 			pev.LTime -= movetime
 
 			// if the pusher has a "blocked" function, call it
@@ -121,13 +121,13 @@ func (q *qphysics) pushMove(pusher int, movetime float32) {
 			if pev.Blocked != 0 {
 				progsdat.Globals.Self = int32(pusher)
 				progsdat.Globals.Other = int32(c)
-				PRExecuteProgram(pev.Blocked)
+				vm.ExecuteProgram(pev.Blocked)
 			}
 
 			// move back any entities we already moved
 			for _, m := range movedEnts {
 				EntVars(m.ent).Origin = m.origin
-				LinkEdict(m.ent, false)
+				vm.LinkEdict(m.ent, false)
 			}
 			return
 		}
@@ -172,7 +172,7 @@ func (q *qphysics) pusher(ent int) {
 		progsdat.Globals.Time = sv.time
 		progsdat.Globals.Self = int32(ent)
 		progsdat.Globals.Other = 0
-		PRExecuteProgram(ev.Think)
+		vm.ExecuteProgram(ev.Think)
 	}
 }
 
@@ -352,7 +352,7 @@ func (q *qphysics) noClip(ent int) {
 	origin := ev.Origin
 	ev.Origin = vec.Add(origin, v)
 
-	LinkEdict(ent, false)
+	vm.LinkEdict(ent, false)
 }
 
 //export SV_CheckWaterTransition
@@ -463,7 +463,7 @@ func (q *qphysics) step(ent int) {
 		q.addGravity(ent)
 		CheckVelocity(ev)
 		q.flyMove(ent, time, nil)
-		LinkEdict(ent, true)
+		vm.LinkEdict(ent, true)
 
 		if int(ev.Flags)&FL_ONGROUND != 0 {
 			// just hit ground
@@ -493,7 +493,7 @@ func (q *qphysics) checkStuck(ent int) {
 	ev.Origin = ev.OldOrigin
 	if !testEntityPosition(ent) {
 		conlog.Printf("Unstuck.\n") // debug
-		LinkEdict(ent, true)
+		vm.LinkEdict(ent, true)
 		return
 	}
 
@@ -505,7 +505,7 @@ func (q *qphysics) checkStuck(ent int) {
 				ev.Origin[2] = org[2] + z
 				if !testEntityPosition(ent) {
 					conlog.Printf("Unstuck.\n")
-					LinkEdict(ent, true)
+					vm.LinkEdict(ent, true)
 					return
 				}
 			}
@@ -713,7 +713,7 @@ func (q *qphysics) playerActions(ent, num int) {
 
 	progsdat.Globals.Time = sv.time
 	progsdat.Globals.Self = int32(ent)
-	PRExecuteProgram(progsdat.Globals.PlayerPreThink)
+	vm.ExecuteProgram(progsdat.Globals.PlayerPreThink)
 
 	ev := EntVars(ent)
 	CheckVelocity(ev)
@@ -756,11 +756,11 @@ func (q *qphysics) playerActions(ent, num int) {
 		Error("SV_Physics_client: bad movetype %v", ev.MoveType)
 	}
 
-	LinkEdict(ent, true)
+	vm.LinkEdict(ent, true)
 
 	progsdat.Globals.Time = sv.time
 	progsdat.Globals.Self = int32(ent)
-	PRExecuteProgram(progsdat.Globals.PlayerPostThink)
+	vm.ExecuteProgram(progsdat.Globals.PlayerPostThink)
 }
 
 //export SV_Physics
@@ -773,7 +773,7 @@ func RunPhysics() {
 	progsdat.Globals.Time = sv.time
 	progsdat.Globals.Self = 0
 	progsdat.Globals.Other = 0
-	PRExecuteProgram(progsdat.Globals.PlayerPostThink)
+	vm.ExecuteProgram(progsdat.Globals.PlayerPostThink)
 
 	freezeNonClients := cvars.ServerFreezeNonClients.Bool()
 	entityCap := func() int {
@@ -790,7 +790,7 @@ func RunPhysics() {
 		}
 		if progsdat.Globals.ForceRetouch != 0 {
 			// force retouch even for stationary
-			LinkEdict(i, true)
+			vm.LinkEdict(i, true)
 		}
 		q := qphysics{}
 		if i > 0 && i <= svs.maxClients {

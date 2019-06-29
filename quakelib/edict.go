@@ -88,9 +88,9 @@ func FreeEdicts() {
 
 // Marks the edict as free
 // FIXME: walk all entities and NULL out references to this entity
-func edictFree(i int) {
+func (v *virtualMachine) edictFree(i int) {
 	// unlink from world bsp
-	UnlinkEdict(i)
+	v.UnlinkEdict(i)
 
 	e := edictNum(i)
 	e.Free = true
@@ -108,11 +108,6 @@ func edictFree(i int) {
 	ev.Angles = [3]float32{}
 	ev.NextThink = -1
 	ev.Solid = 0
-}
-
-//export ED_Free
-func ED_Free(ed int) {
-	edictFree(ed)
 }
 
 // Either finds a free edict, or allocates a new one.
@@ -316,14 +311,14 @@ func loadEntities(data []map[string]string) {
 		// remove things from different skill levels or deathmatch
 		if cvars.DeathMatch.Bool() {
 			if (int(ev.SpawnFlags) & SPAWNFLAG_NOT_DEATHMATCH) != 0 {
-				edictFree(eNr)
+				vm.edictFree(eNr)
 				inhibit++
 				continue
 			}
 		} else if (currentSkill == 0 && int(ev.SpawnFlags)&SPAWNFLAG_NOT_EASY != 0) ||
 			(currentSkill == 1 && int(ev.SpawnFlags)&SPAWNFLAG_NOT_MEDIUM != 0) ||
 			(currentSkill >= 2 && int(ev.SpawnFlags)&SPAWNFLAG_NOT_HARD != 0) {
-			edictFree(eNr)
+			vm.edictFree(eNr)
 			inhibit++
 			continue
 		}
@@ -331,7 +326,7 @@ func loadEntities(data []map[string]string) {
 		if ev.ClassName == 0 {
 			conlog.SafePrintf("No classname for:\n")
 			edictPrint(eNr)
-			edictFree(eNr)
+			vm.edictFree(eNr)
 			continue
 		}
 
@@ -341,12 +336,12 @@ func loadEntities(data []map[string]string) {
 		if err != nil {
 			conlog.SafePrintf("No spawn function for:\n")
 			edictPrint(eNr)
-			edictFree(eNr)
+			vm.edictFree(eNr)
 			continue
 		}
 
 		progsdat.Globals.Self = int32(eNr)
-		PRExecuteProgram(int32(fidx))
+		vm.ExecuteProgram(int32(fidx))
 	}
 
 	conlog.DPrintf("%d entities inhibited\n", inhibit)

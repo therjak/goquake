@@ -605,11 +605,11 @@ func hostSpawn(args []cmd.QArg, player int) {
 		progsdat.Globals.Parm = c.spawnParams
 		progsdat.Globals.Time = sv.time
 		progsdat.Globals.Self = int32(player)
-		PRExecuteProgram(progsdat.Globals.ClientConnect)
+		vm.ExecuteProgram(progsdat.Globals.ClientConnect)
 		if (qtime.QTime() - c.ConnectTime()).Seconds() <= float64(sv.time) {
 			log.Printf("%v entered the game\n", c.name)
 		}
-		PRExecuteProgram(progsdat.Globals.PutClientInServer)
+		vm.ExecuteProgram(progsdat.Globals.PutClientInServer)
 	}
 
 	// send all current names, colors, and frag counts
@@ -758,7 +758,7 @@ func hostSetPos(args []cmd.QArg, player int) {
 		ev.FixAngle = 1
 	}
 
-	LinkEdict(player, false)
+	vm.LinkEdict(player, false)
 }
 
 func hostName(args []cmd.QArg, _ int) {
@@ -823,7 +823,7 @@ func hostKill(args []cmd.QArg, player int) {
 
 	progsdat.Globals.Time = sv.time
 	progsdat.Globals.Self = int32(player)
-	PRExecuteProgram(progsdat.Globals.ClientKill)
+	vm.ExecuteProgram(progsdat.Globals.ClientKill)
 }
 
 func hostStatus(args []cmd.QArg, _ int) {
