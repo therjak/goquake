@@ -7,6 +7,7 @@ PF_walkmove
 float(float yaw, float dist) walkmove
 ===============
 */
+/*
 static void PF_walkmove(void) {
   int ent;
   float yaw, dist;
@@ -39,7 +40,7 @@ static void PF_walkmove(void) {
   pr_xfunction = oldf;
   Set_pr_global_struct_self(oldself);
 }
-
+*/
 //=============================================================================
 
 static builtin_t pr_builtin[] = {

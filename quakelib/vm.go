@@ -180,6 +180,8 @@ type virtualMachine struct {
 	statement  int32
 	trace      bool
 	prog       *progs.LoadedProg
+	argc       int
+	builtins   []func()
 }
 
 const (
@@ -188,11 +190,73 @@ const (
 )
 
 var (
-	vm = virtualMachine{
+	vm = NewVirtualMachine()
+)
+
+func NewVirtualMachine() *virtualMachine {
+	v := &virtualMachine{
 		stack:      make([]stackElem, 0, 32),
 		localStack: make([]int32, 0, 2024),
 	}
-)
+	v.builtins = []func(){
+		v.fixme,
+		v.makeVectors,   // void(entity e) makevectors		= #1
+		v.setOrigin,     // void(entity e, vector o) setorigin	= #2
+		v.setModel,      // void(entity e, string m) setmodel	= #3
+		v.setSize,       // void(entity e, vector min, vector max) setsize	= #4
+		v.fixme,         // void(entity e, vector min, vector max) setabssize	= #5
+		v.doBreak,       // void() break				= #6
+		v.random,        // float() random			= #7
+		v.sound,         // void(entity e, float chan, string samp) sound	= #8
+		v.normalize,     // vector(vector v) normalize		= #9
+		v.terminalError, // void(string e) error			= #10
+		v.objError,      // void(string e) objerror		= #11
+		v.vlen,          // float(vector v) vlen			= #12
+		v.vecToYaw,      // float(vector v) vectoyaw		= #13
+		v.spawn,         // entity() spawn			= #14
+		v.remove,        // void(entity e) remove		= #15
+		v.traceline,     // float(vector v1, vector v2, float tryents) traceline = #16
+		v.checkClient,   // entity() clientlist			= #17
+		v.find,          // entity(entity start, .string fld, string match) find	= #18
+		v.precacheSound, // void(string s) precache_sound	= #19
+		v.precacheModel, // void(string s) precache_model	= #20
+		v.stuffCmd,      // void(entity client, string s)stuffcmd	= #21
+		v.findRadius,    // entity(vector org, float rad) findradius	= #22
+		v.bprint,        // void(string s) bprint		= #23
+		v.sprint,        // void(entity client, string s) sprint	= #24
+		v.dprint,        // void(string s) dprint		= #25
+		v.ftos,          // void(string s) ftos			= #26
+		v.vtos,          // void(string s) vtos			= #27
+		v.coredump, v.traceOn, v.traceOff,
+		v.eprint,   // void(entity e) debug print an entire entity
+		v.walkMove, // float(float yaw, float dist) walkmove
+		v.fixme,    // float(float yaw, float dist) walkmove
+		v.dropToFloor, v.lightStyle, v.rint, v.floor, v.ceil, v.fixme,
+		v.checkBottom, v.pointContents, v.fixme, v.fabs, v.aim, v.cvar,
+		v.localCmd, v.nextEnt, v.particle, v.changeYaw, v.fixme,
+		v.vecToAngles,
+
+		v.writeByte, v.writeChar, v.writeShort, v.writeLong, v.writeCoord,
+		v.writeAngle, v.writeString, v.writeEntity,
+
+		v.fixme, v.fixme, v.fixme, v.fixme, v.fixme, v.fixme, v.fixme,
+
+		v.moveToGoal, v.precacheFile, v.makeStatic,
+
+		v.changeLevel, v.fixme,
+
+		v.cvarSet, v.centerPrint,
+
+		v.ambientSound,
+
+		v.precacheModel,
+		v.precacheSound, // precache_sound2 is different only for qcc
+		v.precacheFile,
+
+		v.setSpawnParms,
+	}
+	return v
+}
 
 func (v *virtualMachine) printStatement(s progs.Statement) {
 	if int(s.Operator) < len(operationNames) {
@@ -275,7 +339,7 @@ void PR_Profile_f(void) {
 
 */
 // Aborts the currently executing function
-func (v *virtualMachine) RunError(format string, a ...interface{}) {
+func (v *virtualMachine) runError(format string, a ...interface{}) {
 	v.printStatement(v.prog.Statements[v.statement])
 	v.stackTrace()
 
@@ -290,7 +354,7 @@ func (v *virtualMachine) RunError(format string, a ...interface{}) {
 //Returns the new program statement counter
 func (v *virtualMachine) enterFunction(f *progs.Function) int32 {
 	if len(v.stack) == cap(v.stack) {
-		v.RunError("stack overflow")
+		v.runError("stack overflow")
 	}
 	v.stack = append(v.stack, stackElem{
 		statement: v.statement,
@@ -300,7 +364,7 @@ func (v *virtualMachine) enterFunction(f *progs.Function) int32 {
 	// save off any locals that the new function steps on
 	c := f.Locals
 	if len(v.localStack)+int(c) > cap(v.localStack) {
-		v.RunError("PR_ExecuteProgram: locals stack overflow\n")
+		v.runError("PR_ExecuteProgram: locals stack overflow\n")
 	}
 	for i := int32(0); i < c; i++ {
 		v.localStack = append(v.localStack, v.prog.RawGlobalsI[f.ParmStart+i])
@@ -327,7 +391,7 @@ func (v *virtualMachine) leaveFunction() int32 {
 	// Restore locals from the stack
 	c := int(v.xfunction.Locals)
 	if len(v.localStack) < c {
-		v.RunError("PR_ExecuteProgram: locals stack underflow")
+		v.runError("PR_ExecuteProgram: locals stack underflow")
 	}
 
 	nl := len(v.localStack) - c
@@ -439,7 +503,7 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 		profile++
 		if profile > 100000 {
 			v.statement = currentStatement - int32(len(v.prog.Statements))
-			v.RunError("runaway loop error")
+			v.runError("runaway loop error")
 		}
 
 		if v.trace {
@@ -495,10 +559,10 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 			setOPCF(BOOL(OPAF() == 0))
 		case operatorNOT_V:
 			setOPCF(BOOL(OPAV() == vec.Vec3{0, 0, 0}))
-			/*
-			   case OP_NOT_S:
-			     setOPCF(!OPAI || !*PR_GetString(OPAI));
-			*/
+		case operatorNOT_S:
+			i := OPAI()
+			_, err := v.prog.String(i)
+			setOPCF(BOOL(i == 0 || err != nil))
 		case operatorNOT_FNC:
 			setOPCF(BOOL(OPAI() == 0))
 		case operatorNOT_ENT:
@@ -508,10 +572,14 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 			setOPCF(BOOL(OPAF() == OPBF()))
 		case operatorEQ_V:
 			setOPCF(BOOL(OPAV() == OPBV()))
-			/*
-			   case OP_EQ_S:
-			     setOPCF(!strcmp(PR_GetString(OPAI), PR_GetString(OPBI)));
-			*/
+		case operatorEQ_S:
+			a := OPAI()
+			sa, erra := v.prog.String(a)
+			b := OPBI()
+			sb, errb := v.prog.String(b)
+			setOPCF(BOOL(
+				(erra != nil && errb != nil) ||
+					(erra == nil && errb == nil && sa == sb)))
 		case operatorEQ_E:
 			setOPCF(BOOL(OPAI() == OPBI()))
 		case operatorEQ_FNC:
@@ -520,10 +588,14 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 			setOPCF(BOOL(OPAF() != OPBF()))
 		case operatorNE_V:
 			setOPCF(BOOL(OPAV() != OPBV()))
-			/*
-			   case operatorNE_S:
-			     SOPCF(strcmp(PR_GetString(OPAI), PR_GetString(OPBI)));
-			*/
+		case operatorNE_S:
+			a := OPAI()
+			sa, erra := v.prog.String(a)
+			b := OPBI()
+			sb, errb := v.prog.String(b)
+			setOPCF(BOOL(
+				(erra != errb) ||
+					(erra == nil && errb == nil && sa != sb)))
 		case operatorNE_E:
 			setOPCF(BOOL(OPAI() != OPBI()))
 		case operatorNE_FNC:
@@ -538,46 +610,40 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 		case operatorSTORE_V:
 			setOPBV(OPAV())
 
-			/*
-			   case OP_STOREP_F:
-			   case OP_STOREP_ENT:
-			   case OP_STOREP_FLD:  // integers
-			   case OP_STOREP_S:
-			   case OP_STOREP_FNC:  // pointers
-			     ptr = (eval_t *)((byte *)EVars(0) + OPBI);
-			     ptr->_int = OPAI;
-			     break;
-			   case OP_STOREP_V:
-			     ptr = (eval_t *)((byte *)EVars(0) + OPBI);
-			     ptr->vector[0] = OPAV1;
-			     ptr->vector[1] = OPAV2;
-			     ptr->vector[2] = OPAV3;
-			     break;
+		case operatorSTOREP_F,
+			operatorSTOREP_ENT,
+			operatorSTOREP_FLD, // integers
+			operatorSTOREP_S,
+			operatorSTOREP_FNC: // pointers
+			//ptr = (eval_t *)((byte *)EVars(0) + OPBI);
+			//ptr->_int = OPAI;
+		case operatorSTOREP_V:
+			//ptr = (eval_t *)((byte *)EVars(0) + OPBI);
+			//ptr->vector[0] = OPAV1;
+			//ptr->vector[1] = OPAV2;
+			//ptr->vector[2] = OPAV3;
 
-			   case OP_ADDRESS:
-			     ed = OPAI;
-			     if (ed == 0 && SV_State() == ss_active) {
-			       pr_xstatement = st - pr_statements;
-			       PR_RunError("assignment to world entity");
-			     }
-			     SOPCI((byte *)((int *)EVars(OPAI) + OPBI) - (byte *)EVars(0));
-			     break;
+		case operatorADDRESS:
+			//ed = OPAI;
+			//if (ed == 0 && SV_State() == ss_active) {
+			//  pr_xstatement = st - pr_statements;
+			//  v.runError("assignment to world entity");
+			//}
+			//SOPCI((byte *)((int *)EVars(OPAI) + OPBI) - (byte *)EVars(0));
 
-			   case OP_LOAD_F:
-			   case OP_LOAD_FLD:
-			   case OP_LOAD_ENT:
-			   case OP_LOAD_S:
-			   case OP_LOAD_FNC:
-			     SOPCI(((eval_t *)((int *)EVars(OPAI) + OPBI))->_int);
-			     break;
+		case operatorLOAD_F,
+			operatorLOAD_FLD,
+			operatorLOAD_ENT,
+			operatorLOAD_S,
+			operatorLOAD_FNC:
+			//SOPCI(((eval_t *)((int *)EVars(OPAI) + OPBI))->_int);
 
-			   case OP_LOAD_V:
-			     ptr = (eval_t *)((int *)EVars(OPAI) + OPBI);
-			     SOPCV1(ptr->vector[0]);
-			     SOPCV2(ptr->vector[1]);
-			     SOPCV3(ptr->vector[2]);
-			     break;
-			*/
+		case operatorLOAD_V:
+			//ptr = (eval_t *)((int *)EVars(OPAI) + OPBI);
+			//SOPCV1(ptr->vector[0]);
+			//SOPCV2(ptr->vector[1]);
+			//SOPCV3(ptr->vector[2]);
+
 		case operatorIFNOT:
 			if OPAI() == 0 {
 				currentStatement += int32(st().B) - 1 // -1 to offset the st++
@@ -590,32 +656,36 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 
 		case operatorGOTO:
 			currentStatement += int32(st().A) - 1 // -1 to offset the st++
-			/*
-			   case OP_CALL0:
-			   case OP_CALL1:
-			   case OP_CALL2:
-			   case OP_CALL3:
-			   case OP_CALL4:
-			   case OP_CALL5:
-			   case OP_CALL6:
-			   case OP_CALL7:
-			   case OP_CALL8:
-			     pr_xfunction->profile += profile - startprofile;
-			     startprofile = profile;
-			     pr_xstatement = st - pr_statements;
-			     pr_argc = st->op - OP_CALL0;
-			     if (!OPAI) PR_RunError("NULL function");
-			     newf = &pr_functions[OPAI];
-			     if (newf->first_statement < 0) {  // Built-in function
-			       int i = -newf->first_statement;
-			       if (i >= pr_numbuiltins) PR_RunError("Bad builtin call number %d", i);
-			       pr_builtins[i]();
-			       break;
-			     }
-			     // Normal function
-			     st = &pr_statements[PR_EnterFunction(newf)];
-			     break;
-			*/
+
+		case operatorCALL0,
+			operatorCALL1,
+			operatorCALL2,
+			operatorCALL3,
+			operatorCALL4,
+			operatorCALL5,
+			operatorCALL6,
+			operatorCALL7,
+			operatorCALL8:
+			v.xfunction.Profile += profile - startprofile
+			startprofile = profile
+			v.statement = currentStatement
+			v.argc = int(st().Operator) - operatorCALL0
+			if OPAI() == 0 {
+				v.runError("NULL function")
+			}
+			newf := &v.prog.Functions[OPAI()]
+			if newf.FirstStatement < 0 { // Built-in function
+				i := int(-newf.FirstStatement)
+				if i >= len(v.builtins) {
+					v.runError("Bad builtin call number %d", i)
+				}
+				v.builtins[i]()
+			} else {
+				// Normal function
+				currentStatement = v.enterFunction(newf)
+				// // st = &pr_statements[PR_EnterFunction(newf)];
+			}
+
 		case operatorDONE, operatorRETURN:
 			v.xfunction.Profile += profile - startprofile
 			startprofile = profile
@@ -625,16 +695,16 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 			if len(v.stack) == exitdepth { // Done
 				return
 			}
+
 		case operatorSTATE:
-			/*
-			   EVars(Pr_global_struct_self())->nextthink =
-			       Pr_global_struct_time() + 0.1;
-			   EVars(Pr_global_struct_self())->frame = OPAF;
-			   EVars(Pr_global_struct_self())->think = OPBI;
-			*/
+			ev := EntVars(int(v.prog.Globals.Self))
+			ev.NextThink = v.prog.Globals.Time + 0.1
+			ev.Frame = OPAF()
+			ev.Think = OPBI()
+
 		default:
 			v.statement = currentStatement - int32(len(v.prog.Statements))
-			v.RunError("Bad opcode %d", v.prog.Statements[currentStatement].Operator)
+			v.runError("Bad opcode %d", v.prog.Statements[currentStatement].Operator)
 		}
 	}
 }

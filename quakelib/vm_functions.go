@@ -20,15 +20,330 @@ import (
 	"github.com/chewxy/math32"
 )
 
-func runError(format string, v ...interface{}) {
-	// TODO: see PR_RunError
-	conlog.Printf(format, v...)
+//export SV_movestep
+func SV_movestep(ent int, move *C.float, relink int) C.int {
+	m := p2v3(move)
+	return b2i(monsterMoveStep(ent, m, relink != 0))
+}
+
+//export SV_MoveToGoal
+func SV_MoveToGoal() {
+	monsterMoveToGoal()
+}
+
+//export PF_Fixme
+func PF_Fixme() {
+	vm.fixme()
+}
+
+//export PF_objerror
+func PF_objerror() {
+	vm.objError()
+}
+
+//export PF_error
+func PF_error() {
+	vm.terminalError()
+}
+
+//export PF_dprint
+func PF_dprint() {
+	vm.dprint()
+}
+
+//export PF_bprint
+func PF_bprint() {
+	vm.bprint()
+}
+
+//export PF_sprint
+func PF_sprint() {
+	vm.sprint()
+}
+
+//export PF_centerprint
+func PF_centerprint() {
+	vm.centerPrint()
+}
+
+//export PF_setorigin
+func PF_setorigin() {
+	vm.setOrigin()
+}
+
+//export PF_setsize
+func PF_setsize() {
+	vm.setSize()
+}
+
+//export PF_setmodel
+func PF_setmodel() {
+	vm.setModel()
+}
+
+//export PF_normalize
+func PF_normalize() {
+	vm.normalize()
+}
+
+//export PF_vlen
+func PF_vlen() {
+	vm.vlen()
+}
+
+//export PF_vectoyaw
+func PF_vectoyaw() {
+	vm.vecToYaw()
+}
+
+//export PF_vectoangles
+func PF_vectoangles() {
+	vm.vecToAngles()
+}
+
+//export PF_random
+func PF_random() {
+	vm.random()
+}
+
+//export PF_particle
+func PF_particle() {
+	vm.particle()
+}
+
+//export PF_ambientsound
+func PF_ambientsound() {
+	vm.ambientSound()
+}
+
+//export PF_sound
+func PF_sound() {
+	vm.sound()
+}
+
+//export PF_break
+func PF_break() {
+	vm.doBreak()
+}
+
+//export PF_traceline
+func PF_traceline() {
+	vm.traceline()
+}
+
+//export PF_checkclient
+func PF_checkclient() {
+	vm.checkClient()
+}
+
+//export PF_stuffcmd
+func PF_stuffcmd() {
+	vm.stuffCmd()
+}
+
+//export PF_localcmd
+func PF_localcmd() {
+	vm.localCmd()
+}
+
+//export PF_cvar
+func PF_cvar() {
+	vm.cvar()
+}
+
+//export PF_cvar_set
+func PF_cvar_set() {
+	vm.cvarSet()
+}
+
+//export PF_findradius
+func PF_findradius() {
+	vm.findRadius()
+}
+
+//export PF_ftos
+func PF_ftos() {
+	vm.ftos()
+}
+
+//export PF_fabs
+func PF_fabs() {
+	vm.fabs()
+}
+
+//export PF_vtos
+func PF_vtos() {
+	vm.vtos()
+}
+
+//export PF_Spawn
+func PF_Spawn() {
+	vm.spawn()
+}
+
+//export PF_Remove
+func PF_Remove() {
+	vm.remove()
+}
+
+//export PF_Find
+func PF_Find() {
+	vm.find()
+}
+
+//export PF_precache_file
+func PF_precache_file() {
+	vm.precacheFile()
+}
+
+//export PF_precache_sound
+func PF_precache_sound() {
+	vm.precacheSound()
+}
+
+//export PF_precache_model
+func PF_precache_model() {
+	vm.precacheModel()
+}
+
+//export PF_coredump
+func PF_coredump() {
+	vm.coredump()
+}
+
+//export PF_eprint
+func PF_eprint() {
+	vm.eprint()
+}
+
+//export PF_traceon
+func PF_traceon() {
+	vm.traceOn()
+}
+
+//export PF_traceoff
+func PF_traceoff() {
+	vm.traceOff()
+}
+
+//export PF_walkmove
+func PF_walkmove() {
+	vm.walkMove()
+}
+
+//export PF_droptofloor
+func PF_droptofloor() {
+	vm.dropToFloor()
+}
+
+//export PF_lightstyle
+func PF_lightstyle() {
+	vm.lightStyle()
+}
+
+//export PF_rint
+func PF_rint() {
+	vm.rint()
+}
+
+//export PF_floor
+func PF_floor() {
+	vm.floor()
+}
+
+//export PF_ceil
+func PF_ceil() {
+	vm.ceil()
+}
+
+//export PF_checkbottom
+func PF_checkbottom() {
+	vm.checkBottom()
+}
+
+//export PF_makevectors
+func PF_makevectors() {
+	vm.makeVectors()
+}
+
+//export PF_pointcontents
+func PF_pointcontents() {
+	vm.pointContents()
+}
+
+//export PF_nextent
+func PF_nextent() {
+	vm.nextEnt()
+}
+
+//export PF_aim
+func PF_aim() {
+	vm.aim()
+}
+
+//export PF_changeyaw
+func PF_changeyaw() {
+	vm.changeYaw()
+}
+
+//export PF_WriteByte
+func PF_WriteByte() {
+	vm.writeByte()
+}
+
+//export PF_WriteChar
+func PF_WriteChar() {
+	vm.writeChar()
+}
+
+//export PF_WriteShort
+func PF_WriteShort() {
+	vm.writeShort()
+}
+
+//export PF_WriteLong
+func PF_WriteLong() {
+	vm.writeLong()
+}
+
+//export PF_WriteAngle
+func PF_WriteAngle() {
+	vm.writeAngle()
+}
+
+//export PF_WriteCoord
+func PF_WriteCoord() {
+	vm.writeCoord()
+}
+
+//export PF_WriteString
+func PF_WriteString() {
+	vm.writeString()
+}
+
+//export PF_WriteEntity
+func PF_WriteEntity() {
+	vm.writeEntity()
+}
+
+//export PF_makestatic
+func PF_makestatic() {
+	vm.makeStatic()
+}
+
+//export PF_changelevel
+func PF_changelevel() {
+	vm.changeLevel()
+}
+
+//export PF_setspawnparms
+func PF_setspawnparms() {
+	vm.setSpawnParms()
 }
 
 // Dumps out self, then an error message.  The program is aborted and self is
 // removed, but the level can continue.
-//export PF_objerror
-func PF_objerror() {
+func (v *virtualMachine) objError() {
 	s := vmVarString(0)
 	fs := vmFuncName()
 	conlog.Printf("======OBJECT ERROR in %s:\n%s\n", fs, s)
@@ -39,8 +354,7 @@ func PF_objerror() {
 
 // This is a TERMINAL error, which will kill off the entire server.
 // Dumps self.
-//export PF_error
-func PF_error() {
+func (v *virtualMachine) terminalError() {
 	s := vmVarString(0)
 	fs := vmFuncName()
 	conlog.Printf("======SERVER ERROR in %s:\n%s\n", fs, s)
@@ -48,22 +362,19 @@ func PF_error() {
 	HostError("Program error")
 }
 
-//export PF_dprint
-func PF_dprint() {
+func (v *virtualMachine) dprint() {
 	s := vmVarString(0)
 	conlog.DPrintf(s)
 }
 
 // broadcast print to everyone on server
-//export PF_bprint
-func PF_bprint() {
+func (v *virtualMachine) bprint() {
 	s := vmVarString(0)
 	SV_BroadcastPrint(s)
 }
 
 // single print to a specific client
-//export PF_sprint
-func PF_sprint() {
+func (v *virtualMachine) sprint() {
 	e := int(progsdat.Globals.Parm0[0])
 	s := vmVarString(1)
 	if e < 1 || e > svs.maxClients {
@@ -77,8 +388,7 @@ func PF_sprint() {
 }
 
 // single print to a specific client
-//export PF_centerprint
-func PF_centerprint() {
+func (v *virtualMachine) centerPrint() {
 	e := int(progsdat.Globals.Parm0[0])
 	s := vmVarString(1)
 	if e < 1 || e > svs.maxClients {
@@ -99,8 +409,7 @@ will not set internal links correctly, so clipping would be messed up.
 This should be called when an object is spawned, and then only if it is
 teleported.
 */
-//export PF_setorigin
-func PF_setorigin() {
+func (v *virtualMachine) setOrigin() {
 	e := int(progsdat.Globals.Parm0[0])
 	ev := EntVars(e)
 	ev.Origin = *progsdat.Globals.Parm1f()
@@ -117,8 +426,7 @@ func setMinMaxSize(ev *progs.EntVars, min, max vec.Vec3) {
 	ev.Size = vec.Sub(max, min)
 }
 
-//export PF_setsize
-func PF_setsize() {
+func (v *virtualMachine) setSize() {
 	e := int(progsdat.Globals.Parm0[0])
 	min := vec.VFromA(*progsdat.Globals.Parm1f())
 	max := vec.VFromA(*progsdat.Globals.Parm2f())
@@ -126,14 +434,12 @@ func PF_setsize() {
 	LinkEdict(e, false)
 }
 
-//export PF_setmodel
-func PF_setmodel() {
-
+func (v *virtualMachine) setModel() {
 	e := int(progsdat.Globals.Parm0[0])
 	mi := progsdat.Globals.Parm1[0]
 	m, err := progsdat.String(mi)
 	if err != nil {
-		runError("no precache: %d", mi)
+		v.runError("no precache: %d", mi)
 		return
 	}
 
@@ -145,7 +451,7 @@ func PF_setmodel() {
 		}
 	}
 	if idx == -1 {
-		runError("no precache: %s", m)
+		v.runError("no precache: %s", m)
 		return
 	}
 
@@ -170,27 +476,24 @@ func PF_setmodel() {
 	LinkEdict(e, false)
 }
 
-//export PF_normalize
-func PF_normalize() {
-	v := vec.VFromA(*progsdat.Globals.Parm0f())
-	*progsdat.Globals.Returnf() = v.Normalize()
+func (v *virtualMachine) normalize() {
+	ve := vec.VFromA(*progsdat.Globals.Parm0f())
+	*progsdat.Globals.Returnf() = ve.Normalize()
 }
 
-//export PF_vlen
-func PF_vlen() {
-	v := vec.VFromA(*progsdat.Globals.Parm0f())
-	l := v.Length()
+func (v *virtualMachine) vlen() {
+	ve := vec.VFromA(*progsdat.Globals.Parm0f())
+	l := ve.Length()
 	progsdat.Globals.Returnf()[0] = l
 }
 
-//export PF_vectoyaw
-func PF_vectoyaw() {
-	v := vec.VFromA(*progsdat.Globals.Parm0f())
+func (v *virtualMachine) vecToYaw() {
+	ve := vec.VFromA(*progsdat.Globals.Parm0f())
 	yaw := func() float32 {
-		if v[0] == 0 && v[1] == 0 {
+		if ve[0] == 0 && ve[1] == 0 {
 			return 0
 		}
-		y := (math32.Atan2(v[1], v[0]) * 180) / math32.Pi
+		y := (math32.Atan2(ve[1], ve[0]) * 180) / math32.Pi
 		y = math32.Trunc(y)
 		if y < 0 {
 			y += 360
@@ -200,26 +503,25 @@ func PF_vectoyaw() {
 	progsdat.Globals.Returnf()[0] = yaw
 }
 
-//export PF_vectoangles
-func PF_vectoangles() {
-	v := vec.VFromA(*progsdat.Globals.Parm0f())
+func (v *virtualMachine) vecToAngles() {
+	ve := vec.VFromA(*progsdat.Globals.Parm0f())
 	yaw, pitch := func() (float32, float32) {
-		if v[0] == 0 && v[1] == 0 {
+		if ve[0] == 0 && ve[1] == 0 {
 			p := func() float32 {
-				if v[2] > 0 {
+				if ve[2] > 0 {
 					return 90
 				}
 				return 270
 			}()
 			return 0, p
 		}
-		y := (math32.Atan2(v[1], v[0]) * 180) / math32.Pi
+		y := (math32.Atan2(ve[1], ve[0]) * 180) / math32.Pi
 		y = math32.Trunc(y)
 		if y < 0 {
 			y += 360
 		}
-		forward := math32.Sqrt(v[0]*v[0] + v[1]*v[1])
-		p := (math32.Atan2(v[2], forward) * 180) / math32.Pi
+		forward := math32.Sqrt(ve[0]*ve[0] + ve[1]*ve[1])
+		p := (math32.Atan2(ve[2], forward) * 180) / math32.Pi
 		p = math32.Trunc(p)
 		if p < 0 {
 			p += 360
@@ -230,13 +532,11 @@ func PF_vectoangles() {
 }
 
 // Returns a number from 0 <= num < 1
-//export PF_random
-func PF_random() {
+func (v *virtualMachine) random() {
 	progsdat.Globals.Returnf()[0] = rand.Float32()
 }
 
-//export PF_particle
-func PF_particle() {
+func (v *virtualMachine) particle() {
 	org := vec.VFromA(*progsdat.Globals.Parm0f())
 	dir := vec.VFromA(*progsdat.Globals.Parm1f())
 	color := progsdat.RawGlobalsF[progs.OffsetParm2]
@@ -244,8 +544,7 @@ func PF_particle() {
 	sv.StartParticle(org, dir, int(color), int(count))
 }
 
-//export PF_ambientsound
-func PF_ambientsound() {
+func (v *virtualMachine) ambientSound() {
 	large := false
 	pos := vec.VFromA(*progsdat.Globals.Parm0f())
 	sample, err := progsdat.String(progsdat.Globals.Parm1[0])
@@ -306,13 +605,12 @@ func PF_ambientsound() {
 // already running on that entity/channel pair.
 // An attenuation of 0 will play full volume everywhere in the level.
 // Larger attenuations will drop off.
-//export PF_sound
-func PF_sound() {
+func (v *virtualMachine) sound() {
 	entity := progsdat.Globals.Parm0[0]
 	channel := progsdat.RawGlobalsF[progs.OffsetParm1]
 	sample, err := progsdat.String(progsdat.Globals.Parm2[0])
 	if err != nil {
-		runError("PF_sound: no sample")
+		v.runError("PF_sound: no sample")
 		return
 	}
 	volume := progsdat.RawGlobalsF[progs.OffsetParm3] * 255
@@ -332,8 +630,7 @@ func PF_sound() {
 	sv.StartSound(int(entity), int(channel), int(volume), sample, attenuation)
 }
 
-//export PF_break
-func PF_break() {
+func (v *virtualMachine) doBreak() {
 	conlog.Printf("break statement\n")
 	runtime.Breakpoint()
 }
@@ -341,8 +638,7 @@ func PF_break() {
 // Used for use tracing and shot targeting
 // Traces are blocked by bbox and exact bsp entityes, and also slide
 // box entities if the tryents flag is set.
-//export PF_traceline
-func PF_traceline() {
+func (v *virtualMachine) traceline() {
 	v1 := vec.VFromA(*progsdat.Globals.Parm0f())
 	v2 := vec.VFromA(*progsdat.Globals.Parm1f())
 	nomonsters := progsdat.RawGlobalsF[progs.OffsetParm2]
@@ -394,7 +690,7 @@ func init() {
 	checkpvs = make([]byte, model.MAX_MAP_LEAFS/8)
 }
 
-func PF_newcheckclient(check int) int {
+func (v *virtualMachine) newcheckclient(check int) int {
 	// cycle to the next one
 	if check < 1 {
 		check = 1
@@ -452,11 +748,10 @@ func PF_newcheckclient(check int) int {
 // If there are more than one valid options, they are cycled each frame
 // If (self.origin + self.viewofs) is not in the PVS of the current target,
 // it is not returned at all.
-//export PF_checkclient
-func PF_checkclient() {
+func (v *virtualMachine) checkClient() {
 	// find a new check if on a new frame
 	if sv.time-sv.lastCheckTime >= 0.1 {
-		sv.lastCheck = PF_newcheckclient(sv.lastCheck)
+		sv.lastCheck = v.newcheckclient(sv.lastCheck)
 		sv.lastCheckTime = sv.time
 	}
 
@@ -492,16 +787,15 @@ func PF_checkclient() {
 }
 
 // Sends text over to the client's execution buffer
-//export PF_stuffcmd
-func PF_stuffcmd() {
+func (v *virtualMachine) stuffCmd() {
 	entnum := int(progsdat.Globals.Parm0[0])
 	if entnum < 1 || entnum > svs.maxClients {
-		runError("Parm 0 not a client")
+		v.runError("Parm 0 not a client")
 		return
 	}
 	str, err := progsdat.String(progsdat.Globals.Parm1[0])
 	if err != nil {
-		runError("stuffcmd: no string")
+		v.runError("stuffcmd: no string")
 		return
 	}
 
@@ -511,44 +805,40 @@ func PF_stuffcmd() {
 }
 
 // Sends text over to the client's execution buffer
-//export PF_localcmd
-func PF_localcmd() {
+func (v *virtualMachine) localCmd() {
 	str, err := progsdat.String(progsdat.Globals.Parm0[0])
 	if err != nil {
-		runError("localcmd: no string")
+		v.runError("localcmd: no string")
 		return
 	}
 	cbuf.AddText(str)
 }
 
-//export PF_cvar
-func PF_cvar() {
+func (v *virtualMachine) cvar() {
 	str, err := progsdat.String(progsdat.Globals.Parm0[0])
 	if err != nil {
-		runError("PF_cvar: no string")
+		v.runError("PF_cvar: no string")
 		return
 	}
 	progsdat.Globals.Returnf()[0] = CvarVariableValue(str)
 }
 
-//export PF_cvar_set
-func PF_cvar_set() {
+func (v *virtualMachine) cvarSet() {
 	name, err := progsdat.String(progsdat.Globals.Parm0[0])
 	if err != nil {
-		runError("PF_cvar_set: no name string")
+		v.runError("PF_cvar_set: no name string")
 		return
 	}
 	val, err := progsdat.String(progsdat.Globals.Parm1[0])
 	if err != nil {
-		runError("PF_cvar_set: no val string")
+		v.runError("PF_cvar_set: no val string")
 		return
 	}
 	cvarSet(name, val)
 }
 
 // Returns a chain of entities that have origins within a spherical area
-//export PF_findradius
-func PF_findradius() {
+func (v *virtualMachine) findRadius() {
 	chain := int32(0)
 	org := vec.VFromA(*progsdat.Globals.Parm0f())
 	rad := progsdat.RawGlobalsF[progs.OffsetParm1]
@@ -576,51 +866,45 @@ func PF_findradius() {
 	progsdat.Globals.Return[0] = chain
 }
 
-//export PF_ftos
-func PF_ftos() {
-	v := progsdat.RawGlobalsF[progs.OffsetParm0]
+func (v *virtualMachine) ftos() {
+	ve := progsdat.RawGlobalsF[progs.OffsetParm0]
 	s := func() string {
-		iv := int(v)
-		if v == float32(iv) {
+		iv := int(ve)
+		if ve == float32(iv) {
 			return fmt.Sprintf("%d", iv)
 		}
-		return fmt.Sprintf("%5.1f", v)
+		return fmt.Sprintf("%5.1f", ve)
 	}()
 	progsdat.Globals.Return[0] = progsdat.AddString(s)
 }
 
-//export PF_fabs
-func PF_fabs() {
+func (v *virtualMachine) fabs() {
 	f := progsdat.RawGlobalsF[progs.OffsetParm0]
 	progsdat.Globals.Returnf()[0] = math32.Abs(f)
 }
 
-//export PF_vtos
-func PF_vtos() {
+func (v *virtualMachine) vtos() {
 	p := *progsdat.Globals.Parm0f()
 	s := fmt.Sprintf("'%5.1f %5.1f %5.1f'", p[0], p[1], p[2])
 	progsdat.Globals.Return[0] = progsdat.AddString(s)
 }
 
-//export PF_Spawn
-func PF_Spawn() {
+func (v *virtualMachine) spawn() {
 	ed := edictAlloc()
 	progsdat.Globals.Return[0] = int32(ed)
 }
 
-//export PF_Remove
-func PF_Remove() {
+func (v *virtualMachine) remove() {
 	ed := progsdat.Globals.Parm0[0]
 	edictFree(int(ed))
 }
 
-//export PF_Find
-func PF_Find() {
+func (v *virtualMachine) find() {
 	e := progsdat.Globals.Parm0[0]
 	f := progsdat.Globals.Parm1[0]
 	s, err := progsdat.String(progsdat.Globals.Parm2[0])
 	if err != nil {
-		runError("PF_Find: bad search string")
+		v.runError("PF_Find: bad search string")
 		return
 	}
 	for e++; int(e) < sv.numEdicts; e++ {
@@ -641,15 +925,13 @@ func PF_Find() {
 }
 
 // precache_file is only used to copy  files with qcc, it does nothing
-//export PF_precache_file
-func PF_precache_file() {
+func (v *virtualMachine) precacheFile() {
 	progsdat.Globals.Return[0] = progsdat.Globals.Parm0[0]
 }
 
-//export PF_precache_sound
-func PF_precache_sound() {
+func (v *virtualMachine) precacheSound() {
 	if sv.state != ServerStateLoading {
-		runError("PF_Precache_*: Precache can only be done in spawn functions")
+		v.runError("PF_Precache_*: Precache can only be done in spawn functions")
 		return
 	}
 
@@ -657,7 +939,7 @@ func PF_precache_sound() {
 	progsdat.Globals.Return[0] = si
 	s, err := progsdat.String(si)
 	if err != nil {
-		runError("Bad string")
+		v.runError("Bad string")
 		return
 	}
 
@@ -673,16 +955,15 @@ func PF_precache_sound() {
 		return
 	}
 	if len(sv.soundPrecache) >= 2048 {
-		runError("PF_precache_sound: overflow")
+		v.runError("PF_precache_sound: overflow")
 		return
 	}
 	sv.soundPrecache = append(sv.soundPrecache, s)
 }
 
-//export PF_precache_model
-func PF_precache_model() {
+func (v *virtualMachine) precacheModel() {
 	if sv.state != ServerStateLoading {
-		runError("PF_Precache_*: Precache can only be done in spawn functions")
+		v.runError("PF_Precache_*: Precache can only be done in spawn functions")
 		return
 	}
 
@@ -690,7 +971,7 @@ func PF_precache_model() {
 	progsdat.Globals.Return[0] = si
 	s, err := progsdat.String(si)
 	if err != nil {
-		runError("Bad string")
+		v.runError("Bad string")
 		return
 	}
 
@@ -706,7 +987,7 @@ func PF_precache_model() {
 		return
 	}
 	if len(sv.modelPrecache) >= 2048 {
-		runError("PF_precache_sound: overflow")
+		v.runError("PF_precache_sound: overflow")
 		return
 	}
 	sv.modelPrecache = append(sv.modelPrecache, s)
@@ -722,63 +1003,58 @@ func PF_precache_model() {
 	sv.models = append(sv.models, m)
 }
 
-//export PF_coredump
-func PF_coredump() {
+func (v *virtualMachine) coredump() {
 	edictPrintEdicts()
 }
 
-//export PF_eprint
-func PF_eprint() {
+func (v *virtualMachine) eprint() {
 	edictPrint(int(progsdat.Globals.Parm0[0]))
 }
 
-//export PF_traceon
-func PF_traceon() {
+func (v *virtualMachine) traceOn() {
 	vmTraceOn()
 }
 
-//export PF_traceoff
-func PF_traceoff() {
+func (v *virtualMachine) traceOff() {
 	vmTraceOff()
 }
 
-/*
-static void PF_walkmove(void) {
-  int ent;
-  float yaw, dist;
-  vec3_t move;
-  dfunction_t *oldf;
-  int oldself;
+func (v *virtualMachine) walkMove() {
+	/*
+	   int ent;
+	   float yaw, dist;
+	   vec3_t move;
+	   dfunction_t *oldf;
+	   int oldself;
 
-  ent = Pr_global_struct_self();
-  yaw = Pr_globalsf(OFS_PARM0);
-  dist = Pr_globalsf(OFS_PARM1);
+	   ent = Pr_global_struct_self();
+	   yaw = Pr_globalsf(OFS_PARM0);
+	   dist = Pr_globalsf(OFS_PARM1);
 
-  if (!((int)EVars(ent)->flags & (FL_ONGROUND | FL_FLY | FL_SWIM))) {
-    Set_Pr_globalsf(OFS_RETURN, 0);
-    return;
-  }
+	   if (!((int)EVars(ent)->flags & (FL_ONGROUND | FL_FLY | FL_SWIM))) {
+	     Set_Pr_globalsf(OFS_RETURN, 0);
+	     return;
+	   }
 
-  yaw = yaw * M_PI * 2 / 360;
+	   yaw = yaw * M_PI * 2 / 360;
 
-  move[0] = cos(yaw) * dist;
-  move[1] = sin(yaw) * dist;
-  move[2] = 0;
+	   move[0] = cos(yaw) * dist;
+	   move[1] = sin(yaw) * dist;
+	   move[2] = 0;
 
-  // save program state, because SV_movestep may call other progs
-  oldf = pr_xfunction;
-  oldself = Pr_global_struct_self();
+	   // save program state, because SV_movestep may call other progs
+	   oldf = pr_xfunction;
+	   oldself = Pr_global_struct_self();
 
-  Set_Pr_globalsf(OFS_RETURN, SV_movestep(ent, move, true));
+	   Set_Pr_globalsf(OFS_RETURN, SV_movestep(ent, move, true));
 
-  // restore program state
-  pr_xfunction = oldf;
-  Set_pr_global_struct_self(oldself);
+	   // restore program state
+	   pr_xfunction = oldf;
+	   Set_pr_global_struct_self(oldself);
+	*/
 }
-*/
 
-//export PF_droptofloor
-func PF_droptofloor() {
+func (v *virtualMachine) dropToFloor() {
 	ent := int(progsdat.Globals.Self)
 	ev := EntVars(ent)
 	start := vec.VFromA(ev.Origin)
@@ -800,8 +1076,7 @@ func PF_droptofloor() {
 	}
 }
 
-//export PF_lightstyle
-func PF_lightstyle() {
+func (v *virtualMachine) lightStyle() {
 	style := int(progsdat.RawGlobalsF[progs.OffsetParm0])
 	vi := progsdat.Globals.Parm1[0]
 	val, err := progsdat.String(vi)
@@ -826,26 +1101,22 @@ func PF_lightstyle() {
 	}
 }
 
-//export PF_rint
-func PF_rint() {
-	v := progsdat.RawGlobalsF[progs.OffsetParm0]
-	progsdat.Globals.Returnf()[0] = math.RoundToEven(v)
+func (v *virtualMachine) rint() {
+	f := progsdat.RawGlobalsF[progs.OffsetParm0]
+	progsdat.Globals.Returnf()[0] = math.RoundToEven(f)
 }
 
-//export PF_floor
-func PF_floor() {
-	v := progsdat.RawGlobalsF[progs.OffsetParm0]
-	progsdat.Globals.Returnf()[0] = math32.Floor(v)
+func (v *virtualMachine) floor() {
+	f := progsdat.RawGlobalsF[progs.OffsetParm0]
+	progsdat.Globals.Returnf()[0] = math32.Floor(f)
 }
 
-//export PF_ceil
-func PF_ceil() {
-	v := progsdat.RawGlobalsF[progs.OffsetParm0]
-	progsdat.Globals.Returnf()[0] = math32.Ceil(v)
+func (v *virtualMachine) ceil() {
+	f := progsdat.RawGlobalsF[progs.OffsetParm0]
+	progsdat.Globals.Returnf()[0] = math32.Ceil(f)
 }
 
-//export PF_checkbottom
-func PF_checkbottom() {
+func (v *virtualMachine) checkBottom() {
 	entnum := int(progsdat.Globals.Parm0[0])
 	f := float32(0)
 	if checkBottom(entnum) {
@@ -855,24 +1126,21 @@ func PF_checkbottom() {
 }
 
 // Writes new values for v_forward, v_up, and v_right based on angles makevectors(vector)
-//export PF_makevectors
-func PF_makevectors() {
-	v := vec.VFromA(*progsdat.Globals.Parm0f())
-	f, r, u := vec.AngleVectors(v)
+func (v *virtualMachine) makeVectors() {
+	ve := vec.VFromA(*progsdat.Globals.Parm0f())
+	f, r, u := vec.AngleVectors(ve)
 	progsdat.Globals.VForward = f
 	progsdat.Globals.VRight = r
 	progsdat.Globals.VUp = u
 }
 
-//export PF_pointcontents
-func PF_pointcontents() {
-	v := vec.VFromA(*progsdat.Globals.Parm0f())
-	pc := pointContents(v)
+func (v *virtualMachine) pointContents() {
+	ve := vec.VFromA(*progsdat.Globals.Parm0f())
+	pc := pointContents(ve)
 	progsdat.Globals.Returnf()[0] = float32(pc)
 }
 
-//export PF_nextent
-func PF_nextent() {
+func (v *virtualMachine) nextEnt() {
 	i := progsdat.Globals.Parm0[0]
 	for {
 		i++
@@ -888,8 +1156,7 @@ func PF_nextent() {
 }
 
 // Pick a vector for the player to shoot along
-//export PF_aim
-func PF_aim() {
+func (v *virtualMachine) aim() {
 	const DAMAGE_AIM = 2
 	ent := int(progsdat.Globals.Parm0[0])
 	ev := EntVars(ent)
@@ -967,37 +1234,9 @@ func PF_aim() {
 }
 
 // This was a major timewaster in progs
-//export PF_changeyaw
-func PF_changeyaw() {
+func (v *virtualMachine) changeYaw() {
 	ent := int(progsdat.Globals.Self)
-	ev := EntVars(ent)
-	current := math.AngleMod32(ev.Angles[1])
-	ideal := ev.IdealYaw
-	speed := ev.YawSpeed
-
-	if current == ideal {
-		return
-	}
-	move := ideal - current
-	if ideal > current {
-		if move >= 180 {
-			move -= 360
-		}
-	} else {
-		if move <= -180 {
-			move += 360
-		}
-	}
-	if move > 0 {
-		if move > speed {
-			move = speed
-		}
-	} else {
-		if move < -speed {
-			move = -speed
-		}
-	}
-	ev.Angles[1] = math.AngleMod32(current + move)
+	changeYaw(ent)
 }
 
 const (
@@ -1007,21 +1246,20 @@ const (
 	MSG_INIT             // write to the init string
 )
 
-func writeClient() int {
+func (v *virtualMachine) writeClient() int {
 	entnum := int(progsdat.Globals.MsgEntity)
 	if entnum < 1 || entnum > svs.maxClients {
-		runError("WriteDest: not a client")
+		v.runError("WriteDest: not a client")
 	}
 	return entnum - 1
 }
 
-//export PF_WriteByte
-func PF_WriteByte() {
+func (v *virtualMachine) writeByte() {
 	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
 	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
 	switch dest {
 	case MSG_ONE:
-		sv_clients[writeClient()].msg.WriteByte(int(msg))
+		sv_clients[v.writeClient()].msg.WriteByte(int(msg))
 	case MSG_INIT:
 		sv.signon.WriteByte(int(msg))
 	case MSG_BROADCAST:
@@ -1029,17 +1267,16 @@ func PF_WriteByte() {
 	case MSG_ALL:
 		sv.reliableDatagram.WriteByte(int(msg))
 	default:
-		runError("WriteDest: bad destination")
+		v.runError("WriteDest: bad destination")
 	}
 }
 
-//export PF_WriteChar
-func PF_WriteChar() {
+func (v *virtualMachine) writeChar() {
 	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
 	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
 	switch dest {
 	case MSG_ONE:
-		sv_clients[writeClient()].msg.WriteChar(int(msg))
+		sv_clients[v.writeClient()].msg.WriteChar(int(msg))
 	case MSG_INIT:
 		sv.signon.WriteChar(int(msg))
 	case MSG_BROADCAST:
@@ -1047,17 +1284,16 @@ func PF_WriteChar() {
 	case MSG_ALL:
 		sv.reliableDatagram.WriteChar(int(msg))
 	default:
-		runError("WriteDest: bad destination")
+		v.runError("WriteDest: bad destination")
 	}
 }
 
-//export PF_WriteShort
-func PF_WriteShort() {
+func (v *virtualMachine) writeShort() {
 	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
 	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
 	switch dest {
 	case MSG_ONE:
-		sv_clients[writeClient()].msg.WriteShort(int(msg))
+		sv_clients[v.writeClient()].msg.WriteShort(int(msg))
 	case MSG_INIT:
 		sv.signon.WriteShort(int(msg))
 	case MSG_BROADCAST:
@@ -1065,17 +1301,16 @@ func PF_WriteShort() {
 	case MSG_ALL:
 		sv.reliableDatagram.WriteShort(int(msg))
 	default:
-		runError("WriteDest: bad destination")
+		v.runError("WriteDest: bad destination")
 	}
 }
 
-//export PF_WriteLong
-func PF_WriteLong() {
+func (v *virtualMachine) writeLong() {
 	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
 	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
 	switch dest {
 	case MSG_ONE:
-		sv_clients[writeClient()].msg.WriteLong(int(msg))
+		sv_clients[v.writeClient()].msg.WriteLong(int(msg))
 	case MSG_INIT:
 		sv.signon.WriteLong(int(msg))
 	case MSG_BROADCAST:
@@ -1083,17 +1318,16 @@ func PF_WriteLong() {
 	case MSG_ALL:
 		sv.reliableDatagram.WriteLong(int(msg))
 	default:
-		runError("WriteDest: bad destination")
+		v.runError("WriteDest: bad destination")
 	}
 }
 
-//export PF_WriteAngle
-func PF_WriteAngle() {
+func (v *virtualMachine) writeAngle() {
 	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
 	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
 	switch dest {
 	case MSG_ONE:
-		sv_clients[writeClient()].msg.WriteAngle(msg, sv.protocolFlags)
+		sv_clients[v.writeClient()].msg.WriteAngle(msg, sv.protocolFlags)
 	case MSG_INIT:
 		sv.signon.WriteAngle(msg, sv.protocolFlags)
 	case MSG_BROADCAST:
@@ -1101,17 +1335,16 @@ func PF_WriteAngle() {
 	case MSG_ALL:
 		sv.reliableDatagram.WriteAngle(msg, sv.protocolFlags)
 	default:
-		runError("WriteDest: bad destination")
+		v.runError("WriteDest: bad destination")
 	}
 }
 
-//export PF_WriteCoord
-func PF_WriteCoord() {
+func (v *virtualMachine) writeCoord() {
 	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
 	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
 	switch dest {
 	case MSG_ONE:
-		sv_clients[writeClient()].msg.WriteCoord(msg, sv.protocolFlags)
+		sv_clients[v.writeClient()].msg.WriteCoord(msg, sv.protocolFlags)
 	case MSG_INIT:
 		sv.signon.WriteCoord(msg, sv.protocolFlags)
 	case MSG_BROADCAST:
@@ -1119,22 +1352,21 @@ func PF_WriteCoord() {
 	case MSG_ALL:
 		sv.reliableDatagram.WriteCoord(msg, sv.protocolFlags)
 	default:
-		runError("WriteDest: bad destination")
+		v.runError("WriteDest: bad destination")
 	}
 }
 
-//export PF_WriteString
-func PF_WriteString() {
+func (v *virtualMachine) writeString() {
 	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
 	i := progsdat.Globals.Parm1[0]
 	msg, err := progsdat.String(i)
 	if err != nil {
-		runError("PF_WriteString: bad string")
+		v.runError("PF_WriteString: bad string")
 		return
 	}
 	switch dest {
 	case MSG_ONE:
-		sv_clients[writeClient()].msg.WriteString(msg)
+		sv_clients[v.writeClient()].msg.WriteString(msg)
 	case MSG_INIT:
 		sv.signon.WriteString(msg)
 	case MSG_BROADCAST:
@@ -1142,17 +1374,16 @@ func PF_WriteString() {
 	case MSG_ALL:
 		sv.reliableDatagram.WriteString(msg)
 	default:
-		runError("WriteDest: bad destination")
+		v.runError("WriteDest: bad destination")
 	}
 }
 
-//export PF_WriteEntity
-func PF_WriteEntity() {
+func (v *virtualMachine) writeEntity() {
 	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
 	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
 	switch dest {
 	case MSG_ONE:
-		sv_clients[writeClient()].msg.WriteShort(int(msg))
+		sv_clients[v.writeClient()].msg.WriteShort(int(msg))
 	case MSG_INIT:
 		sv.signon.WriteShort(int(msg))
 	case MSG_BROADCAST:
@@ -1160,12 +1391,11 @@ func PF_WriteEntity() {
 	case MSG_ALL:
 		sv.reliableDatagram.WriteShort(int(msg))
 	default:
-		runError("WriteDest: bad destination")
+		v.runError("WriteDest: bad destination")
 	}
 }
 
-//export PF_makestatic
-func PF_makestatic() {
+func (v *virtualMachine) makeStatic() {
 	bits := 0
 
 	ent := int(progsdat.Globals.Parm0[0])
@@ -1238,11 +1468,10 @@ func PF_makestatic() {
 	edictFree(ent)
 }
 
-//export PF_setspawnparms
-func PF_setspawnparms() {
+func (v *virtualMachine) setSpawnParms() {
 	i := int(progsdat.Globals.Parm0[0])
 	if i < 1 || i > svs.maxClients {
-		runError("Entity is not a client")
+		v.runError("Entity is not a client")
 		return
 	}
 
@@ -1254,13 +1483,11 @@ func PF_setspawnparms() {
 	}
 }
 
-//export PF_Fixme
-func PF_Fixme() {
-	runError("unimplemented builtin")
+func (v *virtualMachine) fixme() {
+	v.runError("unimplemented builtin")
 }
 
-//export PF_changelevel
-func PF_changelevel() {
+func (v *virtualMachine) changeLevel() {
 	// make sure we don't issue two changelevels
 	if svs.changeLevelIssued {
 		return
@@ -1270,8 +1497,12 @@ func PF_changelevel() {
 	i := progsdat.Globals.Parm0[0]
 	s, err := progsdat.String(i)
 	if err != nil {
-		runError("PF_changelevel: bad level name")
+		v.runError("PF_changelevel: bad level name")
 		return
 	}
 	cbuf.AddText(fmt.Sprintf("changelevel %s\n", s))
+}
+
+func (v *virtualMachine) moveToGoal() {
+	monsterMoveToGoal()
 }

@@ -1,7 +1,5 @@
 package quakelib
 
-import "C"
-
 import (
 	"math/rand"
 	"quake/math"
@@ -11,12 +9,6 @@ import (
 
 	"github.com/chewxy/math32"
 )
-
-//export SV_movestep
-func SV_movestep(ent int, move *C.float, relink int) C.int {
-	m := p2v3(move)
-	return b2i(monsterMoveStep(ent, m, relink != 0))
-}
 
 //Called by monster program code.
 //The move will be adjusted for slopes and stairs, but if the move isn't
@@ -128,13 +120,45 @@ func monsterMoveStep(ent int, move vec.Vec3, relink bool) bool {
 	return true
 }
 
+// This was a major timewaster in progs
+func changeYaw(ent int) {
+	ev := EntVars(ent)
+	current := math.AngleMod32(ev.Angles[1])
+	ideal := ev.IdealYaw
+	speed := ev.YawSpeed
+
+	if current == ideal {
+		return
+	}
+	move := ideal - current
+	if ideal > current {
+		if move >= 180 {
+			move -= 360
+		}
+	} else {
+		if move <= -180 {
+			move += 360
+		}
+	}
+	if move > 0 {
+		if move > speed {
+			move = speed
+		}
+	} else {
+		if move < -speed {
+			move = -speed
+		}
+	}
+	ev.Angles[1] = math.AngleMod32(current + move)
+}
+
 // Turns to the movement direction, and walks the current distance if
 // facing it.
 func monsterStepDirection(ent int, yaw, dist float32) bool {
 	ev := EntVars(ent)
 	ev.IdealYaw = yaw
 
-	PF_changeyaw() // TODO: probably both should call another function.
+	changeYaw(ent)
 
 	yaw = yaw * math32.Pi * 2 / 360
 	s, c := math32.Sincos(yaw)
@@ -268,11 +292,6 @@ func monsterCloseEnough(e, g int, dist float32) bool {
 		}
 	}
 	return true
-}
-
-//export SV_MoveToGoal
-func SV_MoveToGoal() {
-	monsterMoveToGoal()
 }
 
 // this is part of vm_functions
