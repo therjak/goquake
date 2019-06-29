@@ -564,7 +564,7 @@ func PF_findradius() {
 		eo := vec.VFromA(ev.Origin)
 		mins := vec.VFromA(ev.Mins)
 		maxs := vec.VFromA(ev.Maxs)
-		eorg := vec.Sub(org, vec.Add(eo, vec.Add(mins, maxs).Scale(0.5)))
+		eorg := vec.Sub(org, vec.Scale(0.5, vec.Add(eo, vec.Add(mins, maxs))))
 		if eorg.Length() > rad {
 			continue
 		}
@@ -901,7 +901,7 @@ func PF_aim() {
 
 	// try sending a trace straight
 	dir := vec.VFromA(progsdat.Globals.VForward)
-	end := vec.Add(start, dir.Scale(2048))
+	end := vec.Add(start, vec.Scale(2048, dir))
 	tr := svMove(start, vec.Vec3{}, vec.Vec3{}, end, MOVE_NORMAL, ent)
 	if tr.EntPointer {
 		tev := EntVars(int(tr.EntNumber))
@@ -957,7 +957,7 @@ func PF_aim() {
 		dir := vec.Sub(borigin, eorigin)
 		vforward := vec.Vec3(progsdat.Globals.VForward)
 		dist := vec.Dot(dir, vforward)
-		end := vforward.Scale(dist)
+		end := vec.Scale(dist, vforward)
 		end[2] = dir[2]
 		end = end.Normalize()
 		*progsdat.Globals.Returnf() = end

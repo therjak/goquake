@@ -10,6 +10,7 @@ import "C"
 import (
 	"log"
 	"quake/conlog"
+	"quake/math/vec"
 	"quake/progs"
 	"strings"
 )
@@ -394,41 +395,31 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 	//	v.prog.RawGlobalsI[st().C] = X
 	//}
 
-	OPAV1 := func() float32 {
-		return v.prog.RawGlobalsF[st().A]
+	OPAV := func() vec.Vec3 {
+		a := st().A
+		return vec.Vec3{
+			v.prog.RawGlobalsF[a],
+			v.prog.RawGlobalsF[a+1],
+			v.prog.RawGlobalsF[a+2]}
 	}
-	OPAV2 := func() float32 {
-		return v.prog.RawGlobalsF[st().A+1]
+	OPBV := func() vec.Vec3 {
+		b := st().B
+		return vec.Vec3{
+			v.prog.RawGlobalsF[b],
+			v.prog.RawGlobalsF[b+1],
+			v.prog.RawGlobalsF[b+2]}
 	}
-	OPAV3 := func() float32 {
-		return v.prog.RawGlobalsF[st().A+2]
+	setOPBV := func(X vec.Vec3) {
+		b := st().B
+		v.prog.RawGlobalsF[b] = X[0]
+		v.prog.RawGlobalsF[b+1] = X[1]
+		v.prog.RawGlobalsF[b+2] = X[2]
 	}
-	OPBV1 := func() float32 {
-		return v.prog.RawGlobalsF[st().B]
-	}
-	OPBV2 := func() float32 {
-		return v.prog.RawGlobalsF[st().B+1]
-	}
-	OPBV3 := func() float32 {
-		return v.prog.RawGlobalsF[st().B+2]
-	}
-	setOPBV1 := func(X float32) {
-		v.prog.RawGlobalsF[st().B] = X
-	}
-	setOPBV2 := func(X float32) {
-		v.prog.RawGlobalsF[st().B+1] = X
-	}
-	setOPBV3 := func(X float32) {
-		v.prog.RawGlobalsF[st().B+2] = X
-	}
-	setOPCV1 := func(X float32) {
-		v.prog.RawGlobalsF[st().C] = X
-	}
-	setOPCV2 := func(X float32) {
-		v.prog.RawGlobalsF[st().C+1] = X
-	}
-	setOPCV3 := func(X float32) {
-		v.prog.RawGlobalsF[st().C+2] = X
+	setOPCV := func(X vec.Vec3) {
+		c := st().C
+		v.prog.RawGlobalsF[c] = X[0]
+		v.prog.RawGlobalsF[c+1] = X[1]
+		v.prog.RawGlobalsF[c+2] = X[2]
 	}
 
 	BOOL := func(X bool) float32 {
@@ -459,32 +450,21 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 		case operatorADD_F:
 			setOPCF(OPAF() + OPBF())
 		case operatorADD_V:
-			setOPCV1(OPAV1() + OPBV1())
-			setOPCV2(OPAV2() + OPBV2())
-			setOPCV3(OPAV3() + OPBV3())
+			setOPCV(vec.Add(OPAV(), OPBV()))
 
 		case operatorSUB_F:
 			setOPCF(OPAF() - OPBF())
 		case operatorSUB_V:
-			setOPCV1(OPAV1() - OPBV1())
-			setOPCV2(OPAV2() - OPBV2())
-			setOPCV3(OPAV3() - OPBV3())
+			setOPCV(vec.Sub(OPAV(), OPBV()))
 
 		case operatorMUL_F:
 			setOPCF(OPAF() * OPBF())
 		case operatorMUL_V:
-			setOPCF(
-				OPAV1()*OPBV1() +
-					OPAV2()*OPBV2() +
-					OPAV3()*OPBV3())
+			setOPCF(vec.Dot(OPAV(), OPBV()))
 		case operatorMUL_FV:
-			setOPCV1(OPAF() * OPBV1())
-			setOPCV2(OPAF() * OPBV2())
-			setOPCV3(OPAF() * OPBV3())
+			setOPCV(vec.Scale(OPAF(), OPBV()))
 		case operatorMUL_VF:
-			setOPCV1(OPBF() * OPAV1())
-			setOPCV2(OPBF() * OPAV2())
-			setOPCV3(OPBF() * OPAV3())
+			setOPCV(vec.Scale(OPBF(), OPAV()))
 
 		case operatorDIV_F:
 			setOPCF(OPAF() / OPBF())
@@ -514,10 +494,7 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 		case operatorNOT_F:
 			setOPCF(BOOL(OPAF() == 0))
 		case operatorNOT_V:
-			setOPCF(BOOL(
-				(OPAV1() == 0) &&
-					(OPAV2() == 0) &&
-					(OPAV3() == 0)))
+			setOPCF(BOOL(OPAV() == vec.Vec3{0, 0, 0}))
 			/*
 			   case OP_NOT_S:
 			     setOPCF(!OPAI || !*PR_GetString(OPAI));
@@ -530,10 +507,7 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 		case operatorEQ_F:
 			setOPCF(BOOL(OPAF() == OPBF()))
 		case operatorEQ_V:
-			setOPCF(BOOL(
-				(OPAV1() == OPBV1()) &&
-					(OPAV2() == OPBV2()) &&
-					(OPAV3() == OPBV3())))
+			setOPCF(BOOL(OPAV() == OPBV()))
 			/*
 			   case OP_EQ_S:
 			     setOPCF(!strcmp(PR_GetString(OPAI), PR_GetString(OPBI)));
@@ -545,10 +519,7 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 		case operatorNE_F:
 			setOPCF(BOOL(OPAF() != OPBF()))
 		case operatorNE_V:
-			setOPCF(BOOL(
-				(OPAV1() != OPBV1()) ||
-					(OPAV2() != OPBV2()) ||
-					(OPAV3() != OPBV3())))
+			setOPCF(BOOL(OPAV() != OPBV()))
 			/*
 			   case operatorNE_S:
 			     SOPCF(strcmp(PR_GetString(OPAI), PR_GetString(OPBI)));
@@ -565,9 +536,7 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 			operatorSTORE_FNC: // pointers
 			setOPBI(OPAI())
 		case operatorSTORE_V:
-			setOPBV1(OPAV1())
-			setOPBV2(OPAV2())
-			setOPBV3(OPAV3())
+			setOPBV(OPAV())
 
 			/*
 			   case OP_STOREP_F:
@@ -651,7 +620,7 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 			v.xfunction.Profile += profile - startprofile
 			startprofile = profile
 			v.statement = currentStatement - int32(len(v.prog.Statements))
-			*(v.prog.Globals.Returnf()) = [3]float32{OPAV1(), OPAV2(), OPAV3()}
+			*(v.prog.Globals.Returnf()) = OPAV()
 			currentStatement = v.leaveFunction()
 			if len(v.stack) == exitdepth { // Done
 				return

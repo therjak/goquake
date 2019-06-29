@@ -39,7 +39,7 @@ func (q *qphysics) pushMove(pusher int, movetime float32) {
 		return
 	}
 
-	move := vec.Vec3(pev.Velocity).Scale(movetime)
+	move := vec.Scale(movetime, pev.Velocity)
 	mins := vec.Add(pev.AbsMin, move)
 	maxs := vec.Add(pev.AbsMax, move)
 	pushOrigin := vec.Vec3(pev.Origin)
@@ -231,9 +231,9 @@ func (q *qphysics) wallFriction(ent int, planeNormal vec.Vec3) {
 	}
 
 	// cut the tangential velocity
-	v := vec.VFromA(ev.Velocity)
+	v := ev.Velocity
 	i := vec.Dot(planeNormal, v)
-	into := planeNormal.Scale(i)
+	into := vec.Scale(i, planeNormal)
 	side := vec.Sub(v, into)
 	ev.Velocity[0] = side[0] * (1 + d)
 	ev.Velocity[1] = side[1] * (1 + d)
@@ -249,7 +249,7 @@ func (q *qphysics) walkMove(ent int) {
 	ev.Flags = float32(int(ev.Flags) &^ FL_ONGROUND)
 
 	oldOrigin := ev.Origin
-	oldVelocity := vec.VFromA(ev.Velocity)
+	oldVelocity := ev.Velocity
 
 	time := float32(host.frameTime)
 	steptrace := trace{}
@@ -344,12 +344,11 @@ func (q *qphysics) noClip(ent int) {
 
 	ev := EntVars(ent)
 	av := vec.Vec3(ev.AVelocity)
-	av = av.Scale(time)
+	av = vec.Scale(time, av)
 	angles := ev.Angles
 	ev.Angles = vec.Add(angles, av)
 
-	v := vec.Vec3(ev.Velocity)
-	v = v.Scale(time)
+	v := vec.Scale(time, ev.Velocity)
 	origin := ev.Origin
 	ev.Origin = vec.Add(origin, v)
 
@@ -364,8 +363,7 @@ func SV_CheckWaterTransition(ent int) {
 func (q *qphysics) checkWaterTransition(ent int) {
 	ev := EntVars(ent)
 
-	origin := vec.VFromA(ev.Origin)
-	cont := pointContents(origin)
+	cont := pointContents(ev.Origin)
 
 	if ev.WaterType == 0 {
 		// just spawned here
@@ -411,13 +409,11 @@ func (q *qphysics) toss(ent int) {
 
 	time := float32(host.frameTime)
 
-	av := vec.VFromA(ev.AVelocity)
-	av = av.Scale(time)
-	angles := vec.VFromA(ev.Angles)
-	ev.Angles = vec.Add(angles, av)
+	av := vec.Scale(time, ev.AVelocity)
+	ev.Angles = vec.Add(ev.Angles, av)
 
-	velocity := vec.VFromA(ev.Velocity)
-	move := velocity.Scale(time)
+	velocity := ev.Velocity
+	move := vec.Scale(time, velocity)
 	trace := pushEntity(ent, move)
 
 	if trace.Fraction == 1 {
@@ -534,8 +530,8 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *trace) int {
 
 	blocked := 0
 	ev := EntVars(ent)
-	original_velocity := vec.VFromA(ev.Velocity)
-	primal_velocity := vec.VFromA(ev.Velocity)
+	original_velocity := ev.Velocity
+	primal_velocity := ev.Velocity
 	numplanes := 0
 
 	time_left := time
@@ -545,17 +541,15 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *trace) int {
 			break
 		}
 
-		origin := vec.VFromA(ev.Origin)
-		mins := vec.VFromA(ev.Mins)
-		maxs := vec.VFromA(ev.Maxs)
-		velocity := vec.VFromA(ev.Velocity)
+		origin := ev.Origin
+		velocity := ev.Velocity
 		end := vec.Vec3{
 			origin[0] + time_left*velocity[0],
 			origin[1] + time_left*velocity[1],
 			origin[2] + time_left*velocity[2],
 		}
 
-		trace := svMove(origin, mins, maxs, end, MOVE_NORMAL, ent)
+		trace := svMove(origin, ev.Mins, ev.Maxs, end, MOVE_NORMAL, ent)
 
 		if trace.AllSolid {
 			// entity is trapped in another solid
@@ -634,7 +628,7 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *trace) int {
 			}
 			dir := vec.Cross(planes[0], planes[1])
 			d := vec.Dot(dir, ev.Velocity)
-			ev.Velocity = dir.Scale(d)
+			ev.Velocity = vec.Scale(d, dir)
 		}
 
 		// if original velocity is against the original velocity, stop dead
@@ -755,10 +749,8 @@ func (q *qphysics) playerActions(ent, num int) {
 			return
 		}
 		time := float32(host.frameTime)
-		v := vec.VFromA(ev.Velocity)
-		v = v.Scale(time)
-		origin := vec.VFromA(ev.Origin)
-		ev.Origin = vec.Add(origin, v)
+		v := vec.Scale(time, ev.Velocity)
+		ev.Origin = vec.Add(ev.Origin, v)
 
 	default:
 		Error("SV_Physics_client: bad movetype %v", ev.MoveType)

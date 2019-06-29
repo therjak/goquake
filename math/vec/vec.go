@@ -15,6 +15,14 @@ func (v Vec3) Length() float32 {
 	return math32.Sqrt(Dot(v, v))
 }
 
+// Add computes a += b
+func (a *Vec3) Add(b Vec3) *Vec3 {
+	a[0] += b[0]
+	a[1] += b[1]
+	a[2] += b[2]
+	return a
+}
+
 // Add returns a + b
 func Add(a, b Vec3) Vec3 {
 	return Vec3{
@@ -22,6 +30,14 @@ func Add(a, b Vec3) Vec3 {
 		a[1] + b[1],
 		a[2] + b[2],
 	}
+}
+
+// Sub computes a -= b
+func (a *Vec3) Sub(b Vec3) *Vec3 {
+	a[0] -= b[0]
+	a[1] -= b[1]
+	a[2] -= b[2]
+	return a
 }
 
 // Sub returns a - b
@@ -34,11 +50,19 @@ func Sub(a, b Vec3) Vec3 {
 }
 
 // Scale returns the vector multiplied by the skalar s
-func (v Vec3) Scale(s float32) Vec3 {
+func (v *Vec3) Scale(s float32) *Vec3 {
+	v[0] *= s
+	v[1] *= s
+	v[2] *= s
+	return v
+}
+
+// Scale returns the vector multiplied by the skalar s
+func Scale(s float32, v Vec3) Vec3 {
 	return Vec3{
-		v[0] * s,
-		v[1] * s,
-		v[2] * s,
+		s * v[0],
+		s * v[1],
+		s * v[2],
 	}
 }
 
@@ -48,7 +72,7 @@ func (v Vec3) Normalize() Vec3 {
 	if l == 0 {
 		return Vec3{}
 	}
-	return v.Scale(1 / l)
+	return Scale(1/l, v)
 }
 
 // Dot returns a dot b

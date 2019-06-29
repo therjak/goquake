@@ -20,7 +20,7 @@ func (c *SVClient) accelerate(wishspeed float32, wishdir vec.Vec3) {
 	if accelspeed > addspeed {
 		accelspeed = addspeed
 	}
-	ev.Velocity = vec.Add(velocity, wishdir.Scale(accelspeed))
+	ev.Velocity = vec.Add(velocity, vec.Scale(accelspeed, wishdir))
 }
 
 func (c *SVClient) airAccelerate(wishspeed float32, wishveloc vec.Vec3) {
@@ -31,7 +31,7 @@ func (c *SVClient) airAccelerate(wishspeed float32, wishveloc vec.Vec3) {
 	if wishspd <= 0 {
 		return
 	}
-	wishveloc = wishveloc.Scale(1 / wishspd)
+	wishveloc = vec.Scale(1/wishspd, wishveloc)
 	if wishspd > 30 {
 		wishspd = 30
 	}
@@ -43,7 +43,7 @@ func (c *SVClient) airAccelerate(wishspeed float32, wishveloc vec.Vec3) {
 	if accelspeed > addspeed {
 		accelspeed = addspeed
 	}
-	ev.Velocity = vec.Add(velocity, wishveloc.Scale(accelspeed))
+	ev.Velocity = vec.Add(velocity, vec.Scale(accelspeed, wishveloc))
 }
 
 func (c *SVClient) noclipMove() {
@@ -65,8 +65,7 @@ func (c *SVClient) noclipMove() {
 
 	max := cvars.ServerMaxSpeed.Value()
 	if velocity.Length() > max {
-		velocity = velocity.Normalize()
-		velocity = velocity.Scale(max)
+		velocity = vec.Scale(max, velocity.Normalize())
 	}
 	ev.Velocity = velocity
 }
@@ -97,7 +96,7 @@ func (c *SVClient) waterMove() {
 	wishspeed := wishvel.Length()
 	max := cvars.ServerMaxSpeed.Value()
 	if wishspeed > max {
-		wishvel = wishvel.Scale(max / wishspeed)
+		wishvel = vec.Scale(max/wishspeed, wishvel)
 		wishspeed = max
 	}
 	wishspeed *= 0.7
@@ -111,7 +110,7 @@ func (c *SVClient) waterMove() {
 		if newspeed < 0 {
 			newspeed = 0
 		}
-		velocity = velocity.Scale(newspeed / speed)
+		velocity = vec.Scale(newspeed/speed, velocity)
 	}
 	// water acceleration
 	if wishspeed == 0 {
@@ -128,7 +127,7 @@ func (c *SVClient) waterMove() {
 	if accelspeed > addspeed {
 		accelspeed = addspeed
 	}
-	ev.Velocity = vec.Add(velocity, wishvel.Scale(accelspeed))
+	ev.Velocity = vec.Add(velocity, vec.Scale(accelspeed, wishvel))
 }
 
 func (c *SVClient) userFriction() {
@@ -170,7 +169,7 @@ func (c *SVClient) userFriction() {
 		return
 	}
 	newspeed /= speed
-	ev.Velocity = velocity.Scale(newspeed)
+	ev.Velocity = vec.Scale(newspeed, velocity)
 }
 
 func (c *SVClient) airMove() {
@@ -198,14 +197,14 @@ func (c *SVClient) airMove() {
 	wishspeed := wishvel.Length()
 	wishdir := func() vec.Vec3 {
 		if wishspeed != 0 {
-			return wishvel.Scale(1 / wishspeed)
+			return vec.Scale(1/wishspeed, wishvel)
 		}
 		return wishvel
 	}()
 
 	max := cvars.ServerMaxSpeed.Value()
 	if wishspeed > max {
-		wishvel = wishvel.Scale(max / wishspeed)
+		wishvel = vec.Scale(max/wishspeed, wishvel)
 		wishspeed = max
 	}
 
@@ -232,7 +231,7 @@ func (c *SVClient) DropPunchAngle() {
 	if len2 < 0 {
 		len2 = 0
 	}
-	ev.PunchAngle = pa.Scale(len2)
+	ev.PunchAngle = vec.Scale(len2, pa)
 }
 
 func (c *SVClient) WaterJump() {
