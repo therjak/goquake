@@ -1,6 +1,9 @@
 package progs
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+)
 
 func init() {
 	//	engineStringMap = make(map[string]int)
@@ -42,6 +45,7 @@ func (p *LoadedProg) AddString(s string) int32 {
 // Returns a string with a description and the contents of a global,
 // padded to 20 field width
 func (p *LoadedProg) GlobalString(n int16) string {
+	log.Printf("TODO: GlobalString called %d", n)
 	// TODO
 	/*
 			static char line[512];
@@ -72,6 +76,7 @@ func (p *LoadedProg) GlobalString(n int16) string {
 }
 
 func (p *LoadedProg) GlobalStringNoContents(n int16) string {
+	log.Printf("TODO: GlobalStringNoContents called %d", n)
 	// TODO
 	/*
 			static char line[512];

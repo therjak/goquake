@@ -590,7 +590,7 @@ func (v *virtualMachine) find() {
 		if edictNum(int(e)).Free {
 			continue
 		}
-		ti := RawEntVarsI(int(e), int(f))
+		ti := RawEntVarsI(e, f)
 		t, err := progsdat.String(ti)
 		if err != nil {
 			continue
@@ -618,7 +618,7 @@ func (v *virtualMachine) precacheSound() {
 	progsdat.Globals.Return[0] = si
 	s, err := progsdat.String(si)
 	if err != nil {
-		v.runError("Bad string")
+		v.runError("precacheSound: Bad string, %v", err)
 		return
 	}
 
@@ -650,7 +650,7 @@ func (v *virtualMachine) precacheModel() {
 	progsdat.Globals.Return[0] = si
 	s, err := progsdat.String(si)
 	if err != nil {
-		v.runError("Bad string")
+		v.runError("precacheModel: Bad string, %v", err)
 		return
 	}
 

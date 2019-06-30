@@ -1,7 +1,6 @@
 package quakelib
 
 import (
-	"log"
 	"quake/conlog"
 	"quake/math/vec"
 	"quake/progs"
@@ -148,8 +147,8 @@ type stackElem struct {
 
 type virtualMachine struct {
 	xfunction  *progs.Function
-	stack      []stackElem // len(stack) == pr_depth
-	localStack []int32     // len(localStack) == localstack_used
+	stack      []stackElem
+	localStack []int32
 	statement  int32
 	trace      bool
 	prog       *progs.LoadedProg
@@ -374,9 +373,10 @@ func (v *virtualMachine) leaveFunction() int32 {
 	v.localStack = v.localStack[:nl]
 
 	// up stack
+	top := v.stack[len(v.stack)-1]
 	v.stack = v.stack[:len(v.stack)-1]
-	v.xfunction = v.stack[len(v.stack)-1].function
-	return v.stack[len(v.stack)-1].statement
+	v.xfunction = top.function
+	return top.statement
 }
 
 //  The interpretation main loop
@@ -392,8 +392,7 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 		if v.prog.Globals.Self != 0 {
 			edictPrint(int(v.prog.Globals.Self))
 		}
-		log.Printf("PR_ExecuteProgram %d", fnum)
-		HostError("PR_ExecuteProgram: NULL function")
+		HostError("PR_ExecuteProgram: NULL function, %d", fnum)
 	}
 
 	f := &v.prog.Functions[fnum]
@@ -428,9 +427,9 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 	setOPBI := func(X int32) {
 		v.prog.RawGlobalsI[st().B] = X
 	}
-	//SOPCI := func(X int32) {
-	//	v.prog.RawGlobalsI[st().C] = X
-	//}
+	setOPCI := func(X int32) {
+		v.prog.RawGlobalsI[st().C] = X
+	}
 
 	OPAV := func() vec.Vec3 {
 		a := st().A
@@ -466,18 +465,18 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 		return 0
 	}
 
-	startprofile := int32(0)
-	profile := int32(0)
+	// startprofile := int32(0)
+	// profile := int32(0)
 
 	//hack to offset the first increment of currentStatement
 	currentStatement--
 	for {
 		currentStatement++
-		profile++
-		if profile > 100000 {
-			v.statement = currentStatement - int32(len(v.prog.Statements))
-			v.runError("runaway loop error")
-		}
+		//profile++
+		//if profile > 100000 {
+		//	v.statement = currentStatement - int32(len(v.prog.Statements))
+		//	v.runError("runaway loop error")
+		//}
 
 		if v.trace {
 			v.printStatement(v.prog.Statements[currentStatement])
@@ -588,20 +587,35 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 			operatorSTOREP_FLD, // integers
 			operatorSTOREP_S,
 			operatorSTOREP_FNC: // pointers
+			o := OPBI()
+			Set0RawEntVarsI(o, OPAI())
+
 			//ptr = (eval_t *)((byte *)EVars(0) + OPBI);
 			//ptr->_int = OPAI;
 		case operatorSTOREP_V:
+			// log.Printf("TODO: storep 2, OPBI %d", OPBI())
+			o := OPBI()
+			//off := o % (int32(entityFields * 4))
+			//idx := o / (int32(entityFields * 4))
+			value := OPAV()
+			// log.Printf("idx %d, off %d, v %v", idx, off, value)
+			Set0RawEntVarsF(o, value[0])
+			Set0RawEntVarsF(o+4, value[1])
+			Set0RawEntVarsF(o+8, value[2])
+
+			// log.Printf("EntVar: %v", EntVars(int(idx)))
 			//ptr = (eval_t *)((byte *)EVars(0) + OPBI);
 			//ptr->vector[0] = OPAV1;
 			//ptr->vector[1] = OPAV2;
 			//ptr->vector[2] = OPAV3;
 
 		case operatorADDRESS:
-			//ed = OPAI;
-			//if (ed == 0 && SV_State() == ss_active) {
-			//  pr_xstatement = st - pr_statements;
-			//  v.runError("assignment to world entity");
-			//}
+			ed := OPAI()
+			if ed == 0 && sv.state == ServerStateActive {
+				v.statement = currentStatement
+				v.runError("assignment to world entity")
+			}
+			setOPCI(OPAI()*int32(entityFields)*4 + OPBI()*4)
 			//SOPCI((byte *)((int *)EVars(OPAI) + OPBI) - (byte *)EVars(0));
 
 		case operatorLOAD_F,
@@ -609,6 +623,8 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 			operatorLOAD_ENT,
 			operatorLOAD_S,
 			operatorLOAD_FNC:
+			i := Raw0EntVarsI(OPAI()*int32(entityFields)*4 + OPBI()*4)
+			setOPCI(i)
 			//SOPCI(((eval_t *)((int *)EVars(OPAI) + OPBI))->_int);
 
 		case operatorLOAD_V:
@@ -616,6 +632,16 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 			//SOPCV1(ptr->vector[0]);
 			//SOPCV2(ptr->vector[1]);
 			//SOPCV3(ptr->vector[2]);
+			ve := [3]float32{
+				Raw0EntVarsF(OPAI()*int32(entityFields)*4 + OPBI()*4),
+				Raw0EntVarsF(OPAI()*int32(entityFields)*4 + OPBI()*4 + 4),
+				Raw0EntVarsF(OPAI()*int32(entityFields)*4 + OPBI()*4 + 8),
+			}
+			//if OPAI() > 1 {
+			//	log.Printf("LOAD_S, OPAI %v, OPBI %v, v %v", OPAI(), OPBI(), ve)
+			//	log.Printf("EntVar: %v", EntVars(int(OPAI())))
+			//}
+			setOPCV(ve)
 
 		case operatorIFNOT:
 			if OPAI() == 0 {
@@ -639,15 +665,16 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 			operatorCALL6,
 			operatorCALL7,
 			operatorCALL8:
-			v.xfunction.Profile += profile - startprofile
-			startprofile = profile
+			// v.xfunction.Profile += profile - startprofile
+			// startprofile = profile
 			v.statement = currentStatement
 			v.argc = int(st().Operator) - operatorCALL0
 			if OPAI() == 0 {
 				v.runError("NULL function")
 			}
 			newf := &v.prog.Functions[OPAI()]
-			if newf.FirstStatement < 0 { // Built-in function
+			if newf.FirstStatement < 0 {
+				// Built-in function
 				i := int(-newf.FirstStatement)
 				if i >= len(v.builtins) {
 					v.runError("Bad builtin call number %d", i)
@@ -655,14 +682,13 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 				v.builtins[i]()
 			} else {
 				// Normal function
-				currentStatement = v.enterFunction(newf)
-				// // st = &pr_statements[PR_EnterFunction(newf)];
+				currentStatement = v.enterFunction(newf) - 1
 			}
 
 		case operatorDONE, operatorRETURN:
-			v.xfunction.Profile += profile - startprofile
-			startprofile = profile
-			v.statement = currentStatement - int32(len(v.prog.Statements))
+			// v.xfunction.Profile += profile - startprofile
+			// startprofile = profile
+			v.statement = currentStatement
 			*(v.prog.Globals.Returnf()) = OPAV()
 			currentStatement = v.leaveFunction()
 			if len(v.stack) == exitdepth { // Done
@@ -676,7 +702,7 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 			ev.Think = OPBI()
 
 		default:
-			v.statement = currentStatement - int32(len(v.prog.Statements))
+			v.statement = currentStatement
 			v.runError("Bad opcode %d", v.prog.Statements[currentStatement].Operator)
 		}
 	}

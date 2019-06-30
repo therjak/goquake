@@ -89,10 +89,52 @@ func EntVarsSprint(idx int, d progs.Def) string {
 	}
 }
 
-func RawEntVarsI(idx, off int) int32 {
+func RawEntVarsI(idx, off int32) int32 {
 	v := uintptr(unsafe.Pointer(g_entvars))
-	vp := v + uintptr(idx*entityFields*4) + uintptr(off*4)
+	vp := v + uintptr(int(idx)*entityFields*4) + uintptr(off*4)
 	return *(*int32)(unsafe.Pointer(vp))
+}
+
+func SetRawEntVarsI(idx, off int32, value int32) {
+	v := uintptr(unsafe.Pointer(g_entvars))
+	vp := v + uintptr(int(idx)*entityFields*4) + uintptr(off*4)
+	*(*int32)(unsafe.Pointer(vp)) = value
+}
+
+func Raw0EntVarsI(off int32) int32 {
+	v := uintptr(unsafe.Pointer(g_entvars))
+	vp := v + uintptr(off)
+	return *(*int32)(unsafe.Pointer(vp))
+}
+
+func Set0RawEntVarsI(off int32, value int32) {
+	v := uintptr(unsafe.Pointer(g_entvars))
+	vp := v + uintptr(off)
+	*(*int32)(unsafe.Pointer(vp)) = value
+}
+
+func RawEntVarsF(idx, off int32) float32 {
+	v := uintptr(unsafe.Pointer(g_entvars))
+	vp := v + uintptr(int(idx)*entityFields*4) + uintptr(off*4)
+	return *(*float32)(unsafe.Pointer(vp))
+}
+
+func SetRawEntVarsF(idx, off int32, value float32) {
+	v := uintptr(unsafe.Pointer(g_entvars))
+	vp := v + uintptr(int(idx)*entityFields*4) + uintptr(off*4)
+	*(*float32)(unsafe.Pointer(vp)) = value
+}
+
+func Raw0EntVarsF(off int32) float32 {
+	v := uintptr(unsafe.Pointer(g_entvars))
+	vp := v + uintptr(off)
+	return *(*float32)(unsafe.Pointer(vp))
+}
+
+func Set0RawEntVarsF(off int32, value float32) {
+	v := uintptr(unsafe.Pointer(g_entvars))
+	vp := v + uintptr(off)
+	*(*float32)(unsafe.Pointer(vp)) = value
 }
 
 func EntVarsFieldValue(idx int, name string) (float32, error) {
