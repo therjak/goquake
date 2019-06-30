@@ -47,18 +47,6 @@ typedef struct {
 
 static gefv_cache gefvCache[GEFV_CACHESIZE] = {{NULL, ""}, {NULL, ""}};
 
-cvar_t nomonsters;
-cvar_t gamecfg;
-cvar_t scratch1;
-cvar_t scratch2;
-cvar_t scratch3;
-cvar_t scratch4;
-cvar_t savedgamecfg;
-cvar_t saved1;
-cvar_t saved2;
-cvar_t saved3;
-cvar_t saved4;
-
 //===========================================================================
 
 /*
@@ -680,15 +668,4 @@ PR_Init
 */
 void PR_Init(void) {
   Cmd_AddCommand("profile", PR_Profile_f);
-  Cvar_FakeRegister(&nomonsters, "nomonsters");
-  Cvar_FakeRegister(&gamecfg, "gamecfg");
-  Cvar_FakeRegister(&scratch1, "scratch1");
-  Cvar_FakeRegister(&scratch2, "scratch2");
-  Cvar_FakeRegister(&scratch3, "scratch3");
-  Cvar_FakeRegister(&scratch4, "scratch4");
-  Cvar_FakeRegister(&savedgamecfg, "savedgamecfg");
-  Cvar_FakeRegister(&saved1, "saved1");
-  Cvar_FakeRegister(&saved2, "saved2");
-  Cvar_FakeRegister(&saved3, "saved3");
-  Cvar_FakeRegister(&saved4, "saved4");
 }
