@@ -533,7 +533,7 @@ func (v *virtualMachine) findRadius() {
 		eo := vec.VFromA(ev.Origin)
 		mins := vec.VFromA(ev.Mins)
 		maxs := vec.VFromA(ev.Maxs)
-		eorg := vec.Sub(org, vec.Scale(0.5, vec.Add(eo, vec.Add(mins, maxs))))
+		eorg := vec.Sub(org, vec.Add(eo, vec.Scale(0.5, vec.Add(mins, maxs))))
 		if eorg.Length() > rad {
 			continue
 		}
