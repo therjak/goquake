@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package quake;
+
+message Vector {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+}
+
+message Def {
+  string id = 1;  // sname
+  // only one of the following, the name defines which one is of interest
+  string stringValue = 2;
+  int32 entity = 3;
+  string function = 4;
+  string field = 5;
+  bool void = 6;
+  float floadValue = 7;
+  Vector vectorValue = 8;
+}
+
+message Globals {
+  // only globaldefs
+  repeated Def defs = 1;
+}
+
+message Edict {
+  // only fielddefs + alpha
+  repeated Def defs = 1;
+  float alpha = 2;
+}
+
+message Savegame {
+  int32 savegame_version = 1;
+  string comment = 2;
+  repeated float spawn_params = 3;
+  int32 current_skill = 4;
+  string map_name = 5;
+  float map_time = 6;
+  repeated string light_styles = 7;
+  Globals globals = 8;
+  repeated Edict edicts = 9;
+}
