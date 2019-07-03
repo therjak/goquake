@@ -666,6 +666,4 @@ void PR_LoadProgs(void) {
 PR_Init
 ===============
 */
-void PR_Init(void) {
-  Cmd_AddCommand("profile", PR_Profile_f);
-}
+void PR_Init(void) { Cmd_AddCommand("profile", PR_Profile_f); }

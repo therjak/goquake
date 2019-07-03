@@ -1,5 +1,7 @@
 github.com/chewxy/math32 v1.0.0 h1:RTt2SACA7BTzvbsAKVQJLZpV6zY2MZw4bW9L2HEKkHg=
 github.com/chewxy/math32 v1.0.0/go.mod h1:Miac6hA1ohdDUTagnvJy/q+aNnEk16qWUdb8ZVhvCN0=
+github.com/golang/protobuf v1.3.1 h1:YF8+flBXS5eO826T4nzqPrxfhQThhXl0YzfuUPu4SBg=
+github.com/golang/protobuf v1.3.1/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
 github.com/google/uuid v1.1.1 h1:Gkbcsh/GbpXz7lPftLA3P6TYMwjCLYm83jiFQZF/3gY=
 github.com/google/uuid v1.1.1/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/veandco/go-sdl2 v0.0.0-20180925095440-75ff82abc4e3 h1:S1dvzp6ZDdmz1M4oRQ6ceLwU6ZDCNvIa20zhJRHyKgE=
