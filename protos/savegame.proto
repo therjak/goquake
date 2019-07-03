@@ -8,27 +8,62 @@ message Vector {
   float z = 3;
 }
 
-message Def {
+message StringDef {
   string id = 1;  // sname
-  // only one of the following, the name defines which one is of interest
-  string stringValue = 2;
-  int32 entity = 3;
-  string function = 4;
-  string field = 5;
-  bool void = 6;
-  float floadValue = 7;
-  Vector vectorValue = 8;
+  string value = 2;
+}
+
+message EntityDef {
+  string id = 1;  // sname
+  int32 value = 2;
+}
+
+message FunctionDef {
+  string id = 1;  // sname
+  string value = 2;
+}
+
+message FieldDef {
+  string id = 1;  // sname
+  string value = 2;
+}
+
+message VoidDef {
+  string id = 1;  // sname
+  bool value = 2;
+}
+
+message FloatDef {
+  string id = 1;  // sname
+  float value = 2;
+}
+
+message VectorDef {
+  string id = 1;  // sname
+  Vector value = 2;
 }
 
 message Globals {
   // only globaldefs
-  repeated Def defs = 1;
+  repeated StringDef defs = 1;
+  repeated EentityDef defs = 2;
+  repeated FunctionDef defs = 3;
+  repeated FieldDef defs = 4;
+  repeated VoidDef defs = 5;
+  repeated FloatDef defs = 6;
+  repeated VectorDef defs = 7;
 }
 
 message Edict {
   // only fielddefs + alpha
-  repeated Def defs = 1;
-  float alpha = 2;
+  repeated StringDef defs = 1;
+  repeated EentityDef defs = 2;
+  repeated FunctionDef defs = 3;
+  repeated FieldDef defs = 4;
+  repeated VoidDef defs = 5;
+  repeated FloatDef defs = 6;
+  repeated VectorDef defs = 7;
+  float alpha = 8;
 }
 
 message Savegame {
