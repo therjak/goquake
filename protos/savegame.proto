@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package quakeProto;
+package proto;
 
 message Vector {
   float x = 1;
