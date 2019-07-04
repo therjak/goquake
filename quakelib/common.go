@@ -78,6 +78,10 @@ func COM_BaseDir() *C.char {
 	return C.CString(baseDirectory)
 }
 
+func GameDirectory() string {
+	return gameDirectory
+}
+
 func addGameDirectory(base, dir string) {
 	gameDirectory = filepath.Join(base, dir)
 	filesystem.AddGameDir(gameDirectory)

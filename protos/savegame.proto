@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package proto;
+package protos;
 
 message Vector {
   float x = 1;
@@ -66,14 +66,13 @@ message Edict {
   float alpha = 8;
 }
 
-message Savegame {
-  int32 savegame_version = 1;
-  string comment = 2;
-  repeated float spawn_params = 3;
-  int32 current_skill = 4;
-  string map_name = 5;
-  float map_time = 6;
-  repeated string light_styles = 7;
-  Globals globals = 8;
-  repeated Edict edicts = 9;
+message SaveGame {
+  string comment = 1;
+  repeated float spawn_params = 2;
+  int32 current_skill = 3;
+  string map_name = 4;
+  float map_time = 5;
+  repeated string light_styles = 6;
+  Globals globals = 7;
+  repeated Edict edicts = 8;
 }

@@ -2,14 +2,15 @@ package quakelib
 
 import (
 	"fmt"
+	"github.com/golang/protobuf/proto"
+	"io/ioutil"
 	"log"
-	"os"
 	"path/filepath"
 	"quake/cbuf"
 	kc "quake/keycode"
 	"quake/keys"
 	"quake/menu"
-	"strings"
+	"quake/protos"
 )
 
 func enterLoadMenu() {
@@ -93,29 +94,25 @@ func (m *fileMenuItem) Load() {
 }
 
 func (m *qFileMenu) update() {
+	sg := &protos.SaveGame{}
 	for _, i := range m.items {
 		i.loadable = false
-		n := filepath.Join(gameDirectory, i.filename)
-		f, err := os.Open(n)
+		i.comment = unusedSaveName
+		n := filepath.Join(GameDirectory(), i.filename)
+
+		in, err := ioutil.ReadFile(n)
 		if err != nil {
-			i.comment = unusedSaveName
 			continue
 		}
-		defer f.Close()
-		var version int32
-		_, err = fmt.Fscanf(f, "%d\n", &version) // why read?
-		if err != nil {
-			log.Printf("could not read version %s", err)
+		if err := proto.Unmarshal(in, sg); err != nil {
+			log.Printf("Failed to parse savegame:", err)
 			continue
 		}
-		var comment string
-		// why read 79? afterwards we only want 39
-		_, err = fmt.Fscanf(f, "%79s\n", &comment)
-		if err != nil {
-			log.Printf("could not read comment %s", err)
-			continue
+
+		i.comment = sg.Comment
+		if len(i.comment) > 39 {
+			i.comment = i.comment[:39] // orig says 39 but includes \0
 		}
-		i.comment = strings.Replace(comment[:39], "_", " ", -1)
 		i.loadable = true
 	}
 }
