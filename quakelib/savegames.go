@@ -2,7 +2,6 @@ package quakelib
 
 import (
 	"fmt"
-	"github.com/golang/protobuf/proto"
 	"io/ioutil"
 	"path/filepath"
 	"quake/cmd"
@@ -11,6 +10,8 @@ import (
 	"quake/execute"
 	"quake/protos"
 	"strings"
+
+	"github.com/golang/protobuf/proto"
 )
 
 func init() {
@@ -24,6 +25,42 @@ func saveGameComment() string {
 	tm := cl.stats.totalMonsters
 	// somehow nobody can count, we should have 39 chars total available, why clip at 22 for the map?
 	return fmt.Sprintf("%-22s kills:%3d/%3d", ln, km, tm)
+}
+
+func saveGameGlobals() *protos.Globals {
+	/*
+			  ddef_t *def;
+		  int i;
+		  const char *name;
+		  int type;
+
+		  fprintf(f, "{\n");
+		  for (i = 0; i < progs->numglobaldefs; i++) {
+		    def = &pr_globaldefs[i];
+		    type = def->type;
+		    if (!(def->type & DEF_SAVEGLOBAL)) continue;
+		    type &= ~DEF_SAVEGLOBAL;
+
+		    if (type != ev_string && type != ev_float && type != ev_entity) continue;
+
+		    name = PR_GetString(def->s_name);
+		    fprintf(f, "\"%s\" ", name);
+		    eval_t v;
+		    v.vector[0] = Pr_globalsf(def->ofs);
+		    v.vector[1] = Pr_globalsf(def->ofs + 1);
+		    v.vector[2] = Pr_globalsf(def->ofs + 2);
+		    fprintf(f, "\"%s\"\n", PR_UglyValueString(type, &v));
+		  }
+		  fprintf(f, "}\n");
+
+	*/
+	return nil
+}
+
+func saveGameEdicts() []*protos.Edict {
+	//for (i = 0; i < SV_NumEdicts(); i++) {
+	//ED_Write(f, i);
+	return nil
 }
 
 func saveGame(args []cmd.QArg, _ int) {
@@ -71,32 +108,16 @@ func saveGame(args []cmd.QArg, _ int) {
 	conlog.Printf("Saving game to %s...\n", fullname)
 
 	data := &protos.SaveGame{
-		Comment: saveGameComment(),
-		// SpawnParms: []float32
+		Comment:      saveGameComment(),
+		SpawnParams:  sv_clients[0].spawnParams[:], //[]float32
 		CurrentSkill: int32(cvars.Skill.Value()),
 		MapName:      sv.name,
 		MapTime:      sv.time,
-		//LightStyles: []string
-		//Globals: protos.Globals
-		//Edicts: []protos.Edict
+		LightStyles:  sv.lightStyles[:], //[]string
+		Globals:      saveGameGlobals(), // protos.Globals
+		Edicts:       saveGameEdicts(),  // []protos.Edict
 	}
 
-	/*
-	   for (i = 0; i < NUM_SPAWN_PARMS; i++)
-	     fprintf(f, "%f\n", GetClientSpawnParam(0, i));
-
-	   for (i = 0; i < MAX_LIGHTSTYLES; i++) {
-	     if (sv.lightstyles[i])
-	       fprintf(f, "%s\n", sv.lightstyles[i]);
-	     else
-	       fprintf(f, "m\n");
-	   }
-
-	   ED_WriteGlobals(f);
-	   for (i = 0; i < SV_NumEdicts(); i++) {
-	     ED_Write(f, i);
-	   }
-	*/
 	out, err := proto.Marshal(data)
 	if err != nil {
 		conlog.Printf("failed to encode savegame.\n")
