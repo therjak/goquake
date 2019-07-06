@@ -51,10 +51,9 @@ func (v *virtualMachine) saveGlobalEntity(name string, offset uint16) *protos.En
 }
 
 func (v *virtualMachine) saveGameGlobals() *protos.Globals {
-	// Def { Type uint16, Offset uint16, SName int32 }
-	strings := []*protos.StringDef{}
 	entities := []*protos.EntityDef{}
 	floats := []*protos.FloatDef{}
+	strings := []*protos.StringDef{}
 	for _, d := range v.prog.GlobalDefs {
 		t := d.Type
 		if t&saveGlobal == 0 {
@@ -78,16 +77,84 @@ func (v *virtualMachine) saveGameGlobals() *protos.Globals {
 		}
 	}
 	return &protos.Globals{
-		Strings:  strings,
 		Entities: entities,
 		Floats:   floats,
+		Strings:  strings,
 	}
 }
 
-func (v *virtualMachine) saveGameEdicts() []*protos.Edict {
-	//for (i = 0; i < SV_NumEdicts(); i++) {
-	//ED_Write(f, i);
-	return nil
+func saveEVString(idx int, name string, offset uint16) *protos.StringDef {
+	//EVars(idx) + offset * 4
+	return &protos.StringDef{}
+}
+
+func saveEVFloat(idx int, name string, offset uint16) *protos.FloatDef {
+	return &protos.FloatDef{}
+}
+
+func saveEVEntity(idx int, name string, offset uint16) *protos.EntityDef {
+	return &protos.EntityDef{}
+}
+
+func saveEVVector(idx int, name string, offset uint16) *protos.VectorDef {
+	return &protos.VectorDef{}
+}
+
+func saveEVField(idx int, name string, offset uint16) *protos.FieldDef {
+	return &protos.FieldDef{}
+}
+
+func saveEVFunction(idx int, name string, offset uint16) *protos.FunctionDef {
+	return &protos.FunctionDef{}
+}
+
+func saveEVVoid(idx int, name string, offset uint16) *protos.VoidDef {
+	return &protos.VoidDef{}
+}
+
+func (v *virtualMachine) saveGameEntVars(idx int) *protos.Edict {
+	entities := []*protos.EntityDef{}
+	fields := []*protos.FieldDef{}
+	floats := []*protos.FloatDef{}
+	functions := []*protos.FunctionDef{}
+	strings := []*protos.StringDef{}
+	vectors := []*protos.VectorDef{}
+	voids := []*protos.VoidDef{}
+	for _, d := range v.prog.FieldDefs[1:] {
+		t := d.Type
+		t &^= saveGlobal
+		name, _ := v.prog.String(d.SName)
+		offset := d.Offset
+		switch t {
+		case progs.EV_String:
+			strings = append(strings, saveEVString(idx, name, offset))
+		case progs.EV_Float:
+			floats = append(floats, saveEVFloat(idx, name, offset))
+		case progs.EV_Entity:
+			entities = append(entities, saveEVEntity(idx, name, offset))
+		case progs.EV_Vector:
+			vectors = append(vectors, saveEVVector(idx, name, offset))
+		case progs.EV_Field:
+			fields = append(fields, saveEVField(idx, name, offset))
+		case progs.EV_Function:
+			functions = append(functions, saveEVFunction(idx, name, offset))
+		case progs.EV_Void:
+			voids = append(voids, saveEVVoid(idx, name, offset))
+		default:
+			// progs.EV_Pointer:
+			// progs.EV_Bad:
+			continue
+		}
+	}
+	return &protos.Edict{
+		Entities:  entities,
+		Fields:    fields,
+		Floats:    floats,
+		Functions: functions,
+		Strings:   strings,
+		Vectors:   vectors,
+		Voids:     voids,
+	}
 }
 
 // Dumps out self, then an error message.  The program is aborted and self is

@@ -79,7 +79,7 @@ func saveGame(args []cmd.QArg, _ int) {
 		MapTime:      sv.time,
 		LightStyles:  sv.lightStyles[:],    //[]string
 		Globals:      vm.saveGameGlobals(), // protos.Globals
-		Edicts:       vm.saveGameEdicts(),  // []protos.Edict
+		Edicts:       sv.saveGameEdicts(),  // []protos.Edict
 	}
 
 	out, err := proto.Marshal(data)

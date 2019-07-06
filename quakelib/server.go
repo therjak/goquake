@@ -22,6 +22,7 @@ import (
 	"quake/progs"
 	"quake/protocol"
 	"quake/protocol/server"
+	"quake/protos"
 
 	"github.com/chewxy/math32"
 )
@@ -392,7 +393,7 @@ func (s *Server) CleanupEntvarEffects() {
 
 func (s *Server) WriteClientdataToMessage(player int) {
 	e := EntVars(player)
-	alpha := edictNum(player).Alpha
+	alpha := s.edicts[player].Alpha
 	flags := s.protocolFlags
 	if e.DmgTake != 0 || e.DmgSave != 0 {
 		other := EntVars(int(e.DmgInflictor))
@@ -710,7 +711,7 @@ func CheckVelocity(ent *progs.EntVars) {
 
 func (s *Server) CreateBaseline() {
 	for entnum := 0; entnum < s.numEdicts; entnum++ {
-		e := edictNum(entnum)
+		e := s.edicts[entnum]
 		if e.Free {
 			continue
 		}
@@ -913,7 +914,7 @@ func runThink(e int) bool {
 
 	// capture interval to nextthink here and send it to client for better
 	// lerp timing, but only if interval is not 0.1 (which client assumes)
-	ed := edictNum(e)
+	ed := sv.edicts[e]
 	ed.SendInterval = false
 	if !ed.Free && ev.NextThink != 0 &&
 		(ev.MoveType == progs.MoveTypeStep || ev.Frame != oldframe) {
@@ -1039,7 +1040,7 @@ func (s *Server) WriteEntitiesToClient(clent int) {
 	// send over all entities (except the client) that touch the pvs
 	for ent := 1; ent < s.numEdicts; ent++ {
 		ev := EntVars(ent)
-		edict := edictNum(ent)
+		edict := s.edicts[ent]
 
 		// check if we need to send this edict
 		if ent != clent {
@@ -1400,4 +1401,21 @@ func (s *Server) SpawnServer(name string) {
 	}
 
 	conlog.DPrintf("Server spawned.\n")
+}
+
+func (s *Server) saveGameEdicts() []*protos.Edict {
+	eds := make([]*protos.Edict, 0, s.numEdicts)
+	for i := 0; i < s.numEdicts; i++ {
+		if s.edicts[i].Free {
+			eds = append(eds, &protos.Edict{})
+			continue
+		}
+		e := vm.saveGameEntVars(i)
+		// + alpha
+		//if (!pr_alpha_supported && EDICT_ALPHA(ed) != ENTALPHA_DEFAULT)
+		//  fprintf(f, "\"alpha\" \"%f\"\n", ENTALPHA_TOSAVE(EDICT_ALPHA(ed)));
+
+		eds = append(eds, e)
+	}
+	return eds
 }

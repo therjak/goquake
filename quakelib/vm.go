@@ -623,7 +623,7 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 			operatorLOAD_ENT,
 			operatorLOAD_S,
 			operatorLOAD_FNC:
-			i := Raw0EntVarsI(OPAI()*int32(entityFields)*4 + OPBI()*4)
+			i := RawEntVarsI(OPAI(), +OPBI())
 			setOPCI(i)
 			//SOPCI(((eval_t *)((int *)EVars(OPAI) + OPBI))->_int);
 
@@ -633,9 +633,9 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 			//SOPCV2(ptr->vector[1]);
 			//SOPCV3(ptr->vector[2]);
 			ve := [3]float32{
-				Raw0EntVarsF(OPAI()*int32(entityFields)*4 + OPBI()*4),
-				Raw0EntVarsF(OPAI()*int32(entityFields)*4 + OPBI()*4 + 4),
-				Raw0EntVarsF(OPAI()*int32(entityFields)*4 + OPBI()*4 + 8),
+				RawEntVarsF(OPAI(), OPBI()),
+				RawEntVarsF(OPAI(), OPBI()+1),
+				RawEntVarsF(OPAI(), OPBI()+2),
 			}
 			//if OPAI() > 1 {
 			//	log.Printf("LOAD_S, OPAI %v, OPBI %v, v %v", OPAI(), OPBI(), ve)
