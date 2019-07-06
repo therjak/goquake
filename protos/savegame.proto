@@ -47,11 +47,7 @@ message Globals {
   // only globaldefs
   repeated StringDef strings = 1;
   repeated EntityDef entities = 2;
-  repeated FunctionDef functions = 3;
-  repeated FieldDef fields = 4;
-  repeated VoidDef voids = 5;
-  repeated FloatDef floats = 6;
-  repeated VectorDef vectors = 7;
+  repeated FloatDef floats = 3;
 }
 
 message Edict {

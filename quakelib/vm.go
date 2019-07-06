@@ -115,7 +115,7 @@ var (
 
 func (v *virtualMachine) funcName() string {
 	id := v.xfunction.SName
-	s, err := progsdat.String(int32(id))
+	s, err := v.prog.String(int32(id))
 	if err != nil {
 		return ""
 	}
@@ -126,8 +126,8 @@ func (v *virtualMachine) varString(first int) string {
 	var b strings.Builder
 
 	for i := first; i < v.argc; i++ {
-		idx := progsdat.RawGlobalsI[progs.OffsetParm0+i*3]
-		s, err := progsdat.String(idx)
+		idx := v.prog.RawGlobalsI[progs.OffsetParm0+i*3]
+		s, err := v.prog.String(idx)
 		if err != nil {
 			conlog.DWarning("PF_VarString: nil string.\n")
 			break

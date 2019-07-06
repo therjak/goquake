@@ -15,10 +15,80 @@ import (
 	"quake/progs"
 	"quake/protocol"
 	"quake/protocol/server"
+	"quake/protos"
 	"runtime"
 
 	"github.com/chewxy/math32"
 )
+
+const (
+	saveGlobal = (1 << 15)
+)
+
+func (v *virtualMachine) saveGlobalString(name string, offset uint16) *protos.StringDef {
+	val := v.prog.RawGlobalsI[offset]
+	s, _ := v.prog.String(val)
+	return &protos.StringDef{
+		Id:    name,
+		Value: s,
+	}
+}
+
+func (v *virtualMachine) saveGlobalFloat(name string, offset uint16) *protos.FloatDef {
+	val := v.prog.RawGlobalsF[offset]
+	return &protos.FloatDef{
+		Id:    name,
+		Value: val,
+	}
+}
+
+func (v *virtualMachine) saveGlobalEntity(name string, offset uint16) *protos.EntityDef {
+	val := v.prog.RawGlobalsI[offset]
+	return &protos.EntityDef{
+		Id:    name,
+		Value: val,
+	}
+}
+
+func (v *virtualMachine) saveGameGlobals() *protos.Globals {
+	// Def { Type uint16, Offset uint16, SName int32 }
+	strings := []*protos.StringDef{}
+	entities := []*protos.EntityDef{}
+	floats := []*protos.FloatDef{}
+	for _, d := range v.prog.GlobalDefs {
+		t := d.Type
+		if t&saveGlobal == 0 {
+			continue
+		}
+		t &^= saveGlobal
+		name, _ := v.prog.String(d.SName)
+		offset := d.Offset
+		switch t {
+		case progs.EV_String:
+			strings = append(strings, v.saveGlobalString(name, offset))
+		case progs.EV_Float:
+			floats = append(floats, v.saveGlobalFloat(name, offset))
+		case progs.EV_Entity:
+			entities = append(entities, v.saveGlobalEntity(name, offset))
+		default:
+			// progs.EV_Vector, progs.EV_Field, progs.EV_Function, progs.EV_Void:
+			// progs.EV_Pointer:
+			// progs.EV_Bad:
+			continue
+		}
+	}
+	return &protos.Globals{
+		Strings:  strings,
+		Entities: entities,
+		Floats:   floats,
+	}
+}
+
+func (v *virtualMachine) saveGameEdicts() []*protos.Edict {
+	//for (i = 0; i < SV_NumEdicts(); i++) {
+	//ED_Write(f, i);
+	return nil
+}
 
 // Dumps out self, then an error message.  The program is aborted and self is
 // removed, but the level can continue.

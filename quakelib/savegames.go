@@ -27,42 +27,6 @@ func saveGameComment() string {
 	return fmt.Sprintf("%-22s kills:%3d/%3d", ln, km, tm)
 }
 
-func saveGameGlobals() *protos.Globals {
-	/*
-			  ddef_t *def;
-		  int i;
-		  const char *name;
-		  int type;
-
-		  fprintf(f, "{\n");
-		  for (i = 0; i < progs->numglobaldefs; i++) {
-		    def = &pr_globaldefs[i];
-		    type = def->type;
-		    if (!(def->type & DEF_SAVEGLOBAL)) continue;
-		    type &= ~DEF_SAVEGLOBAL;
-
-		    if (type != ev_string && type != ev_float && type != ev_entity) continue;
-
-		    name = PR_GetString(def->s_name);
-		    fprintf(f, "\"%s\" ", name);
-		    eval_t v;
-		    v.vector[0] = Pr_globalsf(def->ofs);
-		    v.vector[1] = Pr_globalsf(def->ofs + 1);
-		    v.vector[2] = Pr_globalsf(def->ofs + 2);
-		    fprintf(f, "\"%s\"\n", PR_UglyValueString(type, &v));
-		  }
-		  fprintf(f, "}\n");
-
-	*/
-	return nil
-}
-
-func saveGameEdicts() []*protos.Edict {
-	//for (i = 0; i < SV_NumEdicts(); i++) {
-	//ED_Write(f, i);
-	return nil
-}
-
 func saveGame(args []cmd.QArg, _ int) {
 	if !execute.IsSrcCommand() {
 		return
@@ -113,9 +77,9 @@ func saveGame(args []cmd.QArg, _ int) {
 		CurrentSkill: int32(cvars.Skill.Value()),
 		MapName:      sv.name,
 		MapTime:      sv.time,
-		LightStyles:  sv.lightStyles[:], //[]string
-		Globals:      saveGameGlobals(), // protos.Globals
-		Edicts:       saveGameEdicts(),  // []protos.Edict
+		LightStyles:  sv.lightStyles[:],    //[]string
+		Globals:      vm.saveGameGlobals(), // protos.Globals
+		Edicts:       vm.saveGameEdicts(),  // []protos.Edict
 	}
 
 	out, err := proto.Marshal(data)
@@ -123,6 +87,7 @@ func saveGame(args []cmd.QArg, _ int) {
 		conlog.Printf("failed to encode savegame.\n")
 		return
 	}
+
 	if err := ioutil.WriteFile(fullname, out, 0660); err != nil {
 		conlog.Printf("ERROR: couldn't write file.\n")
 		return
