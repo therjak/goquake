@@ -28,11 +28,6 @@ message FieldDef {
   string value = 2;
 }
 
-message VoidDef {
-  string id = 1;  // sname
-  bool value = 2;
-}
-
 message FloatDef {
   string id = 1;  // sname
   float value = 2;
@@ -58,7 +53,6 @@ message Edict {
   repeated FunctionDef functions = 4;
   repeated StringDef strings = 5;
   repeated VectorDef vectors = 6;
-  repeated VoidDef voids = 7;
   float alpha = 8;
 }
 
