@@ -711,7 +711,7 @@ func CheckVelocity(ent *progs.EntVars) {
 
 func (s *Server) CreateBaseline() {
 	for entnum := 0; entnum < s.numEdicts; entnum++ {
-		e := s.edicts[entnum]
+		e := &s.edicts[entnum]
 		if e.Free {
 			continue
 		}
@@ -914,7 +914,7 @@ func runThink(e int) bool {
 
 	// capture interval to nextthink here and send it to client for better
 	// lerp timing, but only if interval is not 0.1 (which client assumes)
-	ed := sv.edicts[e]
+	ed := &sv.edicts[e]
 	ed.SendInterval = false
 	if !ed.Free && ev.NextThink != 0 &&
 		(ev.MoveType == progs.MoveTypeStep || ev.Frame != oldframe) {
@@ -1040,7 +1040,7 @@ func (s *Server) WriteEntitiesToClient(clent int) {
 	// send over all entities (except the client) that touch the pvs
 	for ent := 1; ent < s.numEdicts; ent++ {
 		ev := EntVars(ent)
-		edict := s.edicts[ent]
+		edict := &s.edicts[ent]
 
 		// check if we need to send this edict
 		if ent != clent {
