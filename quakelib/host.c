@@ -39,10 +39,7 @@ cvar_t serverprofile;
 cvar_t teamplay;
 cvar_t samelevel;
 cvar_t skill;
-cvar_t deathmatch;
-cvar_t coop;
 cvar_t developer;
-cvar_t temp1;
 cvar_t devstats;
 
 devstats_t dev_stats, dev_peakstats;
@@ -125,9 +122,6 @@ void Host_InitLocal(void) {
   Cvar_FakeRegister(&samelevel, "samelevel");
   Cvar_FakeRegister(&skill, "skill");
   Cvar_FakeRegister(&developer, "developer");
-  Cvar_FakeRegister(&coop, "coop");
-  Cvar_FakeRegister(&deathmatch, "deathmatch");
-  Cvar_FakeRegister(&temp1, "temp1");
 
   Host_FindMaxClients();
 }

@@ -38,15 +38,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 extern int DEFAULTnet_hostport;
 extern int net_hostport;
 
-extern cvar_t hostname;
-
 void NET_Init(void);
 void NET_Shutdown(void);
-
-int NET_Connect(char *host);
-// called by client to connect to a host.  Returns -1 if not able to
-
-const char *NET_QSocketGetAddressString(int sock);
 
 void NET_Poll(void);
 

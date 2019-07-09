@@ -134,22 +134,6 @@ extern int net_activeSockets;
 extern int net_freeSockets;
 extern int net_numsockets;
 
-typedef struct {
-  const char *name;
-  qboolean initialized;
-  int (*Init)(void);
-  void (*Listen)(qboolean state);
-  void (*SearchForHosts)(qboolean xmit);
-  int (*Connect)(const char *host);
-  int (*CheckNewConnections)(void);
-  int (*QGetMessage)(int sock);
-  qboolean (*CanSendMessage)(int sock);
-  qboolean (*CanSendUnreliableMessage)(int sock);
-  void (*Close)(int sock);
-  void (*Shutdown)(void);
-} net_driver_t;
-
-extern net_driver_t net_drivers[];
 extern const int net_numdrivers;
 
 /* Loop driver must always be registered the first */
@@ -161,9 +145,6 @@ extern int messagesSent;
 extern int messagesReceived;
 extern int unreliableMessagesSent;
 extern int unreliableMessagesReceived;
-
-int NET_NewQSocket(void);
-void NET_FreeQSocket(int);
 
 #define HOSTCACHESIZE 8
 

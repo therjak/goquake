@@ -102,8 +102,6 @@ const char *SV_ModelName();
 
 extern cvar_t teamplay;
 extern cvar_t skill;
-extern cvar_t deathmatch;
-extern cvar_t coop;
 
 extern server_t sv;  // local server
 

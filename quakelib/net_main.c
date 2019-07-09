@@ -36,25 +36,8 @@ int unreliableMessagesSent = 0;
 int unreliableMessagesReceived = 0;
 
 static cvar_t net_messagetimeout;
-cvar_t hostname;
-
-// these two macros are to make the code more readable
-#define sfunc net_drivers[sock->driver]
-#define dfunc net_drivers[net_driverlevel]
 
 int net_driverlevel;
-
-// convert
-int NET_NewQSocket(void) { return -1; }
-
-// convert
-void NET_FreeQSocket(int sock) {}
-
-const char *NET_QSocketGetAddressString(int s) {
-  static char buffer[NET_NAMELEN];
-  ClientAddress(s, &buffer[0], NET_NAMELEN);
-  return &buffer[0];
-}
 
 // convert
 static void PrintSlistHeader(void) {
@@ -136,7 +119,6 @@ void NET_Init(void) {
   NET_SetTime();
 
   Cvar_FakeRegister(&net_messagetimeout, "net_messagetimeout");
-  Cvar_FakeRegister(&hostname, "hostname");
 
   Cmd_AddCommand("slist", NET_Slist_f);
 
@@ -181,24 +163,6 @@ void SchedulePollProcedure(PollProcedure *proc, double timeOffset) {
 //
 // reading functions
 //
-
-const char *MSG_ReadString(void) {
-  static char string[2048];
-  int c;
-  size_t l;
-
-  l = 0;
-  do {
-    c = MSG_ReadByte();
-    if (c == -1 || c == 0) break;
-    string[l] = c;
-    l++;
-  } while (l < sizeof(string) - 1);
-
-  string[l] = 0;
-  return string;
-}
-
 const char *CL_MSG_ReadString(void) {
   static char string[2048];
   int c;
