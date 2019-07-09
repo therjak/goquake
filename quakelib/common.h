@@ -53,15 +53,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 //============================================================================
 
-typedef struct link_s {
-  struct link_s *prev, *next;
-} link_t;
-
-void ClearLink(link_t *l);
-void RemoveLink(link_t *l);
-void InsertLinkBefore(link_t *l, link_t *before);
-void InsertLinkAfter(link_t *l, link_t *after);
-
 
 //============================================================================
 const char *MSG_ReadString(void);

@@ -7,7 +7,6 @@ void callQuakeFunc(xcommand_t f);
 import "C"
 
 import (
-	"log"
 	"quake/cmd"
 )
 
@@ -30,13 +29,6 @@ func Cmd_Exists(cmd_name *C.char) C.int {
 func Cmd_Argc() C.int {
 	// log.Printf("Argc: %v", args.Argc())
 	return C.int(cmd.Argc())
-}
-
-//export Cmd_ArgsInt
-func Cmd_ArgsInt() *C.char {
-	log.Printf("Args called")
-	s := cmd.Full()
-	return C.CString(s)
 }
 
 //export Cmd_ArgvInt
