@@ -54,19 +54,9 @@ func edictNum(i int) *Edict {
 	return &sv.edicts[i]
 }
 
-//export EDICT_FREE
-func EDICT_FREE(n int) C.int {
-	return b2i(edictNum(n).Free)
-}
-
 //export EDICT_SETFREE
 func EDICT_SETFREE(n, free int) {
 	edictNum(n).Free = (free != 0)
-}
-
-//export EDICT_ALPHA
-func EDICT_ALPHA(n int) byte {
-	return edictNum(n).Alpha
 }
 
 //export EDICT_SETALPHA

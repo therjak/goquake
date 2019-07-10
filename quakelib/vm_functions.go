@@ -17,6 +17,7 @@ import (
 	"quake/protocol/server"
 	"quake/protos"
 	"runtime"
+	"strings"
 
 	"github.com/chewxy/math32"
 )
@@ -24,6 +25,10 @@ import (
 const (
 	saveGlobal = (1 << 15)
 )
+
+func (v *virtualMachine) loadGameGlobals(g *protos.Globals) {
+	// TODO
+}
 
 func (v *virtualMachine) saveGlobalString(name string, offset uint16) *protos.StringDef {
 	val := v.prog.RawGlobalsI[offset]
@@ -53,7 +58,7 @@ func (v *virtualMachine) saveGlobalEntity(name string, offset uint16) *protos.En
 func (v *virtualMachine) saveGameGlobals() *protos.Globals {
 	entities := []*protos.EntityDef{}
 	floats := []*protos.FloatDef{}
-	strings := []*protos.StringDef{}
+	ostrings := []*protos.StringDef{}
 	for _, d := range v.prog.GlobalDefs {
 		t := d.Type
 		if t&saveGlobal == 0 {
@@ -64,7 +69,7 @@ func (v *virtualMachine) saveGameGlobals() *protos.Globals {
 		offset := d.Offset
 		switch t {
 		case progs.EV_String:
-			strings = append(strings, v.saveGlobalString(name, offset))
+			ostrings = append(ostrings, v.saveGlobalString(name, offset))
 		case progs.EV_Float:
 			floats = append(floats, v.saveGlobalFloat(name, offset))
 		case progs.EV_Entity:
@@ -79,8 +84,13 @@ func (v *virtualMachine) saveGameGlobals() *protos.Globals {
 	return &protos.Globals{
 		Entities: entities,
 		Floats:   floats,
-		Strings:  strings,
+		Strings:  ostrings,
 	}
+}
+
+func (v *virtualMachine) loadGameEntVars(idx int, e *protos.Edict) {
+	TTClearEntVars(idx)
+	// TODO
 }
 
 func (v *virtualMachine) saveEVString(idx int, name string, offset uint16) *protos.StringDef {
@@ -150,16 +160,20 @@ func (v *virtualMachine) saveGameEntVars(idx int) *protos.Edict {
 	fields := []*protos.FieldDef{}
 	floats := []*protos.FloatDef{}
 	functions := []*protos.FunctionDef{}
-	strings := []*protos.StringDef{}
+	ostrings := []*protos.StringDef{}
 	vectors := []*protos.VectorDef{}
 	for _, d := range v.prog.FieldDefs[1:] {
 		t := d.Type
 		t &^= saveGlobal
 		name, _ := v.prog.String(d.SName)
+		if strings.HasPrefix(name, "_") {
+			// skip _x, _y, _z vars
+			continue
+		}
 		offset := d.Offset
 		switch t {
 		case progs.EV_String:
-			strings = append(strings, v.saveEVString(idx, name, offset))
+			ostrings = append(ostrings, v.saveEVString(idx, name, offset))
 		case progs.EV_Float:
 			floats = append(floats, v.saveEVFloat(idx, name, offset))
 		case progs.EV_Entity:
@@ -177,12 +191,13 @@ func (v *virtualMachine) saveGameEntVars(idx int) *protos.Edict {
 			continue
 		}
 	}
+	// TODO: alpha
 	return &protos.Edict{
 		Entities:  entities,
 		Fields:    fields,
 		Floats:    floats,
 		Functions: functions,
-		Strings:   strings,
+		Strings:   ostrings,
 		Vectors:   vectors,
 	}
 }

@@ -1411,11 +1411,36 @@ func (s *Server) saveGameEdicts() []*protos.Edict {
 			continue
 		}
 		e := vm.saveGameEntVars(i)
-		// + alpha
-		//if (!pr_alpha_supported && EDICT_ALPHA(ed) != ENTALPHA_DEFAULT)
-		//  fprintf(f, "\"alpha\" \"%f\"\n", ENTALPHA_TOSAVE(EDICT_ALPHA(ed)));
+
+		if /*!pr_alpha_supported &&*/ s.edicts[i].Alpha != 0 {
+			wa := s.edicts[i].Alpha
+			if wa == 1 {
+				e.Alpha = -1
+			} else {
+				e.Alpha = (float32(wa) - 1) / 254
+			}
+		}
 
 		eds = append(eds, e)
 	}
 	return eds
+}
+
+func (s *Server) loadGameEdicts(es []*protos.Edict) {
+	for i, e := range es {
+		a := byte(0)
+		readA := e.GetAlpha()
+		if readA != 0 {
+			ta := (readA * 254) + 1
+			ta = math.Clamp32(1, ta, 255)
+			a = byte(ta)
+		}
+		s.edicts[i] = Edict{
+			Alpha: a,
+		}
+
+		vm.loadGameEntVars(i, e)
+		vm.LinkEdict(i, false)
+	}
+	s.numEdicts = len(es)
 }
