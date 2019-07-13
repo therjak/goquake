@@ -10,6 +10,33 @@
 #include <time.h>
 #include <unistd.h>
 
+#define DEFAULT_MEMORY \
+  (256 * 1024 * 1024)  // ericw -- was 72MB (64-bit) / 64MB (32-bit)
+
+static quakeparms_t parms;
+
+void Sys_Init() {
+  host_parms = &parms;
+
+  parms.memsize = DEFAULT_MEMORY;
+  parms.membase = malloc(parms.memsize);
+
+  if (!parms.membase) Go_Error("Not enough memory free; check disk space\n");
+}
+
+const char* Cmd_Argv(int arg) {
+  static char buffer[2048];
+  char* argv = Cmd_ArgvInt(arg);
+  strncpy(buffer, argv, 2048);
+  free(argv);
+  return buffer;
+}
+
+void callQuakeFunc(xcommand_t f) { f(); }
+
+void setInt(int* l, int v) { *l = v; }
+
+
 int Sys_FileTime(const char *path) {
   FILE *f;
 
