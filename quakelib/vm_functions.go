@@ -27,7 +27,37 @@ const (
 )
 
 func (v *virtualMachine) loadGameGlobals(g *protos.Globals) {
-	// TODO
+	getGlobalOffset := func(s string) (uint16, bool) {
+		for _, d := range v.prog.GlobalDefs {
+			name, _ := v.prog.String(d.SName)
+			if name == s {
+				return d.Offset, true
+			}
+		}
+		return 0, false
+	}
+	for _, st := range g.Strings {
+		ofs, ok := getGlobalOffset(st.GetId())
+		if !ok {
+			continue
+		}
+		id := v.prog.NewString(st.GetValue())
+		v.prog.RawGlobalsI[ofs] = id
+	}
+	for _, fl := range g.Floats {
+		ofs, ok := getGlobalOffset(fl.GetId())
+		if !ok {
+			continue
+		}
+		v.prog.RawGlobalsF[ofs] = fl.GetValue()
+	}
+	for _, en := range g.Entities {
+		ofs, ok := getGlobalOffset(en.GetId())
+		if !ok {
+			continue
+		}
+		v.prog.RawGlobalsI[ofs] = en.GetValue()
+	}
 }
 
 func (v *virtualMachine) saveGlobalString(name string, offset uint16) *protos.StringDef {
