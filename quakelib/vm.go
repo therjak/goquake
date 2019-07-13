@@ -278,6 +278,7 @@ func (v *virtualMachine) stackTrace() {
 }
 
 /*
+TODO:
 func init() {
 	cmd.AddCommand("profile", PR_Profile_f)
 }

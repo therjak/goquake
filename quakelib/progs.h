@@ -21,8 +21,6 @@ extern dprograms_t *progs;
 extern dfunction_t *pr_functions;
 extern dstatement_t *pr_statements;
 
-void PR_Init(void);
-
 void PR_ExecuteProgram(int fnum);
 void PR_LoadProgs(void);
 
@@ -30,9 +28,6 @@ void PR_Profile_f(void);
 
 void ED_Write(FILE *f, int ed);
 const char *ED_ParseEdict(const char *data, int ent);
-
-void ED_WriteGlobals(FILE *f);
-void ED_ParseGlobals(const char *data);
 
 extern int type_size[8];
 

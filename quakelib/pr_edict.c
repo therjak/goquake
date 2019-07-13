@@ -46,22 +46,6 @@ static ddef_t *ED_FindField(const char *name) {
 
 /*
 ============
-ED_FindGlobal
-============
-*/
-static ddef_t *ED_FindGlobal(const char *name) {
-  ddef_t *def;
-  int i;
-
-  for (i = 0; i < progs->numglobaldefs; i++) {
-    def = &pr_globaldefs[i];
-    if (!strcmp(PR_GetString(def->s_name), name)) return def;
-  }
-  return NULL;
-}
-
-/*
-============
 ED_FindFunction
 ============
 */
@@ -74,43 +58,6 @@ static dfunction_t *ED_FindFunction(const char *fn_name) {
     if (!strcmp(PR_GetString(func->s_name), fn_name)) return func;
   }
   return NULL;
-}
-
-/*
-=============
-ED_ParseGlobals
-=============
-*/
-// THERJAK -- this is important
-void ED_ParseGlobals(const char *data) {
-  char keyname[64];
-  ddef_t *key;
-
-  while (1) {
-    // parse key
-    data = COM_Parse(data);
-    if (com_token[0] == '}') break;
-    if (!data) Host_Error("ED_ParseEntity: EOF without closing brace");
-
-    strcpy(keyname, com_token);
-
-    // parse value
-    data = COM_Parse(data);
-    if (!data) Host_Error("ED_ParseEntity: EOF without closing brace");
-
-    if (com_token[0] == '}')
-      Host_Error("ED_ParseEntity: closing brace without data");
-
-    key = ED_FindGlobal(keyname);
-    if (!key) {
-      Con_Printf("'%s' is not a global\n", keyname);
-      continue;
-    }
-
-    // Sys_Print("ParseGlobals");
-    if (!ED_ParseEpair((void *)pr_globals, key, com_token))
-      Host_Error("ED_ParseGlobals: parse error");
-  }
 }
 
 //============================================================================
@@ -362,10 +309,3 @@ void PR_LoadProgs(void) {
     // johnfitz
   }
 }
-
-/*
-===============
-PR_Init
-===============
-*/
-void PR_Init(void) { Cmd_AddCommand("profile", PR_Profile_f); }

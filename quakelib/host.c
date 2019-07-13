@@ -354,7 +354,6 @@ void Host_Init(void) {
     Key_Init();
     Con_Init();
   }
-  PR_Init();
   Mod_Init();
   NET_Init();
   SV_Init();
