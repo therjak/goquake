@@ -25,6 +25,7 @@ import (
 	"quake/protos"
 
 	"github.com/chewxy/math32"
+	"github.com/golang/protobuf/proto"
 )
 
 const (
@@ -1428,6 +1429,12 @@ func (s *Server) saveGameEdicts() []*protos.Edict {
 
 func (s *Server) loadGameEdicts(es []*protos.Edict) {
 	for i, e := range es {
+		if proto.Equal(e, &protos.Edict{}) {
+			s.edicts[i] = Edict{
+				Free: true,
+			}
+			continue
+		}
 		a := byte(0)
 		readA := e.GetAlpha()
 		if readA != 0 {

@@ -27,36 +27,27 @@ const (
 )
 
 func (v *virtualMachine) loadGameGlobals(g *protos.Globals) {
-	getGlobalOffset := func(s string) (uint16, bool) {
-		for _, d := range v.prog.GlobalDefs {
-			name, _ := v.prog.String(d.SName)
-			if name == s {
-				return d.Offset, true
-			}
-		}
-		return 0, false
-	}
 	for _, st := range g.Strings {
-		ofs, ok := getGlobalOffset(st.GetId())
-		if !ok {
+		def, err := v.prog.FindGlobalDef(st.GetId())
+		if err != nil {
 			continue
 		}
 		id := v.prog.NewString(st.GetValue())
-		v.prog.RawGlobalsI[ofs] = id
+		v.prog.RawGlobalsI[def.Offset] = id
 	}
 	for _, fl := range g.Floats {
-		ofs, ok := getGlobalOffset(fl.GetId())
-		if !ok {
+		def, err := v.prog.FindGlobalDef(fl.GetId())
+		if err != nil {
 			continue
 		}
-		v.prog.RawGlobalsF[ofs] = fl.GetValue()
+		v.prog.RawGlobalsF[def.Offset] = fl.GetValue()
 	}
-	for _, en := range g.Entities {
-		ofs, ok := getGlobalOffset(en.GetId())
-		if !ok {
+	for _, ent := range g.Entities {
+		def, err := v.prog.FindGlobalDef(ent.GetId())
+		if err != nil {
 			continue
 		}
-		v.prog.RawGlobalsI[ofs] = en.GetValue()
+		v.prog.RawGlobalsI[def.Offset] = ent.GetValue()
 	}
 }
 
@@ -120,49 +111,121 @@ func (v *virtualMachine) saveGameGlobals() *protos.Globals {
 
 func (v *virtualMachine) loadGameEntVars(idx int, e *protos.Edict) {
 	TTClearEntVars(idx)
-	// TODO
+	// TODO: keyname == "alpha"
+	for _, st := range e.Strings {
+		def, err := v.prog.FindFieldDef(st.GetId())
+		if err != nil {
+			log.Printf("No string %s", st.GetId())
+			continue
+		}
+		id := v.prog.NewString(st.GetValue())
+		SetRawEntVarsI(int32(idx), int32(def.Offset), id)
+	}
+	for _, fl := range e.Floats {
+		def, err := v.prog.FindFieldDef(fl.GetId())
+		if err != nil {
+			log.Printf("No float %s", fl.GetId())
+			continue
+		}
+		SetRawEntVarsF(int32(idx), int32(def.Offset), fl.GetValue())
+	}
+	for _, ent := range e.Entities {
+		def, err := v.prog.FindFieldDef(ent.GetId())
+		if err != nil {
+			log.Printf("No field %s", ent.GetId())
+			continue
+		}
+		SetRawEntVarsI(int32(idx), int32(def.Offset), ent.GetValue())
+	}
+	for _, fnc := range e.Functions {
+		def, err := v.prog.FindFieldDef(fnc.GetId())
+		if err != nil {
+			continue
+		}
+		fidx, err := v.prog.FindFunction(fnc.GetValue())
+		if err != nil {
+			continue
+		}
+		SetRawEntVarsI(int32(idx), int32(def.Offset), int32(fidx))
+	}
+	for _, field := range e.Fields {
+		def, err := v.prog.FindFieldDef(field.GetId())
+		if err != nil {
+			continue
+		}
+		vdef, err := v.prog.FindFieldDef(field.GetValue())
+		if err != nil {
+			continue
+		}
+		SetRawEntVarsI(int32(idx), int32(def.Offset), int32(vdef.Offset))
+	}
+	for _, vector := range e.Vectors {
+		def, err := v.prog.FindFieldDef(vector.GetId())
+		if err != nil {
+			continue
+		}
+		val := vector.GetValue()
+		SetRawEntVarsF(int32(idx), int32(def.Offset), val.GetX())
+		SetRawEntVarsF(int32(idx), int32(def.Offset+1), val.GetY())
+		SetRawEntVarsF(int32(idx), int32(def.Offset+2), val.GetZ())
+	}
+
 }
 
-func (v *virtualMachine) saveEVString(idx int, name string, offset uint16) *protos.StringDef {
+func (v *virtualMachine) saveEVString(idx int, name string, offset uint16) (*protos.StringDef, bool) {
 	val := RawEntVarsI(int32(idx), int32(offset))
+	if val == 0 {
+		return nil, false
+	}
 	s, _ := v.prog.String(val)
 	return &protos.StringDef{
 		Id:    name,
 		Value: s,
-	}
+	}, true
 }
 
-func (v *virtualMachine) saveEVFloat(idx int, name string, offset uint16) *protos.FloatDef {
+func (v *virtualMachine) saveEVFloat(idx int, name string, offset uint16) (*protos.FloatDef, bool) {
 	val := RawEntVarsF(int32(idx), int32(offset))
+	if val == 0 {
+		return nil, false
+	}
 	return &protos.FloatDef{
 		Id:    name,
 		Value: val,
-	}
+	}, true
 }
 
-func (v *virtualMachine) saveEVEntity(idx int, name string, offset uint16) *protos.EntityDef {
+func (v *virtualMachine) saveEVEntity(idx int, name string, offset uint16) (*protos.EntityDef, bool) {
 	val := RawEntVarsI(int32(idx), int32(offset))
+	if val == 0 {
+		return nil, false
+	}
 	return &protos.EntityDef{
 		Id:    name,
 		Value: val,
-	}
+	}, true
 }
 
-func (v *virtualMachine) saveEVVector(idx int, name string, offset uint16) *protos.VectorDef {
-	vec := &protos.Vector{
-		X: RawEntVarsF(int32(idx), int32(offset)),
-		Y: RawEntVarsF(int32(idx), int32(offset+1)),
-		Z: RawEntVarsF(int32(idx), int32(offset+2)),
+func (v *virtualMachine) saveEVVector(idx int, name string, offset uint16) (*protos.VectorDef, bool) {
+	x := RawEntVarsF(int32(idx), int32(offset))
+	y := RawEntVarsF(int32(idx), int32(offset+1))
+	z := RawEntVarsF(int32(idx), int32(offset+2))
+	if x == 0 && y == 0 && z == 0 {
+		return nil, false
 	}
+	vec := &protos.Vector{X: x, Y: y, Z: z}
 	return &protos.VectorDef{
 		Id:    name,
 		Value: vec,
-	}
+	}, true
 }
 
-func (v *virtualMachine) saveEVField(idx int, name string, offset uint16) *protos.FieldDef {
+func (v *virtualMachine) saveEVField(idx int, name string, offset uint16) (*protos.FieldDef, bool) {
 	s := ""
 	val := RawEntVarsI(int32(idx), int32(offset))
+	if val == 0 {
+		return nil, false
+	}
 	for _, f := range v.prog.FieldDefs {
 		if int32(f.Offset) == val {
 			s, _ = v.prog.String(f.SName)
@@ -172,17 +235,20 @@ func (v *virtualMachine) saveEVField(idx int, name string, offset uint16) *proto
 	return &protos.FieldDef{
 		Id:    name,
 		Value: s,
-	}
+	}, true
 }
 
-func (v *virtualMachine) saveEVFunction(idx int, name string, offset uint16) *protos.FunctionDef {
+func (v *virtualMachine) saveEVFunction(idx int, name string, offset uint16) (*protos.FunctionDef, bool) {
 	val := RawEntVarsI(int32(idx), int32(offset))
+	if val == 0 {
+		return nil, false
+	}
 	sname := v.prog.Functions[val].SName
 	s, _ := v.prog.String(sname)
 	return &protos.FunctionDef{
 		Id:    name,
 		Value: s,
-	}
+	}, true
 }
 
 func (v *virtualMachine) saveGameEntVars(idx int) *protos.Edict {
@@ -203,17 +269,29 @@ func (v *virtualMachine) saveGameEntVars(idx int) *protos.Edict {
 		offset := d.Offset
 		switch t {
 		case progs.EV_String:
-			ostrings = append(ostrings, v.saveEVString(idx, name, offset))
+			if s, ok := v.saveEVString(idx, name, offset); ok {
+				ostrings = append(ostrings, s)
+			}
 		case progs.EV_Float:
-			floats = append(floats, v.saveEVFloat(idx, name, offset))
+			if f, ok := v.saveEVFloat(idx, name, offset); ok {
+				floats = append(floats, f)
+			}
 		case progs.EV_Entity:
-			entities = append(entities, v.saveEVEntity(idx, name, offset))
+			if e, ok := v.saveEVEntity(idx, name, offset); ok {
+				entities = append(entities, e)
+			}
 		case progs.EV_Vector:
-			vectors = append(vectors, v.saveEVVector(idx, name, offset))
+			if ve, ok := v.saveEVVector(idx, name, offset); ok {
+				vectors = append(vectors, ve)
+			}
 		case progs.EV_Field:
-			fields = append(fields, v.saveEVField(idx, name, offset))
+			if f, ok := v.saveEVField(idx, name, offset); ok {
+				fields = append(fields, f)
+			}
 		case progs.EV_Function:
-			functions = append(functions, v.saveEVFunction(idx, name, offset))
+			if f, ok := v.saveEVFunction(idx, name, offset); ok {
+				functions = append(functions, f)
+			}
 		default:
 			// progs.EV_Void: // this was written but never read
 			// progs.EV_Pointer:
