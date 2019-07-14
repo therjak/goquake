@@ -275,6 +275,7 @@ Host_Changelevel_f
 Goes to a new map, taking all clients along
 ==================
 */
+// THERJAK
 void Host_Changelevel_f(void) {
   char level[MAX_QPATH];
 
@@ -308,6 +309,7 @@ Host_Restart_f
 Restarts the current server for a dead player
 ==================
 */
+// THERJAK
 void Host_Restart_f(void) {
   char mapname[MAX_QPATH];
 
