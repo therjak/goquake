@@ -205,7 +205,6 @@ typedef struct {
 
 #include "cmd.h"
 
-#include "progs.h"
 #include "server.h"
 
 #ifndef APIENTRY

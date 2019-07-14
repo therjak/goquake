@@ -4,7 +4,6 @@ package quakelib
 //#include "progdefs.h"
 //#include "cgo_help.h"
 //void Host_ClearMemory(void);
-//void PR_LoadProgs(void);
 import "C"
 
 import (
@@ -1299,7 +1298,6 @@ func (s *Server) SpawnServer(name string) {
 
 	// load progs to get entity field count
 	LoadProgs()
-	C.PR_LoadProgs()
 
 	// allocate server memory
 	// Host_ClearMemory() called above already cleared the whole sv structure

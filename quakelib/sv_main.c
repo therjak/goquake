@@ -6,7 +6,7 @@
 
 server_t sv;
 
-extern qboolean pr_alpha_supported;  // johnfitz
+qboolean pr_alpha_supported;  // johnfitz
 
 //============================================================================
 
