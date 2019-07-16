@@ -263,68 +263,6 @@ qboolean noclip_anglehack;
 /*
 ===============================================================================
 
-SERVER TRANSITIONS
-
-===============================================================================
-*/
-
-/*
-==================
-Host_Changelevel_f
-
-Goes to a new map, taking all clients along
-==================
-*/
-// THERJAK
-void Host_Changelevel_f(void) {
-  char level[MAX_QPATH];
-
-  if (Cmd_Argc() != 2) {
-    Con_Printf("changelevel <levelname> : continue game on a new level\n");
-    return;
-  }
-  if (!SV_Active() || CLS_IsDemoPlayback()) {
-    Con_Printf("Only the server may changelevel\n");
-    return;
-  }
-
-  // johnfitz -- check for client having map before anything else
-  q_snprintf(level, sizeof(level), "maps/%s.bsp", Cmd_Argv(1));
-  if (!COM_FileExists(level)) Host_Error("cannot find map %s", level);
-  // johnfitz
-
-  if (CLS_GetState() != ca_dedicated) IN_Activate();  // -- S.A.
-  SetKeyDest(key_game);                               // remove console or menu
-  SV_SaveSpawnparms();
-  q_strlcpy(level, Cmd_Argv(1), sizeof(level));
-  SV_SpawnServer(level);
-  // also issue an error if spawn failed -- O.S.
-  if (!SV_Active()) Host_Error("cannot run map %s", level);
-}
-
-/*
-==================
-Host_Restart_f
-
-Restarts the current server for a dead player
-==================
-*/
-// THERJAK
-void Host_Restart_f(void) {
-  char mapname[MAX_QPATH];
-
-  if (CLS_IsDemoPlayback() || !SV_Active()) return;
-
-  if (!IsSrcCommand()) return;
-  q_strlcpy(mapname, SV_Name(),
-            sizeof(mapname));  // mapname gets cleared in spawnserver
-  SV_SpawnServer(mapname);
-  if (!SV_Active()) Host_Error("cannot restart map %s", mapname);
-}
-
-/*
-===============================================================================
-
 DEBUGGING TOOLS
 
 ===============================================================================
@@ -394,9 +332,6 @@ void Host_InitCommands(void) {
   Cmd_AddCommand("mods", Host_Mods_f);  // johnfitz
   Cmd_AddCommand("games",
                  Host_Mods_f);  // as an alias to "mods" -- S.A. / QuakeSpasm
-
-  Cmd_AddCommand("restart", Host_Restart_f);
-  Cmd_AddCommand("changelevel", Host_Changelevel_f);
 
   Cmd_AddCommand("startdemos", Host_Startdemos_f);
 

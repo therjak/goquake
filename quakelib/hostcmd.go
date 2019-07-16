@@ -45,6 +45,8 @@ func init() {
 	cmd.AddCommand("kick", hostKick)
 	cmd.AddCommand("quit", func(_ []cmd.QArg, _ int) { hostQuit() })
 	cmd.AddCommand("connect", hostConnect)
+	cmd.AddCommand("restart", hostRestart)
+	cmd.AddCommand("changelevel", hostChangelevel)
 }
 
 func hostQuit() {
@@ -1073,5 +1075,54 @@ func hostMap(args []cmd.QArg, player int) {
 
 		clEstablishConnection("local")
 		clientReconnect()
+	}
+}
+
+// Goes to a new map, taking all clients along
+func hostChangelevel(args []cmd.QArg, player int) {
+	if len(args) != 1 {
+		conlog.Printf("changelevel <levelname> : continue game on a new level\n")
+		return
+	}
+
+	if cls.demoPlayback || !sv.active {
+		conlog.Printf("Only the server may changelevel\n")
+		return
+	}
+	level := args[0].String()
+	/*
+	   // johnfitz -- check for client having map before anything else
+	   level := fmt.Sprintf("maps/%s.bsp", args[0].String())
+	   q_snprintf(level, sizeof(level), "maps/%s.bsp", Cmd_Argv(1));
+	   if (!COM_FileExists(level)) Host_Error("cannot find map %s", level);
+	   // johnfitz
+	*/
+	if cls.state != ca_dedicated {
+		IN_Activate()
+	}
+
+	// remove console or menu
+	keyDestination = keys.Game
+	SV_SaveSpawnparms()
+	sv.SpawnServer(level)
+	// also issue an error if spawn failed -- O.S.
+	if !sv.active {
+		HostError("cannot run map %s", level)
+	}
+}
+
+// Restarts the current server for a dead player
+func hostRestart(args []cmd.QArg, player int) {
+	if cls.demoPlayback || !sv.active {
+		return
+	}
+	if !execute.IsSrcCommand() {
+		return
+	}
+	mapname := sv.name // sv.name gets cleared in spawnserver
+	sv.SpawnServer(mapname)
+
+	if !sv.active {
+		HostError("cannot restart map %s", mapname)
 	}
 }
