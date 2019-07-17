@@ -1,6 +1,7 @@
 // host.c -- coordinates spawning and killing of local servers
 
 #include <setjmp.h>
+
 #include "quakedef.h"
 
 /*
@@ -23,7 +24,6 @@ int host_framecount;
 int host_hunklevel;
 
 int minimum_memory;
-
 
 int HostClient(void) { return Host_Client(); }
 
@@ -105,13 +105,15 @@ void Host_Error(const char *error, ...) {
   longjmp(host_abortserver, 1);
 }
 
+qboolean noclip_anglehack;
+
 /*
 =======================
 Host_InitLocal
 ======================
 */
 void Host_InitLocal(void) {
-  Host_InitCommands();
+  // Host_InitCommands();
 
   Cvar_FakeRegister(&host_speeds, "host_speeds");
   Cvar_FakeRegister(&host_timescale, "host_timescale");
@@ -368,9 +370,9 @@ void Host_Init(void) {
 
     V_Init();
     Chase_Init();
-    ExtraMaps_Init();  // johnfitz
-    Modlist_Init();    // johnfitz
-    DemoList_Init();   // ericw
+    // ExtraMaps_Init();  // johnfitz
+    // Modlist_Init();    // johnfitz
+    // DemoList_Init();   // ericw
     VID_Init();
     TexMgr_Init();  // johnfitz
     Draw_Init();

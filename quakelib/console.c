@@ -670,19 +670,19 @@ typedef struct filelist_item_s {
   struct filelist_item_s *next;
 } filelist_item_t;
 
-extern filelist_item_t *extralevels;
-extern filelist_item_t *modlist;
-extern filelist_item_t *demolist;
+// extern filelist_item_t *extralevels;
+// extern filelist_item_t *modlist;
+// extern filelist_item_t *demolist;
 
 typedef struct arg_completion_type_s {
   const char *command;
   filelist_item_t **filelist;
 } arg_completion_type_t;
 
-static const arg_completion_type_t arg_completion_types[] = {
-    {"map ", &extralevels},   {"changelevel ", &extralevels},
-    {"game ", &modlist},      {"record ", &demolist},
-    {"playdemo ", &demolist}, {"timedemo ", &demolist}};
+static const arg_completion_type_t arg_completion_types[] = {};
+//    {"map ", &extralevels},   {"changelevel ", &extralevels},
+//    {"game ", &modlist},      {"record ", &demolist},
+//    {"playdemo ", &demolist}, {"timedemo ", &demolist}};
 
 static const int num_arg_completion_types =
     sizeof(arg_completion_types) / sizeof(arg_completion_types[0]);

@@ -31,6 +31,8 @@ func init() {
 	cmd.AddCommand("reconnect", func(args []cmd.QArg, _ int) { clientReconnect() })
 
 	cmd.AddCommand("startdemos", clientStartDemos)
+
+	//Cmd_AddCommand("mcache", Mod_Print);
 }
 
 const (
