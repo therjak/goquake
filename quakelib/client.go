@@ -9,7 +9,9 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"quake/cbuf"
 	"quake/cmd"
+	cmdl "quake/commandline"
 	"quake/conlog"
 	"quake/cvars"
 	"quake/input"
@@ -27,6 +29,8 @@ import (
 func init() {
 	cmd.AddCommand("disconnect", func(args []cmd.QArg, _ int) { clientDisconnect() })
 	cmd.AddCommand("reconnect", func(args []cmd.QArg, _ int) { clientReconnect() })
+
+	cmd.AddCommand("startdemos", clientStartDemos)
 }
 
 const (
@@ -128,8 +132,8 @@ type ClientStatic struct {
 	// personalization data sent to server
 	// to restart a level
 	spawnParms string
+	demos      []string
 	/*
-		demos []string
 		demoFile 'filehandle'
 	*/
 	msgBadRead bool
@@ -1016,4 +1020,55 @@ func CL_SignonReply() {
 	case 4:
 		SCR_EndLoadingPlaque() // allow normal screen updates
 	}
+}
+
+func clientStartDemos(args []cmd.QArg, player int) {
+	if cls.state == ca_dedicated {
+		return
+	}
+
+	cls.demos = cls.demos[:0]
+	for _, a := range args {
+		cls.demos = append(cls.demos, a.String())
+	}
+	conlog.Printf("%d demo(s) in loop\n", len(cls.demos))
+
+	if !sv.active && cls.demoNum != -1 && !cls.demoPlayback {
+		cls.demoNum = 0
+		if !cmdl.Fitz() { // QuakeSpasm customization:
+			// go straight to menu, no CL_NextDemo
+			cls.demoNum = -1
+			cbuf.InsertText("menu_main\n")
+			return
+		}
+		CL_NextDemo()
+	} else {
+		cls.demoNum = -1
+	}
+}
+
+// Called to play the next demo in the demo loop
+//export CL_NextDemo
+func CL_NextDemo() {
+	if cls.demoNum == -1 {
+		// don't play demos
+		return
+	}
+
+	if len(cls.demos) == 0 {
+		conlog.Printf("No demos listed with startdemos\n")
+		cls.demoNum = -1
+		cls.Disconnect()
+		return
+	}
+
+	// TODO(therjak): Can this be integrated into CLS_NextDemoInCycle?
+	if cls.demoNum == len(cls.demos) {
+		cls.demoNum = 0
+	}
+
+	SCR_BeginLoadingPlaque()
+
+	cbuf.InsertText(fmt.Sprintf("playdemo %s\n", cls.demos[cls.demoNum]))
+	cls.demoNum++
 }

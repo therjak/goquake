@@ -278,49 +278,6 @@ void PrintFrameName(qmodel_t *m, int frame) {
 
   Con_Printf("frame %i: %s\n", frame, pframedesc->name);
 }
-/*
-===============================================================================
-
-DEMO LOOP CONTROL
-
-===============================================================================
-*/
-
-/*
-==================
-Host_Startdemos_f
-==================
-*/
-void Host_Startdemos_f(void) {
-  int i, c;
-
-  if (CLS_GetState() == ca_dedicated) return;
-
-  c = Cmd_Argc() - 1;
-  if (c > MAX_DEMOS) {
-    Con_Printf("Max %i demos in demoloop\n", MAX_DEMOS);
-    c = MAX_DEMOS;
-  }
-  Con_Printf("%i demo(s) in loop\n", c);
-
-  for (i = 1; i < c + 1; i++)
-    q_strlcpy(cls.demos[i - 1], Cmd_Argv(i), sizeof(cls.demos[0]));
-
-  if (!SV_Active() && !CLS_IsDemoCycleStopped() && !CLS_IsDemoPlayback()) {
-    CLS_StartDemoCycle();
-    if (!CMLFitz()) { /* QuakeSpasm customization: */
-      /* go straight to menu, no CL_NextDemo */
-      CLS_StopDemoCycle();
-      Cbuf_InsertText("menu_main\n");
-      return;
-    }
-    CL_NextDemo();
-  } else {
-    CLS_StopDemoCycle();
-  }
-}
-
-//=============================================================================
 
 /*
 ==================
@@ -332,8 +289,6 @@ void Host_InitCommands(void) {
   Cmd_AddCommand("mods", Host_Mods_f);  // johnfitz
   Cmd_AddCommand("games",
                  Host_Mods_f);  // as an alias to "mods" -- S.A. / QuakeSpasm
-
-  Cmd_AddCommand("startdemos", Host_Startdemos_f);
 
   Cmd_AddCommand("mcache", Mod_Print);
 }

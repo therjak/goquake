@@ -42,7 +42,6 @@ package quakelib
 // void Draw_Pic(int x, int y, qpic_t *pic);
 // void Draw_TransPicTranslate(int x, int y, qpic_t *pic, int top, int bottom);
 // void	Con_ToggleConsole_f(void);
-// void CL_NextDemo(void);
 // void M_Search_Key(int);
 // void M_ServerList_Key(int);
 // void Draw_ConsoleBackground(void);
@@ -68,7 +67,7 @@ const ()
 var ()
 
 func nextDemo() {
-	C.CL_NextDemo()
+	CL_NextDemo()
 }
 
 func init() {

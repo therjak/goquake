@@ -96,8 +96,6 @@ typedef enum {
 //
 typedef struct {
   // demo loop control
-  char demos[MAX_DEMOS][MAX_DEMONAME];  // when not playing
-
   FILE *demofile;
 } client_static_t;
 
@@ -220,8 +218,6 @@ dlight_t *CL_AllocDlight(int key);
 void CL_DecayLights(void);
 
 void CL_Init(void);
-
-void CL_NextDemo(void);
 
 //
 // cl_input

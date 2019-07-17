@@ -78,37 +78,6 @@ void CL_ClearState(void) {
 }
 
 /*
-=====================
-CL_NextDemo
-
-Called to play the next demo in the demo loop
-=====================
-*/
-void CL_NextDemo(void) {
-  char str[1024];
-
-  if (CLS_IsDemoCycleStopped()) return;  // don't play demos
-
-  if (!cls.demos[0][0]) {
-    Con_Printf("No demos listed with startdemos\n");
-    CLS_StopDemoCycle();
-    CL_Disconnect();
-    return;
-  }
-
-  // TODO(therjak): Can this be integrated into CLS_NextDemoInCycle?
-  if (!cls.demos[CLS_GetDemoNum()][0] || CLS_GetDemoNum() == MAX_DEMOS) {
-    CLS_StartDemoCycle();
-  }
-
-  SCR_BeginLoadingPlaque();
-
-  sprintf(str, "playdemo %s\n", cls.demos[CLS_GetDemoNum()]);
-  Cbuf_InsertText(str);
-  CLS_NextDemoInCycle();
-}
-
-/*
 ==============
 CL_PrintEntities_f
 ==============

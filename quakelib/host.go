@@ -1,7 +1,6 @@
 package quakelib
 
 //void CL_StopPlayback(void);
-//void CL_NextDemo(void);
 import "C"
 
 import (
@@ -193,7 +192,7 @@ func hostDemos(_ []cmd.QArg, _ int) {
 		cls.demoNum = 0
 	}
 	clientDisconnect()
-	C.CL_NextDemo()
+	CL_NextDemo()
 }
 
 func init() {
