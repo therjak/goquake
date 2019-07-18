@@ -1,15 +1,5 @@
 package quakelib
 
-//#include <string.h>
-//#include <stdlib.h>
-//void Host_Error(const char * error, ...);
-//void host_error_go(char* error) {
-//  char string[1024];
-//  strncpy(string, error, 1024);
-//  free(error);
-//  Host_Error(string);
-//}
-
 import "C"
 import (
 	"fmt"
@@ -82,5 +72,4 @@ func HostError(format string, v ...interface{}) {
 	hostRecursionCheck = false
 
 	panic(s)
-	// C.host_error_go(C.CString(s))
 }
