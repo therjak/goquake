@@ -4,12 +4,10 @@ package quakelib
 #include <stdlib.h>
 void Sys_Init();
 void Host_Init();
-void Host_Frame();
 */
 import "C"
 
 import (
-	"github.com/veandco/go-sdl2/sdl"
 	"log"
 	"os"
 	cmdl "quake/commandline"
@@ -17,6 +15,8 @@ import (
 	"quake/window"
 	"time"
 	"unsafe"
+
+	"github.com/veandco/go-sdl2/sdl"
 )
 
 const (
@@ -28,6 +28,7 @@ const (
 )
 
 func CallCMain() {
+
 	args := make([](*C.char), 0)
 	for _, a := range os.Args {
 		carg := C.CString(a)
@@ -42,6 +43,8 @@ func CallCMain() {
 		panic(err)
 	}
 	defer sdl.Quit()
+
+	vm = NewVirtualMachine()
 
 	C.Sys_Init()
 
@@ -68,7 +71,7 @@ func runDedicated() {
 		w := time.Duration(cvars.TicRate.Value()*float32(time.Second)) - timediff
 		time.Sleep(w)
 
-		C.Host_Frame()
+		hostFrame()
 	}
 }
 
@@ -92,6 +95,6 @@ func runNormal() {
 		w := time.Duration(cvars.Throttle.Value()*float32(time.Second)) - timediff
 		time.Sleep(w)
 
-		C.Host_Frame()
+		hostFrame()
 	}
 }

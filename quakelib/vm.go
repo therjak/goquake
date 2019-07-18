@@ -162,7 +162,7 @@ const (
 )
 
 var (
-	vm = NewVirtualMachine()
+	vm *virtualMachine
 )
 
 func NewVirtualMachine() *virtualMachine {

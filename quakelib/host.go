@@ -1,6 +1,7 @@
 package quakelib
 
 //void CL_StopPlayback(void);
+//void _Host_Frame();
 import "C"
 
 import (
@@ -12,6 +13,7 @@ import (
 	"quake/keys"
 	"quake/math"
 	"quake/qtime"
+	"time"
 )
 
 var (
@@ -198,4 +200,46 @@ func hostDemos(_ []cmd.QArg, _ int) {
 func init() {
 	cmd.AddCommand("stopdemo", hostStopDemo)
 	cmd.AddCommand("demos", hostDemos)
+}
+
+var (
+	frameCount          = 0
+	frameCountStartTime time.Time
+)
+
+func hostFrame() {
+	defer func() {
+		if r := recover(); r != nil {
+			frameCount = 0
+			// something bad happened, or the server disconnected
+			conlog.Printf("%v", r)
+			return
+		}
+	}()
+	if !cvars.ServerProfile.Bool() {
+		C._Host_Frame()
+		return
+	}
+	if frameCount == 0 {
+		frameCountStartTime = time.Now()
+	}
+
+	C._Host_Frame()
+
+	frameCount++
+	if frameCount < 1000 {
+		return
+	}
+
+	end := time.Now()
+	div := end.Sub(frameCountStartTime)
+	frameCount = 0
+
+	clientNum := 0
+	for i := 0; i < svs.maxClients; i++ {
+		if sv_clients[i].active {
+			clientNum++
+		}
+	}
+	conlog.Printf("serverprofile: %2d clients %v\n", clientNum, div.String())
 }

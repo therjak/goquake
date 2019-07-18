@@ -49,27 +49,6 @@ overflowtimes_t dev_overflows;  // this stores the last time overflow messages
 
 /*
 ================
-Host_EndGame
-================
-*/
-void Host_EndGame(const char *message) {
-  Con_DPrintf("Host_EndGame: %s\n", message);
-
-  if (SV_Active()) Host_ShutdownServer(false);
-
-  if (CLS_GetState() == ca_dedicated)
-    Go_Error_S("Host_EndGame: %v\n", message);  // dedicated servers exit
-
-  if (!CLS_IsDemoCycleStopped())
-    CL_NextDemo();
-  else
-    CL_Disconnect();
-
-  longjmp(host_abortserver, 1);
-}
-
-/*
-================
 Host_Error
 
 This shuts down both the client and server
@@ -78,31 +57,10 @@ This shuts down both the client and server
 void Host_Error(const char *error, ...) {
   va_list argptr;
   char string[1024];
-  static qboolean inerror = false;
-
-  if (inerror) Go_Error("Host_Error: recursively entered");
-  inerror = true;
-
-  SCR_EndLoadingPlaque();  // reenable screen updates
-
   va_start(argptr, error);
   q_vsnprintf(string, sizeof(string), error, argptr);
   va_end(argptr);
-  Con_Printf("Host_Error: %s\n", string);
-
-  if (SV_Active()) Host_ShutdownServer(false);
-
-  if (CLS_GetState() == ca_dedicated)
-    Go_Error_S("Host_Error: %v\n", string);  // dedicated servers exit
-
-  CL_Disconnect();
-  CLS_StopDemoCycle();
-  CL_SetIntermission(0);  // johnfitz -- for errors during intermissions
-                          // (changelevel with no map found, etc.)
-
-  inerror = false;
-
-  longjmp(host_abortserver, 1);
+  GoHostError(string);
 }
 
 qboolean noclip_anglehack;
@@ -223,9 +181,6 @@ void _Host_Frame() {
   static double time3 = 0;
   int pass1, pass2, pass3;
 
-  if (setjmp(host_abortserver))
-    return;  // something bad happened, or the server disconnected
-
   // keep the random time dependent
   rand();
 
@@ -297,37 +252,6 @@ void _Host_Frame() {
   }
 
   host_framecount++;
-}
-
-void Host_Frame() {
-  double time1, time2;
-  static double timetotal;
-  static int timecount;
-  int i, c, m;
-
-  if (!Cvar_GetValue(&serverprofile)) {
-    _Host_Frame();
-    return;
-  }
-
-  time1 = Sys_DoubleTime();
-  _Host_Frame();
-  time2 = Sys_DoubleTime();
-
-  timetotal += time2 - time1;
-  timecount++;
-
-  if (timecount < 1000) return;
-
-  m = timetotal * 1000 / timecount;
-  timecount = 0;
-  timetotal = 0;
-  c = 0;
-  for (i = 0; i < SVS_GetMaxClients(); i++) {
-    if (GetClientActive(i)) c++;
-  }
-
-  Con_Printf("serverprofile: %2i clients %2i msec\n", c, m);
 }
 
 /*
