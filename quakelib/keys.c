@@ -1016,6 +1016,7 @@ void Key_ClearStates(void) {
 Key_UpdateForDest
 ===================
 */
+//THERJAK 
 void Key_UpdateForDest(void) {
   static qboolean forced = false;
 

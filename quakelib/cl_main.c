@@ -465,6 +465,7 @@ int CL_ReadFromServer(void) {
 CL_SendCmd
 =================
 */
+//THERJAK
 void CL_SendCmd(void) {
   // usercmd_t cmd;
 

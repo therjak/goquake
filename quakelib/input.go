@@ -95,6 +95,10 @@ func IN_Init() {
 
 //export IN_UpdateInputMode
 func IN_UpdateInputMode() {
+	updateInputMode()
+}
+
+func updateInputMode() {
 	want := (C.Key_TextEntry() != 0)
 	if textmode != want {
 		textmode = want

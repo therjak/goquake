@@ -182,45 +182,8 @@ void _Host_Frame() {
   int pass1, pass2, pass3;
 
   // keep the random time dependent
-  rand();
+  rand();  // to keep the c side happy
 
-  // decide the simulation time
-  if (!Host_FilterTime())
-    return;  // don't run too fast, or packets will flood out
-
-  // get new key events
-  Key_UpdateForDest();
-  IN_UpdateInputMode();
-  IN_SendKeyEvents();
-
-  // process console commands
-  Cbuf_Execute();
-
-  NET_Poll();
-
-  // if running the server locally, make intentions now
-  if (SV_Active()) CL_SendCmd();
-
-  //-------------------
-  //
-  // server operations
-  //
-  //-------------------
-
-  // check for commands typed to the host
-  Host_GetConsoleCommands();
-
-  if (SV_Active()) Host_ServerFrame();
-
-  //-------------------
-  //
-  // client operations
-  //
-  //-------------------
-
-  // if running the server remotely, send intentions now after
-  // the incoming messages have been read
-  if (!SV_Active()) CL_SendCmd();
 
   // fetch results from server
   if (CLS_GetState() == ca_connected) CL_ReadFromServer();

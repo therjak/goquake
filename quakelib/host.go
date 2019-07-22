@@ -2,9 +2,14 @@ package quakelib
 
 //void CL_StopPlayback(void);
 //void _Host_Frame();
+//void Key_UpdateForDest(void);
+//void CL_SendCmd(void);
+//void Host_GetConsoleCommands(void);
 import "C"
 
 import (
+	"math/rand"
+	"quake/cbuf"
 	"quake/cmd"
 	cmdl "quake/commandline"
 	"quake/conlog"
@@ -12,6 +17,7 @@ import (
 	"quake/cvars"
 	"quake/keys"
 	"quake/math"
+	"quake/net"
 	"quake/qtime"
 	"time"
 )
@@ -136,6 +142,10 @@ func init() {
 
 //export Host_ServerFrame
 func Host_ServerFrame() {
+	serverFrame()
+}
+
+func serverFrame() {
 	// run the world state
 	progsdat.Globals.FrameTime = float32(host.frameTime)
 
@@ -207,6 +217,86 @@ var (
 	frameCountStartTime time.Time
 )
 
+// Runs all active servers
+func executeFrame() {
+	// keep the random time dependent
+	rand.Seed(time.Now().UnixNano())
+
+	// decide the simulation time
+	if !host.UpdateTime() {
+		return // don't run too fast, or packets will flood out
+	}
+
+	// get new key events
+	C.Key_UpdateForDest()
+	updateInputMode()
+	sendKeyEvents()
+
+	// process console commands
+	cbuf.Execute(sv_player)
+
+	net.SetTime()
+
+	// if running the server locally, make intentions now
+	if sv.active {
+		C.CL_SendCmd()
+	}
+
+	// server operations
+
+	// check for commands typed to the host
+	C.Host_GetConsoleCommands()
+
+	if sv.active {
+		serverFrame()
+	}
+
+	// client operations
+
+	// if running the server remotely, send intentions now after
+	// the incoming messages have been read
+	if !sv.active {
+		C.CL_SendCmd()
+	}
+
+	C._Host_Frame()
+	/*
+		  // fetch results from server
+		  if (CLS_GetState() == ca_connected) {
+				CL_ReadFromServer();
+			}
+
+		  // update video
+		  if (Cvar_GetValue(&host_speeds)) time1 = Sys_DoubleTime();
+
+		  SCR_UpdateScreen();
+
+		  CL_RunParticles();  // johnfitz -- seperated from rendering
+
+		  if (Cvar_GetValue(&host_speeds)) time2 = Sys_DoubleTime();
+
+		  // update audio
+		  // adds music raw samples and/or advances midi driver
+		  if (CLS_GetSignon() == SIGNONS) {
+		    S_Update(r_origin, vpn, vright, vup);
+		    CL_DecayLights();
+		  } else
+		    S_Update(vec3_origin, vec3_origin, vec3_origin, vec3_origin);
+
+		  if (Cvar_GetValue(&host_speeds)) {
+		    pass1 = (time1 - time3) * 1000;
+		    time3 = Sys_DoubleTime();
+		    pass2 = (time2 - time1) * 1000;
+		    pass3 = (time3 - time2) * 1000;
+		    Con_Printf("%3i tot %3i server %3i gfx %3i snd\n", pass1 + pass2 + pass3,
+		               pass1, pass2, pass3);
+		  }
+
+			// this is for demo syncing
+		  host_framecount++;
+	*/
+}
+
 func hostFrame() {
 	defer func() {
 		if r := recover(); r != nil {
@@ -217,14 +307,14 @@ func hostFrame() {
 		}
 	}()
 	if !cvars.ServerProfile.Bool() {
-		C._Host_Frame()
+		executeFrame()
 		return
 	}
 	if frameCount == 0 {
 		frameCountStartTime = time.Now()
 	}
 
-	C._Host_Frame()
+	executeFrame()
 
 	frameCount++
 	if frameCount < 1000 {
