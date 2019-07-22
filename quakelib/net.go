@@ -85,7 +85,7 @@ func maxPlayersCmd(args []cmd.QArg, _ int) {
 		svs.maxClients = arg
 		if arg == 1 {
 			cvars.DeathMatch.SetByString("0")
-		} else {
+		} else if !cvars.Coop.Bool() {
 			cvars.DeathMatch.SetByString("1")
 		}
 	}

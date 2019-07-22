@@ -132,6 +132,19 @@ func init() {
 	cvars.TeamPlay.SetCallback(hostCallbackNotify)
 	cvars.NoExit.SetCallback(hostCallbackNotify)
 
+	cvars.Coop.SetCallback(func(cv *cvar.Cvar) {
+		conlog.Printf("Changed coop: %v", cv.Bool())
+		if cv.Bool() {
+			cvars.DeathMatch.SetByString("0")
+		}
+	})
+	cvars.DeathMatch.SetCallback(func(cv *cvar.Cvar) {
+		conlog.Printf("Changed deathmatch: %v", cv.Bool())
+		if cv.Bool() {
+			cvars.Coop.SetByString("0")
+		}
+	})
+
 	cvars.MaxEdicts.SetCallback(func(cv *cvar.Cvar) {
 		// TODO: clamp it here?
 		if cls.state == ca_connected || sv.active {
