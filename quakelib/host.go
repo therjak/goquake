@@ -2,7 +2,6 @@ package quakelib
 
 //void CL_StopPlayback(void);
 //void _Host_Frame();
-//void Key_UpdateForDest(void);
 //void CL_SendCmd(void);
 //void Host_GetConsoleCommands(void);
 import "C"
@@ -241,7 +240,7 @@ func executeFrame() {
 	}
 
 	// get new key events
-	C.Key_UpdateForDest()
+	updateKeyDest()
 	updateInputMode()
 	sendKeyEvents()
 

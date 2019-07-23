@@ -168,7 +168,6 @@ extern qboolean chat_team;
 
 void Key_Init(void);
 void Key_ClearStates(void);
-void Key_UpdateForDest(void);
 
 void Key_BeginInputGrab(void);
 void Key_EndInputGrab(void);

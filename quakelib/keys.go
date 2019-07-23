@@ -46,3 +46,32 @@ func SetKeyDest(k C.keydest_t) {
 func keyEndChat() {
 	C.Key_EndChat()
 }
+
+var (
+	updateKeyDestForced = false
+)
+
+func updateKeyDest() {
+	if cls.state == ca_dedicated {
+		return
+	}
+
+	switch keyDestination {
+	case keys.Console:
+		if updateKeyDestForced && cls.state == ca_connected {
+			updateKeyDestForced = false
+			IN_Activate()
+			keyDestination = keys.Game
+		}
+	case keys.Game:
+		if cls.state != ca_connected {
+			updateKeyDestForced = true
+			IN_Deactivate()
+			keyDestination = keys.Console
+		} else {
+			updateKeyDestForced = false
+		}
+	default:
+		updateKeyDestForced = false
+	}
+}

@@ -1011,39 +1011,6 @@ void Key_ClearStates(void) {
   }
 }
 
-/*
-===================
-Key_UpdateForDest
-===================
-*/
-//THERJAK 
-void Key_UpdateForDest(void) {
-  static qboolean forced = false;
-
-  if (CLS_GetState() == ca_dedicated) return;
-
-  switch (GetKeyDest()) {
-    case key_console:
-      if (forced && CLS_GetState() == ca_connected) {
-        forced = false;
-        IN_Activate();
-        SetKeyDest(key_game);
-      }
-      break;
-    case key_game:
-      if (CLS_GetState() != ca_connected) {
-        forced = true;
-        IN_Deactivate();
-        SetKeyDest(key_console);
-        break;
-      }
-    /* fallthrough */
-    default:
-      forced = false;
-      break;
-  }
-}
-
 void M_FindKeysForCommand(const char *command, int *threekeys) {
   int count;
   int j;
