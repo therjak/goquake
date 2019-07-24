@@ -461,40 +461,6 @@ int CL_ReadFromServer(void) {
 }
 
 /*
-=================
-CL_SendCmd
-=================
-*/
-//THERJAK
-void CL_SendCmd(void) {
-  // usercmd_t cmd;
-
-  if (CLS_GetState() != ca_connected) return;
-
-  if (CLS_GetSignon() == SIGNONS) {
-    CL_AdjustAngles();
-    HandleMove();
-  }
-
-  if (CLS_IsDemoPlayback()) {
-    CLSMessageClear();
-    return;
-  }
-
-  // send the reliable message
-  if (!CLSHasMessage()) return;  // no message at all
-
-  if (!CLS_NET_CanSendMessage()) {
-    Con_DPrintf("CL_SendCmd: can't send\n");
-    return;
-  }
-
-  if (CLSMessageSend() == -1) Host_Error("CL_SendCmd: lost server connection");
-
-  CLSMessageClear();
-}
-
-/*
 =============
 CL_Tracepos_f -- johnfitz
 

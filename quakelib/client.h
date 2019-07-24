@@ -222,7 +222,6 @@ void CL_Init(void);
 //
 // cl_input
 //
-void CL_SendCmd(void);
 int CL_ReadFromServer(void);
 
 void CL_UpdateTEnts(void);

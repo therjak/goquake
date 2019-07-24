@@ -2,7 +2,6 @@ package quakelib
 
 //void CL_StopPlayback(void);
 //void _Host_Frame();
-//void CL_SendCmd(void);
 //void Host_GetConsoleCommands(void);
 import "C"
 
@@ -251,7 +250,7 @@ func executeFrame() {
 
 	// if running the server locally, make intentions now
 	if sv.active {
-		C.CL_SendCmd()
+		CL_SendCmd()
 	}
 
 	// server operations
@@ -268,7 +267,7 @@ func executeFrame() {
 	// if running the server remotely, send intentions now after
 	// the incoming messages have been read
 	if !sv.active {
-		C.CL_SendCmd()
+		CL_SendCmd()
 	}
 
 	C._Host_Frame()

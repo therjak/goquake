@@ -36,6 +36,10 @@ func init() {
 }
 
 const (
+	numSignonMessagesBeforeConn = 4 // signon messages to receive before connected
+)
+
+const (
 	ca_dedicated    = 0
 	ca_disconnected = 1
 	ca_connected    = 2
@@ -1073,4 +1077,37 @@ func CL_NextDemo() {
 
 	cbuf.InsertText(fmt.Sprintf("playdemo %s\n", cls.demos[cls.demoNum]))
 	cls.demoNum++
+}
+
+func CL_SendCmd() {
+	if cls.state != ca_connected {
+		return
+	}
+
+	if cls.signon == numSignonMessagesBeforeConn {
+		CL_AdjustAngles()
+		HandleMove()
+	}
+
+	if cls.demoPlayback {
+		cls.outMessage.Reset()
+		return
+	}
+
+	// send the reliable message
+	if cls.outMessage.Len() == 0 {
+		return // no message at all
+	}
+
+	if !cls.connection.CanSendMessage() {
+		conlog.DPrintf("CL_SendCmd: can't send\n")
+		return
+	}
+
+	b := cls.outMessage.Bytes()
+	i := cls.connection.SendMessage(b)
+	if i == -1 {
+		HostError("CL_SendCmd: lost server connection")
+	}
+	cls.outMessage.Reset()
 }
