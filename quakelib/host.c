@@ -150,25 +150,6 @@ void Host_ClearMemory(void) {
 //==============================================================================
 
 /*
-===================
-Host_GetConsoleCommands
-
-Add them exactly as if they had been typed at the console
-===================
-*/
-void Host_GetConsoleCommands(void) {
-  const char *cmd;
-
-  if (!CMLDedicated()) return;  // no stdin necessary in graphical mode
-
-  while (1) {
-    cmd = Sys_ConsoleInput();
-    if (!cmd) break;
-    Cbuf_AddText(cmd);
-  }
-}
-
-/*
 ==================
 Host_Frame
 

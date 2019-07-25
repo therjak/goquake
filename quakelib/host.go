@@ -2,7 +2,6 @@ package quakelib
 
 //void CL_StopPlayback(void);
 //void _Host_Frame();
-//void Host_GetConsoleCommands(void);
 import "C"
 
 import (
@@ -256,7 +255,7 @@ func executeFrame() {
 	// server operations
 
 	// check for commands typed to the host
-	C.Host_GetConsoleCommands()
+	hostGetConsoleCommands()
 
 	if sv.active {
 		serverFrame()
