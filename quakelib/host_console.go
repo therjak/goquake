@@ -17,7 +17,7 @@ type consoleReader struct {
 
 func newConsoleReader() *consoleReader {
 	cr := &consoleReader{
-		textChan: make(chan string),
+		textChan: make(chan string, 1),
 	}
 	go func() {
 		scanner := bufio.NewScanner(os.Stdin)

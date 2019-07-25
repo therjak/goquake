@@ -35,8 +35,6 @@ int messagesReceived = 0;
 int unreliableMessagesSent = 0;
 int unreliableMessagesReceived = 0;
 
-static cvar_t net_messagetimeout;
-
 int net_driverlevel;
 
 // convert
@@ -107,25 +105,6 @@ static void Slist_Poll(void *unused) { REPORT_BadCall(); }
 
 int hostCacheCount = 0;
 hostcache_t hostcache[HOSTCACHESIZE];
-
-void NET_Init(void) {
-  DEFAULTnet_hostport = CMLPort();
-  net_hostport = DEFAULTnet_hostport;
-
-  net_numsockets = SVS_GetMaxClientsLimit();
-  if (CLS_GetState() != ca_dedicated) net_numsockets++;
-  if (CMLListen() || CLS_GetState() == ca_dedicated) listening = true;
-
-  NET_SetTime();
-
-  Cvar_FakeRegister(&net_messagetimeout, "net_messagetimeout");
-
-  Cmd_AddCommand("slist", NET_Slist_f);
-
-  if (*my_tcpip_address) {
-    Con_DPrintf("TCP/IP address %s\n", my_tcpip_address);
-  }
-}
 
 static PollProcedure *pollProcedureList = NULL;
 
