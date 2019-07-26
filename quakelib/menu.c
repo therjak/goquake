@@ -1,22 +1,17 @@
 #include "quakedef.h"
 
-void M_Menu_GameOptions_f(void);
 void M_Menu_Search_f(void);
 void M_Menu_ServerList_f(void);
 
-void M_GameOptions_Draw(void);
 void M_Search_Draw(void);
 void M_ServerList_Draw(void);
 
-void M_GameOptions_Key(int key);
 void M_Search_Key(int key);
 void M_ServerList_Key(int key);
 
 qboolean m_return_onerror;
 char m_return_reason[32];
 
-
-void M_ConfigureNetSubsystem(void);
 
 void M_Print(int cx, int cy, const char *str) {
   while (*str) {
@@ -210,14 +205,4 @@ void M_ServerList_Key(int k) {
     default:
       break;
   }
-}
-
-//=============================================================================
-/* Menu Subsystem */
-void M_ConfigureNetSubsystem(void) {
-  // enable/disable net systems to match desired config
-  Cbuf_AddText("stopdemo\n");
-
-  //therjak: this should happen
-  //net_hostport = lanConfig_port;
 }
