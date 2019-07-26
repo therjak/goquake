@@ -47,7 +47,6 @@ qpic_t *hsb_items[2];
 
 void Sbar_MiniDeathmatchOverlay(void);
 void Sbar_DeathmatchOverlay(void);
-void M_DrawPic(int x, int y, qpic_t *pic);
 
 /*
 ===============
@@ -943,7 +942,7 @@ void Sbar_DeathmatchOverlay(void) {
   GL_SetCanvas(CANVAS_MENU);
 
   pic = Draw_CachePic("gfx/ranking.lmp");
-  M_DrawPic((320 - pic->width) / 2, 8, pic);
+  Draw_Pic((320 - pic->width) / 2, 8, pic);
 
   // scores
   Sbar_SortFrags();

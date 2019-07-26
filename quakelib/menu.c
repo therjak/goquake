@@ -47,8 +47,6 @@ void M_PrintWhite(int cx, int cy, const char *str) {
 
 void M_DrawTransPic(int x, int y, qpic_t *pic) { Draw_Pic(x, y, pic); }
 
-void M_DrawPic(int x, int y, qpic_t *pic) { Draw_Pic(x, y, pic); }
-
 void M_DrawTransPicTranslate(int x, int y, qpic_t *pic, int top,
                              int bottom)  // johnfitz -- more parameters
 {
@@ -126,7 +124,7 @@ void M_Search_Draw(void) {
   int x;
 
   p = Draw_CachePic("gfx/p_multi.lmp");
-  M_DrawPic((320 - p->width) / 2, 4, p);
+  Draw_Pic((320 - p->width) / 2, 4, p);
   x = (320 / 2) - ((12 * 8) / 2) + 4;
   M_DrawTextBox(x - 8, 32, 12, 1);
   M_Print(x, 40, "Searching...");
@@ -181,7 +179,7 @@ void M_ServerList_Draw(void) {
   }
 
   p = Draw_CachePic("gfx/p_multi.lmp");
-  M_DrawPic((320 - p->width) / 2, 4, p);
+  Draw_Pic((320 - p->width) / 2, 4, p);
   for (n = 0; n < hostCacheCount; n++)
     M_Print(16, 32 + 8 * n, NET_SlistPrintServer(n));
   M_DrawCharacter(0, 32 + slist_cursor * 8,
