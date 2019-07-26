@@ -39,8 +39,7 @@ crosses a waterline.
 int fatbytes;
 byte fatpvs[MAX_MAP_LEAFS / 8];
 
-void SV_AddToFatPVS(vec3_t org, mnode_t *node, qmodel_t *worldmodel)
-{
+void SV_AddToFatPVS(vec3_t org, mnode_t *node, qmodel_t *worldmodel) {
   int i;
   byte *pvs;
   mplane_t *plane;
@@ -50,7 +49,7 @@ void SV_AddToFatPVS(vec3_t org, mnode_t *node, qmodel_t *worldmodel)
     // if this is a leaf, accumulate the pvs bits
     if (node->contents < 0) {
       if (node->contents != CONTENTS_SOLID) {
-        pvs = Mod_LeafPVS((mleaf_t *)node, worldmodel);  
+        pvs = Mod_LeafPVS((mleaf_t *)node, worldmodel);
         for (i = 0; i < fatbytes; i++) fatpvs[i] |= pvs[i];
       }
       return;
@@ -76,22 +75,11 @@ Calculates a PVS that is the inclusive or of all leafs within 8 pixels of the
 given point.
 =============
 */
-byte *SV_FatPVS(
-    vec3_t org,
-    qmodel_t *worldmodel)
-{
+byte *SV_FatPVS(vec3_t org, qmodel_t *worldmodel) {
   fatbytes = (worldmodel->numleafs + 31) >> 3;
   Q_memset(fatpvs, 0, fatbytes);
   SV_AddToFatPVS(org, worldmodel->nodes, worldmodel);
   return fatpvs;
-}
-
-const char *SV_Name() {
-  static char buffer[2048];
-  char *s = SV_NameInt();
-  strncpy(buffer, s, 2048);
-  free(s);
-  return buffer;
 }
 
 const char *SV_ModelName() {

@@ -113,27 +113,9 @@ var (
 	host_client int
 )
 
-//export Host_Client
-func Host_Client() int {
-	return host_client
-}
-
-//export SV_NameInt
-func SV_NameInt() *C.char {
-	return C.CString(sv.name)
-}
-
 //export SV_ModelNameInt
 func SV_ModelNameInt() *C.char {
 	return C.CString(sv.modelName)
-}
-
-//export SV_State
-func SV_State() int {
-	if sv.state == ServerStateLoading {
-		return 0
-	}
-	return 1
 }
 
 func svProtocol(args []cmd.QArg, _ int) {
@@ -178,39 +160,8 @@ func SV_Init_Go() {
 	}
 }
 
-//export SV_Time
-func SV_Time() C.float {
-	return C.float(sv.time)
-}
-
-//export SV_SetTime
-func SV_SetTime(t C.float) {
-	sv.time = float32(t)
-}
-
-//export SV_NumEdicts
 func SV_NumEdicts() C.int {
 	return C.int(sv.numEdicts)
-}
-
-//export SV_SetNumEdicts
-func SV_SetNumEdicts(n C.int) {
-	sv.numEdicts = int(n)
-}
-
-//export SV_Paused
-func SV_Paused() C.int {
-	return b2i(sv.paused)
-}
-
-//export SV_SetPaused
-func SV_SetPaused(b C.int) {
-	sv.paused = (b != 0)
-}
-
-//export SV_SetLoadGame
-func SV_SetLoadGame(b C.int) {
-	sv.loadGame = (b != 0)
 }
 
 //export SV_Clear
@@ -255,11 +206,6 @@ func (s *Server) StartParticle(org, dir vec.Vec3, color, count int) {
 	s.datagram.WriteByte(color)
 }
 
-//export SV_ClearDatagram
-func SV_ClearDatagram() {
-	sv.datagram.ClearMessage()
-}
-
 func (s *Server) SendDatagram(c *SVClient) bool {
 	b := msgBuf.Bytes()
 	// If there is space add the server datagram
@@ -281,21 +227,6 @@ func (s *Server) SendReliableDatagram() {
 		}
 	}
 	s.reliableDatagram.ClearMessage()
-}
-
-//export SVS_SetServerFlags
-func SVS_SetServerFlags(flags C.int) {
-	svs.serverFlags = int(flags)
-}
-
-//export SVS_GetMaxClients
-func SVS_GetMaxClients() C.int {
-	return C.int(svs.maxClients)
-}
-
-//export SVS_GetMaxClientsLimit
-func SVS_GetMaxClientsLimit() C.int {
-	return C.int(svs.maxClientsLimit)
 }
 
 func (s *Server) sendReconnect() {
@@ -683,11 +614,6 @@ func (s *Server) Impact(e1, e2 int) {
 	progsdat.Globals.Other = oldOther
 }
 
-//export SV_CheckVelocity
-func SV_CheckVelocity(e C.int) {
-	CheckVelocity(EntVars(int(e)))
-}
-
 func CheckVelocity(ent *progs.EntVars) {
 	maxVelocity := cvars.ServerMaxVelocity.Value()
 	for i := 0; i < 3; i++ {
@@ -802,7 +728,6 @@ func (s *Server) CreateBaseline() {
 
 //Grabs the current state of each client for saving across the
 //transition to another level
-//export SV_SaveSpawnparms
 func SV_SaveSpawnparms() {
 	svs.serverFlags = int(progsdat.Globals.ServerFlags)
 
@@ -822,11 +747,6 @@ func SV_SaveSpawnparms() {
 func SVDropClient(client int, crash bool) {
 	c := sv_clients[client]
 	c.Drop(crash)
-}
-
-//export SV_SendClientMessages
-func SV_SendClientMessages() {
-	sv.SendClientMessages()
 }
 
 func (s *Server) SendClientMessages() {
@@ -1264,11 +1184,6 @@ func init() {
 }
 
 //This is called at the start of each level
-//export SV_SpawnServer
-func SV_SpawnServer(server *C.char) {
-	sv.SpawnServer(C.GoString(server))
-}
-
 func (s *Server) SpawnServer(name string) {
 	// let's not have any servers with no name
 	if len(cvars.HostName.String()) == 0 {

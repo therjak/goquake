@@ -1,7 +1,5 @@
 package quakelib
 
-import "C"
-
 import (
 	"fmt"
 	"log"
@@ -881,11 +879,6 @@ func hostMapName(args []cmd.QArg, _ int) {
 }
 
 // This only happens at the end of a game, not between levels
-//export Host_ShutdownServer
-func Host_ShutdownServer(crash C.int) {
-	hostShutdownServer(crash != 0)
-}
-
 func hostShutdownServer(crash bool) {
 	if !sv.active {
 		return

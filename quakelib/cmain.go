@@ -9,12 +9,10 @@ import "C"
 
 import (
 	"log"
-	"os"
 	cmdl "quake/commandline"
 	"quake/cvars"
 	"quake/window"
 	"time"
-	"unsafe"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -28,14 +26,6 @@ const (
 )
 
 func CallCMain() {
-
-	args := make([](*C.char), 0)
-	for _, a := range os.Args {
-		carg := C.CString(a)
-		defer C.free(unsafe.Pointer(carg))
-		strptr := (*C.char)(unsafe.Pointer(carg))
-		args = append(args, strptr)
-	}
 	v := sdl.Version{}
 	sdl.GetVersion(&v)
 	log.Printf("Found SDL version %d.%d.%d\n", v.Major, v.Minor, v.Patch)

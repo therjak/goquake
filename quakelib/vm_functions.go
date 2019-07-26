@@ -1,7 +1,5 @@
 package quakelib
 
-import "C"
-
 import (
 	"fmt"
 	"log"

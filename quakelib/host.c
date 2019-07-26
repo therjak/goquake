@@ -25,8 +25,6 @@ int host_hunklevel;
 
 int minimum_memory;
 
-int HostClient(void) { return Host_Client(); }
-
 jmp_buf host_abortserver;
 
 byte *host_colormap;
@@ -164,7 +162,6 @@ void _Host_Frame() {
 
   // keep the random time dependent
   rand();  // to keep the c side happy
-
 
   // fetch results from server
   if (CLS_GetState() == ca_connected) CL_ReadFromServer();

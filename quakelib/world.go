@@ -1,7 +1,5 @@
 package quakelib
 
-import "C"
-
 import (
 	"container/ring"
 	"log"
@@ -109,11 +107,6 @@ func createAreaNode(depth int, mins, maxs vec.Vec3) *areaNode {
 // flags ent->v.modified
 // sets ent->v.absmin and ent->v.absmax
 // if touchtriggers, calls prog functions for the intersected triggers
-//export SV_UnlinkEdict
-func SV_UnlinkEdict(e C.int) {
-	vm.UnlinkEdict(int(e))
-}
-
 func (v *virtualMachine) UnlinkEdict(e int) {
 	r, ok := edictToRing[e]
 	if !ok {
@@ -196,11 +189,6 @@ func (v *virtualMachine) touchLinks(e int, a *areaNode) {
 		progsdat.Globals.Self = oldSelf
 		progsdat.Globals.Other = oldOther
 	}
-}
-
-//export SV_LinkEdict
-func SV_LinkEdict(e C.int, touchTriggers C.int) {
-	vm.LinkEdict(int(e), touchTriggers != 0)
 }
 
 // Needs to be called any time an entity changes origin, mins, max,
@@ -552,7 +540,6 @@ func pointContents(p vec.Vec3) int {
 	return hullPointContents(&sv.worldModel.Hulls[0], 0, p)
 }
 
-//TODO: export?
 func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 vec.Vec3, trace *trace) bool {
 	if num < 0 { // check for empty
 		if num != model.CONTENTS_SOLID {
@@ -668,11 +655,6 @@ func (c *moveClip) moveBounds(s, e vec.Vec3) {
 	min, max := vec.MinMax(s, e)
 	c.boxmins = vec.Sub(vec.Add(min, c.mins2), vec.Vec3{1, 1, 1})
 	c.boxmaxs = vec.Add(vec.Add(max, c.maxs2), vec.Vec3{1, 1, 1})
-}
-
-//export SV_TestEntityPosition
-func SV_TestEntityPosition(ent C.int) C.int {
-	return b2i(testEntityPosition(int(ent)))
 }
 
 func testEntityPosition(ent int) bool {

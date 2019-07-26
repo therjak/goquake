@@ -1,11 +1,5 @@
 package quakelib
 
-/*
-#include <stdlib.h>
-#include <string.h>
-*/
-import "C"
-
 import (
 	"bytes"
 	"fmt"
@@ -20,7 +14,6 @@ import (
 	"quake/protocol/server"
 	"strings"
 	"time"
-	"unsafe"
 )
 
 type movecmd struct {
@@ -74,11 +67,6 @@ func CreateSVClients() {
 	}
 }
 
-//export SV_CheckForNewClients
-func SV_CheckForNewClients() {
-	CheckForNewClients()
-}
-
 func SV_BroadcastPrintf(format string, v ...interface{}) {
 	SV_BroadcastPrint(fmt.Sprintf(format, v...))
 }
@@ -96,7 +84,7 @@ func HostClient() *SVClient {
 }
 
 func HostClientID() int {
-	return Host_Client()
+	return host_client
 }
 
 func (c *SVClient) Printf(format string, v ...interface{}) {
@@ -143,26 +131,6 @@ func CheckForNewClients() {
 	}
 }
 
-//export GetClientSpawnParam
-func GetClientSpawnParam(c, n C.int) C.float {
-	return C.float(sv_clients[int(c)].spawnParams[int(n)])
-}
-
-//export SetClientSpawnParam
-func SetClientSpawnParam(c, n C.int, v C.float) {
-	sv_clients[int(c)].spawnParams[int(n)] = float32(v)
-}
-
-//export GetClientEdictId
-func GetClientEdictId(n C.int) C.int {
-	return C.int(sv_clients[int(n)].edictId)
-}
-
-//export GetClientActive
-func GetClientActive(n C.int) C.int {
-	return b2i(sv_clients[int(n)].active)
-}
-
 func (cl *SVClient) CanSendMessage() bool {
 	return cl.netConnection.CanSendMessage()
 }
@@ -177,17 +145,6 @@ func (cl *SVClient) Close() {
 
 func (cl *SVClient) ConnectTime() time.Duration {
 	return cl.netConnection.ConnectTime()
-}
-
-//export ClientAddress
-func ClientAddress(num C.int, ret *C.char, n C.size_t) {
-	s := sv_clients[int(num)].Address()
-	if len(s) >= int(n) {
-		s = s[:n-1]
-	}
-	sp := C.CString(s)
-	defer C.free(unsafe.Pointer(sp))
-	C.strncpy(ret, sp, n)
 }
 
 func (cl *SVClient) Address() string {
@@ -308,16 +265,6 @@ func (cl *SVClient) GetMessage() int {
 		return -1
 	}
 	return int(b)
-}
-
-//export MSG_ReadByte
-func MSG_ReadByte() C.int {
-	i, err := netMessage.ReadByte()
-	if err != nil {
-		msg_badread = true
-		return -1
-	}
-	return C.int(i)
 }
 
 func (c *SVClient) SendServerinfo() {
@@ -537,7 +484,6 @@ outerloop:
 	return true
 }
 
-//export SV_RunClients
 func SV_RunClients() {
 	for i := 0; i < svs.maxClients; i++ {
 		host_client = i

@@ -261,8 +261,6 @@ void Host_Callback_Notify(cvar_t *var); /* callback function for CVAR_NOTIFY */
 void Host_Error(const char *error, ...);
 //    __attribute__((__format__(__printf__, 1, 2), __noreturn__));
 // void Host_EndGame(const char *message);
-void Host_Frame();
-void Host_ShutdownServer(qboolean crash);
 void Host_WriteConfiguration(void);
 
 void ExtraMaps_Init(void);
