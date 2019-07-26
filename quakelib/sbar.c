@@ -230,27 +230,6 @@ void Sbar_Init(void) {
   Sbar_LoadPics();
 }
 
-//=============================================================================
-
-// drawing routines are relative to the status bar location
-
-/*
-=============
-Sbar_DrawPicAlpha -- johnfitz
-=============
-*/
-void Sbar_DrawPicAlpha(int x, int y, qpic_t *pic, float alpha) {
-  glDisable(GL_ALPHA_TEST);
-  glEnable(GL_BLEND);
-  glColor4f(1, 1, 1, alpha);
-  Draw_Pic(x, y + 24, pic);
-  glColor4f(1, 1, 1, 1);  // ericw -- changed from glColor3f to work around
-                          // intel 855 bug with "r_oldwater 0" and
-                          // "scr_sbaralpha 0"
-  glDisable(GL_BLEND);
-  glEnable(GL_ALPHA_TEST);
-}
-
 /*
 ===============
 Sbar_DrawScrollString -- johnfitz
@@ -479,16 +458,16 @@ void Sbar_DrawInventory(void) {
 
   if (CMLRogue()) {
     if (CL_Stats(STAT_ACTIVEWEAPON) >= RIT_LAVA_NAILGUN)
-      Sbar_DrawPicAlpha(
-          0, -24, rsb_invbar[0],
+      Draw_PicAlpha(
+          0, 0, rsb_invbar[0],
           Cvar_GetValue(&scr_sbaralpha));  // johnfitz -- scr_sbaralpha
     else
-      Sbar_DrawPicAlpha(
-          0, -24, rsb_invbar[1],
+      Draw_PicAlpha(
+          0, 0, rsb_invbar[1],
           Cvar_GetValue(&scr_sbaralpha));  // johnfitz -- scr_sbaralpha
   } else {
-    Sbar_DrawPicAlpha(
-        0, -24, sb_ibar,
+    Draw_PicAlpha(
+        0, 0, sb_ibar,
         Cvar_GetValue(&scr_sbaralpha));  // johnfitz -- scr_sbaralpha
   }
 
@@ -834,16 +813,16 @@ void Sbar_Draw(void) {
   }
 
   if (sb_showscores || CL_Stats(STAT_HEALTH) <= 0) {
-    Sbar_DrawPicAlpha(
-        0, 0, sb_scorebar,
+    Draw_PicAlpha(
+        0, 24, sb_scorebar,
         Cvar_GetValue(&scr_sbaralpha));  // johnfitz -- scr_sbaralpha
     Sbar_DrawScoreboard();
     sb_updates = 0;
   } else if (Cvar_GetValue(&scr_viewsize) <
              120)  // johnfitz -- check viewsize instead of sb_lines
   {
-    Sbar_DrawPicAlpha(
-        0, 0, sb_sbar,
+    Draw_PicAlpha(
+        0, 24, sb_sbar,
         Cvar_GetValue(&scr_sbaralpha));  // johnfitz -- scr_sbaralpha
 
     // keys (hipnotic only)
