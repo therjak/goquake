@@ -45,14 +45,6 @@ void M_PrintWhite(int cx, int cy, const char *str) {
   }
 }
 
-void M_DrawTransPic(int x, int y, qpic_t *pic) { Draw_Pic(x, y, pic); }
-
-void M_DrawTransPicTranslate(int x, int y, qpic_t *pic, int top,
-                             int bottom)  // johnfitz -- more parameters
-{
-  Draw_TransPicTranslate(x, y, pic, top, bottom);
-}
-
 void M_DrawTextBox(int x, int y, int width, int lines) {
   qpic_t *p;
   int cx, cy;
@@ -62,29 +54,29 @@ void M_DrawTextBox(int x, int y, int width, int lines) {
   cx = x;
   cy = y;
   p = Draw_CachePic("gfx/box_tl.lmp");
-  M_DrawTransPic(cx, cy, p);
+  Draw_Pic(cx, cy, p);
   p = Draw_CachePic("gfx/box_ml.lmp");
   for (n = 0; n < lines; n++) {
     cy += 8;
-    M_DrawTransPic(cx, cy, p);
+    Draw_Pic(cx, cy, p);
   }
   p = Draw_CachePic("gfx/box_bl.lmp");
-  M_DrawTransPic(cx, cy + 8, p);
+  Draw_Pic(cx, cy + 8, p);
 
   // draw middle
   cx += 8;
   while (width > 0) {
     cy = y;
     p = Draw_CachePic("gfx/box_tm.lmp");
-    M_DrawTransPic(cx, cy, p);
+    Draw_Pic(cx, cy, p);
     p = Draw_CachePic("gfx/box_mm.lmp");
     for (n = 0; n < lines; n++) {
       cy += 8;
       if (n == 1) p = Draw_CachePic("gfx/box_mm2.lmp");
-      M_DrawTransPic(cx, cy, p);
+      Draw_Pic(cx, cy, p);
     }
     p = Draw_CachePic("gfx/box_bm.lmp");
-    M_DrawTransPic(cx, cy + 8, p);
+    Draw_Pic(cx, cy + 8, p);
     width -= 2;
     cx += 16;
   }
@@ -92,14 +84,14 @@ void M_DrawTextBox(int x, int y, int width, int lines) {
   // draw right side
   cy = y;
   p = Draw_CachePic("gfx/box_tr.lmp");
-  M_DrawTransPic(cx, cy, p);
+  Draw_Pic(cx, cy, p);
   p = Draw_CachePic("gfx/box_mr.lmp");
   for (n = 0; n < lines; n++) {
     cy += 8;
-    M_DrawTransPic(cx, cy, p);
+    Draw_Pic(cx, cy, p);
   }
   p = Draw_CachePic("gfx/box_br.lmp");
-  M_DrawTransPic(cx, cy + 8, p);
+  Draw_Pic(cx, cy + 8, p);
 }
 
 //=============================================================================
