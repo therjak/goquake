@@ -250,6 +250,7 @@ entity_t *CL_EntityNum(int num) {
 CL_ParseStartSoundPacket
 ==================
 */
+//THERJAK
 void CL_ParseStartSoundPacket(void) {
   // TODO(therjak): this can be moved to go
   vec3_t pos;
@@ -310,6 +311,7 @@ When the client is taking a long time to load stuff, send keepalive messages
 so the server doesn't disconnect.
 ==================
 */
+//THERJAK
 void CL_KeepaliveMessage(void) {
   // TODO(therjak): this can be moved to go
   float time;
