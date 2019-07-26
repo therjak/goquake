@@ -252,15 +252,6 @@ void Sbar_DrawPicAlpha(int x, int y, qpic_t *pic, float alpha) {
 }
 
 /*
-================
-Sbar_DrawString -- johnfitz -- rewritten now that GL_SetCanvas is doing the work
-================
-*/
-void Sbar_DrawString(int x, int y, const char *str) {
-  Draw_String(x, y + 24, str);
-}
-
-/*
 ===============
 Sbar_DrawScrollString -- johnfitz
 
@@ -281,11 +272,11 @@ void Sbar_DrawScrollString(int x, int y, int width, const char *str) {
 
   len = strlen(str) * 8 + 40;
   ofs = ((int)(HostRealTime() * 30)) % len;
-  Sbar_DrawString(x - ofs, y, str);
+  Draw_String(x - ofs, y+24, str);
   Draw_Character(x - ofs + len - 32, y+24, '/');
   Draw_Character(x - ofs + len - 24, y+24, '/');
   Draw_Character(x - ofs + len - 16, y+24, '/');
-  Sbar_DrawString(x - ofs + len, y, str);
+  Draw_String(x - ofs + len, y+24, str);
 
   glDisable(GL_SCISSOR_TEST);
 }
@@ -430,23 +421,23 @@ void Sbar_SoloScoreboard(void) {
 
   sprintf(str, "Kills: %i/%i", CL_Stats(STAT_MONSTERS),
           CL_Stats(STAT_TOTALMONSTERS));
-  Sbar_DrawString(8, 12, str);
+  Draw_String(8, 12+24, str);
 
   sprintf(str, "Secrets: %i/%i", CL_Stats(STAT_SECRETS),
           CL_Stats(STAT_TOTALSECRETS));
-  Sbar_DrawString(312 - strlen(str) * 8, 12, str);
+  Draw_String(312 - strlen(str) * 8, 12+24, str);
 
   if (!CMLFitz()) { /* QuakeSpasm customization: */
     q_snprintf(str, sizeof(str), "skill %i",
                (int)(Cvar_GetValue(&skill) + 0.5));
-    Sbar_DrawString(160 - strlen(str) * 4, 12, str);
+    Draw_String(160 - strlen(str) * 4, 12+24, str);
 
     q_snprintf(str, sizeof(str), "%s (%s)", cl.levelname, cl.mapname);
     len = strlen(str);
     if (len > 40)
       Sbar_DrawScrollString(0, 4, 320, str);
     else
-      Sbar_DrawString(160 - len * 4, 4, str);
+      Draw_String(160 - len * 4, 4+24, str);
     return;
   }
   minutes = CL_Time() / 60;
@@ -454,13 +445,13 @@ void Sbar_SoloScoreboard(void) {
   tens = seconds / 10;
   units = seconds - 10 * tens;
   sprintf(str, "%i:%i%i", minutes, tens, units);
-  Sbar_DrawString(160 - strlen(str) * 4, 12, str);
+  Draw_String(160 - strlen(str) * 4, 12+24, str);
 
   len = strlen(cl.levelname);
   if (len > 40)
     Sbar_DrawScrollString(0, 4, 320, cl.levelname);
   else
-    Sbar_DrawString(160 - len * 4, 4, cl.levelname);
+    Draw_String(160 - len * 4, 4+24, cl.levelname);
 }
 
 /*
