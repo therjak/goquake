@@ -61,12 +61,6 @@ func CvarVariableString(name *C.char) *C.char {
 	return nil
 }
 
-//export Cvar_Reset
-func Cvar_Reset(name *C.char) {
-	n := C.GoString(name)
-	CvarReset(n)
-}
-
 func CvarReset(n string) {
 	if cv, ok := cvar.Get(n); ok {
 		cv.Reset()

@@ -54,17 +54,6 @@ func edictNum(i int) *Edict {
 	return &sv.edicts[i]
 }
 
-//export EDICT_SETFREE
-func EDICT_SETFREE(n, free int) {
-	edictNum(n).Free = (free != 0)
-}
-
-//export EDICT_SETALPHA
-func EDICT_SETALPHA(n int, alpha byte) {
-	edictNum(n).Alpha = alpha
-}
-
-//export AllocEdicts
 func AllocEdicts() {
 	AllocEntvars(sv.maxEdicts, progsdat.EdictSize)
 	sv.edicts = make([]Edict, sv.maxEdicts)
@@ -128,11 +117,6 @@ func edictAlloc() int {
 	return i
 }
 
-//export ED_Alloc
-func ED_Alloc() int {
-	return edictAlloc()
-}
-
 // For debugging
 func edictPrint(ed int) {
 	if edictNum(ed).Free {
@@ -158,11 +142,6 @@ func edictPrint(ed int) {
 		}
 		conlog.SafePrintf("%s\n", EntVarsSprint(ed, d))
 	}
-}
-
-//export ED_PrintNum
-func ED_PrintNum(ent C.int) {
-	edictPrint(int(ent))
 }
 
 // For debugging, prints all the entities in the current server
@@ -231,7 +210,6 @@ func entAlphaEncode(a float32) byte {
 	return byte(math.Clamp32(1, math.Round(a*254.0+1), 255))
 }
 
-//export UpdateEdictAlpha
 func UpdateEdictAlpha(ent int) {
 	v, err := EntVarsFieldValue(ent, "alpha")
 	if err != nil {

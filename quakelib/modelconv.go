@@ -8,24 +8,6 @@ import (
 	"quake/model"
 )
 
-//export SVSetModelByName
-func SVSetModelByName(n *C.char, idx int, localModel int) {
-	name := C.GoString(n)
-	nm := func() *model.QModel {
-		cm, ok := models[name]
-		if ok {
-			return cm
-		}
-		log.Printf("TODO!!! SetModel: %d, %s new", idx, name)
-		return nil
-	}()
-	if int(idx) == len(sv.models) {
-		sv.models = append(sv.models, nm)
-	} else {
-		sv.models[int(idx)] = nm
-	}
-}
-
 var (
 	models map[string]*model.QModel
 )
@@ -38,11 +20,6 @@ func init() {
 //export ModClearAllGo
 func ModClearAllGo() {
 	models = make(map[string]*model.QModel)
-}
-
-//export LoadModelGo
-func LoadModelGo(name *C.char) {
-	loadModel(C.GoString(name))
 }
 
 func loadModel(name string) {
@@ -58,11 +35,6 @@ func loadModel(name string) {
 	for _, m := range mods {
 		models[m.Name] = m
 	}
-}
-
-//export EDLoadEntitiesGo
-func EDLoadEntitiesGo() {
-	loadEntities(sv.worldModel.Entities)
 }
 
 //export CLSetWorldModel

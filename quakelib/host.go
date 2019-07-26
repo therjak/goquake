@@ -72,14 +72,6 @@ func HostFrameTime() C.double {
 	return C.double(FrameTime())
 }
 
-//export Host_FilterTime
-func Host_FilterTime() int {
-	if host.UpdateTime() {
-		return 1
-	}
-	return 0
-}
-
 //export Host_FindMaxClients
 func Host_FindMaxClients() {
 	svs.maxClients = 1
@@ -148,11 +140,6 @@ func init() {
 			conlog.Printf("Changes to max_edicts will not take effect until the next time a map is loaded.\n")
 		}
 	})
-}
-
-//export Host_ServerFrame
-func Host_ServerFrame() {
-	serverFrame()
 }
 
 func serverFrame() {

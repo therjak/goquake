@@ -5,17 +5,10 @@ import "C"
 
 import (
 	"log"
-	"path/filepath"
 	"quake/filesystem"
 	image "quake/image"
 	"unsafe"
 )
-
-//export COM_AddGameDirectoryGo
-func COM_AddGameDirectoryGo(base, dir *C.char) {
-	d := filepath.Join(C.GoString(base), C.GoString(dir))
-	filesystem.AddGameDir(d)
-}
 
 //export COM_LoadFileGo
 func COM_LoadFileGo(name *C.char, length *C.int) *C.uchar {

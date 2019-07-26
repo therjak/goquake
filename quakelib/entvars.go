@@ -18,7 +18,6 @@ var (
 	g_entvars    *C.entvars_t
 )
 
-//export AllocEntvars
 func AllocEntvars(edicts int, entityfields int) {
 	entityFields = entityfields
 	maxEdicts = edicts
@@ -27,18 +26,9 @@ func AllocEntvars(edicts int, entityfields int) {
 	g_entvars = (*C.entvars_t)(v)
 }
 
-//export FreeEntvars
 func FreeEntvars() {
 	C.free(unsafe.Pointer(g_entvars))
 	g_entvars = nil
-}
-
-//export EVars
-func EVars(idx C.int) *C.entvars_t {
-	v := uintptr(unsafe.Pointer(g_entvars))
-	vp := v + uintptr(idx*C.int(entityFields)*4)
-	return (*C.entvars_t)(unsafe.Pointer(vp))
-	//return (*C.entvars_t)(unsafe.Pointer(&virtmem[int(idx)*entityFields]))
 }
 
 func EntVars(idx int) *progs.EntVars {
@@ -152,15 +142,16 @@ func TT_ClearEntVars(e *C.entvars_t) {
 	C.memset(unsafe.Pointer(e), 0, C.ulong(entityFields*4))
 }
 
-//export TTClearEntVars
+func EVars(idx C.int) *C.entvars_t {
+	v := uintptr(unsafe.Pointer(g_entvars))
+	vp := v + uintptr(idx*C.int(entityFields)*4)
+	return (*C.entvars_t)(unsafe.Pointer(vp))
+	//return (*C.entvars_t)(unsafe.Pointer(&virtmem[int(idx)*entityFields]))
+}
+
 func TTClearEntVars(idx int) {
 	ev := EVars(C.int(idx))
 	TT_ClearEntVars(ev)
-}
-
-//export TT_ClearEdict
-func TT_ClearEdict(e int) {
-	ClearEdict(e)
 }
 
 func ClearEdict(e int) {

@@ -1,7 +1,5 @@
 package quakelib
 
-import "C"
-
 import (
 	"quake/conlog"
 	"quake/cvars"
@@ -353,11 +351,6 @@ func (q *qphysics) noClip(ent int) {
 	ev.Origin = vec.Add(origin, v)
 
 	vm.LinkEdict(ent, false)
-}
-
-//export SV_CheckWaterTransition
-func SV_CheckWaterTransition(ent int) {
-	physics.checkWaterTransition(ent)
 }
 
 func (q *qphysics) checkWaterTransition(ent int) {
@@ -761,11 +754,6 @@ func (q *qphysics) playerActions(ent, num int) {
 	progsdat.Globals.Time = sv.time
 	progsdat.Globals.Self = int32(ent)
 	vm.ExecuteProgram(progsdat.Globals.PlayerPostThink)
-}
-
-//export SV_Physics
-func SV_Physics() {
-	RunPhysics()
 }
 
 func RunPhysics() {
