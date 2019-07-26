@@ -18,20 +18,9 @@ char m_return_reason[32];
 
 void M_ConfigureNetSubsystem(void);
 
-/*
-================
-M_DrawCharacter
-
-Draws one solid graphics character
-================
-*/
-void M_DrawCharacter(int cx, int line, int num) {
-  Draw_Character(cx, line, num);
-}
-
 void M_Print(int cx, int cy, const char *str) {
   while (*str) {
-    M_DrawCharacter(cx, cy, (*str) + 128);
+    Draw_Character(cx, cy, (*str) + 128);
     str++;
     cx += 8;
   }
@@ -39,7 +28,7 @@ void M_Print(int cx, int cy, const char *str) {
 
 void M_PrintWhite(int cx, int cy, const char *str) {
   while (*str) {
-    M_DrawCharacter(cx, cy, *str);
+    Draw_Character(cx, cy, *str);
     str++;
     cx += 8;
   }
@@ -174,7 +163,7 @@ void M_ServerList_Draw(void) {
   Draw_Pic((320 - p->width) / 2, 4, p);
   for (n = 0; n < hostCacheCount; n++)
     M_Print(16, 32 + 8 * n, NET_SlistPrintServer(n));
-  M_DrawCharacter(0, 32 + slist_cursor * 8,
+  Draw_Character(0, 32 + slist_cursor * 8,
                   12 + ((int)(HostRealTime() * 4) & 1));
 
   if (*m_return_reason) M_PrintWhite(16, 148, m_return_reason);
