@@ -4,27 +4,6 @@
 //
 #include "quakedef.h"
 
-server_t sv;
-
-qboolean pr_alpha_supported;  // johnfitz
-
-//============================================================================
-
-cvar_t sv_gravity;
-/*
-===============
-SV_Init
-===============
-*/
-void SV_Init(void) {
-  int i;
-  const char *p;
-
-  Cvar_FakeRegister(&sv_gravity, "sv_gravity");
-
-  SV_Init_Go();
-}
-
 /*
 =============================================================================
 

@@ -39,6 +39,7 @@ cvar_t samelevel;
 cvar_t skill;
 cvar_t developer;
 cvar_t devstats;
+cvar_t sv_gravity;
 
 devstats_t dev_stats, dev_peakstats;
 overflowtimes_t dev_overflows;  // this stores the last time overflow messages
@@ -80,6 +81,7 @@ void Host_InitLocal(void) {
   Cvar_FakeRegister(&samelevel, "samelevel");
   Cvar_FakeRegister(&skill, "skill");
   Cvar_FakeRegister(&developer, "developer");
+  Cvar_FakeRegister(&sv_gravity, "sv_gravity");
 
   Host_FindMaxClients();
 }
@@ -137,7 +139,6 @@ void Host_ClearMemory(void) {
   FreeEdicts();
   SV_Clear();
   CL_Clear();
-  memset(&sv, 0, sizeof(sv));
   memset(&cl, 0, sizeof(cl));
 }
 

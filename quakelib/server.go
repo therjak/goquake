@@ -143,8 +143,8 @@ func init() {
 	cmd.AddCommand("sv_protocol", svProtocol)
 }
 
-//export SV_Init_Go
-func SV_Init_Go() {
+//export SV_Init
+func SV_Init() {
 	sv_protocol = cmdl.Protocol()
 	switch sv_protocol {
 	case protocol.NetQuake:
