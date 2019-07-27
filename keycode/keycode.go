@@ -2,6 +2,12 @@ package keycode
 
 type KeyCode int
 
+type KeyCodeSlice []KeyCode
+
+func (p KeyCodeSlice) Len() int           { return len(p) }
+func (p KeyCodeSlice) Less(i, j int) bool { return p[i] < p[j] }
+func (p KeyCodeSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
 const (
 	TAB           = KeyCode(9)
 	ENTER         = KeyCode(13)

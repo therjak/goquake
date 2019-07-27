@@ -16,8 +16,6 @@ int edit_line = 0;     // therjak: extern
 int history_line = 0;  // therjak: extern
 
 char *keybindings[MAX_KEYS];
-qboolean consolekeys[MAX_KEYS];  // if true, can't be rebound while in console
-qboolean menubound[MAX_KEYS];    // if true, can't be rebound while in menu
 qboolean keydown[MAX_KEYS];
 
 qboolean Key_ShiftDown() { return keydown[K_SHIFT]; }
@@ -470,27 +468,6 @@ void Char_Message(int key) {
 
 /*
 ===================
-Key_StringToKeynum
-
-Returns a key number to be used to index keybindings[] by looking at
-the given string.  Single ascii characters return themselves, while
-the K_* names are matched up.
-===================
-*/
-int Key_StringToKeynum(const char *str) {
-  keyname_t *kn;
-
-  if (!str || !str[0]) return -1;
-  if (!str[1]) return str[0];
-
-  for (kn = keynames; kn->name; kn++) {
-    if (!q_strcasecmp(str, kn->name)) return kn->keynum;
-  }
-  return -1;
-}
-
-/*
-===================
 Key_KeynumToString
 
 Returns a string (either a single ascii char, or a K_* name) for the
@@ -517,111 +494,6 @@ const char *Key_KeynumToString(int keynum) {
 }
 
 /*
-===================
-Key_SetBinding
-===================
-*/
-void Key_SetBinding(int keynum, const char *binding) {
-  if (keynum == -1) return;
-
-  // free old bindings
-  if (keybindings[keynum]) {
-    Z_Free(keybindings[keynum]);
-    keybindings[keynum] = NULL;
-  }
-
-  // allocate memory for new binding
-  if (binding) keybindings[keynum] = Z_Strdup(binding);
-}
-
-/*
-===================
-Key_Unbind_f
-===================
-*/
-void Key_Unbind_f(void) {
-  int b;
-
-  if (Cmd_Argc() != 2) {
-    Con_Printf("unbind <key> : remove commands from a key\n");
-    return;
-  }
-
-  b = Key_StringToKeynum(Cmd_Argv(1));
-  if (b == -1) {
-    Con_Printf("\"%s\" isn't a valid key\n", Cmd_Argv(1));
-    return;
-  }
-
-  Key_SetBinding(b, NULL);
-}
-
-void Key_Unbindall_f(void) {
-  int i;
-
-  for (i = 0; i < MAX_KEYS; i++) {
-    if (keybindings[i]) Key_SetBinding(i, NULL);
-  }
-}
-
-/*
-============
-Key_Bindlist_f -- johnfitz
-============
-*/
-void Key_Bindlist_f(void) {
-  int i, count;
-
-  count = 0;
-  for (i = 0; i < MAX_KEYS; i++) {
-    if (keybindings[i] && *keybindings[i]) {
-      Con_SafePrintf("   %s \"%s\"\n", Key_KeynumToString(i), keybindings[i]);
-      count++;
-    }
-  }
-  Con_SafePrintf("%i bindings\n", count);
-}
-
-/*
-===================
-Key_Bind_f
-===================
-*/
-void Key_Bind_f(void) {
-  int i, c, b;
-  char cmd[1024];
-
-  c = Cmd_Argc();
-
-  if (c != 2 && c != 3) {
-    Con_Printf("bind <key> [command] : attach a command to a key\n");
-    return;
-  }
-  b = Key_StringToKeynum(Cmd_Argv(1));
-  if (b == -1) {
-    Con_Printf("\"%s\" isn't a valid key\n", Cmd_Argv(1));
-    return;
-  }
-
-  if (c == 2) {
-    if (keybindings[b])
-      Con_Printf("\"%s\" = \"%s\"\n", Cmd_Argv(1), keybindings[b]);
-    else
-      Con_Printf("\"%s\" is not bound\n", Cmd_Argv(1));
-    return;
-  }
-
-  // copy the rest of the command line
-  cmd[0] = 0;
-  for (i = 2; i < c; i++) {
-    q_strlcat(cmd, Cmd_Argv(i), sizeof(cmd));
-    if (i != (c - 1)) q_strlcat(cmd, " ", sizeof(cmd));
-  }
-
-  Key_SetBinding(b, cmd);
-}
-
-/*
 ============
 Key_WriteBindings
 
@@ -634,7 +506,7 @@ void Key_WriteBindings(FILE *f) {
   // unbindall before loading stored bindings:
   if (Cvar_GetValue(&cfg_unbindall)) fprintf(f, "unbindall\n");
   for (i = 0; i < MAX_KEYS; i++) {
-    if (keybindings[i] && *keybindings[i])
+    if (Key_HasBinding(i))
       fprintf(f, "bind \"%s\" \"%s\"\n", Key_KeynumToString(i), keybindings[i]);
   }
 }
@@ -710,66 +582,6 @@ void Key_Init(void) {
   History_Init();
 
   key_blinktime = HostRealTime();  // johnfitz
-
-  //
-  // initialize consolekeys[]
-  //
-  for (i = 32; i < 127; i++)  // ascii characters
-    consolekeys[i] = true;
-  consolekeys['`'] = false;
-  consolekeys['~'] = false;
-  consolekeys[K_TAB] = true;
-  consolekeys[K_ENTER] = true;
-  consolekeys[K_ESCAPE] = true;
-  consolekeys[K_BACKSPACE] = true;
-  consolekeys[K_UPARROW] = true;
-  consolekeys[K_DOWNARROW] = true;
-  consolekeys[K_LEFTARROW] = true;
-  consolekeys[K_RIGHTARROW] = true;
-  consolekeys[K_CTRL] = true;
-  consolekeys[K_SHIFT] = true;
-  consolekeys[K_INS] = true;
-  consolekeys[K_DEL] = true;
-  consolekeys[K_PGDN] = true;
-  consolekeys[K_PGUP] = true;
-  consolekeys[K_HOME] = true;
-  consolekeys[K_END] = true;
-  consolekeys[K_KP_NUMLOCK] = true;
-  consolekeys[K_KP_SLASH] = true;
-  consolekeys[K_KP_STAR] = true;
-  consolekeys[K_KP_MINUS] = true;
-  consolekeys[K_KP_HOME] = true;
-  consolekeys[K_KP_UPARROW] = true;
-  consolekeys[K_KP_PGUP] = true;
-  consolekeys[K_KP_PLUS] = true;
-  consolekeys[K_KP_LEFTARROW] = true;
-  consolekeys[K_KP_5] = true;
-  consolekeys[K_KP_RIGHTARROW] = true;
-  consolekeys[K_KP_END] = true;
-  consolekeys[K_KP_DOWNARROW] = true;
-  consolekeys[K_KP_PGDN] = true;
-  consolekeys[K_KP_ENTER] = true;
-  consolekeys[K_KP_INS] = true;
-  consolekeys[K_KP_DEL] = true;
-#if defined(PLATFORM_OSX) || defined(PLATFORM_MAC)
-  consolekeys[K_COMMAND] = true;
-#endif
-  consolekeys[K_MWHEELUP] = true;
-  consolekeys[K_MWHEELDOWN] = true;
-
-  //
-  // initialize menubound[]
-  //
-  menubound[K_ESCAPE] = true;
-  for (i = 0; i < 12; i++) menubound[K_F1 + i] = true;
-
-  //
-  // register our functions
-  //
-  Cmd_AddCommand("bindlist", Key_Bindlist_f);  // johnfitz
-  Cmd_AddCommand("bind", Key_Bind_f);
-  Cmd_AddCommand("unbind", Key_Unbind_f);
-  Cmd_AddCommand("unbindall", Key_Unbindall_f);
 }
 
 static struct {
@@ -841,7 +653,7 @@ void Key_Event(int key, qboolean down) {
     if (keydown[key]) {
       if (GetKeyDest() == key_game && !con_forcedup)
         return;  // ignore autorepeats in game mode
-    } else if (key >= 200 && !keybindings[key])
+    } else if (key >= 200 && !Key_HasBinding(key))
       Con_Printf("%s is unbound, hit F4 to set.\n", Key_KeynumToString(key));
   } else if (!keydown[key])
     return;  // ignore stray key up events
@@ -895,16 +707,16 @@ void Key_Event(int key, qboolean down) {
   }
 
   // during demo playback, most keys bring up the main menu
-  if (CLS_IsDemoPlayback() && down && consolekeys[key] &&
+  if (CLS_IsDemoPlayback() && down && ConsoleKeys(key) &&
       GetKeyDest() == key_game && key != K_TAB) {
     M_ToggleMenu_f();
     return;
   }
 
   // if not a consolekey, send to the interpreter no matter what mode is
-  if ((GetKeyDest() == key_menu && menubound[key]) ||
-      (GetKeyDest() == key_console && !consolekeys[key]) ||
-      (GetKeyDest() == key_game && (!con_forcedup || !consolekeys[key]))) {
+  if ((GetKeyDest() == key_menu && MenuBound(key)) ||
+      (GetKeyDest() == key_console && !ConsoleKeys(key)) ||
+      (GetKeyDest() == key_game && (!con_forcedup || !ConsoleKeys(key)))) {
     kb = keybindings[key];
     if (kb) {
       if (kb[0] == '+') {  // button commands add keynum as a parm
@@ -1011,37 +823,3 @@ void Key_ClearStates(void) {
   }
 }
 
-void M_FindKeysForCommand(const char *command, int *threekeys) {
-  int count;
-  int j;
-  int l;
-  char *b;
-
-  threekeys[0] = threekeys[1] = threekeys[2] = -1;
-  l = strlen(command);
-  count = 0;
-
-  for (j = 0; j < MAX_KEYS; j++) {
-    b = keybindings[j];
-    if (!b) continue;
-    if (!strncmp(b, command, l)) {
-      threekeys[count] = j;
-      count++;
-      if (count == 3) break;
-    }
-  }
-}
-
-void M_UnbindCommand(const char *command) {
-  int j;
-  int l;
-  char *b;
-
-  l = strlen(command);
-
-  for (j = 0; j < MAX_KEYS; j++) {
-    b = keybindings[j];
-    if (!b) continue;
-    if (!strncmp(b, command, l)) Key_SetBinding(j, NULL);
-  }
-}

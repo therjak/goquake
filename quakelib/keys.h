@@ -177,7 +177,7 @@ void Key_Event(int key, qboolean down);
 void Char_Event(int key);
 qboolean Key_TextEntry(void);
 
-void Key_SetBinding(int keynum, const char *binding);
+// void Key_SetBinding(int keynum, const char *binding);
 const char *Key_KeynumToString(int keynum);
 void Key_WriteBindings(FILE *f);
 
