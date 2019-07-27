@@ -117,7 +117,7 @@ func (m *serverNameMenuItem) Backspace() {
 	m.serverName = removeLast(m.serverName)
 }
 
-func (m *serverNameMenuItem) HandleChar(key int) {
+func (m *serverNameMenuItem) HandleChar(key kc.KeyCode) {
 	if len(m.serverName) < 21 {
 		m.serverName += string(key)
 	}
@@ -163,7 +163,7 @@ func (m *portMenuItem) Backspace() {
 	m.portName = removeLast(m.portName)
 }
 
-func (m *portMenuItem) HandleChar(key int) {
+func (m *portMenuItem) HandleChar(key kc.KeyCode) {
 	if key < '0' || key > '9' {
 		return
 	}
@@ -210,7 +210,7 @@ func (m *qNetJoinMenu) Update() {
 	m.selectedIndex = 2
 }
 
-func (m *qNetConfigMenu) HandleKey(key int) {
+func (m *qNetConfigMenu) HandleKey(key kc.KeyCode) {
 	switch key {
 	case kc.ESCAPE, kc.BBUTTON:
 		enterMultiPlayerMenu()
@@ -231,7 +231,7 @@ func (m *qNetConfigMenu) HandleKey(key int) {
 	}
 }
 
-func (m *qNetConfigMenu) HandleChar(key int) {
+func (m *qNetConfigMenu) HandleChar(key kc.KeyCode) {
 	m.items[m.selectedIndex].HandleChar(key)
 }
 

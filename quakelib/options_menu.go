@@ -14,7 +14,7 @@ type qOptionsMenu struct {
 	items         []MenuItem
 }
 
-func (m *qOptionsMenu) HandleKey(key int) {
+func (m *qOptionsMenu) HandleKey(key kc.KeyCode) {
 	switch key {
 	case kc.ESCAPE, kc.BBUTTON:
 		enterMenuMain()

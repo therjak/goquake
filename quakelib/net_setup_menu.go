@@ -62,7 +62,7 @@ func (m *qNetSetupMenu) Draw() {
 	m.items[m.selectedIndex].DrawCursor()
 }
 
-func (m *qNetSetupMenu) HandleKey(key int) {
+func (m *qNetSetupMenu) HandleKey(key kc.KeyCode) {
 	switch key {
 	case kc.ESCAPE, kc.BBUTTON:
 		enterMultiPlayerMenu()
@@ -83,7 +83,7 @@ func (m *qNetSetupMenu) HandleKey(key int) {
 	}
 }
 
-func (m *qNetSetupMenu) HandleChar(key int) {
+func (m *qNetSetupMenu) HandleChar(key kc.KeyCode) {
 	switch m.selectedIndex {
 	case 0:
 		if len(m.hostname) < 15 {

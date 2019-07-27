@@ -47,7 +47,7 @@ func (m *qMainMenu) Draw() {
 	m.items[m.selectedIndex].DrawCursor()
 }
 
-func (m *qMainMenu) HandleKey(key int) {
+func (m *qMainMenu) HandleKey(key kc.KeyCode) {
 	switch key {
 	case kc.ESCAPE, kc.BBUTTON:
 		IN_Activate()

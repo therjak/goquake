@@ -256,7 +256,7 @@ func (m *qGameOptionsMenu) Update() {
 	}
 }
 
-func (m *qGameOptionsMenu) HandleKey(key int) {
+func (m *qGameOptionsMenu) HandleKey(key kc.KeyCode) {
 	switch key {
 	case kc.ESCAPE, kc.BBUTTON:
 		enterNetSetupMenu()

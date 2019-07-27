@@ -51,6 +51,7 @@ package quakelib
 import "C"
 
 import (
+	kc "quake/keycode"
 	"quake/menu"
 )
 
@@ -92,11 +93,11 @@ func M_Menu_LanConfig_f() {
 func M_Charinput(key C.int) {
 	switch qmenu.state {
 	case menu.Setup:
-		netSetupMenu.HandleChar(int(key))
+		netSetupMenu.HandleChar(kc.KeyCode(key))
 	case menu.NetNewGame:
-		netNewGameMenu.HandleChar(int(key))
+		netNewGameMenu.HandleChar(kc.KeyCode(key))
 	case menu.NetJoinGame:
-		netJoinGameMenu.HandleChar(int(key))
+		netJoinGameMenu.HandleChar(kc.KeyCode(key))
 	}
 }
 
@@ -120,5 +121,5 @@ func M_Draw() {
 
 //export M_Keydown
 func M_Keydown(k C.int) {
-	qmenu.HandleKey(int(k))
+	qmenu.HandleKey(kc.KeyCode(k))
 }

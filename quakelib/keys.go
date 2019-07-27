@@ -8,12 +8,25 @@ package quakelib
 import "C"
 
 import (
+	kc "quake/keycode"
 	"quake/keys"
 )
 
 var (
 	keyDestination = keys.Game
+	// if true, can't be rebound while in console
+	consolekeys map[kc.KeyCode]bool
+	// if true, can't be rebound while in menu
+	menubound map[kc.KeyCode]bool
+	keydown   map[kc.KeyCode]bool
 )
+
+/*
+char *keybindings[MAX_KEYS];
+qboolean consolekeys[MAX_KEYS];  // if true, can't be rebound while in console
+qboolean menubound[MAX_KEYS];    // if true, can't be rebound while in menu
+qboolean keydown[MAX_KEYS];
+*/
 
 //export GetKeyDest
 func GetKeyDest() C.keydest_t {

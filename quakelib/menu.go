@@ -56,6 +56,7 @@ import "C"
 import (
 	"fmt"
 	"quake/cmd"
+	kc "quake/keycode"
 	"quake/keys"
 	"quake/math"
 	"quake/menu"
@@ -230,7 +231,7 @@ type MenuItem interface {
 	Backspace()
 	Left()
 	Right()
-	HandleChar(key int)
+	HandleChar(key kc.KeyCode)
 	Update(m qAccept)
 	Accept()
 }
@@ -248,13 +249,13 @@ func (m *qMenuItem) Draw() {}
 func (m *qMenuItem) DrawCursor() {
 	drawSymbol(m.Xcursor, m.Y, 12+(int(Time()*4))&1)
 }
-func (m *qMenuItem) Enter()             {}
-func (m *qMenuItem) Backspace()         {}
-func (m *qMenuItem) Left()              {}
-func (m *qMenuItem) Right()             {}
-func (m *qMenuItem) HandleChar(key int) {}
-func (m *qMenuItem) Update(a qAccept)   {}
-func (m *qMenuItem) Accept()            {}
+func (m *qMenuItem) Enter()                    {}
+func (m *qMenuItem) Backspace()                {}
+func (m *qMenuItem) Left()                     {}
+func (m *qMenuItem) Right()                    {}
+func (m *qMenuItem) HandleChar(key kc.KeyCode) {}
+func (m *qMenuItem) Update(a qAccept)          {}
+func (m *qMenuItem) Accept()                   {}
 
 type qDotMenuItem struct {
 	qMenuItem
@@ -347,7 +348,7 @@ func (m *qMenu) Draw() {
 	C.S_ExtraUpdate()
 }
 
-func (m *qMenu) HandleKey(k int) {
+func (m *qMenu) HandleKey(k kc.KeyCode) {
 	switch m.state {
 	case menu.Main:
 		mainMenu.HandleKey(k)

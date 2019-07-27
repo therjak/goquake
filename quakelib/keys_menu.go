@@ -56,7 +56,7 @@ type qKeysMenu struct {
 	grabbed       bool
 }
 
-func (m *qKeysMenu) HandleKey(key int) {
+func (m *qKeysMenu) HandleKey(key kc.KeyCode) {
 	if m.grabbed {
 		localSound("misc/menu1.wav")
 		if (key != kc.ESCAPE) && (key != '`') {
@@ -151,7 +151,7 @@ func (m *keysMenuItem) Backspace() {
 	unbindCommand(m.bind)
 }
 
-func (m *keysMenuItem) Change(key int) {
+func (m *keysMenuItem) Change(key kc.KeyCode) {
 	cmd := fmt.Sprintf("bind \"%s\" \"%s\"\n", kc.KeyToString(key), m.bind)
 	cbuf.InsertText(cmd)
 }

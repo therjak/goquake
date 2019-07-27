@@ -1,112 +1,114 @@
 package keycode
 
+type KeyCode int
+
 const (
-	TAB           = 9
-	ENTER         = 13
-	ESCAPE        = 27
-	SPACE         = 32
-	BACKSPACE     = 127
-	UPARROW       = 128
-	DOWNARROW     = 129
-	LEFTARROW     = 130
-	RIGHTARROW    = 131
-	ALT           = 132
-	CTRL          = 133
-	SHIFT         = 134
-	F1            = 135
-	F2            = 136
-	F3            = 137
-	F4            = 138
-	F5            = 139
-	F6            = 140
-	F7            = 141
-	F8            = 142
-	F9            = 143
-	F10           = 144
-	F11           = 145
-	F12           = 146
-	INS           = 147
-	DEL           = 148
-	PGDN          = 149
-	PGUP          = 150
-	HOME          = 151
-	END           = 152
-	KP_NUMLOCK    = 153
-	KP_SLASH      = 154
-	KP_STAR       = 155
-	KP_MINUS      = 156
-	KP_HOME       = 157
-	KP_UPARROW    = 158
-	KP_PGUP       = 159
-	KP_PLUS       = 160
-	KP_LEFTARROW  = 161
-	KP_5          = 162
-	KP_RIGHTARROW = 163
-	KP_END        = 164
-	KP_DOWNARROW  = 165
-	KP_PGDN       = 166
-	KP_ENTER      = 167
-	KP_INS        = 168
-	KP_DEL        = 169
-	COMMAND       = 170
-	MOUSE1        = 200
-	MOUSE2        = 201
-	MOUSE3        = 202
-	JOY1          = 203
-	JOY2          = 204
-	JOY3          = 205
-	JOY4          = 206
-	AUX1          = 207
-	AUX2          = 208
-	AUX3          = 209
-	AUX4          = 210
-	AUX5          = 211
-	AUX6          = 212
-	AUX7          = 213
-	AUX8          = 214
-	AUX9          = 215
-	AUX10         = 216
-	AUX11         = 217
-	AUX12         = 218
-	AUX13         = 219
-	AUX14         = 220
-	AUX15         = 221
-	AUX16         = 222
-	AUX17         = 223
-	AUX18         = 224
-	AUX19         = 225
-	AUX20         = 226
-	AUX21         = 227
-	AUX22         = 228
-	AUX23         = 229
-	AUX24         = 230
-	AUX25         = 231
-	AUX26         = 232
-	AUX27         = 233
-	AUX28         = 234
-	AUX29         = 235
-	AUX30         = 236
-	AUX31         = 237
-	AUX32         = 238
-	MWHEELUP      = 239
-	MWHEELDOWN    = 240
-	MOUSE4        = 241
-	MOUSE5        = 242
-	LTHUMB        = 243
-	RTHUMB        = 244
-	LSHOULDER     = 245
-	RSHOULDER     = 246
-	ABUTTON       = 247
-	BBUTTON       = 248
-	XBUTTON       = 249
-	YBUTTON       = 250
-	LTRIGGER      = 251
-	RTRIGGER      = 252
-	PAUSE         = 255
+	TAB           = KeyCode(9)
+	ENTER         = KeyCode(13)
+	ESCAPE        = KeyCode(27)
+	SPACE         = KeyCode(32)
+	BACKSPACE     = KeyCode(127)
+	UPARROW       = KeyCode(128)
+	DOWNARROW     = KeyCode(129)
+	LEFTARROW     = KeyCode(130)
+	RIGHTARROW    = KeyCode(131)
+	ALT           = KeyCode(132)
+	CTRL          = KeyCode(133)
+	SHIFT         = KeyCode(134)
+	F1            = KeyCode(135)
+	F2            = KeyCode(136)
+	F3            = KeyCode(137)
+	F4            = KeyCode(138)
+	F5            = KeyCode(139)
+	F6            = KeyCode(140)
+	F7            = KeyCode(141)
+	F8            = KeyCode(142)
+	F9            = KeyCode(143)
+	F10           = KeyCode(144)
+	F11           = KeyCode(145)
+	F12           = KeyCode(146)
+	INS           = KeyCode(147)
+	DEL           = KeyCode(148)
+	PGDN          = KeyCode(149)
+	PGUP          = KeyCode(150)
+	HOME          = KeyCode(151)
+	END           = KeyCode(152)
+	KP_NUMLOCK    = KeyCode(153)
+	KP_SLASH      = KeyCode(154)
+	KP_STAR       = KeyCode(155)
+	KP_MINUS      = KeyCode(156)
+	KP_HOME       = KeyCode(157)
+	KP_UPARROW    = KeyCode(158)
+	KP_PGUP       = KeyCode(159)
+	KP_PLUS       = KeyCode(160)
+	KP_LEFTARROW  = KeyCode(161)
+	KP_5          = KeyCode(162)
+	KP_RIGHTARROW = KeyCode(163)
+	KP_END        = KeyCode(164)
+	KP_DOWNARROW  = KeyCode(165)
+	KP_PGDN       = KeyCode(166)
+	KP_ENTER      = KeyCode(167)
+	KP_INS        = KeyCode(168)
+	KP_DEL        = KeyCode(169)
+	COMMAND       = KeyCode(170)
+	MOUSE1        = KeyCode(200)
+	MOUSE2        = KeyCode(201)
+	MOUSE3        = KeyCode(202)
+	JOY1          = KeyCode(203)
+	JOY2          = KeyCode(204)
+	JOY3          = KeyCode(205)
+	JOY4          = KeyCode(206)
+	AUX1          = KeyCode(207)
+	AUX2          = KeyCode(208)
+	AUX3          = KeyCode(209)
+	AUX4          = KeyCode(210)
+	AUX5          = KeyCode(211)
+	AUX6          = KeyCode(212)
+	AUX7          = KeyCode(213)
+	AUX8          = KeyCode(214)
+	AUX9          = KeyCode(215)
+	AUX10         = KeyCode(216)
+	AUX11         = KeyCode(217)
+	AUX12         = KeyCode(218)
+	AUX13         = KeyCode(219)
+	AUX14         = KeyCode(220)
+	AUX15         = KeyCode(221)
+	AUX16         = KeyCode(222)
+	AUX17         = KeyCode(223)
+	AUX18         = KeyCode(224)
+	AUX19         = KeyCode(225)
+	AUX20         = KeyCode(226)
+	AUX21         = KeyCode(227)
+	AUX22         = KeyCode(228)
+	AUX23         = KeyCode(229)
+	AUX24         = KeyCode(230)
+	AUX25         = KeyCode(231)
+	AUX26         = KeyCode(232)
+	AUX27         = KeyCode(233)
+	AUX28         = KeyCode(234)
+	AUX29         = KeyCode(235)
+	AUX30         = KeyCode(236)
+	AUX31         = KeyCode(237)
+	AUX32         = KeyCode(238)
+	MWHEELUP      = KeyCode(239)
+	MWHEELDOWN    = KeyCode(240)
+	MOUSE4        = KeyCode(241)
+	MOUSE5        = KeyCode(242)
+	LTHUMB        = KeyCode(243)
+	RTHUMB        = KeyCode(244)
+	LSHOULDER     = KeyCode(245)
+	RSHOULDER     = KeyCode(246)
+	ABUTTON       = KeyCode(247)
+	BBUTTON       = KeyCode(248)
+	XBUTTON       = KeyCode(249)
+	YBUTTON       = KeyCode(250)
+	LTRIGGER      = KeyCode(251)
+	RTRIGGER      = KeyCode(252)
+	PAUSE         = KeyCode(255)
 )
 
 var (
-	s2k = map[string]int{
+	s2k = map[string]KeyCode{
 		"TAB":        TAB,
 		"ENTER":      ENTER,
 		"ESCAPE":     ESCAPE,
@@ -229,15 +231,15 @@ var (
 	k2s = reverseMap(s2k)
 )
 
-func reverseMap(m map[string]int) map[int]string {
-	r := make(map[int]string)
+func reverseMap(m map[string]KeyCode) map[KeyCode]string {
+	r := make(map[KeyCode]string)
 	for k, v := range m {
 		r[v] = k
 	}
 	return r
 }
 
-func KeyToString(k int) string {
+func KeyToString(k KeyCode) string {
 	if k == -1 {
 		return "<KEY NOT FOUND>"
 	}
@@ -251,12 +253,12 @@ func KeyToString(k int) string {
 	return "<UNKNOWN KEYNUM>"
 }
 
-func StringToKey(s string) int {
+func StringToKey(s string) KeyCode {
 	if len(s) == 0 {
 		return -1
 	}
 	if len(s) == 1 {
-		return int(s[0])
+		return KeyCode(s[0])
 	}
 	v, ok := s2k[s]
 	if ok {

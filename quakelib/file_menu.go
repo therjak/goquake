@@ -140,7 +140,7 @@ func (m *qSaveMenu) Draw() {
 	}
 	m.items[m.selectedIndex].DrawCursor()
 }
-func (m *qLoadMenu) HandleKey(k int) {
+func (m *qLoadMenu) HandleKey(k kc.KeyCode) {
 	switch k {
 	case kc.ESCAPE, kc.BBUTTON:
 		enterSinglePlayerMenu()
@@ -156,7 +156,7 @@ func (m *qLoadMenu) HandleKey(k int) {
 	}
 }
 
-func (m *qSaveMenu) HandleKey(k int) {
+func (m *qSaveMenu) HandleKey(k kc.KeyCode) {
 	switch k {
 	case kc.ESCAPE, kc.BBUTTON:
 		enterSinglePlayerMenu()

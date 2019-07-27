@@ -18,13 +18,16 @@ package quakelib
 //   return kt;
 // }
 import "C"
-import "unsafe"
+import (
+	kc "quake/keycode"
+	"unsafe"
+)
 
-func getKeysForCommand(c string) (int, int, int) {
+func getKeysForCommand(c string) (kc.KeyCode, kc.KeyCode, kc.KeyCode) {
 	cn := C.CString(c)
 	defer C.free(unsafe.Pointer(cn))
 	k := C.go_findKeys(cn)
-	return int(k.a), int(k.b), int(k.c)
+	return kc.KeyCode(k.a), kc.KeyCode(k.b), kc.KeyCode(k.c)
 }
 
 func unbindCommand(c string) {

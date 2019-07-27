@@ -14,7 +14,7 @@ type qVideoMenu struct {
 	items         []MenuItem
 }
 
-func (m *qVideoMenu) HandleKey(key int) {
+func (m *qVideoMenu) HandleKey(key kc.KeyCode) {
 	switch key {
 	case kc.ESCAPE, kc.BBUTTON:
 		// FIXME: there are other ways to leave menu

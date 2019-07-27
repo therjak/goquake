@@ -39,7 +39,7 @@ func (m *qMultiPlayerMenu) Draw() {
 	}
 }
 
-func (m *qMultiPlayerMenu) HandleKey(key int) {
+func (m *qMultiPlayerMenu) HandleKey(key kc.KeyCode) {
 	switch key {
 	case kc.ESCAPE, kc.BBUTTON:
 		enterMenuMain()

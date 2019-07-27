@@ -36,7 +36,7 @@ func (m *qSinglePlayerMenu) Draw() {
 	m.items[m.selectedIndex].DrawCursor()
 }
 
-func (m *qSinglePlayerMenu) HandleKey(key int) {
+func (m *qSinglePlayerMenu) HandleKey(key kc.KeyCode) {
 	switch key {
 	case kc.ESCAPE, kc.BBUTTON:
 		enterMenuMain()

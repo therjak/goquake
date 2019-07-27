@@ -55,7 +55,7 @@ func (m *qHelpMenu) Reset() {
 	m.selectedIndex = 0
 }
 
-func (m *qHelpMenu) HandleKey(key int) {
+func (m *qHelpMenu) HandleKey(key kc.KeyCode) {
 	switch key {
 	case kc.ESCAPE, kc.BBUTTON:
 		enterMenuMain()

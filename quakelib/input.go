@@ -139,7 +139,7 @@ func inputDeactivate(freeCursor bool) {
 	}
 }
 
-func sdlScancodeToQuake(e *sdl.KeyboardEvent) int {
+func sdlScancodeToQuake(e *sdl.KeyboardEvent) kc.KeyCode {
 	// We want the key and not what it is mapped to. So use Scancode
 	switch e.Keysym.Scancode {
 	case sdl.SCANCODE_TAB:
@@ -153,105 +153,105 @@ func sdlScancodeToQuake(e *sdl.KeyboardEvent) int {
 	case sdl.SCANCODE_SPACE:
 		return kc.SPACE
 	case sdl.SCANCODE_A:
-		return int('a')
+		return kc.KeyCode('a')
 	case sdl.SCANCODE_B:
-		return int('b')
+		return kc.KeyCode('b')
 	case sdl.SCANCODE_C:
-		return int('c')
+		return kc.KeyCode('c')
 	case sdl.SCANCODE_D:
-		return int('d')
+		return kc.KeyCode('d')
 	case sdl.SCANCODE_E:
-		return int('e')
+		return kc.KeyCode('e')
 	case sdl.SCANCODE_F:
-		return int('f')
+		return kc.KeyCode('f')
 	case sdl.SCANCODE_G:
-		return int('g')
+		return kc.KeyCode('g')
 	case sdl.SCANCODE_H:
-		return int('h')
+		return kc.KeyCode('h')
 	case sdl.SCANCODE_I:
-		return int('i')
+		return kc.KeyCode('i')
 	case sdl.SCANCODE_J:
-		return int('j')
+		return kc.KeyCode('j')
 	case sdl.SCANCODE_K:
-		return int('k')
+		return kc.KeyCode('k')
 	case sdl.SCANCODE_L:
-		return int('l')
+		return kc.KeyCode('l')
 	case sdl.SCANCODE_M:
-		return int('m')
+		return kc.KeyCode('m')
 	case sdl.SCANCODE_N:
-		return int('n')
+		return kc.KeyCode('n')
 	case sdl.SCANCODE_O:
-		return int('o')
+		return kc.KeyCode('o')
 	case sdl.SCANCODE_P:
-		return int('p')
+		return kc.KeyCode('p')
 	case sdl.SCANCODE_Q:
-		return int('q')
+		return kc.KeyCode('q')
 	case sdl.SCANCODE_R:
-		return int('r')
+		return kc.KeyCode('r')
 	case sdl.SCANCODE_S:
-		return int('s')
+		return kc.KeyCode('s')
 	case sdl.SCANCODE_T:
-		return int('t')
+		return kc.KeyCode('t')
 	case sdl.SCANCODE_U:
-		return int('u')
+		return kc.KeyCode('u')
 	case sdl.SCANCODE_V:
-		return int('v')
+		return kc.KeyCode('v')
 	case sdl.SCANCODE_W:
-		return int('w')
+		return kc.KeyCode('w')
 	case sdl.SCANCODE_X:
-		return int('x')
+		return kc.KeyCode('x')
 	case sdl.SCANCODE_Y:
-		return int('y')
+		return kc.KeyCode('y')
 	case sdl.SCANCODE_Z:
-		return int('z')
+		return kc.KeyCode('z')
 
 	case sdl.SCANCODE_1:
-		return int('1')
+		return kc.KeyCode('1')
 	case sdl.SCANCODE_2:
-		return int('2')
+		return kc.KeyCode('2')
 	case sdl.SCANCODE_3:
-		return int('3')
+		return kc.KeyCode('3')
 	case sdl.SCANCODE_4:
-		return int('4')
+		return kc.KeyCode('4')
 	case sdl.SCANCODE_5:
-		return int('5')
+		return kc.KeyCode('5')
 	case sdl.SCANCODE_6:
-		return int('6')
+		return kc.KeyCode('6')
 	case sdl.SCANCODE_7:
-		return int('7')
+		return kc.KeyCode('7')
 	case sdl.SCANCODE_8:
-		return int('8')
+		return kc.KeyCode('8')
 	case sdl.SCANCODE_9:
-		return int('9')
+		return kc.KeyCode('9')
 	case sdl.SCANCODE_0:
-		return int('0')
+		return kc.KeyCode('0')
 
 	case sdl.SCANCODE_MINUS:
-		return int('-')
+		return kc.KeyCode('-')
 	case sdl.SCANCODE_EQUALS:
-		return int('=')
+		return kc.KeyCode('=')
 	case sdl.SCANCODE_LEFTBRACKET:
-		return int('[')
+		return kc.KeyCode('[')
 	case sdl.SCANCODE_RIGHTBRACKET:
-		return int(']')
+		return kc.KeyCode(']')
 	case sdl.SCANCODE_BACKSLASH:
-		return int('\\')
+		return kc.KeyCode('\\')
 	case sdl.SCANCODE_NONUSHASH:
-		return int('#')
+		return kc.KeyCode('#')
 	case sdl.SCANCODE_SEMICOLON:
-		return int(';')
+		return kc.KeyCode(';')
 	case sdl.SCANCODE_APOSTROPHE:
-		return int('\'')
+		return kc.KeyCode('\'')
 	case sdl.SCANCODE_GRAVE:
-		return int('`')
+		return kc.KeyCode('`')
 	case sdl.SCANCODE_COMMA:
-		return int(',')
+		return kc.KeyCode(',')
 	case sdl.SCANCODE_PERIOD:
-		return int('.')
+		return kc.KeyCode('.')
 	case sdl.SCANCODE_SLASH:
-		return int('/')
+		return kc.KeyCode('/')
 	case sdl.SCANCODE_NONUSBACKSLASH:
-		return int('\\')
+		return kc.KeyCode('\\')
 
 	case sdl.SCANCODE_BACKSPACE:
 		return kc.BACKSPACE
@@ -369,15 +369,15 @@ func handleMouseButtonEvent(e *sdl.MouseButtonEvent) {
 	}()
 	switch e.Button {
 	case sdl.BUTTON_LEFT:
-		C.Key_Event(kc.MOUSE1, down)
+		C.Key_Event(C.int(kc.MOUSE1), down)
 	case sdl.BUTTON_MIDDLE:
-		C.Key_Event(kc.MOUSE2, down)
+		C.Key_Event(C.int(kc.MOUSE2), down)
 	case sdl.BUTTON_RIGHT:
-		C.Key_Event(kc.MOUSE3, down)
+		C.Key_Event(C.int(kc.MOUSE3), down)
 	case sdl.BUTTON_X1:
-		C.Key_Event(kc.MOUSE4, down)
+		C.Key_Event(C.int(kc.MOUSE4), down)
 	case sdl.BUTTON_X2:
-		C.Key_Event(kc.MOUSE5, down)
+		C.Key_Event(C.int(kc.MOUSE5), down)
 	default:
 		conlog.Printf("Ignored event for mouse button %v\n", e.Button)
 	}
@@ -386,11 +386,11 @@ func handleMouseButtonEvent(e *sdl.MouseButtonEvent) {
 func handleMouseWheelEvent(e *sdl.MouseWheelEvent) {
 	// t.Timestamp, t.Type, t.Which, t.X, t.Y)
 	if e.Y > 0 {
-		C.Key_Event(kc.MWHEELUP, 1)
-		C.Key_Event(kc.MWHEELUP, 0)
+		C.Key_Event(C.int(kc.MWHEELUP), 1)
+		C.Key_Event(C.int(kc.MWHEELUP), 0)
 	} else if e.Y < 0 {
-		C.Key_Event(kc.MWHEELDOWN, 1)
-		C.Key_Event(kc.MWHEELDOWN, 0)
+		C.Key_Event(C.int(kc.MWHEELDOWN), 1)
+		C.Key_Event(C.int(kc.MWHEELDOWN), 0)
 	}
 }
 
