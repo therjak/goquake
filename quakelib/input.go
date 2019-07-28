@@ -12,21 +12,12 @@ import (
 	cmdl "quake/commandline"
 	"quake/conlog"
 	"quake/cvars"
-	"quake/input"
 	kc "quake/keycode"
 	"quake/qtime"
 	"quake/snd"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
-
-//export CL_KeyMLookDown
-func CL_KeyMLookDown() C.int {
-	if input.MLook.Down() {
-		return 1
-	}
-	return 0
-}
 
 func printKeyEvent(e *sdl.KeyboardEvent) {
 	var etype string

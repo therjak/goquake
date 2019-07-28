@@ -493,24 +493,6 @@ const char *Key_KeynumToString(int keynum) {
   return "<UNKNOWN KEYNUM>";
 }
 
-/*
-============
-Key_WriteBindings
-
-Writes lines containing "bind key value"
-============
-*/
-void Key_WriteBindings(FILE *f) {
-  int i;
-
-  // unbindall before loading stored bindings:
-  if (Cvar_GetValue(&cfg_unbindall)) fprintf(f, "unbindall\n");
-  for (i = 0; i < MAX_KEYS; i++) {
-    if (Key_HasBinding(i))
-      fprintf(f, "bind \"%s\" \"%s\"\n", Key_KeynumToString(i), keybindings[i]);
-  }
-}
-
 void History_Init(void) {
   int i, c;
   FILE *hf;

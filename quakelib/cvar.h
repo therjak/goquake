@@ -37,10 +37,6 @@ void Cvar_SetValueQuick(cvar_t *var, float value);
 // but are otherwise identical to the "non-Quick" versions.
 // the cvar MUST be registered.
 
-void Cvar_WriteVariables(FILE *f);
-// Writes lines containing "set variable value" for all variables
-// with the CVAR_ARCHIVE flag set
-
 void Cvar_Init(void);
 
 #endif /* __CVAR_H__ */

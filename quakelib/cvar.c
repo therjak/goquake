@@ -100,15 +100,3 @@ void CallCvarCallback(int id, cvarcallback_t func) {
   var.id = id;
   func(&var);
 }
-
-void Cvar_WriteVariables(FILE *f) {
-  // TODO(therjak)
-  /*
-  cvar_t *var;
-
-  for (var = cvar_vars; var; var = var->next) {
-    if (var->flags & CVAR_ARCHIVE)
-      fprintf(f, "%s \"%s\"\n", Cvar_GetName(var), Cvar_GetString(var));
-  }
-  */
-}
