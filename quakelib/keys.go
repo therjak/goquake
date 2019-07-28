@@ -8,8 +8,11 @@ package quakelib
 import "C"
 
 import (
+	"fmt"
+	"io"
 	"quake/cmd"
 	"quake/conlog"
+	"quake/cvars"
 	kc "quake/keycode"
 	"quake/keys"
 	"sort"
@@ -112,6 +115,20 @@ func keyBind(args []cmd.QArg, _ int) {
 		return
 	}
 	keyBindings[k] = args[1].String()
+}
+
+func writeKeyBindings(w io.Writer) {
+	if cvars.CfgUnbindAll.Bool() {
+		w.Write([]byte("unbindall\n"))
+	}
+	for k, c := range keyBindings {
+		if c == "" {
+			continue
+		}
+		// orig writes these in order of KeyCode.
+		// As long as there is no clear benefit just ignore the order
+		w.Write([]byte(fmt.Sprintf("bind \"%s\" \"%s\"\n", kc.KeyToString(k), c)))
+	}
 }
 
 func getKeysForCommand(command string) (kc.KeyCode, kc.KeyCode, kc.KeyCode) {

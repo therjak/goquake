@@ -94,30 +94,11 @@ Writes key bindings and archived cvars to config.cfg
 ===============
 */
 void Host_WriteConfiguration(void) {
-  FILE *f;
-
-  // dedicated servers initialize the host but don't parse and set the
-  // config.cfg cvars
-  if (host_initialized & !CMLDedicated()) {
-    f = fopen(va("%s/config.cfg", Com_Gamedir()), "w");
-    if (!f) {
-      Con_Printf("Couldn't write config.cfg.\n");
-      return;
-    }
-
-    VID_SyncCvars();  // johnfitz -- write actual current mode to config file,
-                      // in case cvars were messed with
-
-    Key_WriteBindings(f);
-    Cvar_WriteVariables(f);
-
-    // johnfitz -- extra commands to preserve state
-    fprintf(f, "vid_restart\n");
-    if (CL_KeyMLookDown()) fprintf(f, "+mlook\n");
-    // johnfitz
-
-    fclose(f);
+  if (!host_initialized) {
+    return;
   }
+  // everything else is done in go
+  HostWriteConfiguration();
 }
 
 /*

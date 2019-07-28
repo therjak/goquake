@@ -5,13 +5,17 @@ package quakelib
 import "C"
 
 import (
+	"bytes"
+	"io/ioutil"
 	"math/rand"
+	"path/filepath"
 	"quake/cbuf"
 	"quake/cmd"
 	cmdl "quake/commandline"
 	"quake/conlog"
 	"quake/cvar"
 	"quake/cvars"
+	"quake/input"
 	"quake/keys"
 	"quake/math"
 	"quake/net"
@@ -329,4 +333,36 @@ func hostFrame() {
 		}
 	}
 	conlog.Printf("serverprofile: %2d clients %v\n", clientNum, div.String())
+}
+
+// Writes key bindings and archived cvars to config.cfg
+//export HostWriteConfiguration
+func HostWriteConfiguration() {
+	//if !host_initialized {
+	//  return
+	//}
+
+	// dedicated servers initialize the host but don't parse and set the
+	// config.cfg cvars
+	if cmdl.Dedicated() {
+		return
+	}
+
+	// write actual current mode to config file, in case cvars were messed with
+	syncVideoCvars()
+
+	var b bytes.Buffer
+	writeKeyBindings(&b)
+	writeCvarVariables(&b)
+
+	b.WriteString("vid_restart\n")
+	if input.MLook.Down() {
+		b.WriteString("+mlook\n")
+	}
+
+	filename := filepath.Join(gameDirectory, "config.cfg")
+	err := ioutil.WriteFile(filename, b.Bytes(), 0644)
+	if err != nil {
+		conlog.Printf("Couldn't write config.cfg.\n")
+	}
 }

@@ -3,6 +3,8 @@ package quakelib
 //#include "host_shutdown.h"
 import "C"
 import (
+	"fmt"
+	"io"
 	"log"
 	"quake/cmd"
 	"quake/conlog"
@@ -269,5 +271,13 @@ func CvarReset_f(args []cmd.QArg, _ int) {
 		CvarReset(arg)
 	default:
 		conlog.Printf("reset <cvar> : reset cvar to default\n")
+	}
+}
+
+func writeCvarVariables(w io.Writer) {
+	for _, c := range cvar.All() {
+		if c.Archive() {
+			w.Write([]byte(fmt.Sprintf("%s \"%s\"\n", c.Name(), c.String())))
+		}
 	}
 }
