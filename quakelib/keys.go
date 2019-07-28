@@ -174,6 +174,15 @@ func Key_HasBinding(keynum C.int) C.int {
 	return b2i("" != keyBindings[kc.KeyCode(keynum)])
 }
 
+//export Key_Bindings
+func Key_Bindings(keynum C.int) *C.char {
+	b := keyBindings[kc.KeyCode(keynum)]
+	if b != "" {
+		return C.CString(b)
+	}
+	return nil
+}
+
 //export GetKeyDest
 func GetKeyDest() C.keydest_t {
 	switch keyDestination {

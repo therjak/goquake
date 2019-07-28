@@ -680,11 +680,12 @@ void Key_Event(int key, qboolean down) {
   // switch.  Button commands include the kenum as a parameter, so multiple
   // downs can be matched with ups
   if (!down) {
-    kb = keybindings[key];
+    kb = Key_Bindings(key);
     if (kb && kb[0] == '+') {
       sprintf(cmd, "-%s %i\n", kb + 1, key);
       Cbuf_AddText(cmd);
     }
+    free(kb);
     return;
   }
 
@@ -699,7 +700,7 @@ void Key_Event(int key, qboolean down) {
   if ((GetKeyDest() == key_menu && MenuBound(key)) ||
       (GetKeyDest() == key_console && !ConsoleKeys(key)) ||
       (GetKeyDest() == key_game && (!con_forcedup || !ConsoleKeys(key)))) {
-    kb = keybindings[key];
+    kb = Key_Bindings(key);
     if (kb) {
       if (kb[0] == '+') {  // button commands add keynum as a parm
         sprintf(cmd, "%s %i\n", kb, key);
@@ -708,6 +709,7 @@ void Key_Event(int key, qboolean down) {
         Cbuf_AddText(kb);
         Cbuf_AddText("\n");
       }
+      free(kb);
     }
     return;
   }
