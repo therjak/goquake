@@ -2,7 +2,6 @@ package quakelib
 
 import (
 	"fmt"
-	"github.com/golang/protobuf/proto"
 	"io/ioutil"
 	"log"
 	"path/filepath"
@@ -11,6 +10,8 @@ import (
 	"quake/keys"
 	"quake/menu"
 	"quake/protos"
+
+	"github.com/golang/protobuf/proto"
 )
 
 func enterLoadMenu() {
@@ -105,7 +106,7 @@ func (m *qFileMenu) update() {
 			continue
 		}
 		if err := proto.Unmarshal(in, sg); err != nil {
-			log.Printf("Failed to parse savegame:", err)
+			log.Printf("Failed to parse savegame: %v", err)
 			continue
 		}
 
