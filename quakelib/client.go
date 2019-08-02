@@ -151,8 +151,8 @@ type Client struct {
 	pitch          float32 // 0
 	yaw            float32 // 1
 	roll           float32 // 2
-	movemessages   int
-	cmdForwardMove float32
+	movemessages   int     // number of messages since connecting to skip the first couple
+	cmdForwardMove float32 // last command sent to the server
 	protocolFlags  uint16
 	protocol       uint16
 	viewentity     int //cl_entities[cl.viewentity] = player
@@ -169,7 +169,6 @@ type Client struct {
 
 	// don't change view angle, full screen, etc
 	intermission int
-	// stats
 	// num_statics
 	// maxclients
 	// scores
@@ -187,7 +186,18 @@ type Client struct {
 	// gametype
 	// levelname
 	//
+
+	mapName    string
+	levelName  string
 	worldModel *model.QModel
+
+	maxClients int
+	gameType   int
+
+	// the server sends first a name and afterwards just the index of the name
+	// the int represents the sfx num within snd. Result of Precache and sfx input of Start
+	// TODO: change the int to a sfx type
+	soundPrecache []int
 
 	stats ClientStats
 }
@@ -208,7 +218,7 @@ type ClientStats struct {
 	totalMonsters int
 	secrets       int
 	monsters      int
-	// Are theres used?
+	// Are these used?
 	// cs16, cs17, cs18, cs19, cs20, cs21, cs22, cs23, cs24, cs25, cs26, cs27, cs28, cs29, cs30, cs31, cs32 int
 }
 

@@ -106,12 +106,6 @@ extern client_static_t cls;
 // server signon
 //
 typedef struct {
-  int movemessages;      // since connecting to this server
-                         // throw out the first couple, so the player
-                         // doesn't accidentally do something the
-                         // first frame
-  float cmdforwardmove;  // last command sent to the server
-
   // information for local display
   int items;               // inventory bit flags
   float item_gettime[32];  // cl.time of aquiring item, for blinking
@@ -165,9 +159,6 @@ typedef struct {
 
   // frag scoreboard
   scoreboard_t *scores;  // [cl.maxclients]
-
-  unsigned protocol;  // johnfitz
-  unsigned protocolflags;
 } client_state_t;
 
 extern client_state_t cl;
