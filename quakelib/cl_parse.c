@@ -247,71 +247,13 @@ entity_t *CL_EntityNum(int num) {
 
 /*
 ==================
-CL_ParseStartSoundPacket
-==================
-*/
-//THERJAK
-void CL_ParseStartSoundPacket(void) {
-  // TODO(therjak): this can be moved to go
-  vec3_t pos;
-  int channel, ent;
-  int sound_num;
-  int volume;
-  int field_mask;
-  float attenuation;
-  int i;
-
-  field_mask = CL_MSG_ReadByte();
-
-  if (field_mask & SND_VOLUME)
-    volume = CL_MSG_ReadByte();
-  else
-    volume = DEFAULT_SOUND_PACKET_VOLUME;
-
-  if (field_mask & SND_ATTENUATION)
-    attenuation = CL_MSG_ReadByte() / 64.0;
-  else
-    attenuation = DEFAULT_SOUND_PACKET_ATTENUATION;
-
-  // johnfitz -- PROTOCOL_FITZQUAKE
-  if (field_mask & SND_LARGEENTITY) {
-    ent = (unsigned short)CL_MSG_ReadShort();
-    channel = CL_MSG_ReadByte();
-  } else {
-    channel = (unsigned short)CL_MSG_ReadShort();
-    ent = channel >> 3;
-    channel &= 7;
-  }
-
-  if (field_mask & SND_LARGESOUND)
-    sound_num = (unsigned short)CL_MSG_ReadShort();
-  else
-    sound_num = CL_MSG_ReadByte();
-  // johnfitz
-
-  // johnfitz -- check soundnum
-  if (sound_num >= MAX_SOUNDS)
-    Host_Error("CL_ParseStartSoundPacket: %i > MAX_SOUNDS", sound_num);
-  // johnfitz
-
-  if (ent > cl_max_edicts)  // johnfitz -- no more MAX_EDICTS
-    Host_Error("CL_ParseStartSoundPacket: ent = %i", ent);
-
-  for (i = 0; i < 3; i++) pos[i] = CL_MSG_ReadCoord();
-
-  S_StartSound(ent, channel, cl.sound_precache[sound_num], pos, volume / 255.0,
-               attenuation);
-}
-
-/*
-==================
 CL_KeepaliveMessage
 
 When the client is taking a long time to load stuff, send keepalive messages
 so the server doesn't disconnect.
 ==================
 */
-//THERJAK
+// THERJAK
 void CL_KeepaliveMessage(void) {
   // TODO(therjak): this can be moved to go
   float time;
@@ -346,7 +288,7 @@ void CL_KeepaliveMessage(void) {
   // check time
   time = Sys_DoubleTime();
   if (time - lastmsg < 5) return;
-  if (!CLS_NET_CanSendMessage()){
+  if (!CLS_NET_CanSendMessage()) {
     return;
   }
   lastmsg = time;
@@ -453,7 +395,7 @@ void CL_ParseServerInfo(void) {
   // johnfitz
 
   // precache sounds
-  memset(cl.sound_precache, 0, sizeof(cl.sound_precache));
+  CL_SoundPrecacheClear();
   for (numsounds = 1;; numsounds++) {
     str = CL_MSG_ReadString();
     if (!str[0]) break;
@@ -486,13 +428,15 @@ void CL_ParseServerInfo(void) {
   }
 
   for (i = 1; i < numsounds; i++) {
-    cl.sound_precache[i] = S_PrecacheSound(sound_precache[i]);
+    int s = S_PrecacheSound(sound_precache[i]);
+    CL_SoundPrecacheAdd(s);
+
     CL_KeepaliveMessage();
   }
 
   // local state
   cl_entities[0].model = cl.worldmodel = cl.model_precache[1];
-  CLSetWorldModel(cl.worldmodel); // notify the go side
+  CLSetWorldModel(cl.worldmodel);  // notify the go side
 
   R_NewMap();
 
@@ -761,7 +705,8 @@ void CL_ParseClientdata(void) {
   int i, j;
   int bits;  // johnfitz
 
-  bits = (unsigned short)CL_MSG_ReadShort();  // johnfitz -- read bits here isntead
+  bits =
+      (unsigned short)CL_MSG_ReadShort();  // johnfitz -- read bits here isntead
                                            // of in CL_ParseServerMessage()
 
   // johnfitz -- PROTOCOL_FITZQUAKE
@@ -891,7 +836,8 @@ void CL_ParseClientdata(void) {
   if (bits & SU_NAILS2) statOr(STAT_NAILS, (CL_MSG_ReadByte() << 8));
   if (bits & SU_ROCKETS2) statOr(STAT_ROCKETS, (CL_MSG_ReadByte() << 8));
   if (bits & SU_CELLS2) statOr(STAT_CELLS, (CL_MSG_ReadByte() << 8));
-  if (bits & SU_WEAPONFRAME2) statOr(STAT_WEAPONFRAME, (CL_MSG_ReadByte() << 8));
+  if (bits & SU_WEAPONFRAME2)
+    statOr(STAT_WEAPONFRAME, (CL_MSG_ReadByte() << 8));
   if (bits & SU_WEAPONALPHA) {
     cl.viewent.alpha = CL_MSG_ReadByte();
   } else {
@@ -1424,7 +1370,7 @@ void CL_ParseServerMessage(void) {
         int sound_num = CL_MSG_ReadByte();
         int vol = CL_MSG_ReadByte();
         int atten = CL_MSG_ReadByte();
-        S_StaticSound(cl.sound_precache[sound_num], org, vol, atten);
+        S_StaticSound(CL_SoundPrecache(sound_num), org, vol, atten);
       } break;
 
       case svc_cdtrack:
@@ -1502,7 +1448,7 @@ void CL_ParseServerMessage(void) {
         int sound_num = CL_MSG_ReadShort();
         int vol = CL_MSG_ReadByte();
         int atten = CL_MSG_ReadByte();
-        S_StaticSound(cl.sound_precache[sound_num], org, vol, atten);
+        S_StaticSound(CL_SoundPrecache(sound_num), org, vol, atten);
       } break;
         // johnfitz
     }

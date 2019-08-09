@@ -142,7 +142,6 @@ typedef struct {
   // information that is static for the entire time connected to a server
   //
   struct qmodel_s *model_precache[MAX_MODELS];
-  sfx_t sound_precache[MAX_SOUNDS];
 
   char mapname[128];
   char levelname[128];  // for display on solo scoreboard //johnfitz -- was 40.

@@ -17,6 +17,7 @@ import (
 	"quake/input"
 	"quake/keys"
 	"quake/math"
+	"quake/math/vec"
 	"quake/model"
 	"quake/net"
 	clc "quake/protocol/client"
@@ -247,6 +248,21 @@ func CL_Stats(s C.int) C.int {
 //export CL_SetStats
 func CL_SetStats(s, v C.int) {
 	cl_setStats(int(s), int(v))
+}
+
+//export CL_SoundPrecache
+func CL_SoundPrecache(idx int) int {
+	return cl.soundPrecache[idx-1]
+}
+
+//export CL_SoundPrecacheClear
+func CL_SoundPrecacheClear() {
+	cl.soundPrecache = cl.soundPrecache[:0]
+}
+
+//export CL_SoundPrecacheAdd
+func CL_SoundPrecacheAdd(snd int) {
+	cl.soundPrecache = append(cl.soundPrecache, snd)
 }
 
 func cl_stats(s int) int {
@@ -1120,4 +1136,94 @@ func CL_SendCmd() {
 		HostError("CL_SendCmd: lost server connection")
 	}
 	cls.outMessage.Reset()
+}
+
+//export CL_ParseStartSoundPacket
+func CL_ParseStartSoundPacket() {
+	err := parseStartSoundPacket(cls.inMessage)
+	if err != nil {
+		HostError("%v", err)
+	}
+}
+
+func parseStartSoundPacket(msg *net.QReader) error {
+	const (
+		maxSounds = 2048
+	)
+
+	fieldMask, err := msg.ReadByte()
+	if err != nil {
+		return fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
+	}
+	volume := byte(255)
+	attenuation := float32(1.0)
+
+	if fieldMask&svc.SoundVolume != 0 {
+		volume, err = msg.ReadByte()
+		if err != nil {
+			return fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
+		}
+	}
+
+	if fieldMask&svc.SoundAttenuation != 0 {
+		a, err := msg.ReadByte()
+		if err != nil {
+			return fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
+		}
+		attenuation = float32(a) / 64.0
+	}
+
+	ent := uint16(0)
+	channel := byte(0)
+	if fieldMask&svc.SoundLargeEntity != 0 {
+		e, err := msg.ReadInt16()
+		if err != nil {
+			return fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
+		}
+		c, err := msg.ReadByte()
+		if err != nil {
+			return fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
+		}
+		ent = uint16(e)
+		channel = c
+	} else {
+		s, err := msg.ReadInt16()
+		if err != nil {
+			return fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
+		}
+		ent = uint16(s >> 3)
+		channel = byte(s & 7)
+	}
+
+	soundNum := uint16(0)
+	if fieldMask&svc.SoundLargeSound != 0 {
+		n, err := msg.ReadInt16()
+		if err != nil {
+			return fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
+		}
+		soundNum = uint16(n - 1)
+	} else {
+		n, err := msg.ReadByte()
+		if err != nil {
+			return fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
+		}
+		soundNum = uint16(n - 1)
+	}
+	if soundNum > maxSounds {
+		return fmt.Errorf("CL_ParseStartSoundPacket: %d > MAX_SOUNDS", soundNum)
+	}
+	//	if ent > cl.maxEdicts {
+	//	    return fmt.Errorf("CL_ParseStartSoundPacket: ent = %d", ent);
+	//	}
+	var origin vec.Vec3
+	for i := 0; i < 3; i++ {
+		f, err := msg.ReadCoord(cl.protocolFlags)
+		if err != nil {
+			return fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
+		}
+		origin[i] = f
+	}
+
+	snd.Start(int(ent), int(channel), cl.soundPrecache[soundNum], origin, float32(volume)/255, attenuation, !loopingSound)
+	return nil
 }
