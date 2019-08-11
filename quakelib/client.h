@@ -197,7 +197,6 @@ extern entity_t *cl_visedicts[MAX_VISEDICTS];
 extern int cl_numvisedicts;
 
 extern entity_t *cl_entities;  // johnfitz -- was a static array, now on hunk
-extern int cl_max_edicts;      // johnfitz -- only changes when new map loads
 
 //=============================================================================
 

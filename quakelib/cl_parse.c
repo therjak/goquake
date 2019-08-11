@@ -232,7 +232,7 @@ entity_t *CL_EntityNum(int num) {
   // john
 
   if (num >= cl.num_entities) {
-    if (num >= cl_max_edicts)  // johnfitz -- no more MAX_EDICTS
+    if (num >= CL_MaxEdicts())  // johnfitz -- no more MAX_EDICTS
       Host_Error("CL_EntityNum: %i is an invalid number", num);
     while (cl.num_entities <= num) {
       cl_entities[cl.num_entities].colormap = host_colormap;
@@ -243,62 +243,6 @@ entity_t *CL_EntityNum(int num) {
   }
 
   return &cl_entities[num];
-}
-
-/*
-==================
-CL_KeepaliveMessage
-
-When the client is taking a long time to load stuff, send keepalive messages
-so the server doesn't disconnect.
-==================
-*/
-// THERJAK
-void CL_KeepaliveMessage(void) {
-  // TODO(therjak): this can be moved to go
-  float time;
-  static float lastmsg;
-  int ret;
-
-  if (SV_Active()) return;  // no need if server is local
-  if (CLS_IsDemoPlayback()) return;
-
-  // read messages from server, should just be nops
-  CL_MSG_Backup();
-
-  do {
-    ret = CL_GetMessage();
-    switch (ret) {
-      default:
-        Host_Error("CL_KeepaliveMessage: CL_GetMessage failed");
-      case 0:
-        break;  // nothing waiting
-      case 1:
-        Host_Error("CL_KeepaliveMessage: received a message");
-        break;
-      case 2:
-        if (CL_MSG_ReadByte() != svc_nop)
-          Host_Error("CL_KeepaliveMessage: datagram wasn't a nop");
-        break;
-    }
-  } while (ret);
-
-  CL_MSG_Restore();
-
-  // check time
-  time = Sys_DoubleTime();
-  if (time - lastmsg < 5) return;
-  if (!CLS_NET_CanSendMessage()) {
-    return;
-  }
-  lastmsg = time;
-
-  // write out a nop
-  Con_Printf("--> client to server keepalive\n");
-
-  CLSMessageWriteByte(clc_nop);
-  CLSMessageSend();
-  CLSMessageClear();
 }
 
 /*

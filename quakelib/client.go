@@ -24,6 +24,7 @@ import (
 	svc "quake/protocol/server"
 	"quake/snd"
 	"quake/stat"
+	"time"
 	"unsafe"
 )
 
@@ -130,7 +131,6 @@ type ClientStatic struct {
 	signon             int
 	connection         *net.Connection
 	inMessage          *net.QReader
-	inMessageBackup    *net.QReader
 	outMessage         bytes.Buffer
 	forceTrack         int // -1 to use normal cd track
 	timeDemoLastFrame  int
@@ -200,7 +200,8 @@ type Client struct {
 	// TODO: change the int to a sfx type
 	soundPrecache []int
 
-	stats ClientStats
+	stats     ClientStats
+	maxEdicts int
 }
 
 type ClientStats struct {
@@ -223,12 +224,20 @@ type ClientStats struct {
 	// cs16, cs17, cs18, cs19, cs20, cs21, cs22, cs23, cs24, cs25, cs26, cs27, cs28, cs29, cs30, cs31, cs32 int
 }
 
-// cl: there is a memset 0 in CL_ClearState
-
 var (
 	cls = ClientStatic{}
 	cl  = Client{}
 )
+
+//export CL_MaxEdicts
+func CL_MaxEdicts() int {
+	return cl.maxEdicts
+}
+
+//export CL_SetMaxEdicts
+func CL_SetMaxEdicts(num int) {
+	cl.maxEdicts = num
+}
 
 //export CL_Intermission
 func CL_Intermission() C.int {
@@ -342,6 +351,7 @@ func cl_setStats(s, v int) {
 
 //export CL_Clear
 func CL_Clear() {
+	// cl: there is a memset 0 in CL_ClearState
 	cl = Client{}
 }
 
@@ -871,16 +881,6 @@ func CL_MSG_ReadAngle16(flags C.uint) C.float {
 	return C.float(f)
 }
 
-//export CL_MSG_Backup
-func CL_MSG_Backup() {
-	cls.inMessageBackup = cls.inMessage
-}
-
-//export CL_MSG_Restore
-func CL_MSG_Restore() {
-	cls.inMessage = cls.inMessageBackup
-}
-
 //export CL_MSG_Replace
 func CL_MSG_Replace(data unsafe.Pointer, size C.size_t) {
 	m := C.GoBytes(data, C.int(size))
@@ -1212,9 +1212,9 @@ func parseStartSoundPacket(msg *net.QReader) error {
 	if soundNum > maxSounds {
 		return fmt.Errorf("CL_ParseStartSoundPacket: %d > MAX_SOUNDS", soundNum)
 	}
-	//	if ent > cl.maxEdicts {
-	//	    return fmt.Errorf("CL_ParseStartSoundPacket: ent = %d", ent);
-	//	}
+	if int(ent) > cl.maxEdicts {
+		return fmt.Errorf("CL_ParseStartSoundPacket: ent = %d", ent)
+	}
 	var origin vec.Vec3
 	for i := 0; i < 3; i++ {
 		f, err := msg.ReadCoord(cl.protocolFlags)
@@ -1226,4 +1226,64 @@ func parseStartSoundPacket(msg *net.QReader) error {
 
 	snd.Start(int(ent), int(channel), cl.soundPrecache[soundNum], origin, float32(volume)/255, attenuation, !loopingSound)
 	return nil
+}
+
+var (
+	clientKeepAliveTime time.Time
+)
+
+// When the client is taking a long time to load stuff, send keepalive messages
+// so the server doesn't disconnect.
+//export CL_KeepaliveMessage
+func CL_KeepaliveMessage() {
+	//float time;
+	//static float lastmsg;
+	//int ret;
+
+	if sv.active {
+		// no need if server is local
+		return
+	}
+	if cls.demoPlayback {
+		return
+	}
+
+	// read messages from server, should just be nops
+	msgBackup := cls.inMessage
+
+	for {
+		switch ret := getMessage(); ret {
+		default:
+			HostError("CL_KeepaliveMessage: CL_GetMessage failed")
+		case 0:
+			break
+		case 1:
+			HostError("CL_KeepaliveMessage: received a message")
+		case 2:
+			i, err := cls.inMessage.ReadByte()
+			if err != nil || i != svc.Nop {
+				HostError("CL_KeepaliveMessage: datagram wasn't a nop")
+			}
+		}
+	}
+
+	cls.inMessage = msgBackup
+
+	// check time
+	curTime := time.Now()
+	if curTime.Sub(clientKeepAliveTime) < time.Second*5 {
+		return
+	}
+	if !cls.connection.CanSendMessage() {
+		return
+	}
+	clientKeepAliveTime = curTime
+
+	// write out a nop
+	conlog.Printf("--> client to server keepalive\n")
+
+	cls.outMessage.WriteByte(clc.Nop)
+	b := cls.outMessage.Bytes()
+	cls.connection.SendMessage(b)
+	cls.outMessage.Reset()
 }

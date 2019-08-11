@@ -30,7 +30,6 @@ lightstyle_t cl_lightstyle[MAX_LIGHTSTYLES];
 dlight_t cl_dlights[MAX_DLIGHTS];
 
 entity_t *cl_entities;  // johnfitz -- was a static array, now on hunk
-int cl_max_edicts;      // johnfitz -- only changes when new map loads
 
 int cl_numvisedicts;
 entity_t *cl_visedicts[MAX_VISEDICTS];
@@ -62,8 +61,9 @@ void CL_ClearState(void) {
   memset(cl_beams, 0, sizeof(cl_beams));
 
   // johnfitz -- cl_entities is now dynamically allocated
-  cl_max_edicts =
+  int cl_max_edicts =
       CLAMP(MIN_EDICTS, (int)Cvar_GetValue(&max_edicts), MAX_EDICTS);
+  CL_SetMaxEdicts(cl_max_edicts);
   cl_entities = (entity_t *)Hunk_AllocName(cl_max_edicts * sizeof(entity_t),
                                            "cl_entities");
   // johnfitz
