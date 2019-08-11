@@ -1251,12 +1251,13 @@ func CL_KeepaliveMessage() {
 	// read messages from server, should just be nops
 	msgBackup := cls.inMessage
 
+Outer:
 	for {
 		switch ret := getMessage(); ret {
 		default:
 			HostError("CL_KeepaliveMessage: CL_GetMessage failed")
 		case 0:
-			break
+			break Outer
 		case 1:
 			HostError("CL_KeepaliveMessage: received a message")
 		case 2:
