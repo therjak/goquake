@@ -4,24 +4,6 @@ int num_temp_entities;
 entity_t cl_temp_entities[MAX_TEMP_ENTITIES];
 beam_t cl_beams[MAX_BEAMS];
 
-sfx_t cl_sfx_wizhit;
-sfx_t cl_sfx_knighthit;
-sfx_t cl_sfx_tink1;
-sfx_t cl_sfx_ric1;
-sfx_t cl_sfx_ric2;
-sfx_t cl_sfx_ric3;
-sfx_t cl_sfx_r_exp3;
-
-void CL_InitTEnts(void) {
-  cl_sfx_wizhit = S_PrecacheSound("wizard/hit.wav");
-  cl_sfx_knighthit = S_PrecacheSound("hknight/hit.wav");
-  cl_sfx_tink1 = S_PrecacheSound("weapons/tink1.wav");
-  cl_sfx_ric1 = S_PrecacheSound("weapons/ric1.wav");
-  cl_sfx_ric2 = S_PrecacheSound("weapons/ric2.wav");
-  cl_sfx_ric3 = S_PrecacheSound("weapons/ric3.wav");
-  cl_sfx_r_exp3 = S_PrecacheSound("weapons/r_exp3.wav");
-}
-
 void CL_ParseBeam(const char *name, int ent, float s1, float s2, float s3,
                   float e1, float e2, float e3) {
   // int ent;
@@ -891,7 +873,7 @@ void CL_ParseTEnt(void) {
       pos[1] = CL_MSG_ReadCoord();
       pos[2] = CL_MSG_ReadCoord();
       R_RunParticleEffect(pos, vec3_origin, 20, 30);
-      S_StartSound(-1, 0, cl_sfx_wizhit, pos, 1, 1);
+      CL_Sound(SFX_WIZHIT, pos);
       break;
 
     case TE_KNIGHTSPIKE:  // spike hitting wall
@@ -899,7 +881,7 @@ void CL_ParseTEnt(void) {
       pos[1] = CL_MSG_ReadCoord();
       pos[2] = CL_MSG_ReadCoord();
       R_RunParticleEffect(pos, vec3_origin, 226, 20);
-      S_StartSound(-1, 0, cl_sfx_knighthit, pos, 1, 1);
+      CL_Sound(SFX_KNIGHTHIT, pos);
       break;
 
     case TE_SPIKE:  // spike hitting wall
@@ -908,15 +890,15 @@ void CL_ParseTEnt(void) {
       pos[2] = CL_MSG_ReadCoord();
       R_RunParticleEffect(pos, vec3_origin, 0, 10);
       if (rand() % 5)
-        S_StartSound(-1, 0, cl_sfx_tink1, pos, 1, 1);
+        CL_Sound(SFX_TINK1, pos);
       else {
         rnd = rand() & 3;
         if (rnd == 1)
-          S_StartSound(-1, 0, cl_sfx_ric1, pos, 1, 1);
+          CL_Sound(SFX_RIC1, pos);
         else if (rnd == 2)
-          S_StartSound(-1, 0, cl_sfx_ric2, pos, 1, 1);
+          CL_Sound(SFX_RIC2, pos);
         else
-          S_StartSound(-1, 0, cl_sfx_ric3, pos, 1, 1);
+          CL_Sound(SFX_RIC1, pos);
       }
       break;
     case TE_SUPERSPIKE:  // super spike hitting wall
@@ -926,15 +908,15 @@ void CL_ParseTEnt(void) {
       R_RunParticleEffect(pos, vec3_origin, 0, 20);
 
       if (rand() % 5)
-        S_StartSound(-1, 0, cl_sfx_tink1, pos, 1, 1);
+        CL_Sound(SFX_TINK1, pos);
       else {
         rnd = rand() & 3;
         if (rnd == 1)
-          S_StartSound(-1, 0, cl_sfx_ric1, pos, 1, 1);
+          CL_Sound(SFX_RIC1, pos);
         else if (rnd == 2)
-          S_StartSound(-1, 0, cl_sfx_ric2, pos, 1, 1);
+          CL_Sound(SFX_RIC2, pos);
         else
-          S_StartSound(-1, 0, cl_sfx_ric3, pos, 1, 1);
+          CL_Sound(SFX_RIC3, pos);
       }
       break;
 
@@ -955,7 +937,7 @@ void CL_ParseTEnt(void) {
       dl->radius = 350;
       dl->die = CL_Time() + 0.5;
       dl->decay = 300;
-      S_StartSound(-1, 0, cl_sfx_r_exp3, pos, 1, 1);
+      CL_Sound(SFX_R_EXP3, pos);
       break;
 
     case TE_TAREXPLOSION:  // tarbaby explosion
@@ -964,7 +946,7 @@ void CL_ParseTEnt(void) {
       pos[2] = CL_MSG_ReadCoord();
       R_BlobExplosion(pos);
 
-      S_StartSound(-1, 0, cl_sfx_r_exp3, pos, 1, 1);
+      CL_Sound(SFX_R_EXP3, pos);
       break;
 
     case TE_LIGHTNING1: {  // lightning bolts
@@ -1039,7 +1021,7 @@ void CL_ParseTEnt(void) {
       dl->radius = 350;
       dl->die = CL_Time() + 0.5;
       dl->decay = 300;
-      S_StartSound(-1, 0, cl_sfx_r_exp3, pos, 1, 1);
+      CL_Sound(SFX_R_EXP3, pos);
       break;
 
     default:

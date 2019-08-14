@@ -3,6 +3,13 @@ package quakelib
 //void V_StopPitchDrift(void);
 //void CL_StopPlayback(void);
 //void CL_Stop_f(void);
+//#define SFX_WIZHIT  0
+//#define SFX_KNIGHTHIT  1
+//#define SFX_TINK1  2
+//#define SFX_RIC1  3
+//#define SFX_RIC2  4
+//#define SFX_RIC3  5
+//#define SFX_R_EXP3  6
 import "C"
 
 import (
@@ -26,6 +33,18 @@ import (
 	"quake/stat"
 	"time"
 	"unsafe"
+)
+
+type sfx int
+
+const (
+	WizHit    sfx = C.SFX_WIZHIT
+	KnightHit sfx = C.SFX_KNIGHTHIT
+	Tink1     sfx = C.SFX_TINK1
+	Ric1      sfx = C.SFX_RIC1
+	Ric2      sfx = C.SFX_RIC2
+	Ric3      sfx = C.SFX_RIC3
+	RExp3     sfx = C.SFX_R_EXP3
 )
 
 func init() {
@@ -1287,4 +1306,25 @@ Outer:
 	b := cls.outMessage.Bytes()
 	cls.connection.SendMessage(b)
 	cls.outMessage.Reset()
+}
+
+var (
+	clSounds map[sfx]int
+)
+
+//export CL_Sound
+func CL_Sound(s sfx, origin *C.float) {
+	S_StartSound(-1, 0, C.int(clSounds[s]), origin, 1, 1)
+}
+
+//export CL_InitTEnts
+func CL_InitTEnts() {
+	clSounds = make(map[sfx]int)
+	clSounds[WizHit] = snd.PrecacheSound("wizard/hit.wav")
+	clSounds[KnightHit] = snd.PrecacheSound("hknight/hit.wav")
+	clSounds[Tink1] = snd.PrecacheSound("weapons/tink1.wav")
+	clSounds[Ric1] = snd.PrecacheSound("weapons/ric1.wav")
+	clSounds[Ric2] = snd.PrecacheSound("weapons/ric2.wav")
+	clSounds[Ric3] = snd.PrecacheSound("weapons/ric3.wav")
+	clSounds[RExp3] = snd.PrecacheSound("weapons/r_exp3.wav")
 }
