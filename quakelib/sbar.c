@@ -452,7 +452,7 @@ Sbar_DrawInventory
 void Sbar_DrawInventory(void) {
   int i, val;
   char num[6];
-  float time;
+  double time;
   int flashon;
 
   if (CMLRogue()) {
@@ -473,7 +473,7 @@ void Sbar_DrawInventory(void) {
   // weapons
   for (i = 0; i < 7; i++) {
     if (CL_HasItem(IT_SHOTGUN << i)) {
-      time = cl.item_gettime[i];
+      time = CL_ItemGetTime(i);
       flashon = (int)((CL_Time() - time) * 10);
       if (flashon >= 10) {
         if (CL_Stats(STAT_ACTIVEWEAPON) == (IT_SHOTGUN << i))
@@ -495,7 +495,7 @@ void Sbar_DrawInventory(void) {
     int grenadeflashing = 0;
     for (i = 0; i < 4; i++) {
       if (CL_HasItem(1 << hipweapons[i])) {
-        time = cl.item_gettime[hipweapons[i]];
+        time = CL_ItemGetTime(hipweapons[i]);
         flashon = (int)((CL_Time() - time) * 10);
         if (flashon >= 10) {
           if (CL_Stats(STAT_ACTIVEWEAPON) == (1 << hipweapons[i]))
@@ -575,7 +575,7 @@ void Sbar_DrawInventory(void) {
   // items
   for (i = 0; i < 6; i++) {
     if (CL_HasItem(1 << (17 + i))) {
-      time = cl.item_gettime[17 + i];
+      time = CL_ItemGetTime(17 + i);
       if (time && time > CL_Time() - 2 && flashon) {  // flash frame
         sb_updates = 0;
       } else {
@@ -592,7 +592,7 @@ void Sbar_DrawInventory(void) {
   if (CMLHipnotic()) {
     for (i = 0; i < 2; i++) {
       if (CL_HasItem(1 << (24 + i))) {
-        time = cl.item_gettime[24 + i];
+        time = CL_ItemGetTime(24 + i);
         if (time && time > CL_Time() - 2 && flashon) {  // flash frame
           sb_updates = 0;
         } else {
@@ -607,7 +607,7 @@ void Sbar_DrawInventory(void) {
     // new rogue items
     for (i = 0; i < 2; i++) {
       if (CL_HasItem(1 << (29 + i))) {
-        time = cl.item_gettime[29 + i];
+        time = CL_ItemGetTime(29 + i);
         if (time && time > CL_Time() - 2 && flashon) {  // flash frame
           sb_updates = 0;
         } else {
@@ -620,7 +620,7 @@ void Sbar_DrawInventory(void) {
     // sigils
     for (i = 0; i < 4; i++) {
       if (CL_HasItem(1 << (28 + i))) {
-        time = cl.item_gettime[28 + i];
+        time = CL_ItemGetTime(28 + i);
         if (time && time > CL_Time() - 2 && flashon) {  // flash frame
           sb_updates = 0;
         } else

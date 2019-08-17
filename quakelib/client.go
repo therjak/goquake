@@ -220,8 +220,8 @@ type Client struct {
 	soundPrecache []int
 
 	stats        ClientStats
-	items        uint32 // 32bit bit field
-	itemGetTime  [32]float32
+	items        uint32      // 32bit bit field
+	itemGetTime  [32]float64 // for blinking
 	faceAnimTime float32
 	maxEdicts    int
 }
@@ -294,6 +294,16 @@ func CL_Items() uint32 {
 //export CL_SetItems
 func CL_SetItems(items uint32) {
 	cl.items = items
+}
+
+//export CL_ItemGetTime
+func CL_ItemGetTime(item int) float64 {
+	return cl.itemGetTime[item]
+}
+
+//export CL_SetItemGetTime
+func CL_SetItemGetTime(item int) {
+	cl.itemGetTime[item] = cl.time
 }
 
 //export CL_SoundPrecache

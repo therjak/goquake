@@ -107,7 +107,6 @@ extern client_static_t cls;
 //
 typedef struct {
   // information for local display
-  float item_gettime[32];  // cl.time of aquiring item, for blinking
   float faceanimtime;      // use anim frame if cl.time < this
 
   cshift_t cshifts[NUM_CSHIFTS];       // color shifts for damage, powerups

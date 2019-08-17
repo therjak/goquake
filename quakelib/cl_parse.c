@@ -679,7 +679,7 @@ void CL_ParseClientdata(void) {
     Sbar_Changed();
     for (j = 0; j < 32; j++)
       if ((i & (1 << j)) && !(CL_HasItem(1 << j)))
-        cl.item_gettime[j] = CL_Time();
+        CL_SetItemGetTime(j);
     CL_SetItems(i);
   }
 
