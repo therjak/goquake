@@ -635,7 +635,7 @@ void R_DrawViewModel(void) {
       Cvar_GetValue(&chase_active))
     return;
 
-  if (cl.items & IT_INVISIBILITY || CL_Stats(STAT_HEALTH) <= 0) return;
+  if (CL_HasItem(IT_INVISIBILITY) || CL_Stats(STAT_HEALTH) <= 0) return;
 
   currententity = &cl.viewent;
   if (!currententity->model) return;
@@ -741,7 +741,7 @@ void R_ShowTris(void) {
     // viewmodel
     currententity = &cl.viewent;
     if (Cvar_GetValue(&r_drawviewmodel) && !Cvar_GetValue(&chase_active) &&
-        CL_Stats(STAT_HEALTH) > 0 && !(cl.items & IT_INVISIBILITY) &&
+        CL_Stats(STAT_HEALTH) > 0 && !(CL_HasItem(IT_INVISIBILITY)) &&
         currententity->model && currententity->model->Type == mod_alias) {
       glDepthRange(0, 0.3);
       R_DrawAliasModel_ShowTris(currententity);

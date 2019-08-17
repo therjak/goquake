@@ -219,8 +219,11 @@ type Client struct {
 	// TODO: change the int to a sfx type
 	soundPrecache []int
 
-	stats     ClientStats
-	maxEdicts int
+	stats        ClientStats
+	items        uint32 // 32bit bit field
+	itemGetTime  [32]float32
+	faceAnimTime float32
+	maxEdicts    int
 }
 
 type ClientStats struct {
@@ -276,6 +279,21 @@ func CL_Stats(s C.int) C.int {
 //export CL_SetStats
 func CL_SetStats(s, v C.int) {
 	cl_setStats(int(s), int(v))
+}
+
+//export CL_HasItem
+func CL_HasItem(item uint32) bool {
+	return cl.items&item != 0
+}
+
+//export CL_Items
+func CL_Items() uint32 {
+	return cl.items
+}
+
+//export CL_SetItems
+func CL_SetItems(items uint32) {
+	cl.items = items
 }
 
 //export CL_SoundPrecache

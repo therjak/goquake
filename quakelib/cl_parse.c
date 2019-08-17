@@ -675,12 +675,12 @@ void CL_ParseClientdata(void) {
   // [always sent]	if (bits & SU_ITEMS)
   i = CL_MSG_ReadLong();
 
-  if (cl.items != i) {  // set flash times
+  if (CL_Items() != i) {  // set flash times
     Sbar_Changed();
     for (j = 0; j < 32; j++)
-      if ((i & (1 << j)) && !(cl.items & (1 << j)))
+      if ((i & (1 << j)) && !(CL_HasItem(1 << j)))
         cl.item_gettime[j] = CL_Time();
-    cl.items = i;
+    CL_SetItems(i);
   }
 
   CL_SetOnGround((bits & SU_ONGROUND) != 0);
