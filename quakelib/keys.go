@@ -121,13 +121,16 @@ func writeKeyBindings(w io.Writer) {
 	if cvars.CfgUnbindAll.Bool() {
 		w.Write([]byte("unbindall\n"))
 	}
+	b := []string{}
 	for k, c := range keyBindings {
 		if c == "" {
 			continue
 		}
-		// orig writes these in order of KeyCode.
-		// As long as there is no clear benefit just ignore the order
-		w.Write([]byte(fmt.Sprintf("bind \"%s\" \"%s\"\n", kc.KeyToString(k), c)))
+		b = append(b, fmt.Sprintf("bind \"%s\" \"%s\"\n", kc.KeyToString(k), c))
+	}
+	sort.Strings(b)
+	for _, s := range b {
+		w.Write([]byte(s))
 	}
 }
 
