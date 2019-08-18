@@ -657,7 +657,7 @@ void R_DrawAliasModel(entity_t *e) {
     tx = paliashdr->gltextures[e->skinnum][anim];
     fb = paliashdr->fbtextures[e->skinnum][anim];
   }
-  if (e->colormap != host_colormap && !Cvar_GetValue(&gl_nocolors)) {
+  if (!Cvar_GetValue(&gl_nocolors)) {
     i = e - cl_entities;
     if (i >= 1 &&
         i <=

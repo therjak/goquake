@@ -68,7 +68,6 @@ entity_t *CL_NewTempEntity(void) {
   cl_visedicts[cl_numvisedicts] = ent;
   cl_numvisedicts++;
 
-  ent->colormap = host_colormap;
   return ent;
 }
 
@@ -217,7 +216,6 @@ entity_t *CL_EntityNum(int num) {
     if (num >= CL_MaxEdicts())  // johnfitz -- no more MAX_EDICTS
       Host_Error("CL_EntityNum: %i is an invalid number", num);
     while (cl.num_entities <= num) {
-      cl_entities[cl.num_entities].colormap = host_colormap;
       cl_entities[cl.num_entities].lerpflags |=
           LERP_RESETMOVE | LERP_RESETANIM;  // johnfitz
       cl.num_entities++;
@@ -460,15 +458,7 @@ void CL_ParseUpdate(int bits) {
     ent->frame = ent->baseline.frame;
 
   if (bits & U_COLORMAP)
-    i = CL_MSG_ReadByte();
-  else
-    i = ent->baseline.colormap;
-  if (!i)
-    ent->colormap = host_colormap;
-  else {
-    if (i > cl.maxclients) Go_Error("i >= cl.maxclients");
-    ent->colormap = cl.scores[i - 1].translations;
-  }
+    CL_MSG_ReadByte(); // colormap -- no idea what this is good for
   if (bits & U_SKIN)
     skin = CL_MSG_ReadByte();
   else
@@ -606,7 +596,7 @@ void CL_ParseBaseline(entity_t *ent, int version)  // johnfitz -- added argument
       (bits & B_LARGEFRAME) ? CL_MSG_ReadShort() : CL_MSG_ReadByte();
   // johnfitz
 
-  ent->baseline.colormap = CL_MSG_ReadByte();
+  CL_MSG_ReadByte(); // colormap -- no idea what this is good for
   ent->baseline.skin = CL_MSG_ReadByte();
   for (i = 0; i < 3; i++) {
     ent->baseline.origin[i] = CL_MSG_ReadCoord();
@@ -787,35 +777,10 @@ CL_NewTranslation
 =====================
 */
 void CL_NewTranslation(int slot) {
-  // TODO(therjak): this can be moved to go if R_TranslatePlayerSkin,
-  // gvidState.colormap and cl?
-  int i, j;
-  int top, bottom;
-  byte *dest, *source;
-
   if (slot > cl.maxclients) {
     Go_Error("CL_NewTranslation: slot > cl.maxclients");
   }
-  dest = cl.scores[slot].translations;
-  source = host_colormap;
-  memcpy(dest, host_colormap, sizeof(cl.scores[slot].translations));
-  top = cl.scores[slot].colors & 0xf0;
-  bottom = (cl.scores[slot].colors & 15) << 4;
   R_TranslatePlayerSkin(slot);
-
-  for (i = 0; i < VID_GRADES; i++, dest += 256, source += 256) {
-    if (top < 128)  // the artists made some backwards ranges.  sigh.
-      memcpy(dest + TOP_RANGE, source + top, 16);
-    else {
-      for (j = 0; j < 16; j++) dest[TOP_RANGE + j] = source[top + 15 - j];
-    }
-
-    if (bottom < 128)
-      memcpy(dest + BOTTOM_RANGE, source + bottom, 16);
-    else {
-      for (j = 0; j < 16; j++) dest[BOTTOM_RANGE + j] = source[bottom + 15 - j];
-    }
-  }
 }
 
 /*
@@ -826,7 +791,7 @@ CL_ParseStatic
 void CL_ParseStatic(int version)  // johnfitz -- added a parameter
 {
   // TODO(therjak): this can be moved to go if R_AddEfrags, CL_ParseBaseline,
-  // gvidState.colormap and cl?
+  // and cl?
   entity_t *ent;
   int i;
 
@@ -843,7 +808,6 @@ void CL_ParseStatic(int version)  // johnfitz -- added a parameter
   ent->lerpflags |= LERP_RESETANIM;  // johnfitz -- lerping
   ent->frame = ent->baseline.frame;
 
-  ent->colormap = host_colormap;
   ent->skinnum = ent->baseline.skin;
   ent->effects = ent->baseline.effects;
   ent->alpha = ent->baseline.alpha;  // johnfitz -- alpha

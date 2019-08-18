@@ -6,7 +6,6 @@ typedef struct {
   float angles[3];
   unsigned short modelindex;  // johnfitz -- was int
   unsigned short frame;       // johnfitz -- was int
-  unsigned char colormap;     // johnfitz -- was int
   unsigned char skin;         // johnfitz -- was int
   unsigned char alpha;        // johnfitz -- added
   int effects;

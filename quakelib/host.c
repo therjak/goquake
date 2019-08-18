@@ -27,8 +27,6 @@ int minimum_memory;
 
 jmp_buf host_abortserver;
 
-byte *host_colormap;
-
 cvar_t host_speeds;
 cvar_t host_maxfps;
 cvar_t host_timescale;
@@ -212,8 +210,6 @@ void Host_Init(void) {
 
   if (CLS_GetState() != ca_dedicated) {
     int length = 0;
-    host_colormap = (byte *)COM_LoadFileGo("gfx/colormap.lmp", &length);
-    if (!host_colormap) Go_Error("Couldn't load gfx/colormap.lmp");
 
     V_Init();
     Chase_Init();

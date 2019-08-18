@@ -706,7 +706,6 @@ void V_CalcRefdef(void) {
 
   view->model = cl.model_precache[CL_Stats(STAT_WEAPON)];
   view->frame = CL_Stats(STAT_WEAPONFRAME);
-  view->colormap = host_colormap;
 
   // johnfitz -- v_gunkick
   if (Cvar_GetValue(&v_gunkick) == 1)  // original quake kick
