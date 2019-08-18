@@ -286,7 +286,7 @@ void CL_ParseServerInfo(void) {
                                              "scores");
 
   // parse gametype
-  cl.gametype = CL_MSG_ReadByte();
+  CL_SetGameType(CL_MSG_ReadByte());
 
   // parse signon message
   str = CL_MSG_ReadString();

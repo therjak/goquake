@@ -242,7 +242,7 @@ void Sbar_DrawScrollString(int x, int y, int width, const char *str) {
 
   scale = CLAMP(1.0, Cvar_GetValue(&scr_sbarscale), (float)glwidth / 320.0);
   left = x * scale;
-  if (cl.gametype != GAME_DEATHMATCH)
+  if (!CL_GameTypeDeathMatch())
     left += (((float)glwidth - 320.0 * scale) / 2);
 
   glEnable(GL_SCISSOR_TEST);
@@ -439,7 +439,7 @@ Sbar_DrawScoreboard
 */
 void Sbar_DrawScoreboard(void) {
   Sbar_SoloScoreboard();
-  if (cl.gametype == GAME_DEATHMATCH) Sbar_DeathmatchOverlay();
+  if (CL_GameTypeDeathMatch()) Sbar_DeathmatchOverlay();
 }
 
 //=============================================================================
@@ -702,7 +702,7 @@ void Sbar_DrawFace(void) {
     top = Sbar_ColorForMap(top);
     bottom = Sbar_ColorForMap(bottom);
 
-    if (cl.gametype == GAME_DEATHMATCH)
+    if (CL_GameTypeDeathMatch())
       xofs = 113;
     else
       xofs = ((ScreenWidth() - 320) >> 1) + 113;
@@ -791,7 +791,7 @@ void Sbar_Draw(void) {
   if (sb_lines && glwidth > w) {
     if (Cvar_GetValue(&scr_sbaralpha) < 1)
       Draw_TileClear(0, glheight - sb_lines, glwidth, sb_lines);
-    if (cl.gametype == GAME_DEATHMATCH)
+    if (CL_GameTypeDeathMatch())
       Draw_TileClear(w, glheight - sb_lines, glwidth - w, sb_lines);
     else {
       Draw_TileClear(0, glheight - sb_lines, (glwidth - w) / 2.0f, sb_lines);
@@ -891,7 +891,8 @@ void Sbar_Draw(void) {
     Sbar_DrawNum(248, 0, CL_Stats(STAT_AMMO), 3, CL_Stats(STAT_AMMO) <= 10);
   }
 
-  if (cl.gametype == GAME_DEATHMATCH) Sbar_MiniDeathmatchOverlay();
+  if (CL_GameTypeDeathMatch())
+      Sbar_MiniDeathmatchOverlay();
 }
 
 //=============================================================================
@@ -1069,7 +1070,7 @@ void Sbar_IntermissionOverlay(void) {
   int dig;
   int num;
 
-  if (cl.gametype == GAME_DEATHMATCH) {
+  if (CL_GameTypeDeathMatch()) {
     Sbar_DeathmatchOverlay();
     return;
   }

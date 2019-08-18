@@ -660,7 +660,7 @@ void GL_SetCanvas(canvastype newcanvas) {
       break;
     case CANVAS_SBAR:
       s = CLAMP(1.0, Cvar_GetValue(&scr_sbarscale), (float)glwidth / 320.0);
-      if (cl.gametype == GAME_DEATHMATCH) {
+      if (CL_GameTypeDeathMatch()) {
         glOrtho(0, glwidth / s, 48, 0, -99999, 99999);
         glViewport(glx, gly, glwidth, 48 * s);
       } else {

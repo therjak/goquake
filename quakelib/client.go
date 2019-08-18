@@ -194,16 +194,12 @@ type Client struct {
 	// scores
 	// sound_precache
 	// model_precache
-	// scores
 	// viewent.model
-	// items
-	// item_gettime
 	// mvelocity
 	// punchangle
 	// idealpitch
 	// viewheight
 	// mapname
-	// gametype
 	// levelname
 	//
 
@@ -297,6 +293,16 @@ func CL_Stats(s C.int) C.int {
 //export CL_SetStats
 func CL_SetStats(s, v C.int) {
 	cl_setStats(int(s), int(v))
+}
+
+//export CL_SetGameType
+func CL_SetGameType(t int) {
+	cl.gameType = t
+}
+
+//export CL_GameTypeDeathMatch
+func CL_GameTypeDeathMatch() bool {
+	return cl.gameType == svc.GameDeathmatch
 }
 
 //export CL_HasItem

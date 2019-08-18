@@ -566,7 +566,7 @@ Con_LogCenterPrint -- johnfitz -- echo centerprint message to the console
 void Con_LogCenterPrint(const char *str) {
   if (!strcmp(str, con_lastcenterstring)) return;  // ignore duplicates
 
-  if (cl.gametype == GAME_DEATHMATCH && Cvar_GetValue(&con_logcenterprint) != 2)
+  if (CL_GameTypeDeathMatch() && Cvar_GetValue(&con_logcenterprint) != 2)
     return;  // don't log in deathmatch
 
   strcpy(con_lastcenterstring, str);
