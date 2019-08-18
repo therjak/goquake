@@ -107,8 +107,6 @@ extern client_static_t cls;
 //
 typedef struct {
   // information for local display
-  float faceanimtime;      // use anim frame if cl.time < this
-
   cshift_t cshifts[NUM_CSHIFTS];       // color shifts for damage, powerups
   cshift_t prev_cshifts[NUM_CSHIFTS];  // and content types
 
@@ -141,11 +139,11 @@ typedef struct {
   //
   struct qmodel_s *model_precache[MAX_MODELS];
 
-  char mapname[128];
-  char levelname[128];  // for display on solo scoreboard //johnfitz -- was 40.
+  char mapname[128]; // therjak
+  char levelname[128];  // for display on solo scoreboard //johnfitz -- was 40. // therjak
   // int viewentity;       // cl_entitites[cl.viewentity] = player
-  int maxclients;
-  int gametype;
+  int maxclients; // therjak
+  int gametype; // therjak
 
   // refresh related state
   struct qmodel_s *worldmodel;  // cl_entitites[0].model
@@ -155,7 +153,7 @@ typedef struct {
   entity_t viewent;  // the gun model
 
   // frag scoreboard
-  scoreboard_t *scores;  // [cl.maxclients]
+  scoreboard_t *scores;  // [cl.maxclients] // therjak
 } client_state_t;
 
 extern client_state_t cl;

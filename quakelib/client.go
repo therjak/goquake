@@ -222,7 +222,7 @@ type Client struct {
 	stats        ClientStats
 	items        uint32      // 32bit bit field
 	itemGetTime  [32]float64 // for blinking
-	faceAnimTime float32
+	faceAnimTime float64
 	maxEdicts    int
 }
 
@@ -269,6 +269,24 @@ func CL_Intermission() C.int {
 //export CL_SetIntermission
 func CL_SetIntermission(i C.int) {
 	cl.intermission = int(i)
+}
+
+//export CL_UpdateFaceAnimTime
+func CL_UpdateFaceAnimTime() {
+	cl.UpdateFaceAnimTime()
+}
+
+func (c *Client) UpdateFaceAnimTime() {
+	c.faceAnimTime = c.time + 0.2
+}
+
+//export CL_CheckFaceAnimTime
+func CL_CheckFaceAnimTime() bool {
+	return cl.CheckFaceAnimTime()
+}
+
+func (c *Client) CheckFaceAnimTime() bool {
+	return cl.time <= cl.faceAnimTime
 }
 
 //export CL_Stats

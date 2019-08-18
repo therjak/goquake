@@ -227,7 +227,8 @@ void V_ParseDamage(int armor, int blood, float fromx, float fromy,
   count = blood * 0.5 + armor * 0.5;
   if (count < 10) count = 10;
 
-  cl.faceanimtime = CL_Time() + 0.2;  // but sbar face into pain frame
+  // but sbar face into pain frame
+  CL_UpdateFaceAnimTime();
 
   cl.cshifts[CSHIFT_DAMAGE].percent += 3 * count;
   if (cl.cshifts[CSHIFT_DAMAGE].percent < 0)

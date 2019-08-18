@@ -753,7 +753,7 @@ void Sbar_DrawFace(void) {
   if (f < 0)  // in case we ever decide to draw when health <= 0
     f = 0;
 
-  if (CL_Time() <= cl.faceanimtime) {
+  if (CL_CheckFaceAnimTime()) {
     anim = 1;
     sb_updates = 0;  // make sure the anim gets drawn over
   } else
