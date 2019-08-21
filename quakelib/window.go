@@ -5,7 +5,6 @@ package quakelib
 //typedef enum {MS_UNINIT, MS_WINDOWED, MS_FULLSCREEN} modestate_t;
 //#endif
 // void S_ClearBuffer();
-// void Sbar_Changed();
 // void Key_ClearStates();
 import "C"
 
@@ -203,7 +202,7 @@ func videoToggle() {
 		}
 		cbuf.AddText("vid_restart\n")
 	} else {
-		C.Sbar_Changed()
+		StatusbarChanged()
 		if window.Fullscreen() {
 			modestate = MS_FULLSCREEN
 		} else {
