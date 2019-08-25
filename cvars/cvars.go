@@ -145,8 +145,8 @@ var (
 	ScreenOffsetY          *cvar.Cvar
 	ScreenOffsetZ          *cvar.Cvar
 	ScreenPrintSpeed       *cvar.Cvar
-	ScreenSbarAlpha        *cvar.Cvar
-	ScreenSbarScale        *cvar.Cvar
+	ScreenStatusbarAlpha   *cvar.Cvar
+	ScreenStatusbarScale   *cvar.Cvar
 	ScreenShowFps          *cvar.Cvar
 	Sensitivity            *cvar.Cvar
 	ServerAccelerate       *cvar.Cvar
@@ -341,8 +341,8 @@ func init() {
 	ScreenOffsetY = cvar.MustRegister("scr_ofsy", "0", cvar.NONE)
 	ScreenOffsetZ = cvar.MustRegister("scr_ofsz", "0", cvar.NONE)
 	ScreenPrintSpeed = cvar.MustRegister("scr_printspeed", "8", cvar.NONE)
-	ScreenSbarAlpha = cvar.MustRegister("scr_sbaralpha", "0.75", cvar.ARCHIVE)
-	ScreenSbarScale = cvar.MustRegister("scr_sbarscale", "1", cvar.ARCHIVE)
+	ScreenStatusbarAlpha = cvar.MustRegister("scr_sbaralpha", "0.75", cvar.ARCHIVE)
+	ScreenStatusbarScale = cvar.MustRegister("scr_sbarscale", "1", cvar.ARCHIVE)
 	ScreenShowFps = cvar.MustRegister("scr_showfps", "0", cvar.NONE)
 	Sensitivity = cvar.MustRegister("sensitivity", "3", cvar.ARCHIVE)
 	ServerAccelerate = cvar.MustRegister("sv_accelerate", "10", cvar.NONE)

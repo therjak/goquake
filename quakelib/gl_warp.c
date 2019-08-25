@@ -214,8 +214,8 @@ void R_UpdateWarpTextures(void) {
 
     // copy to texture
     GL_Bind(tx->warpimage);
-    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, glx,
-                        gly + glheight - gl_warpimagesize, gl_warpimagesize,
+    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GL_X(),
+                        GL_Y() + GL_Height() - gl_warpimagesize, gl_warpimagesize,
                         gl_warpimagesize);
 
     tx->update_warp = false;
@@ -227,7 +227,7 @@ void R_UpdateWarpTextures(void) {
 
   // if warp render went down into sbar territory, we need to be sure to refresh
   // it next frame
-  if (gl_warpimagesize + sb_lines > glheight) Sbar_Changed();
+  if (gl_warpimagesize + sb_lines > GL_Height()) Sbar_Changed();
 
   // if viewsize is less than 100, we need to redraw the frame around the
   // viewport

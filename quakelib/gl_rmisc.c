@@ -378,10 +378,7 @@ void R_TimeRefresh_f(void) {
 
   start = Sys_DoubleTime();
   for (i = 0; i < 128; i++) {
-    glx = 0;
-    gly = 0;
-    glwidth = ScreenWidth();
-    glheight = ScreenHeight();
+    UpdateViewport();
     r_refdef.viewangles[1] = i / 128.0 * 360.0;
     R_RenderView();
     GL_EndRendering();

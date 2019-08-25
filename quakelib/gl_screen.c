@@ -48,8 +48,6 @@ console is:
 
 */
 
-int glx, gly, glwidth, glheight;
-
 float scr_con_current;
 float scr_conlines;  // lines of console to display
 
@@ -253,7 +251,7 @@ static void SCR_CalcRefdef(void) {
 
   // johnfitz -- rewrote this section
   size = Cvar_GetValue(&scr_viewsize);
-  scale = CLAMP(1.0, Cvar_GetValue(&scr_sbarscale), (float)glwidth / 320.0);
+  scale = CLAMP(1.0, Cvar_GetValue(&scr_sbarscale), (float)GL_Width() / 320.0);
 
   // johnfitz -- scr_sbaralpha.value
   if (size >= 120 || CL_Intermission() || Cvar_GetValue(&scr_sbaralpha) < 1) {
@@ -269,11 +267,11 @@ static void SCR_CalcRefdef(void) {
 
   // johnfitz -- rewrote this section
   r_refdef.vrect.width =
-      q_max(glwidth * size, 96);  // no smaller than 96, for icons
+      q_max(GL_Width() * size, 96);  // no smaller than 96, for icons
   r_refdef.vrect.height =
-      q_min(glheight * size, glheight - sb_lines);  // make room for sbar
-  r_refdef.vrect.x = (glwidth - r_refdef.vrect.width) / 2;
-  r_refdef.vrect.y = (glheight - sb_lines - r_refdef.vrect.height) / 2;
+      q_min(GL_Height() * size, GL_Height() - sb_lines);  // make room for sbar
+  r_refdef.vrect.x = (GL_Width() - r_refdef.vrect.width) / 2;
+  r_refdef.vrect.y = (GL_Height() - sb_lines - r_refdef.vrect.height) / 2;
   // johnfitz
 
   r_refdef.fov_x =
@@ -597,10 +595,10 @@ void SCR_SetUpToDrawConsole(void) {
   con_forcedup = !cl.worldmodel || CLS_GetSignon() != SIGNONS;
 
   if (con_forcedup) {
-    scr_conlines = glheight;
+    scr_conlines = GL_Height();
     scr_con_current = scr_conlines;
   } else if (GetKeyDest() == key_console)
-    scr_conlines = glheight / 2;
+    scr_conlines = GL_Height() / 2;
   else
     scr_conlines = 0;  // none visible
 
@@ -608,14 +606,14 @@ void SCR_SetUpToDrawConsole(void) {
       (Cvar_GetValue(&host_timescale) > 0) ? Cvar_GetValue(&host_timescale) : 1;
 
   if (scr_conlines < scr_con_current) {
-    // ericw -- (glheight/600.0) factor makes conspeed resolution independent,
+    // ericw -- (GL_Height()/600.0) factor makes conspeed resolution independent,
     // using 800x600 as a baseline
-    scr_con_current -= Cvar_GetValue(&scr_conspeed) * (glheight / 600.0) *
+    scr_con_current -= Cvar_GetValue(&scr_conspeed) * (GL_Height() / 600.0) *
                        HostFrameTime() / timescale;
     if (scr_conlines > scr_con_current) scr_con_current = scr_conlines;
   } else if (scr_conlines > scr_con_current) {
-    // ericw -- (glheight/600.0)
-    scr_con_current += Cvar_GetValue(&scr_conspeed) * (glheight / 600.0) *
+    // ericw -- (GL_Height()/600.0)
+    scr_con_current += Cvar_GetValue(&scr_conspeed) * (GL_Height() / 600.0) *
                        HostFrameTime() / timescale;
     if (scr_conlines < scr_con_current) scr_con_current = scr_conlines;
   }
@@ -671,17 +669,17 @@ void SCR_ScreenShot_f(void) {
   }
 
   // get data
-  if (!(buffer = (byte *)malloc(glwidth * glheight * 4))) {
+  if (!(buffer = (byte *)malloc(GL_Width() * GL_Height() * 4))) {
     Con_Printf("SCR_ScreenShot_f: Couldn't allocate memory\n");
     return;
   }
 
   glPixelStorei(GL_PACK_ALIGNMENT,
                 1); /* for widths that aren't a multiple of 4 */
-  glReadPixels(glx, gly, glwidth, glheight, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+  glReadPixels(GL_X(), GL_Y(), GL_Width(), GL_Height(), GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 
   // now write the file
-  if (Image_Write(checkname, buffer, glwidth, glheight))
+  if (Image_Write(checkname, buffer, GL_Width(), GL_Height()))
     Con_Printf("Wrote %s\n", pngname);
   else
     Con_Printf("SCR_ScreenShot_f: Couldn't create a TGA file\n");
@@ -827,11 +825,11 @@ void SCR_TileClear(void) {
 
   if (r_refdef.vrect.x > 0) {
     // left
-    Draw_TileClear(0, 0, r_refdef.vrect.x, glheight - sb_lines);
+    Draw_TileClear(0, 0, r_refdef.vrect.x, GL_Height() - sb_lines);
     // right
     Draw_TileClear(r_refdef.vrect.x + r_refdef.vrect.width, 0,
-                   glwidth - r_refdef.vrect.x - r_refdef.vrect.width,
-                   glheight - sb_lines);
+                   GL_Width() - r_refdef.vrect.x - r_refdef.vrect.width,
+                   GL_Height() - sb_lines);
   }
 
   if (r_refdef.vrect.y > 0) {
@@ -841,7 +839,7 @@ void SCR_TileClear(void) {
     Draw_TileClear(
         r_refdef.vrect.x, r_refdef.vrect.y + r_refdef.vrect.height,
         r_refdef.vrect.width,
-        glheight - r_refdef.vrect.y - r_refdef.vrect.height - sb_lines);
+        GL_Height() - r_refdef.vrect.y - r_refdef.vrect.height - sb_lines);
   }
 }
 
@@ -869,10 +867,7 @@ void SCR_UpdateScreen(void) {
 
   if (!scr_initialized || !con_initialized) return;  // not initialized yet
 
-  glx = 0;
-  gly = 0;
-  glwidth = ScreenWidth();
-  glheight = ScreenHeight();
+  UpdateViewport();
 
   //
   // determine size of refresh window

@@ -117,7 +117,7 @@ func (m *MenuItemScale) change(f float32) {
 	v := math.Clamp32(1, f, l)
 	cvars.ScreenConsoleScale.SetValue(v)
 	cvars.ScreenMenuScale.SetValue(v)
-	cvars.ScreenSbarScale.SetValue(v)
+	cvars.ScreenStatusbarScale.SetValue(v)
 }
 
 type MenuItemScreenSize struct {
@@ -211,20 +211,20 @@ type MenuItemStatusbarAlpha struct {
 
 func (m *MenuItemStatusbarAlpha) Draw() {
 	drawString(16, m.Y, "       Statusbar alpha")
-	r := (1.0 - cvars.ScreenSbarAlpha.Value())
+	r := (1.0 - cvars.ScreenStatusbarAlpha.Value())
 	// scr_sbaralpha range is 1.0 to 0.0
 	drawSlider(220, m.Y, r)
 }
 
 func (m *MenuItemStatusbarAlpha) Left() {
-	m.change(cvars.ScreenSbarAlpha.Value() + 0.05)
+	m.change(cvars.ScreenStatusbarAlpha.Value() + 0.05)
 }
 func (m *MenuItemStatusbarAlpha) Right() {
-	m.change(cvars.ScreenSbarAlpha.Value() - 0.05)
+	m.change(cvars.ScreenStatusbarAlpha.Value() - 0.05)
 }
 func (m *MenuItemStatusbarAlpha) change(f float32) {
 	v := math.Clamp32(0, f, 1)
-	cvars.ScreenSbarAlpha.SetValue(v)
+	cvars.ScreenStatusbarAlpha.SetValue(v)
 }
 
 type MenuItemSoundVolume struct {

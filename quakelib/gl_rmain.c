@@ -176,8 +176,8 @@ void GLSLGamma_GammaCorrect(void) {
     glGenTextures(1, &r_gamma_texture);
     glBindTexture(GL_TEXTURE_2D, r_gamma_texture);
 
-    r_gamma_texture_width = glwidth;
-    r_gamma_texture_height = glheight;
+    r_gamma_texture_width = GL_Width();
+    r_gamma_texture_height = GL_Height();
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, r_gamma_texture_width,
                  r_gamma_texture_height, 0, GL_BGRA,
@@ -197,7 +197,7 @@ void GLSLGamma_GammaCorrect(void) {
   // copy the framebuffer to the texture
   GL_DisableMultitexture();
   glBindTexture(GL_TEXTURE_2D, r_gamma_texture);
-  glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, glx, gly, glwidth, glheight);
+  glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GL_X(), GL_Y(), GL_Width(), GL_Height());
 
   // draw the texture back to the framebuffer with a fragment shader
   GL_UseProgramFunc(r_gamma_program);
@@ -209,10 +209,10 @@ void GLSLGamma_GammaCorrect(void) {
   glDisable(GL_ALPHA_TEST);
   glDisable(GL_DEPTH_TEST);
 
-  glViewport(glx, gly, glwidth, glheight);
+  glViewport(GL_X(), GL_Y(), GL_Width(), GL_Height());
 
-  smax = glwidth / (float)r_gamma_texture_width;
-  tmax = glheight / (float)r_gamma_texture_height;
+  smax = GL_Width() / (float)r_gamma_texture_width;
+  tmax = GL_Height() / (float)r_gamma_texture_height;
 
   glBegin(GL_QUADS);
   glTexCoord2f(0, 0);
@@ -447,8 +447,8 @@ void R_SetupGL(void) {
   // johnfitz -- rewrote this section
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glViewport(glx + r_refdef.vrect.x,
-             gly + glheight - r_refdef.vrect.y - r_refdef.vrect.height,
+  glViewport(GL_X() + r_refdef.vrect.x,
+             GL_Y() + GL_Height() - r_refdef.vrect.y - r_refdef.vrect.height,
              r_refdef.vrect.width, r_refdef.vrect.height);
   // johnfitz
 

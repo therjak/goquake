@@ -609,9 +609,9 @@ void Draw_FadeScreen(void) {
   glBegin(GL_QUADS);
 
   glVertex2f(0, 0);
-  glVertex2f(glwidth, 0);
-  glVertex2f(glwidth, glheight);
-  glVertex2f(0, glheight);
+  glVertex2f(GL_Width(), 0);
+  glVertex2f(GL_Width(), GL_Height());
+  glVertex2f(0, GL_Height());
 
   glEnd();
   glColor4f(1, 1, 1, 1);
@@ -641,36 +641,36 @@ void GL_SetCanvas(canvastype newcanvas) {
 
   switch (newcanvas) {
     case CANVAS_DEFAULT:
-      glOrtho(0, glwidth, glheight, 0, -99999, 99999);
-      glViewport(glx, gly, glwidth, glheight);
+      glOrtho(0, GL_Width(), GL_Height(), 0, -99999, 99999);
+      glViewport(GL_X(), GL_Y(), GL_Width(), GL_Height());
       break;
     case CANVAS_CONSOLE:
       lines = ConHeight() -
-              (GetScreenConsoleCurrentHeight() * ConHeight() / glheight);
+              (GetScreenConsoleCurrentHeight() * ConHeight() / GL_Height());
       glOrtho(0, ConWidth(), ConHeight() + lines, lines, -99999, 99999);
-      glViewport(glx, gly, glwidth, glheight);
+      glViewport(GL_X(), GL_Y(), GL_Width(), GL_Height());
       break;
     case CANVAS_MENU:
-      s = q_min((float)glwidth / 320.0, (float)glheight / 200.0);
+      s = q_min((float)GL_Width() / 320.0, (float)GL_Height() / 200.0);
       s = CLAMP(1.0, Cvar_GetValue(&scr_menuscale), s);
       // ericw -- doubled width to 640 to accommodate long keybindings
       glOrtho(0, 640, 200, 0, -99999, 99999);
-      glViewport(glx + (glwidth - 320 * s) / 2, gly + (glheight - 200 * s) / 2,
+      glViewport(GL_X() + (GL_Width() - 320 * s) / 2, GL_Y() + (GL_Height() - 200 * s) / 2,
                  640 * s, 200 * s);
       break;
     case CANVAS_SBAR:
-      s = CLAMP(1.0, Cvar_GetValue(&scr_sbarscale), (float)glwidth / 320.0);
+      s = CLAMP(1.0, Cvar_GetValue(&scr_sbarscale), (float)GL_Width() / 320.0);
       if (CL_GameTypeDeathMatch()) {
-        glOrtho(0, glwidth / s, 48, 0, -99999, 99999);
-        glViewport(glx, gly, glwidth, 48 * s);
+        glOrtho(0, GL_Width() / s, 48, 0, -99999, 99999);
+        glViewport(GL_X(), GL_Y(), GL_Width(), 48 * s);
       } else {
         glOrtho(0, 320, 48, 0, -99999, 99999);
-        glViewport(glx + (glwidth - 320 * s) / 2, gly, 320 * s, 48 * s);
+        glViewport(GL_X() + (GL_Width() - 320 * s) / 2, GL_Y(), 320 * s, 48 * s);
       }
       break;
     case CANVAS_WARPIMAGE:
       glOrtho(0, 128, 0, 128, -99999, 99999);
-      glViewport(glx, gly + glheight - gl_warpimagesize, gl_warpimagesize,
+      glViewport(GL_X(), GL_Y() + GL_Height() - gl_warpimagesize, gl_warpimagesize,
                  gl_warpimagesize);
       break;
     case CANVAS_CROSSHAIR:  // 0,0 is center of viewport
@@ -678,23 +678,23 @@ void GL_SetCanvas(canvastype newcanvas) {
       glOrtho(scr_vrect.width / -2 / s, scr_vrect.width / 2 / s,
               scr_vrect.height / 2 / s, scr_vrect.height / -2 / s, -99999,
               99999);
-      glViewport(scr_vrect.x, glheight - scr_vrect.y - scr_vrect.height,
+      glViewport(scr_vrect.x, GL_Height() - scr_vrect.y - scr_vrect.height,
                  scr_vrect.width & ~1, scr_vrect.height & ~1);
       break;
     case CANVAS_BOTTOMLEFT:             // used by devstats
-      s = (float)glwidth / ConWidth();  // use console scale
+      s = (float)GL_Width() / ConWidth();  // use console scale
       glOrtho(0, 320, 200, 0, -99999, 99999);
-      glViewport(glx, gly, 320 * s, 200 * s);
+      glViewport(GL_X(), GL_Y(), 320 * s, 200 * s);
       break;
     case CANVAS_BOTTOMRIGHT:            // used by fps/clock
-      s = (float)glwidth / ConWidth();  // use console scale
+      s = (float)GL_Width() / ConWidth();  // use console scale
       glOrtho(0, 320, 200, 0, -99999, 99999);
-      glViewport(glx + glwidth - 320 * s, gly, 320 * s, 200 * s);
+      glViewport(GL_X() + GL_Width() - 320 * s, GL_Y(), 320 * s, 200 * s);
       break;
     case CANVAS_TOPRIGHT:  // used by disc
       s = 1;
       glOrtho(0, 320, 200, 0, -99999, 99999);
-      glViewport(glx + glwidth - 320 * s, gly + glheight - 200 * s, 320 * s,
+      glViewport(GL_X() + GL_Width() - 320 * s, GL_Y() + GL_Height() - 200 * s, 320 * s,
                  200 * s);
       break;
     default:

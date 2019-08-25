@@ -87,7 +87,6 @@ func init() {
 	cmd.AddCommand("menu_quit", func(_ []cmd.QArg, _ int) { enterQuitMenu() })
 }
 
-// void Draw_Character(int cx, int line, int num);
 // 0-127 are white
 // 128+ are normal
 // We draw on a 320x200 screen

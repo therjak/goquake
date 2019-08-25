@@ -284,8 +284,8 @@ Con_Linefeed
 static void Con_Linefeed(void) {
   // johnfitz -- improved scrolling
   if (con_backscroll) con_backscroll++;
-  if (con_backscroll > con_totallines - (glheight >> 3) - 1)
-    con_backscroll = con_totallines - (glheight >> 3) - 1;
+  if (con_backscroll > con_totallines - (GL_Height() >> 3) - 1)
+    con_backscroll = con_totallines - (GL_Height() >> 3) - 1;
   // johnfitz
 
   con_x = 0;
@@ -1026,7 +1026,7 @@ void Con_DrawConsole(int lines, qboolean drawinput) {
 
   if (lines <= 0) return;
 
-  con_vislines = lines * ConHeight() / glheight;
+  con_vislines = lines * ConHeight() / GL_Height();
   GL_SetCanvas(CANVAS_CONSOLE);
 
   // draw the background

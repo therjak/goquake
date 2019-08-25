@@ -230,36 +230,6 @@ void Sbar_Init(void) {
 }
 
 /*
-===============
-Sbar_DrawScrollString -- johnfitz
-
-scroll the string inside a glscissor region
-===============
-*/
-void Sbar_DrawScrollString(int x, int y, int width, const char *str) {
-  float scale;
-  int len, ofs, left;
-
-  scale = CLAMP(1.0, Cvar_GetValue(&scr_sbarscale), (float)glwidth / 320.0);
-  left = x * scale;
-  if (!CL_GameTypeDeathMatch())
-    left += (((float)glwidth - 320.0 * scale) / 2);
-
-  glEnable(GL_SCISSOR_TEST);
-  glScissor(left, 0, width * scale, glheight);
-
-  len = strlen(str) * 8 + 40;
-  ofs = ((int)(HostRealTime() * 30)) % len;
-  Draw_String(x - ofs, y+24, str);
-  Draw_Character(x - ofs + len - 32, y+24, '/');
-  Draw_Character(x - ofs + len - 24, y+24, '/');
-  Draw_Character(x - ofs + len - 16, y+24, '/');
-  Draw_String(x - ofs + len, y+24, str);
-
-  glDisable(GL_SCISSOR_TEST);
-}
-
-/*
 =============
 Sbar_itoa
 =============
@@ -787,16 +757,16 @@ void Sbar_Draw(void) {
   GL_SetCanvas(CANVAS_DEFAULT);  // johnfitz
 
   // johnfitz -- don't waste fillrate by clearing the area behind the sbar
-  w = CLAMP(320.0f, Cvar_GetValue(&scr_sbarscale) * 320.0f, (float)glwidth);
-  if (sb_lines && glwidth > w) {
+  w = CLAMP(320.0f, Cvar_GetValue(&scr_sbarscale) * 320.0f, (float)GL_Width());
+  if (sb_lines && GL_Width() > w) {
     if (Cvar_GetValue(&scr_sbaralpha) < 1)
-      Draw_TileClear(0, glheight - sb_lines, glwidth, sb_lines);
+      Draw_TileClear(0, GL_Height() - sb_lines, GL_Width(), sb_lines);
     if (CL_GameTypeDeathMatch())
-      Draw_TileClear(w, glheight - sb_lines, glwidth - w, sb_lines);
+      Draw_TileClear(w, GL_Height() - sb_lines, GL_Width() - w, sb_lines);
     else {
-      Draw_TileClear(0, glheight - sb_lines, (glwidth - w) / 2.0f, sb_lines);
-      Draw_TileClear((glwidth - w) / 2.0f + w, glheight - sb_lines,
-                     (glwidth - w) / 2.0f, sb_lines);
+      Draw_TileClear(0, GL_Height() - sb_lines, (GL_Width() - w) / 2.0f, sb_lines);
+      Draw_TileClear((GL_Width() - w) / 2.0f + w, GL_Height() - sb_lines,
+                     (GL_Width() - w) / 2.0f, sb_lines);
     }
   }
   // johnfitz
@@ -997,11 +967,11 @@ void Sbar_MiniDeathmatchOverlay(void) {
   scoreboard_t *s;
 
   scale = CLAMP(1.0, Cvar_GetValue(&scr_sbarscale),
-                (float)glwidth / 320.0);  // johnfitz
+                (float)GL_Width() / 320.0);  // johnfitz
 
   // MAX_SCOREBOARDNAME = 32, so total width for this overlay plus sbar is 632,
   // but we can cut off some i guess
-  if (glwidth / scale < 512 ||
+  if (GL_Width() / scale < 512 ||
       Cvar_GetValue(&scr_viewsize) >=
           120)  // johnfitz -- test should consider scr_sbarscale
     return;
