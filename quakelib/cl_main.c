@@ -168,47 +168,6 @@ void CL_DecayLights(void) {
 
 /*
 ===============
-CL_LerpPoint
-
-Determines the fraction between the last two messages that the objects
-should be put at.
-===============
-*/
-float CL_LerpPoint(void) {
-  float f, frac;
-
-  f = CL_MTime() - CL_MTimeOld();
-
-  if (!f || CLS_IsTimeDemo() || SV_Active()) {
-    CL_SetTime(CL_MTime());
-    return 1;
-  }
-
-  if (f > 0.1)  // dropped packet, or start of demo
-  {
-    CL_SetMTimeOld(CL_MTime() - 0.1);
-    f = 0.1;
-  }
-
-  frac = (CL_Time() - CL_MTimeOld()) / f;
-
-  if (frac < 0) {
-    if (frac < -0.01) CL_SetTime(CL_MTimeOld());
-    frac = 0;
-  } else if (frac > 1) {
-    if (frac > 1.01) CL_SetTime(CL_MTime());
-    frac = 1;
-  }
-
-  // johnfitz -- better nolerp behavior
-  if (Cvar_GetValue(&cl_nolerp)) return 1;
-  // johnfitz
-
-  return frac;
-}
-
-/*
-===============
 CL_RelinkEntities
 ===============
 */

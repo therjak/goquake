@@ -1380,3 +1380,44 @@ func CL_InitTEnts() {
 	clSounds[Ric3] = snd.PrecacheSound("weapons/ric3.wav")
 	clSounds[RExp3] = snd.PrecacheSound("weapons/r_exp3.wav")
 }
+
+// Determines the fraction between the last two messages that the objects
+// should be put at.
+//export CL_LerpPoint
+func CL_LerpPoint() float64 {
+	return cl.LerpPoint()
+}
+
+func (c *Client) LerpPoint() float64 {
+	f := c.messageTime - c.messageTimeOld
+
+	if f == 0 || cls.timeDemo || sv.active {
+		c.time = c.messageTime
+		return 1
+	}
+
+	// dropped packet, or start of demo
+	if f > 0.1 {
+		c.messageTimeOld = c.messageTime - 0.1
+		f = 0.1
+	}
+
+	frac := (c.time - c.messageTimeOld) / f
+	if frac < 0 {
+		if frac < -0.01 {
+			c.time = c.messageTimeOld
+		}
+		frac = 0
+	} else if frac > 1 {
+		if frac > 1.01 {
+			c.time = c.messageTime
+		}
+		frac = 1
+	}
+
+	if cvars.ClientNoLerp.Bool() {
+		return 1
+	}
+
+	return frac
+}
