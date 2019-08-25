@@ -538,7 +538,7 @@ void R_SetupAliasLighting(entity_t *e) {
 
   // minimum light value on players (8)
   if (currententity > cl_entities &&
-      currententity <= cl_entities + cl.maxclients) {
+      currententity <= cl_entities + CL_MaxClients()) {
     add = 24.0f - (lightcolor[0] + lightcolor[1] + lightcolor[2]);
     if (add > 0.0f) {
       lightcolor[0] += add / 3.0f;
@@ -660,9 +660,11 @@ void R_DrawAliasModel(entity_t *e) {
   if (!Cvar_GetValue(&gl_nocolors)) {
     i = e - cl_entities;
     if (i >= 1 &&
-        i <=
-            cl.maxclients /* && !strcmp (currententity->model->name, "progs/player.mdl") */)
+        i <= CL_MaxClients() // && 
+        // !strcmp (currententity->model->name, "progs/player.mdl")
+        ) {
       tx = playertextures[i - 1];
+    }
   }
   if (!Cvar_GetValue(&gl_fullbrights)) fb = NULL;
 

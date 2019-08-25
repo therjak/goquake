@@ -247,7 +247,7 @@ void CL_Record_f(void) {
       SZ_Clear(&net_message);
 
       // current names, colors, and frag counts
-      for (i = 0; i < cl.maxclients; i++) {
+      for (i = 0; i < CL_MaxClients(); i++) {
         MSG_WriteByte(&net_message, svc_updatename);
         MSG_WriteByte(&net_message, i);
         MSG_WriteString(&net_message, cl.scores[i].name);

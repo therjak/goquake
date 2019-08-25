@@ -285,6 +285,16 @@ func (c *Client) CheckFaceAnimTime() bool {
 	return cl.time <= cl.faceAnimTime
 }
 
+//export CL_MaxClients
+func CL_MaxClients() int {
+	return cl.maxClients
+}
+
+//export CL_SetMaxClients
+func CL_SetMaxClients(m int) {
+	cl.maxClients = m
+}
+
 //export CL_Stats
 func CL_Stats(s C.int) C.int {
 	return C.int(cl_stats(int(s)))

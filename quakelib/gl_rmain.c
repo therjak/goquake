@@ -566,7 +566,7 @@ void R_SetupView(void) {
   // johnfitz -- cheat-protect some draw modes
   r_drawflat_cheatsafe = r_fullbright_cheatsafe = r_lightmap_cheatsafe = false;
   r_drawworld_cheatsafe = true;
-  if (cl.maxclients == 1) {
+  if (CL_MaxClients() == 1) {
     if (!Cvar_GetValue(&r_drawworld)) r_drawworld_cheatsafe = false;
 
     if (Cvar_GetValue(&r_drawflat))
@@ -698,7 +698,7 @@ void R_ShowTris(void) {
   int i;
 
   if (Cvar_GetValue(&r_showtris) < 1 || Cvar_GetValue(&r_showtris) > 2 ||
-      cl.maxclients > 1) {
+      CL_MaxClients() > 1) {
     return;
   }
 

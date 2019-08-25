@@ -680,7 +680,7 @@ void V_CalcRefdef(void) {
   AngleVectors(angles, forward, right, up);
 
   // johnfitz -- moved cheat-protection here from V_RenderView
-  if (cl.maxclients <= 1)
+  if (CL_MaxClients() <= 1)
     for (i = 0; i < 3; i++)
       r_refdef.vieworg[i] += Cvar_GetValue(&scr_ofsx) * forward[i] +
                              Cvar_GetValue(&scr_ofsy) * right[i] +
@@ -768,7 +768,7 @@ void V_RenderView(void) {
   if (CL_Intermission())
     V_CalcIntermissionRefdef();
   else if (
-      !CL_Paused() /* && (cl.maxclients > 1 || GetKeyDest() == key_game) */)
+      !CL_Paused() /* && (CL_MaxClients() > 1 || GetKeyDest() == key_game) */)
     V_CalcRefdef();
 
   // johnfitz -- removed lcd code

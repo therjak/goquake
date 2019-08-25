@@ -340,7 +340,7 @@ void Sbar_SortFrags(void) {
 
   // sort by frags
   scoreboardlines = 0;
-  for (i = 0; i < cl.maxclients; i++) {
+  for (i = 0; i < CL_MaxClients(); i++) {
     if (cl.scores[i].name[0]) {
       fragsort[scoreboardlines] = i;
       scoreboardlines++;
@@ -688,7 +688,7 @@ void Sbar_DrawFace(void) {
 
   // PGM 01/19/97 - team color drawing
   // PGM 03/02/97 - fixed so color swatch only appears in CTF modes
-  if (CMLRogue() && (cl.maxclients != 1) && (Cvar_GetValue(&teamplay) > 3) &&
+  if (CMLRogue() && (CL_MaxClients() != 1) && (Cvar_GetValue(&teamplay) > 3) &&
       (Cvar_GetValue(&teamplay) < 7)) {
     int top, bottom;
     int xofs;
@@ -807,7 +807,7 @@ void Sbar_Draw(void) {
       110)  // johnfitz -- check viewsize instead of sb_lines
   {
     Sbar_DrawInventory();
-    if (cl.maxclients != 1) Sbar_DrawFrags();
+    if (CL_MaxClients() != 1) Sbar_DrawFrags();
   }
 
   if (sb_showscores || CL_Stats(STAT_HEALTH) <= 0) {

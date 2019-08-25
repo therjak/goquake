@@ -276,11 +276,11 @@ void CL_ParseServerInfo(void) {
     CL_SetProtocolFlags(0);
 
   // parse maxclients
-  cl.maxclients = CL_MSG_ReadByte();
-  if (cl.maxclients < 1 || cl.maxclients > MAX_SCOREBOARD) {
-    Host_Error("Bad maxclients (%u) from server", cl.maxclients);
+  CL_SetMaxClients( CL_MSG_ReadByte() );
+  if (CL_MaxClients() < 1 || CL_MaxClients() > MAX_SCOREBOARD) {
+    Host_Error("Bad maxclients (%u) from server", CL_MaxClients());
   }
-  cl.scores = (scoreboard_t *)Hunk_AllocName(cl.maxclients * sizeof(*cl.scores),
+  cl.scores = (scoreboard_t *)Hunk_AllocName(CL_MaxClients() * sizeof(*cl.scores),
                                              "scores");
 
   // parse gametype
@@ -465,9 +465,8 @@ void CL_ParseUpdate(int bits) {
     skin = ent->baseline.skin;
   if (skin != ent->skinnum) {
     ent->skinnum = skin;
-    if (num > 0 && num <= cl.maxclients)
-      R_TranslateNewPlayerSkin(num -
-                               1);  // johnfitz -- was R_TranslatePlayerSkin
+    if (num > 0 && num <= CL_MaxClients())
+      R_TranslateNewPlayerSkin(num - 1);
   }
   if (bits & U_EFFECTS)
     ent->effects = CL_MSG_ReadByte();
@@ -560,9 +559,8 @@ void CL_ParseUpdate(int bits) {
         ent->syncbase = 0.0;
     } else
       forcelink = true;  // hack to make null model players work
-    if (num > 0 && num <= cl.maxclients)
-      R_TranslateNewPlayerSkin(num -
-                               1);  // johnfitz -- was R_TranslatePlayerSkin
+    if (num > 0 && num <= CL_MaxClients())
+      R_TranslateNewPlayerSkin(num - 1);
 
     ent->lerpflags |= LERP_RESETANIM;  // johnfitz -- don't lerp animation
                                        // across model changes
@@ -777,8 +775,8 @@ CL_NewTranslation
 =====================
 */
 void CL_NewTranslation(int slot) {
-  if (slot > cl.maxclients) {
-    Go_Error("CL_NewTranslation: slot > cl.maxclients");
+  if (slot > CL_MaxClients()) {
+    Go_Error("CL_NewTranslation: slot > cl.maxClients");
   }
   R_TranslatePlayerSkin(slot);
 }
@@ -1158,7 +1156,7 @@ void CL_ParseServerMessage(void) {
       case svc_updatename:
         Sbar_Changed();
         i = CL_MSG_ReadByte();
-        if (i >= cl.maxclients)
+        if (i >= CL_MaxClients())
           Host_Error("CL_ParseServerMessage: svc_updatename > MAX_SCOREBOARD");
         q_strlcpy(cl.scores[i].name, CL_MSG_ReadString(), MAX_SCOREBOARDNAME);
         break;
@@ -1166,7 +1164,7 @@ void CL_ParseServerMessage(void) {
       case svc_updatefrags:
         Sbar_Changed();
         i = CL_MSG_ReadByte();
-        if (i >= cl.maxclients) {
+        if (i >= CL_MaxClients()) {
           Host_Error("CL_ParseServerMessage: svc_updatefrags > MAX_SCOREBOARD");
         }
         cl.scores[i].frags = CL_MSG_ReadShort();
@@ -1175,7 +1173,7 @@ void CL_ParseServerMessage(void) {
       case svc_updatecolors:
         Sbar_Changed();
         i = CL_MSG_ReadByte();
-        if (i >= cl.maxclients)
+        if (i >= CL_MaxClients())
           Host_Error(
               "CL_ParseServerMessage: svc_updatecolors > MAX_SCOREBOARD");
         cl.scores[i].colors = CL_MSG_ReadByte();

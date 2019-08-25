@@ -142,7 +142,7 @@ typedef struct {
   char mapname[128]; // therjak
   char levelname[128];  // for display on solo scoreboard //johnfitz -- was 40. // therjak
   // int viewentity;       // cl_entitites[cl.viewentity] = player
-  int maxclients; // therjak
+  // int maxclients; // therjak
 
   // refresh related state
   struct qmodel_s *worldmodel;  // cl_entitites[0].model
