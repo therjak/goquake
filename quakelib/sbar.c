@@ -4,8 +4,6 @@
 //
 #include "quakedef.h"
 
-int sb_updates;  // if >= vid.numpages, no update needed
-
 #define STAT_MINUS 10  // num frame for '-' stats digit
 
 qpic_t *sb_nums[2][11];
@@ -58,7 +56,7 @@ Tab key down
 void Sbar_ShowScores(void) {
   if (sb_showscores) return;
   sb_showscores = true;
-  sb_updates = 0;
+  SBResetUpdates(0);
 }
 
 /*
@@ -70,7 +68,7 @@ Tab key up
 */
 void Sbar_DontShowScores(void) {
   sb_showscores = false;
-  sb_updates = 0;
+  SBResetUpdates();
 }
 
 /*
@@ -79,7 +77,8 @@ Sbar_Changed
 ===============
 */
 void Sbar_Changed(void) {
-  sb_updates = 0;  // update next frame
+  // update next frame
+  SBResetUpdates();
 }
 
 /*
@@ -454,7 +453,10 @@ void Sbar_DrawInventory(void) {
 
       Draw_Pic(i * 24, -16 + 24, sb_weapons[flashon][i]);
 
-      if (flashon > 1) sb_updates = 0;  // force update to remove flash
+      if (flashon > 1) {
+        // force update to remove flash
+        SBResetUpdates();
+      }
     }
   }
 
@@ -494,7 +496,10 @@ void Sbar_DrawInventory(void) {
         } else
           Draw_Pic(176 + (i * 24), -16 + 24, hsb_weapons[flashon][i]);
 
-        if (flashon > 1) sb_updates = 0;  // force update to remove flash
+        if (flashon > 1) {
+          // force update to remove flash
+          SBResetUpdates();
+        }
       }
     }
   }
@@ -545,14 +550,16 @@ void Sbar_DrawInventory(void) {
     if (CL_HasItem(1 << (17 + i))) {
       time = CL_ItemGetTime(17 + i);
       if (time && time > CL_Time() - 2 && flashon) {  // flash frame
-        sb_updates = 0;
+        SBResetUpdates();
       } else {
         // MED 01/04/97 changed keys
         if (!CMLHipnotic() || (i > 1)) {
           Draw_Pic(192 + i * 16, -16 + 24, sb_items[i]);
         }
       }
-      if (time && time > CL_Time() - 2) sb_updates = 0;
+      if (time && time > CL_Time() - 2) {
+        SBResetUpdates();
+      }
     }
   }
   // MED 01/04/97 added hipnotic items
@@ -562,11 +569,13 @@ void Sbar_DrawInventory(void) {
       if (CL_HasItem(1 << (24 + i))) {
         time = CL_ItemGetTime(24 + i);
         if (time && time > CL_Time() - 2 && flashon) {  // flash frame
-          sb_updates = 0;
+          SBResetUpdates();
         } else {
           Draw_Pic(288 + i * 16, -16 + 24, hsb_items[i]);
         }
-        if (time && time > CL_Time() - 2) sb_updates = 0;
+        if (time && time > CL_Time() - 2) {
+          SBResetUpdates();
+        }
       }
     }
   }
@@ -577,11 +586,13 @@ void Sbar_DrawInventory(void) {
       if (CL_HasItem(1 << (29 + i))) {
         time = CL_ItemGetTime(29 + i);
         if (time && time > CL_Time() - 2 && flashon) {  // flash frame
-          sb_updates = 0;
+          SBResetUpdates();
         } else {
           Draw_Pic(288 + i * 16, -16 + 24, rsb_items[i]);
         }
-        if (time && time > CL_Time() - 2) sb_updates = 0;
+        if (time && time > CL_Time() - 2) {
+          SBResetUpdates();
+        }
       }
     }
   } else {
@@ -590,10 +601,12 @@ void Sbar_DrawInventory(void) {
       if (CL_HasItem(1 << (28 + i))) {
         time = CL_ItemGetTime(28 + i);
         if (time && time > CL_Time() - 2 && flashon) {  // flash frame
-          sb_updates = 0;
+          SBResetUpdates();
         } else
           Draw_Pic(320 - 32 + i * 8, -16 + 24, sb_sigil[i]);
-        if (time && time > CL_Time() - 2) sb_updates = 0;
+        if (time && time > CL_Time() - 2) {
+          SBResetUpdates();
+        }
       }
     }
   }
@@ -723,7 +736,8 @@ void Sbar_DrawFace(void) {
 
   if (CL_CheckFaceAnimTime()) {
     anim = 1;
-    sb_updates = 0;  // make sure the anim gets drawn over
+    // make sure the anim gets drawn over
+    SBResetUpdates();
   } else
     anim = 0;
   Draw_Pic(112, 24, sb_faces[f][anim]);
@@ -743,14 +757,14 @@ void Sbar_Draw(void) {
   if (CL_Intermission())
     return;  // johnfitz -- never draw sbar during intermission
 
-  if (sb_updates >= GetNumPages() && !Cvar_GetValue(&gl_clear) &&
+  if (SBUpdates() >= GetNumPages() && !Cvar_GetValue(&gl_clear) &&
       Cvar_GetValue(&scr_sbaralpha) >= 1  // johnfitz -- gl_clear, scr_sbaralpha
       && !(Cvar_GetValue(&vid_gamma) != 1)) {
     // ericw -- must draw sbar every frame if doing glsl gamma
     return;
   }
 
-  sb_updates++;
+  SBUpdatesInc();
 
   GL_SetCanvas(CANVAS_DEFAULT);  // johnfitz
 
@@ -783,7 +797,7 @@ void Sbar_Draw(void) {
     Draw_PicAlpha(0, 24, sb_scorebar,
                   Cvar_GetValue(&scr_sbaralpha));  // johnfitz -- scr_sbaralpha
     Sbar_DrawScoreboard();
-    sb_updates = 0;
+    SBResetUpdates();
   } else if (Cvar_GetValue(&scr_viewsize) <
              120)  // johnfitz -- check viewsize instead of sb_lines
   {

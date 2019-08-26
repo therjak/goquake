@@ -14,8 +14,24 @@ import (
 type Statusbar struct{}
 
 var (
-	statusbar Statusbar
+	statusbar        Statusbar
+	statusbarUpdates int // if >= vid.numpages, no update needed -- this needs rework
 )
+
+//export SBResetUpdates
+func SBResetUpdates() {
+	statusbarUpdates = 0
+}
+
+//export SBUpdatesInc
+func SBUpdatesInc() {
+	statusbarUpdates++
+}
+
+//export SBUpdates
+func SBUpdates() int {
+	return statusbarUpdates
+}
 
 func (s *Statusbar) MarkChanged() {
 	C.Sbar_Changed()
