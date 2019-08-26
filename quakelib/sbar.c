@@ -284,7 +284,7 @@ void Sbar_DrawNum(int x, int y, int num, int digits, int color) {
     else
       frame = *ptr - '0';
 
-    Draw_Pic(x, y+24, sb_nums[color][frame]);
+    Draw_Pic(x, y + 24, sb_nums[color][frame]);
     x += 24;
     ptr++;
   }
@@ -369,23 +369,23 @@ void Sbar_SoloScoreboard(void) {
 
   sprintf(str, "Kills: %i/%i", CL_Stats(STAT_MONSTERS),
           CL_Stats(STAT_TOTALMONSTERS));
-  Draw_String(8, 12+24, str);
+  Draw_String(8, 12 + 24, str);
 
   sprintf(str, "Secrets: %i/%i", CL_Stats(STAT_SECRETS),
           CL_Stats(STAT_TOTALSECRETS));
-  Draw_String(312 - strlen(str) * 8, 12+24, str);
+  Draw_String(312 - strlen(str) * 8, 12 + 24, str);
 
   if (!CMLFitz()) { /* QuakeSpasm customization: */
     q_snprintf(str, sizeof(str), "skill %i",
                (int)(Cvar_GetValue(&skill) + 0.5));
-    Draw_String(160 - strlen(str) * 4, 12+24, str);
+    Draw_String(160 - strlen(str) * 4, 12 + 24, str);
 
     q_snprintf(str, sizeof(str), "%s (%s)", cl.levelname, cl.mapname);
     len = strlen(str);
     if (len > 40)
       Sbar_DrawScrollString(0, 4, 320, str);
     else
-      Draw_String(160 - len * 4, 4+24, str);
+      Draw_String(160 - len * 4, 4 + 24, str);
     return;
   }
   minutes = CL_Time() / 60;
@@ -393,13 +393,13 @@ void Sbar_SoloScoreboard(void) {
   tens = seconds / 10;
   units = seconds - 10 * tens;
   sprintf(str, "%i:%i%i", minutes, tens, units);
-  Draw_String(160 - strlen(str) * 4, 12+24, str);
+  Draw_String(160 - strlen(str) * 4, 12 + 24, str);
 
   len = strlen(cl.levelname);
   if (len > 40)
     Sbar_DrawScrollString(0, 4, 320, cl.levelname);
   else
-    Draw_String(160 - len * 4, 4+24, cl.levelname);
+    Draw_String(160 - len * 4, 4 + 24, cl.levelname);
 }
 
 /*
@@ -435,9 +435,8 @@ void Sbar_DrawInventory(void) {
           0, 0, rsb_invbar[1],
           Cvar_GetValue(&scr_sbaralpha));  // johnfitz -- scr_sbaralpha
   } else {
-    Draw_PicAlpha(
-        0, 0, sb_ibar,
-        Cvar_GetValue(&scr_sbaralpha));  // johnfitz -- scr_sbaralpha
+    Draw_PicAlpha(0, 0, sb_ibar,
+                  Cvar_GetValue(&scr_sbaralpha));  // johnfitz -- scr_sbaralpha
   }
 
   // weapons
@@ -453,7 +452,7 @@ void Sbar_DrawInventory(void) {
       } else
         flashon = (flashon % 5) + 2;
 
-      Draw_Pic(i * 24, -16+24, sb_weapons[flashon][i]);
+      Draw_Pic(i * 24, -16 + 24, sb_weapons[flashon][i]);
 
       if (flashon > 1) sb_updates = 0;  // force update to remove flash
     }
@@ -480,20 +479,20 @@ void Sbar_DrawInventory(void) {
           if (CL_HasItem(HIT_PROXIMITY_GUN)) {
             if (flashon) {
               grenadeflashing = 1;
-              Draw_Pic(96, -16+24, hsb_weapons[flashon][2]);
+              Draw_Pic(96, -16 + 24, hsb_weapons[flashon][2]);
             }
           }
         } else if (i == 3) {
           if (CL_HasItem(IT_SHOTGUN << 4)) {
             if (flashon && !grenadeflashing) {
-              Draw_Pic(96, -16+24, hsb_weapons[flashon][3]);
+              Draw_Pic(96, -16 + 24, hsb_weapons[flashon][3]);
             } else if (!grenadeflashing) {
-              Draw_Pic(96, -16+24, hsb_weapons[0][3]);
+              Draw_Pic(96, -16 + 24, hsb_weapons[0][3]);
             }
           } else
-            Draw_Pic(96, -16+24, hsb_weapons[flashon][4]);
+            Draw_Pic(96, -16 + 24, hsb_weapons[flashon][4]);
         } else
-          Draw_Pic(176 + (i * 24), -16+24, hsb_weapons[flashon][i]);
+          Draw_Pic(176 + (i * 24), -16 + 24, hsb_weapons[flashon][i]);
 
         if (flashon > 1) sb_updates = 0;  // force update to remove flash
       }
@@ -505,7 +504,7 @@ void Sbar_DrawInventory(void) {
     if (CL_Stats(STAT_ACTIVEWEAPON) >= RIT_LAVA_NAILGUN) {
       for (i = 0; i < 5; i++) {
         if (CL_Stats(STAT_ACTIVEWEAPON) == (RIT_LAVA_NAILGUN << i)) {
-          Draw_Pic((i + 2) * 24, -16+24, rsb_weapons[i]);
+          Draw_Pic((i + 2) * 24, -16 + 24, rsb_weapons[i]);
         }
       }
     }
@@ -516,8 +515,7 @@ void Sbar_DrawInventory(void) {
   val = (val < 0) ? 0 : q_min(999, val);
   sprintf(num, "%3i", val);
   for (int q = 0; q < 3; ++q) {
-    if (num[q] != ' ')
-      Draw_Character((q + 1) * 8 + 2, 0, 18 + num[q] - '0');
+    if (num[q] != ' ') Draw_Character((q + 1) * 8 + 2, 0, 18 + num[q] - '0');
   }
   val = CL_Stats(STAT_NAILS);
   val = (val < 0) ? 0 : q_min(999, val);
@@ -551,7 +549,7 @@ void Sbar_DrawInventory(void) {
       } else {
         // MED 01/04/97 changed keys
         if (!CMLHipnotic() || (i > 1)) {
-          Draw_Pic(192 + i * 16, -16+24, sb_items[i]);
+          Draw_Pic(192 + i * 16, -16 + 24, sb_items[i]);
         }
       }
       if (time && time > CL_Time() - 2) sb_updates = 0;
@@ -566,7 +564,7 @@ void Sbar_DrawInventory(void) {
         if (time && time > CL_Time() - 2 && flashon) {  // flash frame
           sb_updates = 0;
         } else {
-          Draw_Pic(288 + i * 16, -16+24, hsb_items[i]);
+          Draw_Pic(288 + i * 16, -16 + 24, hsb_items[i]);
         }
         if (time && time > CL_Time() - 2) sb_updates = 0;
       }
@@ -581,7 +579,7 @@ void Sbar_DrawInventory(void) {
         if (time && time > CL_Time() - 2 && flashon) {  // flash frame
           sb_updates = 0;
         } else {
-          Draw_Pic(288 + i * 16, -16+24, rsb_items[i]);
+          Draw_Pic(288 + i * 16, -16 + 24, rsb_items[i]);
         }
         if (time && time > CL_Time() - 2) sb_updates = 0;
       }
@@ -594,7 +592,7 @@ void Sbar_DrawInventory(void) {
         if (time && time > CL_Time() - 2 && flashon) {  // flash frame
           sb_updates = 0;
         } else
-          Draw_Pic(320 - 32 + i * 8, -16+24, sb_sigil[i]);
+          Draw_Pic(320 - 32 + i * 8, -16 + 24, sb_sigil[i]);
         if (time && time > CL_Time() - 2) sb_updates = 0;
       }
     }
@@ -686,13 +684,13 @@ void Sbar_DrawFace(void) {
     sprintf(num, "%3i", f);
 
     if (top == 8) {
-      if (num[0] != ' ') Draw_Character(113, 3+24, 18 + num[0] - '0');
-      if (num[1] != ' ') Draw_Character(120, 3+24, 18 + num[1] - '0');
-      if (num[2] != ' ') Draw_Character(127, 3+24, 18 + num[2] - '0');
+      if (num[0] != ' ') Draw_Character(113, 3 + 24, 18 + num[0] - '0');
+      if (num[1] != ' ') Draw_Character(120, 3 + 24, 18 + num[1] - '0');
+      if (num[2] != ' ') Draw_Character(127, 3 + 24, 18 + num[2] - '0');
     } else {
-      Draw_Character(113, 3+24, num[0]);
-      Draw_Character(120, 3+24, num[1]);
-      Draw_Character(127, 3+24, num[2]);
+      Draw_Character(113, 3 + 24, num[0]);
+      Draw_Character(120, 3 + 24, num[1]);
+      Draw_Character(127, 3 + 24, num[2]);
     }
 
     return;
@@ -764,7 +762,8 @@ void Sbar_Draw(void) {
     if (CL_GameTypeDeathMatch())
       Draw_TileClear(w, GL_Height() - sb_lines, GL_Width() - w, sb_lines);
     else {
-      Draw_TileClear(0, GL_Height() - sb_lines, (GL_Width() - w) / 2.0f, sb_lines);
+      Draw_TileClear(0, GL_Height() - sb_lines, (GL_Width() - w) / 2.0f,
+                     sb_lines);
       Draw_TileClear((GL_Width() - w) / 2.0f + w, GL_Height() - sb_lines,
                      (GL_Width() - w) / 2.0f, sb_lines);
     }
@@ -781,23 +780,21 @@ void Sbar_Draw(void) {
   }
 
   if (sb_showscores || CL_Stats(STAT_HEALTH) <= 0) {
-    Draw_PicAlpha(
-        0, 24, sb_scorebar,
-        Cvar_GetValue(&scr_sbaralpha));  // johnfitz -- scr_sbaralpha
+    Draw_PicAlpha(0, 24, sb_scorebar,
+                  Cvar_GetValue(&scr_sbaralpha));  // johnfitz -- scr_sbaralpha
     Sbar_DrawScoreboard();
     sb_updates = 0;
   } else if (Cvar_GetValue(&scr_viewsize) <
              120)  // johnfitz -- check viewsize instead of sb_lines
   {
-    Draw_PicAlpha(
-        0, 24, sb_sbar,
-        Cvar_GetValue(&scr_sbaralpha));  // johnfitz -- scr_sbaralpha
+    Draw_PicAlpha(0, 24, sb_sbar,
+                  Cvar_GetValue(&scr_sbaralpha));  // johnfitz -- scr_sbaralpha
 
     // keys (hipnotic only)
     // MED 01/04/97 moved keys here so they would not be overwritten
     if (CMLHipnotic()) {
-      if (CL_HasItem(IT_KEY1)) Draw_Pic(209, 3+24, sb_items[0]);
-      if (CL_HasItem(IT_KEY2)) Draw_Pic(209, 12+24, sb_items[1]);
+      if (CL_HasItem(IT_KEY1)) Draw_Pic(209, 3 + 24, sb_items[0]);
+      if (CL_HasItem(IT_KEY2)) Draw_Pic(209, 12 + 24, sb_items[1]);
     }
     // armor
     if (CL_HasItem(IT_INVULNERABILITY)) {
@@ -861,8 +858,7 @@ void Sbar_Draw(void) {
     Sbar_DrawNum(248, 0, CL_Stats(STAT_AMMO), 3, CL_Stats(STAT_AMMO) <= 10);
   }
 
-  if (CL_GameTypeDeathMatch())
-      Sbar_MiniDeathmatchOverlay();
+  if (CL_GameTypeDeathMatch()) Sbar_MiniDeathmatchOverlay();
 }
 
 //=============================================================================

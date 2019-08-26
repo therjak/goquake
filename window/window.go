@@ -1,9 +1,11 @@
 package window
 
 import (
-	"github.com/veandco/go-sdl2/sdl"
 	"log"
 	"quake/cvars"
+
+	"github.com/go-gl/gl/v4.6-core/gl"
+	"github.com/veandco/go-sdl2/sdl"
 )
 
 var (
@@ -167,6 +169,10 @@ func SetMode(width, height, bpp int32, fullscreen bool) {
 		context, err = window.GLCreateContext()
 		if err != nil {
 			log.Fatalf("Couln't create GL context: %v", err)
+		}
+		// Initialize Glow
+		if err := gl.Init(); err != nil {
+			log.Fatalf("Couln't init gl: %v", err)
 		}
 	}
 }

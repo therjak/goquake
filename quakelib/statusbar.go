@@ -4,10 +4,11 @@ package quakelib
 import "C"
 
 import (
-	"github.com/go-gl/gl/v4.6-core/gl"
 	"quake/cvars"
 	"quake/math"
 	svc "quake/protocol/server"
+
+	"github.com/go-gl/gl/v4.6-core/gl"
 )
 
 type Statusbar struct{}
