@@ -37,10 +37,10 @@ func (m *qOptionsMenu) HandleKey(key kc.KeyCode) {
 }
 
 func (m *qOptionsMenu) Draw() {
-	drawPic(16, 4, getCachePic("gfx/qplaque.lmp"))
+	DrawPicture(16, 4, GetCachedPicture("gfx/qplaque.lmp"))
 
-	p := getCachePic("gfx/p_option.lmp")
-	drawPic((320-p.width)/2, 4, p)
+	p := GetCachedPicture("gfx/p_option.lmp")
+	DrawPicture((320-p.width)/2, 4, p)
 
 	for _, i := range m.items {
 		i.Draw()

@@ -37,15 +37,9 @@ package quakelib
 //#endif
 // #include "stdlib.h"
 // #include "wad.h"
-// void Draw_Character(int cx, int line, int num);
-// qpic_t *Draw_CachePic(const char *path);
-// void Draw_Pic(int x, int y, qpic_t *pic);
-// void Draw_TransPicTranslate(int x, int y, qpic_t *pic, int top, int bottom);
 // void	Con_ToggleConsole_f(void);
 // void M_Search_Key(int);
 // void M_ServerList_Key(int);
-// void Draw_ConsoleBackground(void);
-// void Draw_FadeScreen(void);
 // void GL_SetCanvas(canvastype newCanvas);
 // float GetScreenConsoleCurrentHeight(void);
 // void M_Search_Draw(void);
@@ -60,7 +54,6 @@ import (
 	"quake/keys"
 	"quake/math"
 	"quake/menu"
-	"unsafe"
 )
 
 const ()
@@ -91,6 +84,7 @@ func init() {
 // 128+ are normal
 // We draw on a 320x200 screen
 func drawString(x, y int, t string) {
+	// TODO: unify into one draw call
 	nx := x
 	for i := 0; i < len(t); i++ {
 		drawSymbol(nx, y, int(t[i])+128)
@@ -99,6 +93,7 @@ func drawString(x, y int, t string) {
 }
 
 func drawStringWhite(x, y int, t string) {
+	// TODO: unify into one draw call
 	nx := x
 	for i := 0; i < len(t); i++ {
 		drawSymbol(nx, y, int(t[i]))
@@ -107,7 +102,7 @@ func drawStringWhite(x, y int, t string) {
 }
 
 func drawSymbol(x, y, t int) {
-	C.Draw_Character(C.int(x), C.int(y), C.int(t))
+	DrawCharacter(x, y, t) // TODO: obsolete
 }
 
 func drawCheckbox(x, y int, checked bool) {
@@ -119,6 +114,7 @@ func drawCheckbox(x, y int, checked bool) {
 }
 
 func drawSlider(x, y int, r float32) {
+	// TODO: unify into one draw call
 	r = math.Clamp32(0, r, 1)
 	drawSymbol(x-8, y, 128)
 	for i := 0; i < 10; i++ {
@@ -130,62 +126,37 @@ func drawSlider(x, y int, r float32) {
 
 // w: width, l: lines
 func drawTextbox(x, y, w, l int) {
-	tm := getCachePic("gfx/box_tm.lmp")
-	mm := getCachePic("gfx/box_tm.lmp")
-	mm2 := getCachePic("gfx/box_tm.lmp")
-	bm := getCachePic("gfx/box_tm.lmp")
+	tm := GetCachedPicture("gfx/box_tm.lmp")
+	mm := GetCachedPicture("gfx/box_tm.lmp")
+	mm2 := GetCachedPicture("gfx/box_tm.lmp")
+	bm := GetCachedPicture("gfx/box_tm.lmp")
 
 	for i := 0; i < w/2; i++ {
 		mx := x + 8 + 16*i
-		drawPic(mx, y, tm)
+		DrawPicture(mx, y, tm)
 		for n := 0; n < l; n++ {
 			if n == 1 {
-				drawPic(mx, y+8*n, mm2)
+				DrawPicture(mx, y+8*n, mm2)
 			} else {
-				drawPic(mx, y+8*n, mm)
+				DrawPicture(mx, y+8*n, mm)
 			}
 		}
-		drawPic(mx, y+8*l, bm)
+		DrawPicture(mx, y+8*l, bm)
 	}
 
 	fx := x + 8 + 16*(w/2)
-	drawPic(x, y, getCachePic("gfx/box_tl.lmp"))
-	drawPic(fx, y, getCachePic("gfx/box_tr.lmp"))
-	p1 := getCachePic("gfx/box_ml.lmp")
-	p2 := getCachePic("gfx/box_mr.lmp")
+	DrawPicture(x, y, GetCachedPicture("gfx/box_tl.lmp"))
+	DrawPicture(fx, y, GetCachedPicture("gfx/box_tr.lmp"))
+	p1 := GetCachedPicture("gfx/box_ml.lmp")
+	p2 := GetCachedPicture("gfx/box_mr.lmp")
 	for i := 0; i < l; i++ {
 		my := y + 8 + 8*i
-		drawPic(x, my, p1)
-		drawPic(fx, my, p2)
+		DrawPicture(x, my, p1)
+		DrawPicture(fx, my, p2)
 	}
 	fy := y + 8 + 8*l
-	drawPic(x, fy, getCachePic("gfx/box_bl.lmp"))
-	drawPic(fx, fy, getCachePic("gfx/box_br.lmp"))
-}
-
-func getCachePic(name string) *QPic {
-	cn := C.CString(name)
-	defer C.free(unsafe.Pointer(cn))
-	p := C.Draw_CachePic(cn)
-	return &QPic{
-		pic:    p,
-		width:  int(p.width),
-		height: int(p.height),
-	}
-}
-
-type QPic struct {
-	pic    *C.qpic_t
-	width  int
-	height int
-}
-
-func drawPic(x, y int, p *QPic) {
-	C.Draw_Pic(C.int(x), C.int(y), p.pic)
-}
-
-func drawPicTranslate(x, y int, p *QPic, top, bottom int) {
-	C.Draw_TransPicTranslate(C.int(x), C.int(y), p.pic, C.int(top), C.int(bottom))
+	DrawPicture(x, fy, GetCachedPicture("gfx/box_bl.lmp"))
+	DrawPicture(fx, fy, GetCachedPicture("gfx/box_br.lmp"))
 }
 
 func enterMenuOptions() {
@@ -263,7 +234,7 @@ type qDotMenuItem struct {
 func (m *qDotMenuItem) DrawCursor() {
 	i := (int(Time()*10) % 6) + 1
 	name := fmt.Sprintf("gfx/menudot%d.lmp", i)
-	drawPic(m.Xcursor, m.Y, getCachePic(name))
+	DrawPicture(m.Xcursor, m.Y, GetCachedPicture(name))
 }
 
 type qMenu struct {
@@ -284,11 +255,11 @@ func (m *qMenu) Draw() {
 	}
 
 	if C.GetScreenConsoleCurrentHeight() != 0 {
-		C.Draw_ConsoleBackground()
+		DrawConsoleBackground()
 		C.S_ExtraUpdate()
 	}
 
-	C.Draw_FadeScreen()
+	DrawFadeScreen()
 
 	C.GL_SetCanvas(C.CANVAS_MENU)
 

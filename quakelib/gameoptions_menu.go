@@ -296,9 +296,9 @@ func (m *episodeMenuItem) Accept() {
 }
 
 func (m *qGameOptionsMenu) Draw() {
-	drawPic(16, 4, getCachePic("gfx/qplaque.lmp"))
-	p := getCachePic("gfx/p_multi.lmp")
-	drawPic((320-p.width)/2, 4, p)
+	DrawPicture(16, 4, GetCachedPicture("gfx/qplaque.lmp"))
+	p := GetCachedPicture("gfx/p_multi.lmp")
+	DrawPicture((320-p.width)/2, 4, p)
 
 	for _, item := range m.items {
 		item.Draw()

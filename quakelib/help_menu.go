@@ -33,7 +33,7 @@ type helpMenuItem struct {
 
 func (h *helpMenuItem) DrawCursor() {
 	name := fmt.Sprintf("gfx/help%d.lmp", h.index)
-	drawPic(0, 0, getCachePic(name))
+	DrawPicture(0, 0, GetCachedPicture(name))
 }
 
 func makeHelpMenuItems() []MenuItem {

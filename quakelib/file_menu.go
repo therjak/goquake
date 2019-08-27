@@ -126,16 +126,16 @@ type qSaveMenu struct {
 }
 
 func (m *qLoadMenu) Draw() {
-	p := getCachePic("gfx/p_load.lmp")
-	drawPic((320-p.width)/2, 4, p)
+	p := GetCachedPicture("gfx/p_load.lmp")
+	DrawPicture((320-p.width)/2, 4, p)
 	for _, item := range m.items {
 		item.Draw()
 	}
 	m.items[m.selectedIndex].DrawCursor()
 }
 func (m *qSaveMenu) Draw() {
-	p := getCachePic("gfx/p_save.lmp")
-	drawPic((320-p.width)/2, 4, p)
+	p := GetCachedPicture("gfx/p_save.lmp")
+	DrawPicture((320-p.width)/2, 4, p)
 	for _, i := range m.items {
 		i.Draw()
 	}

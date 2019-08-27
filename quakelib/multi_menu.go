@@ -25,12 +25,12 @@ type qMultiPlayerMenu struct {
 }
 
 func (m *qMultiPlayerMenu) Draw() {
-	drawPic(16, 4, getCachePic("gfx/qplaque.lmp"))
+	DrawPicture(16, 4, GetCachedPicture("gfx/qplaque.lmp"))
 
-	p := getCachePic("gfx/p_multi.lmp")
-	drawPic((320-p.width)/2, 4, p)
+	p := GetCachedPicture("gfx/p_multi.lmp")
+	DrawPicture((320-p.width)/2, 4, p)
 
-	drawPic(72, 32, getCachePic("gfx/mp_menu.lmp"))
+	DrawPicture(72, 32, GetCachedPicture("gfx/mp_menu.lmp"))
 
 	m.items[m.selectedIndex].DrawCursor()
 

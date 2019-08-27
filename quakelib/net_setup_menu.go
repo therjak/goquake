@@ -49,12 +49,12 @@ func (m *qNetSetupMenu) TextEntry() bool {
 }
 
 func (m *qNetSetupMenu) Draw() {
-	drawPic(16, 4, getCachePic("gfx/qplaque.lmp"))
-	p := getCachePic("gfx/p_multi.lmp")
-	drawPic((320-p.width)/2, 4, p)
+	DrawPicture(16, 4, GetCachedPicture("gfx/qplaque.lmp"))
+	p := GetCachedPicture("gfx/p_multi.lmp")
+	DrawPicture((320-p.width)/2, 4, p)
 
-	drawPic(160, 64, getCachePic("gfx/bigbox.lmp"))
-	drawPicTranslate(172, 72, getCachePic("gfx/menuplyr.lmp"), m.topColor, m.bottomColor)
+	DrawPicture(160, 64, GetCachedPicture("gfx/bigbox.lmp"))
+	DrawTransparentPictureTranslate(172, 72, GetCachedPicture("gfx/menuplyr.lmp"), m.topColor, m.bottomColor)
 
 	for _, item := range m.items {
 		item.Draw()

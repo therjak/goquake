@@ -41,10 +41,10 @@ func (m *qVideoMenu) HandleKey(key kc.KeyCode) {
 
 func (m *qVideoMenu) Draw() {
 	// We draw on a 320x200 screen
-	drawPic(16, 4, getCachePic("gfx/qplaque.lmp"))
+	DrawPicture(16, 4, GetCachedPicture("gfx/qplaque.lmp"))
 
-	p := getCachePic("gfx/p_option.lmp")
-	drawPic((320-p.width)/2, 4, p)
+	p := GetCachedPicture("gfx/p_option.lmp")
+	DrawPicture((320-p.width)/2, 4, p)
 
 	title := "Video Options"
 	drawStringWhite((320-8*len(title))/2, 32, title)

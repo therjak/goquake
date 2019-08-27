@@ -252,9 +252,9 @@ func (m *qNetConfigMenu) TextEntry() bool {
 }
 
 func (m *qNetConfigMenu) Draw() {
-	drawPic(16, 4, getCachePic("gfx/qplaque.lmp"))
-	p := getCachePic("gfx/p_multi.lmp")
-	drawPic((320-p.width)/2, 4, p)
+	DrawPicture(16, 4, GetCachedPicture("gfx/qplaque.lmp"))
+	p := GetCachedPicture("gfx/p_multi.lmp")
+	DrawPicture((320-p.width)/2, 4, p)
 	drawString(52, 32, fmt.Sprintf("%s - TCP/IP", m.text))
 	drawString(60, 52, "Address:")
 	drawString(60+9*8, 52, net.Address())

@@ -37,12 +37,12 @@ type qMainMenu struct {
 
 func (m *qMainMenu) Draw() {
 	// We draw on a 320x200 screen
-	drawPic(16, 4, getCachePic("gfx/qplaque.lmp"))
+	DrawPicture(16, 4, GetCachedPicture("gfx/qplaque.lmp"))
 
-	p := getCachePic("gfx/ttl_main.lmp")
-	drawPic((320-p.width)/2, 4, p)
+	p := GetCachedPicture("gfx/ttl_main.lmp")
+	DrawPicture((320-p.width)/2, 4, p)
 
-	drawPic(72, 32, getCachePic("gfx/mainmenu.lmp"))
+	DrawPicture(72, 32, GetCachedPicture("gfx/mainmenu.lmp"))
 
 	m.items[m.selectedIndex].DrawCursor()
 }

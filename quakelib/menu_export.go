@@ -37,10 +37,6 @@ package quakelib
 //#endif
 // #include "stdlib.h"
 // #include "wad.h"
-// void Draw_Character(int cx, int line, int num);
-// qpic_t *Draw_CachePic(const char *path);
-// void Draw_Pic(int x, int y, qpic_t *pic);
-// void Draw_TransPicTranslate(int x, int y, qpic_t *pic, int top, int bottom);
 // void	Con_ToggleConsole_f(void);
 // void M_Setup_Key(int);
 // void M_GameOptions_Key(int);

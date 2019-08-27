@@ -26,12 +26,12 @@ type qSinglePlayerMenu struct {
 }
 
 func (m *qSinglePlayerMenu) Draw() {
-	drawPic(16, 4, getCachePic("gfx/qplaque.lmp"))
+	DrawPicture(16, 4, GetCachedPicture("gfx/qplaque.lmp"))
 
-	p := getCachePic("gfx/ttl_sgl.lmp")
-	drawPic((320-p.width)/2, 4, p)
+	p := GetCachedPicture("gfx/ttl_sgl.lmp")
+	DrawPicture((320-p.width)/2, 4, p)
 
-	drawPic(72, 32, getCachePic("gfx/sp_menu.lmp"))
+	DrawPicture(72, 32, GetCachedPicture("gfx/sp_menu.lmp"))
 
 	m.items[m.selectedIndex].DrawCursor()
 }

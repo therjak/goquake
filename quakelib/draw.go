@@ -22,32 +22,54 @@ import (
 
 type Picture *C.qpic_t
 
+type QPic struct {
+	pic    Picture
+	width  int
+	height int
+}
+
 func DrawCharacter(x, y int, num int) {
 	C.Draw_Character(C.int(x), C.int(y), C.int(num))
 }
 
-func DrawPicture(x, y int, p Picture) {
-	C.Draw_Pic(C.int(x), C.int(y), p)
+func DrawPicture(x, y int, p *QPic) {
+	C.Draw_Pic(C.int(x), C.int(y), p.pic)
 }
 
-func DrawPictureAlpha(x, y int, p Picture, alpha float32) {
-	C.Draw_PicAlpha(C.int(x), C.int(y), p, C.float(alpha))
+func DrawPictureAlpha(x, y int, p *QPic, alpha float32) {
+	C.Draw_PicAlpha(C.int(x), C.int(y), p.pic, C.float(alpha))
 }
 
-func DrawTransparentPictureTranslate(x, y int, p Picture, top, bottom int) {
-	C.Draw_TransPicTranslate(C.int(x), C.int(y), p, C.int(top), C.int(bottom))
+func DrawTransparentPictureTranslate(x, y int, p *QPic, top, bottom int) {
+	C.Draw_TransPicTranslate(C.int(x), C.int(y), p.pic, C.int(top), C.int(bottom))
 }
 
-func GetCachedPicture(name string) Picture {
+func DrawConsoleBackground() {
+	C.Draw_ConsoleBackground()
+}
+
+func DrawFadeScreen() {
+	C.Draw_FadeScreen()
+}
+
+func GetCachedPicture(name string) *QPic {
 	n := C.CString(name)
 	p := C.Draw_CachePic(n)
 	C.free(unsafe.Pointer(n))
-	return p
+	return &QPic{
+		pic:    p,
+		width:  int(p.width),
+		height: int(p.height),
+	}
 }
 
-func GetPictureFromWad(name string) Picture {
+func GetPictureFromWad(name string) *QPic {
 	n := C.CString(name)
 	p := C.Draw_PicFromWad(n)
 	C.free(unsafe.Pointer(n))
-	return p
+	return &QPic{
+		pic:    p,
+		width:  int(p.width),
+		height: int(p.height),
+	}
 }
