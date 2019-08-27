@@ -118,7 +118,7 @@ func (m *hostnameMenuItem) Draw() {
 
 func (m *hostnameMenuItem) DrawCursor() {
 	m.qMenuItem.DrawCursor()
-	drawSymbol(168+8*len(netSetupMenu.hostname), m.Y,
+	DrawCharacter(168+8*len(netSetupMenu.hostname), m.Y,
 		10+(int(Time()*4)&1))
 }
 
@@ -145,7 +145,7 @@ func (m *playernameMenuItem) Draw() {
 
 func (m *playernameMenuItem) DrawCursor() {
 	m.qMenuItem.DrawCursor()
-	drawSymbol(168+8*len(netSetupMenu.playername), m.Y,
+	DrawCharacter(168+8*len(netSetupMenu.playername), m.Y,
 		10+(int(Time()*4)&1))
 }
 

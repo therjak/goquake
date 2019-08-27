@@ -132,9 +132,9 @@ func (m *keysMenuItem) Draw(s, grab bool) {
 
 	if s {
 		if grab {
-			drawSymbol(130, m.Y, '=')
+			DrawCharacter(130, m.Y, '=')
 		} else {
-			drawSymbol(130, m.Y, 12+(int(Time()*4)&1))
+			DrawCharacter(130, m.Y, 12+(int(Time()*4)&1))
 		}
 	}
 }

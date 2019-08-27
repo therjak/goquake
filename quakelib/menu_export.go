@@ -37,13 +37,6 @@ package quakelib
 //#endif
 // #include "stdlib.h"
 // #include "wad.h"
-// void	Con_ToggleConsole_f(void);
-// void M_Setup_Key(int);
-// void M_GameOptions_Key(int);
-// void M_Search_Key(int);
-// void M_ServerList_Key(int);
-// void M_Setup_Char(int);
-// int M_Setup_TextEntry();
 import "C"
 
 import (

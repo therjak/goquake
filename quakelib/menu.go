@@ -87,7 +87,7 @@ func drawString(x, y int, t string) {
 	// TODO: unify into one draw call
 	nx := x
 	for i := 0; i < len(t); i++ {
-		drawSymbol(nx, y, int(t[i])+128)
+		DrawCharacter(nx, y, int(t[i])+128)
 		nx += 8
 	}
 }
@@ -96,13 +96,9 @@ func drawStringWhite(x, y int, t string) {
 	// TODO: unify into one draw call
 	nx := x
 	for i := 0; i < len(t); i++ {
-		drawSymbol(nx, y, int(t[i]))
+		DrawCharacter(nx, y, int(t[i]))
 		nx += 8
 	}
-}
-
-func drawSymbol(x, y, t int) {
-	DrawCharacter(x, y, t) // TODO: obsolete
 }
 
 func drawCheckbox(x, y int, checked bool) {
@@ -116,12 +112,12 @@ func drawCheckbox(x, y int, checked bool) {
 func drawSlider(x, y int, r float32) {
 	// TODO: unify into one draw call
 	r = math.Clamp32(0, r, 1)
-	drawSymbol(x-8, y, 128)
+	DrawCharacter(x-8, y, 128)
 	for i := 0; i < 10; i++ {
-		drawSymbol(x+i*8, y, 129)
+		DrawCharacter(x+i*8, y, 129)
 	}
-	drawSymbol(x+10*8, y, 130)
-	drawSymbol(x+int(9*8*r), y, 131)
+	DrawCharacter(x+10*8, y, 130)
+	DrawCharacter(x+int(9*8*r), y, 131)
 }
 
 // w: width, l: lines
@@ -217,7 +213,7 @@ type qMenuItem struct {
 
 func (m *qMenuItem) Draw() {}
 func (m *qMenuItem) DrawCursor() {
-	drawSymbol(m.Xcursor, m.Y, 12+(int(Time()*4))&1)
+	DrawCharacter(m.Xcursor, m.Y, 12+(int(Time()*4))&1)
 }
 func (m *qMenuItem) Enter()                    {}
 func (m *qMenuItem) Backspace()                {}

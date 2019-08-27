@@ -56,15 +56,16 @@ func (s *Statusbar) DrawScrollString(x, y, width int, str string) {
 		left += (float32(viewport.width) - 320.0*scale) / 2
 	}
 
+	// TODO: there rest should probably go into draw.go as helper function
 	gl.Enable(gl.SCISSOR_TEST)
 	gl.Scissor(int32(left), 0, int32(float32(width)*scale), int32(viewport.height))
 
 	len := len(str)*8 + 40
 	ofs := int(host.time*30) % len
 	drawString(x-ofs, y+24, str)
-	drawSymbol(x-ofs+len-32, y+24, '/')
-	drawSymbol(x-ofs+len-24, y+24, '/')
-	drawSymbol(x-ofs+len-16, y+24, '/')
+	DrawCharacter(x-ofs+len-32, y+24, '/')
+	DrawCharacter(x-ofs+len-24, y+24, '/')
+	DrawCharacter(x-ofs+len-16, y+24, '/')
 	drawString(x-ofs+len, y+24, str)
 
 	gl.Disable(gl.SCISSOR_TEST)

@@ -132,7 +132,7 @@ func (m *serverNameMenuItem) Accept() {
 
 func (m *serverNameMenuItem) DrawCursor() {
 	m.qMenuItem.DrawCursor()
-	drawSymbol(60+16+8*len(m.serverName), m.Y, 10+(int(Time()*4)&1))
+	DrawCharacter(60+16+8*len(m.serverName), m.Y, 10+(int(Time()*4)&1))
 }
 
 func (m *serverNameMenuItem) Enter() {
@@ -183,7 +183,7 @@ func (m *portMenuItem) Accept() {
 
 func (m *portMenuItem) DrawCursor() {
 	m.qMenuItem.DrawCursor()
-	drawSymbol(60+9*8+8*len(m.portName), m.Y, 10+(int(Time()*4)&1))
+	DrawCharacter(60+9*8+8*len(m.portName), m.Y, 10+(int(Time()*4)&1))
 }
 
 type qNetConfigMenu struct {
