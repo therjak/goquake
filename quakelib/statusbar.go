@@ -289,7 +289,7 @@ func (s *Statusbar) DrawInventory() {
 	DrawPictureAlpha(0, 0, ibar, cvars.ScreenStatusbarAlpha.Value())
 
 	for i := uint32(0); i < 7; i++ {
-		weapon := uint32(1) << i
+		weapon := uint32(1) << i // ItemShotgun to ItemLightning
 		if (cl.items & weapon) != 0 {
 			flashon := int((cl.time - cl.itemGetTime[i]) * 10)
 			if flashon >= 10 {
@@ -388,70 +388,55 @@ func (s *Statusbar) DrawInventory() {
 	drawAmmo(cl.stats.rockets, 2)
 	drawAmmo(cl.stats.cells, 3)
 
+	// items
+	for i := uint32(0); i < 6; i++ {
+		item := 17 + i // 17 (ItemKey1) to 17+6 (ItemQuad)
+		if cl.items&(1<<item) != 0 {
+			if !cmdl.Hipnotic() || (i > 1) {
+				DrawPicture(192+int(i)*16, -16+24, s.items[i])
+			}
+			time := cl.itemGetTime[item]
+			if time != 0 && time > cl.time-2 {
+				s.MarkChanged()
+			}
+		}
+	}
 	/*
-	  flashon = 0;
-	  // items
-	  for (i = 0; i < 6; i++) {
-	    if (CL_HasItem(1 << (17 + i))) {
-	      time = CL_ItemGetTime(17 + i);
-	      if (time && time > CL_Time() - 2 && flashon) {  // flash frame
-	        SBResetUpdates();
-	      } else {
-	        if (!CMLHipnotic() || (i > 1)) {
-	          Draw_Pic(192 + i * 16, -16 + 24, sb_items[i]);
-	        }
-	      }
-	      if (time && time > CL_Time() - 2) {
-	        SBResetUpdates();
-	      }
-	    }
-	  }
 
-	  if (CMLHipnotic()) {
-	    for (i = 0; i < 2; i++) {
-	      if (CL_HasItem(1 << (24 + i))) {
-	        time = CL_ItemGetTime(24 + i);
-	        if (time && time > CL_Time() - 2 && flashon) {  // flash frame
-	          SBResetUpdates();
-	        } else {
-	          Draw_Pic(288 + i * 16, -16 + 24, hsb_items[i]);
-	        }
-	        if (time && time > CL_Time() - 2) {
-	          SBResetUpdates();
-	        }
-	      }
-	    }
-	  }
+		  if (CMLHipnotic()) {
+		    for (i = 0; i < 2; i++) {
+		      if (CL_HasItem(1 << (24 + i))) {
+		        time = CL_ItemGetTime(24 + i);
+		        Draw_Pic(288 + i * 16, -16 + 24, hsb_items[i]);
+		        if (time && time > CL_Time() - 2) {
+					s.MarkChanged()
+		        }
+		      }
+		    }
+		  }
 
-	  if (CMLRogue()) {
-	    // new rogue items
-	    for (i = 0; i < 2; i++) {
-	      if (CL_HasItem(1 << (29 + i))) {
-	        time = CL_ItemGetTime(29 + i);
-	        if (time && time > CL_Time() - 2 && flashon) {  // flash frame
-	          SBResetUpdates();
-	        } else {
-	          Draw_Pic(288 + i * 16, -16 + 24, rsb_items[i]);
-	        }
-	        if (time && time > CL_Time() - 2) {
-	          SBResetUpdates();
-	        }
-	      }
-	    }
-	  } else {
-	    // sigils
-	    for (i = 0; i < 4; i++) {
-	      if (CL_HasItem(1 << (28 + i))) {
-	        time = CL_ItemGetTime(28 + i);
-	        if (time && time > CL_Time() - 2 && flashon) {  // flash frame
-	          SBResetUpdates();
-	        } else
-	          Draw_Pic(320 - 32 + i * 8, -16 + 24, sb_sigil[i]);
-	        if (time && time > CL_Time() - 2) {
-	          SBResetUpdates();
-	        }
-	      }
-	    }
-	  }
+		  if (CMLRogue()) {
+		    // new rogue items
+		    for (i = 0; i < 2; i++) {
+		      if (CL_HasItem(1 << (29 + i))) {
+		        time = CL_ItemGetTime(29 + i);
+		        Draw_Pic(288 + i * 16, -16 + 24, rsb_items[i]);
+		        if (time && time > CL_Time() - 2) {
+					s.MarkChanged()
+		        }
+		      }
+		    }
+		  } else {
+		    // sigils
+		    for (i = 0; i < 4; i++) {
+		      if (CL_HasItem(1 << (28 + i))) { // ItemSigil1 to ItemSigil4
+		        time = CL_ItemGetTime(28 + i);
+		        Draw_Pic(320 - 32 + i * 8, -16 + 24, sb_sigil[i]);
+		        if (time && time > CL_Time() - 2) {
+					s.MarkChanged()
+		        }
+		      }
+		    }
+		  }
 	*/
 }
