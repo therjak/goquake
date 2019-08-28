@@ -8,11 +8,9 @@
 
 qpic_t *sb_nums[2][11];
 qpic_t *sb_colon, *sb_slash;
-qpic_t *sb_ibar;
 qpic_t *sb_sbar;
 qpic_t *sb_scorebar;
 
-qpic_t *sb_weapons[7][8];  // 0 is active, 1 is owned, 2-5 are flashes
 qpic_t *sb_ammo[4];
 qpic_t *sb_sigil[4];
 qpic_t *sb_armor[3];
@@ -25,11 +23,8 @@ qpic_t *sb_face_quad;
 qpic_t *sb_face_invuln;
 qpic_t *sb_face_invis_invuln;
 
-qboolean sb_showscores;
-
 int sb_lines;  // scan lines to draw
 
-qpic_t *rsb_invbar[2];
 qpic_t *rsb_weapons[5];
 qpic_t *rsb_items[2];
 qpic_t *rsb_ammo[3];
@@ -45,41 +40,6 @@ qpic_t *hsb_items[2];
 
 void Sbar_MiniDeathmatchOverlay(void);
 void Sbar_DeathmatchOverlay(void);
-
-/*
-===============
-Sbar_ShowScores
-
-Tab key down
-===============
-*/
-void Sbar_ShowScores(void) {
-  if (sb_showscores) return;
-  sb_showscores = true;
-  SBResetUpdates(0);
-}
-
-/*
-===============
-Sbar_DontShowScores
-
-Tab key up
-===============
-*/
-void Sbar_DontShowScores(void) {
-  sb_showscores = false;
-  SBResetUpdates();
-}
-
-/*
-===============
-Sbar_Changed
-===============
-*/
-void Sbar_Changed(void) {
-  // update next frame
-  SBResetUpdates();
-}
 
 /*
 ===============
@@ -99,32 +59,6 @@ void Sbar_LoadPics(void) {
 
   sb_colon = Draw_PicFromWad("num_colon");
   sb_slash = Draw_PicFromWad("num_slash");
-
-  sb_weapons[0][0] = Draw_PicFromWad("inv_shotgun");
-  sb_weapons[0][1] = Draw_PicFromWad("inv_sshotgun");
-  sb_weapons[0][2] = Draw_PicFromWad("inv_nailgun");
-  sb_weapons[0][3] = Draw_PicFromWad("inv_snailgun");
-  sb_weapons[0][4] = Draw_PicFromWad("inv_rlaunch");
-  sb_weapons[0][5] = Draw_PicFromWad("inv_srlaunch");
-  sb_weapons[0][6] = Draw_PicFromWad("inv_lightng");
-
-  sb_weapons[1][0] = Draw_PicFromWad("inv2_shotgun");
-  sb_weapons[1][1] = Draw_PicFromWad("inv2_sshotgun");
-  sb_weapons[1][2] = Draw_PicFromWad("inv2_nailgun");
-  sb_weapons[1][3] = Draw_PicFromWad("inv2_snailgun");
-  sb_weapons[1][4] = Draw_PicFromWad("inv2_rlaunch");
-  sb_weapons[1][5] = Draw_PicFromWad("inv2_srlaunch");
-  sb_weapons[1][6] = Draw_PicFromWad("inv2_lightng");
-
-  for (i = 0; i < 5; i++) {
-    sb_weapons[2 + i][0] = Draw_PicFromWad(va("inva%i_shotgun", i + 1));
-    sb_weapons[2 + i][1] = Draw_PicFromWad(va("inva%i_sshotgun", i + 1));
-    sb_weapons[2 + i][2] = Draw_PicFromWad(va("inva%i_nailgun", i + 1));
-    sb_weapons[2 + i][3] = Draw_PicFromWad(va("inva%i_snailgun", i + 1));
-    sb_weapons[2 + i][4] = Draw_PicFromWad(va("inva%i_rlaunch", i + 1));
-    sb_weapons[2 + i][5] = Draw_PicFromWad(va("inva%i_srlaunch", i + 1));
-    sb_weapons[2 + i][6] = Draw_PicFromWad(va("inva%i_lightng", i + 1));
-  }
 
   sb_ammo[0] = Draw_PicFromWad("sb_shells");
   sb_ammo[1] = Draw_PicFromWad("sb_nails");
@@ -164,7 +98,6 @@ void Sbar_LoadPics(void) {
   sb_face_quad = Draw_PicFromWad("face_quad");
 
   sb_sbar = Draw_PicFromWad("sbar");
-  sb_ibar = Draw_PicFromWad("ibar");
   sb_scorebar = Draw_PicFromWad("scorebar");
 
   // MED 01/04/97 added new hipnotic weapons
@@ -194,9 +127,6 @@ void Sbar_LoadPics(void) {
   }
 
   if (CMLRogue()) {
-    rsb_invbar[0] = Draw_PicFromWad("r_invbar1");
-    rsb_invbar[1] = Draw_PicFromWad("r_invbar2");
-
     rsb_weapons[0] = Draw_PicFromWad("r_lava");
     rsb_weapons[1] = Draw_PicFromWad("r_superlava");
     rsb_weapons[2] = Draw_PicFromWad("r_gren");
@@ -214,18 +144,6 @@ void Sbar_LoadPics(void) {
     rsb_ammo[1] = Draw_PicFromWad("r_ammomulti");
     rsb_ammo[2] = Draw_PicFromWad("r_ammoplasma");
   }
-}
-
-/*
-===============
-Sbar_Init -- johnfitz -- rewritten
-===============
-*/
-void Sbar_Init(void) {
-  Cmd_AddCommand("+showscores", Sbar_ShowScores);
-  Cmd_AddCommand("-showscores", Sbar_DontShowScores);
-
-  Sbar_LoadPics();
 }
 
 /*
@@ -418,47 +336,12 @@ void Sbar_DrawScoreboard(void) {
 Sbar_DrawInventory
 ===============
 */
+/*
 void Sbar_DrawInventory(void) {
   int i, val;
   char num[6];
   double time;
   int flashon;
-
-  if (CMLRogue()) {
-    if (CL_Stats(STAT_ACTIVEWEAPON) >= RIT_LAVA_NAILGUN)
-      Draw_PicAlpha(
-          0, 0, rsb_invbar[0],
-          Cvar_GetValue(&scr_sbaralpha));  // johnfitz -- scr_sbaralpha
-    else
-      Draw_PicAlpha(
-          0, 0, rsb_invbar[1],
-          Cvar_GetValue(&scr_sbaralpha));  // johnfitz -- scr_sbaralpha
-  } else {
-    Draw_PicAlpha(0, 0, sb_ibar,
-                  Cvar_GetValue(&scr_sbaralpha));  // johnfitz -- scr_sbaralpha
-  }
-
-  // weapons
-  for (i = 0; i < 7; i++) {
-    if (CL_HasItem(IT_SHOTGUN << i)) {
-      time = CL_ItemGetTime(i);
-      flashon = (int)((CL_Time() - time) * 10);
-      if (flashon >= 10) {
-        if (CL_Stats(STAT_ACTIVEWEAPON) == (IT_SHOTGUN << i))
-          flashon = 1;
-        else
-          flashon = 0;
-      } else
-        flashon = (flashon % 5) + 2;
-
-      Draw_Pic(i * 24, -16 + 24, sb_weapons[flashon][i]);
-
-      if (flashon > 1) {
-        // force update to remove flash
-        SBResetUpdates();
-      }
-    }
-  }
 
   // MED 01/04/97
   // hipnotic weapons
@@ -513,35 +396,6 @@ void Sbar_DrawInventory(void) {
         }
       }
     }
-  }
-
-  // ammo counts
-  val = CL_Stats(STAT_SHELLS);
-  val = (val < 0) ? 0 : q_min(999, val);
-  sprintf(num, "%3i", val);
-  for (int q = 0; q < 3; ++q) {
-    if (num[q] != ' ') Draw_Character((q + 1) * 8 + 2, 0, 18 + num[q] - '0');
-  }
-  val = CL_Stats(STAT_NAILS);
-  val = (val < 0) ? 0 : q_min(999, val);
-  sprintf(num, "%3i", val);
-  for (int q = 0; q < 3; ++q) {
-    if (num[q] != ' ')
-      Draw_Character((6 + q + 1) * 8 + 2, 0, 18 + num[q] - '0');
-  }
-  val = CL_Stats(STAT_ROCKETS);
-  val = (val < 0) ? 0 : q_min(999, val);
-  sprintf(num, "%3i", val);
-  for (int q = 0; q < 3; ++q) {
-    if (num[q] != ' ')
-      Draw_Character((6 * 2 + q + 1) * 8 + 2, 0, 18 + num[q] - '0');
-  }
-  val = CL_Stats(STAT_CELLS);
-  val = (val < 0) ? 0 : q_min(999, val);
-  sprintf(num, "%3i", val);
-  for (int q = 0; q < 3; ++q) {
-    if (num[q] != ' ')
-      Draw_Character((6 * 3 + q + 1) * 8 + 2, 0, 18 + num[q] - '0');
   }
 
   flashon = 0;
@@ -611,7 +465,7 @@ void Sbar_DrawInventory(void) {
     }
   }
 }
-
+*/
 //=============================================================================
 
 /*
@@ -793,7 +647,7 @@ void Sbar_Draw(void) {
     if (CL_MaxClients() != 1) Sbar_DrawFrags();
   }
 
-  if (sb_showscores || CL_Stats(STAT_HEALTH) <= 0) {
+  if (Sbar_DoesShowScores() || CL_Stats(STAT_HEALTH) <= 0) {
     Draw_PicAlpha(0, 24, sb_scorebar,
                   Cvar_GetValue(&scr_sbaralpha));  // johnfitz -- scr_sbaralpha
     Sbar_DrawScoreboard();
