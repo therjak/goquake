@@ -52,6 +52,10 @@ func DrawFadeScreen() {
 	C.Draw_FadeScreen()
 }
 
+func DrawFill(x, y, w, h int, c int, alpha float32) {
+	C.Draw_Fill(C.int(x), C.int(y), C.int(w), C.int(h), C.int(c), C.float(alpha))
+}
+
 func GetCachedPicture(name string) *QPic {
 	n := C.CString(name)
 	p := C.Draw_CachePic(n)
