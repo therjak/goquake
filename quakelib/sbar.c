@@ -25,18 +25,12 @@ qpic_t *sb_face_invis_invuln;
 
 int sb_lines;  // scan lines to draw
 
-qpic_t *rsb_weapons[5];
-qpic_t *rsb_items[2];
 qpic_t *rsb_ammo[3];
 qpic_t *rsb_teambord;  // PGM 01/19/97 - team color border
 
-// MED 01/04/97 added two more weapons + 3 alternates for grenade launcher
-qpic_t *hsb_weapons[7][5];  // 0 is active, 1 is owned, 2-5 are flashes
-// MED 01/04/97 added array to simplify weapon parsing
 int hipweapons[4] = {HIT_LASER_CANNON_BIT, HIT_MJOLNIR_BIT, 4,
                      HIT_PROXIMITY_GUN_BIT};
 // MED 01/04/97 added hipnotic items array
-qpic_t *hsb_items[2];
 
 void Sbar_MiniDeathmatchOverlay(void);
 void Sbar_DeathmatchOverlay(void);
@@ -100,45 +94,8 @@ void Sbar_LoadPics(void) {
   sb_sbar = Draw_PicFromWad("sbar");
   sb_scorebar = Draw_PicFromWad("scorebar");
 
-  // MED 01/04/97 added new hipnotic weapons
-  if (CMLHipnotic()) {
-    hsb_weapons[0][0] = Draw_PicFromWad("inv_laser");
-    hsb_weapons[0][1] = Draw_PicFromWad("inv_mjolnir");
-    hsb_weapons[0][2] = Draw_PicFromWad("inv_gren_prox");
-    hsb_weapons[0][3] = Draw_PicFromWad("inv_prox_gren");
-    hsb_weapons[0][4] = Draw_PicFromWad("inv_prox");
-
-    hsb_weapons[1][0] = Draw_PicFromWad("inv2_laser");
-    hsb_weapons[1][1] = Draw_PicFromWad("inv2_mjolnir");
-    hsb_weapons[1][2] = Draw_PicFromWad("inv2_gren_prox");
-    hsb_weapons[1][3] = Draw_PicFromWad("inv2_prox_gren");
-    hsb_weapons[1][4] = Draw_PicFromWad("inv2_prox");
-
-    for (i = 0; i < 5; i++) {
-      hsb_weapons[2 + i][0] = Draw_PicFromWad(va("inva%i_laser", i + 1));
-      hsb_weapons[2 + i][1] = Draw_PicFromWad(va("inva%i_mjolnir", i + 1));
-      hsb_weapons[2 + i][2] = Draw_PicFromWad(va("inva%i_gren_prox", i + 1));
-      hsb_weapons[2 + i][3] = Draw_PicFromWad(va("inva%i_prox_gren", i + 1));
-      hsb_weapons[2 + i][4] = Draw_PicFromWad(va("inva%i_prox", i + 1));
-    }
-
-    hsb_items[0] = Draw_PicFromWad("sb_wsuit");
-    hsb_items[1] = Draw_PicFromWad("sb_eshld");
-  }
-
   if (CMLRogue()) {
-    rsb_weapons[0] = Draw_PicFromWad("r_lava");
-    rsb_weapons[1] = Draw_PicFromWad("r_superlava");
-    rsb_weapons[2] = Draw_PicFromWad("r_gren");
-    rsb_weapons[3] = Draw_PicFromWad("r_multirock");
-    rsb_weapons[4] = Draw_PicFromWad("r_plasma");
-
-    rsb_items[0] = Draw_PicFromWad("r_shield1");
-    rsb_items[1] = Draw_PicFromWad("r_agrav1");
-
-    // PGM 01/19/97 - team color border
     rsb_teambord = Draw_PicFromWad("r_teambord");
-    // PGM 01/19/97 - team color border
 
     rsb_ammo[0] = Draw_PicFromWad("r_ammolava");
     rsb_ammo[1] = Draw_PicFromWad("r_ammomulti");

@@ -5,6 +5,7 @@ import "C"
 
 import (
 	"fmt"
+	"math/bits"
 	"quake/cmd"
 	cmdl "quake/commandline"
 	"quake/cvars"
@@ -72,14 +73,13 @@ type Statusbar struct {
 	showScores bool
 
 	// all pictures
-	nums    [2][11]*QPic
-	colon   *QPic
-	slash   *QPic
-	weapons map[int]spic //
-	ammo    [4]*QPic
-	armor   [3]*QPic
-	items   [32]*QPic //
-	sigil   [4]*QPic
+	nums  [2][11]*QPic
+	colon *QPic
+	slash *QPic
+	items map[int]spic //
+	ammo  [4]*QPic
+	armor [3]*QPic
+	sigil [4]*QPic
 
 	faces             [7][2]*QPic
 	face_invis        *QPic
@@ -125,38 +125,38 @@ func (s *Statusbar) LoadPictures() {
 			GetPictureFromWad("inva6_" + s),
 		}
 	}
-	s.weapons = make(map[int]spic)
-	s.weapons[progs.ItemShotgun] = spic{
+	s.items = make(map[int]spic)
+	s.items[progs.ItemShotgun] = spic{
 		pic: getw("shotgun"),
 		x:   0 * 24,
 		y:   8,
 	}
-	s.weapons[progs.ItemSuperShotgun] = spic{
+	s.items[progs.ItemSuperShotgun] = spic{
 		pic: getw("sshotgun"),
 		x:   1 * 24,
 		y:   8,
 	}
-	s.weapons[progs.ItemNailgun] = spic{
+	s.items[progs.ItemNailgun] = spic{
 		pic: getw("nailgun"),
 		x:   2 * 24,
 		y:   8,
 	}
-	s.weapons[progs.ItemSuperNailgun] = spic{
+	s.items[progs.ItemSuperNailgun] = spic{
 		pic: getw("snailgun"),
 		x:   3 * 24,
 		y:   8,
 	}
-	s.weapons[progs.ItemGrenadeLauncher] = spic{
+	s.items[progs.ItemGrenadeLauncher] = spic{
 		pic: getw("rlaunch"),
 		x:   4 * 24,
 		y:   8,
 	}
-	s.weapons[progs.ItemRocketLauncher] = spic{
+	s.items[progs.ItemRocketLauncher] = spic{
 		pic: getw("srlaunch"),
 		x:   4 * 24,
 		y:   8,
 	}
-	s.weapons[progs.ItemLightning] = spic{
+	s.items[progs.ItemLightning] = spic{
 		pic: getw("lightng"),
 		x:   5 * 24,
 		y:   8,
@@ -171,17 +171,71 @@ func (s *Statusbar) LoadPictures() {
 	s.armor[1] = GetPictureFromWad("sb_armor2")
 	s.armor[2] = GetPictureFromWad("sb_armor3")
 
-	s.items[0] = GetPictureFromWad("sb_key1")
-	s.items[1] = GetPictureFromWad("sb_key2")
-	s.items[2] = GetPictureFromWad("sb_invis")
-	s.items[3] = GetPictureFromWad("sb_invuln")
-	s.items[4] = GetPictureFromWad("sb_suit")
-	s.items[5] = GetPictureFromWad("sb_quad")
+	s.items[progs.ItemKey1] = spic{
+		pic: []*QPic{GetPictureFromWad("sb_key1")},
+		x:   192 + 0*16,
+		y:   8,
+	}
+	s.items[progs.ItemKey2] = spic{
+		pic: []*QPic{GetPictureFromWad("sb_key2")},
+		x:   192 + 1*16,
+		y:   8,
+	}
+	s.items[progs.ItemInvisibility] = spic{
+		pic: []*QPic{GetPictureFromWad("sb_invis")},
+		x:   192 + 2*16,
+		y:   8,
+	}
+	s.items[progs.ItemInvulnerability] = spic{
+		pic: []*QPic{GetPictureFromWad("sb_invuln")},
+		x:   192 + 3*16,
+		y:   8,
+	}
+	s.items[progs.ItemSuit] = spic{
+		pic: []*QPic{GetPictureFromWad("sb_suit")},
+		x:   192 + 4*16,
+		y:   8,
+	}
+	s.items[progs.ItemQuad] = spic{
+		pic: []*QPic{GetPictureFromWad("sb_quad")},
+		x:   192 + 5*16,
+		y:   8,
+	}
 
-	s.sigil[0] = GetPictureFromWad("sb_sigil1")
-	s.sigil[1] = GetPictureFromWad("sb_sigil2")
-	s.sigil[2] = GetPictureFromWad("sb_sigil3")
-	s.sigil[3] = GetPictureFromWad("sb_sigil4")
+	if !cmdl.Rogue() {
+		s.items[progs.ItemSigil1] = spic{
+			pic: []*QPic{GetPictureFromWad("sb_sigil1")},
+			x:   288 + 0*8,
+			y:   8,
+		}
+		s.items[progs.ItemSigil2] = spic{
+			pic: []*QPic{GetPictureFromWad("sb_sigil2")},
+			x:   288 + 1*8,
+			y:   8,
+		}
+		s.items[progs.ItemSigil3] = spic{
+			pic: []*QPic{GetPictureFromWad("sb_sigil3")},
+			x:   288 + 2*8,
+			y:   8,
+		}
+		s.items[progs.ItemSigil4] = spic{
+			pic: []*QPic{GetPictureFromWad("sb_sigil4")},
+			x:   288 + 3*8,
+			y:   8,
+		}
+	} else {
+		// These collide with ItemSigil2/ItemSigil3
+		s.items[progs.RogueItemShield] = spic{
+			pic: []*QPic{GetPictureFromWad("r_shield1")},
+			x:   288 + 0*16,
+			y:   8,
+		}
+		s.items[progs.RogueItemAntigrav] = spic{
+			pic: []*QPic{GetPictureFromWad("r_agrav1")},
+			x:   288 + 1*16,
+			y:   8,
+		}
+	}
 
 	s.faces[4][0] = GetPictureFromWad("face1")
 	s.faces[4][1] = GetPictureFromWad("face_p1")
@@ -224,8 +278,16 @@ func (s *Statusbar) LoadPictures() {
 			s.hweapons[2+i][4] = GetPictureFromWad(fmt.Sprintf("inva%d_prox", i+1))
 		}
 
-		s.hitems[0] = GetPictureFromWad("sb_wsuit")
-		s.hitems[1] = GetPictureFromWad("sb_eshld")
+		s.items[progs.HipnoticItemWetsuit] = spic{
+			pic: []*QPic{GetPictureFromWad("sb_wsuit")},
+			x:   288 + 0*16,
+			y:   8,
+		}
+		s.items[progs.HipnoticItemEmpathyShields] = spic{
+			pic: []*QPic{GetPictureFromWad("sb_eshld")},
+			x:   288 + 1*16,
+			y:   8,
+		}
 	}
 
 	if cmdl.Rogue() {
@@ -237,9 +299,6 @@ func (s *Statusbar) LoadPictures() {
 		s.rweapons[2] = GetPictureFromWad("r_gren")
 		s.rweapons[3] = GetPictureFromWad("r_multirock")
 		s.rweapons[4] = GetPictureFromWad("r_plasma")
-
-		s.ritems[0] = GetPictureFromWad("r_shield1")
-		s.ritems[1] = GetPictureFromWad("r_agrav1")
 
 		s.rteambord = GetPictureFromWad("r_teambord")
 
@@ -317,7 +376,7 @@ func (s *Statusbar) DrawInventory() {
 	}()
 	DrawPictureAlpha(0, 0, ibar, cvars.ScreenStatusbarAlpha.Value())
 
-	for i, weapon := range []int{
+	for _, weapon := range []int{
 		progs.ItemShotgun,
 		progs.ItemSuperShotgun,
 		progs.ItemNailgun,
@@ -333,12 +392,13 @@ func (s *Statusbar) DrawInventory() {
 		if cl.stats.weapon == weapon {
 			frame = 1
 		}
-		if f := int((cl.time - cl.itemGetTime[i]) * 10); f < 10 {
+		b := bits.TrailingZeros32(uint32(weapon))
+		if f := int((cl.time - cl.itemGetTime[b]) * 10); f < 10 {
 			frame = (f % 5) + 2
 			// force update to remove flash
 			s.MarkChanged()
 		}
-		w := s.weapons[weapon]
+		w := s.items[weapon]
 		DrawPicture(w.x, w.y, w.pic[frame])
 	}
 	/*
@@ -419,55 +479,33 @@ func (s *Statusbar) DrawInventory() {
 	drawAmmo(cl.stats.rockets, 2)
 	drawAmmo(cl.stats.cells, 3)
 
-	// items
-	for i := uint32(0); i < 6; i++ {
-		item := 17 + i // 17 (ItemKey1) to 17+6 (ItemQuad)
-		if cl.items&(1<<item) != 0 {
-			if !cmdl.Hipnotic() || (i > 1) {
-				DrawPicture(192+int(i)*16, -16+24, s.items[i])
-			}
-			time := cl.itemGetTime[item]
-			if time != 0 && time > cl.time-2 {
-				s.MarkChanged()
-			}
+	//other items
+	items := []int{
+		progs.ItemInvisibility,
+		progs.ItemInvulnerability,
+		progs.ItemSuit,
+		progs.ItemQuad,
+	}
+	if !cmdl.Hipnotic() {
+		items = append(items, progs.ItemKey1, progs.ItemKey2)
+	} else {
+		items = append(items, progs.HipnoticItemWetsuit, progs.HipnoticItemEmpathyShields)
+	}
+	if cmdl.Rogue() {
+		items = append(items, progs.RogueItemShield, progs.RogueItemAntigrav)
+	} else {
+		items = append(items, progs.ItemSigil1, progs.ItemSigil2, progs.ItemSigil3, progs.ItemSigil4)
+	}
+
+	for _, item := range items {
+		if cl.items&uint32(item) == 0 {
+			continue
+		}
+		i := s.items[item]
+		DrawPicture(i.x, i.y, i.pic[0])
+		b := bits.TrailingZeros32(uint32(item))
+		if t := cl.itemGetTime[b]; t != 0 && t > cl.time-2 {
+			s.MarkChanged()
 		}
 	}
-	/*
-
-		  if (CMLHipnotic()) {
-		    for (i = 0; i < 2; i++) {
-		      if (CL_HasItem(1 << (24 + i))) {
-		        time = CL_ItemGetTime(24 + i);
-		        Draw_Pic(288 + i * 16, -16 + 24, hsb_items[i]);
-		        if (time && time > CL_Time() - 2) {
-					s.MarkChanged()
-		        }
-		      }
-		    }
-		  }
-
-		  if (CMLRogue()) {
-		    // new rogue items
-		    for (i = 0; i < 2; i++) {
-		      if (CL_HasItem(1 << (29 + i))) {
-		        time = CL_ItemGetTime(29 + i);
-		        Draw_Pic(288 + i * 16, -16 + 24, rsb_items[i]);
-		        if (time && time > CL_Time() - 2) {
-					s.MarkChanged()
-		        }
-		      }
-		    }
-		  } else {
-		    // sigils
-		    for (i = 0; i < 4; i++) {
-		      if (CL_HasItem(1 << (28 + i))) { // ItemSigil1 to ItemSigil4
-		        time = CL_ItemGetTime(28 + i);
-		        Draw_Pic(320 - 32 + i * 8, -16 + 24, sb_sigil[i]);
-		        if (time && time > CL_Time() - 2) {
-					s.MarkChanged()
-		        }
-		      }
-		    }
-		  }
-	*/
 }
