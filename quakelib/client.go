@@ -167,6 +167,13 @@ type ClientStatic struct {
 	// net.PacketCon
 }
 
+type score struct {
+	name        string
+	frags       int
+	topColor    int
+	bottomColor int
+}
+
 type Client struct {
 	pitch          float32 // 0
 	yaw            float32 // 1
@@ -190,8 +197,6 @@ type Client struct {
 	// don't change view angle, full screen, etc
 	intermission int
 	// num_statics
-	// maxclients
-	// scores
 	// sound_precache
 	// model_precache
 	// viewent.model
@@ -220,6 +225,8 @@ type Client struct {
 	itemGetTime  [32]float64 // for blinking
 	faceAnimTime float64
 	maxEdicts    int
+
+	scores []score // len() == maxClients
 }
 
 type ClientStats struct {
@@ -293,6 +300,28 @@ func CL_MaxClients() int {
 //export CL_SetMaxClients
 func CL_SetMaxClients(m int) {
 	cl.maxClients = m
+	cl.scores = make([]score, m)
+}
+
+//export CL_ScoresSetFrags
+func CL_ScoresSetFrags(i int, f int) {
+	cl.scores[i].frags = f
+}
+
+//export CL_ScoresFrags
+func CL_ScoresFrags(i int) int {
+	return cl.scores[i].frags
+}
+
+//export CL_ScoresSetColors
+func CL_ScoresSetColors(i int, c int) {
+	cl.scores[i].topColor = (c & 0xf0) >> 4
+	cl.scores[i].bottomColor = c & 15
+}
+
+//export CL_ScoresColors
+func CL_ScoresColors(i int) int {
+	return (cl.scores[i].topColor << 4) + cl.scores[i].bottomColor
 }
 
 //export CL_Stats

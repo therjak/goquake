@@ -34,10 +34,8 @@ typedef struct {
 
 typedef struct {
   char name[MAX_SCOREBOARDNAME];
-  float entertime;
   int frags;
   int colors;  // two 4 bit fields
-  byte translations[VID_GRADES * 256];
 } scoreboard_t;
 
 typedef struct {
@@ -139,8 +137,9 @@ typedef struct {
   //
   struct qmodel_s *model_precache[MAX_MODELS];
 
-  char mapname[128]; // therjak
-  char levelname[128];  // for display on solo scoreboard //johnfitz -- was 40. // therjak
+  char mapname[128];    // therjak
+  char levelname[128];  // for display on solo scoreboard //johnfitz -- was 40.
+                        // // therjak
   // int viewentity;       // cl_entitites[cl.viewentity] = player
   // int maxclients; // therjak
 

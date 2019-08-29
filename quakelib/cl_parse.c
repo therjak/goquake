@@ -276,12 +276,12 @@ void CL_ParseServerInfo(void) {
     CL_SetProtocolFlags(0);
 
   // parse maxclients
-  CL_SetMaxClients( CL_MSG_ReadByte() );
+  CL_SetMaxClients(CL_MSG_ReadByte());
   if (CL_MaxClients() < 1 || CL_MaxClients() > MAX_SCOREBOARD) {
     Host_Error("Bad maxclients (%u) from server", CL_MaxClients());
   }
-  cl.scores = (scoreboard_t *)Hunk_AllocName(CL_MaxClients() * sizeof(*cl.scores),
-                                             "scores");
+  cl.scores = (scoreboard_t *)Hunk_AllocName(
+      CL_MaxClients() * sizeof(*cl.scores), "scores");
 
   // parse gametype
   CL_SetGameType(CL_MSG_ReadByte());
@@ -458,15 +458,14 @@ void CL_ParseUpdate(int bits) {
     ent->frame = ent->baseline.frame;
 
   if (bits & U_COLORMAP)
-    CL_MSG_ReadByte(); // colormap -- no idea what this is good for
+    CL_MSG_ReadByte();  // colormap -- no idea what this is good for
   if (bits & U_SKIN)
     skin = CL_MSG_ReadByte();
   else
     skin = ent->baseline.skin;
   if (skin != ent->skinnum) {
     ent->skinnum = skin;
-    if (num > 0 && num <= CL_MaxClients())
-      R_TranslateNewPlayerSkin(num - 1);
+    if (num > 0 && num <= CL_MaxClients()) R_TranslateNewPlayerSkin(num - 1);
   }
   if (bits & U_EFFECTS)
     ent->effects = CL_MSG_ReadByte();
@@ -559,8 +558,7 @@ void CL_ParseUpdate(int bits) {
         ent->syncbase = 0.0;
     } else
       forcelink = true;  // hack to make null model players work
-    if (num > 0 && num <= CL_MaxClients())
-      R_TranslateNewPlayerSkin(num - 1);
+    if (num > 0 && num <= CL_MaxClients()) R_TranslateNewPlayerSkin(num - 1);
 
     ent->lerpflags |= LERP_RESETANIM;  // johnfitz -- don't lerp animation
                                        // across model changes
@@ -594,7 +592,7 @@ void CL_ParseBaseline(entity_t *ent, int version)  // johnfitz -- added argument
       (bits & B_LARGEFRAME) ? CL_MSG_ReadShort() : CL_MSG_ReadByte();
   // johnfitz
 
-  CL_MSG_ReadByte(); // colormap -- no idea what this is good for
+  CL_MSG_ReadByte();  // colormap -- no idea what this is good for
   ent->baseline.skin = CL_MSG_ReadByte();
   for (i = 0; i < 3; i++) {
     ent->baseline.origin[i] = CL_MSG_ReadCoord();
@@ -666,8 +664,7 @@ void CL_ParseClientdata(void) {
   if (CL_Items() != i) {  // set flash times
     Sbar_Changed();
     for (j = 0; j < 32; j++)
-      if ((i & (1 << j)) && !(CL_HasItem(1 << j)))
-        CL_SetItemGetTime(j);
+      if ((i & (1 << j)) && !(CL_HasItem(1 << j))) CL_SetItemGetTime(j);
     CL_SetItems(i);
   }
 
@@ -1168,6 +1165,7 @@ void CL_ParseServerMessage(void) {
           Host_Error("CL_ParseServerMessage: svc_updatefrags > MAX_SCOREBOARD");
         }
         cl.scores[i].frags = CL_MSG_ReadShort();
+        CL_ScoresSetFrags(i, cl.scores[i].frags);
         break;
 
       case svc_updatecolors:
@@ -1177,6 +1175,7 @@ void CL_ParseServerMessage(void) {
           Host_Error(
               "CL_ParseServerMessage: svc_updatecolors > MAX_SCOREBOARD");
         cl.scores[i].colors = CL_MSG_ReadByte();
+        CL_ScoresSetColors(i, cl.scores[i].colors);
         CL_NewTranslation(i);
         break;
 
