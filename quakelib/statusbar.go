@@ -60,6 +60,12 @@ func init() {
 	cmd.AddCommand("-showscores", func(_ []cmd.QArg, _ int) { statusbar.HideScores() })
 }
 
+type spic struct {
+	pic []*QPic
+	x   int
+	y   int
+}
+
 type Statusbar struct {
 	// if >= vid.numpages, no update needed -- this needs rework
 	updates    int
@@ -69,10 +75,10 @@ type Statusbar struct {
 	nums    [2][11]*QPic
 	colon   *QPic
 	slash   *QPic
-	weapons [7][8]*QPic
+	weapons map[int]spic //
 	ammo    [4]*QPic
 	armor   [3]*QPic
-	items   [32]*QPic
+	items   [32]*QPic //
 	sigil   [4]*QPic
 
 	faces             [7][2]*QPic
@@ -82,13 +88,13 @@ type Statusbar struct {
 	face_quad         *QPic
 
 	sbar     *QPic
-	ibar     *QPic
+	ibar     *QPic //
 	scorebar *QPic
 
 	hweapons [7][5]*QPic
 	hitems   [2]*QPic
 
-	rinvbar   [2]*QPic
+	rinvbar   [2]*QPic //
 	rweapons  [5]*QPic
 	ritems    [2]*QPic
 	rteambord *QPic
@@ -107,30 +113,53 @@ func (s *Statusbar) LoadPictures() {
 	s.colon = GetPictureFromWad("num_colon")
 	s.slash = GetPictureFromWad("num_slash")
 
-	s.weapons[0][0] = GetPictureFromWad("inv_shotgun")
-	s.weapons[0][1] = GetPictureFromWad("inv_sshotgun")
-	s.weapons[0][2] = GetPictureFromWad("inv_nailgun")
-	s.weapons[0][3] = GetPictureFromWad("inv_snailgun")
-	s.weapons[0][4] = GetPictureFromWad("inv_rlaunch")
-	s.weapons[0][5] = GetPictureFromWad("inv_srlaunch")
-	s.weapons[0][6] = GetPictureFromWad("inv_lightng")
-
-	s.weapons[1][0] = GetPictureFromWad("inv2_shotgun")
-	s.weapons[1][1] = GetPictureFromWad("inv2_sshotgun")
-	s.weapons[1][2] = GetPictureFromWad("inv2_nailgun")
-	s.weapons[1][3] = GetPictureFromWad("inv2_snailgun")
-	s.weapons[1][4] = GetPictureFromWad("inv2_rlaunch")
-	s.weapons[1][5] = GetPictureFromWad("inv2_srlaunch")
-	s.weapons[1][6] = GetPictureFromWad("inv2_lightng")
-
-	for i := 0; i < 5; i++ {
-		s.weapons[2+i][0] = GetPictureFromWad(fmt.Sprintf("inva%d_shotgun", i+1))
-		s.weapons[2+i][1] = GetPictureFromWad(fmt.Sprintf("inva%d_sshotgun", i+1))
-		s.weapons[2+i][2] = GetPictureFromWad(fmt.Sprintf("inva%d_nailgun", i+1))
-		s.weapons[2+i][3] = GetPictureFromWad(fmt.Sprintf("inva%d_snailgun", i+1))
-		s.weapons[2+i][4] = GetPictureFromWad(fmt.Sprintf("inva%d_rlaunch", i+1))
-		s.weapons[2+i][5] = GetPictureFromWad(fmt.Sprintf("inva%d_srlaunch", i+1))
-		s.weapons[2+i][6] = GetPictureFromWad(fmt.Sprintf("inva%d_lightng", i+1))
+	getw := func(s string) []*QPic {
+		return []*QPic{
+			GetPictureFromWad("inv_" + s),
+			GetPictureFromWad("inv2_" + s),
+			GetPictureFromWad("inva1_" + s),
+			GetPictureFromWad("inva2_" + s),
+			GetPictureFromWad("inva3_" + s),
+			GetPictureFromWad("inva4_" + s),
+			GetPictureFromWad("inva5_" + s),
+			GetPictureFromWad("inva6_" + s),
+		}
+	}
+	s.weapons = make(map[int]spic)
+	s.weapons[progs.ItemShotgun] = spic{
+		pic: getw("shotgun"),
+		x:   0 * 24,
+		y:   8,
+	}
+	s.weapons[progs.ItemSuperShotgun] = spic{
+		pic: getw("sshotgun"),
+		x:   1 * 24,
+		y:   8,
+	}
+	s.weapons[progs.ItemNailgun] = spic{
+		pic: getw("nailgun"),
+		x:   2 * 24,
+		y:   8,
+	}
+	s.weapons[progs.ItemSuperNailgun] = spic{
+		pic: getw("snailgun"),
+		x:   3 * 24,
+		y:   8,
+	}
+	s.weapons[progs.ItemGrenadeLauncher] = spic{
+		pic: getw("rlaunch"),
+		x:   4 * 24,
+		y:   8,
+	}
+	s.weapons[progs.ItemRocketLauncher] = spic{
+		pic: getw("srlaunch"),
+		x:   4 * 24,
+		y:   8,
+	}
+	s.weapons[progs.ItemLightning] = spic{
+		pic: getw("lightng"),
+		x:   5 * 24,
+		y:   8,
 	}
 
 	s.ammo[0] = GetPictureFromWad("sb_shells")
@@ -288,27 +317,29 @@ func (s *Statusbar) DrawInventory() {
 	}()
 	DrawPictureAlpha(0, 0, ibar, cvars.ScreenStatusbarAlpha.Value())
 
-	for i := uint32(0); i < 7; i++ {
-		weapon := uint32(1) << i // ItemShotgun to ItemLightning
-		if (cl.items & weapon) != 0 {
-			flashon := int((cl.time - cl.itemGetTime[i]) * 10)
-			if flashon >= 10 {
-				if cl.stats.weapon == int(weapon) {
-					flashon = 1
-				} else {
-					flashon = 0
-				}
-			} else {
-				flashon = (flashon % 5) + 2
-			}
-
-			DrawPicture(int(i)*24, -16+24, s.weapons[flashon][i])
-
-			if flashon > 1 {
-				// force update to remove flash
-				s.MarkChanged()
-			}
+	for i, weapon := range []int{
+		progs.ItemShotgun,
+		progs.ItemSuperShotgun,
+		progs.ItemNailgun,
+		progs.ItemSuperNailgun,
+		progs.ItemGrenadeLauncher,
+		progs.ItemRocketLauncher,
+		progs.ItemLightning,
+	} {
+		if cl.items&uint32(weapon) == 0 {
+			continue
 		}
+		frame := 0
+		if cl.stats.weapon == weapon {
+			frame = 1
+		}
+		if f := int((cl.time - cl.itemGetTime[i]) * 10); f < 10 {
+			frame = (f % 5) + 2
+			// force update to remove flash
+			s.MarkChanged()
+		}
+		w := s.weapons[weapon]
+		DrawPicture(w.x, w.y, w.pic[frame])
 	}
 	/*
 	  if (CMLHipnotic()) {
