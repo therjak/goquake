@@ -214,8 +214,8 @@ not new skins
 void R_TranslatePlayerSkin(int playernum) {
   int top, bottom;
 
-  top = (cl.scores[playernum].colors & 0xf0) >> 4;
-  bottom = cl.scores[playernum].colors & 15;
+  top = (CL_ScoresColors(playernum) & 0xf0) >> 4;
+  bottom = CL_ScoresColors(playernum) & 15;
 
   // FIXME: if gl_nocolors is on, then turned off, the textures may be out of
   // sync with the scoreboard colors.

@@ -253,10 +253,10 @@ void CL_Record_f(void) {
         MSG_WriteString(&net_message, cl.scores[i].name);
         MSG_WriteByte(&net_message, svc_updatefrags);
         MSG_WriteByte(&net_message, i);
-        MSG_WriteShort(&net_message, cl.scores[i].frags);
+        MSG_WriteShort(&net_message, CL_ScoresFrags(i));
         MSG_WriteByte(&net_message, svc_updatecolors);
         MSG_WriteByte(&net_message, i);
-        MSG_WriteByte(&net_message, cl.scores[i].colors);
+        MSG_WriteByte(&net_message, CL_ScoresColors(i));
       }
 
       // send all current light styles

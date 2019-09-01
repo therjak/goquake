@@ -193,7 +193,7 @@ void Sbar_SortFrags(void) {
 
   for (i = 0; i < scoreboardlines; i++) {
     for (j = 0; j < scoreboardlines - 1 - i; j++) {
-      if (cl.scores[fragsort[j]].frags < cl.scores[fragsort[j + 1]].frags) {
+      if (CL_ScoresFrags(fragsort[j]) < CL_ScoresFrags(fragsort[j + 1])) {
         k = fragsort[j];
         fragsort[j] = fragsort[j + 1];
         fragsort[j + 1] = k;
@@ -222,10 +222,10 @@ void Sbar_UpdateScoreboard(void) {
   for (i = 0; i < scoreboardlines; i++) {
     k = fragsort[i];
     s = &cl.scores[k];
-    sprintf(&scoreboardtext[i][1], "%3i %s", s->frags, s->name);
+    sprintf(&scoreboardtext[i][1], "%3i %s", CL_ScoresFrags(k), s->name);
 
-    top = s->colors & 0xf0;
-    bottom = (s->colors & 15) << 4;
+    top = CL_ScoresColors(k) & 0xf0;
+    bottom = (CL_ScoresColors(k) & 15) << 4;
     scoreboardtop[i] = Sbar_ColorForMap(top);
     scoreboardbottom[i] = Sbar_ColorForMap(bottom);
   }
@@ -295,6 +295,7 @@ Sbar_DrawFrags -- johnfitz -- heavy revision
 */
 void Sbar_DrawFrags(void) {
   int numscores, i, x, color;
+  int k;
   char num[12];
   scoreboard_t *s;
 
@@ -304,21 +305,22 @@ void Sbar_DrawFrags(void) {
   numscores = q_min(scoreboardlines, 4);
 
   for (i = 0, x = 184; i < numscores; i++, x += 32) {
-    s = &cl.scores[fragsort[i]];
+    k = fragsort[i];
+    s = &cl.scores[k];
     if (!s->name[0]) continue;
 
     // top color
-    color = s->colors & 0xf0;
+    color = CL_ScoresColors(k) & 0xf0;
     color = Sbar_ColorForMap(color);
     Draw_Fill(x + 10, 1, 28, 4, color, 1);
 
     // bottom color
-    color = (s->colors & 15) << 4;
+    color = (CL_ScoresColors(k) & 15) << 4;
     color = Sbar_ColorForMap(color);
     Draw_Fill(x + 10, 5, 28, 3, color, 1);
 
     // number
-    sprintf(num, "%3i", s->frags);
+    sprintf(num, "%3i", CL_ScoresFrags(k));
     Draw_Character(x + 12, 0, num[0]);
     Draw_Character(x + 20, 0, num[1]);
     Draw_Character(x + 28, 0, num[2]);
@@ -340,6 +342,7 @@ Sbar_DrawFace
 */
 void Sbar_DrawFace(void) {
   int f, anim;
+  int k;
 
   // PGM 01/19/97 - team color drawing
   // PGM 03/02/97 - fixed so color swatch only appears in CTF modes
@@ -348,12 +351,10 @@ void Sbar_DrawFace(void) {
     int top, bottom;
     int xofs;
     char num[12];
-    scoreboard_t *s;
-
-    s = &cl.scores[CL_Viewentity() - 1];
+    k = CL_Viewentity() -1;
     // draw background
-    top = s->colors & 0xf0;
-    bottom = (s->colors & 15) << 4;
+    top = CL_ScoresColors(k) & 0xf0;
+    bottom = (CL_ScoresColors(k) & 15) << 4;
     top = Sbar_ColorForMap(top);
     bottom = Sbar_ColorForMap(bottom);
 
@@ -367,7 +368,7 @@ void Sbar_DrawFace(void) {
     Draw_Fill(xofs, 24 + 12, 22, 9, bottom, 1);
 
     // draw number
-    f = s->frags;
+    f = CL_ScoresFrags(k);
     sprintf(num, "%3i", f);
 
     if (top == 8) {
@@ -612,8 +613,8 @@ void Sbar_DeathmatchOverlay(void) {
     if (!s->name[0]) continue;
 
     // draw background
-    top = s->colors & 0xf0;
-    bottom = (s->colors & 15) << 4;
+    top = CL_ScoresColors(k) & 0xf0;
+    bottom = (CL_ScoresColors(k) & 15) << 4;
     top = Sbar_ColorForMap(top);
     bottom = Sbar_ColorForMap(bottom);
 
@@ -621,7 +622,7 @@ void Sbar_DeathmatchOverlay(void) {
     Draw_Fill(x, y + 4, 40, 4, bottom, 1);
 
     // draw number
-    f = s->frags;
+    f = CL_ScoresFrags(k);
     sprintf(num, "%3i", f);
 
     Draw_Character(x + 8, y, num[0]);
@@ -688,8 +689,8 @@ void Sbar_MiniDeathmatchOverlay(void) {
     if (!s->name[0]) continue;
 
     // colors
-    top = s->colors & 0xf0;
-    bottom = (s->colors & 15) << 4;
+    top = CL_ScoresColors(k) & 0xf0;
+    bottom = (CL_ScoresColors(k) & 15) << 4;
     top = Sbar_ColorForMap(top);
     bottom = Sbar_ColorForMap(bottom);
 
@@ -697,7 +698,7 @@ void Sbar_MiniDeathmatchOverlay(void) {
     Draw_Fill(x, y + 5, 40, 3, bottom, 1);
 
     // number
-    f = s->frags;
+    f = CL_ScoresFrags(k);
     sprintf(num, "%3i", f);
     Draw_Character(x + 8, y, num[0]);
     Draw_Character(x + 16, y, num[1]);

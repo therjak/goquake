@@ -34,8 +34,6 @@ typedef struct {
 
 typedef struct {
   char name[MAX_SCOREBOARDNAME];
-  int frags;
-  int colors;  // two 4 bit fields
 } scoreboard_t;
 
 typedef struct {

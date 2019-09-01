@@ -168,7 +168,7 @@ type ClientStatic struct {
 }
 
 type score struct {
-	name        string
+	name        string // (len == 0) => do not draw
 	frags       int
 	topColor    int
 	bottomColor int
@@ -301,6 +301,11 @@ func CL_MaxClients() int {
 func CL_SetMaxClients(m int) {
 	cl.maxClients = m
 	cl.scores = make([]score, m)
+}
+
+//export CL_ScoresSetName
+func CL_ScoresSetName(i int, c *C.char) {
+	cl.scores[i].name = C.GoString(c)
 }
 
 //export CL_ScoresSetFrags
