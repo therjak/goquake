@@ -19,28 +19,12 @@ package quakelib
 //  m_search,
 //  m_slist
 //} m_state_e;
-//
-//typedef enum {
-//  CANVAS_NONE,
-//  CANVAS_DEFAULT,
-//  CANVAS_CONSOLE,
-//  CANVAS_MENU,
-//  CANVAS_SBAR,
-//  CANVAS_WARPIMAGE,
-//  CANVAS_CROSSHAIR,
-//  CANVAS_BOTTOMLEFT,
-//  CANVAS_BOTTOMRIGHT,
-//  CANVAS_TOPRIGHT,
-//  CANVAS_INVALID = -1
-//} canvastype;
-//
 //#endif
 // #include "stdlib.h"
 // #include "wad.h"
 // void	Con_ToggleConsole_f(void);
 // void M_Search_Key(int);
 // void M_ServerList_Key(int);
-// void GL_SetCanvas(canvastype newCanvas);
 // float GetScreenConsoleCurrentHeight(void);
 // void M_Search_Draw(void);
 // void M_ServerList_Draw(void);
@@ -243,7 +227,7 @@ func (m *qMenu) Draw() {
 
 	DrawFadeScreen()
 
-	C.GL_SetCanvas(C.CANVAS_MENU)
+	SetCanvas(CANVAS_MENU)
 
 	switch qmenu.state {
 	case menu.Main:

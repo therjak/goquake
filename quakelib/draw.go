@@ -1,5 +1,22 @@
 package quakelib
 
+//#ifndef HASCANVAS
+//#define HASCANVAS
+//typedef enum {
+//  CANVAS_NONE,
+//  CANVAS_DEFAULT,
+//  CANVAS_CONSOLE,
+//  CANVAS_MENU,
+//  CANVAS_SBAR,
+//  CANVAS_WARPIMAGE,
+//  CANVAS_CROSSHAIR,
+//  CANVAS_BOTTOMLEFT,
+//  CANVAS_BOTTOMRIGHT,
+//  CANVAS_TOPRIGHT,
+//  CANVAS_INVALID = -1
+//} canvastype;
+//#endif
+// void GL_SetCanvas(canvastype newCanvas);
 //#include "stdlib.h"
 //#include "wad.h"
 //void Draw_Character(int x, int y, int num);
@@ -19,6 +36,26 @@ import "C"
 import (
 	"unsafe"
 )
+
+type canvas int
+
+const (
+	CANVAS_NONE        canvas = C.CANVAS_NONE
+	CANVAS_DEFAULT     canvas = C.CANVAS_DEFAULT
+	CANVAS_CONSOLE     canvas = C.CANVAS_CONSOLE
+	CANVAS_MENU        canvas = C.CANVAS_MENU
+	CANVAS_STATUSBAR   canvas = C.CANVAS_SBAR
+	CANVAS_WARPIMAGE   canvas = C.CANVAS_WARPIMAGE
+	CANVAS_CROSSHAIR   canvas = C.CANVAS_CROSSHAIR
+	CANVAS_BOTTOMLEFT  canvas = C.CANVAS_BOTTOMLEFT
+	CANVAS_BOTTOMRIGHT canvas = C.CANVAS_BOTTOMRIGHT
+	CANVAS_TOPRIGHT    canvas = C.CANVAS_TOPRIGHT
+	CANVAS_INVALID     canvas = C.CANVAS_INVALID
+)
+
+func SetCanvas(c canvas) {
+	C.GL_SetCanvas(C.canvastype(c))
+}
 
 type Picture *C.qpic_t
 
