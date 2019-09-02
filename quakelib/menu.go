@@ -84,21 +84,7 @@ func init() {
 // 128+ are normal
 // We draw on a 320x200 screen
 func drawString(x, y int, t string) {
-	// TODO: unify into one draw call
-	nx := x
-	for i := 0; i < len(t); i++ {
-		DrawCharacter(nx, y, int(t[i])+128)
-		nx += 8
-	}
-}
-
-func drawStringWhite(x, y int, t string) {
-	// TODO: unify into one draw call
-	nx := x
-	for i := 0; i < len(t); i++ {
-		DrawCharacter(nx, y, int(t[i]))
-		nx += 8
-	}
+	DrawStringCopper(x, y, t)
 }
 
 func drawCheckbox(x, y int, checked bool) {

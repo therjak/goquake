@@ -28,6 +28,14 @@ type QPic struct {
 	height int
 }
 
+func DrawCharacterWhite(x, y int, num int) {
+	C.Draw_Character(C.int(x), C.int(y), C.int(num))
+}
+
+func DrawCharacterCopper(x, y int, num int) {
+	C.Draw_Character(C.int(x), C.int(y), C.int(num+128))
+}
+
 func DrawCharacter(x, y int, num int) {
 	C.Draw_Character(C.int(x), C.int(y), C.int(num))
 }
@@ -75,5 +83,26 @@ func GetPictureFromWad(name string) *QPic {
 		pic:    p,
 		width:  int(p.width),
 		height: int(p.height),
+	}
+}
+
+// 0-127 are white
+// 128+ are normal
+// We draw on a 320x200 screen
+func DrawStringCopper(x, y int, t string) {
+	// TODO: unify into one draw call
+	nx := x
+	for i := 0; i < len(t); i++ {
+		DrawCharacterCopper(nx, y, int(t[i]))
+		nx += 8
+	}
+}
+
+func DrawStringWhite(x, y int, t string) {
+	// TODO: unify into one draw call
+	nx := x
+	for i := 0; i < len(t); i++ {
+		DrawCharacterWhite(nx, y, int(t[i]))
+		nx += 8
 	}
 }

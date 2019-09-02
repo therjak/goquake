@@ -35,7 +35,7 @@ func (m *qMultiPlayerMenu) Draw() {
 	m.items[m.selectedIndex].DrawCursor()
 
 	if !tcpipAvailable {
-		drawStringWhite((320/2)-((27*8)/2), 148, "No Communications Available")
+		DrawStringWhite((320/2)-((27*8)/2), 148, "No Communications Available")
 	}
 }
 

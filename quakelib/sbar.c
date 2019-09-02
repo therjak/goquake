@@ -202,7 +202,7 @@ void Sbar_SortFrags(void) {
   }
 }
 
-int Sbar_ColorForMap(int m) { return m < 128 ? m + 8 : m + 8; }
+int Sbar_ColorForMap(int m) { return m + 8; }
 
 /*
 ===============
@@ -239,7 +239,6 @@ Sbar_SoloScoreboard -- johnfitz -- new layout
 void Sbar_SoloScoreboard(void) {
   char str[256];
   int minutes, seconds, tens, units;
-  int len;
 
   sprintf(str, "Kills: %i/%i", CL_Stats(STAT_MONSTERS),
           CL_Stats(STAT_TOTALMONSTERS));
@@ -255,11 +254,7 @@ void Sbar_SoloScoreboard(void) {
     Draw_String(160 - strlen(str) * 4, 12 + 24, str);
 
     q_snprintf(str, sizeof(str), "%s (%s)", cl.levelname, cl.mapname);
-    len = strlen(str);
-    if (len > 40)
-      Sbar_DrawScrollString(0, 4, 320, str);
-    else
-      Draw_String(160 - len * 4, 4 + 24, str);
+    Sbar_DrawScrollString(0, 4 + 24, 320, str);
     return;
   }
   minutes = CL_Time() / 60;
@@ -269,11 +264,7 @@ void Sbar_SoloScoreboard(void) {
   sprintf(str, "%i:%i%i", minutes, tens, units);
   Draw_String(160 - strlen(str) * 4, 12 + 24, str);
 
-  len = strlen(cl.levelname);
-  if (len > 40)
-    Sbar_DrawScrollString(0, 4, 320, cl.levelname);
-  else
-    Draw_String(160 - len * 4, 4 + 24, cl.levelname);
+  Sbar_DrawScrollString(0, 4 + 24, 320, cl.levelname);
 }
 
 /*
@@ -284,53 +275,6 @@ Sbar_DrawScoreboard
 void Sbar_DrawScoreboard(void) {
   Sbar_SoloScoreboard();
   if (CL_GameTypeDeathMatch()) Sbar_DeathmatchOverlay();
-}
-
-//=============================================================================
-
-/*
-===============
-Sbar_DrawFrags -- johnfitz -- heavy revision
-===============
-*/
-void Sbar_DrawFrags(void) {
-  int numscores, i, x, color;
-  int k;
-  char num[12];
-  scoreboard_t *s;
-
-  Sbar_SortFrags();
-
-  // draw the text
-  numscores = q_min(scoreboardlines, 4);
-
-  for (i = 0, x = 184; i < numscores; i++, x += 32) {
-    k = fragsort[i];
-    s = &cl.scores[k];
-    if (!s->name[0]) continue;
-
-    // top color
-    color = CL_ScoresColors(k) & 0xf0;
-    color = Sbar_ColorForMap(color);
-    Draw_Fill(x + 10, 1, 28, 4, color, 1);
-
-    // bottom color
-    color = (CL_ScoresColors(k) & 15) << 4;
-    color = Sbar_ColorForMap(color);
-    Draw_Fill(x + 10, 5, 28, 3, color, 1);
-
-    // number
-    sprintf(num, "%3i", CL_ScoresFrags(k));
-    Draw_Character(x + 12, 0, num[0]);
-    Draw_Character(x + 20, 0, num[1]);
-    Draw_Character(x + 28, 0, num[2]);
-
-    // brackets
-    if (fragsort[i] == CL_Viewentity() - 1) {
-      Draw_Character(x + 6, 0, 16);
-      Draw_Character(x + 32, 0, 17);
-    }
-  }
 }
 
 //=============================================================================

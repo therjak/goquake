@@ -321,7 +321,7 @@ func CL_ScoresFrags(i int) int {
 //export CL_ScoresSetColors
 func CL_ScoresSetColors(i int, c int) {
 	cl.scores[i].topColor = (c & 0xf0) >> 4
-	cl.scores[i].bottomColor = c & 15
+	cl.scores[i].bottomColor = c & 0x0f
 }
 
 //export CL_ScoresColors

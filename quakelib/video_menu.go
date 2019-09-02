@@ -47,7 +47,7 @@ func (m *qVideoMenu) Draw() {
 	DrawPicture((320-p.width)/2, 4, p)
 
 	title := "Video Options"
-	drawStringWhite((320-8*len(title))/2, 32, title)
+	DrawStringWhite((320-8*len(title))/2, 32, title)
 
 	for _, item := range m.items {
 		item.Draw()

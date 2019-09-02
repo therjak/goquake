@@ -72,6 +72,10 @@ type Statusbar struct {
 	updates    int
 	showScores bool
 
+	// mapping from display order to server side of cl.scores
+	// cl.scores[sortByFrags[display element nr]]
+	sortByFrags []int
+
 	// all pictures
 	nums  [2][11]*QPic
 	colon *QPic
@@ -99,6 +103,27 @@ type Statusbar struct {
 	ritems    [2]*QPic
 	rteambord *QPic
 	rammo     [3]*QPic
+}
+
+//sortFrags updates s.sortByFrags to have descending frag counts
+func (s *Statusbar) sortFrags() {
+	// There are no more than 16 elements, so performance does not matter
+	if cap(s.sortByFrags) < 16 {
+		s.sortByFrags = make([]int, 16)
+	}
+	s.sortByFrags = s.sortByFrags[:0]
+	for i, sc := range cl.scores {
+		if len(sc.name) > 0 {
+			s.sortByFrags = append(s.sortByFrags, i)
+		}
+	}
+	for i := 0; i < len(s.sortByFrags); i++ {
+		for j := 0; j < len(s.sortByFrags)-1-i; j++ {
+			if cl.scores[s.sortByFrags[j]].frags < cl.scores[s.sortByFrags[j+1]].frags {
+				s.sortByFrags[j], s.sortByFrags[j+1] = s.sortByFrags[j+1], s.sortByFrags[j]
+			}
+		}
+	}
 }
 
 func (s *Statusbar) LoadPictures() {
@@ -340,6 +365,11 @@ func Sbar_DrawScrollString(x int, y int, width int, str *C.char) {
 
 // scroll the string inside a glscissor region
 func (s *Statusbar) DrawScrollString(x, y, width int, str string) {
+	l := len(str) * 8
+	if l < width {
+		DrawStringWhite(x+(width-l)/2, y, str)
+		return
+	}
 
 	scale := cvars.ScreenStatusbarScale.Value()
 	scale = math.Clamp32(1.0, scale, float32(viewport.width)/320.0)
@@ -352,13 +382,10 @@ func (s *Statusbar) DrawScrollString(x, y, width int, str string) {
 	gl.Enable(gl.SCISSOR_TEST)
 	gl.Scissor(int32(left), 0, int32(float32(width)*scale), int32(viewport.height))
 
-	len := len(str)*8 + 40
-	ofs := int(host.time*30) % len
-	drawString(x-ofs, y+24, str)
-	DrawCharacter(x-ofs+len-32, y+24, '/')
-	DrawCharacter(x-ofs+len-24, y+24, '/')
-	DrawCharacter(x-ofs+len-16, y+24, '/')
-	drawString(x-ofs+len, y+24, str)
+	ps := fmt.Sprintf("%s /// %s", str, str)
+	l = (len(str) + 5) * 8
+	ofs := int(host.time*30) % l
+	DrawStringWhite(x-ofs, y, ps)
 
 	gl.Disable(gl.SCISSOR_TEST)
 }
@@ -463,16 +490,16 @@ func (s *Statusbar) DrawInventory() {
 		val -= v * 100
 		p := v != 0
 		if p {
-			DrawCharacter((6*pos+1)*8+2, 0, 18+v)
+			DrawCharacterWhite((6*pos+1)*8+2, 0, 18+v)
 		}
 		v = val / 10
 		val -= v * 10
 		p = p || v != 0
 		if p {
-			DrawCharacter((6*pos+2)*8+2, 0, 18+v)
+			DrawCharacterWhite((6*pos+2)*8+2, 0, 18+v)
 		}
 		v = val
-		DrawCharacter((6*pos+3)*8+2, 0, 18+v)
+		DrawCharacterWhite((6*pos+3)*8+2, 0, 18+v)
 	}
 	drawAmmo(cl.stats.shells, 0)
 	drawAmmo(cl.stats.nails, 1)
@@ -507,5 +534,35 @@ func (s *Statusbar) DrawInventory() {
 		if t := cl.itemGetTime[b]; t != 0 && t > cl.time-2 {
 			s.MarkChanged()
 		}
+	}
+}
+
+func toPalette(c int) int {
+	return (c << 4) + 8
+}
+
+//export Sbar_DrawFrags
+func Sbar_DrawFrags() {
+	statusbar.drawFrags()
+}
+
+func (s *Statusbar) drawFrags() {
+	s.sortFrags()
+	x := 190
+	for i, f := range s.sortByFrags {
+		if i >= 4 {
+			return
+		}
+		score := cl.scores[f]
+		DrawFill(x+4, 1, 28, 4, toPalette(score.topColor), 1)
+		DrawFill(x+4, 5, 28, 3, toPalette(score.bottomColor), 1)
+		DrawStringWhite(x+6, 0, fmt.Sprintf("%3d", score.frags))
+		if f == cl.viewentity-1 {
+			// mark the local player
+			DrawCharacterWhite(x, 0, 16)
+			DrawCharacterWhite(x+26, 0, 17)
+		}
+
+		x += 32
 	}
 }
