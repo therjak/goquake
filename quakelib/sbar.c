@@ -280,14 +280,8 @@ void Sbar_DrawScoreboard(void) {
 //=============================================================================
 
 /*
-===============
-Sbar_DrawFace
-===============
-*/
+THERJAK: STILL MISSING
 void Sbar_DrawFace(void) {
-  int f, anim;
-  int k;
-
   // PGM 01/19/97 - team color drawing
   // PGM 03/02/97 - fixed so color swatch only appears in CTF modes
   if (CMLRogue() && (CL_MaxClients() != 1) && (Cvar_GetValue(&teamplay) > 3) &&
@@ -327,41 +321,8 @@ void Sbar_DrawFace(void) {
 
     return;
   }
-  // PGM 01/19/97 - team color drawing
-
-  if (CL_HasItem(IT_INVISIBILITY) && CL_HasItem(IT_INVULNERABILITY)) {
-    Draw_Pic(112, 24, sb_face_invis_invuln);
-    return;
-  }
-  if (CL_HasItem(IT_QUAD)) {
-    Draw_Pic(112, 24, sb_face_quad);
-    return;
-  }
-  if (CL_HasItem(IT_INVISIBILITY)) {
-    Draw_Pic(112, 24, sb_face_invis);
-    return;
-  }
-  if (CL_HasItem(IT_INVULNERABILITY)) {
-    Draw_Pic(112, 24, sb_face_invuln);
-    return;
-  }
-
-  if (CL_Stats(STAT_HEALTH) >= 100)
-    f = 4;
-  else
-    f = CL_Stats(STAT_HEALTH) / 20;
-  if (f < 0)  // in case we ever decide to draw when health <= 0
-    f = 0;
-
-  if (CL_CheckFaceAnimTime()) {
-    anim = 1;
-    // make sure the anim gets drawn over
-    SBResetUpdates();
-  } else
-    anim = 0;
-  Draw_Pic(112, 24, sb_faces[f][anim]);
 }
-
+*/
 /*
 ===============
 Sbar_Draw

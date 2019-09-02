@@ -546,6 +546,15 @@ func Sbar_DrawFrags() {
 	statusbar.drawFrags()
 }
 
+//export Sbar_DrawFace
+func Sbar_DrawFace() {
+	if cmdl.Rogue() && cl.maxClients != 1 && cvars.TeamPlay.Value() > 3 && cvars.TeamPlay.Value() < 7 {
+		// draw some scores
+	} else {
+		statusbar.drawFace()
+	}
+}
+
 func (s *Statusbar) drawFrags() {
 	s.sortFrags()
 	x := 190
@@ -565,4 +574,27 @@ func (s *Statusbar) drawFrags() {
 
 		x += 32
 	}
+}
+
+func (s *Statusbar) drawFace() {
+	getFace := func() *QPic {
+		switch {
+		case cl.items&(progs.ItemInvisibility|progs.ItemInvulnerability) != 0:
+			return s.face_invis_invuln
+		case cl.items&progs.ItemQuad != 0:
+			return s.face_quad
+		case cl.items&progs.ItemInvisibility != 0:
+			return s.face_invis
+		case cl.items&progs.ItemInvulnerability != 0:
+			return s.face_invuln
+		default:
+			f := math.ClampI(0, cl.stats.health/20, 4)
+			if cl.CheckFaceAnimTime() {
+				s.MarkChanged() // this is an animation so force update
+				return s.faces[f][1]
+			}
+			return s.faces[f][0]
+		}
+	}
+	DrawPicture(112, 24, getFace())
 }
