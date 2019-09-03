@@ -7,21 +7,12 @@
 #define STAT_MINUS 10  // num frame for '-' stats digit
 
 qpic_t *sb_nums[2][11];
-qpic_t *sb_colon, *sb_slash;
 qpic_t *sb_sbar;
 qpic_t *sb_scorebar;
 
 qpic_t *sb_ammo[4];
-qpic_t *sb_sigil[4];
 qpic_t *sb_armor[3];
 qpic_t *sb_items[32];
-
-qpic_t *sb_faces[7][2];  // 0 is gibbed, 1 is dead, 2-6 are alive
-                         // 0 is static, 1 is temporary animation
-qpic_t *sb_face_invis;
-qpic_t *sb_face_quad;
-qpic_t *sb_face_invuln;
-qpic_t *sb_face_invis_invuln;
 
 int sb_lines;  // scan lines to draw
 
@@ -51,9 +42,6 @@ void Sbar_LoadPics(void) {
   sb_nums[0][10] = Draw_PicFromWad("num_minus");
   sb_nums[1][10] = Draw_PicFromWad("anum_minus");
 
-  sb_colon = Draw_PicFromWad("num_colon");
-  sb_slash = Draw_PicFromWad("num_slash");
-
   sb_ammo[0] = Draw_PicFromWad("sb_shells");
   sb_ammo[1] = Draw_PicFromWad("sb_nails");
   sb_ammo[2] = Draw_PicFromWad("sb_rocket");
@@ -65,31 +53,6 @@ void Sbar_LoadPics(void) {
 
   sb_items[0] = Draw_PicFromWad("sb_key1");
   sb_items[1] = Draw_PicFromWad("sb_key2");
-  sb_items[2] = Draw_PicFromWad("sb_invis");
-  sb_items[3] = Draw_PicFromWad("sb_invuln");
-  sb_items[4] = Draw_PicFromWad("sb_suit");
-  sb_items[5] = Draw_PicFromWad("sb_quad");
-
-  sb_sigil[0] = Draw_PicFromWad("sb_sigil1");
-  sb_sigil[1] = Draw_PicFromWad("sb_sigil2");
-  sb_sigil[2] = Draw_PicFromWad("sb_sigil3");
-  sb_sigil[3] = Draw_PicFromWad("sb_sigil4");
-
-  sb_faces[4][0] = Draw_PicFromWad("face1");
-  sb_faces[4][1] = Draw_PicFromWad("face_p1");
-  sb_faces[3][0] = Draw_PicFromWad("face2");
-  sb_faces[3][1] = Draw_PicFromWad("face_p2");
-  sb_faces[2][0] = Draw_PicFromWad("face3");
-  sb_faces[2][1] = Draw_PicFromWad("face_p3");
-  sb_faces[1][0] = Draw_PicFromWad("face4");
-  sb_faces[1][1] = Draw_PicFromWad("face_p4");
-  sb_faces[0][0] = Draw_PicFromWad("face5");
-  sb_faces[0][1] = Draw_PicFromWad("face_p5");
-
-  sb_face_invis = Draw_PicFromWad("face_invis");
-  sb_face_invuln = Draw_PicFromWad("face_invul2");
-  sb_face_invis_invuln = Draw_PicFromWad("face_inv2");
-  sb_face_quad = Draw_PicFromWad("face_quad");
 
   sb_sbar = Draw_PicFromWad("sbar");
   sb_scorebar = Draw_PicFromWad("scorebar");
@@ -419,42 +382,13 @@ void Sbar_Draw(void) {
   if (CL_GameTypeDeathMatch()) Sbar_MiniDeathmatchOverlay();
 }
 
-//=============================================================================
-
-/*
-==================
-Sbar_IntermissionNumber
-
-==================
-*/
-void Sbar_IntermissionNumber(int x, int y, int num, int digits, int color) {
-  char str[12];
-  char *ptr;
-  int l, frame;
-
-  l = Sbar_itoa(num, str);
-  ptr = str;
-  if (l > digits) ptr += (l - digits);
-  if (l < digits) x += (digits - l) * 24;
-
-  while (*ptr) {
-    if (*ptr == '-')
-      frame = STAT_MINUS;
-    else
-      frame = *ptr - '0';
-
-    Draw_Pic(x, y, sb_nums[color][frame]);  // johnfitz -- stretched menus
-    x += 24;
-    ptr++;
-  }
-}
-
 /*
 ==================
 Sbar_DeathmatchOverlay
 
 ==================
 */
+/*
 void Sbar_DeathmatchOverlay(void) {
   qpic_t *pic;
   int i, k, l;
@@ -508,7 +442,7 @@ void Sbar_DeathmatchOverlay(void) {
 
   GL_SetCanvas(CANVAS_SBAR);
 }
-
+*/
 /*
 ==================
 Sbar_MiniDeathmatchOverlay
@@ -582,45 +516,6 @@ void Sbar_MiniDeathmatchOverlay(void) {
     // name
     Draw_String(x + 48, y, s->name);
   }
-}
-
-/*
-==================
-Sbar_IntermissionOverlay
-==================
-*/
-void Sbar_IntermissionOverlay(void) {
-  qpic_t *pic;
-  int dig;
-  int num;
-
-  if (CL_GameTypeDeathMatch()) {
-    Sbar_DeathmatchOverlay();
-    return;
-  }
-
-  GL_SetCanvas(CANVAS_MENU);
-
-  pic = Draw_CachePic("gfx/complete.lmp");
-  Draw_Pic(64, 24, pic);
-
-  pic = Draw_CachePic("gfx/inter.lmp");
-  Draw_Pic(0, 56, pic);
-
-  dig = CL_CompletedTime() / 60;
-  Sbar_IntermissionNumber(152, 64, dig, 3, 0);
-  num = CL_CompletedTime() - dig * 60;
-  Draw_Pic(224, 64, sb_colon);
-  Draw_Pic(240, 64, sb_nums[0][num / 10]);
-  Draw_Pic(264, 64, sb_nums[0][num % 10]);
-
-  Sbar_IntermissionNumber(152, 104, CL_Stats(STAT_SECRETS), 3, 0);
-  Draw_Pic(224, 104, sb_slash);
-  Sbar_IntermissionNumber(240, 104, CL_Stats(STAT_TOTALSECRETS), 3, 0);
-
-  Sbar_IntermissionNumber(152, 144, CL_Stats(STAT_MONSTERS), 3, 0);
-  Draw_Pic(224, 144, sb_slash);
-  Sbar_IntermissionNumber(240, 144, CL_Stats(STAT_TOTALMONSTERS), 3, 0);
 }
 
 

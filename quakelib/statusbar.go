@@ -560,6 +560,16 @@ func Sbar_SoloScoreboard() {
 	statusbar.soloScoreboard()
 }
 
+//export Sbar_DeathmatchOverlay
+func Sbar_DeathmatchOverlay() {
+	statusbar.deathmatchOverlay()
+}
+
+//export Sbar_IntermissionOverlay
+func Sbar_IntermissionOverlay() {
+	statusbar.intermissionOverlay()
+}
+
 //export Sbar_FinaleOverlay
 func Sbar_FinaleOverlay() {
 	statusbar.finaleOverlay()
@@ -633,6 +643,107 @@ func (s *Statusbar) soloScoreboard() {
 	DrawStringWhite(160-len(currTime)*4, 12+24, currTime)
 
 	s.DrawScrollString(0, 4+24, 320, cl.levelName)
+}
+
+func (s *Statusbar) deathmatchOverlay() {
+	/*
+	  qpic_t *pic;
+	  int i, k, l;
+	  int top, bottom;
+	  int x, y, f;
+	  char num[12];
+	  scoreboard_t *s;
+
+	  GL_SetCanvas(CANVAS_MENU);
+
+	  pic = Draw_CachePic("gfx/ranking.lmp");
+	  Draw_Pic((320 - pic->width) / 2, 8, pic);
+
+	  // scores
+	  Sbar_SortFrags();
+
+	  // draw the text
+	  l = scoreboardlines;
+
+	  x = 80;
+	  y = 40;
+	  for (i = 0; i < l; i++) {
+	    k = fragsort[i];
+	    s = &cl.scores[k];
+	    if (!s->name[0]) continue;
+
+	    // draw background
+	    top = CL_ScoresColors(k) & 0xf0;
+	    bottom = (CL_ScoresColors(k) & 15) << 4;
+	    top = Sbar_ColorForMap(top);
+	    bottom = Sbar_ColorForMap(bottom);
+
+	    Draw_Fill(x, y, 40, 4, top, 1);
+	    Draw_Fill(x, y + 4, 40, 4, bottom, 1);
+
+	    // draw number
+	    f = CL_ScoresFrags(k);
+	    sprintf(num, "%3i", f);
+
+	    Draw_Character(x + 8, y, num[0]);
+	    Draw_Character(x + 16, y, num[1]);
+	    Draw_Character(x + 24, y, num[2]);
+
+	    if (k == CL_Viewentity() - 1) Draw_Character(x - 8, y, 12);
+
+	    // draw name
+	    M_Print(x + 64, y, s->name);
+
+	    y += 10;
+	  }
+
+	  GL_SetCanvas(CANVAS_SBAR);
+	*/
+}
+
+func (s *Statusbar) intermissionOverlay() {
+	if cl.gameType == svc.GameDeathmatch {
+		s.deathmatchOverlay()
+		return
+	}
+	SetCanvas(CANVAS_MENU)
+
+	drawNumber := func(x, y, num int) {
+		// we do not want to draw more than 3 digits
+		// negative numbers should not exists
+		const color = 0
+		n1 := num / 10
+		frame := num - n1*10
+		DrawPicture(x+48, y, s.nums[color][frame])
+		if n1 != 0 {
+			n2 := n1 / 10
+			frame = n1 - n2*10
+			DrawPicture(x+24, y, s.nums[color][frame])
+			if n2 != 0 {
+				n3 := n2 / 10
+				frame = n2 - n3*10
+				DrawPicture(x, y, s.nums[color][frame])
+			}
+		}
+	}
+
+	DrawPicture(64, 24, GetCachedPicture("gfx/complete.lmp"))
+	DrawPicture(0, 56, GetCachedPicture("gfx/inter.lmp"))
+
+	dig := cl.intermissionTime / 60
+	drawNumber(152, 64, dig)
+	num := cl.intermissionTime - dig*60
+	DrawPicture(224, 64, s.colon)
+	DrawPicture(240, 64, s.nums[0][num/10])
+	DrawPicture(264, 64, s.nums[0][num%10])
+
+	drawNumber(152, 104, cl.stats.secrets)
+	DrawPicture(224, 104, s.slash)
+	drawNumber(240, 104, cl.stats.totalSecrets)
+
+	drawNumber(152, 144, cl.stats.monsters)
+	DrawPicture(224, 144, s.slash)
+	drawNumber(240, 144, cl.stats.totalMonsters)
 }
 
 func (s *Statusbar) finaleOverlay() {
