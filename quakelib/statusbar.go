@@ -575,6 +575,16 @@ func Sbar_FinaleOverlay() {
 	statusbar.finaleOverlay()
 }
 
+//export Sbar_DrawAmmo
+func Sbar_DrawAmmo() {
+	statusbar.drawAmmo()
+}
+
+//export Sbar_DrawHealth
+func Sbar_DrawHealth() {
+	statusbar.drawHealth()
+}
+
 func (s *Statusbar) drawFrags() {
 	s.sortFrags()
 	x := 190
@@ -619,6 +629,78 @@ func (s *Statusbar) drawFace() {
 	DrawPicture(112, 24, getFace())
 }
 
+func (s *Statusbar) drawAmmo() {
+	ammo := func() *QPic {
+		if cmdl.Rogue() {
+			switch {
+			case cl.items&progs.RogueItemShells != 0:
+				return s.ammo[0]
+			case cl.items&progs.RogueItemNails != 0:
+				return s.ammo[1]
+			case cl.items&progs.RogueItemRockets != 0:
+				return s.ammo[2]
+			case cl.items&progs.RogueItemCells != 0:
+				return s.ammo[3]
+			case cl.items&progs.RogueItemLavaNails != 0:
+				return s.rammo[0]
+			case cl.items&progs.RogueItemPlasmaAmmo != 0:
+				return s.rammo[1]
+			case cl.items&progs.RogueItemMultiRockets != 0:
+				return s.rammo[2]
+			default:
+				return nil
+			}
+		}
+		switch {
+		case cl.items&progs.ItemShells != 0:
+			return s.ammo[0]
+		case cl.items&progs.ItemNails != 0:
+			return s.ammo[1]
+		case cl.items&progs.ItemRockets != 0:
+			return s.ammo[2]
+		case cl.items&progs.ItemCells != 0:
+			return s.ammo[3]
+		default:
+			return nil
+		}
+	}()
+
+	if ammo != nil {
+		DrawPicture(224, 24, ammo)
+	}
+
+	color := 0
+	if cl.stats.ammo <= 10 {
+		color = 1
+	}
+	s.drawNumber(248, 24, cl.stats.ammo, color)
+}
+
+func (s *Statusbar) drawHealth() {
+	color := 0
+	if cl.stats.health <= 25 {
+		color = 1
+	}
+	s.drawNumber(136, 24, cl.stats.health, color)
+}
+
+func (s *Statusbar) drawNumber(x, y, num, color int) {
+	if num > 999 {
+		num = 999
+	}
+	n1 := num / 10
+	frame := num - n1*10
+	DrawPicture(x+48, y, s.nums[color][frame])
+	if n1 != 0 {
+		n2 := n1 / 10
+		frame = n1 - n2*10
+		DrawPicture(x+24, y, s.nums[color][frame])
+		if n2 != 0 {
+			DrawPicture(x, y, s.nums[color][n2])
+		}
+	}
+}
+
 func (s *Statusbar) soloScoreboard() {
 	monsters := fmt.Sprintf("Kills: %d/%d", cl.stats.monsters, cl.stats.totalMonsters)
 	DrawStringWhite(8, 12+24, monsters)
@@ -646,59 +728,37 @@ func (s *Statusbar) soloScoreboard() {
 }
 
 func (s *Statusbar) deathmatchOverlay() {
-	/*
-	  qpic_t *pic;
-	  int i, k, l;
-	  int top, bottom;
-	  int x, y, f;
-	  char num[12];
-	  scoreboard_t *s;
+	SetCanvas(CANVAS_MENU)
 
-	  GL_SetCanvas(CANVAS_MENU);
+	pic := GetCachedPicture("gfx/ranking.lmp")
+	DrawPicture((320-pic.width)/2, 8, pic)
 
-	  pic = Draw_CachePic("gfx/ranking.lmp");
-	  Draw_Pic((320 - pic->width) / 2, 8, pic);
+	s.sortFrags()
 
-	  // scores
-	  Sbar_SortFrags();
+	x := 80
+	y := 40
+	for _, f := range s.sortByFrags {
+		score := &cl.scores[f]
 
-	  // draw the text
-	  l = scoreboardlines;
+		DrawFill(x, y, 40, 4, toPalette(score.topColor), 1)
+		DrawFill(x, y+4, 40, 4, toPalette(score.bottomColor), 1)
 
-	  x = 80;
-	  y = 40;
-	  for (i = 0; i < l; i++) {
-	    k = fragsort[i];
-	    s = &cl.scores[k];
-	    if (!s->name[0]) continue;
+		frags := score.frags
+		if frags > 999 {
+			frags = 999
+		}
+		DrawStringWhite(x+8, y, fmt.Sprintf("%3d", frags))
 
-	    // draw background
-	    top = CL_ScoresColors(k) & 0xf0;
-	    bottom = (CL_ScoresColors(k) & 15) << 4;
-	    top = Sbar_ColorForMap(top);
-	    bottom = Sbar_ColorForMap(bottom);
+		if f == cl.viewentity-1 {
+			DrawCharacterWhite(x-8, y, 12)
+		}
 
-	    Draw_Fill(x, y, 40, 4, top, 1);
-	    Draw_Fill(x, y + 4, 40, 4, bottom, 1);
+		DrawStringCopper(x+64, y, score.name)
 
-	    // draw number
-	    f = CL_ScoresFrags(k);
-	    sprintf(num, "%3i", f);
+		y += 10
+	}
 
-	    Draw_Character(x + 8, y, num[0]);
-	    Draw_Character(x + 16, y, num[1]);
-	    Draw_Character(x + 24, y, num[2]);
-
-	    if (k == CL_Viewentity() - 1) Draw_Character(x - 8, y, 12);
-
-	    // draw name
-	    M_Print(x + 64, y, s->name);
-
-	    y += 10;
-	  }
-
-	  GL_SetCanvas(CANVAS_SBAR);
-	*/
+	SetCanvas(CANVAS_STATUSBAR)
 }
 
 func (s *Statusbar) intermissionOverlay() {
@@ -708,42 +768,23 @@ func (s *Statusbar) intermissionOverlay() {
 	}
 	SetCanvas(CANVAS_MENU)
 
-	drawNumber := func(x, y, num int) {
-		// we do not want to draw more than 3 digits
-		// negative numbers should not exists
-		const color = 0
-		n1 := num / 10
-		frame := num - n1*10
-		DrawPicture(x+48, y, s.nums[color][frame])
-		if n1 != 0 {
-			n2 := n1 / 10
-			frame = n1 - n2*10
-			DrawPicture(x+24, y, s.nums[color][frame])
-			if n2 != 0 {
-				n3 := n2 / 10
-				frame = n2 - n3*10
-				DrawPicture(x, y, s.nums[color][frame])
-			}
-		}
-	}
-
 	DrawPicture(64, 24, GetCachedPicture("gfx/complete.lmp"))
 	DrawPicture(0, 56, GetCachedPicture("gfx/inter.lmp"))
 
 	dig := cl.intermissionTime / 60
-	drawNumber(152, 64, dig)
+	s.drawNumber(152, 64, dig, 0)
 	num := cl.intermissionTime - dig*60
 	DrawPicture(224, 64, s.colon)
 	DrawPicture(240, 64, s.nums[0][num/10])
 	DrawPicture(264, 64, s.nums[0][num%10])
 
-	drawNumber(152, 104, cl.stats.secrets)
+	s.drawNumber(152, 104, cl.stats.secrets, 0)
 	DrawPicture(224, 104, s.slash)
-	drawNumber(240, 104, cl.stats.totalSecrets)
+	s.drawNumber(240, 104, cl.stats.totalSecrets, 0)
 
-	drawNumber(152, 144, cl.stats.monsters)
+	s.drawNumber(152, 144, cl.stats.monsters, 0)
 	DrawPicture(224, 144, s.slash)
-	drawNumber(240, 144, cl.stats.totalMonsters)
+	s.drawNumber(240, 144, cl.stats.totalMonsters, 0)
 }
 
 func (s *Statusbar) finaleOverlay() {

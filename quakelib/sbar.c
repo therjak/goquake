@@ -10,13 +10,11 @@ qpic_t *sb_nums[2][11];
 qpic_t *sb_sbar;
 qpic_t *sb_scorebar;
 
-qpic_t *sb_ammo[4];
 qpic_t *sb_armor[3];
 qpic_t *sb_items[32];
 
 int sb_lines;  // scan lines to draw
 
-qpic_t *rsb_ammo[3];
 qpic_t *rsb_teambord;  // PGM 01/19/97 - team color border
 
 int hipweapons[4] = {HIT_LASER_CANNON_BIT, HIT_MJOLNIR_BIT, 4,
@@ -42,11 +40,6 @@ void Sbar_LoadPics(void) {
   sb_nums[0][10] = Draw_PicFromWad("num_minus");
   sb_nums[1][10] = Draw_PicFromWad("anum_minus");
 
-  sb_ammo[0] = Draw_PicFromWad("sb_shells");
-  sb_ammo[1] = Draw_PicFromWad("sb_nails");
-  sb_ammo[2] = Draw_PicFromWad("sb_rocket");
-  sb_ammo[3] = Draw_PicFromWad("sb_cells");
-
   sb_armor[0] = Draw_PicFromWad("sb_armor1");
   sb_armor[1] = Draw_PicFromWad("sb_armor2");
   sb_armor[2] = Draw_PicFromWad("sb_armor3");
@@ -60,9 +53,6 @@ void Sbar_LoadPics(void) {
   if (CMLRogue()) {
     rsb_teambord = Draw_PicFromWad("r_teambord");
 
-    rsb_ammo[0] = Draw_PicFromWad("r_ammolava");
-    rsb_ammo[1] = Draw_PicFromWad("r_ammomulti");
-    rsb_ammo[2] = Draw_PicFromWad("r_ammoplasma");
   }
 }
 
@@ -347,102 +337,15 @@ void Sbar_Draw(void) {
     Sbar_DrawFace();
 
     // health
-    Sbar_DrawNum(136, 0, CL_Stats(STAT_HEALTH), 3, CL_Stats(STAT_HEALTH) <= 25);
+    Sbar_DrawHealth();
 
     // ammo icon
-    if (CMLRogue()) {
-      if (CL_HasItem(RIT_SHELLS))
-        Draw_Pic(224, 24, sb_ammo[0]);
-      else if (CL_HasItem(RIT_NAILS))
-        Draw_Pic(224, 24, sb_ammo[1]);
-      else if (CL_HasItem(RIT_ROCKETS))
-        Draw_Pic(224, 24, sb_ammo[2]);
-      else if (CL_HasItem(RIT_CELLS))
-        Draw_Pic(224, 24, sb_ammo[3]);
-      else if (CL_HasItem(RIT_LAVA_NAILS))
-        Draw_Pic(224, 24, rsb_ammo[0]);
-      else if (CL_HasItem(RIT_PLASMA_AMMO))
-        Draw_Pic(224, 24, rsb_ammo[1]);
-      else if (CL_HasItem(RIT_MULTI_ROCKETS))
-        Draw_Pic(224, 24, rsb_ammo[2]);
-    } else {
-      if (CL_HasItem(IT_SHELLS))
-        Draw_Pic(224, 24, sb_ammo[0]);
-      else if (CL_HasItem(IT_NAILS))
-        Draw_Pic(224, 24, sb_ammo[1]);
-      else if (CL_HasItem(IT_ROCKETS))
-        Draw_Pic(224, 24, sb_ammo[2]);
-      else if (CL_HasItem(IT_CELLS))
-        Draw_Pic(224, 24, sb_ammo[3]);
-    }
-
-    Sbar_DrawNum(248, 0, CL_Stats(STAT_AMMO), 3, CL_Stats(STAT_AMMO) <= 10);
+    Sbar_DrawAmmo();
   }
 
   if (CL_GameTypeDeathMatch()) Sbar_MiniDeathmatchOverlay();
 }
 
-/*
-==================
-Sbar_DeathmatchOverlay
-
-==================
-*/
-/*
-void Sbar_DeathmatchOverlay(void) {
-  qpic_t *pic;
-  int i, k, l;
-  int top, bottom;
-  int x, y, f;
-  char num[12];
-  scoreboard_t *s;
-
-  GL_SetCanvas(CANVAS_MENU);
-
-  pic = Draw_CachePic("gfx/ranking.lmp");
-  Draw_Pic((320 - pic->width) / 2, 8, pic);
-
-  // scores
-  Sbar_SortFrags();
-
-  // draw the text
-  l = scoreboardlines;
-
-  x = 80;
-  y = 40;
-  for (i = 0; i < l; i++) {
-    k = fragsort[i];
-    s = &cl.scores[k];
-    if (!s->name[0]) continue;
-
-    // draw background
-    top = CL_ScoresColors(k) & 0xf0;
-    bottom = (CL_ScoresColors(k) & 15) << 4;
-    top = Sbar_ColorForMap(top);
-    bottom = Sbar_ColorForMap(bottom);
-
-    Draw_Fill(x, y, 40, 4, top, 1);
-    Draw_Fill(x, y + 4, 40, 4, bottom, 1);
-
-    // draw number
-    f = CL_ScoresFrags(k);
-    sprintf(num, "%3i", f);
-
-    Draw_Character(x + 8, y, num[0]);
-    Draw_Character(x + 16, y, num[1]);
-    Draw_Character(x + 24, y, num[2]);
-
-    if (k == CL_Viewentity() - 1) Draw_Character(x - 8, y, 12);
-
-    // draw name
-    M_Print(x + 64, y, s->name);
-
-    y += 10;
-  }
-
-  GL_SetCanvas(CANVAS_SBAR);
-}
-*/
 /*
 ==================
 Sbar_MiniDeathmatchOverlay
