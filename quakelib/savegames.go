@@ -20,7 +20,7 @@ func init() {
 }
 
 func saveGameComment() string {
-	ln := sv.worldModel.Name // cl.levelname
+	ln := cl.levelName
 	km := cl.stats.monsters
 	tm := cl.stats.totalMonsters
 	// somehow nobody can count?

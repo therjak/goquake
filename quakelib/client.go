@@ -308,6 +308,16 @@ func CL_ScoresSetName(i int, c *C.char) {
 	cl.scores[i].name = C.GoString(c)
 }
 
+//export CL_SetLevelName
+func CL_SetLevelName(c *C.char) {
+	cl.levelName = C.GoString(c)
+}
+
+//export CL_SetMapName
+func CL_SetMapName(c *C.char) {
+	cl.mapName = C.GoString(c)
+}
+
 //export CL_ScoresSetFrags
 func CL_ScoresSetFrags(i int, f int) {
 	cl.scores[i].frags = f

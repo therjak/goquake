@@ -289,6 +289,7 @@ void CL_ParseServerInfo(void) {
   // parse signon message
   str = CL_MSG_ReadString();
   q_strlcpy(cl.levelname, str, sizeof(cl.levelname));
+  CL_SetLevelName(str);
 
   // seperate the printfs so the server message can have a color
   ConPrintBar();
@@ -342,6 +343,7 @@ void CL_ParseServerInfo(void) {
   // copy the naked name of the map file to the cl structure -- O.S
   COM_StripExtension(COM_SkipPath(model_precache[1]), cl.mapname,
                      sizeof(cl.mapname));
+  CL_SetMapName(cl.mapname);
 
   for (i = 1; i < nummodels; i++) {
     cl.model_precache[i] = Mod_ForName(model_precache[i], false);
