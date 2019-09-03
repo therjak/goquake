@@ -233,42 +233,6 @@ void Sbar_UpdateScoreboard(void) {
 
 /*
 ===============
-Sbar_SoloScoreboard -- johnfitz -- new layout
-===============
-*/
-void Sbar_SoloScoreboard(void) {
-  char str[256];
-  int minutes, seconds, tens, units;
-
-  sprintf(str, "Kills: %i/%i", CL_Stats(STAT_MONSTERS),
-          CL_Stats(STAT_TOTALMONSTERS));
-  Draw_String(8, 12 + 24, str);
-
-  sprintf(str, "Secrets: %i/%i", CL_Stats(STAT_SECRETS),
-          CL_Stats(STAT_TOTALSECRETS));
-  Draw_String(312 - strlen(str) * 8, 12 + 24, str);
-
-  if (!CMLFitz()) { /* QuakeSpasm customization: */
-    q_snprintf(str, sizeof(str), "skill %i",
-               (int)(Cvar_GetValue(&skill) + 0.5));
-    Draw_String(160 - strlen(str) * 4, 12 + 24, str);
-
-    q_snprintf(str, sizeof(str), "%s (%s)", cl.levelname, cl.mapname);
-    Sbar_DrawScrollString(0, 4 + 24, 320, str);
-    return;
-  }
-  minutes = CL_Time() / 60;
-  seconds = CL_Time() - 60 * minutes;
-  tens = seconds / 10;
-  units = seconds - 10 * tens;
-  sprintf(str, "%i:%i%i", minutes, tens, units);
-  Draw_String(160 - strlen(str) * 4, 12 + 24, str);
-
-  Sbar_DrawScrollString(0, 4 + 24, 320, cl.levelname);
-}
-
-/*
-===============
 Sbar_DrawScoreboard
 ===============
 */
@@ -659,16 +623,4 @@ void Sbar_IntermissionOverlay(void) {
   Sbar_IntermissionNumber(240, 144, CL_Stats(STAT_TOTALMONSTERS), 3, 0);
 }
 
-/*
-==================
-Sbar_FinaleOverlay
-==================
-*/
-void Sbar_FinaleOverlay(void) {
-  qpic_t *pic;
 
-  GL_SetCanvas(CANVAS_MENU);
-
-  pic = Draw_CachePic("gfx/finale.lmp");
-  Draw_Pic((320 - pic->width) / 2, 16, pic);
-}

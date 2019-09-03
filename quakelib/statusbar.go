@@ -555,6 +555,16 @@ func Sbar_DrawFace() {
 	}
 }
 
+//export Sbar_SoloScoreboard
+func Sbar_SoloScoreboard() {
+	statusbar.soloScoreboard()
+}
+
+//export Sbar_FinaleOverlay
+func Sbar_FinaleOverlay() {
+	statusbar.finaleOverlay()
+}
+
 func (s *Statusbar) drawFrags() {
 	s.sortFrags()
 	x := 190
@@ -597,4 +607,37 @@ func (s *Statusbar) drawFace() {
 		}
 	}
 	DrawPicture(112, 24, getFace())
+}
+
+func (s *Statusbar) soloScoreboard() {
+	monsters := fmt.Sprintf("Kills: %d/%d", cl.stats.monsters, cl.stats.totalMonsters)
+	DrawStringWhite(8, 12+24, monsters)
+
+	secrets := fmt.Sprintf("Secrets: %d/%d", cl.stats.secrets, cl.stats.totalSecrets)
+	DrawStringWhite(312-len(secrets)*8, 12+24, secrets)
+
+	if !cmdl.Fitz() {
+		skill := fmt.Sprintf("skill %d", int(cvars.Skill.Value()+0.5))
+		DrawStringWhite(160-len(skill)*4, 12+24, skill)
+
+		currMap := fmt.Sprintf("%s (%s)", cl.levelName, cl.mapName)
+		s.DrawScrollString(0, 4+24, 320, currMap)
+		return
+	}
+
+	minutes := cl.time / 60
+	seconds := cl.time - 60*minutes
+	tens := seconds / 10
+	units := seconds - 10*tens
+	currTime := fmt.Sprintf("%d:%d%d", minutes, tens, units)
+	DrawStringWhite(160-len(currTime)*4, 12+24, currTime)
+
+	s.DrawScrollString(0, 4+24, 320, cl.levelName)
+}
+
+func (s *Statusbar) finaleOverlay() {
+	SetCanvas(CANVAS_MENU)
+
+	pic := GetCachedPicture("gfx/finale.lmp")
+	DrawPicture((320-pic.width)/2, 16, pic)
 }
