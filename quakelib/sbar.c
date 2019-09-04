@@ -4,8 +4,6 @@
 //
 #include "quakedef.h"
 
-#define STAT_MINUS 10  // num frame for '-' stats digit
-
 qpic_t *sb_sbar;
 qpic_t *sb_scorebar;
 
@@ -14,12 +12,6 @@ qpic_t *sb_items[32];
 int sb_lines;  // scan lines to draw
 
 qpic_t *rsb_teambord;  // PGM 01/19/97 - team color border
-
-int hipweapons[4] = {HIT_LASER_CANNON_BIT, HIT_MJOLNIR_BIT, 4,
-                     HIT_PROXIMITY_GUN_BIT};
-// MED 01/04/97 added hipnotic items array
-
-void Sbar_MiniDeathmatchOverlay(void);
 
 /*
 ===============
@@ -162,21 +154,19 @@ void Sbar_Draw(void) {
 
   GL_SetCanvas(CANVAS_SBAR);  // johnfitz
 
-  if (Cvar_GetValue(&scr_viewsize) <
-      110)  // johnfitz -- check viewsize instead of sb_lines
-  {
+  if (Cvar_GetValue(&scr_viewsize) < 110)  {
     Sbar_DrawInventory();
-    if (CL_MaxClients() != 1) Sbar_DrawFrags();
+    if (CL_MaxClients() != 1) {
+      Sbar_DrawFrags();
+    }
   }
 
   if (Sbar_DoesShowScores() || CL_Stats(STAT_HEALTH) <= 0) {
     Draw_PicAlpha(0, 24, sb_scorebar,
-                  Cvar_GetValue(&scr_sbaralpha));  // johnfitz -- scr_sbaralpha
+                  Cvar_GetValue(&scr_sbaralpha));
     Sbar_DrawScoreboard();
     SBResetUpdates();
-  } else if (Cvar_GetValue(&scr_viewsize) <
-             120)  // johnfitz -- check viewsize instead of sb_lines
-  {
+  } else if (Cvar_GetValue(&scr_viewsize) < 120) {
     Draw_PicAlpha(0, 24, sb_sbar,
                   Cvar_GetValue(&scr_sbaralpha));  // johnfitz -- scr_sbaralpha
 
@@ -200,81 +190,6 @@ void Sbar_Draw(void) {
   }
 
   if (CL_GameTypeDeathMatch()) Sbar_MiniDeathmatchOverlay();
-}
-
-/*
-==================
-Sbar_MiniDeathmatchOverlay
-==================
-*/
-void Sbar_MiniDeathmatchOverlay(void) {
-  int i, k, top, bottom, x, y, f, numlines;
-  char num[12];
-  float scale;  // johnfitz
-  scoreboard_t *s;
-
-  scale = CLAMP(1.0, Cvar_GetValue(&scr_sbarscale),
-                (float)GL_Width() / 320.0);  // johnfitz
-
-  // MAX_SCOREBOARDNAME = 32, so total width for this overlay plus sbar is 632,
-  // but we can cut off some i guess
-  if (GL_Width() / scale < 512 ||
-      Cvar_GetValue(&scr_viewsize) >=
-          120)  // johnfitz -- test should consider scr_sbarscale
-    return;
-
-  // scores
-  Sbar_SortFrags();
-
-  // draw the text
-  numlines = (Cvar_GetValue(&scr_viewsize) >= 110) ? 3 : 6;  // johnfitz
-
-  // find us
-  for (i = 0; i < scoreboardlines; i++)
-    if (fragsort[i] == CL_Viewentity() - 1) break;
-  if (i == scoreboardlines)  // we're not there
-    i = 0;
-  else  // figure out start
-    i = i - numlines / 2;
-  if (i > scoreboardlines - numlines) i = scoreboardlines - numlines;
-  if (i < 0) i = 0;
-
-  x = 324;
-  y = (Cvar_GetValue(&scr_viewsize) >= 110)
-          ? 24
-          : 0;  // johnfitz -- start at the right place
-  for (; i < scoreboardlines && y <= 48;
-       i++, y += 8)  // johnfitz -- change y init, test, inc
-  {
-    k = fragsort[i];
-    s = &cl.scores[k];
-    if (!s->name[0]) continue;
-
-    // colors
-    top = CL_ScoresColors(k) & 0xf0;
-    bottom = (CL_ScoresColors(k) & 15) << 4;
-    top = Sbar_ColorForMap(top);
-    bottom = Sbar_ColorForMap(bottom);
-
-    Draw_Fill(x, y + 1, 40, 4, top, 1);
-    Draw_Fill(x, y + 5, 40, 3, bottom, 1);
-
-    // number
-    f = CL_ScoresFrags(k);
-    sprintf(num, "%3i", f);
-    Draw_Character(x + 8, y, num[0]);
-    Draw_Character(x + 16, y, num[1]);
-    Draw_Character(x + 24, y, num[2]);
-
-    // brackets
-    if (k == CL_Viewentity() - 1) {
-      Draw_Character(x, y, 16);
-      Draw_Character(x + 32, y, 17);
-    }
-
-    // name
-    Draw_String(x + 48, y, s->name);
-  }
 }
 
 

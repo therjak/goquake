@@ -605,6 +605,11 @@ func Sbar_DrawScoreboard() {
 	statusbar.drawScoreboard()
 }
 
+//export Sbar_MiniDeathmatchOverlay
+func Sbar_MiniDeathmatchOverlay() {
+	statusbar.miniDeathmatchOverlay()
+}
+
 func (s *Statusbar) drawFrags() {
 	s.sortFrags()
 	x := 190
@@ -843,5 +848,61 @@ func (s *Statusbar) drawArmor() {
 		d(s.armor[1])
 	case cl.items&progs.ItemArmor1 != 0:
 		d(s.armor[0])
+	}
+}
+
+func (s *Statusbar) miniDeathmatchOverlay() {
+	scale := math.Clamp32(1.0,
+		cvars.ScreenStatusbarScale.Value(),
+		float32(viewport.width)/320.0)
+
+	// MAX_SCOREBOARDNAME = 32, so total width for this overlay plus sbar is 632,
+	// but we can cut off some i guess
+	if float32(viewport.width)/scale < 512 || cvars.ViewSize.Value() >= 120 {
+		return
+	}
+	s.sortFrags()
+
+	numLines := 6
+	x := 324
+	y := 0
+	if cvars.ViewSize.Value() >= 110 {
+		numLines = 3
+		y = 24
+	}
+	// display the local player and ones with frag counts close by
+	i := func() int {
+		for i, fs := range s.sortByFrags {
+			if fs == cl.viewentity-1 {
+				// local player found
+				return i
+			}
+		}
+		return 0
+	}()
+	// move the window to have the player centered
+	i -= numLines / 2
+	i = math.ClampI(0, i, len(s.sortByFrags)-numLines)
+	for i < len(s.sortByFrags) && y <= 48 {
+		score := &cl.scores[s.sortByFrags[i]]
+
+		DrawFill(x, y+1, 40, 4, toPalette(score.topColor), 1)
+		DrawFill(x, y+5, 40, 3, toPalette(score.bottomColor), 1)
+
+		frags := score.frags
+		if frags > 999 {
+			frags = 999
+		}
+		DrawStringWhite(x+8, y, fmt.Sprintf("%3d", frags))
+
+		if s.sortByFrags[i] == cl.viewentity-1 {
+			DrawCharacterWhite(x, y, 16)
+			DrawCharacterWhite(x+32, y, 17)
+		}
+
+		DrawStringCopper(x+48, y, score.name)
+
+		i++
+		y += 8
 	}
 }
