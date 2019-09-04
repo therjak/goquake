@@ -1,6 +1,6 @@
 package quakelib
 
-//void Sbar_LoadPics(void);
+//void Sbar_LoadPicsC(void);
 import "C"
 
 import (
@@ -48,7 +48,13 @@ func Sbar_DoesShowScores() bool {
 //export Sbar_Init
 func Sbar_Init() {
 	statusbar.LoadPictures()
-	C.Sbar_LoadPics()
+	C.Sbar_LoadPicsC()
+}
+
+//export Sbar_LoadPics
+func Sbar_LoadPics() {
+	statusbar.LoadPictures()
+	C.Sbar_LoadPicsC()
 }
 
 //export Sbar_DrawInventory
@@ -103,6 +109,8 @@ type Statusbar struct {
 	ritems    [2]*QPic
 	rteambord *QPic
 	rammo     [3]*QPic
+
+	disc *QPic
 }
 
 //sortFrags updates s.sortByFrags to have descending frag counts
@@ -195,6 +203,8 @@ func (s *Statusbar) LoadPictures() {
 	s.armor[0] = GetPictureFromWad("sb_armor1")
 	s.armor[1] = GetPictureFromWad("sb_armor2")
 	s.armor[2] = GetPictureFromWad("sb_armor3")
+
+	s.disc = GetPictureFromWad("disc")
 
 	s.items[progs.ItemKey1] = spic{
 		pic: []*QPic{GetPictureFromWad("sb_key1")},
@@ -575,6 +585,11 @@ func Sbar_FinaleOverlay() {
 	statusbar.finaleOverlay()
 }
 
+//export Sbar_DrawArmor
+func Sbar_DrawArmor() {
+	statusbar.drawArmor()
+}
+
 //export Sbar_DrawAmmo
 func Sbar_DrawAmmo() {
 	statusbar.drawAmmo()
@@ -635,50 +650,42 @@ func (s *Statusbar) drawFace() {
 }
 
 func (s *Statusbar) drawAmmo() {
-	ammo := func() *QPic {
-		if cmdl.Rogue() {
-			switch {
-			case cl.items&progs.RogueItemShells != 0:
-				return s.ammo[0]
-			case cl.items&progs.RogueItemNails != 0:
-				return s.ammo[1]
-			case cl.items&progs.RogueItemRockets != 0:
-				return s.ammo[2]
-			case cl.items&progs.RogueItemCells != 0:
-				return s.ammo[3]
-			case cl.items&progs.RogueItemLavaNails != 0:
-				return s.rammo[0]
-			case cl.items&progs.RogueItemPlasmaAmmo != 0:
-				return s.rammo[1]
-			case cl.items&progs.RogueItemMultiRockets != 0:
-				return s.rammo[2]
-			default:
-				return nil
-			}
-		}
-		switch {
-		case cl.items&progs.ItemShells != 0:
-			return s.ammo[0]
-		case cl.items&progs.ItemNails != 0:
-			return s.ammo[1]
-		case cl.items&progs.ItemRockets != 0:
-			return s.ammo[2]
-		case cl.items&progs.ItemCells != 0:
-			return s.ammo[3]
-		default:
-			return nil
-		}
-	}()
-
-	if ammo != nil {
-		DrawPicture(224, 24, ammo)
-	}
-
 	color := 0
 	if cl.stats.ammo <= 10 {
 		color = 1
 	}
 	s.drawNumber(248, 24, cl.stats.ammo, color)
+
+	d := func(ammo *QPic) { DrawPicture(224, 24, ammo) }
+	if cmdl.Rogue() {
+		switch {
+		case cl.items&progs.RogueItemShells != 0:
+			d(s.ammo[0])
+		case cl.items&progs.RogueItemNails != 0:
+			d(s.ammo[1])
+		case cl.items&progs.RogueItemRockets != 0:
+			d(s.ammo[2])
+		case cl.items&progs.RogueItemCells != 0:
+			d(s.ammo[3])
+		case cl.items&progs.RogueItemLavaNails != 0:
+			d(s.rammo[0])
+		case cl.items&progs.RogueItemPlasmaAmmo != 0:
+			d(s.rammo[1])
+		case cl.items&progs.RogueItemMultiRockets != 0:
+			d(s.rammo[2])
+		}
+		return
+	}
+	switch {
+	case cl.items&progs.ItemShells != 0:
+		d(s.ammo[0])
+	case cl.items&progs.ItemNails != 0:
+		d(s.ammo[1])
+	case cl.items&progs.ItemRockets != 0:
+		d(s.ammo[2])
+	case cl.items&progs.ItemCells != 0:
+		d(s.ammo[3])
+	}
 }
 
 func (s *Statusbar) drawHealth() {
@@ -804,4 +811,37 @@ func (s *Statusbar) finaleOverlay() {
 
 	pic := GetCachedPicture("gfx/finale.lmp")
 	DrawPicture((320-pic.width)/2, 16, pic)
+}
+
+func (s *Statusbar) drawArmor() {
+	d := func(armorPicture *QPic) { DrawPicture(0, 24, armorPicture) }
+	if cl.items&progs.ItemInvulnerability != 0 {
+		s.drawNumber(24, 24, 666, 1)
+		d(s.disc)
+		return
+	}
+	color := 0
+	if cl.stats.armor <= 25 {
+		color = 1
+	}
+	s.drawNumber(24, 24, cl.stats.armor, color)
+	if cmdl.Rogue() {
+		switch {
+		case cl.items&progs.RogueItemArmor3 != 0:
+			d(s.armor[2])
+		case cl.items&progs.RogueItemArmor2 != 0:
+			d(s.armor[1])
+		case cl.items&progs.RogueItemArmor1 != 0:
+			d(s.armor[0])
+		}
+		return
+	}
+	switch {
+	case cl.items&progs.ItemArmor3 != 0:
+		d(s.armor[2])
+	case cl.items&progs.ItemArmor2 != 0:
+		d(s.armor[1])
+	case cl.items&progs.ItemArmor1 != 0:
+		d(s.armor[0])
+	}
 }

@@ -6,7 +6,6 @@
 
 cvar_t scr_conalpha;
 
-qpic_t *draw_disc;
 qpic_t *draw_backtile;
 
 gltexture_t *char_texture;  // johnfitz
@@ -320,7 +319,6 @@ void Draw_LoadPics(void) {
       offset,
       TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP | TEXPREF_CONCHARS);
 
-  draw_disc = Draw_PicFromWad("disc");
   draw_backtile = Draw_PicFromWad("backtile");
 }
 

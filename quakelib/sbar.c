@@ -10,7 +10,6 @@ qpic_t *sb_nums[2][11];
 qpic_t *sb_sbar;
 qpic_t *sb_scorebar;
 
-qpic_t *sb_armor[3];
 qpic_t *sb_items[32];
 
 int sb_lines;  // scan lines to draw
@@ -28,7 +27,7 @@ void Sbar_MiniDeathmatchOverlay(void);
 Sbar_LoadPics -- johnfitz -- load all the sbar pics
 ===============
 */
-void Sbar_LoadPics(void) {
+void Sbar_LoadPicsC(void) {
   int i;
 
   for (i = 0; i < 10; i++) {
@@ -39,10 +38,6 @@ void Sbar_LoadPics(void) {
   sb_nums[0][10] = Draw_PicFromWad("num_minus");
   sb_nums[1][10] = Draw_PicFromWad("anum_minus");
 
-  sb_armor[0] = Draw_PicFromWad("sb_armor1");
-  sb_armor[1] = Draw_PicFromWad("sb_armor2");
-  sb_armor[2] = Draw_PicFromWad("sb_armor3");
-
   sb_items[0] = Draw_PicFromWad("sb_key1");
   sb_items[1] = Draw_PicFromWad("sb_key2");
 
@@ -51,7 +46,6 @@ void Sbar_LoadPics(void) {
 
   if (CMLRogue()) {
     rsb_teambord = Draw_PicFromWad("r_teambord");
-
   }
 }
 
@@ -265,30 +259,7 @@ void Sbar_Draw(void) {
       if (CL_HasItem(IT_KEY2)) Draw_Pic(209, 12 + 24, sb_items[1]);
     }
     // armor
-    if (CL_HasItem(IT_INVULNERABILITY)) {
-      Sbar_DrawNum(24, 0, 666, 3, 1);
-      Draw_Pic(0, 24, draw_disc);
-    } else {
-      if (CMLRogue()) {
-        Sbar_DrawNum(24, 0, CL_Stats(STAT_ARMOR), 3,
-                     CL_Stats(STAT_ARMOR) <= 25);
-        if (CL_HasItem(RIT_ARMOR3))
-          Draw_Pic(0, 24, sb_armor[2]);
-        else if (CL_HasItem(RIT_ARMOR2))
-          Draw_Pic(0, 24, sb_armor[1]);
-        else if (CL_HasItem(RIT_ARMOR1))
-          Draw_Pic(0, 24, sb_armor[0]);
-      } else {
-        Sbar_DrawNum(24, 0, CL_Stats(STAT_ARMOR), 3,
-                     CL_Stats(STAT_ARMOR) <= 25);
-        if (CL_HasItem(IT_ARMOR3))
-          Draw_Pic(0, 24, sb_armor[2]);
-        else if (CL_HasItem(IT_ARMOR2))
-          Draw_Pic(0, 24, sb_armor[1]);
-        else if (CL_HasItem(IT_ARMOR1))
-          Draw_Pic(0, 24, sb_armor[0]);
-      }
-    }
+    Sbar_DrawArmor();
 
     // face
     Sbar_DrawFace();
