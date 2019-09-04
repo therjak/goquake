@@ -6,7 +6,6 @@
 
 #define STAT_MINUS 10  // num frame for '-' stats digit
 
-qpic_t *sb_nums[2][11];
 qpic_t *sb_sbar;
 qpic_t *sb_scorebar;
 
@@ -28,16 +27,6 @@ Sbar_LoadPics -- johnfitz -- load all the sbar pics
 ===============
 */
 void Sbar_LoadPicsC(void) {
-  int i;
-
-  for (i = 0; i < 10; i++) {
-    sb_nums[0][i] = Draw_PicFromWad(va("num_%i", i));
-    sb_nums[1][i] = Draw_PicFromWad(va("anum_%i", i));
-  }
-
-  sb_nums[0][10] = Draw_PicFromWad("num_minus");
-  sb_nums[1][10] = Draw_PicFromWad("anum_minus");
-
   sb_items[0] = Draw_PicFromWad("sb_key1");
   sb_items[1] = Draw_PicFromWad("sb_key2");
 
@@ -46,67 +35,6 @@ void Sbar_LoadPicsC(void) {
 
   if (CMLRogue()) {
     rsb_teambord = Draw_PicFromWad("r_teambord");
-  }
-}
-
-/*
-=============
-Sbar_itoa
-=============
-*/
-int Sbar_itoa(int num, char *buf) {
-  char *str;
-  int pow10;
-  int dig;
-
-  str = buf;
-
-  if (num < 0) {
-    *str++ = '-';
-    num = -num;
-  }
-
-  for (pow10 = 10; num >= pow10; pow10 *= 10)
-    ;
-
-  do {
-    pow10 /= 10;
-    dig = num / pow10;
-    *str++ = '0' + dig;
-    num -= dig * pow10;
-  } while (pow10 != 1);
-
-  *str = 0;
-
-  return str - buf;
-}
-
-/*
-=============
-Sbar_DrawNum
-=============
-*/
-void Sbar_DrawNum(int x, int y, int num, int digits, int color) {
-  char str[12];
-  char *ptr;
-  int l, frame;
-
-  num = q_min(999, num);
-
-  l = Sbar_itoa(num, str);
-  ptr = str;
-  if (l > digits) ptr += (l - digits);
-  if (l < digits) x += (digits - l) * 24;
-
-  while (*ptr) {
-    if (*ptr == '-')
-      frame = STAT_MINUS;
-    else
-      frame = *ptr - '0';
-
-    Draw_Pic(x, y + 24, sb_nums[color][frame]);
-    x += 24;
-    ptr++;
   }
 }
 
