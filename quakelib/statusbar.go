@@ -585,6 +585,11 @@ func Sbar_DrawHealth() {
 	statusbar.drawHealth()
 }
 
+//export Sbar_DrawScoreboard
+func Sbar_DrawScoreboard() {
+	statusbar.drawScoreboard()
+}
+
 func (s *Statusbar) drawFrags() {
 	s.sortFrags()
 	x := 190
@@ -698,6 +703,13 @@ func (s *Statusbar) drawNumber(x, y, num, color int) {
 		if n2 != 0 {
 			DrawPicture(x, y, s.nums[color][n2])
 		}
+	}
+}
+
+func (s *Statusbar) drawScoreboard() {
+	s.soloScoreboard()
+	if cl.gameType == svc.GameDeathmatch {
+		s.deathmatchOverlay()
 	}
 }
 
