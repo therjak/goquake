@@ -9,8 +9,6 @@ qpic_t *sb_scorebar;
 
 qpic_t *sb_items[32];
 
-int sb_lines;  // scan lines to draw
-
 qpic_t *rsb_teambord;  // PGM 01/19/97 - team color border
 
 /*
@@ -138,16 +136,16 @@ void Sbar_Draw(void) {
 
   // johnfitz -- don't waste fillrate by clearing the area behind the sbar
   w = CLAMP(320.0f, Cvar_GetValue(&scr_sbarscale) * 320.0f, (float)GL_Width());
-  if (sb_lines && GL_Width() > w) {
+  if (Sbar_Lines() && GL_Width() > w) {
     if (Cvar_GetValue(&scr_sbaralpha) < 1)
-      Draw_TileClear(0, GL_Height() - sb_lines, GL_Width(), sb_lines);
+      Draw_TileClear(0, GL_Height() - Sbar_Lines(), GL_Width(), Sbar_Lines());
     if (CL_GameTypeDeathMatch())
-      Draw_TileClear(w, GL_Height() - sb_lines, GL_Width() - w, sb_lines);
+      Draw_TileClear(w, GL_Height() - Sbar_Lines(), GL_Width() - w, Sbar_Lines());
     else {
-      Draw_TileClear(0, GL_Height() - sb_lines, (GL_Width() - w) / 2.0f,
-                     sb_lines);
-      Draw_TileClear((GL_Width() - w) / 2.0f + w, GL_Height() - sb_lines,
-                     (GL_Width() - w) / 2.0f, sb_lines);
+      Draw_TileClear(0, GL_Height() - Sbar_Lines(), (GL_Width() - w) / 2.0f,
+                     Sbar_Lines());
+      Draw_TileClear((GL_Width() - w) / 2.0f + w, GL_Height() - Sbar_Lines(),
+                     (GL_Width() - w) / 2.0f, Sbar_Lines());
     }
   }
   // johnfitz

@@ -232,7 +232,7 @@ Internal use only
 =================
 */
 static void SCR_CalcRefdef(void) {
-  float size, scale;  // johnfitz -- scale
+  float size;
 
   // force the status bar to redraw
   Sbar_Changed();
@@ -249,30 +249,14 @@ static void SCR_CalcRefdef(void) {
 
   SetRecalcRefdef(0);
 
-  // johnfitz -- rewrote this section
-  size = Cvar_GetValue(&scr_viewsize);
-  scale = CLAMP(1.0, Cvar_GetValue(&scr_sbarscale), (float)GL_Width() / 320.0);
-
-  // johnfitz -- scr_sbaralpha.value
-  if (size >= 120 || CL_Intermission() || Cvar_GetValue(&scr_sbaralpha) < 1) {
-    sb_lines = 0;
-  } else if (size >= 110) {
-    sb_lines = 24 * scale;
-  } else {
-    sb_lines = 48 * scale;
-  }
-
   size = q_min(Cvar_GetValue(&scr_viewsize), 100) / 100;
-  // johnfitz
 
-  // johnfitz -- rewrote this section
   r_refdef.vrect.width =
       q_max(GL_Width() * size, 96);  // no smaller than 96, for icons
   r_refdef.vrect.height =
-      q_min(GL_Height() * size, GL_Height() - sb_lines);  // make room for sbar
+      q_min(GL_Height() * size, GL_Height() - Sbar_Lines());  // make room for sbar
   r_refdef.vrect.x = (GL_Width() - r_refdef.vrect.width) / 2;
-  r_refdef.vrect.y = (GL_Height() - sb_lines - r_refdef.vrect.height) / 2;
-  // johnfitz
+  r_refdef.vrect.y = (GL_Height() - Sbar_Lines() - r_refdef.vrect.height) / 2;
 
   r_refdef.fov_x =
       AdaptFovx(Cvar_GetValue(&scr_fov), ScreenWidth(), ScreenHeight());
@@ -825,11 +809,11 @@ void SCR_TileClear(void) {
 
   if (r_refdef.vrect.x > 0) {
     // left
-    Draw_TileClear(0, 0, r_refdef.vrect.x, GL_Height() - sb_lines);
+    Draw_TileClear(0, 0, r_refdef.vrect.x, GL_Height() - Sbar_Lines());
     // right
     Draw_TileClear(r_refdef.vrect.x + r_refdef.vrect.width, 0,
                    GL_Width() - r_refdef.vrect.x - r_refdef.vrect.width,
-                   GL_Height() - sb_lines);
+                   GL_Height() - Sbar_Lines());
   }
 
   if (r_refdef.vrect.y > 0) {
@@ -839,7 +823,7 @@ void SCR_TileClear(void) {
     Draw_TileClear(
         r_refdef.vrect.x, r_refdef.vrect.y + r_refdef.vrect.height,
         r_refdef.vrect.width,
-        GL_Height() - r_refdef.vrect.y - r_refdef.vrect.height - sb_lines);
+        GL_Height() - r_refdef.vrect.y - r_refdef.vrect.height - Sbar_Lines());
   }
 }
 

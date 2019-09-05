@@ -43,8 +43,6 @@ int SCR_ModalMessage(const char *text, float timeout);
 
 float GetScreenConsoleCurrentHeight(void);
 
-extern int sb_lines;
-
 extern int clearnotify;  // set to 0 whenever notify text is drawn
 
 extern cvar_t scr_viewsize;

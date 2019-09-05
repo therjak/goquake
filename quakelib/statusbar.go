@@ -551,6 +551,20 @@ func toPalette(c int) int {
 	return (c << 4) + 8
 }
 
+//export Sbar_Lines
+func Sbar_Lines() int {
+	// scan lines to draw
+	size := cvars.ViewSize.Value()
+	scale := math.Clamp32(1, cvars.ScreenStatusbarScale.Value(), float32(viewport.width)/320)
+	if size >= 120 || cl.intermission != 0 || cvars.ScreenStatusbarAlpha.Value() < 1 {
+		return 0
+	} else if size >= 110 {
+		return int(24 * scale)
+	}
+	return int(48 * scale)
+	// return statusbar.lines
+}
+
 //export Sbar_DrawFrags
 func Sbar_DrawFrags() {
 	statusbar.drawFrags()
