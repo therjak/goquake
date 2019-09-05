@@ -93,11 +93,11 @@ type qstatusbar struct {
 	ibar     *QPic
 	scorebar *QPic
 
-	hweapons [7][5]*QPic
+	hweapons [5]spic
 	hitems   [2]*QPic
 
 	rinvbar   [2]*QPic
-	rweapons  [5]*QPic
+	rweapons  map[int]spic
 	ritems    [2]*QPic
 	rteambord *QPic
 	rammo     [3]*QPic
@@ -285,24 +285,30 @@ func (s *qstatusbar) LoadPictures() {
 	s.scorebar = GetPictureFromWad("scorebar")
 
 	if cmdl.Hipnotic() {
-		s.hweapons[0][0] = GetPictureFromWad("inv_laser")
-		s.hweapons[0][1] = GetPictureFromWad("inv_mjolnir")
-		s.hweapons[0][2] = GetPictureFromWad("inv_gren_prox")
-		s.hweapons[0][3] = GetPictureFromWad("inv_prox_gren")
-		s.hweapons[0][4] = GetPictureFromWad("inv_prox")
-
-		s.hweapons[1][0] = GetPictureFromWad("inv2_laser")
-		s.hweapons[1][1] = GetPictureFromWad("inv2_mjolnir")
-		s.hweapons[1][2] = GetPictureFromWad("inv2_gren_prox")
-		s.hweapons[1][3] = GetPictureFromWad("inv2_prox_gren")
-		s.hweapons[1][4] = GetPictureFromWad("inv2_prox")
-
-		for i := 0; i < 5; i++ {
-			s.hweapons[2+i][0] = GetPictureFromWad(fmt.Sprintf("inva%d_laser", i+1))
-			s.hweapons[2+i][1] = GetPictureFromWad(fmt.Sprintf("inva%d_mjolnir", i+1))
-			s.hweapons[2+i][2] = GetPictureFromWad(fmt.Sprintf("inva%d_gren_prox", i+1))
-			s.hweapons[2+i][3] = GetPictureFromWad(fmt.Sprintf("inva%d_prox_gren", i+1))
-			s.hweapons[2+i][4] = GetPictureFromWad(fmt.Sprintf("inva%d_prox", i+1))
+		s.hweapons[0] = spic{
+			pic: getw("laser"),
+			x:   176 + 0*24,
+			y:   8,
+		}
+		s.hweapons[1] = spic{
+			pic: getw("mjolnir"),
+			x:   176 + 1*24,
+			y:   8,
+		}
+		s.hweapons[2] = spic{
+			pic: getw("gren_prox"),
+			x:   96,
+			y:   8,
+		}
+		s.hweapons[3] = spic{
+			pic: getw("prox_gren"),
+			x:   96,
+			y:   8,
+		}
+		s.hweapons[4] = spic{
+			pic: getw("prox"),
+			x:   96,
+			y:   8,
 		}
 
 		s.items[progs.HipnoticItemWetsuit] = spic{
@@ -321,11 +327,31 @@ func (s *qstatusbar) LoadPictures() {
 		s.rinvbar[0] = GetPictureFromWad("r_invbar1")
 		s.rinvbar[1] = GetPictureFromWad("r_invbar2")
 
-		s.rweapons[0] = GetPictureFromWad("r_lava")
-		s.rweapons[1] = GetPictureFromWad("r_superlava")
-		s.rweapons[2] = GetPictureFromWad("r_gren")
-		s.rweapons[3] = GetPictureFromWad("r_multirock")
-		s.rweapons[4] = GetPictureFromWad("r_plasma")
+		s.rweapons[progs.RogueItemLavaNailgun] = spic{
+			pic: []*QPic{GetPictureFromWad("r_lava")},
+			x:   (0 + 2) * 24,
+			y:   8,
+		}
+		s.rweapons[progs.RogueItemLavaSuperNailgun] = spic{
+			pic: []*QPic{GetPictureFromWad("r_superlava")},
+			x:   (1 + 2) * 24,
+			y:   8,
+		}
+		s.rweapons[progs.RogueItemMultiGrenade] = spic{
+			pic: []*QPic{GetPictureFromWad("r_gren")},
+			x:   (2 + 2) * 24,
+			y:   8,
+		}
+		s.rweapons[progs.RogueItemMultiRocket] = spic{
+			pic: []*QPic{GetPictureFromWad("r_multirock")},
+			x:   (3 + 2) * 24,
+			y:   8,
+		}
+		s.rweapons[progs.RogueItemPlasmaGun] = spic{
+			pic: []*QPic{GetPictureFromWad("r_plasma")},
+			x:   (4 + 2) * 24,
+			y:   8,
+		}
 
 		s.rteambord = GetPictureFromWad("r_teambord")
 
@@ -426,59 +452,57 @@ func (s *qstatusbar) drawInventory() {
 		DrawPicture(w.x, w.y, w.pic[frame])
 	}
 	/*
-	  if (CMLHipnotic()) {
-	    int grenadeflashing = 0;
-	    for (i = 0; i < 4; i++) {
-	      if (CL_HasItem(1 << hipweapons[i])) {
-	        time = CL_ItemGetTime(hipweapons[i]);
-	        flashon = (int)((CL_Time() - time) * 10);
-	        if (flashon >= 10) {
-	          if (CL_Stats(STAT_ACTIVEWEAPON) == (1 << hipweapons[i]))
-	            flashon = 1;
-	          else
-	            flashon = 0;
-	        } else
-	          flashon = (flashon % 5) + 2;
+		  if cmdl.Hipnotic() {
+		    int grenadeflashing = 0;
+		    for (i = 0; i < 4; i++) {
+					//hipweapons: [23,7,4,16]
+		      if (CL_HasItem(1 << hipweapons[i])) {
+		        time = CL_ItemGetTime(hipweapons[i]);
+		        flashon = (int)((CL_Time() - time) * 10);
+		        if (flashon >= 10) {
+		          if (CL_Stats(STAT_ACTIVEWEAPON) == (1 << hipweapons[i]))
+		            flashon = 1;
+		          else
+		            flashon = 0;
+		        } else
+		          flashon = (flashon % 5) + 2;
 
-	        // check grenade launcher
-	        if (i == 2) {
-	          if (CL_HasItem(HIT_PROXIMITY_GUN)) {
-	            if (flashon) {
-	              grenadeflashing = 1;
-	              Draw_Pic(96, -16 + 24, hsb_weapons[flashon][2]);
-	            }
-	          }
-	        } else if (i == 3) {
-	          if (CL_HasItem(IT_SHOTGUN << 4)) {
-	            if (flashon && !grenadeflashing) {
-	              Draw_Pic(96, -16 + 24, hsb_weapons[flashon][3]);
-	            } else if (!grenadeflashing) {
-	              Draw_Pic(96, -16 + 24, hsb_weapons[0][3]);
-	            }
-	          } else
-	            Draw_Pic(96, -16 + 24, hsb_weapons[flashon][4]);
-	        } else
-	          Draw_Pic(176 + (i * 24), -16 + 24, hsb_weapons[flashon][i]);
+		        // check grenade launcher
+		        if (i == 2) {
+		          if (CL_HasItem(HIT_PROXIMITY_GUN)) {
+		            if (flashon) {
+		              grenadeflashing = 1;
+		              Draw_Pic(96, -16 + 24, hsb_weapons[flashon][2]);
+		            }
+		          }
+		        } else if (i == 3) {
+		          if (CL_HasItem(IT_SHOTGUN << 4)) {
+		            if (flashon && !grenadeflashing) {
+		              Draw_Pic(96, -16 + 24, hsb_weapons[flashon][3]);
+		            } else if (!grenadeflashing) {
+		              Draw_Pic(96, -16 + 24, hsb_weapons[0][3]);
+		            }
+		          } else
+		            Draw_Pic(96, -16 + 24, hsb_weapons[flashon][4]);
+		        } else
+		          Draw_Pic(176 + (i * 24), -16 + 24, hsb_weapons[flashon][i]);
 
-	        if (flashon > 1) {
-	          // force update to remove flash
-	          SBResetUpdates();
-	        }
-	      }
-	    }
-	  }
-
-	  if (CMLRogue()) {
-	    // check for powered up weapon.
-	    if (CL_Stats(STAT_ACTIVEWEAPON) >= RIT_LAVA_NAILGUN) {
-	      for (i = 0; i < 5; i++) {
-	        if (CL_Stats(STAT_ACTIVEWEAPON) == (RIT_LAVA_NAILGUN << i)) {
-	          Draw_Pic((i + 2) * 24, -16 + 24, rsb_weapons[i]);
-	        }
-	      }
-	    }
-	  }
+		        if (flashon > 1) {
+		          // force update to remove flash
+		          SBResetUpdates();
+		        }
+		      }
+		    }
+		  }
 	*/
+
+	if cmdl.Rogue() {
+		for k, v := range s.rweapons {
+			if cl.stats.activeWeapon == k {
+				DrawPicture(v.x, v.y, v.pic[0])
+			}
+		}
+	}
 
 	// ammo counts
 	drawAmmo := func(num int, pos int) {
