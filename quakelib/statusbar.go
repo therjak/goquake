@@ -1,6 +1,5 @@
 package quakelib
 
-//void Sbar_LoadPicsC(void);
 import "C"
 
 import (
@@ -28,13 +27,11 @@ func Sbar_Changed() {
 //export Sbar_Init
 func Sbar_Init() {
 	statusbar.LoadPictures()
-	C.Sbar_LoadPicsC()
 }
 
 //export Sbar_LoadPics
 func Sbar_LoadPics() {
 	statusbar.LoadPictures()
-	C.Sbar_LoadPicsC()
 }
 
 //export Sbar_Lines
@@ -81,7 +78,7 @@ type qstatusbar struct {
 	nums  [2][11]*QPic
 	colon *QPic
 	slash *QPic
-	items map[int]spic //
+	items map[int]spic
 	ammo  [4]*QPic
 	armor [3]*QPic
 	sigil [4]*QPic
@@ -93,13 +90,13 @@ type qstatusbar struct {
 	face_quad         *QPic
 
 	sbar     *QPic
-	ibar     *QPic //
+	ibar     *QPic
 	scorebar *QPic
 
 	hweapons [7][5]*QPic
 	hitems   [2]*QPic
 
-	rinvbar   [2]*QPic //
+	rinvbar   [2]*QPic
 	rweapons  [5]*QPic
 	ritems    [2]*QPic
 	rteambord *QPic
@@ -850,6 +847,27 @@ func (s *qstatusbar) miniDeathmatchOverlay() {
 	}
 }
 
+func (s *qstatusbar) drawCTFScores() {
+	score := &cl.scores[cl.viewentity-1]
+
+	xofs := 113
+	if cl.gameType != svc.GameDeathmatch {
+		xofs += (screenWidth - 320) / 2
+	}
+
+	DrawPicture(112, 24, s.rteambord)
+	DrawFill(xofs, 24+3, 22, 9, toPalette(score.topColor), 1)
+	DrawFill(xofs, 24+12, 22, 9, toPalette(score.bottomColor), 1)
+
+	// TODO: should the other scores get the same copper variant?
+	if score.topColor == 1 {
+		// orig has only 7 pixel wide chars --- in all other places chars are 8 pixel
+		DrawStringCopper(113, 3+24, fmt.Sprintf("%3d", score.frags))
+	} else {
+		DrawStringWhite(113, 3+24, fmt.Sprintf("%3d", score.frags))
+	}
+}
+
 func (s *qstatusbar) Draw() {
 	if console.currentHeight() == screenHeight {
 		return
@@ -918,6 +936,7 @@ func (s *qstatusbar) Draw() {
 
 		if cmdl.Rogue() && cl.maxClients != 1 && cvars.TeamPlay.Value() > 3 && cvars.TeamPlay.Value() < 7 {
 			// draw some scores
+			s.drawCTFScores()
 		} else {
 			s.drawFace()
 		}
