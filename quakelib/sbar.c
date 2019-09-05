@@ -114,6 +114,7 @@ void Sbar_DrawFace(void) {
 Sbar_Draw
 ===============
 */
+/*
 void Sbar_Draw(void) {
   float w;  // johnfitz
 
@@ -189,5 +190,5 @@ void Sbar_Draw(void) {
 
   if (CL_GameTypeDeathMatch()) Sbar_MiniDeathmatchOverlay();
 }
-
+*/
 

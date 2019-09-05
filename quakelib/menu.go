@@ -25,7 +25,6 @@ package quakelib
 // void	Con_ToggleConsole_f(void);
 // void M_Search_Key(int);
 // void M_ServerList_Key(int);
-// float GetScreenConsoleCurrentHeight(void);
 // void M_Search_Draw(void);
 // void M_ServerList_Draw(void);
 // void S_ExtraUpdate(void);
@@ -220,7 +219,7 @@ func (m *qMenu) Draw() {
 		return
 	}
 
-	if C.GetScreenConsoleCurrentHeight() != 0 {
+	if console.currentHeight() != 0 {
 		DrawConsoleBackground()
 		C.S_ExtraUpdate()
 	}

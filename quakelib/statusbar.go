@@ -17,32 +17,12 @@ import (
 )
 
 var (
-	statusbar Statusbar
+	statusbar qstatusbar
 )
-
-//export SBResetUpdates
-func SBResetUpdates() {
-	statusbar.MarkChanged()
-}
-
-//export SBUpdatesInc
-func SBUpdatesInc() {
-	statusbar.updates++
-}
-
-//export SBUpdates
-func SBUpdates() int {
-	return statusbar.updates
-}
 
 //export Sbar_Changed
 func Sbar_Changed() {
 	statusbar.MarkChanged()
-}
-
-//export Sbar_DoesShowScores
-func Sbar_DoesShowScores() bool {
-	return statusbar.showScores
 }
 
 //export Sbar_Init
@@ -57,9 +37,24 @@ func Sbar_LoadPics() {
 	C.Sbar_LoadPicsC()
 }
 
-//export Sbar_DrawInventory
-func Sbar_DrawInventory() {
-	statusbar.DrawInventory()
+//export Sbar_Lines
+func Sbar_Lines() int {
+	return statusbar.Lines()
+}
+
+//export Sbar_IntermissionOverlay
+func Sbar_IntermissionOverlay() {
+	statusbar.intermissionOverlay()
+}
+
+//export Sbar_FinaleOverlay
+func Sbar_FinaleOverlay() {
+	statusbar.finaleOverlay()
+}
+
+//export Sbar_Draw
+func Sbar_Draw() {
+	statusbar.Draw()
 }
 
 func init() {
@@ -73,7 +68,7 @@ type spic struct {
 	y   int
 }
 
-type Statusbar struct {
+type qstatusbar struct {
 	// if >= vid.numpages, no update needed -- this needs rework
 	updates    int
 	showScores bool
@@ -114,7 +109,7 @@ type Statusbar struct {
 }
 
 //sortFrags updates s.sortByFrags to have descending frag counts
-func (s *Statusbar) sortFrags() {
+func (s *qstatusbar) sortFrags() {
 	// There are no more than 16 elements, so performance does not matter
 	if cap(s.sortByFrags) < 16 {
 		s.sortByFrags = make([]int, 16)
@@ -134,7 +129,7 @@ func (s *Statusbar) sortFrags() {
 	}
 }
 
-func (s *Statusbar) LoadPictures() {
+func (s *qstatusbar) LoadPictures() {
 	for i := 0; i < 10; i++ {
 		s.nums[0][i] = GetPictureFromWad(fmt.Sprintf("num_%d", i))
 		s.nums[1][i] = GetPictureFromWad(fmt.Sprintf("anum_%d", i))
@@ -343,7 +338,7 @@ func (s *Statusbar) LoadPictures() {
 	}
 }
 
-func (s *Statusbar) ShowScores() {
+func (s *qstatusbar) ShowScores() {
 	if s.showScores {
 		return
 	}
@@ -351,7 +346,7 @@ func (s *Statusbar) ShowScores() {
 	s.updates = 0
 }
 
-func (s *Statusbar) HideScores() {
+func (s *qstatusbar) HideScores() {
 	if !s.showScores {
 		return
 	}
@@ -360,7 +355,7 @@ func (s *Statusbar) HideScores() {
 }
 
 // MarkChanged marks the statusbar to update during the next frame
-func (s *Statusbar) MarkChanged() {
+func (s *qstatusbar) MarkChanged() {
 	s.updates = 0
 }
 
@@ -368,13 +363,8 @@ func StatusbarChanged() {
 	statusbar.MarkChanged()
 }
 
-//export Sbar_DrawScrollString
-func Sbar_DrawScrollString(x int, y int, width int, str *C.char) {
-	statusbar.DrawScrollString(x, y, width, C.GoString(str))
-}
-
 // scroll the string inside a glscissor region
-func (s *Statusbar) DrawScrollString(x, y, width int, str string) {
+func (s *qstatusbar) DrawScrollString(x, y, width int, str string) {
 	l := len(str) * 8
 	if l < width {
 		DrawStringWhite(x+(width-l)/2, y, str)
@@ -400,7 +390,7 @@ func (s *Statusbar) DrawScrollString(x, y, width int, str string) {
 	gl.Disable(gl.SCISSOR_TEST)
 }
 
-func (s *Statusbar) DrawInventory() {
+func (s *qstatusbar) drawInventory() {
 	ibar := func() *QPic {
 		if cmdl.Rogue() {
 			if cl.stats.weapon >= progs.RogueItemLavaNailgun {
@@ -551,8 +541,7 @@ func toPalette(c int) int {
 	return (c << 4) + 8
 }
 
-//export Sbar_Lines
-func Sbar_Lines() int {
+func (s *qstatusbar) Lines() int {
 	// scan lines to draw
 	size := cvars.ViewSize.Value()
 	scale := math.Clamp32(1, cvars.ScreenStatusbarScale.Value(), float32(viewport.width)/320)
@@ -562,69 +551,9 @@ func Sbar_Lines() int {
 		return int(24 * scale)
 	}
 	return int(48 * scale)
-	// return statusbar.lines
 }
 
-//export Sbar_DrawFrags
-func Sbar_DrawFrags() {
-	statusbar.drawFrags()
-}
-
-//export Sbar_DrawFace
-func Sbar_DrawFace() {
-	if cmdl.Rogue() && cl.maxClients != 1 && cvars.TeamPlay.Value() > 3 && cvars.TeamPlay.Value() < 7 {
-		// draw some scores
-	} else {
-		statusbar.drawFace()
-	}
-}
-
-//export Sbar_SoloScoreboard
-func Sbar_SoloScoreboard() {
-	statusbar.soloScoreboard()
-}
-
-//export Sbar_DeathmatchOverlay
-func Sbar_DeathmatchOverlay() {
-	statusbar.deathmatchOverlay()
-}
-
-//export Sbar_IntermissionOverlay
-func Sbar_IntermissionOverlay() {
-	statusbar.intermissionOverlay()
-}
-
-//export Sbar_FinaleOverlay
-func Sbar_FinaleOverlay() {
-	statusbar.finaleOverlay()
-}
-
-//export Sbar_DrawArmor
-func Sbar_DrawArmor() {
-	statusbar.drawArmor()
-}
-
-//export Sbar_DrawAmmo
-func Sbar_DrawAmmo() {
-	statusbar.drawAmmo()
-}
-
-//export Sbar_DrawHealth
-func Sbar_DrawHealth() {
-	statusbar.drawHealth()
-}
-
-//export Sbar_DrawScoreboard
-func Sbar_DrawScoreboard() {
-	statusbar.drawScoreboard()
-}
-
-//export Sbar_MiniDeathmatchOverlay
-func Sbar_MiniDeathmatchOverlay() {
-	statusbar.miniDeathmatchOverlay()
-}
-
-func (s *Statusbar) drawFrags() {
+func (s *qstatusbar) drawFrags() {
 	s.sortFrags()
 	x := 190
 	for i, f := range s.sortByFrags {
@@ -645,7 +574,7 @@ func (s *Statusbar) drawFrags() {
 	}
 }
 
-func (s *Statusbar) drawFace() {
+func (s *qstatusbar) drawFace() {
 	getFace := func() *QPic {
 		switch {
 		case cl.items&(progs.ItemInvisibility|progs.ItemInvulnerability) != 0:
@@ -668,7 +597,7 @@ func (s *Statusbar) drawFace() {
 	DrawPicture(112, 24, getFace())
 }
 
-func (s *Statusbar) drawAmmo() {
+func (s *qstatusbar) drawAmmo() {
 	color := 0
 	if cl.stats.ammo <= 10 {
 		color = 1
@@ -707,7 +636,7 @@ func (s *Statusbar) drawAmmo() {
 	}
 }
 
-func (s *Statusbar) drawHealth() {
+func (s *qstatusbar) drawHealth() {
 	color := 0
 	if cl.stats.health <= 25 {
 		color = 1
@@ -715,7 +644,7 @@ func (s *Statusbar) drawHealth() {
 	s.drawNumber(136, 24, cl.stats.health, color)
 }
 
-func (s *Statusbar) drawNumber(x, y, num, color int) {
+func (s *qstatusbar) drawNumber(x, y, num, color int) {
 	if num > 999 {
 		num = 999
 	}
@@ -732,14 +661,14 @@ func (s *Statusbar) drawNumber(x, y, num, color int) {
 	}
 }
 
-func (s *Statusbar) drawScoreboard() {
+func (s *qstatusbar) drawScoreboard() {
 	s.soloScoreboard()
 	if cl.gameType == svc.GameDeathmatch {
 		s.deathmatchOverlay()
 	}
 }
 
-func (s *Statusbar) soloScoreboard() {
+func (s *qstatusbar) soloScoreboard() {
 	monsters := fmt.Sprintf("Kills: %d/%d", cl.stats.monsters, cl.stats.totalMonsters)
 	DrawStringWhite(8, 12+24, monsters)
 
@@ -765,7 +694,7 @@ func (s *Statusbar) soloScoreboard() {
 	s.DrawScrollString(0, 4+24, 320, cl.levelName)
 }
 
-func (s *Statusbar) deathmatchOverlay() {
+func (s *qstatusbar) deathmatchOverlay() {
 	SetCanvas(CANVAS_MENU)
 
 	pic := GetCachedPicture("gfx/ranking.lmp")
@@ -799,7 +728,7 @@ func (s *Statusbar) deathmatchOverlay() {
 	SetCanvas(CANVAS_STATUSBAR)
 }
 
-func (s *Statusbar) intermissionOverlay() {
+func (s *qstatusbar) intermissionOverlay() {
 	if cl.gameType == svc.GameDeathmatch {
 		s.deathmatchOverlay()
 		return
@@ -825,14 +754,14 @@ func (s *Statusbar) intermissionOverlay() {
 	s.drawNumber(240, 144, cl.stats.totalMonsters, 0)
 }
 
-func (s *Statusbar) finaleOverlay() {
+func (s *qstatusbar) finaleOverlay() {
 	SetCanvas(CANVAS_MENU)
 
 	pic := GetCachedPicture("gfx/finale.lmp")
 	DrawPicture((320-pic.width)/2, 16, pic)
 }
 
-func (s *Statusbar) drawArmor() {
+func (s *qstatusbar) drawArmor() {
 	d := func(armorPicture *QPic) { DrawPicture(0, 24, armorPicture) }
 	if cl.items&progs.ItemInvulnerability != 0 {
 		s.drawNumber(24, 24, 666, 1)
@@ -865,7 +794,7 @@ func (s *Statusbar) drawArmor() {
 	}
 }
 
-func (s *Statusbar) miniDeathmatchOverlay() {
+func (s *qstatusbar) miniDeathmatchOverlay() {
 	scale := math.Clamp32(1.0,
 		cvars.ScreenStatusbarScale.Value(),
 		float32(viewport.width)/320.0)
@@ -918,5 +847,85 @@ func (s *Statusbar) miniDeathmatchOverlay() {
 
 		i++
 		y += 8
+	}
+}
+
+func (s *qstatusbar) Draw() {
+	if console.currentHeight() == screenHeight {
+		return
+	}
+	if cl.intermission != 0 {
+		return
+	}
+	if s.updates >= numPages &&
+		!cvars.GlClear.Bool() &&
+		cvars.ScreenStatusbarAlpha.Value() >= 1 &&
+		cvars.Gamma.Value() == 1 {
+		// must draw every frame if doing glsl gamma
+		return
+	}
+
+	s.updates++
+
+	SetCanvas(CANVAS_DEFAULT)
+
+	alpha := cvars.ScreenStatusbarAlpha.Value()
+	lines := s.Lines()
+	vw := int(viewport.width)
+	vh := int(viewport.height)
+	w := math.ClampI(320, int(cvars.ScreenStatusbarScale.Value()*320), vw)
+	if lines != 0 && vw > w {
+		if alpha < 1 {
+			// #############
+			DrawTileClear(0, vh-lines, vw, lines)
+		} else if cl.gameType == svc.GameDeathmatch {
+			// ------#######
+			DrawTileClear(w, vh-lines, vw-w, lines)
+		} else {
+			// ####-----####
+			cw := (vw - w) / 2
+			DrawTileClear(0, vh-lines, cw, lines)
+			DrawTileClear(cw+w, vh-lines, cw, lines)
+		}
+	}
+
+	SetCanvas(CANVAS_STATUSBAR)
+
+	if cvars.ViewSize.Value() < 110 {
+		s.drawInventory()
+		if cl.maxClients != 1 {
+			s.drawFrags()
+		}
+	}
+
+	if s.showScores || cl.stats.health <= 0 {
+		DrawPictureAlpha(0, 24, s.scorebar, alpha)
+		s.drawScoreboard()
+		s.updates = 0
+	} else if cvars.ViewSize.Value() < 120 {
+		DrawPictureAlpha(0, 24, s.sbar, alpha)
+
+		if cmdl.Hipnotic() {
+			// prevent overwriting keys
+			if cl.items&progs.ItemKey1 != 0 {
+				DrawPicture(209, 3+24, s.items[progs.ItemKey1].pic[0])
+			}
+			if cl.items&progs.ItemKey2 != 0 {
+				DrawPicture(209, 12+24, s.items[progs.ItemKey2].pic[0])
+			}
+		}
+		s.drawArmor()
+
+		if cmdl.Rogue() && cl.maxClients != 1 && cvars.TeamPlay.Value() > 3 && cvars.TeamPlay.Value() < 7 {
+			// draw some scores
+		} else {
+			s.drawFace()
+		}
+		s.drawHealth()
+		s.drawAmmo()
+	}
+
+	if cl.gameType == svc.GameDeathmatch {
+		s.miniDeathmatchOverlay()
 	}
 }
