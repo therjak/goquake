@@ -28,7 +28,6 @@ var (
 	glSwapControl    = false
 	videoInitialized = false
 	videoLocked      = false
-	consoleLineWidth = 38
 )
 
 func windowSetMode(width, height, bpp int32, fullscreen bool) {
@@ -226,8 +225,6 @@ func videoToggle() {
 }
 
 var (
-	consoleWidth  int
-	consoleHeight int
 	screenWidth   int
 	screenHeight  int
 	recalc_refdef bool
@@ -256,8 +253,8 @@ func updateConsoleSize() {
 	w = math.ClampI(320, w, screenWidth)
 	w &= 0xFFFFFFF8
 
-	consoleWidth = int(w)
-	consoleHeight = consoleWidth * screenHeight / screenWidth
+	console.width = int(w)
+	console.height = console.width * screenHeight / screenWidth
 }
 
 func b2s(b bool) string {

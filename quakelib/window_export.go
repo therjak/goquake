@@ -13,12 +13,12 @@ import (
 
 //export ConsoleWidth
 func ConsoleWidth() C.int {
-	return C.int(consoleLineWidth)
+	return C.int(console.lineWidth)
 }
 
 //export SetConsoleWidth
 func SetConsoleWidth(w C.int) {
-	consoleLineWidth = int(w)
+	console.lineWidth = int(w)
 }
 
 //export VID_Locked
@@ -184,12 +184,12 @@ func SetRecalcRefdef(v C.int) {
 
 //export ConWidth
 func ConWidth() C.int {
-	return C.int(consoleWidth)
+	return C.int(console.width)
 }
 
 //export ConHeight
 func ConHeight() C.int {
-	return C.int(consoleHeight)
+	return C.int(console.height)
 }
 
 //export ScreenWidth

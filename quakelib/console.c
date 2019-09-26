@@ -10,14 +10,14 @@
 #include "quakedef.h"
 
 // Needs:
-// COM_CretaPath
-// GL_SetCanvas
-// Key_GetCahMsgLen
+// COM_CreatePath
+// Key_GetChatMsgLen
 // Key_GetChatBuffer
 // SCR_EndLoadingPlaque
 // SCR_UpdateScreen
 //
 // Has:
+// GL_SetCanvas
 // Draw_String
 // Draw_Pic
 // Draw_Character
@@ -173,28 +173,6 @@ void Con_ClearNotify(void) {
 
 /*
 ================
-Con_MessageMode_f
-================
-*/
-static void Con_MessageMode_f(void) {
-  if (CLS_GetState() != ca_connected || CLS_IsDemoPlayback()) return;
-  chat_team = false;
-  SetKeyDest(key_message);
-}
-
-/*
-================
-Con_MessageMode2_f
-================
-*/
-static void Con_MessageMode2_f(void) {
-  if (CLS_GetState() != ca_connected || CLS_IsDemoPlayback()) return;
-  chat_team = true;
-  SetKeyDest(key_message);
-}
-
-/*
-================
 Con_CheckResize
 
 If the line width has changed, reformat the buffer.
@@ -269,8 +247,6 @@ void Con_Init(void) {
   Cvar_FakeRegister(&con_logcenterprint, "con_logcenterprint");
 
   Cmd_AddCommand("toggleconsole", Con_ToggleConsole_f);
-  Cmd_AddCommand("messagemode", Con_MessageMode_f);
-  Cmd_AddCommand("messagemode2", Con_MessageMode2_f);
   Cmd_AddCommand("clear", Con_Clear_f);
   Cmd_AddCommand("condump", Con_Dump_f);  // johnfitz
   con_initialized = true;

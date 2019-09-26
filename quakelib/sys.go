@@ -159,12 +159,12 @@ const (
 
 //export ConPrintBar
 func ConPrintBar() {
-	if consoleLineWidth >= len(quakeBar) {
+	if console.lineWidth >= len(quakeBar) {
 		conlog.Printf(quakeBar)
 	} else {
 		var b strings.Builder
 		b.WriteByte('\x1d')
-		for i := 2; i < consoleLineWidth; i++ {
+		for i := 2; i < console.lineWidth; i++ {
 			b.WriteByte('\x1e')
 		}
 		b.WriteByte('\x1f')
