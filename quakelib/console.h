@@ -34,8 +34,6 @@ extern byte *con_chars;
 
 extern char con_lastcenterstring[];  // johnfitz
 
-void Con_DrawCharacter(int cx, int line, int num);
-
 void Con_CheckResize(void);
 void Con_Init(void);
 void Con_DrawConsole(int lines, qboolean drawinput);
@@ -55,10 +53,6 @@ void Con_DrawNotify(void);
 void Con_ClearNotify(void);
 void Con_ToggleConsole_f(void);
 
-void Con_Show(void);
-void Con_Hide(void);
-
-const char *Con_Quakebar(int len);
 void Con_TabComplete(void);
 void Con_LogCenterPrint(const char *str);
 
