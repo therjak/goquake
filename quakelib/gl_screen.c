@@ -576,9 +576,9 @@ void SCR_SetUpToDrawConsole(void) {
   if (scr_drawloading) return;  // never a console with loading plaque
 
   // decide on the height of the console
-  con_forcedup = !cl.worldmodel || CLS_GetSignon() != SIGNONS;
+  Con_SetForceDup(!cl.worldmodel || CLS_GetSignon() != SIGNONS);
 
-  if (con_forcedup) {
+  if (Con_ForceDup()) {
     scr_conlines = GL_Height();
     scr_con_current = scr_conlines;
   } else if (GetKeyDest() == key_console)
@@ -604,7 +604,7 @@ void SCR_SetUpToDrawConsole(void) {
 
   if (clearconsole++ < GetNumPages()) Sbar_Changed();
 
-  if (!con_forcedup && scr_con_current) scr_tileclear_updates = 0;  // johnfitz
+  if (!Con_ForceDup() && scr_con_current) scr_tileclear_updates = 0;  // johnfitz
 }
 
 /*
@@ -849,7 +849,7 @@ void SCR_UpdateScreen(void) {
       return;
   }
 
-  if (!scr_initialized || !con_initialized) return;  // not initialized yet
+  if (!scr_initialized || !Con_Initialized()) return;  // not initialized yet
 
   UpdateViewport();
 
@@ -872,7 +872,7 @@ void SCR_UpdateScreen(void) {
 
   if (scr_drawdialog)  // new game confirm
   {
-    if (con_forcedup)
+    if (Con_ForceDup())
       Draw_ConsoleBackground();
     else
       Sbar_Draw();

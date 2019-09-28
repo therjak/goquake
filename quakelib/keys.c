@@ -633,7 +633,7 @@ void Key_Event(int key, qboolean down) {
   // handle autorepeats and stray key up events
   if (down) {
     if (keydown[key]) {
-      if (GetKeyDest() == key_game && !con_forcedup)
+      if (GetKeyDest() == key_game && !Con_ForceDup())
         return;  // ignore autorepeats in game mode
     } else if (key >= 200 && !Key_HasBinding(key))
       Con_Printf("%s is unbound, hit F4 to set.\n", Key_KeynumToString(key));
@@ -699,7 +699,7 @@ void Key_Event(int key, qboolean down) {
   // if not a consolekey, send to the interpreter no matter what mode is
   if ((GetKeyDest() == key_menu && MenuBound(key)) ||
       (GetKeyDest() == key_console && !ConsoleKeys(key)) ||
-      (GetKeyDest() == key_game && (!con_forcedup || !ConsoleKeys(key)))) {
+      (GetKeyDest() == key_game && (!Con_ForceDup() || !ConsoleKeys(key)))) {
     kb = Key_Bindings(key);
     if (kb) {
       if (kb[0] == '+') {  // button commands add keynum as a parm
@@ -761,7 +761,7 @@ void Char_Event(int key) {
       M_Charinput(key);
       break;
     case key_game:
-      if (!con_forcedup) break;
+      if (!Con_ForceDup()) break;
     /* fallthrough */
     case key_console:
       Char_Console(key);
@@ -785,7 +785,7 @@ qboolean Key_TextEntry(void) {
     case key_menu:
       return M_TextEntry();
     case key_game:
-      if (!con_forcedup) return false;
+      if (!Con_ForceDup()) return false;
     /* fallthrough */
     case key_console:
       return true;

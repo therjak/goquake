@@ -274,7 +274,7 @@ void Host_Shutdown(void) {
   NET_Shutdown();
 
   if (CLS_GetState() != ca_dedicated) {
-    if (con_initialized) History_Shutdown();
+    if (Con_Initialized()) History_Shutdown();
     S_Shutdown();
     VID_Shutdown();
   }

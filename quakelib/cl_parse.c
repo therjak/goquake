@@ -368,7 +368,7 @@ void CL_ParseServerInfo(void) {
 
   // johnfitz -- clear out string; we don't consider identical
   // messages to be duplicates if the map has changed in between
-  con_lastcenterstring[0] = 0;
+  Con_ResetLastCenterString();
   // johnfitz
 
   Hunk_Check();  // make sure nothing is hurt

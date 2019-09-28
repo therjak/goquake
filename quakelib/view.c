@@ -763,7 +763,7 @@ the entity origin, so any view position inside that will be valid
 extern vrect_t scr_vrect;
 
 void V_RenderView(void) {
-  if (con_forcedup) return;
+  if (Con_ForceDup()) return;
 
   if (CL_Intermission())
     V_CalcIntermissionRefdef();

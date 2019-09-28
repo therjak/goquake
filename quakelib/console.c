@@ -41,8 +41,6 @@ float con_cursorspeed = 4;
 
 int con_buffersize;  // johnfitz -- user can now override default
 
-qboolean con_forcedup;  // because no entities to refresh
-
 int con_totallines;  // total lines in console scrollback
 int con_backscroll;  // lines up from bottom to display
 int con_current;     // where next message will be printed
@@ -51,10 +49,6 @@ char *con_text = NULL;
 
 cvar_t con_notifytime;      // = {"con_notifytime", "3", CVAR_NONE};          //
                             // seconds
-cvar_t con_logcenterprint;  // = {"con_logcenterprint", "1", CVAR_NONE};  //
-                            // johnfitz
-
-char con_lastcenterstring[1024];  // johnfitz
 
 #define NUM_CON_TIMES 4
 float con_times[NUM_CON_TIMES];  // realtime time the line was generated
@@ -64,8 +58,6 @@ int con_vislines;
 
 qboolean con_debuglog = false;
 
-qboolean con_initialized;
-
 /*
 ================
 Con_ToggleConsole_f
@@ -73,9 +65,9 @@ Con_ToggleConsole_f
 */
 extern int history_line;  // johnfitz
 
-void Con_ToggleConsole_f(void) {
+void ConToggleConsole(void) {
   if (GetKeyDest() ==
-      key_console /* || (GetKeyDest() == key_game && con_forcedup)*/) {
+      key_console /* || (GetKeyDest() == key_game && Con_ForceDup())*/) {
     key_lines[edit_line][1] = 0;  // clear any typing
     key_linepos = 1;
     con_backscroll = 0;  // johnfitz -- toggleconsole should return you to the
@@ -165,7 +157,7 @@ static void Con_Dump_f(void) {
 Con_ClearNotify
 ================
 */
-void Con_ClearNotify(void) {
+void ConClearNotify(void) {
   int i;
 
   for (i = 0; i < NUM_CON_TIMES; i++) con_times[i] = 0;
@@ -178,7 +170,7 @@ Con_CheckResize
 If the line width has changed, reformat the buffer.
 ================
 */
-void Con_CheckResize(void) {
+void ConCheckResize(void) {
   int i, j, width, oldwidth, oldtotallines, numlines, numchars;
   char *tbuf;  // johnfitz -- tbuf no longer a static array
   int mark;    // johnfitz
@@ -226,7 +218,7 @@ void Con_CheckResize(void) {
 Con_Init
 ================
 */
-void Con_Init(void) {
+void ConInit(void) {
   con_buffersize = q_max(CON_MINSIZE, CMLConsoleSize() * 1024);
 
   con_text = (char *)Hunk_AllocName(
@@ -244,12 +236,10 @@ void Con_Init(void) {
   Con_Printf("Console initialized.\n");
 
   Cvar_FakeRegister(&con_notifytime, "con_notifytime");
-  Cvar_FakeRegister(&con_logcenterprint, "con_logcenterprint");
 
   Cmd_AddCommand("toggleconsole", Con_ToggleConsole_f);
   Cmd_AddCommand("clear", Con_Clear_f);
   Cmd_AddCommand("condump", Con_Dump_f);  // johnfitz
-  con_initialized = true;
 }
 
 /*
@@ -373,7 +363,7 @@ void Con_Printf(const char *fmt, ...) {
 void Con_PrintStr(const char *msg) {
   static qboolean inupdate;
 
-  if (!con_initialized) return;
+  if (!Con_Initialized()) return;
 
   if (CLS_GetState() == ca_dedicated) return;  // no graphics mode
 
@@ -502,9 +492,7 @@ Con_CenterPrintf -- johnfitz -- pad each line with spaces to make it appear
 centered
 ================
 */
-void Con_CenterPrintf(int linewidth, const char *fmt, ...)
-    __attribute__((__format__(__printf__, 2, 3)));
-void Con_CenterPrintf(int linewidth, const char *fmt, ...) {
+void Con_CenterPrintf(const char *fmt, ...) {
   va_list argptr;
   char msg[MAXPRINTMSG];   // the original message
   char line[MAXPRINTMSG];  // one line from the message
@@ -516,7 +504,7 @@ void Con_CenterPrintf(int linewidth, const char *fmt, ...) {
   q_vsnprintf(msg, sizeof(msg), fmt, argptr);
   va_end(argptr);
 
-  linewidth = q_min(linewidth, ConsoleWidth());
+  int linewidth = q_min(40, ConsoleWidth());
   for (src = msg; *src;) {
     dst = line;
     while (*src && *src != '\n') *dst++ = *src++;
@@ -539,22 +527,13 @@ void Con_CenterPrintf(int linewidth, const char *fmt, ...) {
 Con_LogCenterPrint -- johnfitz -- echo centerprint message to the console
 ==================
 */
-void Con_LogCenterPrint(const char *str) {
-  if (!strcmp(str, con_lastcenterstring)) return;  // ignore duplicates
-
-  if (CL_GameTypeDeathMatch() && Cvar_GetValue(&con_logcenterprint) != 2)
-    return;  // don't log in deathmatch
-
-  strcpy(con_lastcenterstring, str);
-
-  if (Cvar_GetValue(&con_logcenterprint)) {
+void ConLogCenterPrint(const char *str) {
     ConPrintBar();
     // Con_Printf("%s", Con_Quakebar(40));
-    Con_CenterPrintf(40, "%s\n", str);
+    Con_CenterPrintf("%s\n", str);
     ConPrintBar();
     // Con_Printf("%s", Con_Quakebar(40));
     Con_ClearNotify();
-  }
 }
 
 /*
@@ -751,7 +730,7 @@ void BuildTabList(const char *partial) {
 Con_TabComplete -- johnfitz
 ============
 */
-void Con_TabComplete(void) {
+void ConTabComplete(void) {
   char partial[MAXCMDLINE];
   const char *match;
   static char *c;
@@ -899,7 +878,7 @@ Con_DrawNotify
 Draws the last few lines of output transparently over the game top
 ================
 */
-void Con_DrawNotify(void) {
+void ConDrawNotify(void) {
   int i, x, v;
   const char *text;
   float time;
@@ -966,7 +945,7 @@ extern qpic_t *pic_ovr, *pic_ins;  // johnfitz -- new cursor handling
 void Con_DrawInput(void) {
   int i, ofs;
 
-  if (GetKeyDest() != key_console && !con_forcedup)
+  if (GetKeyDest() != key_console && !Con_ForceDup())
     return;  // don't draw anything
 
   // prestep if horizontally scrolling
@@ -995,7 +974,7 @@ Draws the console with the solid background
 The typing input line at the bottom should only be drawn if typing is allowed
 ================
 */
-void Con_DrawConsole(int lines, qboolean drawinput) {
+void ConDrawConsole(int lines, qboolean drawinput) {
   int i, x, y, j, sb, rows;
   const char *text;
   char ver[32];

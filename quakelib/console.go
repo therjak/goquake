@@ -1,11 +1,21 @@
 package quakelib
 
 //float GetScreenConsoleCurrentHeight(void);
+//void ConCheckResize(void);
+//void ConInit(void);
+//void ConDrawConsole(int lines, int drawinput);
+//void ConDrawNotify(void);
+//void ConClearNotify(void);
+//void ConToggleConsole(void);
+//void ConTabComplete(void);
+//void ConLogCenterPrint(const char* str);
 import "C"
 
 import (
 	"quake/cmd"
+	"quake/cvars"
 	"quake/keys"
+	svc "quake/protocol/server"
 	"strings"
 	"time"
 )
@@ -16,16 +26,90 @@ const (
 )
 
 type qconsole struct {
-	text       []byte
-	backscroll int // lines up from bottom to display
-	totalLines int // total lines in console scrollback
-	current    int // where next message will be printed
-	x          int // offset in current line for next print
-	times      [4]time.Time
-	chatTeam   bool
-	width      int // pixels
-	height     int // pixels
-	lineWidth  int // characters
+	text             []byte
+	backscroll       int // lines up from bottom to display
+	totalLines       int // total lines in console scrollback
+	current          int // where next message will be printed
+	x                int // offset in current line for next print
+	times            [4]time.Time
+	chatTeam         bool
+	width            int // pixels
+	height           int // pixels
+	lineWidth        int // characters
+	initialized      bool
+	forceDuplication bool // because no entities to refresh
+	lastCenter       string
+}
+
+//export Con_ResetLastCenterString
+func Con_ResetLastCenterString() {
+	console.lastCenter = ""
+}
+
+//export Con_ForceDup
+func Con_ForceDup() bool {
+	return console.forceDuplication
+}
+
+//export Con_SetForceDup
+func Con_SetForceDup(s bool) {
+	console.forceDuplication = s
+}
+
+//export Con_CheckResize
+func Con_CheckResize() {
+	C.ConCheckResize()
+}
+
+//export Con_Init
+func Con_Init() {
+	C.ConInit()
+	console.initialized = true
+}
+
+//export Con_Initialized
+func Con_Initialized() bool {
+	return console.initialized
+}
+
+//export Con_DrawConsole
+func Con_DrawConsole(lines int, drawinput bool) {
+	C.ConDrawConsole(C.int(lines), b2i(drawinput))
+}
+
+//export Con_DrawNotify
+func Con_DrawNotify() {
+	C.ConDrawNotify()
+}
+
+//export Con_ClearNotify
+func Con_ClearNotify() {
+	C.ConClearNotify()
+}
+
+//export Con_ToggleConsole_f
+func Con_ToggleConsole_f() {
+	C.ConToggleConsole()
+}
+
+//export Con_TabComplete
+func Con_TabComplete() {
+	C.ConTabComplete()
+}
+
+//export Con_LogCenterPrint
+func Con_LogCenterPrint(str *C.char) {
+	if cl.gameType == svc.GameDeathmatch && cvars.ConsoleLogCenterPrint.Value() != 2 {
+		return
+	}
+	s := C.GoString(str)
+	if s == console.lastCenter {
+		return
+	}
+	console.lastCenter = s
+	if cvars.ConsoleLogCenterPrint.Bool() {
+		C.ConLogCenterPrint(str)
+	}
 }
 
 var (

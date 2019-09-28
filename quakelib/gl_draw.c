@@ -510,7 +510,7 @@ void Draw_ConsoleBackground(void) {
   pic->width = ConWidth();
   pic->height = ConHeight();
 
-  alpha = (con_forcedup) ? 1.0 : Cvar_GetValue(&scr_conalpha);
+  alpha = (Con_ForceDup()) ? 1.0 : Cvar_GetValue(&scr_conalpha);
 
   GL_SetCanvas(CANVAS_CONSOLE);  // in case this is called from weird places
 
