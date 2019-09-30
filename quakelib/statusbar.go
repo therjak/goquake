@@ -147,7 +147,6 @@ func (s *qstatusbar) LoadPictures() {
 			GetPictureFromWad("inva3_" + s),
 			GetPictureFromWad("inva4_" + s),
 			GetPictureFromWad("inva5_" + s),
-			GetPictureFromWad("inva6_" + s),
 		}
 	}
 	s.items = make(map[int]spic)

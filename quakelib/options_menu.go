@@ -70,7 +70,7 @@ func (m *MenuItemGotoConsole) Draw() {
 
 func (m *MenuItemGotoConsole) Enter() {
 	qmenu.state = menu.None
-	toggleConsole()
+	console.Toggle()
 }
 
 type MenuItemResetConfig struct {

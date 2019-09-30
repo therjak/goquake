@@ -1,5 +1,6 @@
 package quakelib
 
+//#include <stdlib.h> // free
 //float GetScreenConsoleCurrentHeight(void);
 //void ConCheckResize(void);
 //void ConInit(void);
@@ -9,15 +10,20 @@ package quakelib
 //void ConToggleConsole(void);
 //void ConTabComplete(void);
 //void ConLogCenterPrint(const char* str);
+//void Con_PrintStr(const char* text);
 import "C"
 
 import (
+	"fmt"
+	"log"
 	"quake/cmd"
+	"quake/conlog"
 	"quake/cvars"
 	"quake/keys"
 	svc "quake/protocol/server"
 	"strings"
 	"time"
+	"unsafe"
 )
 
 const (
@@ -89,6 +95,10 @@ func Con_ClearNotify() {
 
 //export Con_ToggleConsole_f
 func Con_ToggleConsole_f() {
+	console.Toggle()
+}
+
+func (c *qconsole) Toggle() {
 	C.ConToggleConsole()
 }
 
@@ -181,4 +191,54 @@ func (q *qconsole) print(txt string) {
 	}
 	q.text = append(q.text, txt...)
 	copy(q.times[:], append(q.times[1:], time.Now()))
+}
+
+//do not use. use conlog.Printf
+func conPrintf(format string, v ...interface{}) {
+	s := fmt.Sprintf(format, v...)
+	cstr := C.CString(s)
+	defer C.free(unsafe.Pointer(cstr))
+	log.Print(s)
+	C.Con_PrintStr(cstr)
+}
+
+//do not use. use conlog.Printf
+func conPrintStr(format string, v ...interface{}) {
+	s := fmt.Sprintf(format, v...)
+	cstr := C.CString(s)
+	defer C.free(unsafe.Pointer(cstr))
+	C.Con_PrintStr(cstr)
+}
+
+//do not use. use conlog.SafePrintf
+func conSafePrintf(format string, v ...interface{}) {
+	tmp := ScreenDisabled()
+	screenDisabled = true
+	defer SetScreenDisabled(tmp)
+	conPrintStr(format, v...)
+}
+
+func init() {
+	conlog.SetPrintf(conPrintf)
+	conlog.SetSafePrintf(conSafePrintf)
+}
+
+const (
+	// 40 chars, starts with 1d, ends with 1f, 1e between
+	quakeBar = "\x1d\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1f\n"
+)
+
+//export ConPrintBar
+func ConPrintBar() {
+	if console.lineWidth >= len(quakeBar) {
+		conlog.Printf(quakeBar)
+	} else {
+		var b strings.Builder
+		b.WriteByte('\x1d')
+		for i := 2; i < console.lineWidth; i++ {
+			b.WriteByte('\x1e')
+		}
+		b.WriteByte('\x1f')
+		conlog.Printf(b.String())
+	}
 }

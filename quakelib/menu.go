@@ -22,7 +22,6 @@ package quakelib
 //#endif
 // #include "stdlib.h"
 // #include "wad.h"
-// void	Con_ToggleConsole_f(void);
 // void M_Search_Key(int);
 // void M_ServerList_Key(int);
 // void M_Search_Draw(void);
@@ -143,7 +142,7 @@ func toggleMenu() {
 		return
 	}
 	if keyDestination == keys.Console {
-		toggleConsole()
+		console.Toggle()
 	} else {
 		enterMenuMain()
 	}
@@ -153,10 +152,6 @@ func enterMenuNone() {
 	IN_Activate()
 	keyDestination = keys.Game
 	qmenu.state = menu.None
-}
-
-func toggleConsole() {
-	C.Con_ToggleConsole_f()
 }
 
 type MenuItem interface {

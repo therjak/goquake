@@ -1,6 +1,8 @@
 package quakelib
 
-//#include "host_shutdown.h"
+//struct cvar_s;
+//typedef void (*cvarcallback_t)(struct cvar_s*);
+//void CallCvarCallback(int id, cvarcallback_t func);
 import "C"
 import (
 	"fmt"
