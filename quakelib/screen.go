@@ -4,11 +4,20 @@ package quakelib
 // int SCR_ModalMessage(const char *text, float timeout);
 // void SCR_BeginLoadingPlaque(void);
 // void SCR_EndLoadingPlaque(void);
+// void SCR_UpdateScreen(void);
 import "C"
 
 import (
 	"unsafe"
 )
+
+var (
+	screen qScreen
+)
+
+type qScreen struct {
+	disabled bool
+}
 
 func ModalMessage(message string, timeout float32) bool {
 	m := C.CString(message)
@@ -22,4 +31,8 @@ func SCR_BeginLoadingPlaque() {
 
 func SCR_EndLoadingPlaque() {
 	C.SCR_EndLoadingPlaque()
+}
+
+func SCR_UpdateScreen() {
+	C.SCR_UpdateScreen()
 }

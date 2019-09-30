@@ -269,7 +269,7 @@ All console printing must go through this in order to be logged to disk
 If no console is visible, the notify window will pop up.
 ================
 */
-static void Con_Print(const char *txt) {
+void ConPrint(const char *txt) {
   int y;
   int c, l;
   static int cr;
@@ -338,7 +338,6 @@ static void Con_Print(const char *txt) {
   }
 }
 
-void Con_PrintStr(const char *msg);
 /*
 ================
 Con_Printf
@@ -358,28 +357,6 @@ void Con_Printf(const char *fmt, ...) {
   // also echo to debugging console
   Sys_Print(msg);
   Con_PrintStr(msg);
-}
-
-void Con_PrintStr(const char *msg) {
-  static qboolean inupdate;
-
-  if (!Con_Initialized()) return;
-
-  if (CLS_GetState() == ca_dedicated) return;  // no graphics mode
-
-  // write it to the scrollable buffer
-  Con_Print(msg);
-
-  // update the screen if the console is displayed
-  if (CLS_GetSignon() != SIGNONS && !ScreenDisabled()) {
-    // protect against infinite loop if something in SCR_UpdateScreen calls
-    // Con_Printd
-    if (!inupdate) {
-      inupdate = true;
-      SCR_UpdateScreen();
-      inupdate = false;
-    }
-  }
 }
 
 /*

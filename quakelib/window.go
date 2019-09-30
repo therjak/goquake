@@ -37,8 +37,8 @@ func windowSetMode(width, height, bpp int32, fullscreen bool) {
 }
 
 func videoSetMode(width, height, bpp int32, fullscreen bool) {
-	temp := screenDisabled
-	screenDisabled = true
+	temp := screen.disabled
+	screen.disabled = true
 
 	window.SetMode(width, height, bpp, fullscreen)
 	screenWidth, screenHeight = window.Size()
@@ -63,7 +63,7 @@ func videoSetMode(width, height, bpp int32, fullscreen bool) {
 		return MS_WINDOWED
 	}()
 
-	screenDisabled = temp
+	screen.disabled = temp
 
 	C.Key_ClearStates()
 

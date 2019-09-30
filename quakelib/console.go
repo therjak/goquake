@@ -10,7 +10,7 @@ package quakelib
 //void ConToggleConsole(void);
 //void ConTabComplete(void);
 //void ConLogCenterPrint(const char* str);
-//void Con_PrintStr(const char* text);
+//void ConPrint(const char* text);
 import "C"
 
 import (
@@ -122,6 +122,16 @@ func Con_LogCenterPrint(str *C.char) {
 	}
 }
 
+//export Con_PrintStr
+func Con_PrintStr(str *C.char) {
+	console.Print(C.GoString(str))
+}
+
+//export Con_Print
+func Con_Print(str *C.char) {
+	C.ConPrint(str)
+}
+
 var (
 	console = qconsole{
 		lineWidth: 38,
@@ -173,6 +183,36 @@ func (q *qconsole) lineFeed() {
 }
 */
 
+var (
+	printRecursionProtection = false
+)
+
+func (c *qconsole) Printf(format string, v ...interface{}) {
+	c.Print(fmt.Sprintf(format, v...))
+}
+
+func (c *qconsole) Print(txt string) {
+	if !c.initialized {
+		return
+	}
+	if cls.state == ca_dedicated {
+		// no graphics mode
+		return
+	}
+	// c.print(txt)
+	cstr := C.CString(txt)
+	Con_Print(cstr)
+	C.free(unsafe.Pointer(cstr))
+
+	if cls.signon != 4 && !screen.disabled {
+		if !printRecursionProtection {
+			printRecursionProtection = true
+			SCR_UpdateScreen()
+			printRecursionProtection = false
+		}
+	}
+}
+
 // Con_Print
 func (q *qconsole) print(txt string) {
 	if len(txt) < 1 {
@@ -196,26 +236,21 @@ func (q *qconsole) print(txt string) {
 //do not use. use conlog.Printf
 func conPrintf(format string, v ...interface{}) {
 	s := fmt.Sprintf(format, v...)
-	cstr := C.CString(s)
-	defer C.free(unsafe.Pointer(cstr))
 	log.Print(s)
-	C.Con_PrintStr(cstr)
+	console.Print(s)
 }
 
 //do not use. use conlog.Printf
 func conPrintStr(format string, v ...interface{}) {
-	s := fmt.Sprintf(format, v...)
-	cstr := C.CString(s)
-	defer C.free(unsafe.Pointer(cstr))
-	C.Con_PrintStr(cstr)
+	console.Printf(format, v...)
 }
 
 //do not use. use conlog.SafePrintf
 func conSafePrintf(format string, v ...interface{}) {
-	tmp := ScreenDisabled()
-	screenDisabled = true
-	defer SetScreenDisabled(tmp)
-	conPrintStr(format, v...)
+	tmp := screen.disabled
+	screen.disabled = true
+	console.Printf(format, v...)
+	screen.disabled = tmp
 }
 
 func init() {
@@ -230,7 +265,11 @@ const (
 
 //export ConPrintBar
 func ConPrintBar() {
-	if console.lineWidth >= len(quakeBar) {
+	console.PrintBar()
+}
+
+func (c *qconsole) PrintBar() {
+	if c.lineWidth >= len(quakeBar) {
 		conlog.Printf(quakeBar)
 	} else {
 		var b strings.Builder

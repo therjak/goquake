@@ -13,18 +13,17 @@ import (
 )
 
 var (
-	/*
-		//int, what is this for?
-		memSize = 0 //?
-		//void* what is this for?
-		membase = null
-	*/
-	screenDisabled = false
+/*
+	//int, what is this for?
+	memSize = 0 //?
+	//void* what is this for?
+	membase = null
+*/
 )
 
 //export ScreenDisabled
 func ScreenDisabled() C.int {
-	if screenDisabled {
+	if screen.disabled {
 		return 1
 	}
 	return 0
@@ -32,7 +31,7 @@ func ScreenDisabled() C.int {
 
 //export SetScreenDisabled
 func SetScreenDisabled(b C.int) {
-	screenDisabled = (b != 0)
+	screen.disabled = (b != 0)
 }
 
 //export Sys_DoubleTime
@@ -92,11 +91,6 @@ func Sys_Print_F(c *C.char, f C.float) {
 	log.Printf(C.GoString(c), float32(f))
 }
 
-//export Sys_PrintServerProtocol
-func Sys_PrintServerProtocol(i C.int, s *C.char) {
-	log.Printf("Server using protocol %v (%s)\n", int(i), C.GoString(s))
-}
-
 //export REPORT_BadCall
 func REPORT_BadCall() {
 	fmt.Printf("Go BadCall\n")
@@ -110,10 +104,4 @@ func REPORT_INT(in C.int) {
 //export REPORT_STR
 func REPORT_STR(in *C.char) {
 	fmt.Printf(C.GoString(in))
-}
-
-func SVClientPrintf(format string, v ...interface{}) {
-	s := fmt.Sprintf(format, v...)
-	log.Print(s)
-	HostClient().Printf(s)
 }
