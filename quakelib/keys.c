@@ -201,8 +201,7 @@ Key_Console -- johnfitz -- heavy revision
 Interactive line editing and console scrollback
 ====================
 */
-extern char *con_text, key_tabpartial[MAXCMDLINE];
-extern int con_current, con_vislines;
+extern char key_tabpartial[MAXCMDLINE];
 
 void Key_Console(int key) {
   static char current[MAXCMDLINE] = "";
@@ -264,41 +263,28 @@ void Key_Console(int key) {
 
     case K_HOME:
       if (keydown[K_CTRL]) {
-        // skip initial empty lines
-        int i, x;
-        char *line;
-
-        for (i = con_current - con_totallines + 1; i <= con_current; i++) {
-          line = con_text + (i % con_totallines) * ConsoleWidth();
-          for (x = 0; x < ConsoleWidth(); x++) {
-            if (line[x] != ' ') break;
-          }
-          if (x != ConsoleWidth()) break;
-        }
-        con_backscroll = CLAMP(0, con_current - i % con_totallines - 2,
-                               con_totallines - (GL_Height() >> 3) - 1);
-      } else
+        Con_BackscrollHome();
+      } else {
         key_linepos = 1;
+      }
       return;
 
     case K_END:
-      if (keydown[K_CTRL])
-        con_backscroll = 0;
-      else
+      if (keydown[K_CTRL]) {
+        Con_BackscrollEnd();
+      } else {
         key_linepos = strlen(workline);
+      }
       return;
 
     case K_PGUP:
     case K_MWHEELUP:
-      con_backscroll += keydown[K_CTRL] ? ((con_vislines >> 3) - 4) : 2;
-      if (con_backscroll > con_totallines - (ScreenHeight() >> 3) - 1)
-        con_backscroll = con_totallines - (ScreenHeight() >> 3) - 1;
+      Con_BackscrollUp(keydown[K_CTRL]);
       return;
 
     case K_PGDN:
     case K_MWHEELDOWN:
-      con_backscroll -= keydown[K_CTRL] ? ((con_vislines >> 3) - 4) : 2;
-      if (con_backscroll < 0) con_backscroll = 0;
+      Con_BackscrollDown(keydown[K_CTRL]);
       return;
 
     case K_LEFTARROW:

@@ -11,6 +11,10 @@ package quakelib
 //void ConTabComplete(void);
 //void ConLogCenterPrint(const char* str);
 //void ConPrint(const char* text);
+//void ConBackscrollHome(void);
+//void ConBackscrollEnd(void);
+//void ConBackscrollUp(int page);
+//void ConBackscrollDown(int page);
 import "C"
 
 import (
@@ -130,6 +134,26 @@ func Con_PrintStr(str *C.char) {
 //export Con_Print
 func Con_Print(str *C.char) {
 	C.ConPrint(str)
+}
+
+//export Con_BackscrollHome
+func Con_BackscrollHome() {
+	C.ConBackscrollEnd()
+}
+
+//export Con_BackscrollEnd
+func Con_BackscrollEnd() {
+	C.ConBackscrollEnd()
+}
+
+//export Con_BackscrollUp
+func Con_BackscrollUp(page bool) {
+	C.ConBackscrollUp(b2i(page))
+}
+
+//export Con_BackscrollDown
+func Con_BackscrollDown(page bool) {
+	C.ConBackscrollDown(b2i(page))
 }
 
 var (

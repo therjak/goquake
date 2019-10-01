@@ -65,6 +65,45 @@ Con_ToggleConsole_f
 */
 extern int history_line;  // johnfitz
 
+void clampBackscroll(void) {
+  if (con_backscroll < 0) {
+    con_backscroll = 0;
+    return;
+  }
+  // FIXME: this should be the number of existing lines not possible lines
+  // which con_totallines represents
+  int max_back = con_totallines - (GL_Height() / 8) -1;
+  if (con_backscroll > max_back) {
+    con_backscroll = max_back;
+  }
+}
+
+void ConBackscrollHome(void) {
+  int i, x;
+  char *line;
+  for (i = con_current - con_totallines + 1; i <= con_current; i++) {
+    line = con_text + (i % con_totallines) * ConsoleWidth();
+    for (x = 0; x < ConsoleWidth(); x++) {
+      if (line[x] != ' ') break;
+    }
+    if (x != ConsoleWidth()) break;
+  }
+  con_backscroll = con_current - i % con_totallines - 2;
+  clampBackscroll();
+}
+
+void ConBackscrollEnd(void) {
+  con_backscroll = 0;
+}
+void ConBackscrollUp(int page) {
+  con_backscroll += page ? ((con_vislines /8) - 4) : 2;
+  clampBackscroll();
+}
+void ConBackscrollDown(int page) {
+  con_backscroll -= page ? ((con_vislines /8) - 4) : 2;
+  clampBackscroll();
+}
+
 void ConToggleConsole(void) {
   if (GetKeyDest() ==
       key_console /* || (GetKeyDest() == key_game && Con_ForceDup())*/) {
