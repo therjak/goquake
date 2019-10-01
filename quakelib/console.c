@@ -990,7 +990,7 @@ Draws the console with the solid background
 The typing input line at the bottom should only be drawn if typing is allowed
 ================
 */
-void ConDrawConsole(int lines, qboolean drawinput) {
+void ConDrawConsole(int lines) {
   int i, x, y, j, sb, rows;
   const char *text;
   char ver[32];
@@ -1027,7 +1027,7 @@ void ConDrawConsole(int lines, qboolean drawinput) {
   }
 
   // draw the input prompt, user text, and cursor
-  if (drawinput) Con_DrawInput();
+  Con_DrawInput();
 
   // draw version number in bottom right
   y += 8;
@@ -1037,3 +1037,4 @@ void ConDrawConsole(int lines, qboolean drawinput) {
     Draw_Character((ConsoleWidth() - strlen(ver) + x + 2) << 3, y,
                    ver[x] /*+ 128*/);
 }
+

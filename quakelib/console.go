@@ -4,7 +4,7 @@ package quakelib
 //float GetScreenConsoleCurrentHeight(void);
 //void ConCheckResize(void);
 //void ConInit(void);
-//void ConDrawConsole(int lines, int drawinput);
+//void ConDrawConsole(int lines);
 //void ConDrawNotify(void);
 //void ConClearNotify(void);
 //void ConToggleConsole(void);
@@ -37,7 +37,7 @@ const (
 
 type qconsole struct {
 	text             []byte
-	backscroll       int // lines up from bottom to display
+	backScroll       int // lines up from bottom to display
 	totalLines       int // total lines in console scrollback
 	current          int // where next message will be printed
 	x                int // offset in current line for next print
@@ -49,6 +49,7 @@ type qconsole struct {
 	initialized      bool
 	forceDuplication bool // because no entities to refresh
 	lastCenter       string
+	visibleLines     int // con_vislines
 }
 
 //export Con_ResetLastCenterString
@@ -83,8 +84,9 @@ func Con_Initialized() bool {
 }
 
 //export Con_DrawConsole
-func Con_DrawConsole(lines int, drawinput bool) {
-	C.ConDrawConsole(C.int(lines), b2i(drawinput))
+func Con_DrawConsole(lines int) {
+	// console.Draw(lines)
+	C.ConDrawConsole(C.int(lines))
 }
 
 //export Con_DrawNotify
@@ -175,7 +177,7 @@ func init() {
 // for cmd.AddCommand("clear", ...
 func (q *qconsole) clear() {
 	q.text = []byte{}
-	q.backscroll = 0
+	q.backScroll = 0
 }
 
 // Con_ClearNotify
@@ -195,11 +197,11 @@ func (q *qconsole) messageMode(team bool) {
 /*
 // Con_Linefeed
 func (q *qconsole) lineFeed() {
-	if q.backscroll != 0 {
-		q.backscroll++
+	if q.backScroll != 0 {
+		q.backScroll++
 	}
-	if q.backscroll > q.totalLines-int(viewport.height/8)-1 {
-		q.backscroll = q.totalLines - int(viewport.height/8) - 1
+	if q.backScroll > q.totalLines-int(viewport.height/8)-1 {
+		q.backScroll = q.totalLines - int(viewport.height/8) - 1
 	}
 	q.x = 0
 	q.current++
@@ -235,6 +237,47 @@ func (c *qconsole) Print(txt string) {
 			printRecursionProtection = false
 		}
 	}
+}
+
+func (c *qconsole) Draw(lines int) {
+	if lines <= 0 {
+		return
+	}
+	c.visibleLines = lines * c.height / int(viewport.height)
+	SetCanvas(CANVAS_CONSOLE)
+
+	DrawConsoleBackground()
+
+	rows := (c.visibleLines + 7) / 8
+	y := c.height - rows*8
+	rows -= 2 // for intput and version line
+	sb := 0
+	if c.backScroll != 0 {
+		sb = 2
+	}
+	for i := c.current - rows + 1; i <= c.current-sb; i++ {
+		j := i - c.backScroll
+		if j < 0 {
+			j = 0
+		}
+		// draw the actual text
+		DrawStringWhite(8, y, "actual text of this line")
+		y += 8
+	}
+	if c.backScroll != 0 {
+		y += 8 // blank line
+		nx := 8
+		for i := 0; i < c.lineWidth; i++ {
+			DrawCharacterWhite(nx, y, int('^'))
+			nx += 8
+		}
+	}
+
+	// c.DrawInput()
+	version := fmt.Sprintf("QuakeSpasm %1.2f.%d", QUAKESPASM_VERSION, QUAKESPASM_VER_PATCH)
+	y += 8
+	x := (c.lineWidth - len(version) + 2) * 8
+	DrawStringWhite(x, y, version)
 }
 
 // Con_Print
