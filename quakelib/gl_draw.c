@@ -487,6 +487,7 @@ void Draw_TransPicTranslate(int x, int y, qpic_t *pic, int top, int bottom) {
   Draw_Pic(x, y, pic);
 }
 
+/*
 void Draw_PicAlpha(int x, int y, qpic_t *pic, float alpha) {
   glDisable(GL_ALPHA_TEST);
   glEnable(GL_BLEND);
@@ -496,12 +497,13 @@ void Draw_PicAlpha(int x, int y, qpic_t *pic, float alpha) {
   glDisable(GL_BLEND);
   glEnable(GL_ALPHA_TEST);
 }
-
+*/
 /*
 ================
 Draw_ConsoleBackground -- johnfitz -- rewritten
 ================
 */
+/*
 void Draw_ConsoleBackground(void) {
   qpic_t *pic;
   float alpha;
@@ -532,7 +534,7 @@ void Draw_ConsoleBackground(void) {
     }
   }
 }
-
+*/
 /*
 =============
 Draw_TileClear

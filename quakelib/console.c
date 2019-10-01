@@ -1001,7 +1001,7 @@ void ConDrawConsole(int lines) {
   GL_SetCanvas(CANVAS_CONSOLE);
 
   // draw the background
-  Draw_ConsoleBackground();
+  DrawConsoleBackgroundC();
 
   // draw the buffer text
   rows = (con_vislines + 7) / 8;

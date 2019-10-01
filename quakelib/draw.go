@@ -22,8 +22,6 @@ package quakelib
 //void Draw_Character(int x, int y, int num);
 //void Draw_Pic(int x, int y, qpic_t *pic);
 //void Draw_TransPicTranslate(int x, int y, qpic_t *pic, int top, int bottom);
-//void Draw_PicAlpha(int x, int y, qpic_t *pic, float alpha);
-//void Draw_ConsoleBackground(void);
 //void Draw_TileClear(int x, int y, int w, int h);
 //void Draw_Fill(int x, int y, int w, int h, int c, float alpha);
 //void Draw_FadeScreen(void);
@@ -34,7 +32,10 @@ package quakelib
 import "C"
 
 import (
+	"quake/cvars"
 	"unsafe"
+
+	"github.com/go-gl/gl/v4.6-core/gl"
 )
 
 type canvas int
@@ -82,7 +83,13 @@ func DrawPicture(x, y int, p *QPic) {
 }
 
 func DrawPictureAlpha(x, y int, p *QPic, alpha float32) {
-	C.Draw_PicAlpha(C.int(x), C.int(y), p.pic, C.float(alpha))
+	gl.BlendColor(0, 0, 0, alpha)
+	gl.BlendFunc(gl.CONSTANT_ALPHA, gl.ONE_MINUS_CONSTANT_ALPHA)
+	gl.Enable(gl.BLEND)
+
+	C.Draw_Pic(C.int(x), C.int(y), p.pic)
+
+	gl.Disable(gl.BLEND)
 }
 
 func DrawTransparentPictureTranslate(x, y int, p *QPic, top, bottom int) {
@@ -90,39 +97,33 @@ func DrawTransparentPictureTranslate(x, y int, p *QPic, top, bottom int) {
 }
 
 func DrawConsoleBackground() {
-	C.Draw_ConsoleBackground()
-	/*
-	   void Draw_ConsoleBackground(void) {
-	     qpic_t *pic;
-	     float alpha;
+	pic := GetCachedPicture("gfx/conback.lmp")
+	pic.width = console.width
+	pic.pic.width = C.int(console.width)
+	pic.height = console.height
+	pic.pic.height = C.int(console.height)
 
-	     pic = Draw_CachePic("gfx/conback.lmp");
-	     pic->width = ConWidth();
-	     pic->height = ConHeight();
+	alpha := float32(1.0)
+	if !console.forceDuplication {
+		alpha = cvars.ScreenConsoleAlpha.Value()
+	}
+	if alpha <= 0 {
+		return
+	}
 
-	     alpha = (Con_ForceDup()) ? 1.0 : Cvar_GetValue(&scr_conalpha);
+	SetCanvas(CANVAS_CONSOLE)
 
-	     GL_SetCanvas(CANVAS_CONSOLE);  // in case this is called from weird places
+	if alpha < 1 {
+		gl.BlendColor(0, 0, 0, alpha)
+		gl.BlendFunc(gl.CONSTANT_ALPHA, gl.ONE_MINUS_CONSTANT_ALPHA)
+		gl.Enable(gl.BLEND)
+	}
 
-	     if (alpha > 0.0) {
-	       if (alpha < 1.0) {
-	         glEnable(GL_BLEND);
-	         glColor4f(1, 1, 1, alpha);
-	         glDisable(GL_ALPHA_TEST);
-	         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	       }
+	DrawPicture(0, 0, pic)
 
-	       Draw_Pic(0, 0, pic);
-
-	       if (alpha < 1.0) {
-	         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	         glEnable(GL_ALPHA_TEST);
-	         glDisable(GL_BLEND);
-	         glColor4f(1, 1, 1, 1);
-	       }
-	     }
-	   }
-	*/
+	if alpha < 1 {
+		gl.Disable(gl.BLEND)
+	}
 }
 
 func DrawFadeScreen() {

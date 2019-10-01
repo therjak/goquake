@@ -44,6 +44,11 @@ import (
 	"quake/menu"
 )
 
+//export DrawConsoleBackgroundC
+func DrawConsoleBackgroundC() {
+	DrawConsoleBackground()
+}
+
 //export MENU_SetEnterSound
 func MENU_SetEnterSound(v C.int) {
 	qmenu.playEnterSound = (v != 0)

@@ -85,8 +85,8 @@ func Con_Initialized() bool {
 
 //export Con_DrawConsole
 func Con_DrawConsole(lines int) {
-	// console.Draw(lines)
-	C.ConDrawConsole(C.int(lines))
+	console.Draw(lines)
+	//C.ConDrawConsole(C.int(lines))
 }
 
 //export Con_DrawNotify

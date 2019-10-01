@@ -873,7 +873,7 @@ void SCR_UpdateScreen(void) {
   if (scr_drawdialog)  // new game confirm
   {
     if (Con_ForceDup())
-      Draw_ConsoleBackground();
+      DrawConsoleBackgroundC();
     else
       Sbar_Draw();
     Draw_FadeScreen();
