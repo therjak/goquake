@@ -356,7 +356,7 @@ TexMgr_LoadPalette -- johnfitz -- was VID_SetPalette, moved here, renamed,
 rewritten
 =================
 */
-void TexMgr_LoadPalette(void) {
+void TexMgrLoadPalette(void) {
   byte *pal, *src, *dst;
   int i, mark;
   FILE *f;

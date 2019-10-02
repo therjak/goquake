@@ -420,7 +420,7 @@ void SCR_DrawDevStats(void) {
 
   GL_SetCanvas(CANVAS_BOTTOMLEFT);
 
-  Draw_Fill(x, y * 8, 19 * 8, 9 * 8, 0, 0.5);  // dark rectangle
+  DrawFillC(x, y * 8, 19 * 8, 9 * 8, 0, 0.5);  // dark rectangle
 
   sprintf(str, "devstats |Curr Peak");
   Draw_String(x, (y++) * 8 - x, str);

@@ -33,6 +33,7 @@ import "C"
 
 import (
 	"quake/cvars"
+	"strings"
 	"unsafe"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
@@ -56,6 +57,10 @@ const (
 
 func SetCanvas(c canvas) {
 	C.GL_SetCanvas(C.canvastype(c))
+}
+
+type Color struct {
+	R, G, B, A float32
 }
 
 type Picture *C.qpic_t
@@ -130,7 +135,79 @@ func DrawFadeScreen() {
 	C.Draw_FadeScreen()
 }
 
+var (
+	vertexShaderSource = `#version 330 core
+  layout (location = 0) in vec3 aPos;
+
+  void main() {
+    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+	}
+	`
+	fragmentShaderSource = `#version 330 core
+	out vec4 FragColor;
+
+	void main() {
+		FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+	}
+	`
+)
+
+func getShader(src string, shaderType uint32) uint32 {
+	shader := gl.CreateShader(shaderType)
+	csource, free := gl.Strs(src)
+	gl.ShaderSource(shader, 1, csource, nil)
+	free()
+	gl.CompileShader(shader)
+	var status int32
+	gl.GetShaderiv(shader, gl.COMPILE_STATUS, &status)
+	if status == gl.FALSE {
+		var logLength int32
+		gl.GetShaderiv(shader, gl.INFO_LOG_LENGTH, &logLength)
+		log := strings.Repeat("\x00", int(logLength+1))
+		gl.GetShaderInfoLog(shader, logLength, nil, gl.Str(log))
+		Error("Failed to compile shader: %v", log)
+	}
+	return shader
+}
+
+//getShader(vertexShaderSource, gl.VERTEX_SHADER)
+//getShader(fragmentShaderSoure, gl.FRAGMENT_SHADER)
+
+func drawRect(x, y, w, h float32, c Color) {
+	/*
+		fx, fy, fw, fh := float32(x), float32(y), float32(w), float32(h)
+		vertices := []float32{
+			fx, fy, 0,
+			fx + fw, fy, 0,
+			fx + fw, fy + fh, 0,
+
+			fx + fw, fy, 0,
+			fx + fw, fy + fh, 0,
+			fx, fy + fh, 0,
+		}
+		var VBO uint32
+		gl.GenBuffers(1, &VBO)
+		gl.BindBuffer(gl.ARRAY_BUFFER, VBO)
+		gl.BufferData(gl.ARRAY_BUFFER, len(vertices)*4, gl.Ptr(vertices), gl.STATIC_DRAW)
+		gl.Disable(gl.TEXTURE_2D)
+		gl.Enable(gl.BLEND)
+		// gl.BlendColor(float32(c*4)/255,....,alpha)
+		// gl.Begin(gl.QUADS)
+		// gl.End()
+		gl.Disable(gl.BLEND)
+		gl.Enable(gl.TEXTURE_2D)
+	*/
+
+}
+
 func DrawFill(x, y, w, h int, c int, alpha float32) {
+	col := Color{
+		R: palette.table[c*4],
+		G: palette.table[c*4+1],
+		B: palette.table[c*4+2],
+		A: alpha,
+	}
+	drawRect(float32(x), float32(y), float32(w), float32(h), col)
 	C.Draw_Fill(C.int(x), C.int(y), C.int(w), C.int(h), C.int(c), C.float(alpha))
 }
 

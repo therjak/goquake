@@ -96,6 +96,7 @@ void R_RenderDlights(void) {
   dlight_t *l;
 
   if (!Cvar_GetValue(&gl_flashblend)) return;
+  // TODO(therjak): disabling flashblend is broken since transparent console
 
   r_dlightframecount = r_framecount + 1;  // because the count hasn't
                                           //  advanced yet for this frame
@@ -206,7 +207,8 @@ void R_PushDlights(void) {
   int i;
   dlight_t *l;
 
-  if (Cvar_GetValue(&gl_flashblend)) return;
+  if (Cvar_GetValue(&gl_flashblend)) return; 
+  // TODO(therjak): disabling flashblend is broken since transparent console
 
   r_dlightframecount = r_framecount + 1;  // because the count hasn't
                                           //  advanced yet for this frame

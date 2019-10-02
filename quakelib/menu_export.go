@@ -49,6 +49,11 @@ func DrawConsoleBackgroundC() {
 	DrawConsoleBackground()
 }
 
+//export DrawFillC
+func DrawFillC(x, y, w, h int, c int, alpha float32) {
+	DrawFill(x, y, w, h, c, alpha)
+}
+
 //export MENU_SetEnterSound
 func MENU_SetEnterSound(v C.int) {
 	qmenu.playEnterSound = (v != 0)

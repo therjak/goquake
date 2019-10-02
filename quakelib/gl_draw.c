@@ -488,54 +488,6 @@ void Draw_TransPicTranslate(int x, int y, qpic_t *pic, int top, int bottom) {
 }
 
 /*
-void Draw_PicAlpha(int x, int y, qpic_t *pic, float alpha) {
-  glDisable(GL_ALPHA_TEST);
-  glEnable(GL_BLEND);
-  glColor4f(1, 1, 1, alpha);
-  Draw_Pic(x, y, pic);
-  glColor4f(1, 1, 1, 1);
-  glDisable(GL_BLEND);
-  glEnable(GL_ALPHA_TEST);
-}
-*/
-/*
-================
-Draw_ConsoleBackground -- johnfitz -- rewritten
-================
-*/
-/*
-void Draw_ConsoleBackground(void) {
-  qpic_t *pic;
-  float alpha;
-
-  pic = Draw_CachePic("gfx/conback.lmp");
-  pic->width = ConWidth();
-  pic->height = ConHeight();
-
-  alpha = (Con_ForceDup()) ? 1.0 : Cvar_GetValue(&scr_conalpha);
-
-  GL_SetCanvas(CANVAS_CONSOLE);  // in case this is called from weird places
-
-  if (alpha > 0.0) {
-    if (alpha < 1.0) {
-      glEnable(GL_BLEND);
-      glColor4f(1, 1, 1, alpha);
-      glDisable(GL_ALPHA_TEST);
-      glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-    }
-
-    Draw_Pic(0, 0, pic);
-
-    if (alpha < 1.0) {
-      glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-      glEnable(GL_ALPHA_TEST);
-      glDisable(GL_BLEND);
-      glColor4f(1, 1, 1, 1);
-    }
-  }
-}
-*/
-/*
 =============
 Draw_TileClear
 
