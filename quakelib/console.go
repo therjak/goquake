@@ -37,6 +37,7 @@ const (
 
 type qconsole struct {
 	text             []byte
+	origText         []string
 	backScroll       int // lines up from bottom to display
 	totalLines       int // total lines in console scrollback
 	current          int // where next message will be printed
@@ -86,7 +87,7 @@ func Con_Initialized() bool {
 //export Con_DrawConsole
 func Con_DrawConsole(lines int) {
 	console.Draw(lines)
-	//C.ConDrawConsole(C.int(lines))
+	// C.ConDrawConsole(C.int(lines))
 }
 
 //export Con_DrawNotify
@@ -177,6 +178,7 @@ func init() {
 // for cmd.AddCommand("clear", ...
 func (q *qconsole) clear() {
 	q.text = []byte{}
+	q.origText = []string{}
 	q.backScroll = 0
 }
 
@@ -225,7 +227,9 @@ func (c *qconsole) Print(txt string) {
 		// no graphics mode
 		return
 	}
-	// c.print(txt)
+
+	c.print(txt)
+
 	cstr := C.CString(txt)
 	Con_Print(cstr)
 	C.free(unsafe.Pointer(cstr))
@@ -240,6 +244,8 @@ func (c *qconsole) Print(txt string) {
 }
 
 func (c *qconsole) Draw(lines int) {
+	// TODO(therjak): add line break functionality and respect '\n'
+	// i.a. do not draw origText but a derived version
 	if lines <= 0 {
 		return
 	}
@@ -255,13 +261,16 @@ func (c *qconsole) Draw(lines int) {
 	if c.backScroll != 0 {
 		sb = 2
 	}
-	for i := c.current - rows + 1; i <= c.current-sb; i++ {
+	//for i := c.current - rows + 1; i <= c.current-sb; i++ {
+	for i := len(c.origText) - rows; i < len(c.origText)-sb; i++ {
 		j := i - c.backScroll
 		if j < 0 {
-			j = 0
+			y += 8
+			continue
+			//j = 0
 		}
 		// draw the actual text
-		DrawStringWhite(8, y, "actual text of this line")
+		DrawStringWhite(8, y, c.origText[j])
 		y += 8
 	}
 	if c.backScroll != 0 {
@@ -290,13 +299,14 @@ func (q *qconsole) print(txt string) {
 		localSound("misc/talk.wav")
 		fallthrough
 	case 2:
-		txt = txt[1:]
-		txt = strings.Map(func(r rune) rune {
-			// colored text
-			return r | 128
-		}, txt)
+		// make the string copper color
+		b := []byte(txt[1:])
+		for i := 0; i < len(b); i++ {
+			b[i] = b[i] | 128
+		}
+		txt = string(b)
 	}
-	q.text = append(q.text, txt...)
+	q.origText = append(q.origText, txt)
 	copy(q.times[:], append(q.times[1:], time.Now()))
 }
 
