@@ -24,6 +24,7 @@ import (
 	"quake/conlog"
 	"quake/cvars"
 	"quake/keys"
+	"quake/math"
 	svc "quake/protocol/server"
 	"strings"
 	"time"
@@ -141,22 +142,64 @@ func Con_Print(str *C.char) {
 
 //export Con_BackscrollHome
 func Con_BackscrollHome() {
+	console.BackScrollHome()
 	C.ConBackscrollEnd()
 }
 
 //export Con_BackscrollEnd
 func Con_BackscrollEnd() {
+	console.BackScrollEnd()
 	C.ConBackscrollEnd()
 }
 
 //export Con_BackscrollUp
 func Con_BackscrollUp(page bool) {
 	C.ConBackscrollUp(b2i(page))
+	console.BackScrollUp(page)
+}
+
+func (c *qconsole) BackScrollEnd() {
+	c.backScroll = 0
+}
+
+func (c *qconsole) BackScrollHome() {
+	c.backScroll = c.maxBackScroll()
+}
+
+func (c *qconsole) scrollStep(page bool) int {
+	if page {
+		return (c.visibleLines / 8) - 4
+	}
+	return 1
+}
+
+func (c *qconsole) maxBackScroll() int {
+	// TODO(therjak): this should not be origText
+	max := len(c.origText) - (c.visibleLines / 8) + 2
+	if max < 0 {
+		return 0
+	}
+	return max
+}
+
+func (c *qconsole) clampBackScroll() {
+	c.backScroll = math.ClampI(0, c.backScroll, c.maxBackScroll())
+}
+
+func (c *qconsole) BackScrollUp(page bool) {
+	c.backScroll += c.scrollStep(page)
+	c.clampBackScroll()
+}
+
+func (c *qconsole) BackScrollDown(page bool) {
+	c.backScroll -= c.scrollStep(page)
+	c.clampBackScroll()
 }
 
 //export Con_BackscrollDown
 func Con_BackscrollDown(page bool) {
 	C.ConBackscrollDown(b2i(page))
+	console.BackScrollDown(page)
 }
 
 var (
