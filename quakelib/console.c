@@ -134,6 +134,7 @@ void ConToggleConsole(void) {
 Con_Clear_f
 ================
 */
+/*
 static void Con_Clear_f(void) {
   if (con_text)
     Q_memset(
@@ -141,7 +142,7 @@ static void Con_Clear_f(void) {
         con_buffersize);  // johnfitz -- con_buffersize replaces CON_TEXTSIZE
   con_backscroll =
       0;  // johnfitz -- if console is empty, being scrolled up is confusing
-}
+}*/
 
 /*
 ================
@@ -276,8 +277,6 @@ void ConInit(void) {
 
   Cvar_FakeRegister(&con_notifytime, "con_notifytime");
 
-  Cmd_AddCommand("toggleconsole", Con_ToggleConsole_f);
-  Cmd_AddCommand("clear", Con_Clear_f);
   Cmd_AddCommand("condump", Con_Dump_f);  // johnfitz
 }
 

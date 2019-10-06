@@ -99,6 +99,7 @@ func Con_DrawNotify() {
 //export Con_ClearNotify
 func Con_ClearNotify() {
 	C.ConClearNotify()
+	console.ClearNotify()
 }
 
 //export Con_ToggleConsole_f
@@ -213,19 +214,18 @@ func (c *qconsole) currentHeight() int {
 }
 
 func init() {
-	// cmd.AddCommand("clear", func([]cmd.QArg, int) { console.clear() })
+	cmd.AddCommand("toggleconsole", func([]cmd.QArg, int) { console.Toggle() })
+	cmd.AddCommand("clear", func([]cmd.QArg, int) { console.Clear() })
 	cmd.AddCommand("messagemode", func([]cmd.QArg, int) { console.messageMode(false) })
 	cmd.AddCommand("messagemode2", func([]cmd.QArg, int) { console.messageMode(true) })
 }
 
-// for cmd.AddCommand("clear", ...
-func (q *qconsole) clear() {
-	q.text = []byte{}
-	q.origText = []string{}
-	q.backScroll = 0
+func (c *qconsole) Clear() {
+	c.text = []byte{}
+	c.origText = []string{}
+	c.backScroll = 0
 }
 
-// Con_ClearNotify
 func (q *qconsole) ClearNotify() {
 	q.times = [4]time.Time{}
 }
