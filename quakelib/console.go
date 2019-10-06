@@ -349,8 +349,31 @@ func (q *qconsole) print(txt string) {
 		}
 		txt = string(b)
 	}
-	q.origText = append(q.origText, txt)
-	copy(q.times[:], append(q.times[1:], time.Now()))
+
+	var a []string
+	for {
+		// TODO(therjak): why do we need to check for \r?
+		// if yes, change to IndexAny(txt, "\n\r")
+		m := strings.Index(txt, "\n")
+		if m < 0 {
+			break
+		}
+		a = append(a, txt[:m])
+		txt = txt[m+1:]
+	}
+	if len(txt) > 0 {
+		a = append(a, txt)
+	}
+
+	q.origText = append(q.origText, a...)
+
+	t := time.Now()
+	newTimes := q.times[:]
+	for i := 0; i < len(a); i++ {
+		newTimes = append(newTimes, t)
+	}
+	copy(q.times[:], newTimes[len(newTimes)-4:])
+	log.Printf("Times: %v", q.times)
 }
 
 //do not use. use conlog.Printf
