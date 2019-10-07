@@ -9,7 +9,6 @@ package quakelib
 //void ConClearNotify(void);
 //void ConToggleConsole(void);
 //void ConTabComplete(void);
-//void ConLogCenterPrint(const char* str);
 //void ConPrint(const char* text);
 //void ConBackscrollHome(void);
 //void ConBackscrollEnd(void);
@@ -49,9 +48,9 @@ type qconsole struct {
 	height           int // pixels
 	lineWidth        int // characters
 	initialized      bool
-	forceDuplication bool // because no entities to refresh
-	lastCenter       string
-	visibleLines     int // con_vislines
+	forceDuplication bool   // because no entities to refresh
+	lastCenter       string // just a temporary to prevent double print
+	visibleLines     int    // con_vislines
 }
 
 //export Con_ResetLastCenterString
@@ -118,17 +117,9 @@ func Con_TabComplete() {
 
 //export Con_LogCenterPrint
 func Con_LogCenterPrint(str *C.char) {
-	if cl.gameType == svc.GameDeathmatch && cvars.ConsoleLogCenterPrint.Value() != 2 {
-		return
-	}
+	//TODO(therjak): we will need conlog.CenterPrint
 	s := C.GoString(str)
-	if s == console.lastCenter {
-		return
-	}
-	console.lastCenter = s
-	if cvars.ConsoleLogCenterPrint.Bool() {
-		C.ConLogCenterPrint(str)
-	}
+	console.CenterPrint(s)
 }
 
 //export Con_PrintStr
@@ -262,6 +253,53 @@ func (c *qconsole) Printf(format string, v ...interface{}) {
 	c.Print(fmt.Sprintf(format, v...))
 }
 
+func (c *qconsole) CenterPrint(txt string) {
+	// TODO(therjak): this is the function to pass to conlog.CenterPrint
+	if cl.gameType == svc.GameDeathmatch &&
+		cvars.ConsoleLogCenterPrint.Value() != 2 {
+		return
+	}
+	if txt == c.lastCenter {
+		return
+	}
+	c.lastCenter = txt
+	if cvars.ConsoleLogCenterPrint.Bool() {
+		c.printBar()
+		c.centerPrint(txt) // '\n' is not needed as centerPrint adds it
+		c.printBar()
+		// clear the notify times to make sure the txt is not shown
+		// twice: in the center and in the notification line at the
+		// top of the screen.
+		c.ClearNotify()
+		C.ConClearNotify()
+	}
+}
+
+const (
+	centerPrintWhitespace = "                    " // 20x 'x20'
+)
+
+func (c *qconsole) centerPrint(txt string) {
+	w := 40
+	if w > c.lineWidth {
+		w = c.lineWidth
+	}
+	parts := strings.Split(txt, "\n")
+	// Split removes the '\n' so we can not forget to add it again.
+	// Its probably ok to use Split and create new strings afterwards
+	// as we add whitespace in most cases. The special case where we
+	// could avoid a new string should be rare.
+	for _, p := range parts {
+		l := len(p)
+		if l < w {
+			wl := (w - l) / 2
+			c.Print(centerPrintWhitespace[:wl] + p + "\n")
+		} else {
+			c.Print(txt + "\n")
+		}
+	}
+}
+
 func (c *qconsole) Print(txt string) {
 	if !c.initialized {
 		return
@@ -358,14 +396,24 @@ func (q *qconsole) print(txt string) {
 		if m < 0 {
 			break
 		}
-		a = append(a, txt[:m])
+		a = append(a, txt[:m+1]) // Dropping the '\n' would break the code below
 		txt = txt[m+1:]
 	}
 	if len(txt) > 0 {
 		a = append(a, txt)
 	}
 
-	q.origText = append(q.origText, a...)
+	// FIXME(therjak): We are only allowed to make a line break if we find
+	// a '\n'. Otherwise we break text output originating from the vm.
+	// This also means we need to verify we did not remove a '\n' in
+	// conlog.Print
+	ol := len(q.origText)
+	if ol == 0 || strings.HasSuffix(q.origText[ol-1], "\n") {
+		q.origText = append(q.origText, a...)
+	} else {
+		q.origText[ol-1] = q.origText[ol-1] + a[0]
+		q.origText = append(q.origText, a[1:]...)
+	}
 
 	t := time.Now()
 	newTimes := q.times[:]
@@ -373,7 +421,6 @@ func (q *qconsole) print(txt string) {
 		newTimes = append(newTimes, t)
 	}
 	copy(q.times[:], newTimes[len(newTimes)-4:])
-	log.Printf("Times: %v", q.times)
 }
 
 //do not use. use conlog.Printf
@@ -408,10 +455,11 @@ const (
 
 //export ConPrintBar
 func ConPrintBar() {
-	console.PrintBar()
+	console.printBar()
 }
 
-func (c *qconsole) PrintBar() {
+func (c *qconsole) printBar() {
+	// TODO(therjak): we need a conlog.PrintBar
 	if c.lineWidth >= len(quakeBar) {
 		conlog.Printf(quakeBar)
 	} else {
@@ -421,6 +469,7 @@ func (c *qconsole) PrintBar() {
 			b.WriteByte('\x1e')
 		}
 		b.WriteByte('\x1f')
+		b.WriteByte('\n')
 		conlog.Printf(b.String())
 	}
 }

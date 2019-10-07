@@ -47,8 +47,8 @@ int con_current;     // where next message will be printed
 int con_x;           // offset in current line for next print
 char *con_text = NULL;
 
-cvar_t con_notifytime;      // = {"con_notifytime", "3", CVAR_NONE};          //
-                            // seconds
+cvar_t con_notifytime;  // = {"con_notifytime", "3", CVAR_NONE};          //
+                        // seconds
 
 #define NUM_CON_TIMES 4
 float con_times[NUM_CON_TIMES];  // realtime time the line was generated
@@ -72,7 +72,7 @@ void clampBackscroll(void) {
   }
   // FIXME: this should be the number of existing lines not possible lines
   // which con_totallines represents
-  int max_back = con_totallines - (GL_Height() / 8) -1;
+  int max_back = con_totallines - (GL_Height() / 8) - 1;
   if (con_backscroll > max_back) {
     con_backscroll = max_back;
   }
@@ -92,15 +92,13 @@ void ConBackscrollHome(void) {
   clampBackscroll();
 }
 
-void ConBackscrollEnd(void) {
-  con_backscroll = 0;
-}
+void ConBackscrollEnd(void) { con_backscroll = 0; }
 void ConBackscrollUp(int page) {
-  con_backscroll += page ? ((con_vislines /8) - 4) : 2;
+  con_backscroll += page ? ((con_vislines / 8) - 4) : 2;
   clampBackscroll();
 }
 void ConBackscrollDown(int page) {
-  con_backscroll -= page ? ((con_vislines /8) - 4) : 2;
+  con_backscroll -= page ? ((con_vislines / 8) - 4) : 2;
   clampBackscroll();
 }
 
@@ -499,56 +497,6 @@ void Con_SafePrintf(const char *fmt, ...) {
   SetScreenDisabled(true);
   Con_Printf("%s", msg);
   SetScreenDisabled(temp);
-}
-
-/*
-================
-Con_CenterPrintf -- johnfitz -- pad each line with spaces to make it appear
-centered
-================
-*/
-void Con_CenterPrintf(const char *fmt, ...) {
-  va_list argptr;
-  char msg[MAXPRINTMSG];   // the original message
-  char line[MAXPRINTMSG];  // one line from the message
-  char spaces[21];         // buffer for spaces
-  char *src, *dst;
-  int len, s;
-
-  va_start(argptr, fmt);
-  q_vsnprintf(msg, sizeof(msg), fmt, argptr);
-  va_end(argptr);
-
-  int linewidth = q_min(40, ConsoleWidth());
-  for (src = msg; *src;) {
-    dst = line;
-    while (*src && *src != '\n') *dst++ = *src++;
-    *dst = 0;
-    if (*src == '\n') src++;
-
-    len = strlen(line);
-    if (len < linewidth) {
-      s = (linewidth - len) / 2;
-      memset(spaces, ' ', s);
-      spaces[s] = 0;
-      Con_Printf("%s%s\n", spaces, line);
-    } else
-      Con_Printf("%s\n", line);
-  }
-}
-
-/*
-==================
-Con_LogCenterPrint -- johnfitz -- echo centerprint message to the console
-==================
-*/
-void ConLogCenterPrint(const char *str) {
-    ConPrintBar();
-    // Con_Printf("%s", Con_Quakebar(40));
-    Con_CenterPrintf("%s\n", str);
-    ConPrintBar();
-    // Con_Printf("%s", Con_Quakebar(40));
-    Con_ClearNotify();
 }
 
 /*
@@ -1036,4 +984,3 @@ void ConDrawConsole(int lines) {
     Draw_Character((ConsoleWidth() - strlen(ver) + x + 2) << 3, y,
                    ver[x] /*+ 128*/);
 }
-
