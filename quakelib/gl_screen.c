@@ -78,7 +78,6 @@ qpic_t *scr_net;
 qpic_t *scr_turtle;
 
 int clearconsole;
-int clearnotify;
 
 vrect_t scr_vrect;
 
@@ -253,8 +252,8 @@ static void SCR_CalcRefdef(void) {
 
   r_refdef.vrect.width =
       q_max(GL_Width() * size, 96);  // no smaller than 96, for icons
-  r_refdef.vrect.height =
-      q_min(GL_Height() * size, GL_Height() - Sbar_Lines());  // make room for sbar
+  r_refdef.vrect.height = q_min(
+      GL_Height() * size, GL_Height() - Sbar_Lines());  // make room for sbar
   r_refdef.vrect.x = (GL_Width() - r_refdef.vrect.width) / 2;
   r_refdef.vrect.y = (GL_Height() - Sbar_Lines() - r_refdef.vrect.height) / 2;
 
@@ -590,8 +589,8 @@ void SCR_SetUpToDrawConsole(void) {
       (Cvar_GetValue(&host_timescale) > 0) ? Cvar_GetValue(&host_timescale) : 1;
 
   if (scr_conlines < scr_con_current) {
-    // ericw -- (GL_Height()/600.0) factor makes conspeed resolution independent,
-    // using 800x600 as a baseline
+    // ericw -- (GL_Height()/600.0) factor makes conspeed resolution
+    // independent, using 800x600 as a baseline
     scr_con_current -= Cvar_GetValue(&scr_conspeed) * (GL_Height() / 600.0) *
                        HostFrameTime() / timescale;
     if (scr_conlines > scr_con_current) scr_con_current = scr_conlines;
@@ -604,7 +603,8 @@ void SCR_SetUpToDrawConsole(void) {
 
   if (clearconsole++ < GetNumPages()) Sbar_Changed();
 
-  if (!Con_ForceDup() && scr_con_current) scr_tileclear_updates = 0;  // johnfitz
+  if (!Con_ForceDup() && scr_con_current)
+    scr_tileclear_updates = 0;  // johnfitz
 }
 
 /*
@@ -660,7 +660,8 @@ void SCR_ScreenShot_f(void) {
 
   glPixelStorei(GL_PACK_ALIGNMENT,
                 1); /* for widths that aren't a multiple of 4 */
-  glReadPixels(GL_X(), GL_Y(), GL_Width(), GL_Height(), GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+  glReadPixels(GL_X(), GL_Y(), GL_Width(), GL_Height(), GL_RGBA,
+               GL_UNSIGNED_BYTE, buffer);
 
   // now write the file
   if (Image_Write(checkname, buffer, GL_Width(), GL_Height()))

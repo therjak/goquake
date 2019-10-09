@@ -65,83 +65,6 @@ Con_ToggleConsole_f
 */
 extern int history_line;  // johnfitz
 
-void clampBackscroll(void) {
-  if (con_backscroll < 0) {
-    con_backscroll = 0;
-    return;
-  }
-  // FIXME: this should be the number of existing lines not possible lines
-  // which con_totallines represents
-  int max_back = con_totallines - (GL_Height() / 8) - 1;
-  if (con_backscroll > max_back) {
-    con_backscroll = max_back;
-  }
-}
-
-void ConBackscrollHome(void) {
-  int i, x;
-  char *line;
-  for (i = con_current - con_totallines + 1; i <= con_current; i++) {
-    line = con_text + (i % con_totallines) * ConsoleWidth();
-    for (x = 0; x < ConsoleWidth(); x++) {
-      if (line[x] != ' ') break;
-    }
-    if (x != ConsoleWidth()) break;
-  }
-  con_backscroll = con_current - i % con_totallines - 2;
-  clampBackscroll();
-}
-
-void ConBackscrollEnd(void) { con_backscroll = 0; }
-void ConBackscrollUp(int page) {
-  con_backscroll += page ? ((con_vislines / 8) - 4) : 2;
-  clampBackscroll();
-}
-void ConBackscrollDown(int page) {
-  con_backscroll -= page ? ((con_vislines / 8) - 4) : 2;
-  clampBackscroll();
-}
-
-void ConToggleConsole(void) {
-  if (GetKeyDest() ==
-      key_console /* || (GetKeyDest() == key_game && Con_ForceDup())*/) {
-    key_lines[edit_line][1] = 0;  // clear any typing
-    key_linepos = 1;
-    con_backscroll = 0;  // johnfitz -- toggleconsole should return you to the
-                         // bottom of the scrollback
-    history_line = edit_line;  // johnfitz -- it should also return you to the
-                               // bottom of the command history
-
-    if (CLS_GetState() == ca_connected) {
-      IN_Activate();
-      SetKeyDest(key_game);
-    } else {
-      M_Menu_Main_f();
-    }
-  } else {
-    IN_Deactivate();
-    SetKeyDest(key_console);
-  }
-
-  SCR_EndLoadingPlaque();
-  memset(con_times, 0, sizeof(con_times));
-}
-
-/*
-================
-Con_Clear_f
-================
-*/
-/*
-static void Con_Clear_f(void) {
-  if (con_text)
-    Q_memset(
-        con_text, ' ',
-        con_buffersize);  // johnfitz -- con_buffersize replaces CON_TEXTSIZE
-  con_backscroll =
-      0;  // johnfitz -- if console is empty, being scrolled up is confusing
-}*/
-
 /*
 ================
 Con_Dump_f -- johnfitz -- adapted from quake2 source
@@ -188,17 +111,6 @@ static void Con_Dump_f(void) {
 
   fclose(f);
   Con_Printf("Dumped console text to %s.\n", name);
-}
-
-/*
-================
-Con_ClearNotify
-================
-*/
-void ConClearNotify(void) {
-  int i;
-
-  for (i = 0; i < NUM_CON_TIMES; i++) con_times[i] = 0;
 }
 
 /*
@@ -294,84 +206,6 @@ static void Con_Linefeed(void) {
   con_current++;
   Q_memset(&con_text[(con_current % con_totallines) * ConsoleWidth()], ' ',
            ConsoleWidth());
-}
-
-/*
-================
-Con_Print
-
-Handles cursor positioning, line wrapping, etc
-All console printing must go through this in order to be logged to disk
-If no console is visible, the notify window will pop up.
-================
-*/
-void ConPrint(const char *txt) {
-  int y;
-  int c, l;
-  static int cr;
-  int mask;
-  qboolean boundary;
-
-  // con_backscroll = 0; //johnfitz -- better console scrolling
-
-  if (txt[0] == 1) {
-    mask = 128;                     // go to colored text
-    S_LocalSound("misc/talk.wav");  // play talk wav
-    txt++;
-  } else if (txt[0] == 2) {
-    mask = 128;  // go to colored text
-    txt++;
-  } else
-    mask = 0;
-
-  boundary = true;
-
-  while ((c = *txt)) {
-    if (c <= ' ') {
-      boundary = true;
-    } else if (boundary) {
-      // count word length
-      for (l = 0; l < ConsoleWidth(); l++)
-        if (txt[l] <= ' ') break;
-
-      // word wrap
-      if (l != ConsoleWidth() && (con_x + l > ConsoleWidth())) con_x = 0;
-
-      boundary = false;
-    }
-
-    txt++;
-
-    if (cr) {
-      con_current--;
-      cr = false;
-    }
-
-    if (!con_x) {
-      Con_Linefeed();
-      // mark time for transparent overlay
-      if (con_current >= 0)
-        con_times[con_current % NUM_CON_TIMES] = HostRealTime();
-    }
-
-    switch (c) {
-      case '\n':
-        con_x = 0;
-        break;
-
-      case '\r':
-        con_x = 0;
-        cr = 1;
-        break;
-
-      default:  // display character and advance
-        y = con_current % con_totallines;
-        con_text[y * ConsoleWidth() + con_x] = c | mask;
-        con_x++;
-        if (con_x >= ConsoleWidth()) con_x = 0;
-        break;
-    }
-  }
 }
 
 /*
@@ -857,8 +691,6 @@ void ConDrawNotify(void) {
     if (time > Cvar_GetValue(&con_notifytime)) continue;
     text = con_text + (i % con_totallines) * ConsoleWidth();
 
-    clearnotify = 0;
-
     for (x = 0; x < ConsoleWidth(); x++)
       Draw_Character((x + 1) << 3, v, text[x]);
 
@@ -868,8 +700,6 @@ void ConDrawNotify(void) {
   }
 
   if (GetKeyDest() == key_message) {
-    clearnotify = 0;
-
     if (chat_team) {
       Draw_String(8, v, "say_team:");
       x = 11;
@@ -927,60 +757,4 @@ void Con_DrawInput(void) {
     i = key_linepos - ofs;
     Draw_Pic((i + 1) << 3, ConHeight() - 16, key_insert ? pic_ins : pic_ovr);
   }
-}
-
-/*
-================
-Con_DrawConsole -- johnfitz -- heavy revision
-
-Draws the console with the solid background
-The typing input line at the bottom should only be drawn if typing is allowed
-================
-*/
-void ConDrawConsole(int lines) {
-  int i, x, y, j, sb, rows;
-  const char *text;
-  char ver[32];
-
-  if (lines <= 0) return;
-
-  con_vislines = lines * ConHeight() / GL_Height();
-  GL_SetCanvas(CANVAS_CONSOLE);
-
-  // draw the background
-  DrawConsoleBackgroundC();
-
-  // draw the buffer text
-  rows = (con_vislines + 7) / 8;
-  y = ConHeight() - rows * 8;
-  rows -= 2;  // for input and version lines
-  sb = (con_backscroll) ? 2 : 0;
-
-  for (i = con_current - rows + 1; i <= con_current - sb; i++, y += 8) {
-    j = i - con_backscroll;
-    if (j < 0) j = 0;
-    text = con_text + (j % con_totallines) * ConsoleWidth();
-
-    for (x = 0; x < ConsoleWidth(); x++)
-      Draw_Character((x + 1) << 3, y, text[x]);
-  }
-
-  // draw scrollback arrows
-  if (con_backscroll) {
-    y += 8;  // blank line
-    for (x = 0; x < ConsoleWidth(); x += 4)
-      Draw_Character((x + 1) << 3, y, '^');
-    y += 8;
-  }
-
-  // draw the input prompt, user text, and cursor
-  Con_DrawInput();
-
-  // draw version number in bottom right
-  y += 8;
-  sprintf(ver, "QuakeSpasm %1.2f.%d", (float)QUAKESPASM_VERSION,
-          QUAKESPASM_VER_PATCH);
-  for (x = 0; x < (int)strlen(ver); x++)
-    Draw_Character((ConsoleWidth() - strlen(ver) + x + 2) << 3, y,
-                   ver[x] /*+ 128*/);
 }

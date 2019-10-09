@@ -4,16 +4,7 @@ package quakelib
 //float GetScreenConsoleCurrentHeight(void);
 //void ConCheckResize(void);
 //void ConInit(void);
-//void ConDrawConsole(int lines);
-//void ConDrawNotify(void);
-//void ConClearNotify(void);
-//void ConToggleConsole(void);
 //void ConTabComplete(void);
-//void ConPrint(const char* text);
-//void ConBackscrollHome(void);
-//void ConBackscrollEnd(void);
-//void ConBackscrollUp(int page);
-//void ConBackscrollDown(int page);
 import "C"
 
 import (
@@ -27,7 +18,6 @@ import (
 	svc "quake/protocol/server"
 	"strings"
 	"time"
-	"unsafe"
 )
 
 const (
@@ -87,17 +77,15 @@ func Con_Initialized() bool {
 //export Con_DrawConsole
 func Con_DrawConsole(lines int) {
 	console.Draw(lines)
-	// C.ConDrawConsole(C.int(lines))
 }
 
 //export Con_DrawNotify
 func Con_DrawNotify() {
-	C.ConDrawNotify()
+	console.DrawNotify()
 }
 
 //export Con_ClearNotify
 func Con_ClearNotify() {
-	C.ConClearNotify()
 	console.ClearNotify()
 }
 
@@ -107,7 +95,24 @@ func Con_ToggleConsole_f() {
 }
 
 func (c *qconsole) Toggle() {
-	C.ConToggleConsole()
+	if keyDestination == keys.Console {
+		// TODO(therjak): clear typing area
+		c.backScroll = 0
+		// TODO(therjak): return to the bottom of the command history
+
+		if cls.state == ca_connected {
+			IN_Activate()
+			keyDestination = keys.Game
+		} else {
+			enterMenuMain()
+		}
+	} else {
+		IN_Deactivate()
+		keyDestination = keys.Console
+	}
+
+	SCR_EndLoadingPlaque()
+	c.ClearNotify()
 }
 
 //export Con_TabComplete
@@ -127,26 +132,18 @@ func Con_PrintStr(str *C.char) {
 	console.Print(C.GoString(str))
 }
 
-//export Con_Print
-func Con_Print(str *C.char) {
-	C.ConPrint(str)
-}
-
 //export Con_BackscrollHome
 func Con_BackscrollHome() {
 	console.BackScrollHome()
-	C.ConBackscrollEnd()
 }
 
 //export Con_BackscrollEnd
 func Con_BackscrollEnd() {
 	console.BackScrollEnd()
-	C.ConBackscrollEnd()
 }
 
 //export Con_BackscrollUp
 func Con_BackscrollUp(page bool) {
-	C.ConBackscrollUp(b2i(page))
 	console.BackScrollUp(page)
 }
 
@@ -190,7 +187,6 @@ func (c *qconsole) BackScrollDown(page bool) {
 
 //export Con_BackscrollDown
 func Con_BackscrollDown(page bool) {
-	C.ConBackscrollDown(b2i(page))
 	console.BackScrollDown(page)
 }
 
@@ -271,7 +267,6 @@ func (c *qconsole) CenterPrint(txt string) {
 		// twice: in the center and in the notification line at the
 		// top of the screen.
 		c.ClearNotify()
-		C.ConClearNotify()
 	}
 }
 
@@ -311,10 +306,6 @@ func (c *qconsole) Print(txt string) {
 
 	c.print(txt)
 
-	cstr := C.CString(txt)
-	Con_Print(cstr)
-	C.free(unsafe.Pointer(cstr))
-
 	if cls.signon != 4 && !screen.disabled {
 		if !printRecursionProtection {
 			printRecursionProtection = true
@@ -322,6 +313,29 @@ func (c *qconsole) Print(txt string) {
 			printRecursionProtection = false
 		}
 	}
+}
+
+func (c *qconsole) DrawNotify() {
+	SetCanvas(CANVAS_CONSOLE)
+	y := c.height
+	lines := 0
+	delta := float64(cvars.ConsoleNotifyTime.Value()) // #sec to display
+	for _, t := range c.times {
+		diff := time.Since(t).Seconds()
+		if diff < delta {
+			lines++
+		}
+	}
+
+	l := len(c.origText)
+	for lines > 0 {
+		DrawStringWhite(8, y, c.origText[l-lines])
+		y += 8
+		lines--
+		// TODO(therjak): global variable scr_tileclear_updates = 0
+	}
+
+	// TODO(therjak): add missing chat functionality again
 }
 
 func (c *qconsole) Draw(lines int) {
@@ -403,6 +417,7 @@ func (q *qconsole) print(txt string) {
 		a = append(a, txt)
 	}
 
+	times := 0
 	// FIXME(therjak): We are only allowed to make a line break if we find
 	// a '\n'. Otherwise we break text output originating from the vm.
 	// This also means we need to verify we did not remove a '\n' in
@@ -410,14 +425,16 @@ func (q *qconsole) print(txt string) {
 	ol := len(q.origText)
 	if ol == 0 || strings.HasSuffix(q.origText[ol-1], "\n") {
 		q.origText = append(q.origText, a...)
+		times = len(a)
 	} else {
 		q.origText[ol-1] = q.origText[ol-1] + a[0]
 		q.origText = append(q.origText, a[1:]...)
+		times = len(a[1:]) // only add a time if actually a new line was added
 	}
 
 	t := time.Now()
 	newTimes := q.times[:]
-	for i := 0; i < len(a); i++ {
+	for i := 0; i < times; i++ {
 		newTimes = append(newTimes, t)
 	}
 	copy(q.times[:], newTimes[len(newTimes)-4:])
