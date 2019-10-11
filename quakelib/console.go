@@ -397,7 +397,9 @@ func (q *qconsole) print(txt string) {
 		// make the string copper color
 		b := []byte(txt[1:])
 		for i := 0; i < len(b); i++ {
-			b[i] = b[i] | 128
+			if b[i] != '\n' {
+				b[i] = b[i] | 128
+			}
 		}
 		txt = string(b)
 	}

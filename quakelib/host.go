@@ -126,13 +126,13 @@ func init() {
 	cvars.NoExit.SetCallback(hostCallbackNotify)
 
 	cvars.Coop.SetCallback(func(cv *cvar.Cvar) {
-		conlog.Printf("Changed coop: %v", cv.Bool())
+		conlog.Printf("Changed coop: %v\n", cv.Bool())
 		if cv.Bool() {
 			cvars.DeathMatch.SetByString("0")
 		}
 	})
 	cvars.DeathMatch.SetCallback(func(cv *cvar.Cvar) {
-		conlog.Printf("Changed deathmatch: %v", cv.Bool())
+		conlog.Printf("Changed deathmatch: %v\n", cv.Bool())
 		if cv.Bool() {
 			cvars.Coop.SetByString("0")
 		}
@@ -303,7 +303,7 @@ func hostFrame() {
 		if r := recover(); r != nil {
 			frameCount = 0
 			// something bad happened, or the server disconnected
-			conlog.Printf("%v", r)
+			conlog.Printf("%v\n", r)
 			return
 		}
 	}()

@@ -265,7 +265,7 @@ func (s *Server) StartSound(entity, channel, volume int, sample string, attenuat
 			return
 		}
 	}
-	conlog.Printf("SV_StartSound: %s not precacheed", sample)
+	conlog.Printf("SV_StartSound: %s not precacheed\n", sample)
 }
 
 func (s *Server) sendStartSound(entity, channel, volume, soundnum int, attenuation float32) {
