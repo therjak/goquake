@@ -1,8 +1,6 @@
 package quakelib
 
-//#include <stdlib.h> // free
 //float GetScreenConsoleCurrentHeight(void);
-//void ConCheckResize(void);
 //void ConInit(void);
 //void ConTabComplete(void);
 import "C"
@@ -60,7 +58,19 @@ func Con_SetForceDup(s bool) {
 
 //export Con_CheckResize
 func Con_CheckResize() {
-	C.ConCheckResize()
+	console.CheckResize()
+}
+
+// produce new line breaks in case of a new width
+func (c *qconsole) CheckResize() {
+	w := (c.width / 8) - 2
+	if w == c.lineWidth { // ConsoleWidth
+		return
+	}
+	// do the reflow
+	// TODO
+
+	c.ClearNotify()
 }
 
 //export Con_Init

@@ -26,7 +26,19 @@ var (
 	menuBound   map[kc.KeyCode]bool
 	keyDown     map[kc.KeyCode]bool
 	keyBindings map[kc.KeyCode]string
+
+	keyInput qKeyInput
+
+	picIns *QPic
+	picOvr *QPic
+	picNul *QPic
 )
+
+type qKeyInput struct {
+	text   string
+	pos    int
+	cursor *QPic
+}
 
 func init() {
 	consoleKeys = make(map[kc.KeyCode]bool)

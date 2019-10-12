@@ -42,7 +42,6 @@ float con_cursorspeed = 4;
 int con_buffersize;  // johnfitz -- user can now override default
 
 int con_totallines;  // total lines in console scrollback
-int con_backscroll;  // lines up from bottom to display
 int con_current;     // where next message will be printed
 int con_x;           // offset in current line for next print
 char *con_text = NULL;
@@ -115,56 +114,6 @@ static void Con_Dump_f(void) {
 
 /*
 ================
-Con_CheckResize
-
-If the line width has changed, reformat the buffer.
-================
-*/
-void ConCheckResize(void) {
-  int i, j, width, oldwidth, oldtotallines, numlines, numchars;
-  char *tbuf;  // johnfitz -- tbuf no longer a static array
-  int mark;    // johnfitz
-
-  width = (ConWidth() >> 3) - 2;
-
-  if (width == ConsoleWidth()) return;
-
-  oldwidth = ConsoleWidth();
-  SetConsoleWidth(width);
-  oldtotallines = con_totallines;
-  con_totallines = con_buffersize / ConsoleWidth();
-  numlines = oldtotallines;
-
-  if (con_totallines < numlines) numlines = con_totallines;
-
-  numchars = oldwidth;
-
-  if (ConsoleWidth() < numchars) numchars = ConsoleWidth();
-
-  mark = Hunk_LowMark();
-  tbuf = (char *)Hunk_Alloc(con_buffersize);
-
-  Q_memcpy(tbuf, con_text, con_buffersize);
-  Q_memset(con_text, ' ', con_buffersize);
-
-  for (i = 0; i < numlines; i++) {
-    for (j = 0; j < numchars; j++) {
-      con_text[(con_totallines - 1 - i) * ConsoleWidth() + j] =
-          tbuf[((con_current - i + oldtotallines) % oldtotallines) * oldwidth +
-               j];
-    }
-  }
-
-  Hunk_FreeToLowMark(mark);
-
-  Con_ClearNotify();
-
-  con_backscroll = 0;
-  con_current = con_totallines - 1;
-}
-
-/*
-================
 Con_Init
 ================
 */
@@ -179,7 +128,6 @@ void ConInit(void) {
   // johnfitz -- no need to run Con_CheckResize here
   SetConsoleWidth(38);
   con_totallines = con_buffersize / ConsoleWidth();
-  con_backscroll = 0;
   con_current = con_totallines - 1;
   // johnfitz
 
@@ -188,24 +136,6 @@ void ConInit(void) {
   Cvar_FakeRegister(&con_notifytime, "con_notifytime");
 
   Cmd_AddCommand("condump", Con_Dump_f);  // johnfitz
-}
-
-/*
-===============
-Con_Linefeed
-===============
-*/
-static void Con_Linefeed(void) {
-  // johnfitz -- improved scrolling
-  if (con_backscroll) con_backscroll++;
-  if (con_backscroll > con_totallines - (GL_Height() >> 3) - 1)
-    con_backscroll = con_totallines - (GL_Height() >> 3) - 1;
-  // johnfitz
-
-  con_x = 0;
-  con_current++;
-  Q_memset(&con_text[(con_current % con_totallines) * ConsoleWidth()], ' ',
-           ConsoleWidth());
 }
 
 /*
@@ -657,72 +587,6 @@ void ConTabComplete(void) {
     // about
     // the reason, yet, neither do I know any possible side effects of it:
     c = key_lines[edit_line] + key_linepos;
-  }
-}
-
-/*
-==============================================================================
-
-DRAWING
-
-==============================================================================
-*/
-
-/*
-================
-Con_DrawNotify
-
-Draws the last few lines of output transparently over the game top
-================
-*/
-void ConDrawNotify(void) {
-  int i, x, v;
-  const char *text;
-  float time;
-
-  GL_SetCanvas(CANVAS_CONSOLE);
-  v = ConHeight();
-
-  for (i = con_current - NUM_CON_TIMES + 1; i <= con_current; i++) {
-    if (i < 0) continue;
-    time = con_times[i % NUM_CON_TIMES];
-    if (time == 0) continue;
-    time = HostRealTime() - time;
-    if (time > Cvar_GetValue(&con_notifytime)) continue;
-    text = con_text + (i % con_totallines) * ConsoleWidth();
-
-    for (x = 0; x < ConsoleWidth(); x++)
-      Draw_Character((x + 1) << 3, v, text[x]);
-
-    v += 8;
-
-    scr_tileclear_updates = 0;
-  }
-
-  if (GetKeyDest() == key_message) {
-    if (chat_team) {
-      Draw_String(8, v, "say_team:");
-      x = 11;
-    } else {
-      Draw_String(8, v, "say:");
-      x = 6;
-    }
-
-    text = Key_GetChatBuffer();
-    i = Key_GetChatMsgLen();
-    if (i > ConsoleWidth() - x - 1) text += i - ConsoleWidth() + x + 1;
-
-    while (*text) {
-      Draw_Character(x << 3, v, *text);
-      x++;
-      text++;
-    }
-
-    Draw_Character(x << 3, v,
-                   10 + ((int)(HostRealTime() * con_cursorspeed) & 1));
-    v += 8;
-
-    scr_tileclear_updates = 0;  // johnfitz
   }
 }
 
