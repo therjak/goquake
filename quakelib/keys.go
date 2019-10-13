@@ -35,9 +35,9 @@ var (
 )
 
 type qKeyInput struct {
-	text   string
-	pos    int
-	cursor *QPic
+	text       string
+	cursorXPos int
+	cursor     *QPic
 }
 
 func init() {

@@ -387,11 +387,23 @@ func (c *qconsole) Draw(lines int) {
 		}
 	}
 
-	// c.DrawInput()
+	c.DrawInput()
 	version := fmt.Sprintf("QuakeSpasm %1.2f.%d", QUAKESPASM_VERSION, QUAKESPASM_VER_PATCH)
 	y += 8
 	x := (c.lineWidth - len(version) + 2) * 8
 	DrawStringWhite(x, y, version)
+}
+
+func (c *qconsole) DrawInput() {
+	if keyDestination != keys.Console && !c.forceDuplication {
+		return
+	}
+	// TODO(therjak): some kind of scrolling in case of len(keyInput.text > lineWidth
+	DrawStringWhite(8, c.height-16, keyInput.text)
+
+	// TODO(therjak): cursor blinking
+	// depending on con_cursorspeed and key_blinktime
+	// DrawPic(8+keyInput.cursorXPos, c.height - 16, keyInput.cursor)
 }
 
 // Con_Print
