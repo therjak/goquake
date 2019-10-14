@@ -399,7 +399,7 @@ func (c *qconsole) DrawInput() {
 		return
 	}
 	// TODO(therjak): some kind of scrolling in case of len(keyInput.text > lineWidth
-	DrawStringWhite(8, c.height-16, keyInput.text)
+	DrawStringWhite(8, c.height-16, keyInput.String())
 
 	// TODO(therjak): cursor blinking
 	// depending on con_cursorspeed and key_blinktime

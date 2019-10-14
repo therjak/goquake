@@ -202,8 +202,9 @@ Interactive line editing and console scrollback
 ====================
 */
 extern char key_tabpartial[MAXCMDLINE];
-
+/*
 void Key_Console(int key) {
+  // THERJAK
   static char current[MAXCMDLINE] = "";
   int history_line_last;
   size_t len;
@@ -344,7 +345,7 @@ void Key_Console(int key) {
       return;
 
     case K_INS:
-      if (keydown[K_SHIFT]) /* Shift-Ins paste */
+      if (keydown[K_SHIFT]) // Shift-Ins paste
         PasteToConsole();
       else
         key_insert ^= 1;
@@ -353,12 +354,12 @@ void Key_Console(int key) {
     case 'v':
     case 'V':
 #if defined(PLATFORM_OSX) || defined(PLATFORM_MAC)
-      if (keydown[K_COMMAND]) { /* Cmd+v paste (Mac-only) */
+      if (keydown[K_COMMAND]) { // Cmd+v paste (Mac-only)
         PasteToConsole();
         return;
       }
 #endif
-      if (keydown[K_CTRL]) { /* Ctrl+v paste */
+      if (keydown[K_CTRL]) { // Ctrl+v paste
         PasteToConsole();
         return;
       }
@@ -366,7 +367,7 @@ void Key_Console(int key) {
 
     case 'c':
     case 'C':
-      if (keydown[K_CTRL]) { /* Ctrl+C: abort the line -- S.A */
+      if (keydown[K_CTRL]) { // Ctrl+C: abort the line -- S.A
         Con_Printf("%s\n", workline);
         workline[0] = ']';
         workline[1] = 0;
@@ -376,8 +377,8 @@ void Key_Console(int key) {
       }
       break;
   }
-}
-
+} */
+/*
 void Char_Console(int key) {
   size_t len;
   char *workline = key_lines[edit_line];
@@ -401,7 +402,7 @@ void Char_Console(int key) {
     }
     key_linepos++;
   }
-}
+} */
 
 //============================================================================
 
@@ -605,6 +606,7 @@ Should NOT be called during an interrupt!
 ===================
 */
 void Key_Event(int key, qboolean down) {
+  // THERJAK
   char *kb;
   char cmd[1024];
 
@@ -792,4 +794,3 @@ void Key_ClearStates(void) {
     if (keydown[i]) Key_Event(i, false);
   }
 }
-

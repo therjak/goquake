@@ -10,12 +10,14 @@ import "C"
 import (
 	"fmt"
 	"io"
+	"quake/cbuf"
 	"quake/cmd"
 	"quake/conlog"
 	"quake/cvars"
 	kc "quake/keycode"
 	"quake/keys"
 	"sort"
+	"unsafe"
 )
 
 var (
@@ -36,8 +38,63 @@ var (
 
 type qKeyInput struct {
 	text       string
+	buf        []byte
 	cursorXPos int
 	cursor     *QPic
+	insert     bool
+}
+
+func (k *qKeyInput) String() string {
+	return *(*string)(unsafe.Pointer(&k.buf))
+}
+
+func (k *qKeyInput) consoleKeyEvent(key kc.KeyCode) {
+	switch key {
+	case kc.KP_ENTER, kc.ENTER:
+		t := k.String() + "\n"
+		cbuf.AddText(t)
+		conlog.Printf(t)
+		k.buf = []byte{}
+		k.cursorXPos = 0
+	case kc.TAB:
+	case kc.BACKSPACE:
+		if k.cursorXPos > 0 {
+			k.buf = append(k.buf[:k.cursorXPos-1], k.buf[k.cursorXPos:]...)
+			k.cursorXPos--
+			if k.cursorXPos < 0 {
+				k.cursorXPos = 0
+			}
+		}
+	case kc.DEL:
+	case kc.HOME:
+	case kc.END:
+	case kc.PGUP, kc.MWHEELUP:
+	case kc.PGDN, kc.MWHEELDOWN:
+	case kc.LEFTARROW:
+		k.cursorXPos--
+		if k.cursorXPos < 0 {
+			k.cursorXPos = 0
+		}
+	case kc.RIGHTARROW:
+		k.cursorXPos++
+		if k.cursorXPos > len(k.buf) {
+			k.cursorXPos = len(k.buf)
+		}
+	case kc.UPARROW:
+	case kc.DOWNARROW:
+	case kc.INS:
+		k.insert = !k.insert
+	case 'V', 'v':
+	case 'C', 'c':
+	}
+}
+
+func (k *qKeyInput) consoleTextEvent(key kc.KeyCode) {
+	k.buf = append(k.buf[:k.cursorXPos],
+		append([]byte{byte(key)}, k.buf[k.cursorXPos:]...)...)
+	if !k.insert {
+		k.cursorXPos++
+	}
 }
 
 func init() {
@@ -257,4 +314,14 @@ func updateKeyDest() {
 	default:
 		updateKeyDestForced = false
 	}
+}
+
+//export Key_Console
+func Key_Console(key int) {
+	keyInput.consoleKeyEvent(kc.KeyCode(key))
+}
+
+//export Char_Console
+func Char_Console(key int) {
+	keyInput.consoleTextEvent(kc.KeyCode(key))
 }
