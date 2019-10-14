@@ -17,6 +17,7 @@ import (
 	kc "quake/keycode"
 	"quake/keys"
 	"sort"
+	"time"
 	"unsafe"
 )
 
@@ -42,6 +43,7 @@ type qKeyInput struct {
 	cursorXPos int
 	cursor     *QPic
 	insert     bool
+	blinkTime  time.Time
 }
 
 func (k *qKeyInput) String() string {
@@ -54,9 +56,14 @@ func (k *qKeyInput) consoleKeyEvent(key kc.KeyCode) {
 		t := k.String() + "\n"
 		cbuf.AddText(t)
 		conlog.Printf(t)
-		k.buf = []byte{}
+		k.buf = make([]byte, 0, 40)
 		k.cursorXPos = 0
+		if cls.state == ca_disconnected {
+			// fore an update, because the command may take some time
+			SCR_UpdateScreen()
+		}
 	case kc.TAB:
+		// TODO(therjak): tap completion
 	case kc.BACKSPACE:
 		if k.cursorXPos > 0 {
 			k.buf = append(k.buf[:k.cursorXPos-1], k.buf[k.cursorXPos:]...)
@@ -66,35 +73,59 @@ func (k *qKeyInput) consoleKeyEvent(key kc.KeyCode) {
 			}
 		}
 	case kc.DEL:
+		if k.cursorXPos < len(k.buf) {
+			k.buf = append(k.buf[:k.cursorXPos], k.buf[k.cursorXPos+1:]...)
+		}
 	case kc.HOME:
-	case kc.END:
-	case kc.PGUP, kc.MWHEELUP:
-	case kc.PGDN, kc.MWHEELDOWN:
-	case kc.LEFTARROW:
-		k.cursorXPos--
-		if k.cursorXPos < 0 {
+		if keyDown[kc.CTRL] {
+			console.BackScrollHome()
+		} else {
 			k.cursorXPos = 0
 		}
-	case kc.RIGHTARROW:
-		k.cursorXPos++
-		if k.cursorXPos > len(k.buf) {
+	case kc.END:
+		if keyDown[kc.CTRL] {
+			console.BackScrollEnd()
+		} else {
 			k.cursorXPos = len(k.buf)
 		}
+	case kc.PGUP, kc.MWHEELUP:
+		console.BackScrollUp(keyDown[kc.CTRL])
+	case kc.PGDN, kc.MWHEELDOWN:
+		console.BackScrollDown(keyDown[kc.CTRL])
+	case kc.LEFTARROW:
+		if k.cursorXPos > 0 {
+			k.cursorXPos--
+			k.blinkTime = time.Now()
+		}
+	case kc.RIGHTARROW:
+		if k.cursorXPos < len(k.buf) {
+			k.cursorXPos++
+			k.blinkTime = time.Now()
+		}
 	case kc.UPARROW:
+		// TODO(therjak): history scroll up
 	case kc.DOWNARROW:
+		// TODO(therjak): history scroll down
 	case kc.INS:
 		k.insert = !k.insert
 	case 'V', 'v':
+		// TODO(therjak): paste handling
 	case 'C', 'c':
+		// TODO(therjak): copy handling
 	}
 }
 
 func (k *qKeyInput) consoleTextEvent(key kc.KeyCode) {
-	k.buf = append(k.buf[:k.cursorXPos],
-		append([]byte{byte(key)}, k.buf[k.cursorXPos:]...)...)
-	if !k.insert {
-		k.cursorXPos++
+	if k.cursorXPos == len(k.buf) {
+		k.buf = append(k.buf[:k.cursorXPos], byte(key))
+	} else if k.insert {
+		k.buf = append(k.buf[:k.cursorXPos],
+			append([]byte{byte(key)}, k.buf[k.cursorXPos:]...)...)
+	} else {
+		k.buf = append(k.buf[:k.cursorXPos],
+			append([]byte{byte(key)}, k.buf[k.cursorXPos+1:]...)...)
 	}
+	k.cursorXPos++
 }
 
 func init() {
