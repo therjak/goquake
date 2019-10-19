@@ -83,7 +83,7 @@ func (m *qNetSetupMenu) HandleKey(key kc.KeyCode) {
 	}
 }
 
-func (m *qNetSetupMenu) HandleChar(key kc.KeyCode) {
+func (m *qNetSetupMenu) HandleRune(key rune) {
 	switch m.selectedIndex {
 	case 0:
 		if len(m.hostname) < 15 {

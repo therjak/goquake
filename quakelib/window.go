@@ -5,7 +5,6 @@ package quakelib
 //typedef enum {MS_UNINIT, MS_WINDOWED, MS_FULLSCREEN} modestate_t;
 //#endif
 // void S_ClearBuffer();
-// void Key_ClearStates();
 import "C"
 
 import (
@@ -65,7 +64,7 @@ func videoSetMode(width, height, bpp int32, fullscreen bool) {
 
 	screen.disabled = temp
 
-	C.Key_ClearStates()
+	Key_ClearStates()
 
 	recalc_refdef = true
 	videoChanged = true
@@ -180,7 +179,7 @@ var (
 	modestate = MS_UNINIT
 )
 
-func videoToggle() {
+func toggleFullScreen() {
 	// This is buggy. It seems to miss changing the global 'vid' object and whatnot.
 	C.S_ClearBuffer()
 	flags := func() uint32 {

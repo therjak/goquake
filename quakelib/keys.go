@@ -5,6 +5,7 @@ package quakelib
 //typedef enum { key_game, key_console, key_message, key_menu } keydest_t;
 //#endif
 //void Key_EndChat(void);
+//void Key_Message(int key);
 import "C"
 
 import (
@@ -17,6 +18,7 @@ import (
 	kc "quake/keycode"
 	"quake/keys"
 	"sort"
+	"strings"
 	"time"
 	"unsafe"
 )
@@ -115,7 +117,8 @@ func (k *qKeyInput) consoleKeyEvent(key kc.KeyCode) {
 	}
 }
 
-func (k *qKeyInput) consoleTextEvent(key kc.KeyCode) {
+func (k *qKeyInput) consoleTextEvent(key rune) {
+	// TODO(therjak): fix rune handling
 	if k.cursorXPos == len(k.buf) {
 		k.buf = append(k.buf[:k.cursorXPos], byte(key))
 	} else if k.insert {
@@ -347,12 +350,204 @@ func updateKeyDest() {
 	}
 }
 
+type qInputGrab struct {
+	active   bool
+	lastKey  kc.KeyCode
+	lastChar rune
+}
+
+var (
+	inputGrab qInputGrab
+)
+
+//export KeyModalResult
+func KeyModalResult(timeout int) bool {
+	Key_ClearStates()
+	inputGrab = qInputGrab{
+		active: true,
+	}
+	updateInputMode()
+
+	endTime := time.Now().Add(time.Second * time.Duration(timeout))
+	result := false
+
+	for {
+		IN_SendKeyEvents()
+		// TODO(therjak): this Sleep should go
+		time.Sleep(time.Millisecond * 16)
+		if inputGrab.lastKey == kc.ABUTTON ||
+			inputGrab.lastChar == 'Y' ||
+			inputGrab.lastChar == 'y' {
+			result = true
+			break
+		}
+		if inputGrab.lastKey == kc.ESCAPE ||
+			inputGrab.lastKey == kc.BBUTTON ||
+			inputGrab.lastChar == 'N' ||
+			inputGrab.lastChar == 'n' {
+			result = false
+			break
+		}
+		if timeout != 0 && endTime.Before(time.Now()) {
+			result = false
+			break
+		}
+	}
+
+	Key_ClearStates()
+	inputGrab.active = false
+	updateInputMode()
+
+	return result
+}
+
+func keyEvent(key kc.KeyCode, down bool) {
+	if down && (key == kc.ENTER || key == kc.KP_ENTER) && keyDown[kc.ALT] {
+		toggleFullScreen()
+		return
+	}
+
+	if down {
+		if keyDown[key] {
+			if keyDestination == keys.Game && !console.forceDuplication {
+				return
+			}
+			if key >= 200 && ("" != keyBindings[key]) {
+				// TODO(therjak): is this the right condidition, do we want this at all?
+				conlog.Printf("%s is unbound, hit F4 to set.\n", kc.KeyToString(key))
+			}
+		}
+	} else {
+		// ignore stray key up events
+		if !keyDown[key] {
+			return
+		}
+	}
+
+	keyDown[key] = down
+
+	if inputGrab.active {
+		if down {
+			inputGrab.lastKey = key
+		}
+		return
+	}
+
+	if key == kc.ESCAPE {
+		// handled specially to disallow unbind
+		if !down {
+			return
+		}
+		if keyDown[kc.SHIFT] {
+			console.Toggle()
+			return
+		}
+		switch keyDestination {
+		default: //keys.Game & keys.Console
+			toggleMenu()
+		case keys.Message:
+			C.Key_Message(C.int(key))
+		case keys.Menu:
+			qmenu.HandleKey(key)
+		}
+		return
+	}
+
+	if !down {
+		// up presses are only relevant for "+"commands.
+		// to be able to match multiple ones make them unique by adding the keynum
+		b := keyBindings[key]
+		if strings.HasPrefix(b, "+") {
+			cmd := strings.Replace(b, "+", "-", 1)
+			cbuf.AddText(fmt.Sprintf("%s %d\n", cmd, key))
+		}
+		return
+	}
+
+	if cls.demoPlayback &&
+		consoleKeys[key] &&
+		keyDestination == keys.Game &&
+		key != kc.TAB {
+		toggleMenu()
+		return
+	}
+
+	if (keyDestination == keys.Menu && menuBound[key]) ||
+		(keyDestination == keys.Console && !consoleKeys[key]) ||
+		(keyDestination == keys.Game && (!console.forceDuplication || !consoleKeys[key])) {
+		b := keyBindings[key]
+		if strings.HasPrefix(b, "+") {
+			cbuf.AddText(fmt.Sprintf("%s %d\n", b, key))
+		} else {
+			cbuf.AddText(b + "\n")
+		}
+	}
+	switch keyDestination {
+	default: //keys.Game & keys.Console
+		keyInput.consoleKeyEvent(key)
+	case keys.Message:
+		C.Key_Message(C.int(key))
+	case keys.Menu:
+		qmenu.HandleKey(key)
+	}
+}
+
+func charEvent(key rune) {
+	if key < 32 || key > 126 {
+		// only ascii chars
+		conlog.Printf("Got non ascii char in charEvent: %d", key)
+		return
+	}
+	if keyDown[kc.CTRL] {
+		return
+	}
+	if inputGrab.active {
+		inputGrab.lastChar = key
+		return
+	}
+	switch keyDestination {
+	case keys.Game:
+		if console.forceDuplication {
+			keyInput.consoleTextEvent(key)
+		}
+	case keys.Console:
+		keyInput.consoleTextEvent(key)
+	case keys.Message:
+		// TODO(therjak): fix chat
+		//C.Char_Message(key)
+	case keys.Menu:
+		qmenu.RuneInput(key)
+	default:
+	}
+}
+
+//export Key_ClearStates
+func Key_ClearStates() {
+	for k, v := range keyDown {
+		if v {
+			keyEvent(k, false)
+		}
+	}
+}
+
 //export Key_Console
 func Key_Console(key int) {
 	keyInput.consoleKeyEvent(kc.KeyCode(key))
 }
 
-//export Char_Console
-func Char_Console(key int) {
-	keyInput.consoleTextEvent(kc.KeyCode(key))
+func keyTextEntry() bool {
+	if inputGrab.active {
+		return true
+	}
+
+	switch keyDestination {
+	case keys.Game:
+		return console.forceDuplication
+	case keys.Console, keys.Message:
+		return true
+	case keys.Menu:
+		return qmenu.TextEntry()
+	default:
+		return false
+	}
 }

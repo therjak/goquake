@@ -117,7 +117,7 @@ func (m *serverNameMenuItem) Backspace() {
 	m.serverName = removeLast(m.serverName)
 }
 
-func (m *serverNameMenuItem) HandleChar(key kc.KeyCode) {
+func (m *serverNameMenuItem) HandleRune(key rune) {
 	if len(m.serverName) < 21 {
 		m.serverName += string(key)
 	}
@@ -163,7 +163,7 @@ func (m *portMenuItem) Backspace() {
 	m.portName = removeLast(m.portName)
 }
 
-func (m *portMenuItem) HandleChar(key kc.KeyCode) {
+func (m *portMenuItem) HandleRune(key rune) {
 	if key < '0' || key > '9' {
 		return
 	}
@@ -231,8 +231,8 @@ func (m *qNetConfigMenu) HandleKey(key kc.KeyCode) {
 	}
 }
 
-func (m *qNetConfigMenu) HandleChar(key kc.KeyCode) {
-	m.items[m.selectedIndex].HandleChar(key)
+func (m *qNetConfigMenu) HandleRune(key rune) {
+	m.items[m.selectedIndex].HandleRune(key)
 }
 
 func (m *qNetConfigMenu) Accept() {

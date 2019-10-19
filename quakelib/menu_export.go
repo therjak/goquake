@@ -88,31 +88,6 @@ func M_Menu_LanConfig_f() {
 	enterNetJoinGameMenu()
 }
 
-//export M_Charinput
-func M_Charinput(key C.int) {
-	switch qmenu.state {
-	case menu.Setup:
-		netSetupMenu.HandleChar(kc.KeyCode(key))
-	case menu.NetNewGame:
-		netNewGameMenu.HandleChar(kc.KeyCode(key))
-	case menu.NetJoinGame:
-		netJoinGameMenu.HandleChar(kc.KeyCode(key))
-	}
-}
-
-//export M_TextEntry
-func M_TextEntry() C.int {
-	switch qmenu.state {
-	case menu.Setup:
-		return b2i(netSetupMenu.TextEntry())
-	case menu.NetNewGame:
-		return b2i(netNewGameMenu.TextEntry())
-	case menu.NetJoinGame:
-		return b2i(netJoinGameMenu.TextEntry())
-	}
-	return 0
-}
-
 //export M_Draw
 func M_Draw() {
 	qmenu.Draw()

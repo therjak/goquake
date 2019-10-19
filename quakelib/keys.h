@@ -167,17 +167,7 @@ extern double key_blinktime;
 extern qboolean chat_team;
 
 void Key_Init(void);
-void Key_ClearStates(void);
 
-void Key_BeginInputGrab(void);
-void Key_EndInputGrab(void);
-void Key_GetGrabbedInput(int *lastkey, int *lastchar);
-
-void Key_Event(int key, qboolean down);
-void Char_Event(int key);
-qboolean Key_TextEntry(void);
-
-// void Key_SetBinding(int keynum, const char *binding);
 const char *Key_KeynumToString(int keynum);
 
 void Key_EndChat(void);

@@ -1,7 +1,9 @@
 package keys
 
+type Destination byte
+
 const (
-	Game = iota
+	Game = Destination(iota)
 	Console
 	Message
 	Menu

@@ -161,7 +161,7 @@ type MenuItem interface {
 	Backspace()
 	Left()
 	Right()
-	HandleChar(key kc.KeyCode)
+	HandleRune(key rune)
 	Update(m qAccept)
 	Accept()
 }
@@ -179,13 +179,13 @@ func (m *qMenuItem) Draw() {}
 func (m *qMenuItem) DrawCursor() {
 	DrawCharacter(m.Xcursor, m.Y, 12+(int(Time()*4))&1)
 }
-func (m *qMenuItem) Enter()                    {}
-func (m *qMenuItem) Backspace()                {}
-func (m *qMenuItem) Left()                     {}
-func (m *qMenuItem) Right()                    {}
-func (m *qMenuItem) HandleChar(key kc.KeyCode) {}
-func (m *qMenuItem) Update(a qAccept)          {}
-func (m *qMenuItem) Accept()                   {}
+func (m *qMenuItem) Enter()              {}
+func (m *qMenuItem) Backspace()          {}
+func (m *qMenuItem) Left()               {}
+func (m *qMenuItem) Right()              {}
+func (m *qMenuItem) HandleRune(key rune) {}
+func (m *qMenuItem) Update(a qAccept)    {}
+func (m *qMenuItem) Accept()             {}
 
 type qDotMenuItem struct {
 	qMenuItem
@@ -208,6 +208,29 @@ var (
 		playEnterSound: false,
 	}
 )
+
+func (m *qMenu) TextEntry() bool {
+	switch m.state {
+	case menu.Setup:
+		return netSetupMenu.TextEntry()
+	case menu.NetNewGame:
+		return netNewGameMenu.TextEntry()
+	case menu.NetJoinGame:
+		return netJoinGameMenu.TextEntry()
+	}
+	return false
+}
+
+func (m *qMenu) RuneInput(key rune) {
+	switch m.state {
+	case menu.Setup:
+		netSetupMenu.HandleRune(key)
+	case menu.NetNewGame:
+		netNewGameMenu.HandleRune(key)
+	case menu.NetJoinGame:
+		netJoinGameMenu.HandleRune(key)
+	}
+}
 
 func (m *qMenu) Draw() {
 	if m.state == menu.None || keyDestination != keys.Menu {

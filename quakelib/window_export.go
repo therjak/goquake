@@ -157,11 +157,6 @@ func VID_GetModeState() C.modestate_t {
 	}
 }
 
-//export VID_Toggle
-func VID_Toggle() {
-	videoToggle()
-}
-
 //export GetNumPages
 func GetNumPages() C.int {
 	return C.int(numPages)

@@ -3,9 +3,6 @@ package quakelib
 // TODO: switch to "github.com/go-gl/glfw/v3.2/glfw"
 //       or        "github.com/vulkan-go/glfw/v3.3/glfw"
 
-// void Char_Event(int key);
-// void Key_Event(int key, int down);
-// int Key_TextEntry(void);
 import "C"
 
 import (
@@ -73,7 +70,7 @@ var (
 
 //export IN_Init
 func IN_Init() {
-	textmode = (C.Key_TextEntry() != 0)
+	textmode = keyTextEntry()
 	selectTextMode(textmode)
 	if !cmdl.Mouse() {
 		ef := sdl.GetEventFilter()
@@ -90,7 +87,7 @@ func IN_UpdateInputMode() {
 }
 
 func updateInputMode() {
-	want := (C.Key_TextEntry() != 0)
+	want := keyTextEntry()
 	if textmode != want {
 		textmode = want
 		selectTextMode(textmode)
@@ -352,23 +349,18 @@ func sdlScancodeToQuake(e *sdl.KeyboardEvent) kc.KeyCode {
 }
 
 func handleMouseButtonEvent(e *sdl.MouseButtonEvent) {
-	down := func() C.int {
-		if e.State == sdl.PRESSED {
-			return 1
-		}
-		return 0
-	}()
+	down := e.State == sdl.PRESSED
 	switch e.Button {
 	case sdl.BUTTON_LEFT:
-		C.Key_Event(C.int(kc.MOUSE1), down)
+		keyEvent(kc.MOUSE1, down)
 	case sdl.BUTTON_MIDDLE:
-		C.Key_Event(C.int(kc.MOUSE2), down)
+		keyEvent(kc.MOUSE2, down)
 	case sdl.BUTTON_RIGHT:
-		C.Key_Event(C.int(kc.MOUSE3), down)
+		keyEvent(kc.MOUSE3, down)
 	case sdl.BUTTON_X1:
-		C.Key_Event(C.int(kc.MOUSE4), down)
+		keyEvent(kc.MOUSE4, down)
 	case sdl.BUTTON_X2:
-		C.Key_Event(C.int(kc.MOUSE5), down)
+		keyEvent(kc.MOUSE5, down)
 	default:
 		conlog.Printf("Ignored event for mouse button %v\n", e.Button)
 	}
@@ -377,11 +369,11 @@ func handleMouseButtonEvent(e *sdl.MouseButtonEvent) {
 func handleMouseWheelEvent(e *sdl.MouseWheelEvent) {
 	// t.Timestamp, t.Type, t.Which, t.X, t.Y)
 	if e.Y > 0 {
-		C.Key_Event(C.int(kc.MWHEELUP), 1)
-		C.Key_Event(C.int(kc.MWHEELUP), 0)
+		keyEvent(kc.MWHEELUP, true)
+		keyEvent(kc.MWHEELUP, false)
 	} else if e.Y < 0 {
-		C.Key_Event(C.int(kc.MWHEELDOWN), 1)
-		C.Key_Event(C.int(kc.MWHEELDOWN), 0)
+		keyEvent(kc.MWHEELDOWN, true)
+		keyEvent(kc.MWHEELDOWN, false)
 	}
 }
 
@@ -395,14 +387,8 @@ func handleKeyboardEvent(e *sdl.KeyboardEvent) {
 	if cvars.InputDebugKeys.Value() != 0 {
 		printKeyEvent(e)
 	}
-	key := C.int(sdlScancodeToQuake(e))
-	down := func() C.int {
-		if e.State == sdl.PRESSED {
-			return 1
-		}
-		return 0
-	}()
-	C.Key_Event(key, down)
+	key := sdlScancodeToQuake(e)
+	keyEvent(key, e.State == sdl.PRESSED)
 }
 
 func handleTextInputEvent(e *sdl.TextInputEvent) {
@@ -413,12 +399,12 @@ func handleTextInputEvent(e *sdl.TextInputEvent) {
 	if cvars.InputDebugKeys.Value() != 0 {
 		printTextInputEvent(e)
 	}
-	for _, c := range e.Text {
+	for _, c := range e.GetText() {
 		if c == 0 {
 			break
 		}
 		if c&^0x7F == 0 {
-			C.Char_Event(C.int(c))
+			charEvent(c)
 		}
 	}
 }
