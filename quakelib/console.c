@@ -598,27 +598,3 @@ The input line scrolls horizontally if typing goes beyond the right edge
 ================
 */
 extern qpic_t *pic_ovr, *pic_ins;  // johnfitz -- new cursor handling
-
-void Con_DrawInput(void) {
-  int i, ofs;
-
-  if (GetKeyDest() != key_console && !Con_ForceDup())
-    return;  // don't draw anything
-
-  // prestep if horizontally scrolling
-  if (key_linepos >= ConsoleWidth())
-    ofs = 1 + key_linepos - ConsoleWidth();
-  else
-    ofs = 0;
-
-  // draw input string
-  for (i = 0; key_lines[edit_line][i + ofs] && i < ConsoleWidth(); i++)
-    Draw_Character((i + 1) << 3, ConHeight() - 16,
-                   key_lines[edit_line][i + ofs]);
-
-  // johnfitz -- new cursor handling
-  if (!((int)((HostRealTime() - key_blinktime) * con_cursorspeed) & 1)) {
-    i = key_linepos - ofs;
-    Draw_Pic((i + 1) << 3, ConHeight() - 16, key_insert ? pic_ins : pic_ovr);
-  }
-}

@@ -67,6 +67,7 @@ func (c *qconsole) CheckResize() {
 	if w == c.lineWidth { // ConsoleWidth
 		return
 	}
+	c.lineWidth = w
 	// do the reflow
 	// TODO
 
