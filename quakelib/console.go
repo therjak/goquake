@@ -72,6 +72,7 @@ func (c *qconsole) CheckResize() {
 	// TODO
 
 	c.ClearNotify()
+	c.backScroll = 0
 }
 
 //export Con_Init
