@@ -46,9 +46,3 @@ func Cmd_ArgvAsInt(i C.int) C.int {
 func Cmd_ArgvAsDouble(i C.int) C.double {
 	return C.double(cmd.ArgvAsDouble(int(i)))
 }
-
-//export Cmd_ParseString
-func Cmd_ParseString(in *C.char) {
-	s := C.GoString(in)
-	cmd.Parse(s)
-}
