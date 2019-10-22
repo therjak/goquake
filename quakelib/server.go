@@ -1267,7 +1267,7 @@ func (s *Server) SpawnServer(name string) {
 	clearWorld()
 
 	// load the rest of the entities
-	TTClearEntVars(0)
+	ClearEntVars(0)
 	sv.edicts[0].Free = false
 	ev := EntVars(0)
 	ev.Model = progsdat.AddString(s.modelName)

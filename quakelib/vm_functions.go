@@ -108,7 +108,7 @@ func (v *virtualMachine) saveGameGlobals() *protos.Globals {
 }
 
 func (v *virtualMachine) loadGameEntVars(idx int, e *protos.Edict) {
-	TTClearEntVars(idx)
+	ClearEntVars(idx)
 	// TODO: keyname == "alpha"
 	for _, st := range e.Strings {
 		def, err := v.prog.FindFieldDef(st.GetId())

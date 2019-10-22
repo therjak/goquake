@@ -597,7 +597,7 @@ func hostSpawn(args []cmd.QArg, player int) {
 		// if this is the last client to be connected, unpause
 		sv.paused = false
 	} else {
-		TTClearEntVars(c.edictId)
+		ClearEntVars(c.edictId)
 		ev := EntVars(c.edictId)
 		ev.ColorMap = float32(c.edictId)
 		ev.Team = float32((c.colors & 15) + 1)

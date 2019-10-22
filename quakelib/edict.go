@@ -101,7 +101,7 @@ func edictAlloc() int {
 		// the first couple seconds of server time can involve a lot of
 		// freeing and allocating, so relax the replacement policy
 		if e.Free && (e.FreeTime < 2 || sv.time-e.FreeTime > 0.5) {
-			TTClearEntVars(i)
+			ClearEntVars(i)
 			edictNum(i).Free = false
 			return i
 		}
@@ -220,7 +220,7 @@ func UpdateEdictAlpha(ent int) {
 
 func parse(ed int, data map[string]string) {
 	if ed != 0 {
-		TTClearEntVars(ed)
+		ClearEntVars(ed)
 	}
 	for k, v := range data {
 		// some hacks...

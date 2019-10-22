@@ -31,6 +31,14 @@ func FreeEntvars() {
 	g_entvars = nil
 }
 
+func ClearEntVars(idx int) {
+	v := uintptr(unsafe.Pointer(g_entvars))
+	vp := v + uintptr(idx*entityFields*4)
+	ev := (unsafe.Pointer(vp))
+
+	C.memset(ev, 0, C.ulong(entityFields*4))
+}
+
 func EntVars(idx int) *progs.EntVars {
 	v := uintptr(unsafe.Pointer(g_entvars))
 	vp := v + uintptr(idx*entityFields*4)
@@ -138,26 +146,10 @@ func EntVarsFieldValue(idx int, name string) (float32, error) {
 	return *(*float32)(unsafe.Pointer(vp)), nil
 }
 
-func TT_ClearEntVars(e *C.entvars_t) {
-	C.memset(unsafe.Pointer(e), 0, C.ulong(entityFields*4))
-}
-
-func EVars(idx C.int) *C.entvars_t {
-	v := uintptr(unsafe.Pointer(g_entvars))
-	vp := v + uintptr(idx*C.int(entityFields)*4)
-	return (*C.entvars_t)(unsafe.Pointer(vp))
-	//return (*C.entvars_t)(unsafe.Pointer(&virtmem[int(idx)*entityFields]))
-}
-
-func TTClearEntVars(idx int) {
-	ev := EVars(C.int(idx))
-	TT_ClearEntVars(ev)
-}
-
 func ClearEdict(e int) {
 	ent := edictNum(e)
 	*ent = Edict{}
-	TTClearEntVars(e)
+	ClearEntVars(e)
 }
 
 func EntVarsParsePair(e int, key progs.Def, val string) {
