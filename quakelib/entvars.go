@@ -1,8 +1,7 @@
 package quakelib
 
 //#include <stdlib.h>
-//#include "q_stdinc.h"
-//#include "progdefs.h"
+//#include <string.h>
 import "C"
 import (
 	"fmt"
@@ -15,7 +14,7 @@ var (
 	virtmem      []int32
 	entityFields int
 	maxEdicts    int
-	g_entvars    *C.entvars_t
+	g_entvars    unsafe.Pointer
 )
 
 func AllocEntvars(edicts int, entityfields int) {
@@ -23,16 +22,16 @@ func AllocEntvars(edicts int, entityfields int) {
 	maxEdicts = edicts
 	// virtmem = make([]int32, maxEdicts*entityFields)
 	v := C.malloc(C.ulong(edicts * entityfields * 4))
-	g_entvars = (*C.entvars_t)(v)
+	g_entvars = unsafe.Pointer(v)
 }
 
 func FreeEntvars() {
-	C.free(unsafe.Pointer(g_entvars))
+	C.free(g_entvars)
 	g_entvars = nil
 }
 
 func ClearEntVars(idx int) {
-	v := uintptr(unsafe.Pointer(g_entvars))
+	v := uintptr(g_entvars)
 	vp := v + uintptr(idx*entityFields*4)
 	ev := (unsafe.Pointer(vp))
 
@@ -40,14 +39,14 @@ func ClearEntVars(idx int) {
 }
 
 func EntVars(idx int) *progs.EntVars {
-	v := uintptr(unsafe.Pointer(g_entvars))
+	v := uintptr(g_entvars)
 	vp := v + uintptr(idx*entityFields*4)
 	return (*progs.EntVars)(unsafe.Pointer(vp))
 	//return (*progs.EntVars)(unsafe.Pointer(&virtmem[int(idx)*entityFields]))
 }
 
 func EntVarsSprint(idx int, d progs.Def) string {
-	v := uintptr(unsafe.Pointer(g_entvars))
+	v := uintptr(g_entvars)
 	vp := v + uintptr(idx*entityFields*4) + uintptr(int(d.Offset)*4)
 	// return *(*int32)(unsafe.Pointer(vp))
 	switch d.Type {
@@ -88,49 +87,49 @@ func EntVarsSprint(idx int, d progs.Def) string {
 }
 
 func RawEntVarsI(idx, off int32) int32 {
-	v := uintptr(unsafe.Pointer(g_entvars))
+	v := uintptr(g_entvars)
 	vp := v + uintptr(int(idx)*entityFields*4) + uintptr(off*4)
 	return *(*int32)(unsafe.Pointer(vp))
 }
 
 func SetRawEntVarsI(idx, off int32, value int32) {
-	v := uintptr(unsafe.Pointer(g_entvars))
+	v := uintptr(g_entvars)
 	vp := v + uintptr(int(idx)*entityFields*4) + uintptr(off*4)
 	*(*int32)(unsafe.Pointer(vp)) = value
 }
 
 func Raw0EntVarsI(off int32) int32 {
-	v := uintptr(unsafe.Pointer(g_entvars))
+	v := uintptr(g_entvars)
 	vp := v + uintptr(off)
 	return *(*int32)(unsafe.Pointer(vp))
 }
 
 func Set0RawEntVarsI(off int32, value int32) {
-	v := uintptr(unsafe.Pointer(g_entvars))
+	v := uintptr(g_entvars)
 	vp := v + uintptr(off)
 	*(*int32)(unsafe.Pointer(vp)) = value
 }
 
 func RawEntVarsF(idx, off int32) float32 {
-	v := uintptr(unsafe.Pointer(g_entvars))
+	v := uintptr(g_entvars)
 	vp := v + uintptr(int(idx)*entityFields*4) + uintptr(off*4)
 	return *(*float32)(unsafe.Pointer(vp))
 }
 
 func SetRawEntVarsF(idx, off int32, value float32) {
-	v := uintptr(unsafe.Pointer(g_entvars))
+	v := uintptr(g_entvars)
 	vp := v + uintptr(int(idx)*entityFields*4) + uintptr(off*4)
 	*(*float32)(unsafe.Pointer(vp)) = value
 }
 
 func Raw0EntVarsF(off int32) float32 {
-	v := uintptr(unsafe.Pointer(g_entvars))
+	v := uintptr(g_entvars)
 	vp := v + uintptr(off)
 	return *(*float32)(unsafe.Pointer(vp))
 }
 
 func Set0RawEntVarsF(off int32, value float32) {
-	v := uintptr(unsafe.Pointer(g_entvars))
+	v := uintptr(g_entvars)
 	vp := v + uintptr(off)
 	*(*float32)(unsafe.Pointer(vp)) = value
 }
@@ -141,7 +140,7 @@ func EntVarsFieldValue(idx int, name string) (float32, error) {
 	if err != nil {
 		return 0, err
 	}
-	v := uintptr(unsafe.Pointer(g_entvars))
+	v := uintptr(g_entvars)
 	vp := v + uintptr(idx*entityFields*4) + uintptr(d.Offset*4)
 	return *(*float32)(unsafe.Pointer(vp)), nil
 }
@@ -155,7 +154,7 @@ func ClearEdict(e int) {
 func EntVarsParsePair(e int, key progs.Def, val string) {
 	// edict number, key, value
 	// Def{Type, Offset, uint16, SName int32}
-	v := uintptr(unsafe.Pointer(g_entvars))
+	v := uintptr(g_entvars)
 	vp := v + uintptr(e*entityFields*4) + uintptr(key.Offset*4)
 	p := unsafe.Pointer(vp)
 	switch key.Type &^ (1 << 15) {
