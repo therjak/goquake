@@ -1,8 +1,5 @@
 package quakelib
 
-//#include <stdlib.h>
-//#include <string.h>
-import "C"
 import (
 	"fmt"
 	"quake/conlog"
@@ -15,34 +12,35 @@ var (
 	entityFields int
 	maxEdicts    int
 	g_entvars    unsafe.Pointer
+	entvars      [][]int32
 )
 
-func AllocEntvars(edicts int, entityfields int) {
+func AllocEntvars(numEdicts int, entityfields int) {
 	entityFields = entityfields
-	maxEdicts = edicts
-	// virtmem = make([]int32, maxEdicts*entityFields)
-	v := C.malloc(C.ulong(edicts * entityfields * 4))
-	g_entvars = unsafe.Pointer(v)
+	maxEdicts = numEdicts
+	virtmem = make([]int32, maxEdicts*entityFields)
+	g_entvars = unsafe.Pointer(&virtmem[0])
+	entvars = make([][]int32, maxEdicts)
+	for i := 0; i < maxEdicts; i++ {
+		entvars[i] = virtmem[i*entityFields : (i+1)*entityFields]
+	}
 }
 
 func FreeEntvars() {
-	C.free(g_entvars)
 	g_entvars = nil
+	entvars = nil
+	virtmem = nil
 }
 
 func ClearEntVars(idx int) {
-	v := uintptr(g_entvars)
-	vp := v + uintptr(idx*entityFields*4)
-	ev := (unsafe.Pointer(vp))
-
-	C.memset(ev, 0, C.ulong(entityFields*4))
+	v := entvars[idx]
+	for i := 0; i < len(v); i++ {
+		v[i] = 0
+	}
 }
 
 func EntVars(idx int) *progs.EntVars {
-	v := uintptr(g_entvars)
-	vp := v + uintptr(idx*entityFields*4)
-	return (*progs.EntVars)(unsafe.Pointer(vp))
-	//return (*progs.EntVars)(unsafe.Pointer(&virtmem[int(idx)*entityFields]))
+	return (*progs.EntVars)(unsafe.Pointer(&(entvars[idx][0])))
 }
 
 func EntVarsSprint(idx int, d progs.Def) string {
@@ -199,11 +197,3 @@ func EntVarsParsePair(e int, key progs.Def, val string) {
 	default:
 	}
 }
-
-// progs.EntVars
-/*
-b := []byte{239, 190, 173, 222}
-v := *(*uint32)(unsafe.Pointer(&b[0]))
-fmt.Printf("0x%X\n", v)
-fmt.Printf("%v", *(*[4]byte)(unsafe.Pointer(&v)))
-*/

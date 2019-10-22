@@ -704,8 +704,8 @@ func (s *qstatusbar) soloScoreboard() {
 		return
 	}
 
-	minutes := cl.time / 60
-	seconds := cl.time - 60*minutes
+	minutes := int(cl.time) / 60
+	seconds := int(cl.time) - 60*minutes
 	tens := seconds / 10
 	units := seconds - 10*tens
 	currTime := fmt.Sprintf("%d:%d%d", minutes, tens, units)
