@@ -218,7 +218,6 @@ typedef struct {
 #include "draw.h"
 #include "render.h"
 #include "view.h"
-#include "sbar.h"
 #include "client.h"
 
 #include "gl_model.h"

@@ -636,6 +636,7 @@ SCR_ScreenShot_f -- johnfitz -- rewritten to use Image_WriteTGA
 ==================
 */
 void SCR_ScreenShot_f(void) {
+  //THERJAK
   byte *buffer;
   char pngname[16];  // johnfitz -- was [80]
   char checkname[MAX_OSPATH];

@@ -372,7 +372,7 @@ func KeyModalResult(timeout int) bool {
 	result := false
 
 	for {
-		IN_SendKeyEvents()
+		sendKeyEvents()
 		// TODO(therjak): this Sleep should go
 		time.Sleep(time.Millisecond * 16)
 		if inputGrab.lastKey == kc.ABUTTON ||

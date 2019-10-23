@@ -1,32 +1,11 @@
 package quakelib
 
-//#ifndef HASMSTATE
-//#define HASMSTATE
-//typedef enum {
-//  m_none,
-//  m_main,
-//  m_singleplayer,
-//  m_load,
-//  m_save,
-//  m_multiplayer,
-//  m_setup,
-//  m_options,
-//  m_video,
-//  m_keys,
-//  m_help,
-//  m_lanconfig,
-//  m_gameoptions,
-//  m_search,
-//  m_slist
-//} m_state_e;
-//#endif
 // #include "stdlib.h"
 // #include "wad.h"
 // void M_Search_Key(int);
 // void M_ServerList_Key(int);
 // void M_Search_Draw(void);
 // void M_ServerList_Draw(void);
-// void S_ExtraUpdate(void);
 import "C"
 
 import (
@@ -239,7 +218,7 @@ func (m *qMenu) Draw() {
 
 	if console.currentHeight() != 0 {
 		DrawConsoleBackground()
-		C.S_ExtraUpdate()
+		S_ExtraUpdate()
 	}
 
 	DrawFadeScreen()
@@ -298,7 +277,7 @@ func (m *qMenu) Draw() {
 		m.playEnterSound = false
 	}
 
-	C.S_ExtraUpdate()
+	S_ExtraUpdate()
 }
 
 func (m *qMenu) HandleKey(k kc.KeyCode) {

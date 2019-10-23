@@ -5,11 +5,6 @@ import (
 	cmdl "quake/commandline"
 )
 
-//export CMLConsoleDebug
-func CMLConsoleDebug() C.int {
-	return b2i(cmdl.ConsoleDebug())
-}
-
 //export CMLCurrent
 func CMLCurrent() C.int {
 	return b2i(cmdl.Current())
@@ -25,24 +20,9 @@ func CMLDedicatedNum() C.int {
 	return C.int(cmdl.DedicatedNum())
 }
 
-//export CMLFitz
-func CMLFitz() C.int {
-	return b2i(cmdl.Fitz())
-}
-
 //export CMLFullscreen
 func CMLFullscreen() C.int {
 	return b2i(cmdl.Fullscreen())
-}
-
-//export CMLListen
-func CMLListen() C.int {
-	return b2i(cmdl.Listen())
-}
-
-//export CMLListenNum
-func CMLListenNum() C.int {
-	return C.int(cmdl.ListenNum())
 }
 
 //export CMLMinMemory
@@ -65,11 +45,6 @@ func CMLMtext() C.int {
 	return b2i(cmdl.Mtext())
 }
 
-//export CMLSound
-func CMLSound() C.int {
-	return b2i(!cmdl.Sound())
-}
-
 //export CMLHipnotic
 func CMLHipnotic() C.int {
 	// TODO: why isQuoth?
@@ -79,11 +54,6 @@ func CMLHipnotic() C.int {
 //export CMLRogue
 func CMLRogue() C.int {
 	return b2i(cmdl.Rogue())
-}
-
-//export CMLQuoth
-func CMLQuoth() C.int {
-	return b2i(cmdl.Quoth())
 }
 
 //export CMLStandardQuake
@@ -111,24 +81,9 @@ func CMLBpp() C.int {
 	return C.int(cmdl.Bpp())
 }
 
-//export CMLFsaa
-func CMLFsaa() C.int {
-	return C.int(cmdl.Fsaa())
-}
-
-//export CMLPort
-func CMLPort() C.int {
-	return C.int(cmdl.Port())
-}
-
 //export CMLParticles
 func CMLParticles() C.int {
 	return C.int(cmdl.Particles())
-}
-
-//export CMLProtocol
-func CMLProtocol() C.int {
-	return C.int(cmdl.Protocol())
 }
 
 //export CMLZone

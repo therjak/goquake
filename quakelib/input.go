@@ -33,12 +33,6 @@ func printTextInputEvent(e *sdl.TextInputEvent) {
 	conlog.Printf("SDL_TEXTINPUT '%s' time: %d\n", e.Text, e.Timestamp)
 }
 
-//export IN_SendKeyEvents
-func IN_SendKeyEvents() {
-	// TODO? Handle some joystick stuff
-	sendKeyEvents()
-}
-
 type mouseFilter struct{}
 
 func (mouseFilter) FilterEvent(e sdl.Event, userdata interface{}) bool {
@@ -79,11 +73,6 @@ func IN_Init() {
 		}
 	}
 	IN_Activate()
-}
-
-//export IN_UpdateInputMode
-func IN_UpdateInputMode() {
-	updateInputMode()
 }
 
 func updateInputMode() {

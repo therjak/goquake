@@ -1,12 +1,5 @@
 package quakelib
 
-//#ifndef HASMODESTATE
-//#define HASMODESTATE
-//typedef enum {MS_UNINIT, MS_WINDOWED, MS_FULLSCREEN} modestate_t;
-//#endif
-// void S_ClearBuffer();
-import "C"
-
 import (
 	"quake/cbuf"
 	"quake/cmd"
@@ -181,7 +174,6 @@ var (
 
 func toggleFullScreen() {
 	// This is buggy. It seems to miss changing the global 'vid' object and whatnot.
-	C.S_ClearBuffer()
 	flags := func() uint32 {
 		if window.Fullscreen() {
 			return 0 // windowed

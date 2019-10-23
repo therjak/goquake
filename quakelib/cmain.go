@@ -1,7 +1,6 @@
 package quakelib
 
 /*
-#include <stdlib.h>
 void Sys_Init();
 void Host_Init();
 */
