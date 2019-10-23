@@ -44,14 +44,12 @@ func EntVars(idx int) *progs.EntVars {
 }
 
 func EntVarsSprint(idx int, d progs.Def) string {
-	v := uintptr(g_entvars)
-	vp := v + uintptr(idx*entityFields*4) + uintptr(int(d.Offset)*4)
-	// return *(*int32)(unsafe.Pointer(vp))
+	vp := &(entvars[idx][d.Offset])
 	switch d.Type {
 	case progs.EV_Void:
 		return "void"
 	case progs.EV_String:
-		v := *(*int32)(unsafe.Pointer(vp))
+		v := *vp
 		s, err := progsdat.String(v)
 		if err != nil {
 			return fmt.Sprintf("bad string %d", v)
@@ -64,13 +62,13 @@ func EntVarsSprint(idx int, d progs.Def) string {
 		v := *(*[3]float32)(unsafe.Pointer(vp))
 		return fmt.Sprintf("%5.1f %5.1f %5.1f", v[0], v[1], v[2])
 	case progs.EV_Entity:
-		v := *(*int32)(unsafe.Pointer(vp))
+		v := *vp
 		return fmt.Sprintf("entity %d", v)
 	case progs.EV_Field:
 		// TODO:
 		return "field"
 	case progs.EV_Function:
-		v := *(*int32)(unsafe.Pointer(vp))
+		v := *vp
 		f := progsdat.Functions[int(v)].SName
 		s, err := progsdat.String(f)
 		if err != nil {
@@ -85,51 +83,31 @@ func EntVarsSprint(idx int, d progs.Def) string {
 }
 
 func RawEntVarsI(idx, off int32) int32 {
-	v := uintptr(g_entvars)
-	vp := v + uintptr(int(idx)*entityFields*4) + uintptr(off*4)
-	return *(*int32)(unsafe.Pointer(vp))
+	return (entvars[idx][off])
 }
 
 func SetRawEntVarsI(idx, off int32, value int32) {
-	v := uintptr(g_entvars)
-	vp := v + uintptr(int(idx)*entityFields*4) + uintptr(off*4)
-	*(*int32)(unsafe.Pointer(vp)) = value
+	entvars[idx][off] = value
 }
 
-func Raw0EntVarsI(off int32) int32 {
-	v := uintptr(g_entvars)
-	vp := v + uintptr(off)
-	return *(*int32)(unsafe.Pointer(vp))
+func getUnsafe(off int32) unsafe.Pointer {
+	return unsafe.Pointer(uintptr(g_entvars) + uintptr(off))
 }
 
 func Set0RawEntVarsI(off int32, value int32) {
-	v := uintptr(g_entvars)
-	vp := v + uintptr(off)
-	*(*int32)(unsafe.Pointer(vp)) = value
-}
-
-func RawEntVarsF(idx, off int32) float32 {
-	v := uintptr(g_entvars)
-	vp := v + uintptr(int(idx)*entityFields*4) + uintptr(off*4)
-	return *(*float32)(unsafe.Pointer(vp))
-}
-
-func SetRawEntVarsF(idx, off int32, value float32) {
-	v := uintptr(g_entvars)
-	vp := v + uintptr(int(idx)*entityFields*4) + uintptr(off*4)
-	*(*float32)(unsafe.Pointer(vp)) = value
-}
-
-func Raw0EntVarsF(off int32) float32 {
-	v := uintptr(g_entvars)
-	vp := v + uintptr(off)
-	return *(*float32)(unsafe.Pointer(vp))
+	*(*int32)(getUnsafe(off)) = value
 }
 
 func Set0RawEntVarsF(off int32, value float32) {
-	v := uintptr(g_entvars)
-	vp := v + uintptr(off)
-	*(*float32)(unsafe.Pointer(vp)) = value
+	*(*float32)(getUnsafe(off)) = value
+}
+
+func RawEntVarsF(idx, off int32) float32 {
+	return *(*float32)(unsafe.Pointer(&(entvars[idx][off])))
+}
+
+func SetRawEntVarsF(idx, off int32, value float32) {
+	*(*float32)(unsafe.Pointer(&(entvars[idx][off]))) = value
 }
 
 func EntVarsFieldValue(idx int, name string) (float32, error) {
@@ -138,9 +116,7 @@ func EntVarsFieldValue(idx int, name string) (float32, error) {
 	if err != nil {
 		return 0, err
 	}
-	v := uintptr(g_entvars)
-	vp := v + uintptr(idx*entityFields*4) + uintptr(d.Offset*4)
-	return *(*float32)(unsafe.Pointer(vp)), nil
+	return *(*float32)(unsafe.Pointer(&(entvars[idx][d.Offset]))), nil
 }
 
 func ClearEdict(e int) {
@@ -149,29 +125,27 @@ func ClearEdict(e int) {
 	ClearEntVars(e)
 }
 
-func EntVarsParsePair(e int, key progs.Def, val string) {
+func EntVarsParsePair(idx int, key progs.Def, val string) {
 	// edict number, key, value
 	// Def{Type, Offset, uint16, SName int32}
-	v := uintptr(g_entvars)
-	vp := v + uintptr(e*entityFields*4) + uintptr(key.Offset*4)
-	p := unsafe.Pointer(vp)
+	vp := &(entvars[idx][key.Offset])
 	switch key.Type &^ (1 << 15) {
 	case progs.EV_String:
-		*(*int32)(p) = progsdat.NewString(val)
+		*vp = progsdat.NewString(val)
 	case progs.EV_Float:
 		var v float32
 		_, err := fmt.Sscanf(val, "%f", &v)
 		if err != nil {
 			conlog.Printf("Can't convert to float32 %s\n", val)
 		}
-		*(*float32)(p) = v
+		*(*float32)(unsafe.Pointer(vp)) = v
 	case progs.EV_Vector:
 		var v [3]float32
 		_, err := fmt.Sscanf(val, "%f %f %f", &v[0], &v[1], &v[2])
 		if err != nil {
 			conlog.Printf("Can't convert to [3]float32 %s\n", val)
 		}
-		*(*[3]float32)(p) = v
+		*(*[3]float32)(unsafe.Pointer(vp)) = v
 	case progs.EV_Entity:
 		var v int32
 		_, err := fmt.Sscanf(val, "%d", &v)
@@ -179,21 +153,21 @@ func EntVarsParsePair(e int, key progs.Def, val string) {
 			conlog.Printf("Can't convert to entity %s\n", val)
 			return
 		}
-		*(*int32)(p) = int32(v)
+		*vp = v
 	case progs.EV_Field:
 		d, err := progsdat.FindFieldDef(val)
 		if err != nil {
 			conlog.Printf("Can't find field %s\n", val)
 			return
 		}
-		*(*int32)(p) = progsdat.RawGlobalsI[d.Offset]
+		*vp = progsdat.RawGlobalsI[d.Offset]
 	case progs.EV_Function:
-		idx, err := progsdat.FindFunction(val)
+		f, err := progsdat.FindFunction(val)
 		if err != nil {
 			conlog.Printf("Can't find function %s\n", val)
 			return
 		}
-		*(*int32)(p) = int32(idx)
+		*vp = int32(f)
 	default:
 	}
 }
