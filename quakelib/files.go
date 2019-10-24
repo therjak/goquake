@@ -7,7 +7,6 @@ import (
 	"log"
 	"quake/filesystem"
 	image "quake/image"
-	"unsafe"
 )
 
 //export COM_LoadFileGo
@@ -42,16 +41,4 @@ func Image_LoadImage(name *C.char, width *C.int, height *C.int) *C.uchar {
 	C.setInt(width, C.int(s.X))
 	C.setInt(height, C.int(s.Y))
 	return (*C.uchar)(C.CBytes(img.Pix))
-}
-
-//export Image_Write
-func Image_Write(name *C.char, data *C.uchar, width C.int, height C.int) C.int {
-	n := C.GoString(name)
-	w := int(width)
-	h := int(height)
-	d := C.GoBytes(unsafe.Pointer(data), width*height*4)
-	if err := image.Write(n, d, w, h); err != nil {
-		return 0
-	}
-	return 1
 }

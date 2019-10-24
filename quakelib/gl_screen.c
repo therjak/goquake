@@ -329,7 +329,6 @@ void SCR_Init(void) {
   Cvar_FakeRegister(&scr_printspeed, "scr_printspeed");
   Cvar_FakeRegister(&gl_triplebuffer, "gl_triplebuffer");
 
-  Cmd_AddCommand("screenshot", SCR_ScreenShot_f);
   Cmd_AddCommand("sizeup", SCR_SizeUp_f);
   Cmd_AddCommand("sizedown", SCR_SizeDown_f);
 
@@ -621,59 +620,6 @@ void SCR_DrawConsole(void) {
       Con_DrawNotify();  // only draw notify in game
   }
 }
-
-/*
-==============================================================================
-
-SCREEN SHOTS
-
-==============================================================================
-*/
-
-/*
-==================
-SCR_ScreenShot_f -- johnfitz -- rewritten to use Image_WriteTGA
-==================
-*/
-void SCR_ScreenShot_f(void) {
-  //THERJAK
-  byte *buffer;
-  char pngname[16];  // johnfitz -- was [80]
-  char checkname[MAX_OSPATH];
-  int i;
-
-  // find a file name to save it to
-  for (i = 0; i < 10000; i++) {
-    q_snprintf(pngname, sizeof(pngname), "spasm%04i.png", i);  // "fitz%04i.tga"
-    q_snprintf(checkname, sizeof(checkname), "%s/%s", Com_Gamedir(), pngname);
-    if (Sys_FileTime(checkname) == -1) break;  // file doesn't exist
-  }
-  if (i == 10000) {
-    Con_Printf("SCR_ScreenShot_f: Couldn't find an unused filename\n");
-    return;
-  }
-
-  // get data
-  if (!(buffer = (byte *)malloc(GL_Width() * GL_Height() * 4))) {
-    Con_Printf("SCR_ScreenShot_f: Couldn't allocate memory\n");
-    return;
-  }
-
-  glPixelStorei(GL_PACK_ALIGNMENT,
-                1); /* for widths that aren't a multiple of 4 */
-  glReadPixels(GL_X(), GL_Y(), GL_Width(), GL_Height(), GL_RGBA,
-               GL_UNSIGNED_BYTE, buffer);
-
-  // now write the file
-  if (Image_Write(checkname, buffer, GL_Width(), GL_Height()))
-    Con_Printf("Wrote %s\n", pngname);
-  else
-    Con_Printf("SCR_ScreenShot_f: Couldn't create a TGA file\n");
-
-  free(buffer);
-}
-
-//=============================================================================
 
 /*
 ===============
