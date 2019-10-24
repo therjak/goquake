@@ -647,17 +647,6 @@ void SCR_BeginLoadingPlaque(void) {
   scr_disabled_time = HostRealTime();
 }
 
-/*
-===============
-SCR_EndLoadingPlaque
-
-================
-*/
-void SCR_EndLoadingPlaque(void) {
-  SetScreenDisabled(false);
-  Con_ClearNotify();
-}
-
 //=============================================================================
 
 const char *scr_notifystring;

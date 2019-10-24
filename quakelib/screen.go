@@ -3,7 +3,6 @@ package quakelib
 //#include <stdlib.h>
 // int SCR_ModalMessage(const char *text, float timeout);
 // void SCR_BeginLoadingPlaque(void);
-// void SCR_EndLoadingPlaque(void);
 // void SCR_UpdateScreen(void);
 import "C"
 
@@ -38,7 +37,8 @@ func SCR_BeginLoadingPlaque() {
 }
 
 func SCR_EndLoadingPlaque() {
-	C.SCR_EndLoadingPlaque()
+	screen.disabled = false
+	console.ClearNotify()
 }
 
 func SCR_UpdateScreen() {
