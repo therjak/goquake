@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"quake/cmd"
 	"quake/conlog"
+	"quake/cvars"
 	"quake/image"
 	"unsafe"
 
@@ -47,6 +48,16 @@ func SCR_UpdateScreen() {
 
 func init() {
 	cmd.AddCommand("screenshot", screenShot)
+	cmd.AddCommand("sizeup", screenSizeup)
+	cmd.AddCommand("sizedown", screenSizedown)
+}
+
+func screenSizeup(_ []cmd.QArg, _ int) {
+	cvars.ViewSize.SetValue(cvars.ViewSize.Value() + 10)
+}
+
+func screenSizedown(_ []cmd.QArg, _ int) {
+	cvars.ViewSize.SetValue(cvars.ViewSize.Value() - 10)
 }
 
 func fileExists(filename string) bool {

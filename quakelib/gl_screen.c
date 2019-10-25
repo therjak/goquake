@@ -265,28 +265,6 @@ static void SCR_CalcRefdef(void) {
   scr_vrect = r_refdef.vrect;
 }
 
-/*
-=================
-SCR_SizeUp_f
-
-Keybinding command
-=================
-*/
-void SCR_SizeUp_f(void) {
-  Cvar_SetValueQuick(&scr_viewsize, Cvar_GetValue(&scr_viewsize) + 10);
-}
-
-/*
-=================
-SCR_SizeDown_f
-
-Keybinding command
-=================
-*/
-void SCR_SizeDown_f(void) {
-  Cvar_SetValueQuick(&scr_viewsize, Cvar_GetValue(&scr_viewsize) - 10);
-}
-
 static void SCR_Callback_refdef(cvar_t *var) { SetRecalcRefdef(1); }
 
 //============================================================================
@@ -328,9 +306,6 @@ void SCR_Init(void) {
   Cvar_FakeRegister(&scr_centertime, "scr_centertime");
   Cvar_FakeRegister(&scr_printspeed, "scr_printspeed");
   Cvar_FakeRegister(&gl_triplebuffer, "gl_triplebuffer");
-
-  Cmd_AddCommand("sizeup", SCR_SizeUp_f);
-  Cmd_AddCommand("sizedown", SCR_SizeDown_f);
 
   SCR_LoadPics();  // johnfitz
 
