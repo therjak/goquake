@@ -86,8 +86,6 @@ float scr_disabled_time;
 
 int scr_tileclear_updates = 0;  // johnfitz
 
-void SCR_ScreenShot_f(void);
-
 float GetScreenConsoleCurrentHeight(void) { return scr_con_current; }
 /*
 ===============================================================================
@@ -101,8 +99,6 @@ char scr_centerstring[1024];
 float scr_centertime_start;  // for slow victory printing
 float scr_centertime_off;
 int scr_center_lines;
-int scr_erase_lines;
-int scr_erase_center;
 
 /*
 ==============
@@ -144,7 +140,6 @@ void SCR_DrawCenterString(void)  // actually do the drawing
   else
     remaining = 9999;
 
-  scr_erase_center = 0;
   start = scr_centerstring;
 
   if (scr_center_lines <= 4)
@@ -173,8 +168,6 @@ void SCR_DrawCenterString(void)  // actually do the drawing
 }
 
 void SCR_CheckDrawCenterString(void) {
-  if (scr_center_lines > scr_erase_lines) scr_erase_lines = scr_center_lines;
-
   scr_centertime_off -= HostFrameTime();
 
   if (scr_centertime_off <= 0 && !CL_Intermission()) return;

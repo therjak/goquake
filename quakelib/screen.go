@@ -14,6 +14,9 @@ import (
 	"quake/conlog"
 	"quake/cvars"
 	"quake/image"
+	"quake/keys"
+	"strings"
+	"time"
 	"unsafe"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
@@ -21,10 +24,34 @@ import (
 
 var (
 	screen qScreen
+
+	centerString []string
+	centerTime   time.Time
 )
 
 type qScreen struct {
 	disabled bool
+}
+
+func (s *qScreen) CenterPrint(str string) {
+	s.centerTime = time.Now().Add(time.Second * 2) // scr_centertime
+	s.centerString = strings.Split(str, "\n")
+}
+
+func (s *qScreen) drawCenterPrint() {
+}
+
+func (s *qScreen) CheckDrawCenterPrint() {
+	if keyDestination != keys.Game {
+		return
+	}
+	if cl.paused {
+		return
+	}
+	if time.Now().After(s.centerTime) {
+		return
+	}
+	s.drawCenterPrint()
 }
 
 func ModalMessage(message string, timeout float32) bool {
