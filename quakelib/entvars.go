@@ -1,5 +1,7 @@
 package quakelib
 
+// This needs test and should probably be a separate package
+// It needs a progs.LoadedProg as input
 import (
 	"fmt"
 	"quake/conlog"
@@ -117,12 +119,6 @@ func EntVarsFieldValue(idx int, name string) (float32, error) {
 		return 0, err
 	}
 	return *(*float32)(unsafe.Pointer(&(entvars[idx][d.Offset]))), nil
-}
-
-func ClearEdict(e int) {
-	ent := edictNum(e)
-	*ent = Edict{}
-	ClearEntVars(e)
 }
 
 func EntVarsParsePair(idx int, key progs.Def, val string) {
