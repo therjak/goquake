@@ -89,6 +89,12 @@ func (v *virtualMachine) edictFree(i int) {
 	ev.Solid = 0
 }
 
+func ClearEdict(e int) {
+	ent := edictNum(e)
+	*ent = Edict{}
+	ClearEntVars(e)
+}
+
 // Either finds a free edict, or allocates a new one.
 // Try to avoid reusing an entity that was recently freed, because it
 // can cause the client to think the entity morphed into something else
@@ -314,3 +320,4 @@ func loadEntities(data []map[string]string) {
 
 	conlog.DPrintf("%d entities inhibited\n", inhibit)
 }
+

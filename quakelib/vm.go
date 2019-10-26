@@ -382,13 +382,6 @@ func (v *virtualMachine) leaveFunction() int32 {
 
 //  The interpretation main loop
 func (v *virtualMachine) ExecuteProgram(fnum int32) {
-	/*
-	  eval_t *ptr;
-	  dstatement_t *st;
-	  dfunction_t *f, *newf;
-	  int ed;
-	*/
-
 	if fnum == 0 || int(fnum) >= len(v.prog.Functions) {
 		if v.prog.Globals.Self != 0 {
 			edictPrint(int(v.prog.Globals.Self))
