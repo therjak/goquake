@@ -30,7 +30,6 @@ void SCR_Init(void);
 void SCR_LoadPics(void);
 
 void SCR_UpdateScreen(void);
-void SCR_CenterPrint(const char *str);
 void SCR_BeginLoadingPlaque(void);
 int SCR_ModalMessage(const char *text, float timeout);
 

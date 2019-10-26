@@ -15,6 +15,7 @@ import (
 	"quake/cvars"
 	"quake/image"
 	"quake/keys"
+	"quake/snd"
 	"strings"
 	"time"
 	"unsafe"
@@ -24,13 +25,23 @@ import (
 
 var (
 	screen qScreen
-
-	centerString []string
-	centerTime   time.Time
 )
 
 type qScreen struct {
 	disabled bool
+
+	centerString []string
+	centerTime   time.Time
+}
+
+//export SCR_CenterPrint
+func SCR_CenterPrint(s *C.char) {
+	screen.CenterPrint(C.GoString(s))
+}
+
+//export SCR_CheckDrawCenterString
+func SCR_CheckDrawCenterString() {
+	screen.CheckDrawCenterPrint()
 }
 
 func (s *qScreen) CenterPrint(str string) {
@@ -39,6 +50,45 @@ func (s *qScreen) CenterPrint(str string) {
 }
 
 func (s *qScreen) drawCenterPrint() {
+	SetCanvas(CANVAS_MENU)
+
+	remaining := 9999
+	if cl.intermission != 0 {
+		r := time.Duration(cvars.ScreenPrintSpeed.Value()) * time.Now().Sub(s.centerTime)
+		remaining = int(r.Seconds())
+	}
+	if remaining < 1 {
+		return
+	}
+
+	// 320x200 coordinate system
+	y := int(200 * 0.35)
+	if len(s.centerString) > 4 {
+		y = 48
+	}
+	if cvars.Crosshair.Bool() {
+		y -= 8
+	}
+
+	for _, t := range s.centerString {
+		runes := []rune(t)
+		x := (320 - (len(runes) * 8)) / 2
+		if remaining < len(runes) {
+			runes = runes[:remaining]
+		}
+		l := len(runes)
+		remaining -= l
+		for _, r := range runes {
+			DrawCharacterWhite(x, y, int(r))
+			x += 8
+		}
+
+		if remaining < 1 {
+			return
+		}
+		y += 8
+	}
+
 }
 
 func (s *qScreen) CheckDrawCenterPrint() {
@@ -48,7 +98,7 @@ func (s *qScreen) CheckDrawCenterPrint() {
 	if cl.paused {
 		return
 	}
-	if time.Now().After(s.centerTime) {
+	if time.Now().After(s.centerTime) && cl.intermission == 0 {
 		return
 	}
 	s.drawCenterPrint()
@@ -61,6 +111,16 @@ func ModalMessage(message string, timeout float32) bool {
 }
 
 func SCR_BeginLoadingPlaque() {
+	snd.StopAll()
+	if cls.state != ca_connected {
+		return
+	}
+	if cls.signon != 4 {
+		return
+	}
+	console.ClearNotify()
+	screen.centerTime = time.Now()
+
 	C.SCR_BeginLoadingPlaque()
 }
 

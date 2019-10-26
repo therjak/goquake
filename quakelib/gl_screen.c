@@ -88,99 +88,6 @@ int scr_tileclear_updates = 0;  // johnfitz
 
 float GetScreenConsoleCurrentHeight(void) { return scr_con_current; }
 /*
-===============================================================================
-
-CENTER PRINTING
-
-===============================================================================
-*/
-
-char scr_centerstring[1024];
-float scr_centertime_start;  // for slow victory printing
-float scr_centertime_off;
-int scr_center_lines;
-
-/*
-==============
-SCR_CenterPrint
-
-Called for important messages that should stay in the center of the screen
-for a few moments
-==============
-*/
-void SCR_CenterPrint(const char *str)  // update centerprint data
-{
-  strncpy(scr_centerstring, str, sizeof(scr_centerstring) - 1);
-  scr_centertime_off = Cvar_GetValue(&scr_centertime);
-  scr_centertime_start = CL_Time();
-
-  // count the number of lines for centering
-  scr_center_lines = 1;
-  str = scr_centerstring;
-  while (*str) {
-    if (*str == '\n') scr_center_lines++;
-    str++;
-  }
-}
-
-void SCR_DrawCenterString(void)  // actually do the drawing
-{
-  char *start;
-  int l;
-  int j;
-  int x, y;
-  int remaining;
-
-  GL_SetCanvas(CANVAS_MENU);  // johnfitz
-
-  // the finale prints the characters one at a time
-  if (CL_Intermission())
-    remaining =
-        Cvar_GetValue(&scr_printspeed) * (CL_Time() - scr_centertime_start);
-  else
-    remaining = 9999;
-
-  start = scr_centerstring;
-
-  if (scr_center_lines <= 4)
-    y = 200 * 0.35;  // johnfitz -- 320x200 coordinate system
-  else
-    y = 48;
-  if (Cvar_GetValue(&crosshair)) y -= 8;
-
-  do {
-    // scan the width of the line
-    for (l = 0; l < 40; l++)
-      if (start[l] == '\n' || !start[l]) break;
-    x = (320 - l * 8) / 2;  // johnfitz -- 320x200 coordinate system
-    for (j = 0; j < l; j++, x += 8) {
-      Draw_Character(x, y, start[j]);  // johnfitz -- stretch overlays
-      if (!remaining--) return;
-    }
-
-    y += 8;
-
-    while (*start && *start != '\n') start++;
-
-    if (!*start) break;
-    start++;  // skip the \n
-  } while (1);
-}
-
-void SCR_CheckDrawCenterString(void) {
-  scr_centertime_off -= HostFrameTime();
-
-  if (scr_centertime_off <= 0 && !CL_Intermission()) return;
-  if (GetKeyDest() != key_game) return;
-  if (CL_Paused())  // johnfitz -- don't show centerprint during a pause
-    return;
-
-  SCR_DrawCenterString();
-}
-
-//=============================================================================
-
-/*
 ====================
 AdaptFovx
 Adapt a 4:3 horizontal FOV to the current screen size using the "Hor+" scaling:
@@ -603,7 +510,6 @@ void SCR_BeginLoadingPlaque(void) {
 
   // redraw with no console and the loading plaque
   Con_ClearNotify();
-  scr_centertime_off = 0;
   scr_con_current = 0;
 
   scr_drawloading = true;
