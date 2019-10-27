@@ -341,28 +341,6 @@ void SCR_DrawNet(void) {
 
 /*
 ==============
-DrawPause
-==============
-*/
-void SCR_DrawPause(void) {
-  qpic_t *pic;
-
-  if (!CL_Paused()) return;
-
-  if (!Cvar_GetValue(&scr_showpause))  // turn off for screenshots
-    return;
-
-  GL_SetCanvas(CANVAS_MENU);  // johnfitz
-
-  pic = Draw_CachePic("gfx/pause.lmp");
-  Draw_Pic((320 - pic->width) / 2, (240 - 48 - pic->height) / 2,
-           pic);  // johnfitz -- stretched menus
-
-  ResetTileClearUpdates();
-}
-
-/*
-==============
 SCR_DrawLoading
 ==============
 */

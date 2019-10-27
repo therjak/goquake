@@ -50,8 +50,17 @@ func SCR_CheckDrawCenterString() {
 	screen.CheckDrawCenterPrint()
 }
 
+//export SCR_DrawPause
+func SCR_DrawPause() {
+	screen.drawPause()
+}
+
 //export SCR_DrawClock
 func SCR_DrawClock() {
+	screen.drawClock()
+}
+
+func (scr *qScreen) drawClock() {
 	if !cvars.ScreenClock.Bool() {
 		return
 	}
@@ -62,6 +71,21 @@ func SCR_DrawClock() {
 
 	SetCanvas(CANVAS_BOTTOMRIGHT)
 	DrawStringWhite(320-len(str)*8, 200-8, str)
+	C.ResetTileClearUpdates()
+}
+
+func (s *qScreen) drawPause() {
+	if !cl.paused {
+		return
+	}
+	if !cvars.ShowPause.Bool() {
+		return
+	}
+	SetCanvas(CANVAS_MENU)
+
+	p := GetCachedPicture("gfx/pause.lmp")
+	DrawPicture((320-p.width)/2, (240-48-p.height)/2, p)
+
 	C.ResetTileClearUpdates()
 }
 
