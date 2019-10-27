@@ -4,6 +4,7 @@ package quakelib
 // int SCR_ModalMessage(const char *text, float timeout);
 // void SCR_BeginLoadingPlaque(void);
 // void SCR_UpdateScreen(void);
+// void ResetTileClearUpdates(void);
 import "C"
 
 import (
@@ -47,6 +48,21 @@ func SCR_DrawCrosshair() {
 //export SCR_CheckDrawCenterString
 func SCR_CheckDrawCenterString() {
 	screen.CheckDrawCenterPrint()
+}
+
+//export SCR_DrawClock
+func SCR_DrawClock() {
+	if !cvars.ScreenClock.Bool() {
+		return
+	}
+	t := int(cl.time)
+
+	m, s := t/60, t%60
+	str := fmt.Sprintf("%d:%02d", m, s)
+
+	SetCanvas(CANVAS_BOTTOMRIGHT)
+	DrawStringWhite(320-len(str)*8, 200-8, str)
+	C.ResetTileClearUpdates()
 }
 
 func (s *qScreen) drawCrosshair() {

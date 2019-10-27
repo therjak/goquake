@@ -73,7 +73,6 @@ extern cvar_t crosshair;
 
 qboolean scr_initialized;  // ready to draw
 
-qpic_t *scr_ram;
 qpic_t *scr_net;
 qpic_t *scr_turtle;
 
@@ -85,6 +84,10 @@ qboolean scr_drawloading;
 float scr_disabled_time;
 
 int scr_tileclear_updates = 0;  // johnfitz
+
+void ResetTileClearUpdates(void) {
+  scr_tileclear_updates = 0;
+}
 
 float GetScreenConsoleCurrentHeight(void) { return scr_con_current; }
 /*
@@ -136,7 +139,7 @@ static void SCR_CalcRefdef(void) {
   // force the status bar to redraw
   Sbar_Changed();
 
-  scr_tileclear_updates = 0;  // johnfitz
+  ResetTileClearUpdates();
 
   // bound viewsize
   if (Cvar_GetValue(&scr_viewsize) < 30) Cvar_SetQuick(&scr_viewsize, "30");
@@ -175,7 +178,6 @@ SCR_LoadPics -- johnfitz
 ==================
 */
 void SCR_LoadPics(void) {
-  scr_ram = Draw_PicFromWad("ram");
   scr_net = Draw_PicFromWad("net");
   scr_turtle = Draw_PicFromWad("turtle");
 }
@@ -250,33 +252,8 @@ void SCR_DrawFPS(void) {
     if (Cvar_GetValue(&scr_clock)) y -= 8;  // make room for clock
     GL_SetCanvas(CANVAS_BOTTOMRIGHT);
     Draw_String(x, y, st);
-    scr_tileclear_updates = 0;
+    ResetTileClearUpdates();
   }
-}
-
-/*
-==============
-SCR_DrawClock -- johnfitz
-==============
-*/
-void SCR_DrawClock(void) {
-  char str[12];
-
-  if (Cvar_GetValue(&scr_clock) == 1) {
-    int minutes, seconds;
-
-    minutes = CL_Time() / 60;
-    seconds = ((int)CL_Time()) % 60;
-
-    sprintf(str, "%i:%i%i", minutes, seconds / 10, seconds % 10);
-  } else
-    return;
-
-  // draw it
-  GL_SetCanvas(CANVAS_BOTTOMRIGHT);
-  Draw_String(320 - (strlen(str) << 3), 200 - 8, str);
-
-  scr_tileclear_updates = 0;
 }
 
 /*
@@ -381,7 +358,7 @@ void SCR_DrawPause(void) {
   Draw_Pic((320 - pic->width) / 2, (240 - 48 - pic->height) / 2,
            pic);  // johnfitz -- stretched menus
 
-  scr_tileclear_updates = 0;  // johnfitz
+  ResetTileClearUpdates();
 }
 
 /*
@@ -400,7 +377,7 @@ void SCR_DrawLoading(void) {
   Draw_Pic((320 - pic->width) / 2, (240 - 48 - pic->height) / 2,
            pic);  // johnfitz -- stretched menus
 
-  scr_tileclear_updates = 0;  // johnfitz
+  ResetTileClearUpdates();
 }
 
 //=============================================================================
@@ -451,7 +428,7 @@ void SCR_SetUpToDrawConsole(void) {
   if (clearconsole++ < GetNumPages()) Sbar_Changed();
 
   if (!Con_ForceDup() && scr_con_current)
-    scr_tileclear_updates = 0;  // johnfitz
+    ResetTileClearUpdates();
 }
 
 /*
