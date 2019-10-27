@@ -327,21 +327,6 @@ void SCR_DrawDevStats(void) {
 
 /*
 ==============
-SCR_DrawRam
-==============
-*/
-void SCR_DrawRam(void) {
-  if (!Cvar_GetValue(&scr_showram)) return;
-
-  if (!r_cache_thrash) return;
-
-  GL_SetCanvas(CANVAS_DEFAULT);  // johnfitz
-
-  Draw_Pic(scr_vrect.x + 32, scr_vrect.y, scr_ram);
-}
-
-/*
-==============
 SCR_DrawTurtle
 ==============
 */
@@ -671,7 +656,6 @@ void SCR_UpdateScreen(void) {
     SCR_CheckDrawCenterString();
   } else {
     SCR_DrawCrosshair();  // johnfitz
-    SCR_DrawRam();
     SCR_DrawNet();
     SCR_DrawTurtle();
     SCR_DrawPause();

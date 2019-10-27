@@ -2,8 +2,6 @@
 
 #include "quakedef.h"
 
-qboolean r_cache_thrash;  // compatability
-
 vec3_t modelorg, r_entorigin;
 entity_t *currententity;
 
@@ -530,8 +528,6 @@ void R_SetupView(void) {
 
   V_SetContentsColor(r_viewleaf->contents);
   V_CalcBlend();
-
-  r_cache_thrash = false;
 
   // johnfitz -- calculate r_fovx and r_fovy here
   r_fovx = r_refdef.fov_x;
