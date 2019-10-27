@@ -39,9 +39,22 @@ func SCR_CenterPrint(s *C.char) {
 	screen.CenterPrint(C.GoString(s))
 }
 
+//export SCR_DrawCrosshair
+func SCR_DrawCrosshair() {
+	screen.drawCrosshair()
+}
+
 //export SCR_CheckDrawCenterString
 func SCR_CheckDrawCenterString() {
 	screen.CheckDrawCenterPrint()
+}
+
+func (s *qScreen) drawCrosshair() {
+	if !cvars.Crosshair.Bool() {
+		return
+	}
+	SetCanvas(CANVAS_CROSSHAIR)
+	DrawCharacterWhite(-4, -4, '+')
 }
 
 func (s *qScreen) CenterPrint(str string) {

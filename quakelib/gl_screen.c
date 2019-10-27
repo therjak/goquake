@@ -418,18 +418,6 @@ void SCR_DrawLoading(void) {
   scr_tileclear_updates = 0;  // johnfitz
 }
 
-/*
-==============
-SCR_DrawCrosshair -- johnfitz
-==============
-*/
-void SCR_DrawCrosshair(void) {
-  if (!Cvar_GetValue(&crosshair)) return;
-
-  GL_SetCanvas(CANVAS_CROSSHAIR);
-  Draw_Character(-4, -4, '+');  // 0,0 is center of viewport
-}
-
 //=============================================================================
 
 /*
