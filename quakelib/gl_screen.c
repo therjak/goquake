@@ -49,7 +49,6 @@ console is:
 */
 
 float scr_con_current;
-float scr_conlines;  // lines of console to display
 
 cvar_t scr_menuscale;
 cvar_t scr_sbarscale;
@@ -80,7 +79,6 @@ int clearconsole;
 
 vrect_t scr_vrect;
 
-qboolean scr_drawloading;
 float scr_disabled_time;
 
 int scr_tileclear_updates = 0;  // johnfitz
@@ -339,25 +337,6 @@ void SCR_DrawNet(void) {
   Draw_Pic(scr_vrect.x + 64, scr_vrect.y, scr_net);
 }
 
-/*
-==============
-SCR_DrawLoading
-==============
-*/
-void SCR_DrawLoading(void) {
-  qpic_t *pic;
-
-  if (!scr_drawloading) return;
-
-  GL_SetCanvas(CANVAS_MENU);  // johnfitz
-
-  pic = Draw_CachePic("gfx/loading.lmp");
-  Draw_Pic((320 - pic->width) / 2, (240 - 48 - pic->height) / 2,
-           pic);  // johnfitz -- stretched menus
-
-  ResetTileClearUpdates();
-}
-
 //=============================================================================
 
 /*
@@ -365,6 +344,7 @@ void SCR_DrawLoading(void) {
 SCR_SetUpToDrawConsole
 ==================
 */
+float scr_conlines;  // lines of console to display
 void SCR_SetUpToDrawConsole(void) {
   // johnfitz -- let's hack away the problem of slow console when host_timescale
   // is <0
@@ -374,7 +354,7 @@ void SCR_SetUpToDrawConsole(void) {
 
   Con_CheckResize();
 
-  if (scr_drawloading) return;  // never a console with loading plaque
+  if (SCR_IsDrawLoading()) return;  // never a console with loading plaque
 
   // decide on the height of the console
   Con_SetForceDup(!cl.worldmodel || CLS_GetSignon() != SIGNONS);
@@ -440,10 +420,10 @@ void SCR_BeginLoadingPlaque(void) {
   Con_ClearNotify();
   scr_con_current = 0;
 
-  scr_drawloading = true;
+  SCR_SetDrawLoading(true);
   Sbar_Changed();
   SCR_UpdateScreen();
-  scr_drawloading = false;
+  SCR_SetDrawLoading(false);
 
   SetScreenDisabled(true);
   scr_disabled_time = HostRealTime();
@@ -452,7 +432,6 @@ void SCR_BeginLoadingPlaque(void) {
 //=============================================================================
 
 const char *scr_notifystring;
-qboolean scr_drawdialog;
 
 void SCR_DrawNotifyString(void) {
   const char *start;
@@ -500,9 +479,9 @@ int SCR_ModalMessage(const char *text, float timeout)  // johnfitz -- timeout
   scr_notifystring = text;
 
   // draw a fresh screen
-  scr_drawdialog = true;
+  SCR_SetDrawDialog(true);
   SCR_UpdateScreen();
-  scr_drawdialog = false;
+  SCR_SetDrawDialog(false);
 
   S_ClearBuffer();  // so dma doesn't loop current sound
 
@@ -588,7 +567,7 @@ void SCR_UpdateScreen(void) {
   // FIXME: only call this when needed
   SCR_TileClear();
 
-  if (scr_drawdialog)  // new game confirm
+  if (SCR_IsDrawDialog())  // new game confirm
   {
     if (Con_ForceDup())
       DrawConsoleBackgroundC();
@@ -596,7 +575,7 @@ void SCR_UpdateScreen(void) {
       Sbar_Draw();
     Draw_FadeScreen();
     SCR_DrawNotifyString();
-  } else if (scr_drawloading)  // loading
+  } else if (SCR_IsDrawLoading())  // loading
   {
     SCR_DrawLoading();
     Sbar_Draw();

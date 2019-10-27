@@ -33,6 +33,9 @@ type qScreen struct {
 
 	centerString []string
 	centerTime   time.Time
+
+	loading bool
+	dialog  bool
 }
 
 //export SCR_CenterPrint
@@ -58,6 +61,43 @@ func SCR_DrawPause() {
 //export SCR_DrawClock
 func SCR_DrawClock() {
 	screen.drawClock()
+}
+
+//export SCR_IsDrawLoading
+func SCR_IsDrawLoading() C.int {
+	return b2i(screen.loading)
+}
+
+//export SCR_SetDrawLoading
+func SCR_SetDrawLoading(b int) {
+	screen.loading = (b != 0)
+}
+
+//export SCR_IsDrawDialog
+func SCR_IsDrawDialog() C.int {
+	return b2i(screen.dialog)
+}
+
+//export SCR_SetDrawDialog
+func SCR_SetDrawDialog(b int) {
+	screen.dialog = (b != 0)
+}
+
+//export SCR_DrawLoading
+func SCR_DrawLoading() {
+	screen.drawLoading()
+}
+
+func (scr *qScreen) drawLoading() {
+	if !scr.loading {
+		return // probably impossible to reach
+	}
+	SetCanvas(CANVAS_MENU)
+
+	p := GetCachedPicture("gfx/loading.lmp")
+	DrawPicture((320-p.width)/2, (240-48-p.height)/2, p)
+
+	C.ResetTileClearUpdates()
 }
 
 func (scr *qScreen) drawClock() {
