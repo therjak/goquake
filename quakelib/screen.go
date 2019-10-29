@@ -36,6 +36,11 @@ type qScreen struct {
 
 	loading bool
 	dialog  bool
+
+	turtlePic   *QPic
+	turtleCount int
+
+	vrect Rect
 }
 
 //export SCR_CenterPrint
@@ -86,6 +91,54 @@ func SCR_SetDrawDialog(b int) {
 //export SCR_DrawLoading
 func SCR_DrawLoading() {
 	screen.drawLoading()
+}
+
+//export SCR_DrawTurtle
+func SCR_DrawTurtle() {
+	screen.drawTurtle()
+}
+
+//export SCR_SetVRect
+func SCR_SetVRect(x, y, w, h int) {
+	screen.vrect = Rect{x: x, y: y, width: w, height: h}
+}
+
+//export SCR_GetVRectX
+func SCR_GetVRectX() int {
+	return screen.vrect.x
+}
+
+//export SCR_GetVRectY
+func SCR_GetVRectY() int {
+	return screen.vrect.y
+}
+
+//export SCR_GetVRectHeight
+func SCR_GetVRectHeight() int {
+	return screen.vrect.height
+}
+
+//export SCR_GetVRectWidth
+func SCR_GetVRectWidth() int {
+	return screen.vrect.width
+}
+
+func (scr *qScreen) drawTurtle() {
+	if !cvars.ShowTurtle.Bool() {
+		return
+	}
+	if scr.turtlePic == nil {
+		scr.turtlePic = GetPictureFromWad("turtle")
+	}
+	if host.frameTime < 0.1 {
+		scr.turtleCount = 0
+	}
+	scr.turtleCount++
+	if scr.turtleCount < 3 {
+		return
+	}
+	SetCanvas(CANVAS_DEFAULT)
+	DrawPicture(scr.vrect.x, scr.vrect.y, scr.turtlePic)
 }
 
 func (scr *qScreen) drawLoading() {

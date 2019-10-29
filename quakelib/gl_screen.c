@@ -73,11 +73,9 @@ extern cvar_t crosshair;
 qboolean scr_initialized;  // ready to draw
 
 qpic_t *scr_net;
-qpic_t *scr_turtle;
+// qpic_t *scr_turtle;
 
 int clearconsole;
-
-vrect_t scr_vrect;
 
 float scr_disabled_time;
 
@@ -163,7 +161,11 @@ static void SCR_CalcRefdef(void) {
   r_refdef.fov_y =
       CalcFovy(r_refdef.fov_x, r_refdef.vrect.width, r_refdef.vrect.height);
 
-  scr_vrect = r_refdef.vrect;
+  SCR_SetVRect(
+      r_refdef.vrect.x,
+      r_refdef.vrect.y,
+      r_refdef.vrect.width,
+      r_refdef.vrect.height);
 }
 
 static void SCR_Callback_refdef(cvar_t *var) { SetRecalcRefdef(1); }
@@ -177,7 +179,6 @@ SCR_LoadPics -- johnfitz
 */
 void SCR_LoadPics(void) {
   scr_net = Draw_PicFromWad("net");
-  scr_turtle = Draw_PicFromWad("turtle");
 }
 
 /*
@@ -302,29 +303,6 @@ void SCR_DrawDevStats(void) {
 
 /*
 ==============
-SCR_DrawTurtle
-==============
-*/
-void SCR_DrawTurtle(void) {
-  static int count;
-
-  if (!Cvar_GetValue(&scr_showturtle)) return;
-
-  if (HostFrameTime() < 0.1) {
-    count = 0;
-    return;
-  }
-
-  count++;
-  if (count < 3) return;
-
-  GL_SetCanvas(CANVAS_DEFAULT);  // johnfitz
-
-  Draw_Pic(scr_vrect.x, scr_vrect.y, scr_turtle);
-}
-
-/*
-==============
 SCR_DrawNet
 ==============
 */
@@ -334,7 +312,7 @@ void SCR_DrawNet(void) {
 
   GL_SetCanvas(CANVAS_DEFAULT);  // johnfitz
 
-  Draw_Pic(scr_vrect.x + 64, scr_vrect.y, scr_net);
+  Draw_Pic(SCR_GetVRectX() + 64, SCR_GetVRectY(), scr_net);
 }
 
 //=============================================================================

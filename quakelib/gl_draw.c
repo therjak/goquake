@@ -580,7 +580,6 @@ GL_SetCanvas -- johnfitz -- support various canvas types
 ================
 */
 void GL_SetCanvas(canvastype newcanvas) {
-  extern vrect_t scr_vrect;
   float s;
   int lines;
 
@@ -627,11 +626,11 @@ void GL_SetCanvas(canvastype newcanvas) {
       break;
     case CANVAS_CROSSHAIR:  // 0,0 is center of viewport
       s = CLAMP(1.0, Cvar_GetValue(&scr_crosshairscale), 10.0);
-      glOrtho(scr_vrect.width / -2 / s, scr_vrect.width / 2 / s,
-              scr_vrect.height / 2 / s, scr_vrect.height / -2 / s, -99999,
+      glOrtho(SCR_GetVRectWidth() / -2 / s, SCR_GetVRectWidth() / 2 / s,
+              SCR_GetVRectHeight() / 2 / s, SCR_GetVRectHeight() / -2 / s, -99999,
               99999);
-      glViewport(scr_vrect.x, GL_Height() - scr_vrect.y - scr_vrect.height,
-                 scr_vrect.width & ~1, scr_vrect.height & ~1);
+      glViewport(SCR_GetVRectX(), GL_Height() - SCR_GetVRectY() - SCR_GetVRectHeight(),
+                 SCR_GetVRectWidth() & ~1, SCR_GetVRectHeight() & ~1);
       break;
     case CANVAS_BOTTOMLEFT:             // used by devstats
       s = (float)GL_Width() / ConWidth();  // use console scale
