@@ -72,18 +72,13 @@ extern cvar_t crosshair;
 
 qboolean scr_initialized;  // ready to draw
 
-qpic_t *scr_net;
-// qpic_t *scr_turtle;
-
 int clearconsole;
 
 float scr_disabled_time;
 
 int scr_tileclear_updates = 0;  // johnfitz
 
-void ResetTileClearUpdates(void) {
-  scr_tileclear_updates = 0;
-}
+void ResetTileClearUpdates(void) { scr_tileclear_updates = 0; }
 
 float GetScreenConsoleCurrentHeight(void) { return scr_con_current; }
 /*
@@ -161,25 +156,13 @@ static void SCR_CalcRefdef(void) {
   r_refdef.fov_y =
       CalcFovy(r_refdef.fov_x, r_refdef.vrect.width, r_refdef.vrect.height);
 
-  SCR_SetVRect(
-      r_refdef.vrect.x,
-      r_refdef.vrect.y,
-      r_refdef.vrect.width,
-      r_refdef.vrect.height);
+  SCR_SetVRect(r_refdef.vrect.x, r_refdef.vrect.y, r_refdef.vrect.width,
+               r_refdef.vrect.height);
 }
 
 static void SCR_Callback_refdef(cvar_t *var) { SetRecalcRefdef(1); }
 
 //============================================================================
-
-/*
-==================
-SCR_LoadPics -- johnfitz
-==================
-*/
-void SCR_LoadPics(void) {
-  scr_net = Draw_PicFromWad("net");
-}
 
 /*
 ==================
@@ -207,8 +190,6 @@ void SCR_Init(void) {
   Cvar_FakeRegister(&scr_centertime, "scr_centertime");
   Cvar_FakeRegister(&scr_printspeed, "scr_printspeed");
   Cvar_FakeRegister(&gl_triplebuffer, "gl_triplebuffer");
-
-  SCR_LoadPics();  // johnfitz
 
   scr_initialized = true;
 }
@@ -302,22 +283,6 @@ void SCR_DrawDevStats(void) {
 }
 
 /*
-==============
-SCR_DrawNet
-==============
-*/
-void SCR_DrawNet(void) {
-  if (HostRealTime() - CL_LastReceivedMessage() < 0.3) return;
-  if (CLS_IsDemoPlayback()) return;
-
-  GL_SetCanvas(CANVAS_DEFAULT);  // johnfitz
-
-  Draw_Pic(SCR_GetVRectX() + 64, SCR_GetVRectY(), scr_net);
-}
-
-//=============================================================================
-
-/*
 ==================
 SCR_SetUpToDrawConsole
 ==================
@@ -363,8 +328,7 @@ void SCR_SetUpToDrawConsole(void) {
 
   if (clearconsole++ < GetNumPages()) Sbar_Changed();
 
-  if (!Con_ForceDup() && scr_con_current)
-    ResetTileClearUpdates();
+  if (!Con_ForceDup() && scr_con_current) ResetTileClearUpdates();
 }
 
 /*

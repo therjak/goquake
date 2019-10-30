@@ -40,6 +40,8 @@ type qScreen struct {
 	turtlePic   *QPic
 	turtleCount int
 
+	netPic *QPic
+
 	vrect Rect
 }
 
@@ -98,6 +100,11 @@ func SCR_DrawTurtle() {
 	screen.drawTurtle()
 }
 
+//export SCR_DrawNet
+func SCR_DrawNet() {
+	screen.drawNet()
+}
+
 //export SCR_SetVRect
 func SCR_SetVRect(x, y, w, h int) {
 	screen.vrect = Rect{x: x, y: y, width: w, height: h}
@@ -121,6 +128,20 @@ func SCR_GetVRectHeight() int {
 //export SCR_GetVRectWidth
 func SCR_GetVRectWidth() int {
 	return screen.vrect.width
+}
+
+func (scr *qScreen) drawNet() {
+	if host.time-cl.lastReceivedMessageTime < 0.3 {
+		return
+	}
+	if cls.demoPlayback {
+		return
+	}
+	if scr.netPic == nil {
+		scr.netPic = GetPictureFromWad("net")
+	}
+	SetCanvas(CANVAS_DEFAULT)
+	DrawPicture(scr.vrect.x, scr.vrect.y, scr.netPic)
 }
 
 func (scr *qScreen) drawTurtle() {
