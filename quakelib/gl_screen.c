@@ -74,8 +74,6 @@ qboolean scr_initialized;  // ready to draw
 
 int clearconsole;
 
-float scr_disabled_time;
-
 int scr_tileclear_updates = 0;  // johnfitz
 
 void ResetTileClearUpdates(void) { scr_tileclear_updates = 0; }
@@ -368,11 +366,12 @@ void SCR_BeginLoadingPlaque(void) {
   SCR_SetDrawLoading(false);
 
   SetScreenDisabled(true);
-  scr_disabled_time = HostRealTime();
+  SCR_UpdateDisabledTime();
 }
 
 //=============================================================================
 
+// THERAJK
 const char *scr_notifystring;
 
 void SCR_DrawNotifyString(void) {
@@ -432,8 +431,6 @@ int SCR_ModalMessage(const char *text, float timeout)  // johnfitz -- timeout
 
 //=============================================================================
 
-// johnfitz -- deleted SCR_BringDownConsole
-
 /*
 ==================
 SCR_TileClear
@@ -481,7 +478,7 @@ void SCR_UpdateScreen(void) {
   SetNumPages((Cvar_GetValue(&gl_triplebuffer)) ? 3 : 2);
 
   if (ScreenDisabled()) {
-    if (HostRealTime() - scr_disabled_time > 60) {
+    if (HostRealTime() - SCR_GetDisabledTime() > 60) {
       SetScreenDisabled(false);
       Con_Printf("load failed.\n");
     } else

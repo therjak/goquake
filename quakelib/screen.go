@@ -43,6 +43,8 @@ type qScreen struct {
 	netPic *QPic
 
 	vrect Rect
+
+	disabledTime float64 // needs to match host.time type
 }
 
 //export SCR_CenterPrint
@@ -128,6 +130,16 @@ func SCR_GetVRectHeight() int {
 //export SCR_GetVRectWidth
 func SCR_GetVRectWidth() int {
 	return screen.vrect.width
+}
+
+//export SCR_UpdateDisabledTime
+func SCR_UpdateDisabledTime() {
+	screen.disabledTime = host.time
+}
+
+//export SCR_GetDisabledTime
+func SCR_GetDisabledTime() C.double {
+	return C.double(screen.disabledTime)
 }
 
 func (scr *qScreen) drawNet() {
