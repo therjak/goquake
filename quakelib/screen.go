@@ -1,7 +1,6 @@
 package quakelib
 
 //#include <stdlib.h>
-// int SCR_ModalMessage(const char *text, float timeout);
 // void SCR_BeginLoadingPlaque(void);
 // void SCR_UpdateScreen(void);
 // void ResetTileClearUpdates(void);
@@ -19,7 +18,6 @@ import (
 	"quake/snd"
 	"strings"
 	"time"
-	"unsafe"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
 )
@@ -43,6 +41,8 @@ type qScreen struct {
 	netPic *QPic
 
 	vrect Rect
+
+	modalMsg []string
 
 	disabledTime float64 // needs to match host.time type
 }
@@ -140,6 +140,41 @@ func SCR_UpdateDisabledTime() {
 //export SCR_GetDisabledTime
 func SCR_GetDisabledTime() C.double {
 	return C.double(screen.disabledTime)
+}
+
+//export SCR_ModalMessage
+func SCR_ModalMessage(c *C.char, timeout C.float) bool {
+	return screen.ModalMessage(C.GoString(c), time.Second*time.Duration(timeout))
+}
+
+//export SCR_DrawNotifyString
+func SCR_DrawNotifyString() {
+	screen.drawNotifyString()
+}
+
+func (scr *qScreen) drawNotifyString() {
+	y := int(200 * 0.35)
+	SetCanvas(CANVAS_MENU)
+	for _, s := range scr.modalMsg {
+		x := (320 - len(s)*8) / 2
+		DrawStringWhite(x, y, s)
+		y += 8
+	}
+}
+
+func (scr *qScreen) ModalMessage(msg string, timeout time.Duration) bool {
+	if cls.state == ca_dedicated {
+		return true
+	}
+	scr.modalMsg = strings.Split(msg, "\n")
+
+	scr.dialog = true
+	C.SCR_UpdateScreen()
+	scr.dialog = false
+
+	// S_ClearBuffer // stop sounds
+
+	return modalResult(timeout)
 }
 
 func (scr *qScreen) drawNet() {
@@ -281,12 +316,6 @@ func (s *qScreen) CheckDrawCenterPrint() {
 		return
 	}
 	s.drawCenterPrint()
-}
-
-func ModalMessage(message string, timeout float32) bool {
-	m := C.CString(message)
-	defer C.free(unsafe.Pointer(m))
-	return C.SCR_ModalMessage(m, C.float(timeout)) != 0
 }
 
 func SCR_BeginLoadingPlaque() {

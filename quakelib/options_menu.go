@@ -7,6 +7,7 @@ import (
 	kc "quake/keycode"
 	"quake/math"
 	"quake/menu"
+	"time"
 )
 
 type qOptionsMenu struct {
@@ -82,9 +83,9 @@ func (m *MenuItemResetConfig) Draw() {
 }
 
 func (m *MenuItemResetConfig) Enter() {
-	if ModalMessage(
+	if screen.ModalMessage(
 		"This will reset all controls\nand stored cvars. Continue? (y/n)\n",
-		15.0) {
+		time.Second*15) {
 		cbuf.AddText("resetcfg\n")
 		cbuf.AddText("exec default.cfg\n")
 	}

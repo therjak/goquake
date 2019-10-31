@@ -362,13 +362,17 @@ var (
 
 //export KeyModalResult
 func KeyModalResult(timeout int) bool {
+	return modalResult(time.Second * time.Duration(timeout))
+}
+
+func modalResult(timeout time.Duration) bool {
 	Key_ClearStates()
 	inputGrab = qInputGrab{
 		active: true,
 	}
 	updateInputMode()
 
-	endTime := time.Now().Add(time.Second * time.Duration(timeout))
+	endTime := time.Now().Add(timeout)
 	result := false
 
 	for {

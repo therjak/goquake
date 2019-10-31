@@ -67,7 +67,7 @@ type MenuItemPlay struct{ qDotMenuItem }
 
 func (m *MenuItemPlay) Enter() {
 	if sv.active &&
-		!ModalMessage("Are you sure you want to\nstart a new game?\n", 0) {
+		!screen.ModalMessage("Are you sure you want to\nstart a new game?\n", 0) {
 		return
 	}
 

@@ -369,68 +369,6 @@ void SCR_BeginLoadingPlaque(void) {
   SCR_UpdateDisabledTime();
 }
 
-//=============================================================================
-
-// THERAJK
-const char *scr_notifystring;
-
-void SCR_DrawNotifyString(void) {
-  const char *start;
-  int l;
-  int j;
-  int x, y;
-
-  GL_SetCanvas(CANVAS_MENU);  // johnfitz
-
-  start = scr_notifystring;
-
-  y = 200 * 0.35;  // johnfitz -- stretched overlays
-
-  do {
-    // scan the width of the line
-    for (l = 0; l < 40; l++)
-      if (start[l] == '\n' || !start[l]) break;
-    x = (320 - l * 8) / 2;  // johnfitz -- stretched overlays
-    for (j = 0; j < l; j++, x += 8) Draw_Character(x, y, start[j]);
-
-    y += 8;
-
-    while (*start && *start != '\n') start++;
-
-    if (!*start) break;
-    start++;  // skip the \n
-  } while (1);
-}
-
-/*
-==================
-SCR_ModalMessage
-
-Displays a text string in the center of the screen and waits for a Y or N
-keypress.
-==================
-*/
-int SCR_ModalMessage(const char *text, float timeout)  // johnfitz -- timeout
-{
-  double time1, time2;  // johnfitz -- timeout
-  int lastkey, lastchar;
-
-  if (CLS_GetState() == ca_dedicated) return true;
-
-  scr_notifystring = text;
-
-  // draw a fresh screen
-  SCR_SetDrawDialog(true);
-  SCR_UpdateScreen();
-  SCR_SetDrawDialog(false);
-
-  S_ClearBuffer();  // so dma doesn't loop current sound
-
-  return KeyModalResult(timeout);
-}
-
-//=============================================================================
-
 /*
 ==================
 SCR_TileClear
