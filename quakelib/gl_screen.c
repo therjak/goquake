@@ -1,54 +1,4 @@
-// screen.c -- master for refresh, status bar, console, chat, notify, etc
-
 #include "quakedef.h"
-
-/*
-
-background clear
-rendering
-turtle/net/ram icons
-sbar
-centerprint / slow centerprint
-notify lines
-intermission / finale overlay
-loading plaque
-console
-menu
-
-required background clears
-required update regions
-
-
-syncronous draw mode or async
-One off screen buffer, with updates either copied or xblited
-Need to double buffer?
-
-
-async draw will require the refresh area to be cleared, because it will be
-xblited, but sync draw can just ignore it.
-
-sync
-draw
-
-CenterPrint ()
-SlowPrint ()
-Screen_Update ();
-Con_Printf ();
-
-net
-turn off messages option
-
-the refresh is allways rendered, unless the console is full screen
-
-
-console is:
-        notify lines
-        half
-        full
-
-*/
-
-float scr_con_current;
 
 cvar_t scr_menuscale;
 cvar_t scr_sbarscale;
@@ -60,25 +10,14 @@ cvar_t scr_clock;
 cvar_t scr_viewsize;
 cvar_t scr_fov;
 cvar_t scr_fov_adapt;
-cvar_t scr_conspeed;
-cvar_t scr_centertime;
-cvar_t scr_showram;
-cvar_t scr_showturtle;
-cvar_t scr_showpause;
-cvar_t scr_printspeed;
 cvar_t gl_triplebuffer;
 
-extern cvar_t crosshair;
-
 qboolean scr_initialized;  // ready to draw
-
-int clearconsole;
 
 int scr_tileclear_updates = 0;  // johnfitz
 
 void ResetTileClearUpdates(void) { scr_tileclear_updates = 0; }
 
-float GetScreenConsoleCurrentHeight(void) { return scr_con_current; }
 /*
 ====================
 AdaptFovx
@@ -181,58 +120,12 @@ void SCR_Init(void) {
   Cvar_FakeRegister(&scr_fov, "fov");
   Cvar_FakeRegister(&scr_fov_adapt, "fov_adapt");
   Cvar_FakeRegister(&scr_viewsize, "viewsize");
-  Cvar_FakeRegister(&scr_conspeed, "scr_conspeed");
-  Cvar_FakeRegister(&scr_showram, "showram");
-  Cvar_FakeRegister(&scr_showturtle, "showturtle");
-  Cvar_FakeRegister(&scr_showpause, "showpause");
-  Cvar_FakeRegister(&scr_centertime, "scr_centertime");
-  Cvar_FakeRegister(&scr_printspeed, "scr_printspeed");
   Cvar_FakeRegister(&gl_triplebuffer, "gl_triplebuffer");
 
   scr_initialized = true;
 }
 
 //============================================================================
-
-/*
-==============
-SCR_DrawFPS -- johnfitz
-==============
-*/
-void SCR_DrawFPS(void) {
-  static double oldtime = 0;
-  static double lastfps = 0;
-  static int oldframecount = 0;
-  double elapsed_time;
-  int frames;
-
-  elapsed_time = HostRealTime() - oldtime;
-  frames = r_framecount - oldframecount;
-
-  if (elapsed_time < 0 || frames < 0) {
-    oldtime = HostRealTime();
-    oldframecount = r_framecount;
-    return;
-  }
-  // update value every 3/4 second
-  if (elapsed_time > 0.75) {
-    lastfps = frames / elapsed_time;
-    oldtime = HostRealTime();
-    oldframecount = r_framecount;
-  }
-
-  if (Cvar_GetValue(&scr_showfps)) {
-    char st[16];
-    int x, y;
-    sprintf(st, "%4.0f fps", lastfps);
-    x = 320 - (strlen(st) << 3);
-    y = 200 - 8;
-    if (Cvar_GetValue(&scr_clock)) y -= 8;  // make room for clock
-    GL_SetCanvas(CANVAS_BOTTOMRIGHT);
-    Draw_String(x, y, st);
-    ResetTileClearUpdates();
-  }
-}
 
 /*
 ==============
@@ -278,95 +171,6 @@ void SCR_DrawDevStats(void) {
 
   sprintf(str, "Tempents |%4i %4i", dev_stats.tempents, dev_peakstats.tempents);
   Draw_String(x, (y++) * 8 - x, str);
-}
-
-/*
-==================
-SCR_SetUpToDrawConsole
-==================
-*/
-float scr_conlines;  // lines of console to display
-void SCR_SetUpToDrawConsole(void) {
-  // johnfitz -- let's hack away the problem of slow console when host_timescale
-  // is <0
-  extern cvar_t host_timescale;
-  float timescale;
-  // johnfitz
-
-  Con_CheckResize();
-
-  if (SCR_IsDrawLoading()) return;  // never a console with loading plaque
-
-  // decide on the height of the console
-  Con_SetForceDup(!cl.worldmodel || CLS_GetSignon() != SIGNONS);
-
-  if (Con_ForceDup()) {
-    scr_conlines = GL_Height();
-    scr_con_current = scr_conlines;
-  } else if (GetKeyDest() == key_console)
-    scr_conlines = GL_Height() / 2;
-  else
-    scr_conlines = 0;  // none visible
-
-  timescale =
-      (Cvar_GetValue(&host_timescale) > 0) ? Cvar_GetValue(&host_timescale) : 1;
-
-  if (scr_conlines < scr_con_current) {
-    // ericw -- (GL_Height()/600.0) factor makes conspeed resolution
-    // independent, using 800x600 as a baseline
-    scr_con_current -= Cvar_GetValue(&scr_conspeed) * (GL_Height() / 600.0) *
-                       HostFrameTime() / timescale;
-    if (scr_conlines > scr_con_current) scr_con_current = scr_conlines;
-  } else if (scr_conlines > scr_con_current) {
-    // ericw -- (GL_Height()/600.0)
-    scr_con_current += Cvar_GetValue(&scr_conspeed) * (GL_Height() / 600.0) *
-                       HostFrameTime() / timescale;
-    if (scr_conlines < scr_con_current) scr_con_current = scr_conlines;
-  }
-
-  if (clearconsole++ < GetNumPages()) Sbar_Changed();
-
-  if (!Con_ForceDup() && scr_con_current) ResetTileClearUpdates();
-}
-
-/*
-==================
-SCR_DrawConsole
-==================
-*/
-void SCR_DrawConsole(void) {
-  if (scr_con_current) {
-    Con_DrawConsole(scr_con_current);
-    clearconsole = 0;
-  } else {
-    if (GetKeyDest() == key_game || GetKeyDest() == key_message)
-      Con_DrawNotify();  // only draw notify in game
-  }
-}
-
-/*
-===============
-SCR_BeginLoadingPlaque
-
-================
-*/
-void SCR_BeginLoadingPlaque(void) {
-  S_StopAllSounds(true);
-
-  if (CLS_GetState() != ca_connected) return;
-  if (CLS_GetSignon() != SIGNONS) return;
-
-  // redraw with no console and the loading plaque
-  Con_ClearNotify();
-  scr_con_current = 0;
-
-  SCR_SetDrawLoading(true);
-  Sbar_Changed();
-  SCR_UpdateScreen();
-  SCR_SetDrawLoading(false);
-
-  SetScreenDisabled(true);
-  SCR_UpdateDisabledTime();
 }
 
 /*

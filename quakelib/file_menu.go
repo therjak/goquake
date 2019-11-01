@@ -88,7 +88,7 @@ func (m *fileMenuItem) Load() {
 
 	// Host_Loadgame_f can't bring up the loading plaque because too much
 	// stack space has been used, so do it now
-	SCR_BeginLoadingPlaque()
+	screen.BeginLoadingPlaque()
 
 	// This should be direct instead of cbuf style
 	cbuf.AddText(fmt.Sprintf("load %s\n", m.filename))

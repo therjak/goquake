@@ -49,7 +49,7 @@ func HostError(format string, v ...interface{}) {
 	}
 	hostRecursionCheck = true
 
-	SCR_EndLoadingPlaque() // reenable screen updates
+	screen.EndLoadingPlaque() // reenable screen updates
 
 	conlog.Printf("Host_Error: %s\n", s)
 

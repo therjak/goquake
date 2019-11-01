@@ -898,7 +898,7 @@ func (s *qstatusbar) Draw() {
 	if cl.intermission != 0 {
 		return
 	}
-	if s.updates >= numPages &&
+	if s.updates >= screen.numPages &&
 		!cvars.GlClear.Bool() &&
 		cvars.ScreenStatusbarAlpha.Value() >= 1 &&
 		cvars.Gamma.Value() == 1 {

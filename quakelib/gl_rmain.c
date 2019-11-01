@@ -8,6 +8,10 @@ entity_t *currententity;
 int r_visframecount;  // bumped when going to a new PVS
 int r_framecount;     // used for dlight push checking
 
+int GetRFrameCount() {
+  return r_framecount;
+}
+
 mplane_t frustum[4];
 
 // johnfitz -- rendering statistics

@@ -46,7 +46,7 @@ func videoSetMode(width, height, bpp int32, fullscreen bool) {
 	if err := sdl.GLSetSwapInterval(vsync); err != nil {
 		glSwapControl = false
 	}
-	numPages = 2
+	screen.numPages = 2
 
 	modestate = func() int {
 		if window.Fullscreen() {
@@ -219,7 +219,6 @@ var (
 	screenWidth   int
 	screenHeight  int
 	recalc_refdef bool
-	numPages      int
 )
 
 func init() {

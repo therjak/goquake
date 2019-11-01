@@ -122,9 +122,9 @@ func loadGame(args []cmd.QArg, _ int) {
 		fullname = fullname + ".sav"
 	}
 
-	// we can't call SCR_BeginLoadingPlaque, because too much stack space has
+	// we can't call screen.BeginLoadingPlaque, because too much stack space has
 	// been used.  The menu calls it before stuffing loadgame command
-	//	SCR_BeginLoadingPlaque ();
+	//	screen.BeginLoadingPlaque ();
 
 	conlog.Printf("Loading game from %s...\n", fullname)
 

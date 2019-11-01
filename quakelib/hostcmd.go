@@ -1046,7 +1046,7 @@ func hostMap(args []cmd.QArg, player int) {
 	}
 
 	keyDestination = keys.Game // remove console or menu
-	SCR_BeginLoadingPlaque()
+	screen.BeginLoadingPlaque()
 
 	svs.serverFlags = 0 // haven't completed an episode yet
 

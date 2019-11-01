@@ -159,12 +159,12 @@ func VID_GetModeState() C.modestate_t {
 
 //export GetNumPages
 func GetNumPages() C.int {
-	return C.int(numPages)
+	return C.int(screen.numPages)
 }
 
 //export SetNumPages
 func SetNumPages(v C.int) {
-	numPages = int(v)
+	screen.numPages = int(v)
 }
 
 //export GetRecalcRefdef

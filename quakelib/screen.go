@@ -1,9 +1,9 @@
 package quakelib
 
 //#include <stdlib.h>
-// void SCR_BeginLoadingPlaque(void);
 // void SCR_UpdateScreen(void);
 // void ResetTileClearUpdates(void);
+// int GetRFrameCount();
 import "C"
 
 import (
@@ -26,6 +26,31 @@ var (
 	screen qScreen
 )
 
+type fpsAccumulator struct {
+	oldTime       time.Time
+	lastFPS       float64
+	oldFrameCount int
+}
+
+func (f *fpsAccumulator) Compute() float64 {
+	t := time.Now()
+	elapsed := t.Sub(f.oldTime).Seconds()
+
+	fc := int(C.GetRFrameCount())
+	fd := fc - f.oldFrameCount
+
+	if elapsed < 0 || fd < 0 {
+		// overflow or start
+		f.oldTime = t
+		f.oldFrameCount = fc
+	} else if elapsed > 0.75 {
+		f.lastFPS = float64(fd) / elapsed
+		f.oldTime = t
+		f.oldFrameCount = fc
+	}
+	return f.lastFPS
+}
+
 type qScreen struct {
 	disabled bool
 
@@ -44,7 +69,53 @@ type qScreen struct {
 
 	modalMsg []string
 
-	disabledTime float64 // needs to match host.time type
+	// needs to match host.time type but should probably be changed to a real time value
+	disabledTime float64
+
+	consoleLines int // console lines to display scr_con_current
+
+	clearConsole int
+
+	numPages int // double or tripple buffering
+
+	fps fpsAccumulator
+}
+
+func (scr *qScreen) drawFPS() {
+	fps := scr.fps.Compute()
+	if !cvars.ScreenShowFps.Bool() {
+		return
+	}
+
+	t := fmt.Sprintf("%4.0f fps", fps)
+	x := 320 - len(t)*8
+	y := 200 - 8
+	if cvars.ScreenClock.Bool() {
+		y -= 8
+	}
+	SetCanvas(CANVAS_BOTTOMRIGHT)
+	DrawStringWhite(x, y, t)
+	C.ResetTileClearUpdates()
+}
+
+//export SCR_DrawFPS
+func SCR_DrawFPS() {
+	screen.drawFPS()
+}
+
+//export SCR_SetUpToDrawConsole
+func SCR_SetUpToDrawConsole() {
+	screen.setupToDrawConsole()
+}
+
+//export GetScreenConsoleCurrentHeight
+func GetScreenConsoleCurrentHeight() int {
+	return screen.consoleLines
+}
+
+//export SCR_DrawConsole
+func SCR_DrawConsole() {
+	screen.drawConsole()
 }
 
 //export SCR_CenterPrint
@@ -150,6 +221,64 @@ func SCR_ModalMessage(c *C.char, timeout C.float) bool {
 //export SCR_DrawNotifyString
 func SCR_DrawNotifyString() {
 	screen.drawNotifyString()
+}
+
+func (scr *qScreen) setupToDrawConsole() {
+	console.CheckResize()
+	if scr.loading {
+		return
+	}
+	console.forceDuplication = (cls.signon != 4) || cl.worldModel == nil
+
+	lines := 0
+	if console.forceDuplication {
+		lines = int(viewport.height)
+		scr.consoleLines = lines
+	} else if keyDestination == keys.Console {
+		lines = int(viewport.height / 2)
+	}
+
+	if lines != scr.consoleLines {
+		timeScale := cvars.HostTimeScale.Value()
+		if timeScale <= 0 {
+			timeScale = 1
+		}
+		t := float32(host.frameTime) / timeScale
+		s := float32(viewport.height) / 600 // normalize for 800x600 screen
+		d := int(cvars.ScreenConsoleSpeed.Value() * s * t)
+		if scr.consoleLines < lines {
+			scr.consoleLines += d
+			if scr.consoleLines > lines {
+				scr.consoleLines = lines
+			}
+		} else {
+			scr.consoleLines -= d
+			if scr.consoleLines < lines {
+				scr.consoleLines = lines
+			}
+		}
+	}
+
+	scr.clearConsole++
+	if scr.clearConsole < scr.numPages {
+		statusbar.MarkChanged()
+	}
+
+	if !console.forceDuplication && scr.consoleLines != 0 {
+		C.ResetTileClearUpdates()
+	}
+
+}
+
+func (scr *qScreen) drawConsole() {
+	if scr.consoleLines > 0 {
+		console.Draw(scr.consoleLines)
+		scr.clearConsole = 0
+	} else {
+		if keyDestination == keys.Game || keyDestination == keys.Message {
+			console.DrawNotify()
+		}
+	}
 }
 
 func (scr *qScreen) drawNotifyString() {
@@ -318,7 +447,12 @@ func (s *qScreen) CheckDrawCenterPrint() {
 	s.drawCenterPrint()
 }
 
+//export SCR_BeginLoadingPlaque
 func SCR_BeginLoadingPlaque() {
+	screen.BeginLoadingPlaque()
+}
+
+func (scr *qScreen) BeginLoadingPlaque() {
 	snd.StopAll()
 	if cls.state != ca_connected {
 		return
@@ -327,13 +461,20 @@ func SCR_BeginLoadingPlaque() {
 		return
 	}
 	console.ClearNotify()
-	screen.centerTime = time.Now()
+	scr.centerTime = time.Now()
+	scr.consoleLines = 0
 
-	C.SCR_BeginLoadingPlaque()
+	scr.loading = true
+	statusbar.MarkChanged()
+	C.SCR_UpdateScreen()
+	scr.loading = false
+
+	scr.disabled = true
+	scr.disabledTime = host.time
 }
 
-func SCR_EndLoadingPlaque() {
-	screen.disabled = false
+func (scr *qScreen) EndLoadingPlaque() {
+	scr.disabled = false
 	console.ClearNotify()
 }
 

@@ -1,6 +1,5 @@
 package quakelib
 
-//float GetScreenConsoleCurrentHeight(void);
 //void ConInit(void);
 //void ConTabComplete(void);
 import "C"
@@ -123,7 +122,7 @@ func (c *qconsole) Toggle() {
 		keyDestination = keys.Console
 	}
 
-	SCR_EndLoadingPlaque()
+	screen.EndLoadingPlaque()
 	c.ClearNotify()
 }
 
@@ -209,7 +208,7 @@ var (
 )
 
 func (c *qconsole) currentHeight() int {
-	return int(C.GetScreenConsoleCurrentHeight())
+	return screen.consoleLines
 }
 
 func init() {

@@ -13,7 +13,6 @@
 // COM_CreatePath
 // Key_GetChatMsgLen
 // Key_GetChatBuffer
-// SCR_EndLoadingPlaque
 // SCR_UpdateScreen
 //
 // Has:

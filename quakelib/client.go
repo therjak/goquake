@@ -1099,7 +1099,7 @@ func clientReconnect() {
 	if cls.demoPlayback {
 		return
 	}
-	SCR_BeginLoadingPlaque()
+	screen.BeginLoadingPlaque()
 	// need new connection messages
 	cls.signon = 0
 }
@@ -1175,7 +1175,7 @@ func CL_SignonReply() {
 		cls.outMessage.WriteByte(0)
 
 	case 4:
-		SCR_EndLoadingPlaque() // allow normal screen updates
+		screen.EndLoadingPlaque() // allow normal screen updates
 	}
 }
 
@@ -1224,7 +1224,7 @@ func CL_NextDemo() {
 		cls.demoNum = 0
 	}
 
-	SCR_BeginLoadingPlaque()
+	screen.BeginLoadingPlaque()
 
 	cbuf.InsertText(fmt.Sprintf("playdemo %s\n", cls.demos[cls.demoNum]))
 	cls.demoNum++
