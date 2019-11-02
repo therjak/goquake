@@ -343,7 +343,7 @@ func (c *qconsole) DrawNotify() {
 		DrawStringWhite(8, y, c.origText[l-lines])
 		y += 8
 		lines--
-		// TODO(therjak): global variable scr_tileclear_updates = 0
+		screen.tileClearUpdates = 0
 	}
 
 	// TODO(therjak): add missing chat functionality again

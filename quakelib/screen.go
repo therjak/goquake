@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"quake/cmd"
 	"quake/conlog"
+	"quake/cvar"
 	"quake/cvars"
 	"quake/image"
 	"quake/keys"
@@ -80,6 +81,17 @@ type qScreen struct {
 	fps fpsAccumulator
 
 	tileClearUpdates int
+}
+
+func init() {
+	f := func(_ *cvar.Cvar) {
+		screen.RecalcViewRect()
+	}
+	cvars.ScreenStatusbarScale.SetCallback(f)
+	cvars.ScreenStatusbarAlpha.SetCallback(f)
+	cvars.Fov.SetCallback(f)
+	cvars.FovAdapt.SetCallback(f)
+	cvars.ViewSize.SetCallback(f)
 }
 
 func (scr *qScreen) RecalcViewRect() {

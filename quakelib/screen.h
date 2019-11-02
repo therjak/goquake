@@ -31,6 +31,5 @@ void SCR_Init(void);
 extern cvar_t scr_menuscale;
 extern cvar_t scr_sbarscale;
 extern cvar_t scr_crosshairscale;
-extern int scr_tileclear_updates;
 
 #endif /* _QUAKE_SCREEN_H */

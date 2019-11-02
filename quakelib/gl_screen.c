@@ -93,10 +93,6 @@ static void SCR_CalcRefdef(void) {
                r_refdef.vrect.height);
 }
 
-static void SCR_Callback_refdef(cvar_t *var) { SetRecalcRefdef(1); }
-
-//============================================================================
-
 /*
 ==================
 SCR_Init
@@ -105,14 +101,10 @@ SCR_Init
 void SCR_Init(void) {
   Cvar_FakeRegister(&scr_menuscale, "scr_menuscale");
   Cvar_FakeRegister(&scr_sbarscale, "scr_sbarscale");
-  Cvar_SetCallback(&scr_sbaralpha, SCR_Callback_refdef);
   Cvar_FakeRegister(&scr_sbaralpha, "scr_sbaralpha");
   Cvar_FakeRegister(&scr_crosshairscale, "scr_crosshairscale");
   Cvar_FakeRegister(&scr_showfps, "scr_showfps");
   Cvar_FakeRegister(&scr_clock, "scr_clock");
-  Cvar_SetCallback(&scr_fov, SCR_Callback_refdef);
-  Cvar_SetCallback(&scr_fov_adapt, SCR_Callback_refdef);
-  Cvar_SetCallback(&scr_viewsize, SCR_Callback_refdef);
   Cvar_FakeRegister(&scr_fov, "fov");
   Cvar_FakeRegister(&scr_fov_adapt, "fov_adapt");
   Cvar_FakeRegister(&scr_viewsize, "viewsize");
