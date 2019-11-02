@@ -270,7 +270,7 @@ func executeFrame() {
 		  // update video
 		  if (Cvar_GetValue(&host_speeds)) time1 = Sys_DoubleTime();
 
-		  SCR_UpdateScreen();
+		  screen.Update()
 
 		  CL_RunParticles();  // johnfitz -- seperated from rendering
 

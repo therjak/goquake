@@ -169,12 +169,12 @@ func SetNumPages(v C.int) {
 
 //export GetRecalcRefdef
 func GetRecalcRefdef() C.int {
-	return b2i(recalc_refdef)
+	return b2i(screen.recalcViewRect)
 }
 
 //export SetRecalcRefdef
 func SetRecalcRefdef(v C.int) {
-	recalc_refdef = (v != 0)
+	screen.recalcViewRect = (v != 0)
 }
 
 //export ConWidth

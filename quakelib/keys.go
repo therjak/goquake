@@ -62,7 +62,7 @@ func (k *qKeyInput) consoleKeyEvent(key kc.KeyCode) {
 		k.cursorXPos = 0
 		if cls.state == ca_disconnected {
 			// fore an update, because the command may take some time
-			SCR_UpdateScreen()
+			screen.Update()
 		}
 	case kc.TAB:
 		// TODO(therjak): tap completion

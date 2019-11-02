@@ -1,11 +1,9 @@
 package quakelib
 
-//#include <stdlib.h>
-// void SCR_UpdateScreen(void);
-// void ResetTileClearUpdates(void);
 // int GetRFrameCount();
 import "C"
 
+//#include <stdlib.h>
 import (
 	"fmt"
 	"os"
@@ -52,7 +50,8 @@ func (f *fpsAccumulator) Compute() float64 {
 }
 
 type qScreen struct {
-	disabled bool
+	disabled       bool
+	recalcViewRect bool
 
 	centerString []string
 	centerTime   time.Time
@@ -79,6 +78,12 @@ type qScreen struct {
 	numPages int // double or tripple buffering
 
 	fps fpsAccumulator
+
+	tileClearUpdates int
+}
+
+func (scr *qScreen) RecalcViewRect() {
+	scr.recalcViewRect = true
 }
 
 func (scr *qScreen) drawFPS() {
@@ -95,7 +100,7 @@ func (scr *qScreen) drawFPS() {
 	}
 	SetCanvas(CANVAS_BOTTOMRIGHT)
 	DrawStringWhite(x, y, t)
-	C.ResetTileClearUpdates()
+	scr.ResetTileClearUpdates()
 }
 
 //export SCR_DrawFPS
@@ -223,6 +228,41 @@ func SCR_DrawNotifyString() {
 	screen.drawNotifyString()
 }
 
+//export SCR_TileClear
+func SCR_TileClear() {
+	screen.tileClear()
+}
+
+//export SCR_ResetTileClearUpdates
+func SCR_ResetTileClearUpdates() {
+	screen.ResetTileClearUpdates()
+}
+
+func (scr *qScreen) ResetTileClearUpdates() {
+	scr.tileClearUpdates = 0
+}
+
+func (scr *qScreen) tileClear() {
+	if scr.tileClearUpdates >= scr.numPages &&
+		!cvars.GlClear.Bool() &&
+		cvars.Gamma.Value() == 1 {
+		return
+	}
+	scr.tileClearUpdates++
+
+	h := int(viewport.height) - statusbar.Lines()
+	if scr.vrect.x > 0 {
+		sw := scr.vrect.x + scr.vrect.width
+		DrawTileClear(0, 0, scr.vrect.x, h)
+		DrawTileClear(sw, 0, int(viewport.width)-sw, h)
+	}
+	if scr.vrect.y > 0 {
+		sh := scr.vrect.y + scr.vrect.height
+		DrawTileClear(scr.vrect.x, 0, scr.vrect.width, scr.vrect.y)
+		DrawTileClear(scr.vrect.x, sh, scr.vrect.width, h-sh)
+	}
+}
+
 func (scr *qScreen) setupToDrawConsole() {
 	console.CheckResize()
 	if scr.loading {
@@ -265,7 +305,7 @@ func (scr *qScreen) setupToDrawConsole() {
 	}
 
 	if !console.forceDuplication && scr.consoleLines != 0 {
-		C.ResetTileClearUpdates()
+		scr.ResetTileClearUpdates()
 	}
 
 }
@@ -298,7 +338,7 @@ func (scr *qScreen) ModalMessage(msg string, timeout time.Duration) bool {
 	scr.modalMsg = strings.Split(msg, "\n")
 
 	scr.dialog = true
-	C.SCR_UpdateScreen()
+	scr.Update()
 	scr.dialog = false
 
 	// S_ClearBuffer // stop sounds
@@ -347,7 +387,7 @@ func (scr *qScreen) drawLoading() {
 	p := GetCachedPicture("gfx/loading.lmp")
 	DrawPicture((320-p.width)/2, (240-48-p.height)/2, p)
 
-	C.ResetTileClearUpdates()
+	scr.ResetTileClearUpdates()
 }
 
 func (scr *qScreen) drawClock() {
@@ -361,7 +401,7 @@ func (scr *qScreen) drawClock() {
 
 	SetCanvas(CANVAS_BOTTOMRIGHT)
 	DrawStringWhite(320-len(str)*8, 200-8, str)
-	C.ResetTileClearUpdates()
+	scr.ResetTileClearUpdates()
 }
 
 func (s *qScreen) drawPause() {
@@ -376,7 +416,7 @@ func (s *qScreen) drawPause() {
 	p := GetCachedPicture("gfx/pause.lmp")
 	DrawPicture((320-p.width)/2, (240-48-p.height)/2, p)
 
-	C.ResetTileClearUpdates()
+	s.ResetTileClearUpdates()
 }
 
 func (s *qScreen) drawCrosshair() {
@@ -466,7 +506,7 @@ func (scr *qScreen) BeginLoadingPlaque() {
 
 	scr.loading = true
 	statusbar.MarkChanged()
-	C.SCR_UpdateScreen()
+	scr.Update()
 	scr.loading = false
 
 	scr.disabled = true
@@ -478,8 +518,131 @@ func (scr *qScreen) EndLoadingPlaque() {
 	console.ClearNotify()
 }
 
+func (scr *qScreen) drawDevStats() {
+	/*
+	   void SCR_DrawDevStats(void) {
+	     char str[40];
+	     int y = 25 - 9;  // 9=number of lines to print
+	     int x = 0;       // margin
+
+	     if (!Cvar_GetValue(&devstats)) return;
+
+	     GL_SetCanvas(CANVAS_BOTTOMLEFT);
+
+	     DrawFillC(x, y * 8, 19 * 8, 9 * 8, 0, 0.5);  // dark rectangle
+
+	     sprintf(str, "devstats |Curr Peak");
+	     Draw_String(x, (y++) * 8 - x, str);
+
+	     sprintf(str, "---------+---------");
+	     Draw_String(x, (y++) * 8 - x, str);
+
+	     sprintf(str, "Edicts   |%4i %4i", dev_stats.edicts, dev_peakstats.edicts);
+	     Draw_String(x, (y++) * 8 - x, str);
+
+	     sprintf(str, "Packet   |%4i %4i", dev_stats.packetsize,
+	             dev_peakstats.packetsize);
+	     Draw_String(x, (y++) * 8 - x, str);
+
+	     sprintf(str, "Visedicts|%4i %4i", dev_stats.visedicts,
+	             dev_peakstats.visedicts);
+	     Draw_String(x, (y++) * 8 - x, str);
+
+	     sprintf(str, "Efrags   |%4i %4i", dev_stats.efrags, dev_peakstats.efrags);
+	     Draw_String(x, (y++) * 8 - x, str);
+
+	     sprintf(str, "Dlights  |%4i %4i", dev_stats.dlights, dev_peakstats.dlights);
+	     Draw_String(x, (y++) * 8 - x, str);
+
+	     sprintf(str, "Beams    |%4i %4i", dev_stats.beams, dev_peakstats.beams);
+	     Draw_String(x, (y++) * 8 - x, str);
+
+	     sprintf(str, "Tempents |%4i %4i", dev_stats.tempents, dev_peakstats.tempents);
+	     Draw_String(x, (y++) * 8 - x, str);
+	   }*/
+}
+
+//export SCR_UpdateScreen
 func SCR_UpdateScreen() {
-	C.SCR_UpdateScreen()
+	screen.Update()
+}
+
+func (scr *qScreen) Update() {
+	/*
+	   SetNumPages((Cvar_GetValue(&gl_triplebuffer)) ? 3 : 2);
+
+	   if (ScreenDisabled()) {
+	     if (HostRealTime() - SCR_GetDisabledTime() > 60) {
+	       SetScreenDisabled(false);
+	       Con_Printf("load failed.\n");
+	     } else
+	       return;
+	   }
+
+	   if (!scr_initialized || !Con_Initialized()) return;
+
+	   UpdateViewport();
+
+	   //
+	   // determine size of refresh window
+	   //
+	   if (GetRecalcRefdef()) SCR_CalcRefdef();
+
+	   //
+	   // do 3D refresh drawing, and then update the screen
+	   //
+	   SCR_SetUpToDrawConsole();
+
+	   V_RenderView();
+
+	   GL_Set2D();
+
+	   // FIXME: only call this when needed
+	   SCR_TileClear();
+
+	   if (SCR_IsDrawDialog())  // new game confirm
+	   {
+	     if (Con_ForceDup())
+	       DrawConsoleBackgroundC();
+	     else
+	       Sbar_Draw();
+	     Draw_FadeScreen();
+	     SCR_DrawNotifyString();
+	   } else if (SCR_IsDrawLoading())  // loading
+	   {
+	     SCR_DrawLoading();
+	     Sbar_Draw();
+	   } else if (CL_Intermission() == 1 &&
+	              GetKeyDest() == key_game)  // end of level
+	   {
+	     Sbar_IntermissionOverlay();
+	   } else if (CL_Intermission() == 2 &&
+	              GetKeyDest() == key_game)  // end of episode
+	   {
+	     Sbar_FinaleOverlay();
+	     SCR_CheckDrawCenterString();
+	   } else {
+	     SCR_DrawCrosshair();  // johnfitz
+	     SCR_DrawNet();
+	     SCR_DrawTurtle();
+	     SCR_DrawPause();
+	     SCR_CheckDrawCenterString();
+	     Sbar_Draw();
+	     SCR_DrawDevStats();  // johnfitz
+	     SCR_DrawFPS();       // johnfitz
+	     SCR_DrawClock();     // johnfitz
+	     SCR_DrawConsole();
+	     M_Draw();
+	   }
+
+	   V_UpdateBlend();  // johnfitz -- V_UpdatePalette cleaned up and renamed
+
+	   GLSLGamma_GammaCorrect();
+
+	   GL_EndRendering();
+	*/
+
+	// C.SCR_UpdateScreen()
 }
 
 func init() {

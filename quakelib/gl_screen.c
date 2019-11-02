@@ -14,10 +14,6 @@ cvar_t gl_triplebuffer;
 
 qboolean scr_initialized;  // ready to draw
 
-int scr_tileclear_updates = 0;  // johnfitz
-
-void ResetTileClearUpdates(void) { scr_tileclear_updates = 0; }
-
 /*
 ====================
 AdaptFovx
@@ -67,7 +63,7 @@ static void SCR_CalcRefdef(void) {
   // force the status bar to redraw
   Sbar_Changed();
 
-  ResetTileClearUpdates();
+  SCR_ResetTileClearUpdates();
 
   // bound viewsize
   if (Cvar_GetValue(&scr_viewsize) < 30) Cvar_SetQuick(&scr_viewsize, "30");
@@ -175,38 +171,6 @@ void SCR_DrawDevStats(void) {
 
 /*
 ==================
-SCR_TileClear
-==================
-*/
-void SCR_TileClear(void) {
-  // ericw -- added check for glsl gamma. TODO: remove this ugly optimization?
-  if (scr_tileclear_updates >= GetNumPages() && !Cvar_GetValue(&gl_clear) &&
-      !(Cvar_GetValue(&vid_gamma) != 1))
-    return;
-  scr_tileclear_updates++;
-
-  if (r_refdef.vrect.x > 0) {
-    // left
-    Draw_TileClear(0, 0, r_refdef.vrect.x, GL_Height() - Sbar_Lines());
-    // right
-    Draw_TileClear(r_refdef.vrect.x + r_refdef.vrect.width, 0,
-                   GL_Width() - r_refdef.vrect.x - r_refdef.vrect.width,
-                   GL_Height() - Sbar_Lines());
-  }
-
-  if (r_refdef.vrect.y > 0) {
-    // top
-    Draw_TileClear(r_refdef.vrect.x, 0, r_refdef.vrect.width, r_refdef.vrect.y);
-    // bottom
-    Draw_TileClear(
-        r_refdef.vrect.x, r_refdef.vrect.y + r_refdef.vrect.height,
-        r_refdef.vrect.width,
-        GL_Height() - r_refdef.vrect.y - r_refdef.vrect.height - Sbar_Lines());
-  }
-}
-
-/*
-==================
 SCR_UpdateScreen
 
 This is called every frame, and can also be called explicitly to flush
@@ -216,7 +180,7 @@ WARNING: be very careful calling this from elsewhere, because the refresh
 needs almost the entire 256k of stack space!
 ==================
 */
-void SCR_UpdateScreen(void) {
+void SCR_UpdateScreen2(void) {
   SetNumPages((Cvar_GetValue(&gl_triplebuffer)) ? 3 : 2);
 
   if (ScreenDisabled()) {

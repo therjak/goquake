@@ -59,7 +59,7 @@ func videoSetMode(width, height, bpp int32, fullscreen bool) {
 
 	Key_ClearStates()
 
-	recalc_refdef = true
+	screen.RecalcViewRect()
 	videoChanged = true
 }
 
@@ -211,19 +211,18 @@ func toggleFullScreen() {
 	// this addition fixes at least the 'to fullscreen'
 	// not sure what the issue is with 'from fullscreen' as it looks distorted
 	screenWidth, screenHeight = window.Size()
-	recalc_refdef = true
+	screen.RecalcViewRect()
 	UpdateConsoleSize()
 }
 
 var (
-	screenWidth   int
-	screenHeight  int
-	recalc_refdef bool
+	screenWidth  int
+	screenHeight int
 )
 
 func init() {
 	f := func(_ *cvar.Cvar) {
-		recalc_refdef = true
+		screen.RecalcViewRect()
 		UpdateConsoleSize()
 	}
 	cvars.ScreenConsoleWidth.SetCallback(f)

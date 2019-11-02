@@ -231,5 +231,5 @@ void R_UpdateWarpTextures(void) {
 
   // if viewsize is less than 100, we need to redraw the frame around the
   // viewport
-  scr_tileclear_updates = 0;
+  SCR_ResetTileClearUpdates();
 }

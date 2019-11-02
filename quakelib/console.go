@@ -320,7 +320,7 @@ func (c *qconsole) Print(txt string) {
 	if cls.signon != 4 && !screen.disabled {
 		if !printRecursionProtection {
 			printRecursionProtection = true
-			SCR_UpdateScreen()
+			screen.Update()
 			printRecursionProtection = false
 		}
 	}
