@@ -102,7 +102,7 @@ func (cv *Cvar) SetValue(value float32) {
 		v := strconv.FormatInt(int64(value), 10)
 		cv.SetByString(v)
 	} else {
-		v := strconv.FormatFloat(float64(value), 'E', -1, 32)
+		v := strconv.FormatFloat(float64(value), 'f', -1, 32)
 		cv.SetByString(v)
 	}
 }
