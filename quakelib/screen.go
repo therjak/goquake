@@ -132,24 +132,9 @@ func SCR_InitGo() {
 	screen.initialized = true
 }
 
-//export SCR_DrawFPS
-func SCR_DrawFPS() {
-	screen.drawFPS()
-}
-
-//export SCR_SetUpToDrawConsole
-func SCR_SetUpToDrawConsole() {
-	screen.setupToDrawConsole()
-}
-
 //export GetScreenConsoleCurrentHeight
 func GetScreenConsoleCurrentHeight() int {
 	return screen.consoleLines
-}
-
-//export SCR_DrawConsole
-func SCR_DrawConsole() {
-	screen.drawConsole()
 }
 
 //export SCR_CenterPrint
@@ -157,64 +142,9 @@ func SCR_CenterPrint(s *C.char) {
 	screen.CenterPrint(C.GoString(s))
 }
 
-//export SCR_DrawCrosshair
-func SCR_DrawCrosshair() {
-	screen.drawCrosshair()
-}
-
-//export SCR_CheckDrawCenterString
-func SCR_CheckDrawCenterString() {
-	screen.CheckDrawCenterPrint()
-}
-
-//export SCR_DrawPause
-func SCR_DrawPause() {
-	screen.drawPause()
-}
-
-//export SCR_DrawClock
-func SCR_DrawClock() {
-	screen.drawClock()
-}
-
-//export SCR_IsDrawLoading
-func SCR_IsDrawLoading() C.int {
-	return b2i(screen.loading)
-}
-
 //export SCR_SetDrawLoading
 func SCR_SetDrawLoading(b int) {
 	screen.loading = (b != 0)
-}
-
-//export SCR_IsDrawDialog
-func SCR_IsDrawDialog() C.int {
-	return b2i(screen.dialog)
-}
-
-//export SCR_SetDrawDialog
-func SCR_SetDrawDialog(b int) {
-	screen.dialog = (b != 0)
-}
-
-//export SCR_DrawLoading
-func SCR_DrawLoading() {
-	screen.drawLoading()
-}
-
-//export SCR_DrawTurtle
-func SCR_DrawTurtle() {
-	screen.drawTurtle()
-}
-
-//export SCR_DrawNet
-func SCR_DrawNet() {
-	screen.drawNet()
-}
-
-//export SCR_SetVRect
-func SCR_SetVRect(x, y, w, h int) {
-	screen.vrect = Rect{x: x, y: y, width: w, height: h}
 }
 
 //export SCR_GetVRectX
@@ -237,29 +167,9 @@ func SCR_GetVRectWidth() int {
 	return screen.vrect.width
 }
 
-//export SCR_UpdateDisabledTime
-func SCR_UpdateDisabledTime() {
-	screen.disabledTime = host.time
-}
-
-//export SCR_GetDisabledTime
-func SCR_GetDisabledTime() C.double {
-	return C.double(screen.disabledTime)
-}
-
 //export SCR_ModalMessage
 func SCR_ModalMessage(c *C.char, timeout C.float) bool {
 	return screen.ModalMessage(C.GoString(c), time.Second*time.Duration(timeout))
-}
-
-//export SCR_DrawNotifyString
-func SCR_DrawNotifyString() {
-	screen.drawNotifyString()
-}
-
-//export SCR_TileClear
-func SCR_TileClear() {
-	screen.tileClear()
 }
 
 //export SCR_ResetTileClearUpdates
@@ -735,8 +645,6 @@ func (scr *qScreen) Update() {
 	view.UpdateBlend()
 	GLSLGamma_GammaCorrect()
 	window.EndRendering()
-
-	// C.SCR_UpdateScreen2()
 }
 
 func init() {
