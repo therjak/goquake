@@ -1,11 +1,14 @@
 package quakelib
 
 // int GetRFrameCount();
+// void SCR_UpdateScreen2();
+// void SetRefdefRect(int x, int y, int w, int h);
+// void SetRefdefFov(float x, float y);
 import "C"
 
-//#include <stdlib.h>
 import (
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"quake/cmd"
@@ -15,6 +18,7 @@ import (
 	"quake/image"
 	"quake/keys"
 	"quake/snd"
+	"quake/window"
 	"strings"
 	"time"
 
@@ -81,6 +85,14 @@ type qScreen struct {
 	fps fpsAccumulator
 
 	tileClearUpdates int
+
+	fovX float64
+	fovY float64
+
+	Width  int
+	Height int
+
+	initialized bool
 }
 
 func init() {
@@ -113,6 +125,11 @@ func (scr *qScreen) drawFPS() {
 	SetCanvas(CANVAS_BOTTOMRIGHT)
 	DrawStringWhite(x, y, t)
 	scr.ResetTileClearUpdates()
+}
+
+//export SCR_InitGo
+func SCR_InitGo() {
+	screen.initialized = true
 }
 
 //export SCR_DrawFPS
@@ -579,82 +596,147 @@ func SCR_UpdateScreen() {
 	screen.Update()
 }
 
+func (scr *qScreen) calcViewRect() {
+	// TODO: figure out what Refdef is and rename this stuff
+
+	statusbar.MarkChanged()
+	scr.ResetTileClearUpdates()
+
+	// SetByString is the faster one
+	if cvars.ViewSize.Value() < 30 {
+		cvars.ViewSize.SetByString("30")
+	} else if cvars.ViewSize.Value() > 120 {
+		cvars.ViewSize.SetByString("120")
+	}
+	fovx := float64(cvars.Fov.Value())
+	if fovx < 10 {
+		cvars.Fov.SetByString("10")
+		fovx = 10
+	} else if fovx > 170 {
+		cvars.Fov.SetByString("170")
+		fovx = 170
+	}
+
+	scr.recalcViewRect = false
+
+	size := cvars.ViewSize.Value()
+	if size > 100 {
+		size = 1
+	} else {
+		size /= 100
+	}
+	w := float32(viewport.width) * size
+	if w < 96 {
+		w = 96 // lower limit for icons
+	}
+	h := float32(viewport.height) * size
+	hbound := float32(viewport.height) - float32(statusbar.Lines())
+	if h > hbound {
+		h = hbound // keep space for the statusbar
+	}
+	x := (float32(viewport.width) - w) / 2
+	y := (float32(viewport.height) - float32(statusbar.Lines()) - h) / 2
+
+	scr.vrect = Rect{
+		x:      int(x),
+		y:      int(y),
+		width:  int(w),
+		height: int(h),
+	}
+	sh := float64(scr.Height)
+	sw := float64(scr.Width)
+
+	if cvars.FovAdapt.Bool() {
+		x := sh / sw
+		if x != 0.75 {
+			fovx = math.Atan(0.75/x*math.Tan(fovx/360*math.Pi)) * 360 / math.Pi
+			if fovx < 1 {
+				fovx = 1
+			} else if fovx > 179 {
+				fovx = 179
+			}
+		}
+	}
+	fovy := math.Atan(sh/(sw/math.Tan(fovx/360*math.Pi))) * 360 / math.Pi
+	scr.fovX = fovx
+	scr.fovY = fovy
+
+	// notify the C side
+	C.SetRefdefRect(C.int(scr.vrect.x), C.int(scr.vrect.y),
+		C.int(scr.vrect.width), C.int(scr.vrect.height))
+	C.SetRefdefFov(C.float(scr.fovX), C.float(scr.fovY))
+}
+
 func (scr *qScreen) Update() {
-	/*
-	   SetNumPages((Cvar_GetValue(&gl_triplebuffer)) ? 3 : 2);
+	scr.numPages = 2
+	if cvars.GlTripleBuffer.Bool() {
+		scr.numPages = 3
+	}
 
-	   if (ScreenDisabled()) {
-	     if (HostRealTime() - SCR_GetDisabledTime() > 60) {
-	       SetScreenDisabled(false);
-	       Con_Printf("load failed.\n");
-	     } else
-	       return;
-	   }
+	if scr.disabled {
+		if host.time-scr.disabledTime > 60 {
+			scr.disabled = false
+			conlog.Printf("load failed.\n")
+		} else {
+			return
+		}
+	}
 
-	   if (!scr_initialized || !Con_Initialized()) return;
+	if !scr.initialized || !console.initialized {
+		return
+	}
 
-	   UpdateViewport();
+	UpdateViewport()
 
-	   //
-	   // determine size of refresh window
-	   //
-	   if (GetRecalcRefdef()) SCR_CalcRefdef();
+	if scr.recalcViewRect {
+		scr.calcViewRect()
+	}
 
-	   //
-	   // do 3D refresh drawing, and then update the screen
-	   //
-	   SCR_SetUpToDrawConsole();
+	scr.setupToDrawConsole()
 
-	   V_RenderView();
+	view.Render()
+	GL_Set2D()
 
-	   GL_Set2D();
+	scr.tileClear()
 
-	   // FIXME: only call this when needed
-	   SCR_TileClear();
+	if scr.dialog {
+		// new game confirm
+		if console.forceDuplication {
+			DrawConsoleBackground()
+		} else {
+			statusbar.Draw()
+		}
+		DrawFadeScreen()
+		scr.drawNotifyString()
+	} else if scr.loading {
+		scr.drawLoading()
+		statusbar.Draw()
+	} else if cl.intermission == 1 && keyDestination == keys.Game {
+		// end of level
+		statusbar.IntermissionOverlay()
+	} else if cl.intermission == 2 && keyDestination == keys.Game {
+		// end of episode
+		statusbar.FinaleOverlay()
+		scr.CheckDrawCenterPrint()
+	} else {
+		scr.drawCrosshair()
+		scr.drawNet()
+		scr.drawTurtle()
+		scr.drawPause()
+		scr.CheckDrawCenterPrint()
+		statusbar.Draw()
+		scr.drawDevStats()
+		scr.drawFPS()
+		scr.drawClock()
+		scr.drawConsole()
+		qmenu.Draw()
+	}
 
-	   if (SCR_IsDrawDialog())  // new game confirm
-	   {
-	     if (Con_ForceDup())
-	       DrawConsoleBackgroundC();
-	     else
-	       Sbar_Draw();
-	     Draw_FadeScreen();
-	     SCR_DrawNotifyString();
-	   } else if (SCR_IsDrawLoading())  // loading
-	   {
-	     SCR_DrawLoading();
-	     Sbar_Draw();
-	   } else if (CL_Intermission() == 1 &&
-	              GetKeyDest() == key_game)  // end of level
-	   {
-	     Sbar_IntermissionOverlay();
-	   } else if (CL_Intermission() == 2 &&
-	              GetKeyDest() == key_game)  // end of episode
-	   {
-	     Sbar_FinaleOverlay();
-	     SCR_CheckDrawCenterString();
-	   } else {
-	     SCR_DrawCrosshair();  // johnfitz
-	     SCR_DrawNet();
-	     SCR_DrawTurtle();
-	     SCR_DrawPause();
-	     SCR_CheckDrawCenterString();
-	     Sbar_Draw();
-	     SCR_DrawDevStats();  // johnfitz
-	     SCR_DrawFPS();       // johnfitz
-	     SCR_DrawClock();     // johnfitz
-	     SCR_DrawConsole();
-	     M_Draw();
-	   }
+	view.UpdateBlend()
+	GLSLGamma_GammaCorrect()
+	window.EndRendering()
 
-	   V_UpdateBlend();  // johnfitz -- V_UpdatePalette cleaned up and renamed
-
-	   GLSLGamma_GammaCorrect();
-
-	   GL_EndRendering();
-	*/
-
-	// C.SCR_UpdateScreen()
+	// C.SCR_UpdateScreen2()
 }
 
 func init() {

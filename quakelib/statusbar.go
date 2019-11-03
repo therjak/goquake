@@ -41,12 +41,12 @@ func Sbar_Lines() int {
 
 //export Sbar_IntermissionOverlay
 func Sbar_IntermissionOverlay() {
-	statusbar.intermissionOverlay()
+	statusbar.IntermissionOverlay()
 }
 
 //export Sbar_FinaleOverlay
 func Sbar_FinaleOverlay() {
-	statusbar.finaleOverlay()
+	statusbar.FinaleOverlay()
 }
 
 //export Sbar_Draw
@@ -748,7 +748,7 @@ func (s *qstatusbar) deathmatchOverlay() {
 	SetCanvas(CANVAS_STATUSBAR)
 }
 
-func (s *qstatusbar) intermissionOverlay() {
+func (s *qstatusbar) IntermissionOverlay() {
 	if cl.gameType == svc.GameDeathmatch {
 		s.deathmatchOverlay()
 		return
@@ -774,7 +774,7 @@ func (s *qstatusbar) intermissionOverlay() {
 	s.drawNumber(240, 144, cl.stats.totalMonsters, 0)
 }
 
-func (s *qstatusbar) finaleOverlay() {
+func (s *qstatusbar) FinaleOverlay() {
 	SetCanvas(CANVAS_MENU)
 
 	pic := GetCachedPicture("gfx/finale.lmp")
@@ -875,7 +875,7 @@ func (s *qstatusbar) drawCTFScores() {
 
 	xofs := 113
 	if cl.gameType != svc.GameDeathmatch {
-		xofs += (screenWidth - 320) / 2
+		xofs += (screen.Width - 320) / 2
 	}
 
 	DrawPicture(112, 24, s.rteambord)
@@ -892,7 +892,7 @@ func (s *qstatusbar) drawCTFScores() {
 }
 
 func (s *qstatusbar) Draw() {
-	if console.currentHeight() == screenHeight {
+	if console.currentHeight() == screen.Height {
 		return
 	}
 	if cl.intermission != 0 {

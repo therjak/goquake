@@ -97,7 +97,7 @@ type MenuItemScale struct {
 
 func (m *MenuItemScale) Draw() {
 	drawString(16, m.Y, "                 Scale")
-	l := (float32(screenWidth) / 320.0) - 1
+	l := (float32(screen.Width) / 320.0) - 1
 	r := func() float32 {
 		if l > 0 {
 			return (cvars.ScreenConsoleScale.Value() - 1) / l
@@ -114,7 +114,7 @@ func (m *MenuItemScale) Right() {
 	m.change(cvars.ScreenConsoleScale.Value() + 0.1)
 }
 func (m *MenuItemScale) change(f float32) {
-	l := float32((screenWidth+31)/32) / 10.0
+	l := float32((screen.Width+31)/32) / 10.0
 	v := math.Clamp32(1, f, l)
 	cvars.ScreenConsoleScale.SetValue(v)
 	cvars.ScreenMenuScale.SetValue(v)

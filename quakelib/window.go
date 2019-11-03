@@ -24,7 +24,7 @@ var (
 
 func windowSetMode(width, height, bpp int32, fullscreen bool) {
 	window.SetMode(width, height, bpp, fullscreen)
-	screenWidth, screenHeight = window.Size()
+	screen.Width, screen.Height = window.Size()
 	UpdateConsoleSize()
 }
 
@@ -33,7 +33,7 @@ func videoSetMode(width, height, bpp int32, fullscreen bool) {
 	screen.disabled = true
 
 	window.SetMode(width, height, bpp, fullscreen)
-	screenWidth, screenHeight = window.Size()
+	screen.Width, screen.Height = window.Size()
 	UpdateConsoleSize()
 
 	glSwapControl = true
@@ -210,15 +210,10 @@ func toggleFullScreen() {
 	}
 	// this addition fixes at least the 'to fullscreen'
 	// not sure what the issue is with 'from fullscreen' as it looks distorted
-	screenWidth, screenHeight = window.Size()
+	screen.Width, screen.Height = window.Size()
 	screen.RecalcViewRect()
 	UpdateConsoleSize()
 }
-
-var (
-	screenWidth  int
-	screenHeight int
-)
 
 func init() {
 	f := func(_ *cvar.Cvar) {
@@ -235,15 +230,15 @@ func updateConsoleSize() {
 			return int(cvars.ScreenConsoleWidth.Value())
 		}
 		if cvars.ScreenConsoleScale.Value() > 0 {
-			return int(float32(screenWidth) / cvars.ScreenConsoleScale.Value())
+			return int(float32(screen.Width) / cvars.ScreenConsoleScale.Value())
 		}
-		return screenWidth
+		return screen.Width
 	}()
-	w = math.ClampI(320, w, screenWidth)
+	w = math.ClampI(320, w, screen.Width)
 	w &= 0xFFFFFFF8
 
 	console.width = int(w)
-	console.height = console.width * screenHeight / screenWidth
+	console.height = console.width * screen.Height / screen.Width
 }
 
 func b2s(b bool) string {

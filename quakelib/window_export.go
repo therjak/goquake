@@ -189,12 +189,12 @@ func ConHeight() C.int {
 
 //export ScreenWidth
 func ScreenWidth() C.int {
-	return C.int(screenWidth)
+	return C.int(screen.Width)
 }
 
 //export ScreenHeight
 func ScreenHeight() C.int {
-	return C.int(screenHeight)
+	return C.int(screen.Height)
 }
 
 //export UpdateConsoleSize

@@ -1,5 +1,9 @@
 package quakelib
 
+// void V_UpdateBlend(void);
+// void V_RenderView(void);
+import "C"
+
 import (
 	"quake/cvars"
 	"quake/math/vec"
@@ -28,4 +32,18 @@ func CalcRoll(angles, velocity vec.Vec3) float32 {
 		return -r
 	}
 	return r
+}
+
+type qView struct{}
+
+var (
+	view qView
+)
+
+func (v *qView) UpdateBlend() {
+	C.V_UpdateBlend()
+}
+
+func (v *qView) Render() {
+	C.V_RenderView()
 }

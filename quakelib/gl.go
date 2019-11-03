@@ -1,5 +1,7 @@
 package quakelib
 
+// void GL_Set2D(void);
+// void GLSLGamma_GammaCorrect(void);
 import "C"
 
 import (
@@ -48,6 +50,13 @@ func GL_Y() int32 {
 func UpdateViewport() {
 	viewport.x = 0
 	viewport.y = 0
-	viewport.width = int32(screenWidth)
-	viewport.height = int32(screenHeight)
+	viewport.width = int32(screen.Width)
+	viewport.height = int32(screen.Height)
+}
+
+func GL_Set2D() {
+	C.GL_Set2D()
+}
+func GLSLGamma_GammaCorrect() {
+	C.GLSLGamma_GammaCorrect()
 }
