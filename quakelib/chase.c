@@ -13,26 +13,10 @@ Chase_Init
 ==============
 */
 void Chase_Init(void) {
-  Cvar_FakeRegister(&chase_back,"chase_back");
-  Cvar_FakeRegister(&chase_up,"chase_up");
-  Cvar_FakeRegister(&chase_right,"chase_right");
-  Cvar_FakeRegister(&chase_active,"chase_active");
-}
-
-/*
-==============
-Chase_UpdateForClient -- johnfitz -- orient client based on camera. called after
-input
-==============
-*/
-void Chase_UpdateForClient(void) {
-  // place camera
-
-  // assign client angles to camera
-
-  // see where camera points
-
-  // adjust client angles to point at the same place
+  Cvar_FakeRegister(&chase_back, "chase_back");
+  Cvar_FakeRegister(&chase_up, "chase_up");
+  Cvar_FakeRegister(&chase_right, "chase_right");
+  Cvar_FakeRegister(&chase_active, "chase_active");
 }
 
 /*
@@ -43,14 +27,15 @@ before drawing
 TODO: stay at least 8 units away from all walls in this leaf
 ==============
 */
+// THERJAK
 void Chase_UpdateForDrawing(void) {
   int i;
   vec3_t forward, up, right;
   vec3_t ideal, crosshair, temp;
   vec3_t clviewangles;
-  clviewangles[PITCH]=CLPitch();
-  clviewangles[YAW]=CLYaw();
-  clviewangles[ROLL]=CLRoll();
+  clviewangles[PITCH] = CLPitch();
+  clviewangles[YAW] = CLYaw();
+  clviewangles[ROLL] = CLRoll();
 
   AngleVectors(clviewangles, forward, right, up);
 

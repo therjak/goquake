@@ -422,27 +422,6 @@ void Draw_Character(int x, int y, int num) {
 }
 
 /*
-================
-Draw_String -- johnfitz -- modified to call Draw_CharacterQuad
-================
-*/
-void Draw_String(int x, int y, const char *str) {
-  if (y <= -8) return;  // totally off screen
-
-  GL_Bind(char_texture);
-  glBegin(GL_QUADS);
-
-  while (*str) {
-    if (*str != 32)  // don't waste verts on spaces
-      Draw_CharacterQuad(x, y, *str);
-    str++;
-    x += 8;
-  }
-
-  glEnd();
-}
-
-/*
 =============
 Draw_Pic -- johnfitz -- modified
 =============
@@ -662,6 +641,7 @@ void GL_SetCanvas(canvastype newcanvas) {
 GL_Set2D -- johnfitz -- rewritten
 ================
 */
+// THERJAK
 void GL_Set2D(void) {
   currentcanvas = CANVAS_INVALID;
   GL_SetCanvas(CANVAS_DEFAULT);

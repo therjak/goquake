@@ -288,7 +288,6 @@ void CL_ParseServerInfo(void) {
 
   // parse signon message
   str = CL_MSG_ReadString();
-  q_strlcpy(cl.levelname, str, sizeof(cl.levelname));
   CL_SetLevelName(str);
 
   // seperate the printfs so the server message can have a color
@@ -1158,7 +1157,7 @@ void CL_ParseServerMessage(void) {
         if (i >= CL_MaxClients())
           Host_Error("CL_ParseServerMessage: svc_updatename > MAX_SCOREBOARD");
         q_strlcpy(cl.scores[i].name, CL_MSG_ReadString(), MAX_SCOREBOARDNAME);
-        CL_ScoresSetName(i,cl.scores[i].name);
+        CL_ScoresSetName(i, cl.scores[i].name);
         break;
 
       case svc_updatefrags:

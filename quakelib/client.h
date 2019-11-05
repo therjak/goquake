@@ -1,25 +1,3 @@
-/*
-Copyright (C) 1996-2001 Id Software, Inc.
-Copyright (C) 2002-2009 John Fitzgibbons and others
-Copyright (C) 2010-2014 QuakeSpasm developers
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
-
 #ifndef _CLIENT_H_
 #define _CLIENT_H_
 
@@ -111,12 +89,12 @@ typedef struct {
   // the view is temporarliy offset, and an angle reset commands at the start
   // of each level and after teleporting.
   vec3_t mviewangles[2];  // during demo playback viewangles is lerped
-                          // between these
+  // between these
   vec3_t viewangles;
 
   vec3_t mvelocity[2];  // update by server, used for lean+bob
-                        // (0 is newest)
-  vec3_t velocity;      // lerped between mvelocity[0] and [1]
+  // (0 is newest)
+  vec3_t velocity;  // lerped between mvelocity[0] and [1]
 
   vec3_t punchangle;  // temporary offset
 
@@ -135,11 +113,7 @@ typedef struct {
   //
   struct qmodel_s *model_precache[MAX_MODELS];
 
-  char mapname[128];    // therjak
-  char levelname[128];  // for display on solo scoreboard //johnfitz -- was 40.
-                        // // therjak
-  // int viewentity;       // cl_entitites[cl.viewentity] = player
-  // int maxclients; // therjak
+  char mapname[128];  // therjak
 
   // refresh related state
   struct qmodel_s *worldmodel;  // cl_entitites[0].model
@@ -249,7 +223,6 @@ extern cvar_t chase_active;
 
 void Chase_Init(void);
 void TraceLine(vec3_t start, vec3_t end, vec3_t impact);
-void Chase_UpdateForClient(void);   // johnfitz
 void Chase_UpdateForDrawing(void);  // johnfitz
 
 #endif /* _CLIENT_H_ */
