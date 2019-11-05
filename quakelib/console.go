@@ -6,7 +6,10 @@ import "C"
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
+	"os"
+	"path"
 	"quake/cmd"
 	"quake/conlog"
 	"quake/cvars"
@@ -216,6 +219,28 @@ func init() {
 	cmd.AddCommand("clear", func([]cmd.QArg, int) { console.Clear() })
 	cmd.AddCommand("messagemode", func([]cmd.QArg, int) { console.messageMode(false) })
 	cmd.AddCommand("messagemode2", func([]cmd.QArg, int) { console.messageMode(true) })
+
+	cmd.AddCommand("condump", func([]cmd.QArg, int) { console.dump() })
+}
+
+func (c *qconsole) dump() {
+	fn := path.Join(gameDirectory, "condump.txt")
+	err := os.MkdirAll(gameDirectory, os.ModePerm)
+	if err != nil {
+		conlog.Printf("Could not create directory")
+		return
+	}
+	s := strings.Join(c.origText, "")
+	b := []byte(s)
+	for i := 0; i < len(b); i++ {
+		b[i] &= 0x7f
+	}
+	err = ioutil.WriteFile(fn, b, os.ModePerm)
+	if err != nil {
+		conlog.Printf("ERROR: couln't write file %s.\n", fn)
+		return
+	}
+	conlog.Printf("Dumped console text to %s.\n", fn)
 }
 
 func (c *qconsole) Clear() {

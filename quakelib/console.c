@@ -9,107 +9,7 @@
 #endif
 #include "quakedef.h"
 
-// Needs:
-// COM_CreatePath
-// Key_GetChatMsgLen
-// Key_GetChatBuffer
-// SCR_UpdateScreen
-//
-// Has:
-// GL_SetCanvas
-// Draw_String
-// Draw_Pic
-// Draw_Character
-// CLS_GetState --
-// CLS_IsDemoPlayback --
-// CLS_GetSignon --
-// Cmd_AddCommand --
-// Con_SafePrintf --
-// Cvar_GetValue --
-// IN_Activate --
-// IN_Deactivate --
-// S_LocalSound --
-// ScreenDisabled --
-// SetScreenDisabled --
-// Sys_Print --
-
-float con_cursorspeed = 4;
-
-#define CON_TEXTSIZE 65536  // johnfitz -- new default size
-#define CON_MINSIZE 16384   // johnfitz -- old default, now the minimum size
-
-int con_buffersize;  // johnfitz -- user can now override default
-
-int con_totallines;  // total lines in console scrollback
-int con_current;     // where next message will be printed
-int con_x;           // offset in current line for next print
-char *con_text = NULL;
-
-cvar_t con_notifytime;  // = {"con_notifytime", "3", CVAR_NONE};          //
-                        // seconds
-
-#define NUM_CON_TIMES 4
-float con_times[NUM_CON_TIMES];  // realtime time the line was generated
-                                 // for transparent notify lines
-
-int con_vislines;
-
-qboolean con_debuglog = false;
-
-/*
-================
-Con_ToggleConsole_f
-================
-*/
 extern int history_line;  // johnfitz
-
-/*
-================
-Con_Dump_f -- johnfitz -- adapted from quake2 source
-================
-*/
-static void Con_Dump_f(void) {
-  int l, x;
-  const char *line;
-  FILE *f;
-  char buffer[1024];
-  char name[MAX_OSPATH];
-
-  q_snprintf(name, sizeof(name), "%s/condump.txt", Com_Gamedir());
-  COM_CreatePath(name);
-  f = fopen(name, "w");
-  if (!f) {
-    Con_Printf("ERROR: couldn't open file %s.\n", name);
-    return;
-  }
-
-  // skip initial empty lines
-  for (l = con_current - con_totallines + 1; l <= con_current; l++) {
-    line = con_text + (l % con_totallines) * ConsoleWidth();
-    for (x = 0; x < ConsoleWidth(); x++)
-      if (line[x] != ' ') break;
-    if (x != ConsoleWidth()) break;
-  }
-
-  // write the remaining lines
-  buffer[ConsoleWidth()] = 0;
-  for (; l <= con_current; l++) {
-    line = con_text + (l % con_totallines) * ConsoleWidth();
-    strncpy(buffer, line, ConsoleWidth());
-    for (x = ConsoleWidth() - 1; x >= 0; x--) {
-      if (buffer[x] == ' ')
-        buffer[x] = 0;
-      else
-        break;
-    }
-    for (x = 0; buffer[x]; x++) buffer[x] &= 0x7f;
-
-    fprintf(f, "%s\n", buffer);
-  }
-
-  fclose(f);
-  Con_Printf("Dumped console text to %s.\n", name);
-}
 
 /*
 ================
@@ -117,24 +17,8 @@ Con_Init
 ================
 */
 void ConInit(void) {
-  con_buffersize = q_max(CON_MINSIZE, CMLConsoleSize() * 1024);
-
-  con_text = (char *)Hunk_AllocName(
-      con_buffersize,
-      "context");  // johnfitz -- con_buffersize replaces CON_TEXTSIZE
-  Q_memset(con_text, ' ',
-           con_buffersize);  // johnfitz -- con_buffersize replaces CON_TEXTSIZE
-  // johnfitz -- no need to run Con_CheckResize here
   SetConsoleWidth(38);
-  con_totallines = con_buffersize / ConsoleWidth();
-  con_current = con_totallines - 1;
-  // johnfitz
-
   Con_Printf("Console initialized.\n");
-
-  Cvar_FakeRegister(&con_notifytime, "con_notifytime");
-
-  Cmd_AddCommand("condump", Con_Dump_f);  // johnfitz
 }
 
 /*
