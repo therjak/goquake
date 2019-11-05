@@ -1,5 +1,9 @@
 // gl_texmgr.c -- fitzquake's texture manager. manages opengl texture images
 
+//THERJAK:
+// change gltexture_t to simple int (index)
+
+
 #include "quakedef.h"
 
 const int gl_solid_format = 3;
@@ -72,6 +76,7 @@ static void TexMgr_SetFilterModes(gltexture_t *glt) {
   GL_Bind(glt);
 
   if (glt->flags & TEXPREF_NEAREST) {
+    // THERJAK: glTexParameterf is opengl
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   } else if (glt->flags & TEXPREF_LINEAR) {
@@ -149,6 +154,7 @@ static void TexMgr_Anisotropy_f(cvar_t *var) {
       /*  TexMgr_SetFilterModes (glt);*/
       if (glt->flags & TEXPREF_MIPMAP) {
         GL_Bind(glt);
+        // THERJAK: glTexParameterf is opengl
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
                         glmodes[glmode_idx].magfilter);
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
@@ -246,7 +252,8 @@ gltexture_t *TexMgr_NewTexture(void) {
   free_gltextures = glt->next;
   glt->next = active_gltextures;
   active_gltextures = glt;
-
+  
+  // THERJAK: glGenTextures is opengl
   glGenTextures(1, &glt->texnum);
   numgltextures++;
   return glt;
@@ -474,6 +481,7 @@ void TexMgr_RecalcWarpImageSize(void) {
   for (glt = active_gltextures; glt; glt = glt->next) {
     if (glt->flags & TEXPREF_WARPIMAGE) {
       GL_Bind(glt);
+      // THERJAK: glTexImage2D is opengl
       glTexImage2D(GL_TEXTURE_2D, 0, gl_solid_format, gl_warpimagesize,
                    gl_warpimagesize, 0, GL_RGBA, GL_UNSIGNED_BYTE, dummy);
       glt->width = glt->height = gl_warpimagesize;
@@ -525,6 +533,7 @@ void TexMgr_Init(void) {
   Cmd_AddCommand("imagelist", &TexMgr_Imagelist_f);
 
   // poll max size from hardware
+  // THERJAK: glGetIntegerv is opengl
   glGetIntegerv(GL_MAX_TEXTURE_SIZE, &gl_hardware_maxsize);
 
   // load notexture images
@@ -964,6 +973,7 @@ static void TexMgr_LoadImage32(gltexture_t *glt, unsigned *data) {
   GL_Bind(glt);
   internalformat =
       (glt->flags & TEXPREF_ALPHA) ? gl_alpha_format : gl_solid_format;
+  // THERJAK: glTexImage2D is opengl
   glTexImage2D(GL_TEXTURE_2D, 0, internalformat, glt->width, glt->height, 0,
                GL_RGBA, GL_UNSIGNED_BYTE, data);
 
@@ -981,6 +991,7 @@ static void TexMgr_LoadImage32(gltexture_t *glt, unsigned *data) {
         TexMgr_MipMapH(data, mipwidth, mipheight);
         mipheight >>= 1;
       }
+      // THERJAK: glTexImage2D is opengl
       glTexImage2D(GL_TEXTURE_2D, miplevel, internalformat, mipwidth, mipheight,
                    0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     }
@@ -1295,6 +1306,7 @@ void TexMgr_ReloadImages(void) {
   in_reload_images = true;
 
   for (glt = active_gltextures; glt; glt = glt->next) {
+    // THERJAK: glGenTextures is opengl
     glGenTextures(1, &glt->texnum);
     TexMgr_ReloadImage(glt, -1, -1);
   }
@@ -1348,6 +1360,7 @@ GL_DisableMultitexture -- selects texture unit 0
 */
 void GL_DisableMultitexture(void) {
   if (mtexenabled) {
+    // THERJAK: glDisable is opengl
     glDisable(GL_TEXTURE_2D);
     GL_SelectTexture(GL_TEXTURE0_ARB);
     mtexenabled = false;
@@ -1362,6 +1375,7 @@ GL_EnableMultitexture -- selects texture unit 1
 void GL_EnableMultitexture(void) {
   if (gl_mtexable) {
     GL_SelectTexture(GL_TEXTURE1_ARB);
+    // THERJAK: glEnable is opengl
     glEnable(GL_TEXTURE_2D);
     mtexenabled = true;
   }
@@ -1377,6 +1391,7 @@ void GL_Bind(gltexture_t *texture) {
 
   if (texture->texnum != currenttexture[currenttarget - GL_TEXTURE0_ARB]) {
     currenttexture[currenttarget - GL_TEXTURE0_ARB] = texture->texnum;
+    // THERJAK: glBindTexture is opengl
     glBindTexture(GL_TEXTURE_2D, texture->texnum);
     texture->visframe = r_framecount;
   }
@@ -1391,6 +1406,7 @@ from our per-TMU cached texture binding table.
 ================
 */
 static void GL_DeleteTexture(gltexture_t *texture) {
+  // THERJAK: glDeleteTextures is opengl
   glDeleteTextures(1, &texture->texnum);
 
   if (texture->texnum == currenttexture[0])
