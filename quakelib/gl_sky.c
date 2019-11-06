@@ -16,7 +16,7 @@ float skymins[2][6], skymaxs[2][6];
 char skybox_name[32] = "";  // name of current skybox, or "" if no skybox
 
 gltexture_t *skybox_textures[6];
-gltexture_t *solidskytexture, *alphaskytexture;
+uint32_t solidskytexture2, alphaskytexture2;
 
 extern cvar_t gl_farclip;
 cvar_t r_fastsky;
@@ -68,9 +68,9 @@ void Sky_LoadTexture(texture_t *mt) {
 
   q_snprintf(texturename, sizeof(texturename), "%s:%s_back", loadmodel->name,
              mt->name);
-  solidskytexture =
-      TexMgr_LoadImage(loadmodel, texturename, 128, 128, SRC_INDEXED, back_data,
-                       "", (src_offset_t)back_data, TEXPREF_NONE);
+  solidskytexture2 =
+      TexMgrLoadImage(loadmodel, texturename, 128, 128, SRC_INDEXED, back_data,
+                      "", (src_offset_t)back_data, TEXPREF_NONE);
 
   // extract front layer and upload
   for (i = 0; i < 128; i++)
@@ -81,9 +81,9 @@ void Sky_LoadTexture(texture_t *mt) {
 
   q_snprintf(texturename, sizeof(texturename), "%s:%s_front", loadmodel->name,
              mt->name);
-  alphaskytexture =
-      TexMgr_LoadImage(loadmodel, texturename, 128, 128, SRC_INDEXED,
-                       front_data, "", (src_offset_t)front_data, TEXPREF_ALPHA);
+  alphaskytexture2 =
+      TexMgrLoadImage(loadmodel, texturename, 128, 128, SRC_INDEXED, front_data,
+                      "", (src_offset_t)front_data, TEXPREF_ALPHA);
 
   // calculate r_fastsky color based on average of all opaque foreground colors
   r = g = b = count = 0;
@@ -704,9 +704,9 @@ void Sky_DrawFaceQuad(glpoly_t *p) {
   int i;
 
   if (gl_mtexable && Cvar_GetValue(&r_skyalpha) >= 1.0) {
-    GL_Bind(solidskytexture);
+    GLBind(solidskytexture2);
     GL_EnableMultitexture();
-    GL_Bind(alphaskytexture);
+    GLBind(alphaskytexture2);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 
     glBegin(GL_QUADS);
@@ -724,7 +724,7 @@ void Sky_DrawFaceQuad(glpoly_t *p) {
     rs_skypolys++;
     rs_skypasses++;
   } else {
-    GL_Bind(solidskytexture);
+    GLBind(solidskytexture2);
 
     if (Cvar_GetValue(&r_skyalpha) < 1.0) glColor3f(1, 1, 1);
 
@@ -736,7 +736,7 @@ void Sky_DrawFaceQuad(glpoly_t *p) {
     }
     glEnd();
 
-    GL_Bind(alphaskytexture);
+    GLBind(alphaskytexture2);
     glEnable(GL_BLEND);
 
     if (Cvar_GetValue(&r_skyalpha) < 1.0)
