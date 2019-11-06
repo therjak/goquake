@@ -8,7 +8,8 @@ cvar_t scr_conalpha;
 
 qpic_t *draw_backtile;
 
-gltexture_t *char_texture;  // johnfitz
+uint32_t char_texture2;
+
 qpic_t *pic_ovr, *pic_ins;  // johnfitz -- new cursor handling
 qpic_t *pic_nul;            // johnfitz -- for missing gfx, don't crash
 
@@ -63,7 +64,7 @@ byte pic_crosshair_data[8][8] = {
 // johnfitz
 
 typedef struct {
-  gltexture_t *gltexture;
+  uint32_t gltexture;
   float sl, tl, sh, th;
 } glpic_t;
 
@@ -100,7 +101,7 @@ byte scrap_texels[MAX_SCRAPS][BLOCK_WIDTH * BLOCK_HEIGHT];  // johnfitz --
                                                             // removed *4 after
                                                             // BLOCK_HEIGHT
 qboolean scrap_dirty;
-gltexture_t *scrap_textures[MAX_SCRAPS];  // johnfitz
+uint32_t scrap_textures2[MAX_SCRAPS];  // johnfitz
 
 /*
 ================
@@ -153,10 +154,10 @@ void Scrap_Upload(void) {
 
   for (i = 0; i < MAX_SCRAPS; i++) {
     sprintf(name, "scrap%i", i);
-    scrap_textures[i] =
-        TexMgr_LoadImage(NULL, name, BLOCK_WIDTH, BLOCK_HEIGHT, SRC_INDEXED,
-                         scrap_texels[i], "", (src_offset_t)scrap_texels[i],
-                         TEXPREF_ALPHA | TEXPREF_OVERWRITE | TEXPREF_NOPICMIP);
+    scrap_textures2[i] =
+        TexMgrLoadImage(NULL, name, BLOCK_WIDTH, BLOCK_HEIGHT, SRC_INDEXED,
+                        scrap_texels[i], "", (src_offset_t)scrap_texels[i],
+                        TEXPREF_ALPHA | TEXPREF_OVERWRITE | TEXPREF_NOPICMIP);
   }
 
   scrap_dirty = false;
@@ -188,7 +189,7 @@ qpic_t *Draw_PicFromWad(const char *name) {
       for (j = 0; j < p->width; j++, k++)
         scrap_texels[texnum][(y + i) * BLOCK_WIDTH + x + j] = p->data[k];
     }
-    gl.gltexture = scrap_textures[texnum];  // johnfitz -- changed to an array
+    gl.gltexture = scrap_textures2[texnum];  // johnfitz -- changed to an array
     // johnfitz -- no longer go from 0.01 to 0.99
     gl.sl = x / (float)BLOCK_WIDTH;
     gl.sh = (x + p->width) / (float)BLOCK_WIDTH;
@@ -202,7 +203,7 @@ qpic_t *Draw_PicFromWad(const char *name) {
     offset =
         (src_offset_t)p - (src_offset_t)wad_base + sizeof(int) * 2;  // johnfitz
 
-    gl.gltexture = TexMgr_LoadImage(
+    gl.gltexture = TexMgrLoadImage(
         NULL, texturename, p->width, p->height, SRC_INDEXED, p->data,
         WADFILENAME, offset,
         TEXPREF_ALPHA | TEXPREF_PAD | TEXPREF_NOPICMIP);  // johnfitz -- TexMgr
@@ -255,7 +256,7 @@ qpic_t *Draw_CachePic(const char *path) {
   pic->pic.width = dat->width;
   pic->pic.height = dat->height;
 
-  gl.gltexture = TexMgr_LoadImage(
+  gl.gltexture = TexMgrLoadImage(
       NULL, path, dat->width, dat->height, SRC_INDEXED, dat->data, path,
       sizeof(int) * 2,
       TEXPREF_ALPHA | TEXPREF_PAD | TEXPREF_NOPICMIP);  // johnfitz -- TexMgr
@@ -285,8 +286,8 @@ qpic_t *Draw_MakePic(const char *name, int width, int height, byte *data) {
   pic->width = width;
   pic->height = height;
 
-  gl.gltexture = TexMgr_LoadImage(NULL, name, width, height, SRC_INDEXED, data,
-                                  "", (src_offset_t)data, flags);
+  gl.gltexture = TexMgrLoadImage(NULL, name, width, height, SRC_INDEXED, data,
+                                 "", (src_offset_t)data, flags);
   gl.sl = 0;
   gl.sh = (float)width / (float)TexMgr_PadConditional(width);
   gl.tl = 0;
@@ -314,7 +315,7 @@ void Draw_LoadPics(void) {
   data = W_GetConchars();
   if (!data) Go_Error("Draw_LoadPics: couldn't load conchars");
   offset = (src_offset_t)data - (src_offset_t)wad_base;
-  char_texture = TexMgr_LoadImage(
+  char_texture2 = TexMgrLoadImage(
       NULL, WADFILENAME ":conchars", 128, 128, SRC_INDEXED, data, WADFILENAME,
       offset,
       TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP | TEXPREF_CONCHARS);
@@ -413,7 +414,7 @@ void Draw_Character(int x, int y, int num) {
 
   if (num == 32) return;  // don't waste verts on spaces
 
-  GL_Bind(char_texture);
+  GLBind(char_texture2);
   glBegin(GL_QUADS);
 
   Draw_CharacterQuad(x, y, (char)num);
@@ -431,7 +432,7 @@ void Draw_Pic(int x, int y, qpic_t *pic) {
 
   if (scrap_dirty) Scrap_Upload();
   gl = (glpic_t *)pic->data;
-  GL_Bind(gl->gltexture);
+  GLBind(gl->gltexture);
   glBegin(GL_QUADS);
   glTexCoord2f(gl->sl, gl->tl);
   glVertex2f(x, y);
@@ -457,10 +458,10 @@ void Draw_TransPicTranslate(int x, int y, qpic_t *pic, int top, int bottom) {
 
   if (top != oldtop || bottom != oldbottom) {
     glpic_t *p = (glpic_t *)pic->data;
-    gltexture_t *glt = p->gltexture;
+    uint32_t glt = p->gltexture;
     oldtop = top;
     oldbottom = bottom;
-    TexMgr_ReloadImage(glt, top, bottom);
+    TexMgrReloadImage(glt, top, bottom);
   }
   Draw_Pic(x, y, pic);
 }
@@ -479,7 +480,7 @@ void Draw_TileClear(int x, int y, int w, int h) {
   gl = (glpic_t *)draw_backtile->data;
 
   glColor3f(1, 1, 1);
-  GL_Bind(gl->gltexture);
+  GLBind(gl->gltexture);
   glBegin(GL_QUADS);
   glTexCoord2f(x / 64.0, y / 64.0);
   glVertex2f(x, y);

@@ -1,8 +1,7 @@
 // gl_texmgr.c -- fitzquake's texture manager. manages opengl texture images
 
-//THERJAK:
+// THERJAK:
 // change gltexture_t to simple int (index)
-
 
 #include "quakedef.h"
 
@@ -26,8 +25,6 @@ unsigned int d_8to24table_fbright_fence[256];
 unsigned int d_8to24table_nobright[256];
 unsigned int d_8to24table_nobright_fence[256];
 unsigned int d_8to24table_conchars[256];
-unsigned int d_8to24table_shirt[256];
-unsigned int d_8to24table_pants[256];
 
 /*
 ================================================================================
@@ -252,7 +249,7 @@ gltexture_t *TexMgr_NewTexture(void) {
   free_gltextures = glt->next;
   glt->next = active_gltextures;
   active_gltextures = glt;
-  
+
   // THERJAK: glGenTextures is opengl
   glGenTextures(1, &glt->texnum);
   numgltextures++;

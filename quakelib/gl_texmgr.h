@@ -1,24 +1,3 @@
-/*
-Copyright (C) 1996-2001 Id Software, Inc.
-Copyright (C) 2002-2009 John Fitzgibbons and others
-Copyright (C) 2010-2014 QuakeSpasm developers
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
-
 #ifndef _GL_TEXMAN_H
 #define _GL_TEXMAN_H
 
@@ -69,6 +48,8 @@ typedef struct gltexture_s {
   int visframe;  // matches r_framecount if texture was bound this frame
 } gltexture_t;
 
+typedef gltexture_t *gltexture_tp;
+
 extern gltexture_t *notexture;
 
 extern unsigned int d_8to24table[256];
@@ -77,7 +58,6 @@ extern unsigned int d_8to24table[256];
 
 float TexMgr_FrameUsage(void);
 void TexMgr_FreeTexture(gltexture_t *kill);
-void TexMgr_FreeTextures(unsigned int flags, unsigned int mask);
 void TexMgr_FreeTexturesForOwner(qmodel_t *owner);
 void TexMgr_NewGame(void);
 void TexMgr_Init(void);
