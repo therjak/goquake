@@ -61,3 +61,65 @@ func TexMgrReloadImage(id TexID, shirt C.int, pants C.int) {
 func TexMgrFreeTexture(id TexID) {
 	C.TexMgr_FreeTexture(texmap[id])
 }
+
+//export TexMgrFrameUsage
+func TexMgrFrameUsage() float32 {
+	return float32(C.TexMgr_FrameUsage())
+}
+
+//export TexMgrFreeTexturesForOwner
+func TexMgrFreeTexturesForOwner(owner *C.qmodel_t) {
+	C.TexMgr_FreeTexturesForOwner(owner)
+}
+
+//export TexMgrInit
+func TexMgrInit() {
+	C.TexMgr_Init()
+}
+
+//export TexMgrDeleteTextureObjects
+func TexMgrDeleteTextureObjects() {
+	C.TexMgr_DeleteTextureObjects()
+}
+
+//export TexMgrReloadImages
+func TexMgrReloadImages() {
+	C.TexMgr_ReloadImages()
+}
+
+//export TexMgrReloadNobrightImages
+func TexMgrReloadNobrightImages() {
+	C.TexMgr_ReloadNobrightImages()
+}
+
+//export TexMgrPadConditional
+func TexMgrPadConditional(s int) int {
+	return int(C.TexMgr_PadConditional(C.int(s)))
+}
+
+//export TexMgrRecalcWarpImageSize
+func TexMgrRecalcWarpImageSize() {
+	C.TexMgr_RecalcWarpImageSize()
+}
+
+//export GLSelectTexture
+func GLSelectTexture(target uint32) {
+	C.GL_SelectTexture(C.GLenum(target))
+}
+
+//export GLDisableMultitexture
+func GLDisableMultitexture() {
+	// selects texture unit 0
+	C.GL_DisableMultitexture()
+}
+
+//export GLEnableMultitexture
+func GLEnableMultitexture() {
+	// selects texture unit 1
+	C.GL_EnableMultitexture()
+}
+
+//export GLClearBindings
+func GLClearBindings() {
+	C.GL_ClearBindings()
+}

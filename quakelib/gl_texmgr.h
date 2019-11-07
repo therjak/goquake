@@ -70,7 +70,7 @@ gltexture_t *TexMgr_LoadImage(qmodel_t *owner, const char *name, int width,
 void TexMgr_ReloadImage(gltexture_t *glt, int shirt, int pants);
 void TexMgr_ReloadImages(void);
 void TexMgr_ReloadNobrightImages(void);  // only cvar callback stuff
-
+void TexMgr_RecalcWarpImageSize(void);
 int TexMgr_PadConditional(int s);
 
 // TEXTURE BINDING & TEXTURE UNIT SWITCHING

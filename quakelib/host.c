@@ -217,7 +217,7 @@ void Host_Init(void) {
     // Modlist_Init();    // johnfitz
     // DemoList_Init();   // ericw
     VID_Init();
-    TexMgr_Init();  // johnfitz
+    TexMgrInit();  // johnfitz
     Draw_Init();
     SCR_Init();
     R_Init();

@@ -19,8 +19,8 @@ vec3_t r_pright, r_pup, r_ppn;
 
 int r_numparticles;
 
-gltexture_t *particletexture, *particletexture1, *particletexture2,
-    *particletexture3, *particletexture4;  // johnfitz
+uint32_t particletexture, particletexture1, particletexture2, particletexture3,
+    particletexture4;      // johnfitz
 float texturescalefactor;  // johnfitz -- compensate for apparent size of
                            // different particle textures
 
@@ -68,9 +68,9 @@ void R_InitParticleTextures(void) {
       *dst++ = R_ParticleTextureLookup(x, y, 8);
     }
   particletexture1 =
-      TexMgr_LoadImage(NULL, "particle1", 64, 64, SRC_RGBA, particle1_data, "",
-                       (src_offset_t)particle1_data,
-                       TEXPREF_PERSIST | TEXPREF_ALPHA | TEXPREF_LINEAR);
+      TexMgrLoadImage(NULL, "particle1", 64, 64, SRC_RGBA, particle1_data, "",
+                      (src_offset_t)particle1_data,
+                      TEXPREF_PERSIST | TEXPREF_ALPHA | TEXPREF_LINEAR);
 
   // particle texture 2 -- square
   dst = particle2_data;
@@ -82,9 +82,9 @@ void R_InitParticleTextures(void) {
       *dst++ = x || y ? 0 : 255;
     }
   particletexture2 =
-      TexMgr_LoadImage(NULL, "particle2", 2, 2, SRC_RGBA, particle2_data, "",
-                       (src_offset_t)particle2_data,
-                       TEXPREF_PERSIST | TEXPREF_ALPHA | TEXPREF_NEAREST);
+      TexMgrLoadImage(NULL, "particle2", 2, 2, SRC_RGBA, particle2_data, "",
+                      (src_offset_t)particle2_data,
+                      TEXPREF_PERSIST | TEXPREF_ALPHA | TEXPREF_NEAREST);
 
   // particle texture 3 -- blob
   dst = particle3_data;
@@ -96,9 +96,9 @@ void R_InitParticleTextures(void) {
       *dst++ = R_ParticleTextureLookup(x, y, 2);
     }
   particletexture3 =
-      TexMgr_LoadImage(NULL, "particle3", 64, 64, SRC_RGBA, particle3_data, "",
-                       (src_offset_t)particle3_data,
-                       TEXPREF_PERSIST | TEXPREF_ALPHA | TEXPREF_LINEAR);
+      TexMgrLoadImage(NULL, "particle3", 64, 64, SRC_RGBA, particle3_data, "",
+                      (src_offset_t)particle3_data,
+                      TEXPREF_PERSIST | TEXPREF_ALPHA | TEXPREF_LINEAR);
 
   // set default
   particletexture = particletexture1;
@@ -718,7 +718,7 @@ void R_DrawParticles(void) {
   VectorScale(vup, 1.5, up);
   VectorScale(vright, 1.5, right);
 
-  GL_Bind(particletexture);
+  GLBind(particletexture);
   glEnable(GL_BLEND);
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
   glDepthMask(GL_FALSE);  // johnfitz -- fix for particle z-buffer bug

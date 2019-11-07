@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+
 #include "quakedef.h"
 #include "resource.h"
 
@@ -107,7 +108,7 @@ static void VID_Restart(void) {
   // one of the new objects could be given the same ID as an invalid handle
   // which is later deleted.
 
-  TexMgr_DeleteTextureObjects();
+  TexMgrDeleteTextureObjects();
   GLSLGamma_DeleteTexture();
   R_DeleteShaders();
   GL_DeleteBModelVertexBuffer();
@@ -119,14 +120,14 @@ static void VID_Restart(void) {
   VID_SetMode(width, height, bpp, fullscreen);
 
   GL_Init();
-  TexMgr_ReloadImages();
+  TexMgrReloadImages();
   GL_BuildBModelVertexBuffer();
   GLMesh_LoadVertexBuffers();
   GL_SetupState();
   Fog_SetupState();
 
   // warpimages needs to be recalculated
-  TexMgr_RecalcWarpImageSize();
+  TexMgrRecalcWarpImageSize();
 
   UpdateConsoleSize();
   //

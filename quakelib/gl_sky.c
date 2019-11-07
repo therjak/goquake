@@ -705,7 +705,7 @@ void Sky_DrawFaceQuad(glpoly_t *p) {
 
   if (gl_mtexable && Cvar_GetValue(&r_skyalpha) >= 1.0) {
     GLBind(solidskytexture2);
-    GL_EnableMultitexture();
+    GLEnableMultitexture();
     GLBind(alphaskytexture2);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 
@@ -719,7 +719,7 @@ void Sky_DrawFaceQuad(glpoly_t *p) {
     }
     glEnd();
 
-    GL_DisableMultitexture();
+    GLDisableMultitexture();
 
     rs_skypolys++;
     rs_skypasses++;

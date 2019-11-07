@@ -475,7 +475,7 @@ void R_DrawTextureChains_Multitexture(qmodel_t *model, entity_t *ent,
           if (t->texturechains[chain]->flags & SURF_DRAWFENCE)
             glEnable(GL_ALPHA_TEST);  // Flip alpha test back on
 
-          GL_EnableMultitexture();  // selects TEXTURE1
+          GLEnableMultitexture();  // selects TEXTURE1
           bound = true;
         }
         GL_Bind(lightmap_textures[s->lightmaptexturenum]);
@@ -489,7 +489,7 @@ void R_DrawTextureChains_Multitexture(qmodel_t *model, entity_t *ent,
         glEnd();
         rs_brushpasses++;
       }
-    GL_DisableMultitexture();  // selects TEXTURE0
+    GLDisableMultitexture();  // selects TEXTURE0
 
     if (bound && t->texturechains[chain]->flags & SURF_DRAWFENCE)
       glDisable(GL_ALPHA_TEST);  // Flip alpha test back off
@@ -764,7 +764,7 @@ void R_DrawTextureChains_Multitexture_VBO(qmodel_t *model, entity_t *ent,
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
   // Setup TMU 1 (lightmap)
-  GL_SelectTexture(GL_TEXTURE1_ARB);
+  GLSelectTexture(GL_TEXTURE1_ARB);
   glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
   glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
   glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
@@ -774,7 +774,7 @@ void R_DrawTextureChains_Multitexture_VBO(qmodel_t *model, entity_t *ent,
   glEnable(GL_TEXTURE_2D);
 
   // Setup TMU 2 (fullbrights)
-  GL_SelectTexture(GL_TEXTURE2_ARB);
+  GLSelectTexture(GL_TEXTURE2_ARB);
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
 
   for (i = 0; i < model->numtextures; i++) {
@@ -785,7 +785,7 @@ void R_DrawTextureChains_Multitexture_VBO(qmodel_t *model, entity_t *ent,
       continue;
 
     // Enable/disable TMU 2 (fullbrights)
-    GL_SelectTexture(GL_TEXTURE2_ARB);
+    GLSelectTexture(GL_TEXTURE2_ARB);
     if (Cvar_GetValue(&gl_fullbrights) &&
         (fullbright =
              R_TextureAnimation(t, ent != NULL ? ent->frame : 0)->fullbright)) {
@@ -802,7 +802,7 @@ void R_DrawTextureChains_Multitexture_VBO(qmodel_t *model, entity_t *ent,
       if (!s->culled) {
         if (!bound)  // only bind once we are sure we need this texture
         {
-          GL_SelectTexture(GL_TEXTURE0_ARB);
+          GLSelectTexture(GL_TEXTURE0_ARB);
           GL_Bind(
               (R_TextureAnimation(t, ent != NULL ? ent->frame : 0))->gltexture);
 
@@ -815,7 +815,7 @@ void R_DrawTextureChains_Multitexture_VBO(qmodel_t *model, entity_t *ent,
 
         if (s->lightmaptexturenum != lastlightmap) R_FlushBatch();
 
-        GL_SelectTexture(GL_TEXTURE1_ARB);
+        GLSelectTexture(GL_TEXTURE1_ARB);
         GL_Bind(lightmap_textures[s->lightmaptexturenum]);
         lastlightmap = s->lightmaptexturenum;
         R_BatchSurface(s);
@@ -830,15 +830,15 @@ void R_DrawTextureChains_Multitexture_VBO(qmodel_t *model, entity_t *ent,
   }
 
   // Reset TMU states
-  GL_SelectTexture(GL_TEXTURE2_ARB);
+  GLSelectTexture(GL_TEXTURE2_ARB);
   glDisable(GL_TEXTURE_2D);
 
-  GL_SelectTexture(GL_TEXTURE1_ARB);
+  GLSelectTexture(GL_TEXTURE1_ARB);
   glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, 1.0f);
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
   glDisable(GL_TEXTURE_2D);
 
-  GL_SelectTexture(GL_TEXTURE0_ARB);
+  GLSelectTexture(GL_TEXTURE0_ARB);
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
   // Disable client state
@@ -919,18 +919,18 @@ void R_DrawTextureChains(qmodel_t *model, entity_t *ent, texchain_t chain) {
                                                 // in one pass, overbright using
                                                 // texture combiners
     {
-      GL_EnableMultitexture();
+      GLEnableMultitexture();
       glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
       glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
       glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
       glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
       glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, 2.0f);
-      GL_DisableMultitexture();
+      GLDisableMultitexture();
       R_DrawTextureChains_Multitexture(model, ent, chain);
-      GL_EnableMultitexture();
+      GLEnableMultitexture();
       glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, 1.0f);
       glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-      GL_DisableMultitexture();
+      GLDisableMultitexture();
       glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
     } else if (entalpha < 1)  // case 2: can't do multipass if entity has alpha,
                               // so just draw the texture
@@ -967,9 +967,9 @@ void R_DrawTextureChains(qmodel_t *model, entity_t *ent, texchain_t chain) {
     if (gl_mtexable)  // case 4: texture and lightmap in one pass, regular
                       // modulation
     {
-      GL_EnableMultitexture();
+      GLEnableMultitexture();
       glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-      GL_DisableMultitexture();
+      GLDisableMultitexture();
       R_DrawTextureChains_Multitexture(model, ent, chain);
       glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
     } else if (entalpha < 1)  // case 5: can't do multipass if entity has alpha,

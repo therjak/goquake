@@ -118,7 +118,7 @@ void R_DrawSpriteModel(entity_t *e) {
 
   glColor3f(1, 1, 1);
 
-  GL_DisableMultitexture();
+  GLDisableMultitexture();
 
   GL_Bind(frame->gltexture);
 

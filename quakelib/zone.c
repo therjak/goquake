@@ -483,7 +483,7 @@ void Cache_Free(cache_user_t *c,
   // becuase the cache_user_t is the last component of the qmodel_t struct.
   // Should
   // fail harmlessly if *c is actually part of an sfx_t struct.  I FEEL DIRTY
-  if (freetextures) TexMgr_FreeTexturesForOwner((qmodel_t *)(c + 1) - 1);
+  if (freetextures) TexMgrFreeTexturesForOwner((qmodel_t *)(c + 1) - 1);
 }
 
 /*

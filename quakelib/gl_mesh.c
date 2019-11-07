@@ -258,9 +258,9 @@ void GL_MakeAliasModelDisplayLists(qmodel_t *m, aliashdr_t *hdr) {
   int *loadcmds;         // johnfitz
 
   // johnfitz -- padded skins
-  hscale = (float)hdr->skinwidth / (float)TexMgr_PadConditional(hdr->skinwidth);
+  hscale = (float)hdr->skinwidth / (float)TexMgrPadConditional(hdr->skinwidth);
   vscale =
-      (float)hdr->skinheight / (float)TexMgr_PadConditional(hdr->skinheight);
+      (float)hdr->skinheight / (float)TexMgrPadConditional(hdr->skinheight);
   // johnfitz
 
   aliasmodel = m;
@@ -485,9 +485,9 @@ static void GLMesh_LoadVertexBuffer(qmodel_t *m, const aliashdr_t *hdr) {
 
     // johnfitz -- padded skins
     hscale =
-        (float)hdr->skinwidth / (float)TexMgr_PadConditional(hdr->skinwidth);
+        (float)hdr->skinwidth / (float)TexMgrPadConditional(hdr->skinwidth);
     vscale =
-        (float)hdr->skinheight / (float)TexMgr_PadConditional(hdr->skinheight);
+        (float)hdr->skinheight / (float)TexMgrPadConditional(hdr->skinheight);
     // johnfitz
 
     st = (meshst_t *)(vbodata + m->vbostofs);

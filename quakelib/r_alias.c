@@ -249,11 +249,11 @@ void GL_DrawAliasFrame_GLSL(aliashdr_t *paliashdr, lerpdata_t lerpdata,
   GL_Uniform1fFunc(useOverbrightLoc, overbright ? 1 : 0);
 
   // set textures
-  GL_SelectTexture(GL_TEXTURE0);
+  GLSelectTexture(GL_TEXTURE0);
   GL_Bind(tx);
 
   if (fb) {
-    GL_SelectTexture(GL_TEXTURE1);
+    GLSelectTexture(GL_TEXTURE1);
     GL_Bind(fb);
   }
 
@@ -269,7 +269,7 @@ void GL_DrawAliasFrame_GLSL(aliashdr_t *paliashdr, lerpdata_t lerpdata,
   GL_DisableVertexAttribArrayFunc(pose2NormalAttrIndex);
 
   GL_UseProgramFunc(0);
-  GL_SelectTexture(GL_TEXTURE0);
+  GLSelectTexture(GL_TEXTURE0);
 
   rs_aliaspasses += paliashdr->numtris;
 }
@@ -646,7 +646,7 @@ void R_DrawAliasModel(entity_t *e) {
   //
   // set up textures
   //
-  GL_DisableMultitexture();
+  GLDisableMultitexture();
   anim = (int)(CL_Time() * 10) & 3;
   if ((e->skinnum >= paliashdr->numskins) || (e->skinnum < 0)) {
     Con_DPrintf("R_DrawAliasModel: no such skin # %d for '%s'\n", e->skinnum,
@@ -659,10 +659,10 @@ void R_DrawAliasModel(entity_t *e) {
   }
   if (!Cvar_GetValue(&gl_nocolors)) {
     i = e - cl_entities;
-    if (i >= 1 &&
-        i <= CL_MaxClients() // && 
-        // !strcmp (currententity->model->name, "progs/player.mdl")
-        ) {
+    if (i >= 1 && i <= CL_MaxClients()  // &&
+                                        // !strcmp (currententity->model->name,
+                                        // "progs/player.mdl")
+    ) {
       tx = playertextures[i - 1];
     }
   }
@@ -717,13 +717,13 @@ void R_DrawAliasModel(entity_t *e) {
       glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
       glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PRIMARY_COLOR_EXT);
       glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, 2.0f);
-      GL_EnableMultitexture();  // selects TEXTURE1
+      GLEnableMultitexture();  // selects TEXTURE1
       GL_Bind(fb);
       glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
       glEnable(GL_BLEND);
       GL_DrawAliasFrame(paliashdr, lerpdata);
       glDisable(GL_BLEND);
-      GL_DisableMultitexture();
+      GLDisableMultitexture();
       glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
     } else if (gl_texture_env_combine)  // case 2: overbright in one pass, then
                                         // fullbright pass
@@ -795,16 +795,16 @@ void R_DrawAliasModel(entity_t *e) {
     if (gl_mtexable && gl_texture_env_add &&
         fb)  // case 4: fullbright mask using multitexture
     {
-      GL_DisableMultitexture();  // selects TEXTURE0
+      GLDisableMultitexture();  // selects TEXTURE0
       GL_Bind(tx);
       glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-      GL_EnableMultitexture();  // selects TEXTURE1
+      GLEnableMultitexture();  // selects TEXTURE1
       GL_Bind(fb);
       glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
       glEnable(GL_BLEND);
       GL_DrawAliasFrame(paliashdr, lerpdata);
       glDisable(GL_BLEND);
-      GL_DisableMultitexture();
+      GLDisableMultitexture();
       glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
     } else  // case 5: fullbright mask without multitexture
     {
@@ -904,7 +904,7 @@ void GL_DrawAliasShadow(entity_t *e) {
   // draw it
   glDepthMask(GL_FALSE);
   glEnable(GL_BLEND);
-  GL_DisableMultitexture();
+  GLDisableMultitexture();
   glDisable(GL_TEXTURE_2D);
   shading = false;
   glColor4f(0, 0, 0, entalpha * 0.5);

@@ -209,10 +209,10 @@ qpic_t *Draw_PicFromWad(const char *name) {
         TEXPREF_ALPHA | TEXPREF_PAD | TEXPREF_NOPICMIP);  // johnfitz -- TexMgr
     gl.sl = 0;
     gl.sh =
-        (float)p->width / (float)TexMgr_PadConditional(p->width);  // johnfitz
+        (float)p->width / (float)TexMgrPadConditional(p->width);  // johnfitz
     gl.tl = 0;
     gl.th =
-        (float)p->height / (float)TexMgr_PadConditional(p->height);  // johnfitz
+        (float)p->height / (float)TexMgrPadConditional(p->height);  // johnfitz
   }
 
   memcpy(p->data, &gl, sizeof(glpic_t));
@@ -262,10 +262,10 @@ qpic_t *Draw_CachePic(const char *path) {
       TEXPREF_ALPHA | TEXPREF_PAD | TEXPREF_NOPICMIP);  // johnfitz -- TexMgr
   gl.sl = 0;
   gl.sh =
-      (float)dat->width / (float)TexMgr_PadConditional(dat->width);  // johnfitz
+      (float)dat->width / (float)TexMgrPadConditional(dat->width);  // johnfitz
   gl.tl = 0;
   gl.th = (float)dat->height /
-          (float)TexMgr_PadConditional(dat->height);  // johnfitz
+          (float)TexMgrPadConditional(dat->height);  // johnfitz
   memcpy(pic->pic.data, &gl, sizeof(glpic_t));
 
   return &pic->pic;
@@ -289,9 +289,9 @@ qpic_t *Draw_MakePic(const char *name, int width, int height, byte *data) {
   gl.gltexture = TexMgrLoadImage(NULL, name, width, height, SRC_INDEXED, data,
                                  "", (src_offset_t)data, flags);
   gl.sl = 0;
-  gl.sh = (float)width / (float)TexMgr_PadConditional(width);
+  gl.sh = (float)width / (float)TexMgrPadConditional(width);
   gl.tl = 0;
-  gl.th = (float)height / (float)TexMgr_PadConditional(height);
+  gl.th = (float)height / (float)TexMgrPadConditional(height);
   memcpy(pic->data, &gl, sizeof(glpic_t));
 
   return pic;

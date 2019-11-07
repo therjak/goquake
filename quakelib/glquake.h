@@ -63,7 +63,7 @@ typedef struct surfcache_s {
 } surfcache_t;
 
 typedef struct {
-  byte *surfdat;  // destination for generated surface
+  byte *surfdat;     // destination for generated surface
   int rowbytes;      // destination logical width in bytes
   msurface_t *surf;  // description for surface to generate
   fixed8_t lightadj[MAXLIGHTMAPS];
@@ -402,8 +402,6 @@ void Sky_DrawSky(void);
 void Sky_NewMap(void);
 void Sky_LoadTexture(texture_t *mt);
 void Sky_LoadSkyBox(const char *name);
-
-void TexMgr_RecalcWarpImageSize(void);
 
 void R_ClearTextureChains(qmodel_t *mod, texchain_t chain);
 void R_ChainSurface(msurface_t *surf, texchain_t chain);

@@ -39,7 +39,7 @@ static void GL_Overbright_f(cvar_t *var) { R_RebuildAllLightmaps(); }
 GL_Fullbrights_f -- johnfitz
 ====================
 */
-static void GL_Fullbrights_f(cvar_t *var) { TexMgr_ReloadNobrightImages(); }
+static void GL_Fullbrights_f(cvar_t *var) { TexMgrReloadNobrightImages(); }
 
 /*
 ====================

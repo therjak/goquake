@@ -155,7 +155,7 @@ void Mod_ClearAll(void) {
   for (i = 0, mod = mod_known; i < mod_numknown; i++, mod++)
     if (mod->Type != mod_alias) {
       mod->needload = true;
-      TexMgr_FreeTexturesForOwner(mod);  // johnfitz
+      TexMgrFreeTexturesForOwner(mod);  // johnfitz
     }
 }
 
@@ -168,7 +168,7 @@ void Mod_ResetAll(void) {
 
   for (i = 0, mod = mod_known; i < mod_numknown; i++, mod++) {
     if (!mod->needload)  // otherwise Mod_ClearAll() did it already
-      TexMgr_FreeTexturesForOwner(mod);
+      TexMgrFreeTexturesForOwner(mod);
     memset(mod, 0, sizeof(qmodel_t));
   }
   mod_numknown = 0;
@@ -2506,8 +2506,8 @@ void *Mod_LoadSpriteFrame(void *pin, mspriteframe_t **ppframe, int framenum) {
   pspriteframe->right = width + origin[0];
 
   // johnfitz -- image might be padded
-  pspriteframe->smax = (float)width / (float)TexMgr_PadConditional(width);
-  pspriteframe->tmax = (float)height / (float)TexMgr_PadConditional(height);
+  pspriteframe->smax = (float)width / (float)TexMgrPadConditional(width);
+  pspriteframe->tmax = (float)height / (float)TexMgrPadConditional(height);
   // johnfitz
 
   q_snprintf(name, sizeof(name), "%s:frame%i", loadmodel->name, framenum);

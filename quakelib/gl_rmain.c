@@ -8,9 +8,7 @@ entity_t *currententity;
 int r_visframecount;  // bumped when going to a new PVS
 int r_framecount;     // used for dlight push checking
 
-int GetRFrameCount() {
-  return r_framecount;
-}
+int GetRFrameCount() { return r_framecount; }
 
 mplane_t frustum[4];
 
@@ -197,9 +195,10 @@ void GLSLGamma_GammaCorrect(void) {
   }
 
   // copy the framebuffer to the texture
-  GL_DisableMultitexture();
+  GLDisableMultitexture();
   glBindTexture(GL_TEXTURE_2D, r_gamma_texture);
-  glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GL_X(), GL_Y(), GL_Width(), GL_Height());
+  glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GL_X(), GL_Y(), GL_Width(),
+                      GL_Height());
 
   // draw the texture back to the framebuffer with a fragment shader
   GL_UseProgramFunc(r_gamma_program);
@@ -230,7 +229,7 @@ void GLSLGamma_GammaCorrect(void) {
   GL_UseProgramFunc(0);
 
   // clear cached binding
-  GL_ClearBindings();
+  GLClearBindings();
 }
 
 /*
@@ -914,7 +913,7 @@ void R_RenderView(void) {
         "%3i ms  %4i/%4i wpoly %4i/%4i epoly %3i lmap %4i/%4i sky %1.1f mtex\n",
         (int)((time2 - time1) * 1000), rs_brushpolys, rs_brushpasses,
         rs_aliaspolys, rs_aliaspasses, rs_dynamiclightmaps, rs_skypolys,
-        rs_skypasses, TexMgr_FrameUsage());
+        rs_skypasses, TexMgrFrameUsage());
   } else if (Cvar_GetValue(&r_speeds)) {
     Con_Printf("%3i ms  %4i wpoly %4i epoly %3i lmap\n",
                (int)((time2 - time1) * 1000), rs_brushpolys, rs_aliaspolys,

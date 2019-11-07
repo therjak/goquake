@@ -436,7 +436,7 @@ glOrtho
 void V_PolyBlend(void) {
   if (!Cvar_GetValue(&gl_polyblend) || !v_blend[3]) return;
 
-  GL_DisableMultitexture();
+  GLDisableMultitexture();
 
   glDisable(GL_ALPHA_TEST);
   glDisable(GL_TEXTURE_2D);
