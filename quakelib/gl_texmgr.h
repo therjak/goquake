@@ -59,7 +59,6 @@ extern unsigned int d_8to24table[256];
 float TexMgr_FrameUsage(void);
 void TexMgr_FreeTexture(gltexture_t *kill);
 void TexMgr_FreeTexturesForOwner(qmodel_t *owner);
-void TexMgr_NewGame(void);
 void TexMgr_Init(void);
 void TexMgr_DeleteTextureObjects(void);
 
@@ -70,10 +69,8 @@ gltexture_t *TexMgr_LoadImage(qmodel_t *owner, const char *name, int width,
                               src_offset_t source_offset, unsigned flags);
 void TexMgr_ReloadImage(gltexture_t *glt, int shirt, int pants);
 void TexMgr_ReloadImages(void);
-void TexMgr_ReloadNobrightImages(void);
+void TexMgr_ReloadNobrightImages(void);  // only cvar callback stuff
 
-int TexMgr_Pad(int s);
-int TexMgr_SafeTextureSize(int s);
 int TexMgr_PadConditional(int s);
 
 // TEXTURE BINDING & TEXTURE UNIT SWITCHING

@@ -26,6 +26,7 @@ unsigned int d_8to24table_nobright[256];
 unsigned int d_8to24table_nobright_fence[256];
 unsigned int d_8to24table_conchars[256];
 
+int TexMgr_SafeTextureSize(int s);
 /*
 ================================================================================
 
@@ -428,17 +429,6 @@ void TexMgrLoadPalette(void) {
   ((byte *)&d_8to24table_conchars[0])[3] = 0;
 
   //  Hunk_FreeToLowMark(mark);
-}
-
-/*
-================
-TexMgr_NewGame
-================
-*/
-void TexMgr_NewGame(void) {
-  // deletes all textures where TEXPREF_PERSIST is unset
-  TexMgr_FreeTextures(0, TEXPREF_PERSIST);
-  TexMgr_LoadPalette();
 }
 
 /*
