@@ -12,8 +12,7 @@ int lightmap_bytes;
 #define BLOCK_WIDTH 128
 #define BLOCK_HEIGHT 128
 
-gltexture_t
-    *lightmap_textures[MAX_LIGHTMAPS];  // johnfitz -- changed to an array
+uint32_t lightmap_textures[MAX_LIGHTMAPS];  // johnfitz -- changed to an array
 
 unsigned blocklights[BLOCK_WIDTH * BLOCK_HEIGHT *
                      3];  // johnfitz -- was 18*18, added lit support (*3) and
@@ -457,7 +456,7 @@ void GL_BuildLightmaps(void) {
 
   // johnfitz -- null out array (the gltexture objects themselves were already
   // freed by Mod_ClearAll)
-  for (i = 0; i < MAX_LIGHTMAPS; i++) lightmap_textures[i] = NULL;
+  for (i = 0; i < MAX_LIGHTMAPS; i++) lightmap_textures[i] = GetNoTexture();
   // johnfitz
 
   gl_lightmap_format = GL_RGBA;  // FIXME: hardcoded for now!
@@ -503,7 +502,7 @@ void GL_BuildLightmaps(void) {
     // johnfitz -- use texture manager
     sprintf(name, "lightmap%03i", i);
     data = lightmaps + i * BLOCK_WIDTH * BLOCK_HEIGHT * lightmap_bytes;
-    lightmap_textures[i] = TexMgr_LoadImage(
+    lightmap_textures[i] = TexMgrLoadImage(
         cl.worldmodel, name, BLOCK_WIDTH, BLOCK_HEIGHT, SRC_LIGHTMAP, data, "",
         (src_offset_t)data, TEXPREF_LINEAR | TEXPREF_NOPICMIP);
     // johnfitz
@@ -805,7 +804,7 @@ void R_UploadLightmaps(void) {
   for (lmap = 0; lmap < MAX_LIGHTMAPS; lmap++) {
     if (!lightmap_modified[lmap]) continue;
 
-    GL_Bind(lightmap_textures[lmap]);
+    GLBind(lightmap_textures[lmap]);
     R_UploadLightmap(lmap);
   }
 }
@@ -841,7 +840,7 @@ void R_RebuildAllLightmaps(void) {
   // for each lightmap, upload it
   for (i = 0; i < MAX_LIGHTMAPS; i++) {
     if (!allocated[i][0]) break;
-    GL_Bind(lightmap_textures[i]);
+    GLBind(lightmap_textures[i]);
     glTexSubImage2D(
         GL_TEXTURE_2D, 0, 0, 0, BLOCK_WIDTH, BLOCK_HEIGHT, gl_lightmap_format,
         GL_UNSIGNED_BYTE,

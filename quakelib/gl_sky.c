@@ -15,7 +15,7 @@ float skymins[2][6], skymaxs[2][6];
 
 char skybox_name[32] = "";  // name of current skybox, or "" if no skybox
 
-gltexture_t *skybox_textures[6];
+uint32_t skybox_textures[6];
 uint32_t solidskytexture2, alphaskytexture2;
 
 extern cvar_t gl_farclip;
@@ -119,9 +119,9 @@ void Sky_LoadSkyBox(const char *name) {
 
   // purge old textures
   for (i = 0; i < 6; i++) {
-    if (skybox_textures[i] && skybox_textures[i] != notexture)
-      TexMgr_FreeTexture(skybox_textures[i]);
-    skybox_textures[i] = NULL;
+    if (skybox_textures[i] && skybox_textures[i] != GetNoTexture())
+      TexMgrFreeTexture(skybox_textures[i]);
+    skybox_textures[i] = 0;
   }
 
   // turn off skybox if sky is set to ""
@@ -137,12 +137,12 @@ void Sky_LoadSkyBox(const char *name) {
     data = Image_LoadImage(filename, &width, &height);
     if (data) {
       skybox_textures[i] =
-          TexMgr_LoadImage(cl.worldmodel, filename, width, height, SRC_RGBA,
-                           data, filename, 0, TEXPREF_NONE);
+          TexMgrLoadImage(cl.worldmodel, filename, width, height, SRC_RGBA,
+                          data, filename, 0, TEXPREF_NONE);
       nonefound = false;
     } else {
       Con_Printf("Couldn't load %s\n", filename);
-      skybox_textures[i] = notexture;
+      skybox_textures[i] = GetNoTexture();
     }
     Hunk_FreeToLowMark(mark);
   }
@@ -150,9 +150,9 @@ void Sky_LoadSkyBox(const char *name) {
   if (nonefound)  // go back to scrolling sky if skybox is totally missing
   {
     for (i = 0; i < 6; i++) {
-      if (skybox_textures[i] && skybox_textures[i] != notexture)
-        TexMgr_FreeTexture(skybox_textures[i]);
-      skybox_textures[i] = NULL;
+      if (skybox_textures[i] && skybox_textures[i] != GetNoTexture())
+        TexMgrFreeTexture(skybox_textures[i]);
+      skybox_textures[i] = 0;
     }
     skybox_name[0] = 0;
     return;
@@ -175,7 +175,7 @@ void Sky_NewMap(void) {
   // initially no sky
   //
   skybox_name[0] = 0;
-  for (i = 0; i < 6; i++) skybox_textures[i] = NULL;
+  for (i = 0; i < 6; i++) skybox_textures[i] = 0;
   skyfog = Cvar_GetValue(&r_skyfog);
 
   //
@@ -262,7 +262,7 @@ void Sky_Init(void) {
 
   Cmd_AddCommand("sky", Sky_SkyCommand_f);
 
-  for (i = 0; i < 6; i++) skybox_textures[i] = NULL;
+  for (i = 0; i < 6; i++) skybox_textures[i] = 0;
 }
 
 //==============================================================================
@@ -575,8 +575,8 @@ void Sky_EmitSkyBoxVertex(float s, float t, int axis) {
   t = (t + 1) * 0.5;
 
   // avoid bilerp seam
-  w = skybox_textures[skytexorder[axis]]->width;
-  h = skybox_textures[skytexorder[axis]]->height;
+  w = GetTextureWidth(skybox_textures[skytexorder[axis]]);   // ->width;
+  h = GetTextureHeight(skybox_textures[skytexorder[axis]]);  //->height;
   s = s * (w - 1) / w + 0.5 / w;
   t = t * (h - 1) / h + 0.5 / h;
 
@@ -599,7 +599,7 @@ void Sky_DrawSkyBox(void) {
     if (skymins[0][i] >= skymaxs[0][i] || skymins[1][i] >= skymaxs[1][i])
       continue;
 
-    GL_Bind(skybox_textures[skytexorder[i]]);
+    GLBind(skybox_textures[skytexorder[i]]);
 
 #if 1  // FIXME: this is to avoid tjunctions until i can do it the right way
     skymins[0][i] = -1;

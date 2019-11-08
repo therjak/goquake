@@ -32,6 +32,16 @@ func GetNoTexture() TexID {
 	return TexID(C.notexture.texnum)
 }
 
+//export GetTextureWidth
+func GetTextureWidth(id TexID) C.uint {
+	return texmap[id].width
+}
+
+//export GetTextureHeight
+func GetTextureHeight(id TexID) C.uint {
+	return texmap[id].height
+}
+
 //export GLBind
 func GLBind(id TexID) {
 	C.GL_Bind(texmap[id])
@@ -47,6 +57,7 @@ func TexMgrLoadImage(owner *C.qmodel_t, name *C.char, width C.int,
 		source_file,
 		source_offset, flags)
 
+	// Note texnum 0 is reserved in opengl so it can not natually occur.
 	texmap[TexID(t.texnum)] = t
 
 	return TexID(t.texnum)

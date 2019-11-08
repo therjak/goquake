@@ -478,7 +478,7 @@ void R_DrawTextureChains_Multitexture(qmodel_t *model, entity_t *ent,
           GLEnableMultitexture();  // selects TEXTURE1
           bound = true;
         }
-        GL_Bind(lightmap_textures[s->lightmaptexturenum]);
+        GLBind(lightmap_textures[s->lightmaptexturenum]);
         glBegin(GL_POLYGON);
         v = s->polys->verts[0];
         for (j = 0; j < s->polys->numverts; j++, v += VERTEXSIZE) {
@@ -708,7 +708,7 @@ void R_DrawLightmapChains(void) {
   for (i = 0; i < MAX_LIGHTMAPS; i++) {
     if (!lightmap_polys[i]) continue;
 
-    GL_Bind(lightmap_textures[i]);
+    GLBind(lightmap_textures[i]);
     for (p = lightmap_polys[i]; p; p = p->chain) {
       glBegin(GL_POLYGON);
       v = p->verts[0];
@@ -816,7 +816,7 @@ void R_DrawTextureChains_Multitexture_VBO(qmodel_t *model, entity_t *ent,
         if (s->lightmaptexturenum != lastlightmap) R_FlushBatch();
 
         GLSelectTexture(GL_TEXTURE1_ARB);
-        GL_Bind(lightmap_textures[s->lightmaptexturenum]);
+        GLBind(lightmap_textures[s->lightmaptexturenum]);
         lastlightmap = s->lightmaptexturenum;
         R_BatchSurface(s);
 
