@@ -326,7 +326,7 @@ void GL_DrawAliasFrame(aliashdr_t *paliashdr, lerpdata_t lerpdata) {
     do {
       u = ((float *)commands)[0];
       v = ((float *)commands)[1];
-      if (mtexenabled) {
+      if (GetMTexEnabled()) {
         GL_MTexCoord2fFunc(GL_TEXTURE0_ARB, u, v);
         GL_MTexCoord2fFunc(GL_TEXTURE1_ARB, u, v);
       } else

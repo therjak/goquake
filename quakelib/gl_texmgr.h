@@ -51,6 +51,7 @@ typedef struct gltexture_s {
 typedef gltexture_t *gltexture_tp;
 
 extern gltexture_t *notexture;
+extern gltexture_t *nulltexture;
 
 extern unsigned int d_8to24table[256];
 
@@ -76,8 +77,6 @@ int TexMgr_PadConditional(int s);
 // TEXTURE BINDING & TEXTURE UNIT SWITCHING
 
 void GL_SelectTexture(GLenum target);
-void GL_DisableMultitexture(void);  // selects texture unit 0
-void GL_EnableMultitexture(void);   // selects texture unit 1
 void GL_Bind(gltexture_t *texture);
 void GL_ClearBindings(void);
 

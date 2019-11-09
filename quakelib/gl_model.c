@@ -430,14 +430,14 @@ void Mod_LoadTextures(lump_t *l) {
         {
           q_strlcpy(texturename, filename, sizeof(texturename));
           tx->gltexture =
-              TexMgr_LoadImage(loadmodel, texturename, fwidth, fheight,
+              TexMgrLoadImage2(loadmodel, texturename, fwidth, fheight,
                                SRC_RGBA, data, filename, 0, TEXPREF_NONE);
         } else  // use the texture from the bsp file
         {
           q_snprintf(texturename, sizeof(texturename), "%s:%s", loadmodel->name,
                      tx->name);
           offset = (src_offset_t)(mt + 1) - (src_offset_t)mod_base;
-          tx->gltexture = TexMgr_LoadImage(
+          tx->gltexture = TexMgrLoadImage2(
               loadmodel, texturename, tx->width, tx->height, SRC_INDEXED,
               (byte *)(tx + 1), loadmodel->name, offset, TEXPREF_NONE);
         }
@@ -451,7 +451,7 @@ void Mod_LoadTextures(lump_t *l) {
                                                               // illegal address
         Hunk_FreeToLowMark(mark);
         q_snprintf(texturename, sizeof(texturename), "%s_warp", texturename);
-        tx->warpimage = TexMgr_LoadImage(
+        tx->warpimage = TexMgrLoadImage2(
             loadmodel, texturename, gl_warpimagesize, gl_warpimagesize,
             SRC_RGBA, hunk_base, "", (src_offset_t)hunk_base,
             TEXPREF_NOPICMIP | TEXPREF_WARPIMAGE);
@@ -481,7 +481,7 @@ void Mod_LoadTextures(lump_t *l) {
         if (data)  // load external image
         {
           tx->gltexture =
-              TexMgr_LoadImage(loadmodel, filename, fwidth, fheight, SRC_RGBA,
+              TexMgrLoadImage2(loadmodel, filename, fwidth, fheight, SRC_RGBA,
                                data, filename, 0, TEXPREF_MIPMAP | extraflags);
 
           // now try to load glow/luma image from the same place
@@ -494,7 +494,7 @@ void Mod_LoadTextures(lump_t *l) {
           }
 
           if (data)
-            tx->fullbright = TexMgr_LoadImage(loadmodel, filename2, fwidth,
+            tx->fullbright = TexMgrLoadImage2(loadmodel, filename2, fwidth,
                                               fheight, SRC_RGBA, data, filename,
                                               0, TEXPREF_MIPMAP | extraflags);
         } else  // use the texture from the bsp file
@@ -503,19 +503,19 @@ void Mod_LoadTextures(lump_t *l) {
                      tx->name);
           offset = (src_offset_t)(mt + 1) - (src_offset_t)mod_base;
           if (Mod_CheckFullbrights((byte *)(tx + 1), pixels)) {
-            tx->gltexture = TexMgr_LoadImage(
+            tx->gltexture = TexMgrLoadImage2(
                 loadmodel, texturename, tx->width, tx->height, SRC_INDEXED,
                 (byte *)(tx + 1), loadmodel->name, offset,
                 TEXPREF_MIPMAP | TEXPREF_NOBRIGHT | extraflags);
             q_snprintf(texturename, sizeof(texturename), "%s:%s_glow",
                        loadmodel->name, tx->name);
-            tx->fullbright = TexMgr_LoadImage(
+            tx->fullbright = TexMgrLoadImage2(
                 loadmodel, texturename, tx->width, tx->height, SRC_INDEXED,
                 (byte *)(tx + 1), loadmodel->name, offset,
                 TEXPREF_MIPMAP | TEXPREF_FULLBRIGHT | extraflags);
           } else {
             tx->gltexture =
-                TexMgr_LoadImage(loadmodel, texturename, tx->width, tx->height,
+                TexMgrLoadImage2(loadmodel, texturename, tx->width, tx->height,
                                  SRC_INDEXED, (byte *)(tx + 1), loadmodel->name,
                                  offset, TEXPREF_MIPMAP | extraflags);
           }
@@ -2145,18 +2145,18 @@ void *Mod_LoadAllSkins(int numskins, daliasskintype_t *pskintype) {
       q_snprintf(name, sizeof(name), "%s:frame%i", loadmodel->name, i);
       offset = (src_offset_t)(pskintype + 1) - (src_offset_t)mod_base;
       if (Mod_CheckFullbrights((byte *)(pskintype + 1), size)) {
-        pheader->gltextures[i][0] = TexMgr_LoadImage(
+        pheader->gltextures[i][0] = TexMgrLoadImage2(
             loadmodel, name, pheader->skinwidth, pheader->skinheight,
             SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset,
             TEXPREF_PAD | TEXPREF_NOBRIGHT);
         q_snprintf(fbr_mask_name, sizeof(fbr_mask_name), "%s:frame%i_glow",
                    loadmodel->name, i);
-        pheader->fbtextures[i][0] = TexMgr_LoadImage(
+        pheader->fbtextures[i][0] = TexMgrLoadImage2(
             loadmodel, fbr_mask_name, pheader->skinwidth, pheader->skinheight,
             SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset,
             TEXPREF_PAD | TEXPREF_FULLBRIGHT);
       } else {
-        pheader->gltextures[i][0] = TexMgr_LoadImage(
+        pheader->gltextures[i][0] = TexMgrLoadImage2(
             loadmodel, name, pheader->skinwidth, pheader->skinheight,
             SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset,
             TEXPREF_PAD);
@@ -2192,18 +2192,18 @@ void *Mod_LoadAllSkins(int numskins, daliasskintype_t *pskintype) {
         offset =
             (src_offset_t)(pskintype) - (src_offset_t)mod_base;  // johnfitz
         if (Mod_CheckFullbrights((byte *)(pskintype), size)) {
-          pheader->gltextures[i][j & 3] = TexMgr_LoadImage(
+          pheader->gltextures[i][j & 3] = TexMgrLoadImage2(
               loadmodel, name, pheader->skinwidth, pheader->skinheight,
               SRC_INDEXED, (byte *)(pskintype), loadmodel->name, offset,
               TEXPREF_PAD | TEXPREF_NOBRIGHT);
           q_snprintf(fbr_mask_name, sizeof(fbr_mask_name), "%s:frame%i_%i_glow",
                      loadmodel->name, i, j);
-          pheader->fbtextures[i][j & 3] = TexMgr_LoadImage(
+          pheader->fbtextures[i][j & 3] = TexMgrLoadImage2(
               loadmodel, fbr_mask_name, pheader->skinwidth, pheader->skinheight,
               SRC_INDEXED, (byte *)(pskintype), loadmodel->name, offset,
               TEXPREF_PAD | TEXPREF_FULLBRIGHT);
         } else {
-          pheader->gltextures[i][j & 3] = TexMgr_LoadImage(
+          pheader->gltextures[i][j & 3] = TexMgrLoadImage2(
               loadmodel, name, pheader->skinwidth, pheader->skinheight,
               SRC_INDEXED, (byte *)(pskintype), loadmodel->name, offset,
               TEXPREF_PAD);
@@ -2512,7 +2512,7 @@ void *Mod_LoadSpriteFrame(void *pin, mspriteframe_t **ppframe, int framenum) {
 
   q_snprintf(name, sizeof(name), "%s:frame%i", loadmodel->name, framenum);
   offset = (src_offset_t)(pinframe + 1) - (src_offset_t)mod_base;  // johnfitz
-  pspriteframe->gltexture = TexMgr_LoadImage(
+  pspriteframe->gltexture = TexMgrLoadImage2(
       loadmodel, name, width, height, SRC_INDEXED, (byte *)(pinframe + 1),
       loadmodel->name, offset,
       TEXPREF_PAD | TEXPREF_ALPHA | TEXPREF_NOPICMIP);  // johnfitz -- TexMgr

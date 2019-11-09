@@ -75,22 +75,22 @@ static void TexMgr_SetFilterModes(gltexture_t *glt) {
 
   if (glt->flags & TEXPREF_NEAREST) {
     // THERJAK: glTexParameterf is opengl
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   } else if (glt->flags & TEXPREF_LINEAR) {
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   } else if (glt->flags & TEXPREF_MIPMAP) {
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+    GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
                     glmodes[glmode_idx].magfilter);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+    GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
                     glmodes[glmode_idx].minfilter);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
+    GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
                     Cvar_GetValue(&gl_texture_anisotropy));
   } else {
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+    GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
                     glmodes[glmode_idx].magfilter);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+    GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
                     glmodes[glmode_idx].magfilter);
   }
 }
@@ -153,11 +153,11 @@ static void TexMgr_Anisotropy_f(cvar_t *var) {
       if (glt->flags & TEXPREF_MIPMAP) {
         GL_Bind(glt);
         // THERJAK: glTexParameterf is opengl
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+        GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
                         glmodes[glmode_idx].magfilter);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+        GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
                         glmodes[glmode_idx].minfilter);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
+        GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
                         Cvar_GetValue(&gl_texture_anisotropy));
       }
     }
@@ -252,12 +252,12 @@ gltexture_t *TexMgr_NewTexture(void) {
   active_gltextures = glt;
 
   // THERJAK: glGenTextures is opengl
-  glGenTextures(1, &glt->texnum);
+  GL_GenTextures(1, &glt->texnum);
   numgltextures++;
   return glt;
 }
 
-static void GL_DeleteTexture(gltexture_t *texture);
+// void GL_DeleteTexture(gltexture_t *texture);
 
 // ericw -- workaround for preventing TexMgr_FreeTexture during
 // TexMgr_ReloadImages
@@ -469,7 +469,7 @@ void TexMgr_RecalcWarpImageSize(void) {
     if (glt->flags & TEXPREF_WARPIMAGE) {
       GL_Bind(glt);
       // THERJAK: glTexImage2D is opengl
-      glTexImage2D(GL_TEXTURE_2D, 0, gl_solid_format, gl_warpimagesize,
+      GL_TexImage2D(GL_TEXTURE_2D, 0, gl_solid_format, gl_warpimagesize,
                    gl_warpimagesize, 0, GL_RGBA, GL_UNSIGNED_BYTE, dummy);
       glt->width = glt->height = gl_warpimagesize;
     }
@@ -521,15 +521,15 @@ void TexMgr_Init(void) {
 
   // poll max size from hardware
   // THERJAK: glGetIntegerv is opengl
-  glGetIntegerv(GL_MAX_TEXTURE_SIZE, &gl_hardware_maxsize);
+  GL_GetIntegerv(GL_MAX_TEXTURE_SIZE, &gl_hardware_maxsize);
 
   // load notexture images
   notexture =
-      TexMgr_LoadImage(NULL, "notexture", 2, 2, SRC_RGBA, notexture_data, "",
+      TexMgrLoadImage2(NULL, "notexture", 2, 2, SRC_RGBA, notexture_data, "",
                        (src_offset_t)notexture_data,
                        TEXPREF_NEAREST | TEXPREF_PERSIST | TEXPREF_NOPICMIP);
   nulltexture =
-      TexMgr_LoadImage(NULL, "nulltexture", 2, 2, SRC_RGBA, nulltexture_data,
+      TexMgrLoadImage2(NULL, "nulltexture", 2, 2, SRC_RGBA, nulltexture_data,
                        "", (src_offset_t)nulltexture_data,
                        TEXPREF_NEAREST | TEXPREF_PERSIST | TEXPREF_NOPICMIP);
 
@@ -961,7 +961,7 @@ static void TexMgr_LoadImage32(gltexture_t *glt, unsigned *data) {
   internalformat =
       (glt->flags & TEXPREF_ALPHA) ? gl_alpha_format : gl_solid_format;
   // THERJAK: glTexImage2D is opengl
-  glTexImage2D(GL_TEXTURE_2D, 0, internalformat, glt->width, glt->height, 0,
+  GL_TexImage2D(GL_TEXTURE_2D, 0, internalformat, glt->width, glt->height, 0,
                GL_RGBA, GL_UNSIGNED_BYTE, data);
 
   // upload mipmaps
@@ -979,7 +979,7 @@ static void TexMgr_LoadImage32(gltexture_t *glt, unsigned *data) {
         mipheight >>= 1;
       }
       // THERJAK: glTexImage2D is opengl
-      glTexImage2D(GL_TEXTURE_2D, miplevel, internalformat, mipwidth, mipheight,
+      GL_TexImage2D(GL_TEXTURE_2D, miplevel, internalformat, mipwidth, mipheight,
                    0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     }
   }
@@ -1077,7 +1077,8 @@ TexMgr_LoadLightmap -- handles lightmap data
 static void TexMgr_LoadLightmap(gltexture_t *glt, byte *data) {
   // upload it
   GL_Bind(glt);
-  glTexImage2D(GL_TEXTURE_2D, 0, lightmap_bytes, glt->width, glt->height, 0,
+  //THERJAK
+  GL_TexImage2D(GL_TEXTURE_2D, 0, lightmap_bytes, glt->width, glt->height, 0,
                gl_lightmap_format, GL_UNSIGNED_BYTE, data);
 
   // set filter modes
@@ -1294,7 +1295,7 @@ void TexMgr_ReloadImages(void) {
 
   for (glt = active_gltextures; glt; glt = glt->next) {
     // THERJAK: glGenTextures is opengl
-    glGenTextures(1, &glt->texnum);
+    GL_GenTextures(1, &glt->texnum);
     TexMgr_ReloadImage(glt, -1, -1);
   }
 
@@ -1312,112 +1313,4 @@ void TexMgr_ReloadNobrightImages(void) {
 
   for (glt = active_gltextures; glt; glt = glt->next)
     if (glt->flags & TEXPREF_NOBRIGHT) TexMgr_ReloadImage(glt, -1, -1);
-}
-
-/*
-================================================================================
-
-        TEXTURE BINDING / TEXTURE UNIT SWITCHING
-
-================================================================================
-*/
-
-static GLuint currenttexture[3] = {
-    GL_UNUSED_TEXTURE, GL_UNUSED_TEXTURE,
-    GL_UNUSED_TEXTURE};  // to avoid unnecessary texture sets
-static GLenum currenttarget = GL_TEXTURE0_ARB;
-qboolean mtexenabled = false;
-
-/*
-================
-GL_SelectTexture -- johnfitz -- rewritten
-================
-*/
-void GL_SelectTexture(GLenum target) {
-  if (target == currenttarget) return;
-
-  GL_SelectTextureFunc(target);
-  currenttarget = target;
-}
-
-/*
-================
-GL_DisableMultitexture -- selects texture unit 0
-================
-*/
-void GL_DisableMultitexture(void) {
-  if (mtexenabled) {
-    // THERJAK: glDisable is opengl
-    glDisable(GL_TEXTURE_2D);
-    GL_SelectTexture(GL_TEXTURE0_ARB);
-    mtexenabled = false;
-  }
-}
-
-/*
-================
-GL_EnableMultitexture -- selects texture unit 1
-================
-*/
-void GL_EnableMultitexture(void) {
-  if (gl_mtexable) {
-    GL_SelectTexture(GL_TEXTURE1_ARB);
-    // THERJAK: glEnable is opengl
-    glEnable(GL_TEXTURE_2D);
-    mtexenabled = true;
-  }
-}
-
-/*
-================
-GL_Bind -- johnfitz -- heavy revision
-================
-*/
-void GL_Bind(gltexture_t *texture) {
-  if (!texture) texture = nulltexture;
-
-  if (texture->texnum != currenttexture[currenttarget - GL_TEXTURE0_ARB]) {
-    currenttexture[currenttarget - GL_TEXTURE0_ARB] = texture->texnum;
-    // THERJAK: glBindTexture is opengl
-    glBindTexture(GL_TEXTURE_2D, texture->texnum);
-    texture->visframe = r_framecount;
-  }
-}
-
-/*
-================
-GL_DeleteTexture -- ericw
-
-Wrapper around glDeleteTextures that also clears the given texture number
-from our per-TMU cached texture binding table.
-================
-*/
-static void GL_DeleteTexture(gltexture_t *texture) {
-  // THERJAK: glDeleteTextures is opengl
-  glDeleteTextures(1, &texture->texnum);
-
-  if (texture->texnum == currenttexture[0])
-    currenttexture[0] = GL_UNUSED_TEXTURE;
-  if (texture->texnum == currenttexture[1])
-    currenttexture[1] = GL_UNUSED_TEXTURE;
-  if (texture->texnum == currenttexture[2])
-    currenttexture[2] = GL_UNUSED_TEXTURE;
-
-  texture->texnum = 0;
-}
-
-/*
-================
-GL_ClearBindings -- ericw
-
-Invalidates cached bindings, so the next GL_Bind calls for each TMU will
-make real glBindTexture calls.
-Call this after changing the binding outside of GL_Bind.
-================
-*/
-void GL_ClearBindings(void) {
-  int i;
-  for (i = 0; i < 3; i++) {
-    currenttexture[i] = GL_UNUSED_TEXTURE;
-  }
 }
