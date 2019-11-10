@@ -8,6 +8,9 @@ import "C"
 import (
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"log"
+	"quake/cmd"
+	"quake/conlog"
+	"quake/cvars"
 	"unsafe"
 )
 
@@ -23,12 +26,59 @@ type TextureP C.gltexture_tp
 // gl.Enable == glEnable
 // gl.Disable == glDisable
 
+type TexPref uint32
+
+const (
+	TexPrefMipMap TexPref = 1 << iota
+	TexPrefLinear
+	TexPrefNearest
+	TexPrefAlpha
+	TexPrefPad
+	TexPrefPersist
+	TexPrefOverwrite
+	TexPrefNoPicMip
+	TexPrefFullBright
+	TexPrefNoBright
+	TexPrefConChars
+	TexPrefWarpImage
+	TexPrefNone TexPref = 0
+)
+
+type glMode struct {
+	magfilter float32
+	minfilter float32
+	name      string
+}
+
+var (
+	glModes = [6]glMode{
+		{gl.NEAREST, gl.NEAREST, "GL_NEAREST"},
+		{gl.NEAREST, gl.NEAREST_MIPMAP_NEAREST, "GL_NEAREST_MIPMAP_NEAREST"},
+		{gl.NEAREST, gl.NEAREST_MIPMAP_LINEAR, "GL_NEAREST_MIPMAP_LINEAR"},
+		{gl.LINEAR, gl.LINEAR, "GL_LINEAR"},
+		{gl.LINEAR, gl.LINEAR_MIPMAP_NEAREST, "GL_LINEAR_MIPMAP_NEAREST"},
+		{gl.LINEAR, gl.LINEAR_MIPMAP_LINEAR, "GL_LINEAR_MIPMAP_LINEAR"},
+	}
+)
+
+func describeTextureModes(_ []cmd.QArg, _ int) {
+	for i, m := range glModes {
+		conlog.SafePrintf("   %2d: %s", i+1, m.name)
+	}
+	conlog.Printf("%d modes\n", len(glModes))
+}
+
+func init() {
+	cmd.AddCommand("gl_describetexturemodes", describeTextureModes)
+}
+
 type TexID uint32
 
 type texMgr struct {
 	multiTextureEnabled bool
 	currentTarget       uint32
 	currentTexture      [3]uint32
+	glModeIndex         int // TODO(therjak): glmode_idx is still split between c and go
 }
 
 //export GetMTexEnabled
@@ -43,6 +93,7 @@ type Texture struct {
 	glHeight     int32
 	sourceWidth  int32
 	sourceHeight int32
+	flags        TexPref
 }
 
 const (
@@ -53,6 +104,7 @@ var (
 	texmap         map[TexID]*Texture
 	textureManager = texMgr{
 		currentTarget: gl.TEXTURE0,
+		glModeIndex:   len(glModes) - 1,
 	}
 	noTexture   *Texture
 	nullTexture *Texture
@@ -137,6 +189,7 @@ func ConvertCTex(ct TextureP) *Texture {
 		glHeight:     int32(ct.height),
 		sourceWidth:  int32(ct.source_width),
 		sourceHeight: int32(ct.source_height),
+		flags:        TexPref(ct.flags),
 	}
 }
 
@@ -259,6 +312,33 @@ func (tm *texMgr) EnableMultiTexture() {
 	GLSelectTexture(gl.TEXTURE1)
 	gl.Enable(gl.TEXTURE_2D)
 	tm.multiTextureEnabled = true
+}
+
+//export TexMgr_SetFilterModes
+func TexMgr_SetFilterModes(ct TextureP) {
+	t := ConvertCTex(ct)
+	textureManager.SetFilterModes(t)
+}
+
+func (tm *texMgr) SetFilterModes(t *Texture) {
+	tm.Bind(t)
+	m := glModes[tm.glModeIndex]
+	switch {
+	case t.flags&TexPrefNearest != 0:
+		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+	case t.flags&TexPrefLinear != 0:
+		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+	case t.flags&TexPrefMipMap != 0:
+		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, m.magfilter)
+		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, m.minfilter)
+		v := cvars.GlTextureAnisotropy.Value()
+		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAX_ANISOTROPY, v)
+	default:
+		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, m.magfilter)
+		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, m.magfilter)
+	}
 }
 
 //export GLClearBindings

@@ -53,50 +53,6 @@ static int glmode_idx = NUM_GLMODES - 1; /* trilinear */
 
 /*
 ===============
-TexMgr_DescribeTextureModes_f -- report available texturemodes
-===============
-*/
-static void TexMgr_DescribeTextureModes_f(void) {
-  int i;
-
-  for (i = 0; i < NUM_GLMODES; i++)
-    Con_SafePrintf("   %2i: %s\n", i + 1, glmodes[i].name);
-
-  Con_Printf("%i modes\n", i);
-}
-
-/*
-===============
-TexMgr_SetFilterModes
-===============
-*/
-static void TexMgr_SetFilterModes(gltexture_t *glt) {
-  GL_Bind(glt);
-
-  if (glt->flags & TEXPREF_NEAREST) {
-    // THERJAK: glTexParameterf is opengl
-    GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  } else if (glt->flags & TEXPREF_LINEAR) {
-    GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  } else if (glt->flags & TEXPREF_MIPMAP) {
-    GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-                    glmodes[glmode_idx].magfilter);
-    GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                    glmodes[glmode_idx].minfilter);
-    GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-                    Cvar_GetValue(&gl_texture_anisotropy));
-  } else {
-    GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-                    glmodes[glmode_idx].magfilter);
-    GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                    glmodes[glmode_idx].magfilter);
-  }
-}
-
-/*
-===============
 TexMgr_TextureMode_f -- called when gl_texturemode changes
 ===============
 */
@@ -516,7 +472,6 @@ void TexMgr_Init(void) {
                 CVAR_ARCHIVE);
 
   Cvar_SetCallback(&gl_texturemode, &TexMgr_TextureMode_f);
-  Cmd_AddCommand("gl_describetexturemodes", &TexMgr_DescribeTextureModes_f);
   Cmd_AddCommand("imagelist", &TexMgr_Imagelist_f);
 
   // poll max size from hardware
