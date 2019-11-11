@@ -6,12 +6,13 @@ package quakelib
 import "C"
 
 import (
-	"github.com/go-gl/gl/v4.6-core/gl"
 	"log"
 	"quake/cmd"
 	"quake/conlog"
 	"quake/cvars"
 	"unsafe"
+
+	"github.com/go-gl/gl/v4.6-core/gl"
 )
 
 type TextureP C.gltexture_tp
@@ -79,6 +80,8 @@ type texMgr struct {
 	currentTarget       uint32
 	currentTexture      [3]uint32
 	glModeIndex         int // TODO(therjak): glmode_idx is still split between c and go
+
+	activeTextures map[*Texture]bool
 }
 
 //export GetMTexEnabled
@@ -103,8 +106,9 @@ const (
 var (
 	texmap         map[TexID]*Texture
 	textureManager = texMgr{
-		currentTarget: gl.TEXTURE0,
-		glModeIndex:   len(glModes) - 1,
+		currentTarget:  gl.TEXTURE0,
+		glModeIndex:    len(glModes) - 1,
+		activeTextures: make(map[*Texture]bool),
 	}
 	noTexture   *Texture
 	nullTexture *Texture
@@ -202,11 +206,14 @@ func TexMgrInit() {
 
 //export TexMgrDeleteTextureObjects
 func TexMgrDeleteTextureObjects() {
+	// This only discards all opengl objects. They get recreated
+	// in TexMgrReloadImages
 	C.TexMgr_DeleteTextureObjects()
 }
 
 //export TexMgrReloadImages
 func TexMgrReloadImages() {
+	// This is the reverse of TexMgrFreeTexturesObjects
 	C.TexMgr_ReloadImages()
 }
 
@@ -274,6 +281,12 @@ func (tm *texMgr) Bind(t *Texture) {
 		gl.BindTexture(gl.TEXTURE_2D, t.glID)
 		t.cp.visframe = C.GetRFrameCount()
 	}
+}
+
+//export GL_DeleteTexture2
+func GL_DeleteTexture2(t TextureP) {
+	textureManager.removeActiveTexture(uint32(t.texnum))
+	textureManager.deleteTexture(texmap[TexID(t.texnum)])
 }
 
 //export GL_DeleteTexture
@@ -358,6 +371,27 @@ func GL_TexImage2D(target uint32, level int32, internalformat int32, width int32
 //export GL_GenTextures
 func GL_GenTextures(n int32, t *uint32) {
 	gl.GenTextures(n, t)
+}
+
+func (tm *texMgr) addActiveTexture(t *Texture) {
+	tm.activeTextures[t] = true
+}
+
+func (tm *texMgr) removeActiveTexture(tid uint32) {
+	for k, v := range tm.activeTextures {
+		if v && k.glID == tid {
+			delete(tm.activeTextures, k)
+			return
+		}
+	}
+}
+
+//export GL_GenTextures2
+func GL_GenTextures2(t TextureP) {
+	textureManager.addActiveTexture(ConvertCTex(t))
+	var tn uint32
+	gl.GenTextures(1, &tn)
+	t.texnum = C.uint(tn)
 }
 
 //export GL_TexParameterf

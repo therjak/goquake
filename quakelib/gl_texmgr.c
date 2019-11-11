@@ -110,11 +110,11 @@ static void TexMgr_Anisotropy_f(cvar_t *var) {
         GL_Bind(glt);
         // THERJAK: glTexParameterf is opengl
         GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-                        glmodes[glmode_idx].magfilter);
+                         glmodes[glmode_idx].magfilter);
         GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                        glmodes[glmode_idx].minfilter);
+                         glmodes[glmode_idx].minfilter);
         GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-                        Cvar_GetValue(&gl_texture_anisotropy));
+                         Cvar_GetValue(&gl_texture_anisotropy));
       }
     }
   }
@@ -208,7 +208,7 @@ gltexture_t *TexMgr_NewTexture(void) {
   active_gltextures = glt;
 
   // THERJAK: glGenTextures is opengl
-  GL_GenTextures(1, &glt->texnum);
+  GL_GenTextures2(glt);
   numgltextures++;
   return glt;
 }
@@ -239,7 +239,7 @@ void TexMgr_FreeTexture(gltexture_t *kill) {
     kill->next = free_gltextures;
     free_gltextures = kill;
 
-    GL_DeleteTexture(kill);
+    GL_DeleteTexture2(kill);
     numgltextures--;
     return;
   }
@@ -250,30 +250,13 @@ void TexMgr_FreeTexture(gltexture_t *kill) {
       kill->next = free_gltextures;
       free_gltextures = kill;
 
-      GL_DeleteTexture(kill);
+      GL_DeleteTexture2(kill);
       numgltextures--;
       return;
     }
   }
 
   Con_Printf("TexMgr_FreeTexture: not found\n");
-}
-
-/*
-================
-TexMgr_FreeTextures
-
-compares each bit in "flags" to the one in glt->flags only if that bit is active
-in "mask"
-================
-*/
-void TexMgr_FreeTextures(unsigned int flags, unsigned int mask) {
-  gltexture_t *glt, *next;
-
-  for (glt = active_gltextures; glt; glt = next) {
-    next = glt->next;
-    if ((glt->flags & mask) == (flags & mask)) TexMgr_FreeTexture(glt);
-  }
 }
 
 /*
@@ -426,7 +409,7 @@ void TexMgr_RecalcWarpImageSize(void) {
       GL_Bind(glt);
       // THERJAK: glTexImage2D is opengl
       GL_TexImage2D(GL_TEXTURE_2D, 0, gl_solid_format, gl_warpimagesize,
-                   gl_warpimagesize, 0, GL_RGBA, GL_UNSIGNED_BYTE, dummy);
+                    gl_warpimagesize, 0, GL_RGBA, GL_UNSIGNED_BYTE, dummy);
       glt->width = glt->height = gl_warpimagesize;
     }
   }
@@ -917,7 +900,7 @@ static void TexMgr_LoadImage32(gltexture_t *glt, unsigned *data) {
       (glt->flags & TEXPREF_ALPHA) ? gl_alpha_format : gl_solid_format;
   // THERJAK: glTexImage2D is opengl
   GL_TexImage2D(GL_TEXTURE_2D, 0, internalformat, glt->width, glt->height, 0,
-               GL_RGBA, GL_UNSIGNED_BYTE, data);
+                GL_RGBA, GL_UNSIGNED_BYTE, data);
 
   // upload mipmaps
   if (glt->flags & TEXPREF_MIPMAP) {
@@ -934,8 +917,8 @@ static void TexMgr_LoadImage32(gltexture_t *glt, unsigned *data) {
         mipheight >>= 1;
       }
       // THERJAK: glTexImage2D is opengl
-      GL_TexImage2D(GL_TEXTURE_2D, miplevel, internalformat, mipwidth, mipheight,
-                   0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+      GL_TexImage2D(GL_TEXTURE_2D, miplevel, internalformat, mipwidth,
+                    mipheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     }
   }
 
@@ -1032,9 +1015,9 @@ TexMgr_LoadLightmap -- handles lightmap data
 static void TexMgr_LoadLightmap(gltexture_t *glt, byte *data) {
   // upload it
   GL_Bind(glt);
-  //THERJAK
+  // THERJAK
   GL_TexImage2D(GL_TEXTURE_2D, 0, lightmap_bytes, glt->width, glt->height, 0,
-               gl_lightmap_format, GL_UNSIGNED_BYTE, data);
+                gl_lightmap_format, GL_UNSIGNED_BYTE, data);
 
   // set filter modes
   TexMgr_SetFilterModes(glt);
