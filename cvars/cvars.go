@@ -64,6 +64,7 @@ var (
 	GlPolyBlend            *cvar.Cvar
 	GlSmoothModels         *cvar.Cvar
 	GlSubdivideSize        *cvar.Cvar
+	GlTextureMode          *cvar.Cvar
 	GlTextureAnisotropy    *cvar.Cvar
 	GlTripleBuffer         *cvar.Cvar
 	GlZFix                 *cvar.Cvar
@@ -262,6 +263,8 @@ func init() {
 	GlPolyBlend = cvar.MustRegister("gl_polyblend", "1", cvar.NONE)
 	GlSmoothModels = cvar.MustRegister("gl_smoothmodels", "1", cvar.NONE)
 	GlSubdivideSize = cvar.MustRegister("gl_subdivide_size", "128", cvar.ARCHIVE)
+	// correct value is filled in later.
+	GlTextureMode = cvar.MustRegister("gl_texturemode", "", cvar.ARCHIVE)
 	GlTextureAnisotropy = cvar.MustRegister("gl_texture_anisotropy", "1", cvar.ARCHIVE)
 	GlTripleBuffer = cvar.MustRegister("gl_triplebuffer", "1", cvar.ARCHIVE)
 	GlZFix = cvar.MustRegister("gl_zfix", "0", cvar.NONE)

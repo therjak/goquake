@@ -9,7 +9,10 @@ import (
 	"log"
 	"quake/cmd"
 	"quake/conlog"
+	"quake/cvar"
 	"quake/cvars"
+	"strconv"
+	"strings"
 	"unsafe"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
@@ -82,6 +85,7 @@ type texMgr struct {
 	glModeIndex         int // TODO(therjak): glmode_idx is still split between c and go
 
 	activeTextures map[*Texture]bool
+	maxAnisotropy  float32
 }
 
 //export GetMTexEnabled
@@ -109,6 +113,7 @@ var (
 		currentTarget:  gl.TEXTURE0,
 		glModeIndex:    len(glModes) - 1,
 		activeTextures: make(map[*Texture]bool),
+		maxAnisotropy:  1,
 	}
 	noTexture   *Texture
 	nullTexture *Texture
@@ -116,6 +121,13 @@ var (
 
 func init() {
 	texmap = make(map[TexID]*Texture)
+	cvars.GlTextureMode.SetByString(glModes[textureManager.glModeIndex].name)
+	cvars.GlTextureAnisotropy.SetCallback(func(cv *cvar.Cvar) {
+		textureManager.anisotropyCallback(cv)
+	})
+	cvars.GlTextureMode.SetCallback(func(cv *cvar.Cvar) {
+		textureManager.textureModeCallback(cv)
+	})
 }
 
 //export GetNoTexture
@@ -167,11 +179,15 @@ func TexMgrLoadImage2(owner *C.qmodel_t, name *C.char, width C.int,
 
 //export TexMgrReloadImage
 func TexMgrReloadImage(id TexID, shirt C.int, pants C.int) {
-	C.TexMgr_ReloadImage(texmap[id].cp, shirt, pants)
+	textureManager.ReloadImage(texmap[id], int(shirt), int(pants))
 }
 
 //export TexMgrFreeTexture
 func TexMgrFreeTexture(id TexID) {
+	if inReloadImages {
+		// Stupid workaround. Needs real fix.
+		return
+	}
 	C.TexMgr_FreeTexture(texmap[id].cp)
 }
 
@@ -199,6 +215,7 @@ func ConvertCTex(ct TextureP) *Texture {
 
 //export TexMgrInit
 func TexMgrInit() {
+	gl.GetFloatv(gl.MAX_TEXTURE_MAX_ANISOTROPY, &textureManager.maxAnisotropy)
 	C.TexMgr_Init()
 	nullTexture = ConvertCTex(C.nulltexture)
 	noTexture = ConvertCTex(C.notexture)
@@ -208,13 +225,13 @@ func TexMgrInit() {
 func TexMgrDeleteTextureObjects() {
 	// This only discards all opengl objects. They get recreated
 	// in TexMgrReloadImages
-	C.TexMgr_DeleteTextureObjects()
+	textureManager.DeleteTextureObjects()
 }
 
 //export TexMgrReloadImages
 func TexMgrReloadImages() {
 	// This is the reverse of TexMgrFreeTexturesObjects
-	C.TexMgr_ReloadImages()
+	textureManager.ReloadImages()
 }
 
 //export TexMgrReloadNobrightImages
@@ -294,6 +311,39 @@ func GL_DeleteTexture(t TextureP) {
 	textureManager.deleteTexture(texmap[TexID(t.texnum)])
 }
 
+func (tm *texMgr) DeleteTextureObjects() {
+	// This only discards all opengl objects. They get recreated
+	// in TexMgrReloadImages
+	for k, v := range tm.activeTextures {
+		if v {
+			tm.deleteTexture(k)
+		}
+	}
+}
+
+var (
+	inReloadImages = false
+)
+
+func (tm *texMgr) ReloadImages() {
+	// This is the reverse of TexMgrFreeTexturesObjects
+
+	// Workaround for some recursion
+	inReloadImages = true
+	for k, v := range tm.activeTextures {
+		if v {
+			gl.GenTextures(1, &k.glID)
+			k.cp.texnum = C.uint(k.glID)
+			tm.ReloadImage(k, -1, -1)
+		}
+	}
+	inReloadImages = false
+}
+
+func (tm *texMgr) ReloadImage(t *Texture, top, bottom int) {
+	C.TexMgr_ReloadImage(t.cp, C.int(top), C.int(bottom))
+}
+
 func (tm *texMgr) deleteTexture(t *Texture) {
 	gl.DeleteTextures(1, &t.glID)
 	if t.glID == tm.currentTexture[0] {
@@ -352,6 +402,62 @@ func (tm *texMgr) SetFilterModes(t *Texture) {
 		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, m.magfilter)
 		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, m.magfilter)
 	}
+}
+
+func (tm *texMgr) anisotropyCallback(cv *cvar.Cvar) {
+	// TexMgr_Anisotropy_f
+	val := cv.Value()
+	switch {
+	case val < 1:
+		cv.SetByString("1")
+	case val > tm.maxAnisotropy:
+		cv.SetValue(tm.maxAnisotropy)
+	default:
+		for k, v := range tm.activeTextures {
+			if v {
+				if k.flags&TexPrefMipMap != 0 {
+					tm.Bind(k)
+					m := glModes[tm.glModeIndex]
+					gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, m.magfilter)
+					gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, m.magfilter)
+					gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAX_ANISOTROPY, val)
+				}
+			}
+		}
+	}
+}
+func (tm *texMgr) textureModeCallback(cv *cvar.Cvar) {
+	name := cv.String()
+	for i, m := range glModes {
+		if m.name == name {
+			if tm.glModeIndex != i {
+				tm.glModeIndex = i
+			}
+			for k, v := range tm.activeTextures {
+				if v {
+					tm.SetFilterModes(k)
+				}
+			}
+			statusbar.MarkChanged()
+			// TODO: WarpImages need a redraw too?
+			return
+		}
+	}
+	// Try to fix the cvar value and recursivly call again
+	ln := strings.ToLower(name)
+	for _, m := range glModes {
+		if strings.ToLower(m.name) == ln {
+			cv.SetByString(m.name)
+			return
+		}
+	}
+	i, _ := strconv.Atoi(name)
+	if i >= 1 && i <= len(glModes) {
+		cv.SetByString(glModes[i-1].name)
+		return
+	}
+	conlog.Printf("\"%s\" is not a valid texturemade\n", name)
+	cv.SetByString(glModes[tm.glModeIndex].name)
 }
 
 //export GLClearBindings

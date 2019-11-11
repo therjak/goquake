@@ -53,75 +53,6 @@ static int glmode_idx = NUM_GLMODES - 1; /* trilinear */
 
 /*
 ===============
-TexMgr_TextureMode_f -- called when gl_texturemode changes
-===============
-*/
-static void TexMgr_TextureMode_f(cvar_t *var) {
-  gltexture_t *glt;
-  int i;
-
-  for (i = 0; i < NUM_GLMODES; i++) {
-    if (!Q_strcmp(glmodes[i].name, Cvar_GetString(&gl_texturemode))) {
-      if (glmode_idx != i) {
-        glmode_idx = i;
-        for (glt = active_gltextures; glt; glt = glt->next)
-          TexMgr_SetFilterModes(glt);
-        Sbar_Changed();  // sbar graphics need to be redrawn with new filter
-                         // mode
-        // FIXME: warpimages need to be redrawn, too.
-      }
-      return;
-    }
-  }
-
-  for (i = 0; i < NUM_GLMODES; i++) {
-    if (!q_strcasecmp(glmodes[i].name, Cvar_GetString(&gl_texturemode))) {
-      Cvar_SetQuick(&gl_texturemode, glmodes[i].name);
-      return;
-    }
-  }
-
-  i = atoi(Cvar_GetString(&gl_texturemode));
-  if (i >= 1 && i <= NUM_GLMODES) {
-    Cvar_SetQuick(&gl_texturemode, glmodes[i - 1].name);
-    return;
-  }
-
-  Con_Printf("\"%s\" is not a valid texturemode\n",
-             Cvar_GetString(&gl_texturemode));
-  Cvar_SetQuick(&gl_texturemode, glmodes[glmode_idx].name);
-}
-
-/*
-===============
-TexMgr_Anisotropy_f -- called when gl_texture_anisotropy changes
-===============
-*/
-static void TexMgr_Anisotropy_f(cvar_t *var) {
-  if (Cvar_GetValue(&gl_texture_anisotropy) < 1) {
-    Cvar_SetQuick(&gl_texture_anisotropy, "1");
-  } else if (Cvar_GetValue(&gl_texture_anisotropy) > gl_max_anisotropy) {
-    Cvar_SetValueQuick(&gl_texture_anisotropy, gl_max_anisotropy);
-  } else {
-    gltexture_t *glt;
-    for (glt = active_gltextures; glt; glt = glt->next) {
-      /*  TexMgr_SetFilterModes (glt);*/
-      if (glt->flags & TEXPREF_MIPMAP) {
-        GL_Bind(glt);
-        // THERJAK: glTexParameterf is opengl
-        GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-                         glmodes[glmode_idx].magfilter);
-        GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                         glmodes[glmode_idx].minfilter);
-        GL_TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-                         Cvar_GetValue(&gl_texture_anisotropy));
-      }
-    }
-  }
-}
-
-/*
-===============
 TexMgr_Imagelist_f -- report loaded textures
 ===============
 */
@@ -272,27 +203,6 @@ void TexMgr_FreeTexturesForOwner(qmodel_t *owner) {
     if (glt && glt->owner == owner) TexMgr_FreeTexture(glt);
   }
 }
-
-/*
-================
-TexMgr_DeleteTextureObjects
-================
-*/
-void TexMgr_DeleteTextureObjects(void) {
-  gltexture_t *glt;
-
-  for (glt = active_gltextures; glt; glt = glt->next) {
-    GL_DeleteTexture(glt);
-  }
-}
-
-/*
-================================================================================
-
-        INIT
-
-================================================================================
-*/
 
 /*
 =================
@@ -449,12 +359,11 @@ void TexMgr_Init(void) {
   Cvar_FakeRegister(&gl_max_size, "gl_max_size");
   Cvar_FakeRegister(&gl_picmip, "gl_picmip");
   Cvar_FakeRegister(&gl_texture_anisotropy, "gl_texture_anisotropy");
-  Cvar_SetCallback(&gl_texture_anisotropy, &TexMgr_Anisotropy_f);
+  // Cvar_SetCallback(&gl_texture_anisotropy, &TexMgr_Anisotropy_f);
 
-  Cvar_Register(&gl_texturemode, "gl_texturemode", glmodes[glmode_idx].name,
-                CVAR_ARCHIVE);
+  Cvar_FakeRegister(&gl_texturemode, "gl_texturemode");
+  // Cvar_SetCallback(&gl_texturemode, &TexMgr_TextureMode_f);
 
-  Cvar_SetCallback(&gl_texturemode, &TexMgr_TextureMode_f);
   Cmd_AddCommand("imagelist", &TexMgr_Imagelist_f);
 
   // poll max size from hardware
@@ -1209,35 +1118,6 @@ void TexMgr_ReloadImage(gltexture_t *glt, int shirt, int pants) {
   }
 
   Hunk_FreeToLowMark(mark);
-}
-
-/*
-================
-TexMgr_ReloadImages -- reloads all texture images. called only by vid_restart
-================
-*/
-void TexMgr_ReloadImages(void) {
-  gltexture_t *glt;
-
-  // ericw -- tricky bug: if the hunk is almost full, an allocation in
-  // TexMgr_ReloadImage
-  // triggers cache items to be freed, which calls back into TexMgr to free the
-  // texture. If this frees 'glt' in the loop below, the active_gltextures
-  // list gets corrupted.
-  // A test case is jam3_tronyn.bsp with -heapsize 65536, and do several mode
-  // switches/fullscreen toggles
-  // 2015-09-04 -- Cache_Flush workaround was causing issues
-  // (http://sourceforge.net/p/quakespasm/bugs/10/)
-  // switching to a boolean flag.
-  in_reload_images = true;
-
-  for (glt = active_gltextures; glt; glt = glt->next) {
-    // THERJAK: glGenTextures is opengl
-    GL_GenTextures(1, &glt->texnum);
-    TexMgr_ReloadImage(glt, -1, -1);
-  }
-
-  in_reload_images = false;
 }
 
 /*
