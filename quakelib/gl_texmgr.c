@@ -8,8 +8,6 @@
 const int gl_solid_format = 3;
 const int gl_alpha_format = 4;
 
-static cvar_t gl_texturemode;
-static cvar_t gl_texture_anisotropy;
 static cvar_t gl_max_size;
 static cvar_t gl_picmip;
 static GLint gl_hardware_maxsize;
@@ -50,60 +48,6 @@ static glmode_t glmodes[] = {
 };
 #define NUM_GLMODES (int)(sizeof(glmodes) / sizeof(glmodes[0]))
 static int glmode_idx = NUM_GLMODES - 1; /* trilinear */
-
-/*
-===============
-TexMgr_Imagelist_f -- report loaded textures
-===============
-*/
-static void TexMgr_Imagelist_f(void) {
-  float mb;
-  float texels = 0;
-  gltexture_t *glt;
-
-  for (glt = active_gltextures; glt; glt = glt->next) {
-    Con_SafePrintf("   %4i x%4i %s\n", glt->width, glt->height, glt->name);
-    if (glt->flags & TEXPREF_MIPMAP)
-      texels += glt->width * glt->height * 4.0f / 3.0f;
-    else
-      texels += (glt->width * glt->height);
-  }
-
-  mb = texels * (Cvar_VariableValue("vid_bpp") / 8.0f) / 0x100000;
-  Con_Printf("%i textures %i pixels %1.1f megabytes\n", numgltextures,
-             (int)texels, mb);
-}
-
-/*
-===============
-TexMgr_FrameUsage -- report texture memory usage for this frame
-===============
-*/
-float TexMgr_FrameUsage(void) {
-  float mb;
-  float texels = 0;
-  gltexture_t *glt;
-
-  for (glt = active_gltextures; glt; glt = glt->next) {
-    if (glt->visframe == r_framecount) {
-      if (glt->flags & TEXPREF_MIPMAP)
-        texels += glt->width * glt->height * 4.0f / 3.0f;
-      else
-        texels += (glt->width * glt->height);
-    }
-  }
-
-  mb = texels * (Cvar_VariableValue("vid_bpp") / 8.0f) / 0x100000;
-  return mb;
-}
-
-/*
-================================================================================
-
-        TEXTURE MANAGER
-
-================================================================================
-*/
 
 /*
 ================
@@ -358,13 +302,6 @@ void TexMgr_Init(void) {
 
   Cvar_FakeRegister(&gl_max_size, "gl_max_size");
   Cvar_FakeRegister(&gl_picmip, "gl_picmip");
-  Cvar_FakeRegister(&gl_texture_anisotropy, "gl_texture_anisotropy");
-  // Cvar_SetCallback(&gl_texture_anisotropy, &TexMgr_Anisotropy_f);
-
-  Cvar_FakeRegister(&gl_texturemode, "gl_texturemode");
-  // Cvar_SetCallback(&gl_texturemode, &TexMgr_TextureMode_f);
-
-  Cmd_AddCommand("imagelist", &TexMgr_Imagelist_f);
 
   // poll max size from hardware
   // THERJAK: glGetIntegerv is opengl
@@ -1118,17 +1055,4 @@ void TexMgr_ReloadImage(gltexture_t *glt, int shirt, int pants) {
   }
 
   Hunk_FreeToLowMark(mark);
-}
-
-/*
-================
-TexMgr_ReloadNobrightImages -- reloads all texture that were loaded with the
-nobright palette.  called when gl_fullbrights changes
-================
-*/
-void TexMgr_ReloadNobrightImages(void) {
-  gltexture_t *glt;
-
-  for (glt = active_gltextures; glt; glt = glt->next)
-    if (glt->flags & TEXPREF_NOBRIGHT) TexMgr_ReloadImage(glt, -1, -1);
 }

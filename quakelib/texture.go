@@ -74,6 +74,9 @@ func describeTextureModes(_ []cmd.QArg, _ int) {
 
 func init() {
 	cmd.AddCommand("gl_describetexturemodes", describeTextureModes)
+	cmd.AddCommand("imagelist", func(_ []cmd.QArg, _ int) {
+		textureManager.logTextures()
+	})
 }
 
 type TexID uint32
@@ -101,6 +104,7 @@ type Texture struct {
 	sourceWidth  int32
 	sourceHeight int32
 	flags        TexPref
+	name         string
 }
 
 const (
@@ -156,7 +160,13 @@ func TexMgrLoadImage(owner *C.qmodel_t, name *C.char, width C.int,
 		source_offset, flags)
 
 	// Note texnum 0 is reserved in opengl so it can not natually occur.
-	texmap[TexID(t.texnum)] = ConvertCTex(t)
+	gt := ConvertCTex(t)
+	for k, _ := range textureManager.activeTextures {
+		if k.glID == gt.glID {
+			(*k) = *gt
+			texmap[TexID(t.texnum)] = k
+		}
+	}
 
 	return TexID(t.texnum)
 }
@@ -172,7 +182,13 @@ func TexMgrLoadImage2(owner *C.qmodel_t, name *C.char, width C.int,
 		source_offset, flags)
 
 	// Note texnum 0 is reserved in opengl so it can not natually occur.
-	texmap[TexID(t.texnum)] = ConvertCTex(t)
+	gt := ConvertCTex(t)
+	for k, _ := range textureManager.activeTextures {
+		if k.glID == gt.glID {
+			(*k) = *gt
+			texmap[TexID(t.texnum)] = k
+		}
+	}
 
 	return t
 }
@@ -193,7 +209,7 @@ func TexMgrFreeTexture(id TexID) {
 
 //export TexMgrFrameUsage
 func TexMgrFrameUsage() float32 {
-	return float32(C.TexMgr_FrameUsage())
+	return textureManager.FrameUsage()
 }
 
 //export TexMgrFreeTexturesForOwner
@@ -210,6 +226,7 @@ func ConvertCTex(ct TextureP) *Texture {
 		sourceWidth:  int32(ct.source_width),
 		sourceHeight: int32(ct.source_height),
 		flags:        TexPref(ct.flags),
+		name:         C.GoString(&ct.name[0]),
 	}
 }
 
@@ -236,7 +253,7 @@ func TexMgrReloadImages() {
 
 //export TexMgrReloadNobrightImages
 func TexMgrReloadNobrightImages() {
-	C.TexMgr_ReloadNobrightImages()
+	textureManager.ReloadNoBrightImages()
 }
 
 //export TexMgrPadConditional
@@ -324,6 +341,16 @@ func (tm *texMgr) DeleteTextureObjects() {
 var (
 	inReloadImages = false
 )
+
+func (tm *texMgr) ReloadNoBrightImages() {
+	for k, v := range tm.activeTextures {
+		if v {
+			if k.flags&TexPrefNoBright != 0 {
+				tm.ReloadImage(k, -1, -1)
+			}
+		}
+	}
+}
 
 func (tm *texMgr) ReloadImages() {
 	// This is the reverse of TexMgrFreeTexturesObjects
@@ -494,10 +521,10 @@ func (tm *texMgr) removeActiveTexture(tid uint32) {
 
 //export GL_GenTextures2
 func GL_GenTextures2(t TextureP) {
-	textureManager.addActiveTexture(ConvertCTex(t))
 	var tn uint32
 	gl.GenTextures(1, &tn)
 	t.texnum = C.uint(tn)
+	textureManager.addActiveTexture(ConvertCTex(t))
 }
 
 //export GL_TexParameterf
@@ -508,4 +535,32 @@ func GL_TexParameterf(target uint32, pname uint32, param float32) {
 //export GL_GetIntegerv
 func GL_GetIntegerv(pname uint32, data *int32) {
 	gl.GetIntegerv(pname, data)
+}
+
+func (tm *texMgr) logTextures() {
+	texels, mb := tm.getTextureUsage()
+	conlog.Printf("%d textures %d pixels %.1f megabytes\n",
+		len(tm.activeTextures), texels, mb)
+}
+
+func (tm *texMgr) FrameUsage() float32 {
+	_, mb := tm.getTextureUsage()
+	return mb
+}
+
+func (tm *texMgr) getTextureUsage() (int32, float32) {
+	texels := int32(0)
+	for k, v := range tm.activeTextures {
+		log.Printf("Texture %s, %s, %d, %d, %v",
+			k.name, C.GoString(&(k.cp.name[0])), k.cp.height, k.cp.width, v)
+		if v {
+			if k.flags&TexPrefMipMap != 0 {
+				texels += k.glWidth * k.glHeight * 4 / 3
+			} else {
+				texels += k.glWidth * k.glHeight
+			}
+		}
+	}
+	mb := float32(texels) * (cvars.VideoBitsPerPixel.Value() / 8) / (1000 * 1000)
+	return texels, mb
 }
