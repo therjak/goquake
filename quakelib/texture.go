@@ -89,6 +89,7 @@ type texMgr struct {
 
 	activeTextures map[*Texture]bool
 	maxAnisotropy  float32
+	maxTextureSize int32
 }
 
 //export GetMTexEnabled
@@ -230,9 +231,36 @@ func ConvertCTex(ct TextureP) *Texture {
 	}
 }
 
+func pad(s int32) int32 {
+	i := int32(1)
+	for ; s < i; i <<= 1 {
+	}
+	return i
+}
+
+func (tm *texMgr) safeTextureSize(s int32) int32 {
+	cv := int32(cvars.GlMaxSize.Value())
+	if cv > 0 {
+		cv := pad(cv)
+		if cv < s {
+			s = cv
+		}
+	}
+	if tm.maxTextureSize < s {
+		return tm.maxTextureSize
+	}
+	return s
+}
+
+func (tm *texMgr) padConditional(s int32) int32 {
+	// as support for textures with non pot 2 size is required, this is a nop
+	return s
+}
+
 //export TexMgrInit
 func TexMgrInit() {
 	gl.GetFloatv(gl.MAX_TEXTURE_MAX_ANISOTROPY, &textureManager.maxAnisotropy)
+	gl.GetIntegerv(gl.MAX_TEXTURE_SIZE, &textureManager.maxTextureSize)
 	C.TexMgr_Init()
 	nullTexture = ConvertCTex(C.nulltexture)
 	noTexture = ConvertCTex(C.notexture)
