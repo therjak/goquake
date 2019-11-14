@@ -592,3 +592,40 @@ func (tm *texMgr) getTextureUsage() (int32, float32) {
 	mb := float32(texels) * (cvars.VideoBitsPerPixel.Value() / 8) / (1000 * 1000)
 	return texels, mb
 }
+
+func (tm *texMgr) loadImageRGBA(t *Texture, data []byte) {
+	picmip := uint32(0)
+	if t.flags&TexPrefNoPicMip == 0 {
+		pv := cvars.GlPicMip.Value()
+		if pv > 0 {
+			picmip = uint32(pv)
+		}
+	}
+	safeW := tm.safeTextureSize(t.glWidth >> picmip)
+	safeH := tm.safeTextureSize(t.glHeight >> picmip)
+	for t.glWidth > safeW {
+		// half width
+		t.glWidth >>= 1
+		if t.flags&TexPrefAlpha != 0 {
+			// some weird alphaEdgeFix
+		}
+	}
+	for t.glHeight > safeH {
+		// half height
+		t.glHeight >>= 1
+		if t.flags&TexPrefAlpha != 0 {
+			// some weird alphaEdgeFix
+		}
+	}
+	// Orig uses the 'old' values 3 or 4
+	internalformat := int32(gl.RGB)
+	if t.flags&TexPrefAlpha != 0 {
+		internalformat = gl.RGBA
+	}
+	tm.Bind(t)
+	gl.TexImage2D(gl.TEXTURE_2D, 0, internalformat, t.glWidth, t.glHeight,
+		0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(data))
+
+	gl.GenerateMipmap(t.glID)
+	tm.SetFilterModes(t)
+}
