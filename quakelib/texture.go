@@ -607,14 +607,14 @@ func (tm *texMgr) loadImageRGBA(t *Texture, data []byte) {
 		// half width
 		t.glWidth >>= 1
 		if t.flags&TexPrefAlpha != 0 {
-			// some weird alphaEdgeFix
+			// some weird alphaEdgeFix which is just a 3x3 blur.
 		}
 	}
 	for t.glHeight > safeH {
 		// half height
 		t.glHeight >>= 1
 		if t.flags&TexPrefAlpha != 0 {
-			// some weird alphaEdgeFix
+			// some weird alphaEdgeFix which is just a 3x3 blur.
 		}
 	}
 	// Orig uses the 'old' values 3 or 4

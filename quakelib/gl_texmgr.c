@@ -494,6 +494,7 @@ static void TexMgr_AlphaEdgeFix(byte *data, int width, int height) {
   int i, j, n = 0, b, c[3] = {0, 0, 0}, lastrow, thisrow, nextrow, lastpix,
             thispix, nextpix;
   byte *dest = data;
+  // simple 3x3 blur
 
   for (i = 0; i < height; i++) {
     lastrow = width * 4 * ((i == 0) ? height - 1 : i - 1);
