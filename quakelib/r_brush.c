@@ -7,7 +7,7 @@ extern cvar_t gl_fullbrights, r_drawflat, gl_overbright,
 extern cvar_t gl_zfix;  // QuakeSpasm z-fighting fix
 
 int gl_lightmap_format;
-int lightmap_bytes;
+int lightmap_bytes = 4;
 
 #define BLOCK_WIDTH 128
 #define BLOCK_HEIGHT 128
@@ -461,17 +461,6 @@ void GL_BuildLightmaps(void) {
 
   gl_lightmap_format = GL_RGBA;  // FIXME: hardcoded for now!
 
-  switch (gl_lightmap_format) {
-    case GL_RGBA:
-      lightmap_bytes = 4;
-      break;
-    case GL_BGRA:
-      lightmap_bytes = 4;
-      break;
-    default:
-      Go_Error("GL_BuildLightmaps: bad lightmap format");
-  }
-
   for (j = 1; j < MAX_MODELS; j++) {
     m = cl.model_precache[j];
     if (!m) break;
@@ -502,8 +491,8 @@ void GL_BuildLightmaps(void) {
     // johnfitz -- use texture manager
     sprintf(name, "lightmap%03i", i);
     data = lightmaps + i * BLOCK_WIDTH * BLOCK_HEIGHT * lightmap_bytes;
-    lightmap_textures[i] = TexMgrLoadImage(
-        cl.worldmodel, name, BLOCK_WIDTH, BLOCK_HEIGHT, SRC_LIGHTMAP, data, "",
+    lightmap_textures[i] = TexMgrLoadLightMapImage(
+        cl.worldmodel, name, BLOCK_WIDTH, BLOCK_HEIGHT, data, "",
         (src_offset_t)data, TEXPREF_LINEAR | TEXPREF_NOPICMIP);
     // johnfitz
   }
@@ -722,8 +711,6 @@ void R_BuildLightMap(msurface_t *surf, byte *dest, int stride) {
 
   // bound, invert, and shift
   // store:
-  switch (gl_lightmap_format) {
-    case GL_RGBA:
       stride -= smax * 4;
       bl = blocklights;
       for (i = 0; i < tmax; i++, dest += stride) {
@@ -743,31 +730,6 @@ void R_BuildLightMap(msurface_t *surf, byte *dest, int stride) {
           *dest++ = 255;
         }
       }
-      break;
-    case GL_BGRA:
-      stride -= smax * 4;
-      bl = blocklights;
-      for (i = 0; i < tmax; i++, dest += stride) {
-        for (j = 0; j < smax; j++) {
-          if (Cvar_GetValue(&gl_overbright)) {
-            r = *bl++ >> 8;
-            g = *bl++ >> 8;
-            b = *bl++ >> 8;
-          } else {
-            r = *bl++ >> 7;
-            g = *bl++ >> 7;
-            b = *bl++ >> 7;
-          }
-          *dest++ = (b > 255) ? 255 : b;
-          *dest++ = (g > 255) ? 255 : g;
-          *dest++ = (r > 255) ? 255 : r;
-          *dest++ = 255;
-        }
-      }
-      break;
-    default:
-      Go_Error("R_BuildLightMap: bad lightmap format");
-  }
 }
 
 /*

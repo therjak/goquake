@@ -9,6 +9,7 @@ import (
 	"log"
 	"quake/cmd"
 	"quake/conlog"
+	// "quake/crc"
 	"quake/cvar"
 	"quake/cvars"
 	"strconv"
@@ -106,6 +107,7 @@ type Texture struct {
 	sourceHeight int32
 	flags        TexPref
 	name         string
+	crc          uint16 // for some caching
 }
 
 const (
@@ -148,6 +150,17 @@ func GetTextureWidth(id TexID) int32 {
 //export GetTextureHeight
 func GetTextureHeight(id TexID) int32 {
 	return int32(texmap[id].cp.height)
+}
+
+//export TexMgrLoadLightMapImage
+func TexMgrLoadLightMapImage(owner *C.qmodel_t, name *C.char, width C.int,
+	height C.int, data *C.byte, source_file *C.char,
+	source_offset C.src_offset_t, flags C.unsigned) TexID {
+	// len(data) is expecte to be width * height * 4
+	// source_file is ""
+	return TexMgrLoadImage(
+		owner, name, width, height, C.SRC_LIGHTMAP,
+		data, source_file, source_offset, flags)
 }
 
 //export TexMgrLoadImage
@@ -593,7 +606,8 @@ func (tm *texMgr) getTextureUsage() (int32, float32) {
 	return texels, mb
 }
 
-func (tm *texMgr) loadImageRGBA(t *Texture, data []byte) {
+// TexMgr_LoadImage32
+func (tm *texMgr) loadRGBA(t *Texture, data []byte) {
 	picmip := uint32(0)
 	if t.flags&TexPrefNoPicMip == 0 {
 		pv := cvars.GlPicMip.Value()
@@ -629,6 +643,14 @@ func (tm *texMgr) loadImageRGBA(t *Texture, data []byte) {
 		0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(data))
 
 	gl.GenerateMipmap(t.glID)
+	tm.SetFilterModes(t)
+}
+
+// TexMgr_LoadLightmap
+func (tm *texMgr) loadLightMap(t *Texture, data []byte) {
+	tm.Bind(t)
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, t.glWidth, t.glHeight,
+		0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(data))
 	tm.SetFilterModes(t)
 }
 
