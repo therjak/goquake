@@ -605,17 +605,19 @@ func (tm *texMgr) loadImageRGBA(t *Texture, data []byte) {
 	safeH := tm.safeTextureSize(t.glHeight >> picmip)
 	for t.glWidth > safeW {
 		// half width
+		data = downScaleWidth(t.glWidth, t.glHeight, data)
+		// if t.flags&TexPrefAlpha != 0 {
+		// some weird alphaEdgeFix which is just a 3x3 blur.
+		// }
 		t.glWidth >>= 1
-		if t.flags&TexPrefAlpha != 0 {
-			// some weird alphaEdgeFix which is just a 3x3 blur.
-		}
 	}
 	for t.glHeight > safeH {
 		// half height
+		data = downScaleHeight(t.glWidth, t.glHeight, data)
+		// if t.flags&TexPrefAlpha != 0 {
+		// some weird alphaEdgeFix which is just a 3x3 blur.
+		//}
 		t.glHeight >>= 1
-		if t.flags&TexPrefAlpha != 0 {
-			// some weird alphaEdgeFix which is just a 3x3 blur.
-		}
 	}
 	// Orig uses the 'old' values 3 or 4
 	internalformat := int32(gl.RGB)
@@ -628,4 +630,58 @@ func (tm *texMgr) loadImageRGBA(t *Texture, data []byte) {
 
 	gl.GenerateMipmap(t.glID)
 	tm.SetFilterModes(t)
+}
+
+func merge3Pixel(p1, p2, p3 []byte) [4]byte {
+	r1 := float32(p1[0]) / 255
+	g1 := float32(p1[1]) / 255
+	b1 := float32(p1[2]) / 255
+	a1 := float32(p1[3]) / 255
+	r2 := float32(p2[0]) / 255
+	g2 := float32(p2[1]) / 255
+	b2 := float32(p2[2]) / 255
+	a2 := float32(p2[3]) / 255
+	r3 := float32(p3[0]) / 255
+	g3 := float32(p3[1]) / 255
+	b3 := float32(p3[2]) / 255
+	a3 := float32(p3[3]) / 255
+	return [4]byte{
+		byte(((r1*a1 + r2*a2 + r3*a3) * 255) / 3),
+		byte(((g1*a1 + g2*a2 + g3*a3) * 255) / 3),
+		byte(((b1*a1 + b2*a2 + b3*a3) * 255) / 3),
+		byte(((a1 + a2 + a3) * 255) / 3),
+	}
+}
+
+func downScaleWidth(width int32, height int32, data []byte) []byte {
+	ndata := make([]byte, len(data)/2)
+	for y := int32(0); y < height; y++ {
+		for x := int32(0); x < width; x += 2 {
+			pp := (x - 1 + width) % width
+			np := (x + 1) % width
+			row := y * width
+			p := (pp + row) * 4
+			c := (x + row) * 4
+			n := (np + row) * 4
+			pixel := merge3Pixel(data[p:p+4], data[c:c+4], data[n:n+4])
+			ndata = append(ndata, pixel[:]...)
+		}
+	}
+	return ndata
+}
+
+func downScaleHeight(width int32, height int32, data []byte) []byte {
+	ndata := make([]byte, len(data)/2)
+	for y := int32(0); y < height; y += 2 {
+		prev := (y - 1 + height) % height
+		next := (y + 1) % height
+		for x := int32(0); x < width; x++ {
+			p := (x + prev*width) * 4
+			c := (x + y*width) * 4
+			n := (x + next*width) * 4
+			pixel := merge3Pixel(data[p:p+4], data[c:c+4], data[n:n+4])
+			ndata = append(ndata, pixel[:]...)
+		}
+	}
+	return ndata
 }
