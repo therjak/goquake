@@ -8,15 +8,12 @@ import (
 )
 
 type qPalette struct {
-	table [256 * 4]float32
-	/*
-	   unsigned int d_8to24table[256];
-	   unsigned int d_8to24table_fbright[256];
-	   unsigned int d_8to24table_fbright_fence[256];
-	   unsigned int d_8to24table_nobright[256];
-	   unsigned int d_8to24table_nobright_fence[256];
-	   unsigned int d_8to24table_conchars[256];
-	*/
+	table                [256 * 4]uint8
+	tableFullBright      [256 * 4]uint8
+	tableFullBrightFence [256 * 4]uint8
+	tableNoBright        [256 * 4]uint8
+	tableNoBrightFence   [256 * 4]uint8
+	tableConsoleChars    [256 * 4]uint8
 }
 
 var (
@@ -41,59 +38,30 @@ func (p *qPalette) Init() {
 	bi := 0
 	pi := 0
 	for i := 0; i < 256; i++ {
-		p.table[pi] = float32(b[bi]) / 255
-		p.table[pi+1] = float32(b[bi+1]) / 255
-		p.table[pi+2] = float32(b[bi+2]) / 255
-		p.table[pi+3] = 1
+		p.table[pi] = b[bi]
+		p.table[pi+1] = b[bi+1]
+		p.table[pi+2] = b[bi+2]
+		p.table[pi+3] = 255
+		p.tableFullBright[pi+3] = 255
+		p.tableNoBright[pi+3] = 255
 		pi += 4
 		bi += 3
 	}
 	// orig changed the last value to alpha 0?
+
+	blend := 4 * 224
+	// keep 0-223 black
+	copy(p.tableFullBright[blend:], p.table[blend:])
+	// keep 224-255 black
+	copy(p.tableNoBright[:blend], p.table[:blend])
+
+	copy(p.tableFullBrightFence[:], p.tableFullBright[:])
+	copy(p.tableNoBrightFence[:], p.tableNoBright[:])
+
+	p.table[256*4-1] = 0
+	copy(p.tableConsoleChars[:], p.table[:])
+	p.tableConsoleChars[3] = 0
+
+	copy(p.tableFullBrightFence[255*4:], []uint8{0, 0, 0, 0})
+	copy(p.tableNoBrightFence[255*4:], []uint8{0, 0, 0, 0})
 }
-
-/*
-void TexMgr_LoadPalette(void) {
-  // fullbright palette, 0-223 are black (for additive blending)
-  src = pal + 224 * 3;
-  dst = (byte *)&d_8to24table_fbright[224];
-  for (i = 224; i < 256; i++) {
-    *dst++ = *src++;
-    *dst++ = *src++;
-    *dst++ = *src++;
-    *dst++ = 255;
-  }
-  for (i = 0; i < 224; i++) {
-    dst = (byte *)&d_8to24table_fbright[i];
-    dst[3] = 255;
-    dst[2] = dst[1] = dst[0] = 0;
-  }
-
-  // nobright palette, 224-255 are black (for additive blending)
-  dst = (byte *)d_8to24table_nobright;
-  src = pal;
-  for (i = 0; i < 256; i++) {
-    *dst++ = *src++;
-    *dst++ = *src++;
-    *dst++ = *src++;
-    *dst++ = 255;
-  }
-  for (i = 224; i < 256; i++) {
-    dst = (byte *)&d_8to24table_nobright[i];
-    dst[3] = 255;
-    dst[2] = dst[1] = dst[0] = 0;
-  }
-
-  // fullbright palette, for fence textures
-  memcpy(d_8to24table_fbright_fence, d_8to24table_fbright, 256 * 4);
-  d_8to24table_fbright_fence[255] = 0;  // Alpha of zero.
-
-  // nobright palette, for fence textures
-  memcpy(d_8to24table_nobright_fence, d_8to24table_nobright, 256 * 4);
-  d_8to24table_nobright_fence[255] = 0;  // Alpha of zero.
-
-  // conchars palette, 0 and 255 are transparent
-  memcpy(d_8to24table_conchars, d_8to24table, 256 * 4);
-  ((byte *)&d_8to24table_conchars[0])[3] = 0;
-
-  //  Hunk_FreeToLowMark(mark);
-}*/

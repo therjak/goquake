@@ -60,7 +60,7 @@ func SetCanvas(c canvas) {
 }
 
 type Color struct {
-	R, G, B, A float32
+	R, G, B, A uint8
 }
 
 type Picture *C.qpic_t
@@ -205,7 +205,7 @@ func DrawFill(x, y, w, h int, c int, alpha float32) {
 		R: palette.table[c*4],
 		G: palette.table[c*4+1],
 		B: palette.table[c*4+2],
-		A: alpha,
+		A: uint8(alpha * 255),
 	}
 	drawRect(float32(x), float32(y), float32(w), float32(h), col)
 	C.Draw_Fill(C.int(x), C.int(y), C.int(w), C.int(h), C.int(c), C.float(alpha))
