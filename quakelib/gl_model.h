@@ -25,14 +25,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <GL/gl.h>
 
-#include "q_stdinc.h"
-
 #include "bspfile.h"
-#include "zone.h"
-#include "render.h"
-
 #include "modelgen.h"
+#include "q_stdinc.h"
+#include "render.h"
 #include "spritegn.h"
+#include "zone.h"
 
 #ifndef MAX_QPATH
 #define MAX_QPATH 64
@@ -41,7 +39,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifndef MAX_DLIGHTS
 #define MAX_DLIGHTS 64
 #endif
-
 
 /*
 
@@ -69,7 +66,9 @@ BRUSH MODELS
 // in memory representation
 //
 // !!! if this is changed, it must be changed in asm_draw.h too !!!
-typedef struct { vec3_t position; } mvertex_t;
+typedef struct {
+  vec3_t position;
+} mvertex_t;
 
 #define SIDE_FRONT 0
 #define SIDE_BACK 1
@@ -242,7 +241,7 @@ SPRITE MODELS
 typedef struct mspriteframe_s {
   int width, height;
   float up, down, left, right;
-  float smax, tmax;  // johnfitz -- image might be padded
+  float dead1, dead2;  // dead field. might be needed as padding
   struct gltexture_s *gltexture;
 } mspriteframe_t;
 
@@ -288,7 +287,9 @@ typedef struct meshxyz_s {
   signed char normal[4];
 } meshxyz_t;
 
-typedef struct meshst_s { float st[2]; } meshst_t;
+typedef struct meshst_s {
+  float st[2];
+} meshst_t;
 //--
 
 typedef struct {

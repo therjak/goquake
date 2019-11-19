@@ -359,19 +359,6 @@ int TexMgr_SafeTextureSize(int s) {
 
 /*
 ================
-TexMgr_PadConditional -- only pad if a texture of that size would be padded.
-(used for tex coords)
-================
-*/
-int TexMgr_PadConditional(int s) {
-  if (s < TexMgr_SafeTextureSize(s))
-    return TexMgr_Pad(s);
-  else
-    return s;
-}
-
-/*
-================
 TexMgr_MipMapW
 ================
 */
@@ -590,8 +577,8 @@ static void TexMgr_PadEdgeFixW(byte *data, int width, int height) {
   byte *src, *dst;
   int i, padw, padh;
 
-  padw = TexMgr_PadConditional(width);
-  padh = TexMgr_PadConditional(height);
+  padw = width;
+  padh = height;
 
   // copy last full column to first empty column, leaving alpha byte at zero
   src = data + (width - 1) * 4;
@@ -626,8 +613,8 @@ static void TexMgr_PadEdgeFixH(byte *data, int width, int height) {
   byte *src, *dst;
   int i, padw, padh;
 
-  padw = TexMgr_PadConditional(width);
-  padh = TexMgr_PadConditional(height);
+  padw = width;
+  padh = height;
 
   // copy last full row to first empty row, leaving alpha byte at zero
   dst = data + height * padw * 4;

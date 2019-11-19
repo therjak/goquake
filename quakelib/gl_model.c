@@ -2505,11 +2505,6 @@ void *Mod_LoadSpriteFrame(void *pin, mspriteframe_t **ppframe, int framenum) {
   pspriteframe->left = origin[0];
   pspriteframe->right = width + origin[0];
 
-  // johnfitz -- image might be padded
-  pspriteframe->smax = (float)width / (float)TexMgrPadConditional(width);
-  pspriteframe->tmax = (float)height / (float)TexMgrPadConditional(height);
-  // johnfitz
-
   q_snprintf(name, sizeof(name), "%s:frame%i", loadmodel->name, framenum);
   offset = (src_offset_t)(pinframe + 1) - (src_offset_t)mod_base;  // johnfitz
   pspriteframe->gltexture = TexMgrLoadImage2(

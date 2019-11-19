@@ -36,13 +36,6 @@ static void GL_Overbright_f(cvar_t *var) { R_RebuildAllLightmaps(); }
 
 /*
 ====================
-GL_Fullbrights_f -- johnfitz
-====================
-*/
-static void GL_Fullbrights_f(cvar_t *var) { TexMgrReloadNobrightImages(); }
-
-/*
-====================
 R_SetClearColor_f -- johnfitz
 ====================
 */
@@ -178,7 +171,6 @@ void R_Init(void) {
   Cvar_FakeRegister(&r_showtris, "r_showtris");
   Cvar_FakeRegister(&gl_farclip, "gl_farclip");
   Cvar_FakeRegister(&gl_fullbrights, "gl_fullbrights");
-  Cvar_SetCallback(&gl_fullbrights, GL_Fullbrights_f);
   Cvar_FakeRegister(&gl_overbright, "gl_overbright");
   Cvar_SetCallback(&gl_overbright, GL_Overbright_f);
   Cvar_FakeRegister(&gl_overbright_models, "gl_overbright_models");

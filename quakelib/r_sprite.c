@@ -125,7 +125,7 @@ void R_DrawSpriteModel(entity_t *e) {
   glEnable(GL_ALPHA_TEST);
   glBegin(GL_TRIANGLE_FAN);  // was GL_QUADS, but changed to support r_showtris
 
-  glTexCoord2f(0, frame->tmax);
+  glTexCoord2f(0, 1);
   VectorMA(e->origin, frame->down, s_up, point);
   VectorMA(point, frame->left, s_right, point);
   glVertex3fv(point);
@@ -135,12 +135,12 @@ void R_DrawSpriteModel(entity_t *e) {
   VectorMA(point, frame->left, s_right, point);
   glVertex3fv(point);
 
-  glTexCoord2f(frame->smax, 0);
+  glTexCoord2f(1, 0);
   VectorMA(e->origin, frame->up, s_up, point);
   VectorMA(point, frame->right, s_right, point);
   glVertex3fv(point);
 
-  glTexCoord2f(frame->smax, frame->tmax);
+  glTexCoord2f(1, 1);
   VectorMA(e->origin, frame->down, s_up, point);
   VectorMA(point, frame->right, s_right, point);
   glVertex3fv(point);

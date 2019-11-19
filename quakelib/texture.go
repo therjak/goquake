@@ -9,7 +9,6 @@ import (
 	"log"
 	"quake/cmd"
 	"quake/conlog"
-	// "quake/crc"
 	"quake/cvar"
 	"quake/cvars"
 	"strconv"
@@ -17,6 +16,7 @@ import (
 	"unsafe"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
+	// "quake/crc"
 )
 
 type TextureP C.gltexture_tp
@@ -135,6 +135,9 @@ func init() {
 	cvars.GlTextureMode.SetCallback(func(cv *cvar.Cvar) {
 		textureManager.textureModeCallback(cv)
 	})
+	cvars.GlFullBrights.SetCallback(func(_ *cvar.Cvar) {
+		textureManager.reloadNoBrightImages()
+	})
 }
 
 //export GetNoTexture
@@ -209,7 +212,11 @@ func TexMgrLoadImage2(owner *C.qmodel_t, name *C.char, width C.int,
 
 //export TexMgrReloadImage
 func TexMgrReloadImage(id TexID, shirt C.int, pants C.int) {
-	textureManager.ReloadImage(texmap[id], int(shirt), int(pants))
+	t := texmap[id]
+	// this is actually a 'map texture & reload'
+	// it should work quite different to the others.
+	// It also implies indexed colors
+	C.TexMgr_ReloadImage(t.cp, shirt, pants)
 }
 
 //export TexMgrFreeTexture
@@ -289,17 +296,8 @@ func TexMgrDeleteTextureObjects() {
 //export TexMgrReloadImages
 func TexMgrReloadImages() {
 	// This is the reverse of TexMgrFreeTexturesObjects
+	// It is only called on VID_Restart (resolution change, vid_restart)
 	textureManager.ReloadImages()
-}
-
-//export TexMgrReloadNobrightImages
-func TexMgrReloadNobrightImages() {
-	textureManager.ReloadNoBrightImages()
-}
-
-//export TexMgrPadConditional
-func TexMgrPadConditional(s int) int {
-	return int(C.TexMgr_PadConditional(C.int(s)))
 }
 
 //export TexMgrRecalcWarpImageSize
@@ -383,11 +381,11 @@ var (
 	inReloadImages = false
 )
 
-func (tm *texMgr) ReloadNoBrightImages() {
+func (tm *texMgr) reloadNoBrightImages() {
 	for k, v := range tm.activeTextures {
 		if v {
 			if k.flags&TexPrefNoBright != 0 {
-				tm.ReloadImage(k, -1, -1)
+				tm.ReloadImage(k)
 			}
 		}
 	}
@@ -402,14 +400,14 @@ func (tm *texMgr) ReloadImages() {
 		if v {
 			gl.GenTextures(1, &k.glID)
 			k.cp.texnum = C.uint(k.glID)
-			tm.ReloadImage(k, -1, -1)
+			tm.ReloadImage(k)
 		}
 	}
 	inReloadImages = false
 }
 
-func (tm *texMgr) ReloadImage(t *Texture, top, bottom int) {
-	C.TexMgr_ReloadImage(t.cp, C.int(top), C.int(bottom))
+func (tm *texMgr) ReloadImage(t *Texture) {
+	C.TexMgr_ReloadImage(t.cp, -1, -1)
 }
 
 func (tm *texMgr) deleteTexture(t *Texture) {
@@ -652,6 +650,37 @@ func (tm *texMgr) loadLightMap(t *Texture, data []byte) {
 	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, t.glWidth, t.glHeight,
 		0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(data))
 	tm.SetFilterModes(t)
+}
+
+// TexMgr_LoadImage8
+func (tm *texMgr) loadIndexed(t *Texture, data []byte) {
+	var p *[256 * 4]byte
+	switch {
+	case t.flags&(TexPrefFullBright|TexPrefAlpha) ==
+		(TexPrefFullBright | TexPrefAlpha):
+		p = &palette.tableFullBrightFence
+	case t.flags&TexPrefFullBright != 0:
+		p = &palette.tableFullBright
+	case t.flags&(TexPrefNoBright|TexPrefAlpha) ==
+		(TexPrefNoBright | TexPrefAlpha):
+		p = &palette.tableNoBrightFence
+	case t.flags&TexPrefNoBright != 0:
+		p = &palette.tableNoBright
+	case t.flags&TexPrefConChars != 0:
+		p = &palette.tableConsoleChars
+	default:
+		p = &palette.table
+	}
+	nd := make([]byte, len(data)*4)
+	// TODO(therjak): add workaround for 'shot1sid' texture
+	// do we actually need padding?
+	for _, d := range data {
+		idx := int(d) * 4
+		pixel := p[idx : idx+3]
+		nd = append(nd, pixel...)
+	}
+	// do we actually need padding + edgefix
+	tm.loadRGBA(t, nd)
 }
 
 func merge3Pixel(p1, p2, p3 []byte) [4]byte {
