@@ -12,6 +12,7 @@ import (
 	"quake/conlog"
 	"quake/cvar"
 	"quake/cvars"
+	"quake/image"
 	"strconv"
 	"strings"
 	"unsafe"
@@ -200,6 +201,31 @@ func TexMgrLoadParticleImage(name *C.char, width C.int,
 	textureManager.addActiveTexture(t)
 	d := C.GoBytes(unsafe.Pointer(data), width*height*4)
 	textureManager.loadRGBA(t, d)
+	texmap[TexID(t.glID)] = t
+	return TexID(t.glID)
+}
+
+//export TexMgrLoadSkyBox
+func TexMgrLoadSkyBox(name *C.char) TexID {
+	n := C.GoString(name)
+	img, err := image.Load(n)
+	if err != nil {
+		return 0
+	}
+	s := img.Bounds().Size()
+
+	var tn uint32
+	gl.GenTextures(1, &tn)
+	t := &Texture{
+		glID:         tn,
+		glWidth:      int32(s.X),
+		glHeight:     int32(s.Y),
+		sourceWidth:  int32(s.X),
+		sourceHeight: int32(s.Y),
+		name:         n,
+	}
+	textureManager.addActiveTexture(t)
+	textureManager.loadRGBA(t, img.Pix)
 	texmap[TexID(t.glID)] = t
 	return TexID(t.glID)
 }
