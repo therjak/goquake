@@ -491,9 +491,9 @@ void GL_BuildLightmaps(void) {
     // johnfitz -- use texture manager
     sprintf(name, "lightmap%03i", i);
     data = lightmaps + i * BLOCK_WIDTH * BLOCK_HEIGHT * lightmap_bytes;
-    lightmap_textures[i] = TexMgrLoadLightMapImage(
-        cl.worldmodel, name, BLOCK_WIDTH, BLOCK_HEIGHT, data, "",
-        (src_offset_t)data, TEXPREF_LINEAR | TEXPREF_NOPICMIP);
+    lightmap_textures[i] =
+        TexMgrLoadLightMapImage(cl.worldmodel, name, BLOCK_WIDTH, BLOCK_HEIGHT,
+                                data, TEXPREF_LINEAR | TEXPREF_NOPICMIP);
     // johnfitz
   }
 
@@ -711,25 +711,25 @@ void R_BuildLightMap(msurface_t *surf, byte *dest, int stride) {
 
   // bound, invert, and shift
   // store:
-      stride -= smax * 4;
-      bl = blocklights;
-      for (i = 0; i < tmax; i++, dest += stride) {
-        for (j = 0; j < smax; j++) {
-          if (Cvar_GetValue(&gl_overbright)) {
-            r = *bl++ >> 8;
-            g = *bl++ >> 8;
-            b = *bl++ >> 8;
-          } else {
-            r = *bl++ >> 7;
-            g = *bl++ >> 7;
-            b = *bl++ >> 7;
-          }
-          *dest++ = (r > 255) ? 255 : r;
-          *dest++ = (g > 255) ? 255 : g;
-          *dest++ = (b > 255) ? 255 : b;
-          *dest++ = 255;
-        }
+  stride -= smax * 4;
+  bl = blocklights;
+  for (i = 0; i < tmax; i++, dest += stride) {
+    for (j = 0; j < smax; j++) {
+      if (Cvar_GetValue(&gl_overbright)) {
+        r = *bl++ >> 8;
+        g = *bl++ >> 8;
+        b = *bl++ >> 8;
+      } else {
+        r = *bl++ >> 7;
+        g = *bl++ >> 7;
+        b = *bl++ >> 7;
       }
+      *dest++ = (r > 255) ? 255 : r;
+      *dest++ = (g > 255) ? 255 : g;
+      *dest++ = (b > 255) ? 255 : b;
+      *dest++ = 255;
+    }
+  }
 }
 
 /*

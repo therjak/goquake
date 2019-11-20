@@ -225,53 +225,6 @@ void TexMgrLoadPalette(void) {
 }
 
 /*
-=============
-TexMgr_RecalcWarpImageSize -- called during init, and after a vid_restart
-
-choose safe warpimage size and resize existing warpimage textures
-=============
-*/
-void TexMgr_RecalcWarpImageSize(void) {
-  int mark;
-  // int oldsize;
-  gltexture_t *glt;
-  byte *dummy;
-
-  //
-  // find the new correct size
-  //
-  // oldsize = gl_warpimagesize;
-
-  gl_warpimagesize = TexMgr_SafeTextureSize(512);
-
-  while (gl_warpimagesize > ScreenWidth()) gl_warpimagesize >>= 1;
-  while (gl_warpimagesize > ScreenHeight()) gl_warpimagesize >>= 1;
-
-  // ericw -- removed early exit if (gl_warpimagesize == oldsize).
-  // after vid_restart TexMgr_ReloadImage reloads textures
-  // to tx->source_width/source_height, which might not match oldsize.
-  // fixes: https://sourceforge.net/p/quakespasm/bugs/13/
-
-  //
-  // resize the textures in opengl
-  //
-  mark = Hunk_LowMark();
-  dummy = (byte *)Hunk_Alloc(gl_warpimagesize * gl_warpimagesize * 4);
-
-  for (glt = active_gltextures; glt; glt = glt->next) {
-    if (glt->flags & TEXPREF_WARPIMAGE) {
-      GL_Bind(glt);
-      // THERJAK: glTexImage2D is opengl
-      GL_TexImage2D(GL_TEXTURE_2D, 0, gl_solid_format, gl_warpimagesize,
-                    gl_warpimagesize, 0, GL_RGBA, GL_UNSIGNED_BYTE, dummy);
-      glt->width = glt->height = gl_warpimagesize;
-    }
-  }
-
-  Hunk_FreeToLowMark(mark);
-}
-
-/*
 ================
 TexMgr_Init
 
@@ -322,7 +275,7 @@ void TexMgr_Init(void) {
 
   // set safe size for warpimages
   gl_warpimagesize = 0;
-  TexMgr_RecalcWarpImageSize();
+  TexMgrRecalcWarpImageSize();
 }
 
 /*
@@ -843,22 +796,6 @@ static void TexMgr_LoadImage8(gltexture_t *glt, byte *data) {
 
 /*
 ================
-TexMgr_LoadLightmap -- handles lightmap data
-================
-*/
-static void TexMgr_LoadLightmap(gltexture_t *glt, byte *data) {
-  // upload it
-  GL_Bind(glt);
-  // THERJAK
-  GL_TexImage2D(GL_TEXTURE_2D, 0, lightmap_bytes, glt->width, glt->height, 0,
-                gl_lightmap_format, GL_UNSIGNED_BYTE, data);
-
-  // set filter modes
-  TexMgr_SetFilterModes(glt);
-}
-
-/*
-================
 TexMgr_LoadImage -- the one entry point for loading all textures
 ================
 */
@@ -876,9 +813,6 @@ gltexture_t *TexMgr_LoadImage(qmodel_t *owner, const char *name, int width,
   switch (format) {
     case SRC_INDEXED:
       crc = CRC_Block(data, width * height);
-      break;
-    case SRC_LIGHTMAP:
-      crc = CRC_Block(data, width * height * lightmap_bytes);
       break;
     case SRC_RGBA:
       crc = CRC_Block(data, width * height * 4);
@@ -912,9 +846,6 @@ gltexture_t *TexMgr_LoadImage(qmodel_t *owner, const char *name, int width,
   switch (glt->source_format) {
     case SRC_INDEXED:
       TexMgr_LoadImage8(glt, data);
-      break;
-    case SRC_LIGHTMAP:
-      TexMgr_LoadLightmap(glt, data);
       break;
     case SRC_RGBA:
       TexMgr_LoadImage32(glt, (unsigned *)data);
@@ -956,10 +887,7 @@ void TexMgr_ReloadImage(gltexture_t *glt, int shirt, int pants) {
     if (!file) goto invalid;
     size = (long)(glt->source_width * glt->source_height);
     /* should be SRC_INDEXED, but no harm being paranoid:  */
-    if (glt->source_format == SRC_RGBA)
-      size *= 4;
-    else if (glt->source_format == SRC_LIGHTMAP)
-      size *= lightmap_bytes;
+    if (glt->source_format == SRC_RGBA) size *= 4;
 
     if (glt->source_offset + size > (long)(length)) {
       free(file);
@@ -1033,9 +961,6 @@ void TexMgr_ReloadImage(gltexture_t *glt, int shirt, int pants) {
   switch (glt->source_format) {
     case SRC_INDEXED:
       TexMgr_LoadImage8(glt, data);
-      break;
-    case SRC_LIGHTMAP:
-      TexMgr_LoadLightmap(glt, data);
       break;
     case SRC_RGBA:
       TexMgr_LoadImage32(glt, (unsigned *)data);

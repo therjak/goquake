@@ -20,7 +20,7 @@
 #define TEXPREF_WARPIMAGE \
   0x0800  // resize this texture when warpimagesize changes
 
-enum srcformat { SRC_INDEXED, SRC_LIGHTMAP, SRC_RGBA };
+enum srcformat { SRC_INDEXED, SRC_RGBA };
 
 typedef uintptr_t src_offset_t;
 

@@ -3,6 +3,7 @@ package quakelib
 //#include "gl_model.h"
 //#include "gl_texmgr.h"
 // int GetRFrameCount();
+// extern int gl_warpimagesize;
 import "C"
 
 import (
@@ -108,6 +109,7 @@ type Texture struct {
 	flags        TexPref
 	name         string
 	crc          uint16 // for some caching
+	boundFrame   int
 }
 
 const (
@@ -157,13 +159,49 @@ func GetTextureHeight(id TexID) int32 {
 
 //export TexMgrLoadLightMapImage
 func TexMgrLoadLightMapImage(owner *C.qmodel_t, name *C.char, width C.int,
-	height C.int, data *C.byte, source_file *C.char,
-	source_offset C.src_offset_t, flags C.unsigned) TexID {
-	// len(data) is expecte to be width * height * 4
-	// source_file is ""
-	return TexMgrLoadImage(
-		owner, name, width, height, C.SRC_LIGHTMAP,
-		data, source_file, source_offset, flags)
+	height C.int, data *C.byte, flags C.unsigned) TexID {
+
+	// TODO(therjak): add cache ala
+	// if TexPrefOverWrite && owner&name&crc match
+	//  return old one
+
+	var tn uint32
+	gl.GenTextures(1, &tn)
+	t := &Texture{
+		glID:         tn,
+		glWidth:      int32(width),
+		glHeight:     int32(height),
+		sourceWidth:  int32(width),
+		sourceHeight: int32(height),
+		flags:        TexPref(flags),
+		name:         C.GoString(name),
+	}
+	textureManager.addActiveTexture(t)
+	d := C.GoBytes(unsafe.Pointer(data), width*height*4)
+	textureManager.loadLightMap(t, d)
+	texmap[TexID(t.glID)] = t
+	return TexID(t.glID)
+}
+
+//export TexMgrLoadParticleImage
+func TexMgrLoadParticleImage(name *C.char, width C.int,
+	height C.int, data *C.byte) TexID {
+	var tn uint32
+	gl.GenTextures(1, &tn)
+	t := &Texture{
+		glID:         tn,
+		glWidth:      int32(width),
+		glHeight:     int32(height),
+		sourceWidth:  int32(width),
+		sourceHeight: int32(height),
+		flags:        TexPrefPersist | TexPrefAlpha | TexPrefLinear,
+		name:         C.GoString(name),
+	}
+	textureManager.addActiveTexture(t)
+	d := C.GoBytes(unsafe.Pointer(data), width*height*4)
+	textureManager.loadRGBA(t, d)
+	texmap[TexID(t.glID)] = t
+	return TexID(t.glID)
 }
 
 //export TexMgrLoadImage
@@ -216,7 +254,11 @@ func TexMgrReloadImage(id TexID, shirt C.int, pants C.int) {
 	// this is actually a 'map texture & reload'
 	// it should work quite different to the others.
 	// It also implies indexed colors
-	C.TexMgr_ReloadImage(t.cp, shirt, pants)
+	if t.cp != nil {
+		C.TexMgr_ReloadImage(t.cp, shirt, pants)
+	} else {
+		log.Printf("Reload without c-texture")
+	}
 }
 
 //export TexMgrFreeTexture
@@ -302,7 +344,26 @@ func TexMgrReloadImages() {
 
 //export TexMgrRecalcWarpImageSize
 func TexMgrRecalcWarpImageSize() {
-	C.TexMgr_RecalcWarpImageSize()
+	textureManager.RecalcWarpImageSize()
+}
+
+func (tm *texMgr) RecalcWarpImageSize() {
+	s := tm.safeTextureSize(512)
+	for s > int32(screen.Width) || s > int32(screen.Height) {
+		s >>= 1
+	}
+	C.gl_warpimagesize = C.int(s)
+
+	// TODO(therjak): there should be a better way.
+	dummy := make([]float32, s*s*3)
+	for t, b := range tm.activeTextures {
+		if b && (t.flags&TexPrefWarpImage != 0) {
+			tm.Bind(t)
+			gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGB, s, s, 0, gl.RGB, gl.FLOAT, gl.Ptr(dummy))
+			t.glWidth = s
+			t.glHeight = s
+		}
+	}
 }
 
 //export GLDisableMultitexture
@@ -352,7 +413,10 @@ func (tm *texMgr) Bind(t *Texture) {
 	if t.glID != tm.currentTexture[tm.currentTarget-gl.TEXTURE0] {
 		tm.currentTexture[tm.currentTarget-gl.TEXTURE0] = t.glID
 		gl.BindTexture(gl.TEXTURE_2D, t.glID)
-		t.cp.visframe = C.GetRFrameCount()
+		t.boundFrame = int(C.GetRFrameCount())
+		if t.cp != nil {
+			t.cp.visframe = C.GetRFrameCount()
+		}
 	}
 }
 
