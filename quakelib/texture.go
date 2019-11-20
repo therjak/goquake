@@ -149,12 +149,12 @@ func GetNoTexture() TexID {
 
 //export GetTextureWidth
 func GetTextureWidth(id TexID) int32 {
-	return int32(texmap[id].cp.width)
+	return int32(texmap[id].glWidth)
 }
 
 //export GetTextureHeight
 func GetTextureHeight(id TexID) int32 {
-	return int32(texmap[id].cp.height)
+	return int32(texmap[id].glHeight)
 }
 
 //export TexMgrLoadLightMapImage
