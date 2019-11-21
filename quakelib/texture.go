@@ -702,8 +702,6 @@ func (tm *texMgr) FrameUsage() float32 {
 func (tm *texMgr) getTextureUsage() (int32, float32) {
 	texels := int32(0)
 	for k, v := range tm.activeTextures {
-		log.Printf("Texture %s, %s, %d, %d, %v",
-			k.name, C.GoString(&(k.cp.name[0])), k.cp.height, k.cp.width, v)
 		if v {
 			if k.flags&TexPrefMipMap != 0 {
 				texels += k.glWidth * k.glHeight * 4 / 3
@@ -731,19 +729,21 @@ func (tm *texMgr) loadRGBA(t *Texture, data []byte) {
 		log.Printf("safeW")
 		// half width
 		data = downScaleWidth(t.glWidth, t.glHeight, data)
-		// if t.flags&TexPrefAlpha != 0 {
-		// some weird alphaEdgeFix which is just a 3x3 blur.
-		// }
 		t.glWidth >>= 1
+		// if t.flags&TexPrefAlpha != 0 {
+		// TODO(therjak): is this needed?
+		//   alphaEdgeFix(t.glWidth, t.glHeight, data)
+		// }
 	}
 	for t.glHeight > safeH {
 		log.Printf("safeH")
 		// half height
 		data = downScaleHeight(t.glWidth, t.glHeight, data)
-		// if t.flags&TexPrefAlpha != 0 {
-		// some weird alphaEdgeFix which is just a 3x3 blur.
-		//}
 		t.glHeight >>= 1
+		// if t.flags&TexPrefAlpha != 0 {
+		// TODO(therjak): is this needed?
+		//   alphaEdgeFix(t.glWidth, t.glHeight, data)
+		//}
 	}
 	// Orig uses the 'old' values 3 or 4
 	internalformat := int32(gl.RGB)
@@ -785,7 +785,7 @@ func (tm *texMgr) loadIndexed(t *Texture, data []byte) {
 	default:
 		p = &palette.table
 	}
-	nd := make([]byte, len(data)*4)
+	nd := make([]byte, 0, len(data)*4)
 	// TODO(therjak): add workaround for 'shot1sid' texture
 	// do we actually need padding?
 	for _, d := range data {
@@ -793,8 +793,51 @@ func (tm *texMgr) loadIndexed(t *Texture, data []byte) {
 		pixel := p[idx : idx+4]
 		nd = append(nd, pixel...)
 	}
-	// do we actually need padding + edgefix
+	// do we actually need padding?
+	if t.flags&TexPrefAlpha != 0 {
+		alphaEdgeFix(t.glWidth, t.glHeight, nd)
+	}
 	tm.loadRGBA(t, nd)
+}
+
+func alphaEdgeFix(w, h int32, d []byte) {
+	alpha := func(p int32) byte {
+		return d[p+3]
+	}
+	for y := int32(0); y < h; y++ {
+		prev := (y - 1 + h) % h
+		next := (y + 1) % h
+		for x := int32(0); x < w; x++ {
+			pp := (x - 1 + w) % w
+			np := (x + 1) % w
+			prow := prev * w
+			crow := y * w
+			nrow := next * w
+			p := []int32{
+				(pp + prow) * 4, (x + prow) * 4, (np + prow) * 4,
+				(pp + crow) * 4 /*           */, (np + crow) * 4,
+				(pp + nrow) * 4, (x + nrow) * 4, (np + nrow) * 4,
+			}
+			pixel := (x + crow) * 4
+			if alpha(pixel) == 0 {
+				r, g, b := int32(0), int32(0), int32(0)
+				count := int32(0)
+				for _, rp := range p {
+					if alpha(rp) != 0 {
+						r += int32(d[rp])
+						g += int32(d[rp+1])
+						b += int32(d[rp+2])
+						count++
+					}
+				}
+				if count != 0 {
+					d[pixel] = byte(r / count)
+					d[pixel+1] = byte(g / count)
+					d[pixel+2] = byte(b / count)
+				}
+			}
+		}
+	}
 }
 
 func merge3Pixel(p1, p2, p3 []byte) [4]byte {
