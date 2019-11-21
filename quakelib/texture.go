@@ -205,6 +205,28 @@ func TexMgrLoadParticleImage(name *C.char, width C.int,
 	return TexID(t.glID)
 }
 
+//export TexMgrLoadSkyTexture
+func TexMgrLoadSkyTexture(name *C.char, data *C.byte, flags C.unsigned) TexID {
+
+	n := C.GoString(name)
+	var tn uint32
+	gl.GenTextures(1, &tn)
+	t := &Texture{
+		glID:         tn,
+		glWidth:      128,
+		glHeight:     128,
+		sourceWidth:  128,
+		sourceHeight: 128,
+		name:         n,
+		flags:        TexPref(flags),
+	}
+	textureManager.addActiveTexture(t)
+	d := C.GoBytes(unsafe.Pointer(data), 128*128)
+	textureManager.loadIndexed(t, d)
+	texmap[TexID(t.glID)] = t
+	return TexID(t.glID)
+}
+
 //export TexMgrLoadSkyBox
 func TexMgrLoadSkyBox(name *C.char) TexID {
 	n := C.GoString(name)
@@ -430,6 +452,9 @@ func GL_Bind(t TextureP) {
 //export GLBind
 func GLBind(id TexID) {
 	textureManager.Bind(texmap[id])
+	if texmap[id].glID != uint32(id) {
+		log.Printf("broken glID: %v, %v", texmap[id].glID, id)
+	}
 }
 
 func (tm *texMgr) Bind(t *Texture) {
@@ -440,9 +465,6 @@ func (tm *texMgr) Bind(t *Texture) {
 		tm.currentTexture[tm.currentTarget-gl.TEXTURE0] = t.glID
 		gl.BindTexture(gl.TEXTURE_2D, t.glID)
 		t.boundFrame = int(C.GetRFrameCount())
-		if t.cp != nil {
-			t.cp.visframe = C.GetRFrameCount()
-		}
 	}
 }
 
@@ -706,6 +728,7 @@ func (tm *texMgr) loadRGBA(t *Texture, data []byte) {
 	safeW := tm.safeTextureSize(t.glWidth >> picmip)
 	safeH := tm.safeTextureSize(t.glHeight >> picmip)
 	for t.glWidth > safeW {
+		log.Printf("safeW")
 		// half width
 		data = downScaleWidth(t.glWidth, t.glHeight, data)
 		// if t.flags&TexPrefAlpha != 0 {
@@ -714,6 +737,7 @@ func (tm *texMgr) loadRGBA(t *Texture, data []byte) {
 		t.glWidth >>= 1
 	}
 	for t.glHeight > safeH {
+		log.Printf("safeH")
 		// half height
 		data = downScaleHeight(t.glWidth, t.glHeight, data)
 		// if t.flags&TexPrefAlpha != 0 {
@@ -730,7 +754,7 @@ func (tm *texMgr) loadRGBA(t *Texture, data []byte) {
 	gl.TexImage2D(gl.TEXTURE_2D, 0, internalformat, t.glWidth, t.glHeight,
 		0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(data))
 
-	gl.GenerateMipmap(t.glID)
+	gl.GenerateMipmap(gl.TEXTURE_2D)
 	tm.SetFilterModes(t)
 }
 
@@ -766,7 +790,7 @@ func (tm *texMgr) loadIndexed(t *Texture, data []byte) {
 	// do we actually need padding?
 	for _, d := range data {
 		idx := int(d) * 4
-		pixel := p[idx : idx+3]
+		pixel := p[idx : idx+4]
 		nd = append(nd, pixel...)
 	}
 	// do we actually need padding + edgefix
