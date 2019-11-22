@@ -305,17 +305,8 @@ Draw_LoadPics -- johnfitz
 ===============
 */
 void Draw_LoadPics(void) {
-  byte *data;
-  src_offset_t offset;
-
-  data = W_GetConchars();
-  if (!data) Go_Error("Draw_LoadPics: couldn't load conchars");
-  offset = (src_offset_t)data - (src_offset_t)wad_base;
-  char_texture2 = TexMgrLoadImage(
-      NULL, WADFILENAME ":conchars", 128, 128, SRC_INDEXED, data, WADFILENAME,
-      offset,
-      TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP | TEXPREF_CONCHARS);
-
+  char_texture2 = TexMgrLoadConsoleChars();
+  if (!char_texture2) Go_Error("Draw_LoadPics: couldn't load conchars");
   draw_backtile = Draw_PicFromWad("backtile");
 }
 
@@ -335,6 +326,7 @@ void Draw_NewGame(void) {
 
   // reload wad pics
   W_LoadWadFile();  // johnfitz -- filename is now hard-coded for honesty
+  Go_LoadWad();
   Draw_LoadPics();
   Sbar_LoadPics();
 

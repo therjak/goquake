@@ -185,10 +185,20 @@ func TexMgrLoadLightMapImage(owner *C.qmodel_t, name *C.char, width C.int,
 	return TexID(t.glID)
 }
 
+//export Go_LoadWad
+func Go_LoadWad() {
+	// TODO(therjak): is there a reason to do this twice?
+	err := wad.Load()
+	if err != nil {
+		Error("Could not load wad: %v", err)
+	}
+}
+
 //export TexMgrLoadConsoleChars
 func TexMgrLoadConsoleChars() TexID {
-	data, err := wad.GetLump("conchars")
-	if err != nil {
+	data := wad.GetConsoleChars()
+	if len(data) != 128*128 {
+		conlog.Printf("ConsoleChars not found")
 		return 0
 	}
 	var tn uint32
@@ -203,7 +213,6 @@ func TexMgrLoadConsoleChars() TexID {
 		name:         "gfx.wad:conchars",
 	}
 	textureManager.addActiveTexture(t)
-	// d := make([]byte, 128*128)
 	textureManager.loadIndexed(t, data)
 	texmap[TexID(t.glID)] = t
 	return TexID(t.glID)
