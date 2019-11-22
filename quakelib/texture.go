@@ -13,6 +13,7 @@ import (
 	"quake/cvar"
 	"quake/cvars"
 	"quake/image"
+	"quake/wad"
 	"strconv"
 	"strings"
 	"unsafe"
@@ -180,6 +181,30 @@ func TexMgrLoadLightMapImage(owner *C.qmodel_t, name *C.char, width C.int,
 	textureManager.addActiveTexture(t)
 	d := C.GoBytes(unsafe.Pointer(data), width*height*4)
 	textureManager.loadLightMap(t, d)
+	texmap[TexID(t.glID)] = t
+	return TexID(t.glID)
+}
+
+//export TexMgrLoadConsoleChars
+func TexMgrLoadConsoleChars() TexID {
+	data, err := wad.GetLump("conchars")
+	if err != nil {
+		return 0
+	}
+	var tn uint32
+	gl.GenTextures(1, &tn)
+	t := &Texture{
+		glID:         tn,
+		glWidth:      128,
+		glHeight:     128,
+		sourceWidth:  128,
+		sourceHeight: 128,
+		flags:        TexPrefAlpha | TexPrefNearest | TexPrefNoPicMip | TexPrefConChars,
+		name:         "gfx.wad:conchars",
+	}
+	textureManager.addActiveTexture(t)
+	// d := make([]byte, 128*128)
+	textureManager.loadIndexed(t, data)
 	texmap[TexID(t.glID)] = t
 	return TexID(t.glID)
 }
