@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"quake/filesystem"
 	"strings"
 )
@@ -40,11 +39,6 @@ type QPic struct {
 	Width  int32
 	Height int32
 	Data   []byte
-}
-
-type qPicHeader struct {
-	width  int32
-	height int32
 }
 
 func getWad() ([]byte, error) {
@@ -94,8 +88,31 @@ func getConChars(ls []lump, data []byte) ([]byte, error) {
 	return nil, fmt.Errorf("Could not find %v texture", consoleCharsLump)
 }
 
+func getPics(ls []lump, data []byte) (map[string]*QPic, error) {
+	p := make(map[string]*QPic)
+	for _, l := range ls {
+		if l.Typ != typQPic {
+			continue
+		}
+		d := data[l.Offset : l.Offset+l.Size]
+		q := &QPic{
+			Width:  int32(binary.LittleEndian.Uint32(d[0:])),
+			Height: int32(binary.LittleEndian.Uint32(d[4:])),
+			Data:   d[8:],
+		}
+		ln := bytes.IndexByte(l.Name[:], 0)
+		if ln == -1 {
+			ln = len(l.Name)
+		}
+		name := string(l.Name[:ln])
+		p[name] = q
+	}
+	return p, nil
+}
+
 var (
 	consoleChars []byte
+	pics         map[string]*QPic
 )
 
 func Load() error {
@@ -111,13 +128,16 @@ func Load() error {
 	if err != nil {
 		return err
 	}
+	pics, err = getPics(lumps, data)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func GetLump(n string) ([]byte, error) {
+func GetPic(n string) *QPic {
 	name := strings.ToLower(n)
-	log.Printf("name: %v", name)
-	return nil, nil
+	return pics[name]
 }
 
 func GetConsoleChars() []byte {

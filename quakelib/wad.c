@@ -122,8 +122,6 @@ void *W_GetLumpName(const char *name) {
 
 qpic_t *W_GetQPic(const char *name) { return (qpic_t *)W_GetLumpName(name); }
 
-byte *W_GetConchars() { return (byte *)W_GetLumpName("conchars"); }
-
 /*
 =============================================================================
 

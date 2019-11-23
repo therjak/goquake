@@ -28,7 +28,6 @@ package quakelib
 //void Draw_String(int x, int y, const char *str);
 //qpic_t *Draw_PicFromWad(const char *name);
 //qpic_t *Draw_CachePic(const char *path);
-//void Draw_NewGame(void);
 import "C"
 
 import (

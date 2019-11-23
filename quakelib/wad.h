@@ -36,7 +36,6 @@ extern unsigned char *wad_base;
 void W_LoadWadFile(void);  // johnfitz -- filename is now hard-coded for honesty
 
 qpic_t *W_GetQPic(const char *name);
-unsigned char *W_GetConchars();
 
 void SwapPic(qpic_t *pic);
 
