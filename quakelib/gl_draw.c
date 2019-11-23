@@ -354,6 +354,9 @@ void Draw_CharacterQuad(int x, int y, char num) {
   fcol = col * 0.0625;
   size = 0.0625;
 
+  GLBind(char_texture2);
+  glBegin(GL_QUADS);
+
   glTexCoord2f(fcol, frow);
   glVertex2f(x, y);
   glTexCoord2f(fcol + size, frow);
@@ -362,6 +365,8 @@ void Draw_CharacterQuad(int x, int y, char num) {
   glVertex2f(x + 8, y + 8);
   glTexCoord2f(fcol, frow + size);
   glVertex2f(x, y + 8);
+
+  glEnd();
 }
 
 /*
@@ -376,12 +381,7 @@ void Draw_Character(int x, int y, int num) {
 
   if (num == 32) return;  // don't waste verts on spaces
 
-  GLBind(char_texture2);
-  glBegin(GL_QUADS);
-
   Draw_CharacterQuad(x, y, (char)num);
-
-  glEnd();
 }
 
 /*

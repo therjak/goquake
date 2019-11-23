@@ -19,7 +19,7 @@ package quakelib
 // void GL_SetCanvas(canvastype newCanvas);
 //#include "stdlib.h"
 //#include "wad.h"
-//void Draw_Character(int x, int y, int num);
+//void Draw_CharacterQuad(int x, int y, char num);
 //void Draw_Pic(int x, int y, qpic_t *pic);
 //void Draw_TransPicTranslate(int x, int y, qpic_t *pic, int top, int bottom);
 //void Draw_TileClear(int x, int y, int w, int h);
@@ -71,15 +71,25 @@ type QPic struct {
 }
 
 func DrawCharacterWhite(x, y int, num int) {
-	C.Draw_Character(C.int(x), C.int(y), C.int(num))
+	if y <= -8 {
+		// Off screen
+		return
+	}
+	num &= 255
+	if num == 32 {
+		return
+	}
+	C.Draw_CharacterQuad(C.int(x), C.int(y), C.char(num))
 }
 
 func DrawCharacterCopper(x, y int, num int) {
-	C.Draw_Character(C.int(x), C.int(y), C.int(num+128))
-}
-
-func DrawCharacter(x, y int, num int) {
-	C.Draw_Character(C.int(x), C.int(y), C.int(num))
+	if y <= -8 {
+		// Off screen
+		return
+	}
+	num += 128
+	num &= 255
+	C.Draw_CharacterQuad(C.int(x), C.int(y), C.char(num))
 }
 
 func DrawPicture(x, y int, p *QPic) {

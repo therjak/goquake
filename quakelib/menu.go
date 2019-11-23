@@ -59,12 +59,12 @@ func drawCheckbox(x, y int, checked bool) {
 func drawSlider(x, y int, r float32) {
 	// TODO: unify into one draw call
 	r = math.Clamp32(0, r, 1)
-	DrawCharacter(x-8, y, 128)
+	DrawCharacterWhite(x-8, y, 128)
 	for i := 0; i < 10; i++ {
-		DrawCharacter(x+i*8, y, 129)
+		DrawCharacterWhite(x+i*8, y, 129)
 	}
-	DrawCharacter(x+10*8, y, 130)
-	DrawCharacter(x+int(9*8*r), y, 131)
+	DrawCharacterWhite(x+10*8, y, 130)
+	DrawCharacterWhite(x+int(9*8*r), y, 131)
 }
 
 // w: width, l: lines
@@ -156,7 +156,7 @@ type qMenuItem struct {
 
 func (m *qMenuItem) Draw() {}
 func (m *qMenuItem) DrawCursor() {
-	DrawCharacter(m.Xcursor, m.Y, 12+(int(Time()*4))&1)
+	DrawCharacterWhite(m.Xcursor, m.Y, 12+(int(Time()*4))&1)
 }
 func (m *qMenuItem) Enter()              {}
 func (m *qMenuItem) Backspace()          {}
