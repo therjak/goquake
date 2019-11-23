@@ -23,6 +23,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifndef _QUAKE_WAD_H
 #define _QUAKE_WAD_H
 
+#include <stdint.h>
+
 // johnfitz -- filename is now hard-coded for honesty
 #define WADFILENAME "gfx.wad"
 
@@ -30,6 +32,18 @@ typedef struct {
   int width, height;
   unsigned char data[4];  // variably sized
 } qpic_t;
+
+typedef struct {
+  uint32_t gltexture;
+  float sl, tl, sh, th;
+} glpic_t;
+
+typedef struct {
+  int width;
+  int height;
+  uint32_t texture;
+  float sl, tl, sh, th;
+} QPIC;
 
 extern unsigned char *wad_base;
 

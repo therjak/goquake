@@ -1,6 +1,7 @@
 // draw.c -- 2d drawing
 
 #include "quakedef.h"
+#include "wad.h"
 
 // extern unsigned char d_15to8table[65536]; //johnfitz -- never used
 
@@ -62,11 +63,6 @@ byte pic_crosshair_data[8][8] = {
     {255, 255, 255, 255, 255, 255, 255, 255},
 };
 // johnfitz
-
-typedef struct {
-  uint32_t gltexture;
-  float sl, tl, sh, th;
-} glpic_t;
 
 canvastype currentcanvas = CANVAS_NONE;  // johnfitz -- for GL_SetCanvas
 
@@ -407,6 +403,21 @@ void Draw_Pic(int x, int y, qpic_t *pic) {
   glEnd();
 }
 
+void Draw_Pic2(int x, int y, QPIC pic) {
+  if (scrap_dirty) Scrap_Upload();
+  GLBind(pic.texture);
+  glBegin(GL_QUADS);
+  glTexCoord2f(pic.sl, pic.tl);
+  glVertex2f(x, y);
+  glTexCoord2f(pic.sh, pic.tl);
+  glVertex2f(x + pic.width, y);
+  glTexCoord2f(pic.sh, pic.th);
+  glVertex2f(x + pic.width, y + pic.height);
+  glTexCoord2f(pic.sl, pic.th);
+  glVertex2f(x, y + pic.height);
+  glEnd();
+}
+
 /*
 =============
 Draw_TransPicTranslate -- johnfitz -- rewritten to use texmgr to do translation
@@ -426,6 +437,19 @@ void Draw_TransPicTranslate(int x, int y, qpic_t *pic, int top, int bottom) {
     TexMgrReloadImage(glt, top, bottom);
   }
   Draw_Pic(x, y, pic);
+}
+
+void Draw_TransPicTranslate2(int x, int y, QPIC pic, int top, int bottom) {
+  static int oldtop = -2;
+  static int oldbottom = -2;
+
+  if (top != oldtop || bottom != oldbottom) {
+    uint32_t glt = pic.texture;
+    oldtop = top;
+    oldbottom = bottom;
+    TexMgrReloadImage(glt, top, bottom);
+  }
+  Draw_Pic2(x, y, pic);
 }
 
 /*

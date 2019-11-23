@@ -20,14 +20,14 @@ package quakelib
 //#include "stdlib.h"
 //#include "wad.h"
 //void Draw_CharacterQuad(int x, int y, char num);
-//void Draw_Pic(int x, int y, qpic_t *pic);
-//void Draw_TransPicTranslate(int x, int y, qpic_t *pic, int top, int bottom);
 //void Draw_TileClear(int x, int y, int w, int h);
 //void Draw_Fill(int x, int y, int w, int h, int c, float alpha);
 //void Draw_FadeScreen(void);
 //void Draw_String(int x, int y, const char *str);
 //qpic_t *Draw_PicFromWad(const char *name);
 //qpic_t *Draw_CachePic(const char *path);
+//void Draw_Pic2(int x, int y, QPIC pic);
+//void Draw_TransPicTranslate2(int x, int y, QPIC pic, int top, int bottom);
 import "C"
 
 import (
@@ -93,21 +93,54 @@ func DrawCharacterCopper(x, y int, num int) {
 }
 
 func DrawPicture(x, y int, p *QPic) {
-	C.Draw_Pic(C.int(x), C.int(y), p.pic)
+	// TODO(therjak): this cast must die. they do not even have the same size...
+	d := (*C.glpic_t)(unsafe.Pointer(&p.pic.data[0]))
+	pic := C.QPIC{
+		width:   p.pic.width,
+		height:  p.pic.height,
+		texture: d.gltexture,
+		sl:      d.sl,
+		tl:      d.tl,
+		sh:      d.sh,
+		th:      d.th,
+	}
+	C.Draw_Pic2(C.int(x), C.int(y), pic)
 }
 
 func DrawPictureAlpha(x, y int, p *QPic, alpha float32) {
+	// TODO(therjak): this cast must die. they do not even have the same size...
+	d := (*C.glpic_t)(unsafe.Pointer(&p.pic.data[0]))
+	pic := C.QPIC{
+		width:   p.pic.width,
+		height:  p.pic.height,
+		texture: d.gltexture,
+		sl:      d.sl,
+		tl:      d.tl,
+		sh:      d.sh,
+		th:      d.th,
+	}
 	gl.BlendColor(0, 0, 0, alpha)
 	gl.BlendFunc(gl.CONSTANT_ALPHA, gl.ONE_MINUS_CONSTANT_ALPHA)
 	gl.Enable(gl.BLEND)
 
-	C.Draw_Pic(C.int(x), C.int(y), p.pic)
+	C.Draw_Pic2(C.int(x), C.int(y), pic)
 
 	gl.Disable(gl.BLEND)
 }
 
 func DrawTransparentPictureTranslate(x, y int, p *QPic, top, bottom int) {
-	C.Draw_TransPicTranslate(C.int(x), C.int(y), p.pic, C.int(top), C.int(bottom))
+	// TODO(therjak): this cast must die. they do not even have the same size...
+	d := (*C.glpic_t)(unsafe.Pointer(&p.pic.data[0]))
+	pic := C.QPIC{
+		width:   p.pic.width,
+		height:  p.pic.height,
+		texture: d.gltexture,
+		sl:      d.sl,
+		tl:      d.tl,
+		sh:      d.sh,
+		th:      d.th,
+	}
+	C.Draw_TransPicTranslate2(C.int(x), C.int(y), pic, C.int(top), C.int(bottom))
 }
 
 func DrawConsoleBackground() {
