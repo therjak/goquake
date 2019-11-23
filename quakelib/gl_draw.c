@@ -96,68 +96,7 @@ int scrap_allocated[MAX_SCRAPS][BLOCK_WIDTH];
 byte scrap_texels[MAX_SCRAPS][BLOCK_WIDTH * BLOCK_HEIGHT];  // johnfitz --
                                                             // removed *4 after
                                                             // BLOCK_HEIGHT
-qboolean scrap_dirty;
 uint32_t scrap_textures2[MAX_SCRAPS];  // johnfitz
-
-/*
-================
-Scrap_AllocBlock
-
-returns an index into scrap_texnums[] and the position inside it
-================
-*/
-int Scrap_AllocBlock(int w, int h, int *x, int *y) {
-  int i, j;
-  int best, best2;
-  int texnum;
-
-  for (texnum = 0; texnum < MAX_SCRAPS; texnum++) {
-    best = BLOCK_HEIGHT;
-
-    for (i = 0; i < BLOCK_WIDTH - w; i++) {
-      best2 = 0;
-
-      for (j = 0; j < w; j++) {
-        if (scrap_allocated[texnum][i + j] >= best) break;
-        if (scrap_allocated[texnum][i + j] > best2)
-          best2 = scrap_allocated[texnum][i + j];
-      }
-      if (j == w) {  // this is a valid spot
-        *x = i;
-        *y = best = best2;
-      }
-    }
-
-    if (best + h > BLOCK_HEIGHT) continue;
-
-    for (i = 0; i < w; i++) scrap_allocated[texnum][*x + i] = best + h;
-
-    return texnum;
-  }
-
-  Go_Error("Scrap_AllocBlock: full");  // johnfitz -- correct function name
-  return 0;                            // johnfitz -- shut up compiler
-}
-
-/*
-================
-Scrap_Upload -- johnfitz -- now uses TexMgr
-================
-*/
-void Scrap_Upload(void) {
-  char name[8];
-  int i;
-
-  for (i = 0; i < MAX_SCRAPS; i++) {
-    sprintf(name, "scrap%i", i);
-    scrap_textures2[i] =
-        TexMgrLoadImage(NULL, name, BLOCK_WIDTH, BLOCK_HEIGHT, SRC_INDEXED,
-                        scrap_texels[i], "", (src_offset_t)scrap_texels[i],
-                        TEXPREF_ALPHA | TEXPREF_OVERWRITE | TEXPREF_NOPICMIP);
-  }
-
-  scrap_dirty = false;
-}
 
 /*
 ================
@@ -172,26 +111,6 @@ qpic_t *Draw_PicFromWad(const char *name) {
   p = W_GetQPic(name);
   if (!p) return pic_nul;  // johnfitz
 
-  // load little ones into the scrap
-  if (p->width < 64 && p->height < 64) {
-    int x, y;
-    int i, j, k;
-    int texnum;
-
-    texnum = Scrap_AllocBlock(p->width, p->height, &x, &y);
-    scrap_dirty = true;
-    k = 0;
-    for (i = 0; i < p->height; i++) {
-      for (j = 0; j < p->width; j++, k++)
-        scrap_texels[texnum][(y + i) * BLOCK_WIDTH + x + j] = p->data[k];
-    }
-    gl.gltexture = scrap_textures2[texnum];  // johnfitz -- changed to an array
-    // johnfitz -- no longer go from 0.01 to 0.99
-    gl.sl = x / (float)BLOCK_WIDTH;
-    gl.sh = (x + p->width) / (float)BLOCK_WIDTH;
-    gl.tl = y / (float)BLOCK_WIDTH;
-    gl.th = (y + p->height) / (float)BLOCK_WIDTH;
-  } else {
     char texturename[64];  // johnfitz
     q_snprintf(texturename, sizeof(texturename), "%s:%s", WADFILENAME,
                name);  // johnfitz
@@ -204,10 +123,9 @@ qpic_t *Draw_PicFromWad(const char *name) {
         WADFILENAME, offset,
         TEXPREF_ALPHA | TEXPREF_PAD | TEXPREF_NOPICMIP);  // johnfitz -- TexMgr
     gl.sl = 0;
-    gl.sh = (float)p->width / (float)p->width;  // johnfitz
+    gl.sh = 1;
     gl.tl = 0;
-    gl.th = (float)p->height / (float)p->height;  // johnfitz
-  }
+    gl.th = 1;
 
   memcpy(p->data, &gl, sizeof(glpic_t));
 
@@ -255,9 +173,9 @@ qpic_t *Draw_CachePic(const char *path) {
       sizeof(int) * 2,
       TEXPREF_ALPHA | TEXPREF_PAD | TEXPREF_NOPICMIP);  // johnfitz -- TexMgr
   gl.sl = 0;
-  gl.sh = (float)dat->width / (float)dat->width;  // johnfitz
+  gl.sh = 1;
   gl.tl = 0;
-  gl.th = (float)dat->height / (float)dat->height;  // johnfitz
+  gl.th = 1;
   memcpy(pic->pic.data, &gl, sizeof(glpic_t));
 
   return &pic->pic;
@@ -281,9 +199,9 @@ qpic_t *Draw_MakePic(const char *name, int width, int height, byte *data) {
   gl.gltexture = TexMgrLoadImage(NULL, name, width, height, SRC_INDEXED, data,
                                  "", (src_offset_t)data, flags);
   gl.sl = 0;
-  gl.sh = (float)width / (float)width;
+  gl.sh = 1;
   gl.tl = 0;
-  gl.th = (float)height / (float)height;
+  gl.th = 1;
   memcpy(pic->data, &gl, sizeof(glpic_t));
 
   return pic;
@@ -313,11 +231,6 @@ Draw_Init -- johnfitz -- rewritten
 */
 void Draw_Init(void) {
   Cvar_FakeRegister(&scr_conalpha, "scr_conalpha");
-
-  // clear scrap and allocate gltextures
-  memset(&scrap_allocated, 0, sizeof(scrap_allocated));
-  memset(&scrap_texels, 255, sizeof(scrap_texels));
-  Scrap_Upload();  // creates 2 empty textures
 
   // create internal pics
   pic_ins = Draw_MakePic("ins", 8, 9, &pic_ins_data[0][0]);
@@ -388,7 +301,6 @@ Draw_Pic -- johnfitz -- modified
 void Draw_Pic(int x, int y, qpic_t *pic) {
   glpic_t *gl;
 
-  if (scrap_dirty) Scrap_Upload();
   gl = (glpic_t *)pic->data;
   GLBind(gl->gltexture);
   glBegin(GL_QUADS);
@@ -404,7 +316,6 @@ void Draw_Pic(int x, int y, qpic_t *pic) {
 }
 
 void Draw_Pic2(int x, int y, QPIC pic) {
-  if (scrap_dirty) Scrap_Upload();
   GLBind(pic.texture);
   glBegin(GL_QUADS);
   glTexCoord2f(pic.sl, pic.tl);

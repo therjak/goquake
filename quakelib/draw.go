@@ -24,14 +24,15 @@ package quakelib
 //void Draw_Fill(int x, int y, int w, int h, int c, float alpha);
 //void Draw_FadeScreen(void);
 //void Draw_String(int x, int y, const char *str);
-//qpic_t *Draw_PicFromWad(const char *name);
 //qpic_t *Draw_CachePic(const char *path);
 //void Draw_Pic2(int x, int y, QPIC pic);
 //void Draw_TransPicTranslate2(int x, int y, QPIC pic, int top, int bottom);
 import "C"
 
 import (
+	"fmt"
 	"quake/cvars"
+	"quake/wad"
 	"strings"
 	"unsafe"
 
@@ -65,9 +66,10 @@ type Color struct {
 type Picture *C.qpic_t
 
 type QPic struct {
-	pic    Picture
-	width  int
-	height int
+	pic     Picture
+	width   int
+	height  int
+	texture *Texture
 }
 
 func DrawCharacterWhite(x, y int, num int) {
@@ -94,53 +96,92 @@ func DrawCharacterCopper(x, y int, num int) {
 
 func DrawPicture(x, y int, p *QPic) {
 	// TODO(therjak): this cast must die. they do not even have the same size...
-	d := (*C.glpic_t)(unsafe.Pointer(&p.pic.data[0]))
-	pic := C.QPIC{
-		width:   p.pic.width,
-		height:  p.pic.height,
-		texture: d.gltexture,
-		sl:      d.sl,
-		tl:      d.tl,
-		sh:      d.sh,
-		th:      d.th,
+	if p.pic != nil {
+		d := (*C.glpic_t)(unsafe.Pointer(&p.pic.data[0]))
+		pic := C.QPIC{
+			width:   p.pic.width,
+			height:  p.pic.height,
+			texture: d.gltexture,
+			sl:      0,
+			tl:      0,
+			sh:      1,
+			th:      1,
+		}
+		C.Draw_Pic2(C.int(x), C.int(y), pic)
+	} else {
+		pic := C.QPIC{
+			width:   C.int(p.width),
+			height:  C.int(p.height),
+			texture: C.uint32_t(p.texture.glID),
+			sl:      0,
+			tl:      0,
+			sh:      1,
+			th:      1,
+		}
+		C.Draw_Pic2(C.int(x), C.int(y), pic)
 	}
-	C.Draw_Pic2(C.int(x), C.int(y), pic)
 }
 
 func DrawPictureAlpha(x, y int, p *QPic, alpha float32) {
 	// TODO(therjak): this cast must die. they do not even have the same size...
-	d := (*C.glpic_t)(unsafe.Pointer(&p.pic.data[0]))
-	pic := C.QPIC{
-		width:   p.pic.width,
-		height:  p.pic.height,
-		texture: d.gltexture,
-		sl:      d.sl,
-		tl:      d.tl,
-		sh:      d.sh,
-		th:      d.th,
-	}
 	gl.BlendColor(0, 0, 0, alpha)
 	gl.BlendFunc(gl.CONSTANT_ALPHA, gl.ONE_MINUS_CONSTANT_ALPHA)
 	gl.Enable(gl.BLEND)
 
-	C.Draw_Pic2(C.int(x), C.int(y), pic)
+	if p.pic != nil {
+		d := (*C.glpic_t)(unsafe.Pointer(&p.pic.data[0]))
+		pic := C.QPIC{
+			width:   p.pic.width,
+			height:  p.pic.height,
+			texture: d.gltexture,
+			sl:      d.sl,
+			tl:      d.tl,
+			sh:      d.sh,
+			th:      d.th,
+		}
+		C.Draw_Pic2(C.int(x), C.int(y), pic)
+	} else {
+		pic := C.QPIC{
+			width:   C.int(p.width),
+			height:  C.int(p.height),
+			texture: C.uint32_t(p.texture.glID),
+			sl:      0,
+			tl:      0,
+			sh:      1,
+			th:      1,
+		}
+		C.Draw_Pic2(C.int(x), C.int(y), pic)
+	}
 
 	gl.Disable(gl.BLEND)
 }
 
 func DrawTransparentPictureTranslate(x, y int, p *QPic, top, bottom int) {
 	// TODO(therjak): this cast must die. they do not even have the same size...
-	d := (*C.glpic_t)(unsafe.Pointer(&p.pic.data[0]))
-	pic := C.QPIC{
-		width:   p.pic.width,
-		height:  p.pic.height,
-		texture: d.gltexture,
-		sl:      d.sl,
-		tl:      d.tl,
-		sh:      d.sh,
-		th:      d.th,
+	if p.pic != nil {
+		d := (*C.glpic_t)(unsafe.Pointer(&p.pic.data[0]))
+		pic := C.QPIC{
+			width:   p.pic.width,
+			height:  p.pic.height,
+			texture: d.gltexture,
+			sl:      d.sl,
+			tl:      d.tl,
+			sh:      d.sh,
+			th:      d.th,
+		}
+		C.Draw_TransPicTranslate2(C.int(x), C.int(y), pic, C.int(top), C.int(bottom))
+	} else {
+		pic := C.QPIC{
+			width:   C.int(p.width),
+			height:  C.int(p.height),
+			texture: C.uint32_t(p.texture.glID),
+			sl:      0,
+			tl:      0,
+			sh:      1,
+			th:      1,
+		}
+		C.Draw_TransPicTranslate2(C.int(x), C.int(y), pic, C.int(top), C.int(bottom))
 	}
-	C.Draw_TransPicTranslate2(C.int(x), C.int(y), pic, C.int(top), C.int(bottom))
 }
 
 func DrawConsoleBackground() {
@@ -269,13 +310,16 @@ func GetCachedPicture(name string) *QPic {
 }
 
 func GetPictureFromWad(name string) *QPic {
-	n := C.CString(name)
-	p := C.Draw_PicFromWad(n)
-	C.free(unsafe.Pointer(n))
+	p := wad.GetPic(name)
+	if p == nil {
+		return nil
+	}
+	n := fmt.Sprintf("gfx.wad:%s", name)
+	t := textureManager.LoadWadTex(n, p.Width, p.Height, p.Data)
 	return &QPic{
-		pic:    p,
-		width:  int(p.width),
-		height: int(p.height),
+		width:   p.Width,
+		height:  p.Height,
+		texture: t,
 	}
 }
 

@@ -187,7 +187,6 @@ func TexMgrLoadLightMapImage(owner *C.qmodel_t, name *C.char, width C.int,
 
 //export Go_LoadWad
 func Go_LoadWad() {
-	// TODO(therjak): is there a reason to do this twice?
 	err := wad.Load()
 	if err != nil {
 		Error("Could not load wad: %v", err)
@@ -216,6 +215,24 @@ func TexMgrLoadConsoleChars() TexID {
 	textureManager.loadIndexed(t, data)
 	texmap[TexID(t.glID)] = t
 	return TexID(t.glID)
+}
+
+func (tm *texMgr) LoadWadTex(name string, w, h int, data []byte) *Texture {
+	var tn uint32
+	gl.GenTextures(1, &tn)
+	t := &Texture{
+		glID:         tn,
+		glWidth:      int32(w),
+		glHeight:     int32(h),
+		sourceWidth:  int32(w),
+		sourceHeight: int32(h),
+		flags:        TexPrefAlpha | TexPrefPad | TexPrefNoPicMip,
+		name:         name,
+	}
+	tm.addActiveTexture(t)
+	tm.loadIndexed(t, data)
+	texmap[TexID(t.glID)] = t
+	return t
 }
 
 //export TexMgrLoadParticleImage
@@ -523,10 +540,6 @@ func (tm *texMgr) DeleteTextureObjects() {
 	}
 }
 
-var (
-	inReloadImages = false
-)
-
 func (tm *texMgr) reloadNoBrightImages() {
 	for k, v := range tm.activeTextures {
 		if v {
@@ -536,6 +549,8 @@ func (tm *texMgr) reloadNoBrightImages() {
 		}
 	}
 }
+
+var inReloadImages = false
 
 func (tm *texMgr) ReloadImages() {
 	// This is the reverse of TexMgrFreeTexturesObjects

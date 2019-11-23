@@ -36,8 +36,8 @@ type lump struct {
 }
 
 type QPic struct {
-	Width  int32
-	Height int32
+	Width  int
+	Height int
 	Data   []byte
 }
 
@@ -96,8 +96,8 @@ func getPics(ls []lump, data []byte) (map[string]*QPic, error) {
 		}
 		d := data[l.Offset : l.Offset+l.Size]
 		q := &QPic{
-			Width:  int32(binary.LittleEndian.Uint32(d[0:])),
-			Height: int32(binary.LittleEndian.Uint32(d[4:])),
+			Width:  int(binary.LittleEndian.Uint32(d[0:])),
+			Height: int(binary.LittleEndian.Uint32(d[4:])),
 			Data:   d[8:],
 		}
 		ln := bytes.IndexByte(l.Name[:], 0)
