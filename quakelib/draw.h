@@ -7,9 +7,6 @@
 void Draw_Init(void);
 void Draw_Character(int x, int y, int num);
 void Draw_Pic(int x, int y, qpic_t *pic);
-void Draw_TransPicTranslate(int x, int y, qpic_t *pic, int top,
-                            int bottom);  // johnfitz -- more parameters
-void Draw_PicAlpha(int x, int y, qpic_t *pic, float alpha);
 void Draw_ConsoleBackground(void);  // johnfitz -- removed parameter int lines
 void Draw_TileClear(int x, int y, int w, int h);
 void Draw_Fill(int x, int y, int w, int h, int c,

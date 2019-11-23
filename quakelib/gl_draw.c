@@ -418,27 +418,6 @@ void Draw_Pic2(int x, int y, QPIC pic) {
   glEnd();
 }
 
-/*
-=============
-Draw_TransPicTranslate -- johnfitz -- rewritten to use texmgr to do translation
-
-Only used for the player color selection menu
-=============
-*/
-void Draw_TransPicTranslate(int x, int y, qpic_t *pic, int top, int bottom) {
-  static int oldtop = -2;
-  static int oldbottom = -2;
-
-  if (top != oldtop || bottom != oldbottom) {
-    glpic_t *p = (glpic_t *)pic->data;
-    uint32_t glt = p->gltexture;
-    oldtop = top;
-    oldbottom = bottom;
-    TexMgrReloadImage(glt, top, bottom);
-  }
-  Draw_Pic(x, y, pic);
-}
-
 void Draw_TransPicTranslate2(int x, int y, QPIC pic, int top, int bottom) {
   static int oldtop = -2;
   static int oldbottom = -2;
