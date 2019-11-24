@@ -1,13 +1,5 @@
 package quakelib
 
-// #include "stdlib.h"
-// #include "wad.h"
-// void M_Search_Key(int);
-// void M_ServerList_Key(int);
-// void M_Search_Draw(void);
-// void M_ServerList_Draw(void);
-import "C"
-
 import (
 	"fmt"
 	"quake/cmd"
@@ -57,7 +49,6 @@ func drawCheckbox(x, y int, checked bool) {
 }
 
 func drawSlider(x, y int, r float32) {
-	// TODO: unify into one draw call
 	r = math.Clamp32(0, r, 1)
 	DrawCharacterWhite(x-8, y, 128)
 	for i := 0; i < 10; i++ {
@@ -264,14 +255,14 @@ func (m *qMenu) Draw() {
 
 	case menu.GameOptions:
 		gameOptionsMenu.Draw()
+		/*
+			case menu.Search:
+				C.M_Search_Draw()
 
-	case menu.Search:
-		C.M_Search_Draw()
-
-	case menu.ServerList:
-		C.M_ServerList_Draw()
+			case menu.ServerList:
+				C.M_ServerList_Draw()
+		*/
 	}
-
 	if m.playEnterSound {
 		localSound("misc/menu2.wav")
 		m.playEnterSound = false
@@ -308,9 +299,11 @@ func (m *qMenu) HandleKey(k kc.KeyCode) {
 		netJoinGameMenu.HandleKey(k)
 	case menu.GameOptions:
 		gameOptionsMenu.HandleKey(k)
-	case menu.Search:
-		C.M_Search_Key(C.int(k))
-	case menu.ServerList:
-		C.M_ServerList_Key(C.int(k))
+		/*
+			case menu.Search:
+				C.M_Search_Key(C.int(k))
+			case menu.ServerList:
+				C.M_ServerList_Key(C.int(k))
+		*/
 	}
 }

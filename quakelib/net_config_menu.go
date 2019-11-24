@@ -49,13 +49,15 @@ func makeNetJoinMenu() *qNetJoinMenu {
 			text: "Join Game",
 			items: []MenuItem{
 				&portMenuItem{qMenuItem{52, 72}, 0, ""},
-				&joinGameSearchMenuItem{qMenuItem{52, 92}, nil},
+				// Therjak: Removed server search. Net broadcast is not implemented.
+				// &joinGameSearchMenuItem{qMenuItem{52, 92}, nil},
 				&serverNameMenuItem{qMenuItem{52, 124}, "", nil},
 			},
 		},
 	}
 }
 
+/*
 type joinGameSearchMenuItem struct {
 	qMenuItem
 	accepter qAccept
@@ -76,7 +78,7 @@ func (m *joinGameSearchMenuItem) Enter() {
 func (m *joinGameSearchMenuItem) Update(a qAccept) {
 	m.accepter = a
 }
-
+*/
 type newGameOkMenuItem struct {
 	qMenuItem
 	accepter qAccept
@@ -207,7 +209,7 @@ func (m *qNetNewMenu) Update() {
 
 func (m *qNetJoinMenu) Update() {
 	m.qNetConfigMenu.Update()
-	m.selectedIndex = 2
+	m.selectedIndex = len(m.items) - 1
 }
 
 func (m *qNetConfigMenu) HandleKey(key kc.KeyCode) {
