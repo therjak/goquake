@@ -235,6 +235,17 @@ func (tm *texMgr) LoadWadTex(name string, w, h int, data []byte) *Texture {
 	return t
 }
 
+//export TexMgrLoadBacktile
+func TexMgrLoadBacktile() TexID {
+	name := "backtile"
+	p := wad.GetPic(name)
+	if p == nil {
+		return 0
+	}
+	t := textureManager.LoadWadTex(name, p.Width, p.Height, p.Data)
+	return TexID(t.glID)
+}
+
 //export TexMgrLoadParticleImage
 func TexMgrLoadParticleImage(name *C.char, width C.int,
 	height C.int, data *C.byte) TexID {

@@ -5,10 +5,7 @@
 
 // extern unsigned char d_15to8table[65536]; //johnfitz -- never used
 
-cvar_t scr_conalpha;
-
-qpic_t *draw_backtile;
-
+uint32_t draw_backtile;
 uint32_t char_texture2;
 
 qpic_t *pic_ovr, *pic_ins;  // johnfitz -- new cursor handling
@@ -91,46 +88,6 @@ byte menuplyr_pixels[4096];
 #define MAX_SCRAPS 2
 #define BLOCK_WIDTH 256
 #define BLOCK_HEIGHT 256
-
-int scrap_allocated[MAX_SCRAPS][BLOCK_WIDTH];
-byte scrap_texels[MAX_SCRAPS][BLOCK_WIDTH * BLOCK_HEIGHT];  // johnfitz --
-                                                            // removed *4 after
-                                                            // BLOCK_HEIGHT
-uint32_t scrap_textures2[MAX_SCRAPS];  // johnfitz
-
-/*
-================
-Draw_PicFromWad
-================
-*/
-qpic_t *Draw_PicFromWad(const char *name) {
-  qpic_t *p;
-  glpic_t gl;
-  src_offset_t offset;  // johnfitz
-
-  p = W_GetQPic(name);
-  if (!p) return pic_nul;  // johnfitz
-
-    char texturename[64];  // johnfitz
-    q_snprintf(texturename, sizeof(texturename), "%s:%s", WADFILENAME,
-               name);  // johnfitz
-
-    offset =
-        (src_offset_t)p - (src_offset_t)wad_base + sizeof(int) * 2;  // johnfitz
-
-    gl.gltexture = TexMgrLoadImage(
-        NULL, texturename, p->width, p->height, SRC_INDEXED, p->data,
-        WADFILENAME, offset,
-        TEXPREF_ALPHA | TEXPREF_PAD | TEXPREF_NOPICMIP);  // johnfitz -- TexMgr
-    gl.sl = 0;
-    gl.sh = 1;
-    gl.tl = 0;
-    gl.th = 1;
-
-  memcpy(p->data, &gl, sizeof(glpic_t));
-
-  return p;
-}
 
 /*
 ================
@@ -221,7 +178,7 @@ Draw_LoadPics -- johnfitz
 void Draw_LoadPics(void) {
   char_texture2 = TexMgrLoadConsoleChars();
   if (!char_texture2) Go_Error("Draw_LoadPics: couldn't load conchars");
-  draw_backtile = Draw_PicFromWad("backtile");
+  draw_backtile = TexMgrLoadBacktile("backtile");
 }
 
 /*
@@ -230,8 +187,6 @@ Draw_Init -- johnfitz -- rewritten
 ===============
 */
 void Draw_Init(void) {
-  Cvar_FakeRegister(&scr_conalpha, "scr_conalpha");
-
   // create internal pics
   pic_ins = Draw_MakePic("ins", 8, 9, &pic_ins_data[0][0]);
   pic_ovr = Draw_MakePic("ovr", 8, 8, &pic_ovr_data[0][0]);
@@ -351,12 +306,8 @@ refresh window.
 =============
 */
 void Draw_TileClear(int x, int y, int w, int h) {
-  glpic_t *gl;
-
-  gl = (glpic_t *)draw_backtile->data;
-
   glColor3f(1, 1, 1);
-  GLBind(gl->gltexture);
+  GLBind(draw_backtile);
   glBegin(GL_QUADS);
   glTexCoord2f(x / 64.0, y / 64.0);
   glVertex2f(x, y);
