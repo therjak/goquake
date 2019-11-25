@@ -472,12 +472,3 @@ void ConTabComplete(void) {
     c = key_lines[edit_line] + key_linepos;
   }
 }
-
-/*
-================
-Con_DrawInput -- johnfitz -- modified to allow insert editing
-
-The input line scrolls horizontally if typing goes beyond the right edge
-================
-*/
-extern qpic_t *pic_ovr, *pic_ins;  // johnfitz -- new cursor handling

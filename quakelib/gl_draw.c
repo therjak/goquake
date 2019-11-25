@@ -3,63 +3,8 @@
 #include "quakedef.h"
 #include "wad.h"
 
-// extern unsigned char d_15to8table[65536]; //johnfitz -- never used
-
 uint32_t draw_backtile;
 uint32_t char_texture2;
-
-qpic_t *pic_ovr, *pic_ins;  // johnfitz -- new cursor handling
-qpic_t *pic_nul;            // johnfitz -- for missing gfx, don't crash
-
-// johnfitz -- new pics
-byte pic_ovr_data[8][8] = {
-    {255, 255, 255, 255, 255, 255, 255, 255},
-    {255, 15, 15, 15, 15, 15, 15, 255},
-    {255, 15, 15, 15, 15, 15, 15, 2},
-    {255, 15, 15, 15, 15, 15, 15, 2},
-    {255, 15, 15, 15, 15, 15, 15, 2},
-    {255, 15, 15, 15, 15, 15, 15, 2},
-    {255, 15, 15, 15, 15, 15, 15, 2},
-    {255, 255, 2, 2, 2, 2, 2, 2},
-};
-
-byte pic_ins_data[9][8] = {
-    {15, 15, 255, 255, 255, 255, 255, 255},
-    {15, 15, 2, 255, 255, 255, 255, 255},
-    {15, 15, 2, 255, 255, 255, 255, 255},
-    {15, 15, 2, 255, 255, 255, 255, 255},
-    {15, 15, 2, 255, 255, 255, 255, 255},
-    {15, 15, 2, 255, 255, 255, 255, 255},
-    {15, 15, 2, 255, 255, 255, 255, 255},
-    {15, 15, 2, 255, 255, 255, 255, 255},
-    {255, 2, 2, 255, 255, 255, 255, 255},
-};
-
-byte pic_nul_data[8][8] = {
-    {252, 252, 252, 252, 0, 0, 0, 0}, {252, 252, 252, 252, 0, 0, 0, 0},
-    {252, 252, 252, 252, 0, 0, 0, 0}, {252, 252, 252, 252, 0, 0, 0, 0},
-    {0, 0, 0, 0, 252, 252, 252, 252}, {0, 0, 0, 0, 252, 252, 252, 252},
-    {0, 0, 0, 0, 252, 252, 252, 252}, {0, 0, 0, 0, 252, 252, 252, 252},
-};
-
-byte pic_stipple_data[8][8] = {
-    {255, 0, 0, 0, 255, 0, 0, 0}, {0, 0, 255, 0, 0, 0, 255, 0},
-    {255, 0, 0, 0, 255, 0, 0, 0}, {0, 0, 255, 0, 0, 0, 255, 0},
-    {255, 0, 0, 0, 255, 0, 0, 0}, {0, 0, 255, 0, 0, 0, 255, 0},
-    {255, 0, 0, 0, 255, 0, 0, 0}, {0, 0, 255, 0, 0, 0, 255, 0},
-};
-
-byte pic_crosshair_data[8][8] = {
-    {255, 255, 255, 255, 255, 255, 255, 255},
-    {255, 255, 255, 8, 9, 255, 255, 255},
-    {255, 255, 255, 6, 8, 2, 255, 255},
-    {255, 6, 8, 8, 6, 8, 8, 255},
-    {255, 255, 2, 8, 8, 2, 2, 2},
-    {255, 255, 255, 7, 8, 2, 255, 255},
-    {255, 255, 255, 255, 2, 2, 255, 255},
-    {255, 255, 255, 255, 255, 255, 255, 255},
-};
-// johnfitz
 
 canvastype currentcanvas = CANVAS_NONE;  // johnfitz -- for GL_SetCanvas
 
@@ -78,16 +23,6 @@ typedef struct cachepic_s {
 #define MAX_CACHED_PICS 128
 cachepic_t menu_cachepics[MAX_CACHED_PICS];
 int menu_numcachepics;
-
-byte menuplyr_pixels[4096];
-
-//  scrap allocation
-//  Allocate all the little status bar obejcts into a single texture
-//  to crutch up stupid hardware / drivers
-
-#define MAX_SCRAPS 2
-#define BLOCK_WIDTH 256
-#define BLOCK_HEIGHT 256
 
 /*
 ================
@@ -116,12 +51,6 @@ qpic_t *Draw_CachePic(const char *path) {
   if (!dat) Go_Error_S("Draw_CachePic: failed to load %v", path);
   SwapPic(dat);
 
-  // HACK HACK HACK --- we need to keep the bytes for
-  // the translatable player picture just for the menu
-  // configuration dialog
-  if (!strcmp(path, "gfx/menuplyr.lmp"))
-    memcpy(menuplyr_pixels, dat->data, dat->width * dat->height);
-
   pic->pic.width = dat->width;
   pic->pic.height = dat->height;
 
@@ -136,32 +65,6 @@ qpic_t *Draw_CachePic(const char *path) {
   memcpy(pic->pic.data, &gl, sizeof(glpic_t));
 
   return &pic->pic;
-}
-
-/*
-================
-Draw_MakePic -- johnfitz -- generate pics from internal data
-================
-*/
-qpic_t *Draw_MakePic(const char *name, int width, int height, byte *data) {
-  int flags = TEXPREF_NEAREST | TEXPREF_ALPHA | TEXPREF_PERSIST |
-              TEXPREF_NOPICMIP | TEXPREF_PAD;
-  qpic_t *pic;
-  glpic_t gl;
-
-  pic = (qpic_t *)Hunk_Alloc(sizeof(qpic_t) - 4 + sizeof(glpic_t));
-  pic->width = width;
-  pic->height = height;
-
-  gl.gltexture = TexMgrLoadImage(NULL, name, width, height, SRC_INDEXED, data,
-                                 "", (src_offset_t)data, flags);
-  gl.sl = 0;
-  gl.sh = 1;
-  gl.tl = 0;
-  gl.th = 1;
-  memcpy(pic->data, &gl, sizeof(glpic_t));
-
-  return pic;
 }
 
 //==============================================================================
@@ -179,6 +82,7 @@ void Draw_LoadPics(void) {
   char_texture2 = TexMgrLoadConsoleChars();
   if (!char_texture2) Go_Error("Draw_LoadPics: couldn't load conchars");
   draw_backtile = TexMgrLoadBacktile("backtile");
+  if (!draw_backtile) Go_Error("Draw_LoadPics: couldn't load backtile");
 }
 
 /*
@@ -187,11 +91,6 @@ Draw_Init -- johnfitz -- rewritten
 ===============
 */
 void Draw_Init(void) {
-  // create internal pics
-  pic_ins = Draw_MakePic("ins", 8, 9, &pic_ins_data[0][0]);
-  pic_ovr = Draw_MakePic("ovr", 8, 8, &pic_ovr_data[0][0]);
-  pic_nul = Draw_MakePic("nul", 8, 8, &pic_nul_data[0][0]);
-
   // load game pics
   Draw_LoadPics();
 }
