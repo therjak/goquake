@@ -309,9 +309,23 @@ func GetCachedPicture(name string) *QPic {
 	}
 }
 
+/*
+byte pic_nul_data[8][8] = {
+	{252, 252, 252, 252, 0, 0, 0, 0}, {252, 252, 252, 252, 0, 0, 0, 0},
+	{252, 252, 252, 252, 0, 0, 0, 0}, {252, 252, 252, 252, 0, 0, 0, 0},
+  {0, 0, 0, 0, 252, 252, 252, 252}, {0, 0, 0, 0, 252, 252, 252, 252},
+  {0, 0, 0, 0, 252, 252, 252, 252}, {0, 0, 0, 0, 252, 252, 252, 252},
+};
+int flags = TEXPREF_NEAREST | TEXPREF_ALPHA | TEXPREF_PERSIST |
+             TEXPREF_NOPICMIP | TEXPREF_PAD;
+SRC_INDEXED
+pic_nul = Draw_MakePic("nul", 8, 8, &pic_nul_data[0][0]);
+*/
+
 func GetPictureFromWad(name string) *QPic {
 	p := wad.GetPic(name)
 	if p == nil {
+		// Return pic_nul
 		return nil
 	}
 	n := fmt.Sprintf("gfx.wad:%s", name)

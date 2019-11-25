@@ -420,6 +420,35 @@ func (c *qconsole) Draw(lines int) {
 	DrawStringWhite(x, y, version)
 }
 
+/*
+byte pic_ovr_data[8][8] = {
+	{255, 255, 255, 255, 255, 255, 255, 255},
+	{255, 15, 15, 15, 15, 15, 15, 255},
+  {255, 15, 15, 15, 15, 15, 15, 2},
+	{255, 15, 15, 15, 15, 15, 15, 2},
+	{255, 15, 15, 15, 15, 15, 15, 2},
+	{255, 15, 15, 15, 15, 15, 15, 2},
+	{255, 15, 15, 15, 15, 15, 15, 2},
+	{255, 255, 2, 2, 2, 2, 2, 2},
+};
+byte pic_ins_data[9][8] = {
+  {15, 15, 255, 255, 255, 255, 255, 255},
+  {15, 15, 2, 255, 255, 255, 255, 255},
+  {15, 15, 2, 255, 255, 255, 255, 255},
+  {15, 15, 2, 255, 255, 255, 255, 255},
+  {15, 15, 2, 255, 255, 255, 255, 255},
+  {15, 15, 2, 255, 255, 255, 255, 255},
+  {15, 15, 2, 255, 255, 255, 255, 255},
+  {15, 15, 2, 255, 255, 255, 255, 255},
+  {255, 2, 2, 255, 255, 255, 255, 255},
+};
+pic_ins = Draw_MakePic("ins", 8, 9, &pic_ins_data[0][0]);
+pic_ovr = Draw_MakePic("ovr", 8, 8, &pic_ovr_data[0][0]);
+int flags = TEXPREF_NEAREST | TEXPREF_ALPHA | TEXPREF_PERSIST |
+            TEXPREF_NOPICMIP | TEXPREF_PAD;
+SRC_INDEXD
+*/
+
 func (c *qconsole) DrawInput() {
 	if keyDestination != keys.Console && !c.forceDuplication {
 		return
@@ -429,6 +458,7 @@ func (c *qconsole) DrawInput() {
 
 	// TODO(therjak): cursor blinking
 	// depending on con_cursorspeed and key_blinktime
+	// keyInput.cursor = key_insert ? pic_ins : pic_ovr
 	// DrawPic(8+keyInput.cursorXPos, c.height - 16, keyInput.cursor)
 }
 
