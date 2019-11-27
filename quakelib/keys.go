@@ -33,19 +33,18 @@ var (
 	keyBindings map[kc.KeyCode]string
 
 	keyInput qKeyInput
-
-	picIns *QPic
-	picOvr *QPic
-	picNul *QPic
 )
 
 type qKeyInput struct {
 	text       string
 	buf        []byte
 	cursorXPos int
-	cursor     *QPic
 	insert     bool
 	blinkTime  time.Time
+}
+
+func (k *qKeyInput) Cursor() *QPic {
+	return getCursorPic(k.insert)
 }
 
 func (k *qKeyInput) String() string {
@@ -115,6 +114,51 @@ func (k *qKeyInput) consoleKeyEvent(key kc.KeyCode) {
 	case 'C', 'c':
 		// TODO(therjak): copy handling
 	}
+}
+
+var (
+	ovrPic *QPic
+	insPic *QPic
+)
+
+func getCursorPic(insert bool) *QPic {
+	if insert {
+		return getInsPic()
+	}
+	return getOvrPic()
+}
+
+func getInsPic() *QPic {
+	if insPic == nil {
+		insPic = GetPictureFromBytes("ins", 8, 9, []byte{
+			15, 15, 255, 255, 255, 255, 255, 255,
+			15, 15, 2, 255, 255, 255, 255, 255,
+			15, 15, 2, 255, 255, 255, 255, 255,
+			15, 15, 2, 255, 255, 255, 255, 255,
+			15, 15, 2, 255, 255, 255, 255, 255,
+			15, 15, 2, 255, 255, 255, 255, 255,
+			15, 15, 2, 255, 255, 255, 255, 255,
+			15, 15, 2, 255, 255, 255, 255, 255,
+			255, 2, 2, 255, 255, 255, 255, 255},
+		)
+	}
+	return insPic
+}
+
+func getOvrPic() *QPic {
+	if ovrPic == nil {
+		ovrPic = GetPictureFromBytes("ovr", 8, 8, []byte{
+			255, 255, 255, 255, 255, 255, 255, 255,
+			255, 15, 15, 15, 15, 15, 15, 255,
+			255, 15, 15, 15, 15, 15, 15, 2,
+			255, 15, 15, 15, 15, 15, 15, 2,
+			255, 15, 15, 15, 15, 15, 15, 2,
+			255, 15, 15, 15, 15, 15, 15, 2,
+			255, 15, 15, 15, 15, 15, 15, 2,
+			255, 255, 2, 2, 2, 2, 2, 2},
+		)
+	}
+	return ovrPic
 }
 
 func (k *qKeyInput) consoleTextEvent(key rune) {

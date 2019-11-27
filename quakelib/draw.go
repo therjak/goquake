@@ -309,30 +309,43 @@ func GetCachedPicture(name string) *QPic {
 	}
 }
 
-/*
-byte pic_nul_data[8][8] = {
-	{252, 252, 252, 252, 0, 0, 0, 0}, {252, 252, 252, 252, 0, 0, 0, 0},
-	{252, 252, 252, 252, 0, 0, 0, 0}, {252, 252, 252, 252, 0, 0, 0, 0},
-  {0, 0, 0, 0, 252, 252, 252, 252}, {0, 0, 0, 0, 252, 252, 252, 252},
-  {0, 0, 0, 0, 252, 252, 252, 252}, {0, 0, 0, 0, 252, 252, 252, 252},
-};
-int flags = TEXPREF_NEAREST | TEXPREF_ALPHA | TEXPREF_PERSIST |
-             TEXPREF_NOPICMIP | TEXPREF_PAD;
-SRC_INDEXED
-pic_nul = Draw_MakePic("nul", 8, 8, &pic_nul_data[0][0]);
-*/
+var nullPic *QPic
+
+func getNullPic() *QPic {
+	if nullPic == nil {
+		nullPic = GetPictureFromBytes("nul", 8, 8, []byte{
+			252, 252, 252, 252, 0, 0, 0, 0,
+			252, 252, 252, 252, 0, 0, 0, 0,
+			252, 252, 252, 252, 0, 0, 0, 0,
+			252, 252, 252, 252, 0, 0, 0, 0,
+			0, 0, 0, 0, 252, 252, 252, 252,
+			0, 0, 0, 0, 252, 252, 252, 252,
+			0, 0, 0, 0, 252, 252, 252, 252,
+			0, 0, 0, 0, 252, 252, 252, 252},
+		)
+	}
+	return nullPic
+}
 
 func GetPictureFromWad(name string) *QPic {
 	p := wad.GetPic(name)
 	if p == nil {
-		// Return pic_nul
-		return nil
+		return getNullPic()
 	}
 	n := fmt.Sprintf("gfx.wad:%s", name)
 	t := textureManager.LoadWadTex(n, p.Width, p.Height, p.Data)
 	return &QPic{
 		width:   p.Width,
 		height:  p.Height,
+		texture: t,
+	}
+}
+
+func GetPictureFromBytes(n string, w, h int, d []byte) *QPic {
+	t := textureManager.LoadInternalTex(n, w, h, d)
+	return &QPic{
+		width:   w,
+		height:  h,
 		texture: t,
 	}
 }

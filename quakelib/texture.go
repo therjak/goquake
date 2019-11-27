@@ -217,7 +217,18 @@ func TexMgrLoadConsoleChars() TexID {
 	return TexID(t.glID)
 }
 
+func (tm *texMgr) LoadInternalTex(name string, w, h int, data []byte) *Texture {
+	flags := TexPrefNearest | TexPrefAlpha | TexPrefPersist |
+		TexPrefPad | TexPrefNoPicMip
+	return tm.loadIndexdTex(name, w, h, flags, data)
+}
+
 func (tm *texMgr) LoadWadTex(name string, w, h int, data []byte) *Texture {
+	flags := TexPrefAlpha | TexPrefPad | TexPrefNoPicMip
+	return tm.loadIndexdTex(name, w, h, flags, data)
+}
+
+func (tm *texMgr) loadIndexdTex(name string, w, h int, flags TexPref, data []byte) *Texture {
 	var tn uint32
 	gl.GenTextures(1, &tn)
 	t := &Texture{
@@ -226,7 +237,7 @@ func (tm *texMgr) LoadWadTex(name string, w, h int, data []byte) *Texture {
 		glHeight:     int32(h),
 		sourceWidth:  int32(w),
 		sourceHeight: int32(h),
-		flags:        TexPrefAlpha | TexPrefPad | TexPrefNoPicMip,
+		flags:        flags,
 		name:         name,
 	}
 	tm.addActiveTexture(t)
