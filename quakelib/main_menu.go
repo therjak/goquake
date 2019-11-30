@@ -40,7 +40,7 @@ func (m *qMainMenu) Draw() {
 	DrawPicture(16, 4, GetCachedPicture("gfx/qplaque.lmp"))
 
 	p := GetCachedPicture("gfx/ttl_main.lmp")
-	DrawPicture((320-p.width)/2, 4, p)
+	DrawPicture((320-p.Width)/2, 4, p)
 
 	DrawPicture(72, 32, GetCachedPicture("gfx/mainmenu.lmp"))
 

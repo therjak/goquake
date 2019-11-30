@@ -41,7 +41,7 @@ func (m *qOptionsMenu) Draw() {
 	DrawPicture(16, 4, GetCachedPicture("gfx/qplaque.lmp"))
 
 	p := GetCachedPicture("gfx/p_option.lmp")
-	DrawPicture((320-p.width)/2, 4, p)
+	DrawPicture((320-p.Width)/2, 4, p)
 
 	for _, i := range m.items {
 		i.Draw()

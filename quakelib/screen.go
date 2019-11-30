@@ -324,7 +324,7 @@ func (scr *qScreen) drawLoading() {
 	SetCanvas(CANVAS_MENU)
 
 	p := GetCachedPicture("gfx/loading.lmp")
-	DrawPicture((320-p.width)/2, (240-48-p.height)/2, p)
+	DrawPicture((320-p.Width)/2, (240-48-p.Height)/2, p)
 
 	scr.ResetTileClearUpdates()
 }
@@ -353,7 +353,7 @@ func (s *qScreen) drawPause() {
 	SetCanvas(CANVAS_MENU)
 
 	p := GetCachedPicture("gfx/pause.lmp")
-	DrawPicture((320-p.width)/2, (240-48-p.height)/2, p)
+	DrawPicture((320-p.Width)/2, (240-48-p.Height)/2, p)
 
 	s.ResetTileClearUpdates()
 }

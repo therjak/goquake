@@ -51,7 +51,7 @@ func (m *qNetSetupMenu) TextEntry() bool {
 func (m *qNetSetupMenu) Draw() {
 	DrawPicture(16, 4, GetCachedPicture("gfx/qplaque.lmp"))
 	p := GetCachedPicture("gfx/p_multi.lmp")
-	DrawPicture((320-p.width)/2, 4, p)
+	DrawPicture((320-p.Width)/2, 4, p)
 
 	DrawPicture(160, 64, GetCachedPicture("gfx/bigbox.lmp"))
 	DrawTransparentPictureTranslate(172, 72, GetCachedPicture("gfx/menuplyr.lmp"), m.topColor, m.bottomColor)

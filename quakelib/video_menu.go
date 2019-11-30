@@ -44,7 +44,7 @@ func (m *qVideoMenu) Draw() {
 	DrawPicture(16, 4, GetCachedPicture("gfx/qplaque.lmp"))
 
 	p := GetCachedPicture("gfx/p_option.lmp")
-	DrawPicture((320-p.width)/2, 4, p)
+	DrawPicture((320-p.Width)/2, 4, p)
 
 	title := "Video Options"
 	DrawStringWhite((320-8*len(title))/2, 32, title)

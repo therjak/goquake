@@ -718,7 +718,7 @@ func (s *qstatusbar) deathmatchOverlay() {
 	SetCanvas(CANVAS_MENU)
 
 	pic := GetCachedPicture("gfx/ranking.lmp")
-	DrawPicture((320-pic.width)/2, 8, pic)
+	DrawPicture((320-pic.Width)/2, 8, pic)
 
 	s.sortFrags()
 
@@ -778,7 +778,7 @@ func (s *qstatusbar) FinaleOverlay() {
 	SetCanvas(CANVAS_MENU)
 
 	pic := GetCachedPicture("gfx/finale.lmp")
-	DrawPicture((320-pic.width)/2, 16, pic)
+	DrawPicture((320-pic.Width)/2, 16, pic)
 }
 
 func (s *qstatusbar) drawArmor() {

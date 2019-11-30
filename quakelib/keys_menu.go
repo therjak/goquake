@@ -86,7 +86,7 @@ func (m *qKeysMenu) HandleKey(key kc.KeyCode) {
 
 func (m *qKeysMenu) Draw() {
 	p := GetCachedPicture("gfx/ttl_cstm.lmp")
-	DrawPicture((320-p.width)/2, 4, p)
+	DrawPicture((320-p.Width)/2, 4, p)
 	if m.grabbed {
 		drawString(12, 32, "Press a key or button for this action")
 	} else {

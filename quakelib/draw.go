@@ -30,8 +30,10 @@ package quakelib
 import "C"
 
 import (
+	"encoding/binary"
 	"fmt"
 	"quake/cvars"
+	"quake/filesystem"
 	"quake/wad"
 	"strings"
 	"unsafe"
@@ -67,9 +69,9 @@ type Picture *C.qpic_t
 
 type QPic struct {
 	pic     Picture
-	width   int
-	height  int
-	texture *Texture
+	Width   int
+	Height  int
+	Texture *Texture
 }
 
 func DrawCharacterWhite(x, y int, num int) {
@@ -110,9 +112,9 @@ func DrawPicture(x, y int, p *QPic) {
 		C.Draw_Pic2(C.int(x), C.int(y), pic)
 	} else {
 		pic := C.QPIC{
-			width:   C.int(p.width),
-			height:  C.int(p.height),
-			texture: C.uint32_t(p.texture.glID),
+			width:   C.int(p.Width),
+			height:  C.int(p.Height),
+			texture: C.uint32_t(p.Texture.glID),
 			sl:      0,
 			tl:      0,
 			sh:      1,
@@ -142,9 +144,9 @@ func DrawPictureAlpha(x, y int, p *QPic, alpha float32) {
 		C.Draw_Pic2(C.int(x), C.int(y), pic)
 	} else {
 		pic := C.QPIC{
-			width:   C.int(p.width),
-			height:  C.int(p.height),
-			texture: C.uint32_t(p.texture.glID),
+			width:   C.int(p.Width),
+			height:  C.int(p.Height),
+			texture: C.uint32_t(p.Texture.glID),
 			sl:      0,
 			tl:      0,
 			sh:      1,
@@ -172,9 +174,9 @@ func DrawTransparentPictureTranslate(x, y int, p *QPic, top, bottom int) {
 		C.Draw_TransPicTranslate2(C.int(x), C.int(y), pic, C.int(top), C.int(bottom))
 	} else {
 		pic := C.QPIC{
-			width:   C.int(p.width),
-			height:  C.int(p.height),
-			texture: C.uint32_t(p.texture.glID),
+			width:   C.int(p.Width),
+			height:  C.int(p.Height),
+			texture: C.uint32_t(p.Texture.glID),
 			sl:      0,
 			tl:      0,
 			sh:      1,
@@ -186,10 +188,8 @@ func DrawTransparentPictureTranslate(x, y int, p *QPic, top, bottom int) {
 
 func DrawConsoleBackground() {
 	pic := GetCachedPicture("gfx/conback.lmp")
-	pic.width = console.width
-	pic.pic.width = C.int(console.width)
-	pic.height = console.height
-	pic.pic.height = C.int(console.height)
+	pic.Width = console.width
+	pic.Height = console.height
 
 	alpha := float32(1.0)
 	if !console.forceDuplication {
@@ -298,15 +298,38 @@ func DrawTileClear(x, y, w, h int) {
 	C.Draw_TileClear(C.int(x), C.int(y), C.int(w), C.int(h))
 }
 
+var (
+	cachePics map[string]*QPic
+)
+
+func init() {
+	cachePics = make(map[string]*QPic)
+}
+
 func GetCachedPicture(name string) *QPic {
-	n := C.CString(name)
-	p := C.Draw_CachePic(n)
-	C.free(unsafe.Pointer(n))
-	return &QPic{
-		pic:    p,
-		width:  int(p.width),
-		height: int(p.height),
+	p, ok := cachePics[name]
+	if ok {
+		return p
 	}
+	p, err := loadPicFromFile(name)
+	if err != nil {
+		Error("GetCachedPicture: failed to load %s", name)
+	}
+	cachePics[name] = p
+	return p
+}
+
+func loadPicFromFile(name string) (*QPic, error) {
+	b, err := filesystem.GetFileContents(name)
+	if err != nil {
+		return nil, err
+	}
+	p := &QPic{
+		Width:  int(binary.LittleEndian.Uint32(b[0:])),
+		Height: int(binary.LittleEndian.Uint32(b[4:])),
+	}
+	p.Texture = textureManager.LoadWadTex(name, p.Width, p.Height, b[8:])
+	return p, nil
 }
 
 var nullPic *QPic
@@ -335,18 +358,18 @@ func GetPictureFromWad(name string) *QPic {
 	n := fmt.Sprintf("gfx.wad:%s", name)
 	t := textureManager.LoadWadTex(n, p.Width, p.Height, p.Data)
 	return &QPic{
-		width:   p.Width,
-		height:  p.Height,
-		texture: t,
+		Width:   p.Width,
+		Height:  p.Height,
+		Texture: t,
 	}
 }
 
 func GetPictureFromBytes(n string, w, h int, d []byte) *QPic {
 	t := textureManager.LoadInternalTex(n, w, h, d)
 	return &QPic{
-		width:   w,
-		height:  h,
-		texture: t,
+		Width:   w,
+		Height:  h,
+		Texture: t,
 	}
 }
 
