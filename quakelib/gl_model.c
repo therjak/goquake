@@ -401,8 +401,8 @@ void Mod_LoadTextures(lump_t *l) {
     memcpy(tx + 1, mt + 1, pixels);
 
     tx->update_warp = false;  // johnfitz
-    tx->warpimage = NULL;     // johnfitz
-    tx->fullbright = NULL;    // johnfitz
+    tx->warpimage = 0;     // johnfitz
+    tx->fullbright = 0;    // johnfitz
 
     // johnfitz -- lots of changes
     if (!CMLDedicated())  // no texture uploading for dedicated server
@@ -2160,7 +2160,7 @@ void *Mod_LoadAllSkins(int numskins, daliasskintype_t *pskintype) {
             loadmodel, name, pheader->skinwidth, pheader->skinheight,
             SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset,
             TEXPREF_PAD);
-        pheader->fbtextures[i][0] = NULL;
+        pheader->fbtextures[i][0] = 0;
       }
 
       pheader->gltextures[i][3] = pheader->gltextures[i][2] =
@@ -2207,7 +2207,7 @@ void *Mod_LoadAllSkins(int numskins, daliasskintype_t *pskintype) {
               loadmodel, name, pheader->skinwidth, pheader->skinheight,
               SRC_INDEXED, (byte *)(pskintype), loadmodel->name, offset,
               TEXPREF_PAD);
-          pheader->fbtextures[i][j & 3] = NULL;
+          pheader->fbtextures[i][j & 3] = 0;
         }
         // johnfitz
 

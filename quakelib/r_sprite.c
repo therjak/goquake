@@ -120,7 +120,7 @@ void R_DrawSpriteModel(entity_t *e) {
 
   GLDisableMultitexture();
 
-  GL_Bind(frame->gltexture);
+  GLBind(frame->gltexture);
 
   glEnable(GL_ALPHA_TEST);
   glBegin(GL_TRIANGLE_FAN);  // was GL_QUADS, but changed to support r_showtris

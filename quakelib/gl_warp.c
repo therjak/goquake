@@ -198,7 +198,7 @@ void R_UpdateWarpTextures(void) {
 
     // render warp
     GL_SetCanvas(CANVAS_WARPIMAGE);
-    GL_Bind(tx->gltexture);
+    GLBind(tx->gltexture);
     for (x = 0.0; x < 128.0; x = x2) {
       x2 = x + warptess;
       glBegin(GL_TRIANGLE_STRIP);
@@ -213,7 +213,7 @@ void R_UpdateWarpTextures(void) {
     }
 
     // copy to texture
-    GL_Bind(tx->warpimage);
+    GLBind(tx->warpimage);
     glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GL_X(),
                         GL_Y() + GL_Height() - gl_warpimagesize, gl_warpimagesize,
                         gl_warpimagesize);

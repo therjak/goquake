@@ -91,9 +91,9 @@ typedef enum { chain_world = 0, chain_model = 1 } texchain_t;
 typedef struct texture_s {
   char name[16];
   unsigned width, height;
-  struct gltexture_s *gltexture;        // johnfitz -- pointer to gltexture
-  struct gltexture_s *fullbright;       // johnfitz -- fullbright mask texture
-  struct gltexture_s *warpimage;        // johnfitz -- for water animation
+  uint32_t gltexture;        // johnfitz -- pointer to gltexture
+  uint32_t fullbright;       // johnfitz -- fullbright mask texture
+  uint32_t warpimage;        // johnfitz -- for water animation
   qboolean update_warp;                 // johnfitz -- update warp this frame
   struct msurface_s *texturechains[2];  // for texture chains
   int anim_total;                       // total tenths in sequence ( 0 = no)
@@ -242,7 +242,7 @@ typedef struct mspriteframe_s {
   int width, height;
   float up, down, left, right;
   float dead1, dead2;  // dead field. might be needed as padding
-  struct gltexture_s *gltexture;
+  uint32_t gltexture;
 } mspriteframe_t;
 
 typedef struct {
@@ -351,8 +351,8 @@ typedef struct {
   int poseverts;
   int posedata;  // numposes*poseverts trivert_t
   int commands;  // gl command list with embedded s/t
-  struct gltexture_s *gltextures[MAX_SKINS][4];  // johnfitz
-  struct gltexture_s *fbtextures[MAX_SKINS][4];  // johnfitz
+  uint32_t gltextures[MAX_SKINS][4];  // johnfitz
+  uint32_t fbtextures[MAX_SKINS][4];  // johnfitz
   int texels[MAX_SKINS];                         // only for player skins
   maliasframedesc_t frames[1];                   // variable sized
 } aliashdr_t;

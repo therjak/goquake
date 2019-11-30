@@ -6,7 +6,7 @@ extern cvar_t r_drawflat, gl_overbright_models, gl_fullbrights, r_lerpmodels,
     r_lerpmove;  // johnfitz
 
 // up to 16 color translated skins
-gltexture_t *playertextures[MAX_SCOREBOARD];  // johnfitz -- changed to an array
+uint32_t playertextures[MAX_SCOREBOARD];  // johnfitz -- changed to an array
                                               // of pointers
 
 #define NUMVERTEXNORMALS 162
@@ -199,7 +199,7 @@ Based on code by MH from RMQEngine
 =============
 */
 void GL_DrawAliasFrame_GLSL(aliashdr_t *paliashdr, lerpdata_t lerpdata,
-                            gltexture_t *tx, gltexture_t *fb) {
+                            uint32_t tx, uint32_t fb) {
   float blend;
 
   if (lerpdata.pose1 != lerpdata.pose2) {
@@ -245,16 +245,16 @@ void GL_DrawAliasFrame_GLSL(aliashdr_t *paliashdr, lerpdata_t lerpdata,
                    entalpha);
   GL_Uniform1iFunc(texLoc, 0);
   GL_Uniform1iFunc(fullbrightTexLoc, 1);
-  GL_Uniform1iFunc(useFullbrightTexLoc, (fb != NULL) ? 1 : 0);
+  GL_Uniform1iFunc(useFullbrightTexLoc, (fb != 0) ? 1 : 0);
   GL_Uniform1fFunc(useOverbrightLoc, overbright ? 1 : 0);
 
   // set textures
   GLSelectTexture(GL_TEXTURE0);
-  GL_Bind(tx);
+  GLBind(tx);
 
   if (fb) {
     GLSelectTexture(GL_TEXTURE1);
-    GL_Bind(fb);
+    GLBind(fb);
   }
 
   // draw
@@ -586,7 +586,7 @@ R_DrawAliasModel -- johnfitz -- almost completely rewritten
 void R_DrawAliasModel(entity_t *e) {
   aliashdr_t *paliashdr;
   int i, anim;
-  gltexture_t *tx, *fb;
+  uint32_t tx, fb;
   lerpdata_t lerpdata;
 
   //
@@ -651,8 +651,8 @@ void R_DrawAliasModel(entity_t *e) {
   if ((e->skinnum >= paliashdr->numskins) || (e->skinnum < 0)) {
     Con_DPrintf("R_DrawAliasModel: no such skin # %d for '%s'\n", e->skinnum,
                 e->model->name);
-    tx = NULL;  // NULL will give the checkerboard texture
-    fb = NULL;
+    tx = 0;  // NULL will give the checkerboard texture
+    fb = 0;
   } else {
     tx = paliashdr->gltextures[e->skinnum][anim];
     fb = paliashdr->fbtextures[e->skinnum][anim];
@@ -666,7 +666,7 @@ void R_DrawAliasModel(entity_t *e) {
       tx = playertextures[i - 1];
     }
   }
-  if (!Cvar_GetValue(&gl_fullbrights)) fb = NULL;
+  if (!Cvar_GetValue(&gl_fullbrights)) fb = 0;
 
   //
   // draw it
@@ -677,13 +677,13 @@ void R_DrawAliasModel(entity_t *e) {
     glEnable(GL_TEXTURE_2D);
     srand((int)(CL_Time() * 1000));  // restore randomness
   } else if (r_fullbright_cheatsafe) {
-    GL_Bind(tx);
+    GLBind(tx);
     shading = false;
     glColor4f(1, 1, 1, entalpha);
     GL_DrawAliasFrame(paliashdr, lerpdata);
     if (fb) {
       glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-      GL_Bind(fb);
+      GLBind(fb);
       glEnable(GL_BLEND);
       glBlendFunc(GL_ONE, GL_ONE);
       glDepthMask(GL_FALSE);
@@ -711,14 +711,14 @@ void R_DrawAliasModel(entity_t *e) {
     if (gl_texture_env_combine && gl_mtexable && gl_texture_env_add &&
         fb)  // case 1: everything in one pass
     {
-      GL_Bind(tx);
+      GLBind(tx);
       glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
       glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
       glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
       glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PRIMARY_COLOR_EXT);
       glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, 2.0f);
       GLEnableMultitexture();  // selects TEXTURE1
-      GL_Bind(fb);
+      GLBind(fb);
       glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
       glEnable(GL_BLEND);
       GL_DrawAliasFrame(paliashdr, lerpdata);
@@ -729,7 +729,7 @@ void R_DrawAliasModel(entity_t *e) {
                                         // fullbright pass
     {
       // first pass
-      GL_Bind(tx);
+      GLBind(tx);
       glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
       glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
       glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
@@ -741,7 +741,7 @@ void R_DrawAliasModel(entity_t *e) {
       // second pass
       if (fb) {
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-        GL_Bind(fb);
+        GLBind(fb);
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE);
         glDepthMask(GL_FALSE);
@@ -758,7 +758,7 @@ void R_DrawAliasModel(entity_t *e) {
     } else  // case 3: overbright in two passes, then fullbright pass
     {
       // first pass
-      GL_Bind(tx);
+      GLBind(tx);
       glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
       GL_DrawAliasFrame(paliashdr, lerpdata);
       // second pass -- additive with black fog, to double the object colors but
@@ -776,7 +776,7 @@ void R_DrawAliasModel(entity_t *e) {
       // third pass
       if (fb) {
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-        GL_Bind(fb);
+        GLBind(fb);
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE);
         glDepthMask(GL_FALSE);
@@ -796,10 +796,10 @@ void R_DrawAliasModel(entity_t *e) {
         fb)  // case 4: fullbright mask using multitexture
     {
       GLDisableMultitexture();  // selects TEXTURE0
-      GL_Bind(tx);
+      GLBind(tx);
       glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
       GLEnableMultitexture();  // selects TEXTURE1
-      GL_Bind(fb);
+      GLBind(fb);
       glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
       glEnable(GL_BLEND);
       GL_DrawAliasFrame(paliashdr, lerpdata);
@@ -809,12 +809,12 @@ void R_DrawAliasModel(entity_t *e) {
     } else  // case 5: fullbright mask without multitexture
     {
       // first pass
-      GL_Bind(tx);
+      GLBind(tx);
       glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
       GL_DrawAliasFrame(paliashdr, lerpdata);
       // second pass
       if (fb) {
-        GL_Bind(fb);
+        GLBind(fb);
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE);
         glDepthMask(GL_FALSE);

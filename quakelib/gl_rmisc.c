@@ -25,7 +25,7 @@ extern cvar_t r_noshadow_list;
 // johnfitz
 extern cvar_t gl_zfix;  // QuakeSpasm z-fighting fix
 
-extern gltexture_t *playertextures[MAX_SCOREBOARD];  // johnfitz
+extern uint32_t playertextures[MAX_SCOREBOARD];  // johnfitz
 
 /*
 ====================
@@ -213,7 +213,7 @@ void R_TranslatePlayerSkin(int playernum) {
   // sync with the scoreboard colors.
   if (!Cvar_GetValue(&gl_nocolors))
     if (playertextures[playernum])
-      TexMgr_ReloadImage(playertextures[playernum], top, bottom);
+      TexMgrReloadImage(playertextures[playernum], top, bottom);
 }
 
 /*
@@ -253,8 +253,7 @@ void R_TranslateNewPlayerSkin(int playernum) {
   q_snprintf(name, sizeof(name), "player_%i", playernum);
   playertextures[playernum] = TexMgrLoadImage2(
       currententity->model, name, paliashdr->skinwidth, paliashdr->skinheight,
-      SRC_INDEXED, pixels, paliashdr->gltextures[skinnum][0]->source_file,
-      paliashdr->gltextures[skinnum][0]->source_offset,
+      SRC_INDEXED, pixels, "", 0,
       TEXPREF_PAD | TEXPREF_OVERWRITE);
 
   // now recolor it
@@ -271,7 +270,7 @@ void R_NewGame(void) {
 
   // clear playertexture pointers (the textures themselves were freed by
   // texmgr_newgame)
-  for (i = 0; i < MAX_SCOREBOARD; i++) playertextures[i] = NULL;
+  for (i = 0; i < MAX_SCOREBOARD; i++) playertextures[i] = 0;
 }
 
 /*

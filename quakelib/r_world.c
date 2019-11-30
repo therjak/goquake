@@ -345,7 +345,7 @@ void R_DrawTextureChains_Glow(qmodel_t *model, entity_t *ent,
   int i;
   msurface_t *s;
   texture_t *t;
-  gltexture_t *glt;
+  uint32_t glt;
   qboolean bound;
 
   for (i = 0; i < model->numtextures; i++) {
@@ -362,7 +362,7 @@ void R_DrawTextureChains_Glow(qmodel_t *model, entity_t *ent,
       if (!s->culled) {
         if (!bound)  // only bind once we are sure we need this texture
         {
-          GL_Bind(glt);
+          GLBind(glt);
           bound = true;
         }
         DrawGLPoly(s->polys);
@@ -469,7 +469,7 @@ void R_DrawTextureChains_Multitexture(qmodel_t *model, entity_t *ent,
       if (!s->culled) {
         if (!bound)  // only bind once we are sure we need this texture
         {
-          GL_Bind(
+          GLBind(
               (R_TextureAnimation(t, ent != NULL ? ent->frame : 0))->gltexture);
 
           if (t->texturechains[chain]->flags & SURF_DRAWFENCE)
@@ -522,7 +522,7 @@ void R_DrawTextureChains_NoTexture(qmodel_t *model, texchain_t chain) {
       if (!s->culled) {
         if (!bound)  // only bind once we are sure we need this texture
         {
-          GL_Bind(t->gltexture);
+          GLBind(t->gltexture);
           bound = true;
         }
         DrawGLPoly(s->polys);
@@ -556,7 +556,7 @@ void R_DrawTextureChains_TextureOnly(qmodel_t *model, entity_t *ent,
       if (!s->culled) {
         if (!bound)  // only bind once we are sure we need this texture
         {
-          GL_Bind(
+          GLBind(
               (R_TextureAnimation(t, ent != NULL ? ent->frame : 0))->gltexture);
 
           if (t->texturechains[chain]->flags & SURF_DRAWFENCE)
@@ -623,7 +623,7 @@ void R_DrawTextureChains_Water(qmodel_t *model, entity_t *ent,
           {
             entalpha = GL_WaterAlphaForEntitySurface(ent, s);
             R_BeginTransparentDrawing(entalpha);
-            GL_Bind(t->gltexture);
+            GLBind(t->gltexture);
             bound = true;
           }
           for (p = s->polys->next; p; p = p->next) {
@@ -647,7 +647,7 @@ void R_DrawTextureChains_Water(qmodel_t *model, entity_t *ent,
           {
             entalpha = GL_WaterAlphaForEntitySurface(ent, s);
             R_BeginTransparentDrawing(entalpha);
-            GL_Bind(t->warpimage);
+            GLBind(t->warpimage);
 
             if (model != cl.worldmodel) {
               // ericw -- this is copied from R_DrawSequentialPoly.
@@ -739,7 +739,7 @@ void R_DrawTextureChains_Multitexture_VBO(qmodel_t *model, entity_t *ent,
   texture_t *t;
   qboolean bound;
   int lastlightmap;
-  gltexture_t *fullbright = NULL;
+  uint32_t fullbright = 0;
 
   // Bind the buffers
   GL_BindBuffer(GL_ARRAY_BUFFER, gl_bmodel_vbo);
@@ -790,7 +790,7 @@ void R_DrawTextureChains_Multitexture_VBO(qmodel_t *model, entity_t *ent,
         (fullbright =
              R_TextureAnimation(t, ent != NULL ? ent->frame : 0)->fullbright)) {
       glEnable(GL_TEXTURE_2D);
-      GL_Bind(fullbright);
+      GLBind(fullbright);
     } else
       glDisable(GL_TEXTURE_2D);
 
@@ -803,7 +803,7 @@ void R_DrawTextureChains_Multitexture_VBO(qmodel_t *model, entity_t *ent,
         if (!bound)  // only bind once we are sure we need this texture
         {
           GLSelectTexture(GL_TEXTURE0_ARB);
-          GL_Bind(
+          GLBind(
               (R_TextureAnimation(t, ent != NULL ? ent->frame : 0))->gltexture);
 
           if (t->texturechains[chain]->flags & SURF_DRAWFENCE)

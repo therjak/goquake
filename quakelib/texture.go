@@ -4,6 +4,7 @@ package quakelib
 //#include "gl_texmgr.h"
 // int GetRFrameCount();
 // extern int gl_warpimagesize;
+// extern texture_t *r_notexture_mip, *r_notexture_mip2;
 import "C"
 
 import (
@@ -217,6 +218,11 @@ func TexMgrLoadConsoleChars() TexID {
 	return TexID(t.glID)
 }
 
+func (tm *texMgr) LoadNoTex(name string, w, h int, data []byte) *Texture {
+	flags := TexPrefNearest | TexPrefPersist | TexPrefNoPicMip
+	return tm.loadRGBATex(name, w, h, flags, data)
+}
+
 func (tm *texMgr) LoadInternalTex(name string, w, h int, data []byte) *Texture {
 	flags := TexPrefNearest | TexPrefAlpha | TexPrefPersist |
 		TexPrefPad | TexPrefNoPicMip
@@ -226,6 +232,24 @@ func (tm *texMgr) LoadInternalTex(name string, w, h int, data []byte) *Texture {
 func (tm *texMgr) LoadWadTex(name string, w, h int, data []byte) *Texture {
 	flags := TexPrefAlpha | TexPrefPad | TexPrefNoPicMip
 	return tm.loadIndexdTex(name, w, h, flags, data)
+}
+
+func (tm *texMgr) loadRGBATex(name string, w, h int, flags TexPref, data []byte) *Texture {
+	var tn uint32
+	gl.GenTextures(1, &tn)
+	t := &Texture{
+		glID:         tn,
+		glWidth:      int32(w),
+		glHeight:     int32(h),
+		sourceWidth:  int32(w),
+		sourceHeight: int32(h),
+		flags:        flags,
+		name:         name,
+	}
+	tm.addActiveTexture(t)
+	tm.loadRGBA(t, data)
+	texmap[TexID(t.glID)] = t
+	return t
 }
 
 func (tm *texMgr) loadIndexdTex(name string, w, h int, flags TexPref, data []byte) *Texture {
@@ -328,7 +352,7 @@ func TexMgrLoadSkyBox(name *C.char) TexID {
 //export TexMgrLoadImage2
 func TexMgrLoadImage2(owner *C.qmodel_t, name *C.char, width C.int,
 	height C.int, format C.enum_srcformat, data *C.byte, source_file *C.char,
-	source_offset C.src_offset_t, flags C.unsigned) TextureP {
+	source_offset C.src_offset_t, flags C.unsigned) TexID {
 
 	t := C.TexMgr_LoadImage(owner, name, width,
 		height, format, data,
@@ -344,7 +368,7 @@ func TexMgrLoadImage2(owner *C.qmodel_t, name *C.char, width C.int,
 		}
 	}
 
-	return t
+	return TexID(gt.glID)
 }
 
 //export TexMgrReloadImage
@@ -423,8 +447,18 @@ func TexMgrInit() {
 	gl.GetFloatv(gl.MAX_TEXTURE_MAX_ANISOTROPY, &textureManager.maxAnisotropy)
 	gl.GetIntegerv(gl.MAX_TEXTURE_SIZE, &textureManager.maxTextureSize)
 	C.TexMgr_Init()
-	nullTexture = ConvertCTex(C.nulltexture)
-	noTexture = ConvertCTex(C.notexture)
+	noTexture = textureManager.LoadNoTex("notexture", 2, 2, []byte{
+		159, 91, 83, 255, 0, 0, 0, 255,
+		0, 0, 0, 255, 159, 91, 83, 255,
+	})
+	nullTexture = textureManager.LoadNoTex("nulltexture", 2, 2, []byte{
+		127, 191, 255, 255, 0, 0, 0, 255,
+		0, 0, 0, 255, 127, 191, 255, 255,
+	})
+
+	// Mod_Init is called before, so we need to do this here
+	C.r_notexture_mip.gltexture = C.uint(noTexture.glID)
+	C.r_notexture_mip2.gltexture = C.uint(noTexture.glID)
 }
 
 //export TexMgrDeleteTextureObjects

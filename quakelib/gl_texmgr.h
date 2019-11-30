@@ -48,8 +48,8 @@ typedef struct gltexture_s {
 
 typedef gltexture_t *gltexture_tp;
 
-extern gltexture_t *notexture;
-extern gltexture_t *nulltexture;
+//extern gltexture_t *notexture;
+//extern gltexture_t *nulltexture;
 
 extern unsigned int d_8to24table[256];
 

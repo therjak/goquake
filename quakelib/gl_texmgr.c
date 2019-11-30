@@ -15,7 +15,6 @@ static GLint gl_hardware_maxsize;
 #define MAX_GLTEXTURES 2048
 static int numgltextures;
 static gltexture_t *active_gltextures, *free_gltextures;
-gltexture_t *notexture, *nulltexture;
 
 unsigned int d_8to24table[256];
 unsigned int d_8to24table_fbright[256];
@@ -225,14 +224,6 @@ must be called before any texture loading
 */
 void TexMgr_Init(void) {
   int i;
-  static byte notexture_data[16] = {
-      159, 91, 83, 255, 0,   0,  0,  255,
-      0,   0,  0,  255, 159, 91, 83, 255};  // black and pink checker
-  static byte nulltexture_data[16] = {
-      127, 191, 255, 255, 0,   0,   0,   255,
-      0,   0,   0,   255, 127, 191, 255, 255};  // black and blue checker
-  extern texture_t *r_notexture_mip, *r_notexture_mip2;
-
   // init texture list
   free_gltextures = (gltexture_t *)Hunk_AllocName(
       MAX_GLTEXTURES * sizeof(gltexture_t), "gltextures");
@@ -251,19 +242,6 @@ void TexMgr_Init(void) {
   // poll max size from hardware
   // THERJAK: glGetIntegerv is opengl
   GL_GetIntegerv(GL_MAX_TEXTURE_SIZE, &gl_hardware_maxsize);
-
-  // load notexture images
-  notexture =
-      TexMgrLoadImage2(NULL, "notexture", 2, 2, SRC_RGBA, notexture_data, "",
-                       (src_offset_t)notexture_data,
-                       TEXPREF_NEAREST | TEXPREF_PERSIST | TEXPREF_NOPICMIP);
-  nulltexture =
-      TexMgrLoadImage2(NULL, "nulltexture", 2, 2, SRC_RGBA, nulltexture_data,
-                       "", (src_offset_t)nulltexture_data,
-                       TEXPREF_NEAREST | TEXPREF_PERSIST | TEXPREF_NOPICMIP);
-
-  // have to assign these here becuase Mod_Init is called before TexMgr_Init
-  r_notexture_mip->gltexture = r_notexture_mip2->gltexture = notexture;
 
   // set safe size for warpimages
   gl_warpimagesize = 0;
