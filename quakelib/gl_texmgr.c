@@ -88,12 +88,6 @@ gltexture_t *TexMgr_NewTexture(void) {
   return glt;
 }
 
-// void GL_DeleteTexture(gltexture_t *texture);
-
-// ericw -- workaround for preventing TexMgr_FreeTexture during
-// TexMgr_ReloadImages
-static qboolean in_reload_images;
-
 /*
 ================
 TexMgr_FreeTexture
@@ -101,8 +95,6 @@ TexMgr_FreeTexture
 */
 void TexMgr_FreeTexture(gltexture_t *kill) {
   gltexture_t *glt;
-
-  if (in_reload_images) return;
 
   if (kill == NULL) {
     Con_Printf("TexMgr_FreeTexture: NULL texture\n");
