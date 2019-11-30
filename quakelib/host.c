@@ -196,7 +196,6 @@ void Host_Init(void) {
   Cvar_Init();  // johnfitz
   COM_InitFilesystem();
   Host_InitLocal();
-  W_LoadWadFile();  // johnfitz -- filename is now hard-coded for honesty
   Go_LoadWad();
   if (CLS_GetState() != ca_dedicated) {
     Key_Init();
