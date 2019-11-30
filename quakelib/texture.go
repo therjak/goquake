@@ -325,28 +325,6 @@ func TexMgrLoadSkyBox(name *C.char) TexID {
 	return TexID(t.glID)
 }
 
-//export TexMgrLoadImage
-func TexMgrLoadImage(owner *C.qmodel_t, name *C.char, width C.int,
-	height C.int, format C.enum_srcformat, data *C.byte, source_file *C.char,
-	source_offset C.src_offset_t, flags C.unsigned) TexID {
-
-	t := C.TexMgr_LoadImage(owner, name, width,
-		height, format, data,
-		source_file,
-		source_offset, flags)
-
-	// Note texnum 0 is reserved in opengl so it can not natually occur.
-	gt := ConvertCTex(t)
-	for k, _ := range textureManager.activeTextures {
-		if k.glID == gt.glID {
-			(*k) = *gt
-			texmap[TexID(t.texnum)] = k
-		}
-	}
-
-	return TexID(t.texnum)
-}
-
 //export TexMgrLoadImage2
 func TexMgrLoadImage2(owner *C.qmodel_t, name *C.char, width C.int,
 	height C.int, format C.enum_srcformat, data *C.byte, source_file *C.char,

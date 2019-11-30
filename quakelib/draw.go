@@ -24,7 +24,6 @@ package quakelib
 //void Draw_Fill(int x, int y, int w, int h, int c, float alpha);
 //void Draw_FadeScreen(void);
 //void Draw_String(int x, int y, const char *str);
-//qpic_t *Draw_CachePic(const char *path);
 //void Draw_Pic2(int x, int y, QPIC pic);
 //void Draw_TransPicTranslate2(int x, int y, QPIC pic, int top, int bottom);
 import "C"

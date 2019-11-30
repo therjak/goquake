@@ -25,55 +25,6 @@ cachepic_t menu_cachepics[MAX_CACHED_PICS];
 int menu_numcachepics;
 
 /*
-================
-Draw_CachePic
-================
-*/
-qpic_t *Draw_CachePic(const char *path) {
-  cachepic_t *pic;
-  int i;
-  qpic_t *dat;
-  glpic_t gl;
-
-  for (pic = menu_cachepics, i = 0; i < menu_numcachepics; pic++, i++) {
-    if (!strcmp(path, pic->name)) return &pic->pic;
-  }
-  if (menu_numcachepics == MAX_CACHED_PICS)
-    Go_Error("menu_numcachepics == MAX_CACHED_PICS");
-  menu_numcachepics++;
-  strcpy(pic->name, path);
-
-  //
-  // load the pic from disk
-  //
-  int length = 0;
-  dat = (qpic_t *)COM_LoadFileGo(path, &length);
-  if (!dat) Go_Error_S("Draw_CachePic: failed to load %v", path);
-  SwapPic(dat);
-
-  pic->pic.width = dat->width;
-  pic->pic.height = dat->height;
-
-  gl.gltexture = TexMgrLoadImage(
-      NULL, path, dat->width, dat->height, SRC_INDEXED, dat->data, path,
-      sizeof(int) * 2,
-      TEXPREF_ALPHA | TEXPREF_PAD | TEXPREF_NOPICMIP);  // johnfitz -- TexMgr
-  gl.sl = 0;
-  gl.sh = 1;
-  gl.tl = 0;
-  gl.th = 1;
-  memcpy(pic->pic.data, &gl, sizeof(glpic_t));
-
-  return &pic->pic;
-}
-
-//==============================================================================
-//
-//  INIT
-//
-//==============================================================================
-
-/*
 ===============
 Draw_LoadPics -- johnfitz
 ===============
