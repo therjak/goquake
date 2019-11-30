@@ -8,6 +8,7 @@ import (
 	"quake/conlog"
 	"quake/cvars"
 	"quake/execute"
+	"quake/filesystem"
 	"quake/keys"
 	"quake/net"
 	"quake/progs"
@@ -1083,13 +1084,9 @@ func hostChangelevel(args []cmd.QArg, player int) {
 		return
 	}
 	level := args[0].String()
-	/*
-	   // johnfitz -- check for client having map before anything else
-	   level := fmt.Sprintf("maps/%s.bsp", args[0].String())
-	   q_snprintf(level, sizeof(level), "maps/%s.bsp", Cmd_Argv(1));
-	   if (!COM_FileExists(level)) Host_Error("cannot find map %s", level);
-	   // johnfitz
-	*/
+	if _, err := filesystem.GetFile(fmt.Sprintf("maps/%s.bsp", level)); err != nil {
+		HostError("cannot find map %s", level)
+	}
 	if cls.state != ca_dedicated {
 		IN_Activate()
 	}

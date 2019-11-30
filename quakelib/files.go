@@ -21,15 +21,6 @@ func COM_LoadFileGo(name *C.char, length *C.int) *C.uchar {
 	return (*C.uchar)(C.CBytes(b))
 }
 
-//export COM_FileExists
-func COM_FileExists(name *C.char) int {
-	_, err := filesystem.GetFile(C.GoString(name))
-	if err != nil {
-		return 0
-	}
-	return 1
-}
-
 //export Image_LoadImage
 func Image_LoadImage(name *C.char, width *C.int, height *C.int) *C.uchar {
 	n := C.GoString(name)
