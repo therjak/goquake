@@ -36,7 +36,7 @@ package quakelib
 //
 //#endif
 // #include "stdlib.h"
-// #include "wad.h"
+// #include "draw.h"
 import "C"
 
 import (

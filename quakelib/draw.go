@@ -18,7 +18,7 @@ package quakelib
 //#endif
 // void GL_SetCanvas(canvastype newCanvas);
 //#include "stdlib.h"
-//#include "wad.h"
+//#include "draw.h"
 //void Draw_CharacterQuad(int x, int y, char num);
 //void Draw_TileClear(int x, int y, int w, int h);
 //void Draw_Fill(int x, int y, int w, int h, int c, float alpha);

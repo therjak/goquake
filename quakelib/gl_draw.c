@@ -1,12 +1,17 @@
 // draw.c -- 2d drawing
 
 #include "quakedef.h"
-#include "wad.h"
+#include "draw.h"
 
 uint32_t draw_backtile;
 uint32_t char_texture2;
 
 canvastype currentcanvas = CANVAS_NONE;  // johnfitz -- for GL_SetCanvas
+
+void SwapPic(qpic_t *pic) {
+  pic->width = LittleLong(pic->width);
+  pic->height = LittleLong(pic->height);
+}
 
 //==============================================================================
 //
