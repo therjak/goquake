@@ -23,18 +23,6 @@ import (
 	// "quake/crc"
 )
 
-type TextureP C.gltexture_tp
-
-// gl.TEXTURE0 == GL_TEXTURE0_ARB
-// gl.TEXTURE1 == GL_TEXTURE1_ARB
-// gl.TEXTURE_2D == GL_TEXTURE_2D
-// GL_UNUSED_TEXTURE is quake specific "^uint32(0)"
-//
-// gl.ActiveTexture == GL_SelectTextureFunc
-// gl.BindTexture == glBindTexture
-// gl.Enable == glEnable
-// gl.Disable == glDisable
-
 type TexPref uint32
 
 const (
@@ -112,7 +100,6 @@ const (
 
 type Texture struct {
 	glID         uint32
-	cp           TextureP
 	glWidth      int32 // mipmap can make it differ from source width
 	glHeight     int32
 	sourceWidth  int32
@@ -445,19 +432,6 @@ func TexMgrFreeTexturesForOwner(owner *C.qmodel_t) {
 	// TODO(therjak): free all activeTextures with this owner
 }
 
-func ConvertCTex(ct TextureP) *Texture {
-	return &Texture{
-		glID:         uint32(ct.texnum),
-		cp:           ct,
-		glWidth:      int32(ct.width),
-		glHeight:     int32(ct.height),
-		sourceWidth:  int32(ct.source_width),
-		sourceHeight: int32(ct.source_height),
-		flags:        TexPref(ct.flags),
-		name:         C.GoString(&ct.name[0]),
-	}
-}
-
 func pad(s int32) int32 {
 	i := int32(1)
 	for ; s < i; i <<= 1 {
@@ -675,7 +649,6 @@ func (tm *texMgr) deleteTexture(t *Texture) {
 
 	delete(texmap, TexID(t.glID))
 	t.glID = 0
-	t.cp.texnum = 0
 }
 
 func (tm *texMgr) DisableMultiTexture() {
