@@ -7,17 +7,9 @@
 
 // these two are not intended to be set directly
 cvar_t cl_name;
-cvar_t cl_color;
 cvar_t cl_shownet;
-cvar_t cl_nolerp;
-cvar_t cfg_unbindall;
 cvar_t lookspring;
-cvar_t lookstrafe;
-cvar_t sensitivity;
-cvar_t m_pitch;
 cvar_t cl_forwardspeed;
-cvar_t cl_backspeed;
-cvar_t cl_movespeedkey;
 
 client_static_t cls;
 byte cls_msg_buf[1024];
@@ -467,19 +459,11 @@ void CL_Init(void) {
 
   CL_InitTEnts();
 
-  Cvar_FakeRegister(&cfg_unbindall, "cfg_unbindall");
-  Cvar_FakeRegister(&cl_color, "_cl_color");
   Cvar_FakeRegister(&cl_name, "_cl_name");
-  Cvar_FakeRegister(&cl_nolerp, "cl_nolerp");
   Cvar_FakeRegister(&cl_shownet, "cl_shownet");
 
-  Cvar_FakeRegister(&cl_backspeed, "cl_backspeed");
   Cvar_FakeRegister(&cl_forwardspeed, "cl_forwardspeed");
-  Cvar_FakeRegister(&cl_movespeedkey, "cl_movespeedkey");
   Cvar_FakeRegister(&lookspring, "lookspring");
-  Cvar_FakeRegister(&lookstrafe, "lookstrafe");
-  Cvar_FakeRegister(&m_pitch, "m_pitch");
-  Cvar_FakeRegister(&sensitivity, "sensitivity");
 
   Cmd_AddCommand("entities", CL_PrintEntities_f);
   Cmd_AddCommand("record", CL_Record_f);

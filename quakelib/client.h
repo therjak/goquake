@@ -131,22 +131,12 @@ extern client_state_t cl;
 // cvars
 //
 extern cvar_t cl_name;
-extern cvar_t cl_color;
 
 extern cvar_t cl_forwardspeed;
-extern cvar_t cl_backspeed;
-extern cvar_t cl_movespeedkey;
 
 extern cvar_t cl_shownet;
-extern cvar_t cl_nolerp;
-
-extern cvar_t cfg_unbindall;
 
 extern cvar_t lookspring;
-extern cvar_t lookstrafe;
-extern cvar_t sensitivity;
-
-extern cvar_t m_pitch;
 
 #define MAX_TEMP_ENTITIES 256    // johnfitz -- was 64
 #define MAX_STATIC_ENTITIES 512  // johnfitz -- was 128
