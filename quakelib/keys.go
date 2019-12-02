@@ -21,6 +21,8 @@ import (
 	"strings"
 	"time"
 	"unsafe"
+
+	"github.com/veandco/go-sdl2/sdl"
 )
 
 var (
@@ -110,9 +112,14 @@ func (k *qKeyInput) consoleKeyEvent(key kc.KeyCode) {
 	case kc.INS:
 		k.insert = !k.insert
 	case 'V', 'v':
-		// TODO(therjak): paste handling
+		if keyDown[kc.CTRL] {
+			k.paste()
+		}
 	case 'C', 'c':
-		// TODO(therjak): copy handling
+		if keyDown[kc.CTRL] {
+			k.buf = k.buf[:0]
+			k.cursorXPos = 0
+		}
 	}
 }
 
@@ -159,6 +166,20 @@ func getOvrPic() *QPic {
 		)
 	}
 	return ovrPic
+}
+
+func (k *qKeyInput) paste() {
+	t, err := sdl.GetClipboardText()
+	if err != nil {
+		return
+	}
+	if k.cursorXPos == len(k.buf) {
+		k.buf = append(k.buf[:k.cursorXPos], []byte(t)...)
+	} else {
+		k.buf = append(k.buf[:k.cursorXPos],
+			append([]byte(t), k.buf[k.cursorXPos+1:]...)...)
+	}
+	k.cursorXPos += len(t)
 }
 
 func (k *qKeyInput) consoleTextEvent(key rune) {
