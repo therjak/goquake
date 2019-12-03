@@ -1,24 +1,8 @@
 package quakelib
 
-//#ifndef HASCANVAS
-//#define HASCANVAS
-//typedef enum {
-//  CANVAS_NONE,
-//  CANVAS_DEFAULT,
-//  CANVAS_CONSOLE,
-//  CANVAS_MENU,
-//  CANVAS_SBAR,
-//  CANVAS_WARPIMAGE,
-//  CANVAS_CROSSHAIR,
-//  CANVAS_BOTTOMLEFT,
-//  CANVAS_BOTTOMRIGHT,
-//  CANVAS_TOPRIGHT,
-//  CANVAS_INVALID = -1
-//} canvastype;
-//#endif
-// void GL_SetCanvas(canvastype newCanvas);
 //#include "stdlib.h"
 //#include "draw.h"
+//void GL_SetCanvas(canvastype newCanvas);
 //void Draw_CharacterQuad(int x, int y, char num);
 //void Draw_TileClear(int x, int y, int w, int h);
 //void Draw_Fill(int x, int y, int w, int h, int c, float alpha);
@@ -26,6 +10,7 @@ package quakelib
 //void Draw_String(int x, int y, const char *str);
 //void Draw_Pic2(int x, int y, QPIC pic);
 //void Draw_TransPicTranslate2(int x, int y, QPIC pic, int top, int bottom);
+//void Draw_LoadPics(void);
 import "C"
 
 import (
@@ -55,6 +40,11 @@ const (
 	CANVAS_TOPRIGHT    canvas = C.CANVAS_TOPRIGHT
 	CANVAS_INVALID     canvas = C.CANVAS_INVALID
 )
+
+//export Draw_Init
+func Draw_Init() {
+	C.Draw_LoadPics()
+}
 
 func SetCanvas(c canvas) {
 	C.GL_SetCanvas(C.canvastype(c))

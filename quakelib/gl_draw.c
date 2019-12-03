@@ -41,16 +41,6 @@ void Draw_LoadPics(void) {
   if (!draw_backtile) Go_Error("Draw_LoadPics: couldn't load backtile");
 }
 
-/*
-===============
-Draw_Init -- johnfitz -- rewritten
-===============
-*/
-void Draw_Init(void) {
-  // load game pics
-  Draw_LoadPics();
-}
-
 //==============================================================================
 //
 //  2D DRAWING
@@ -108,22 +98,6 @@ void Draw_Character(int x, int y, int num) {
 Draw_Pic -- johnfitz -- modified
 =============
 */
-void Draw_Pic(int x, int y, qpic_t *pic) {
-  glpic_t *gl;
-
-  gl = (glpic_t *)pic->data;
-  GLBind(gl->gltexture);
-  glBegin(GL_QUADS);
-  glTexCoord2f(gl->sl, gl->tl);
-  glVertex2f(x, y);
-  glTexCoord2f(gl->sh, gl->tl);
-  glVertex2f(x + pic->width, y);
-  glTexCoord2f(gl->sh, gl->th);
-  glVertex2f(x + pic->width, y + pic->height);
-  glTexCoord2f(gl->sl, gl->th);
-  glVertex2f(x, y + pic->height);
-  glEnd();
-}
 
 void Draw_Pic2(int x, int y, QPIC pic) {
   GLBind(pic.texture);
