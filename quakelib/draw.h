@@ -11,11 +11,6 @@ typedef struct {
 } qpic_t;
 
 typedef struct {
-  uint32_t gltexture;
-  float sl, tl, sh, th;
-} glpic_t;
-
-typedef struct {
   int width;
   int height;
   uint32_t texture;
