@@ -3,14 +3,8 @@ package quakelib
 //#include "stdlib.h"
 //#include "draw.h"
 //void GL_SetCanvas(canvastype newCanvas);
-//void Draw_CharacterQuad(int x, int y, char num);
-//void Draw_TileClear(int x, int y, int w, int h);
 //void Draw_Fill(int x, int y, int w, int h, int c, float alpha);
 //void Draw_FadeScreen(void);
-//void Draw_String(int x, int y, const char *str);
-//void Draw_Pic2(int x, int y, QPIC pic);
-//void Draw_TransPicTranslate2(int x, int y, QPIC pic, int top, int bottom);
-//void Draw_LoadPics(void);
 import "C"
 
 import (
@@ -33,7 +27,6 @@ const (
 	CANVAS_MENU        canvas = C.CANVAS_MENU
 	CANVAS_STATUSBAR   canvas = C.CANVAS_SBAR
 	CANVAS_WARPIMAGE   canvas = C.CANVAS_WARPIMAGE
-	CANVAS_CROSSHAIR   canvas = C.CANVAS_CROSSHAIR
 	CANVAS_BOTTOMRIGHT canvas = C.CANVAS_BOTTOMRIGHT
 )
 
@@ -107,8 +100,6 @@ func drawRect(x, y, w, h float32, c Color) {
 }
 
 type drawer struct {
-	vertices []float32
-	elements []uint32
 	vao      uint32
 	vbo      uint32
 	ebo      uint32
@@ -118,29 +109,31 @@ type drawer struct {
 }
 
 func NewDrawer() *drawer {
-	d := &drawer{
-		vertices: []float32{
-			// position, textureCoord
-			-0.5, 0.5, 0.0, 0.0, // Top-left
-			0.5, 0.5, 1.0, 0.0, // Top-right
-			0.5, -0.5, 1.0, 1.0, // Bottom-right
-			-0.5, -0.5, 0.0, 1.0, // Bottom-left
-		},
-		elements: []uint32{
-			0, 1, 2,
-			2, 3, 0,
-		},
+	d := &drawer{}
+	elements := []uint32{
+		0, 1, 2,
+		2, 3, 0,
 	}
 	gl.GenVertexArrays(1, &d.vao)
 	gl.GenBuffers(1, &d.vbo)
 	gl.GenBuffers(1, &d.ebo)
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
-	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 4*len(d.elements), gl.Ptr(d.elements), gl.STATIC_DRAW)
+	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
 	d.prog = newDrawProgram()
 	d.position = d.prog.getAttribLocation("position\x00")
 	d.texcoord = d.prog.getAttribLocation("texcoord\x00")
 
 	return d
+}
+
+func yShift() float32 {
+	if qCanvas != CANVAS_CONSOLE {
+		return 1
+	}
+	sh := float32(screen.consoleLines)
+	vh := float32(viewport.height)
+	l := (sh / vh)
+	return 3 - (2 * l)
 }
 
 func (d *drawer) Draw(x, y, w, h float32, t *Texture) {
@@ -149,22 +142,21 @@ func (d *drawer) Draw(x, y, w, h float32, t *Texture) {
 	y1, y2 := y+h, y
 	x1 = x1*sx - 1
 	x2 = x2*sx - 1
-	y1 = -y1*sy + 1
-	y2 = -y2*sy + 1
-	d.vertices[0] = x1
-	d.vertices[1] = y2
-	d.vertices[4] = x2
-	d.vertices[5] = y2
-	d.vertices[8] = x2
-	d.vertices[9] = y1
-	d.vertices[12] = x1
-	d.vertices[13] = y1
+	ys := yShift()
+	y1 = -y1*sy + ys
+	y2 = -y2*sy + ys
+	vertices := []float32{
+		x1, y2, 0, 0,
+		x2, y2, 1, 0,
+		x2, y1, 1, 1,
+		x1, y1, 0, 1,
+	}
 
 	gl.UseProgram(d.prog.prog)
 	gl.BindVertexArray(d.vao)
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, d.vbo)
-	gl.BufferData(gl.ARRAY_BUFFER, 4*len(d.vertices), gl.Ptr(d.vertices), gl.STATIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 
 	gl.EnableVertexAttribArray(d.position)
 	gl.VertexAttribPointer(d.position, 2, gl.FLOAT, false, 4*4, gl.PtrOffset(0))
@@ -173,6 +165,43 @@ func (d *drawer) Draw(x, y, w, h float32, t *Texture) {
 	gl.VertexAttribPointer(d.texcoord, 2, gl.FLOAT, false, 4*4, gl.PtrOffset(2*4))
 
 	textureManager.Bind(t)
+
+	gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
+}
+
+func (d *drawer) DrawQuad(x, y float32, num byte) {
+	size := float32(0.0625)
+	row := float32(num>>4) * size
+	col := float32(num&15) * size
+
+	sx, sy := applyCanvas()
+	x1, x2 := x, x+8
+	y1, y2 := y+8, y
+	x1 = x1*sx - 1
+	x2 = x2*sx - 1
+	ys := yShift()
+	y1 = -y1*sy + ys
+	y2 = -y2*sy + ys
+	vertices := []float32{
+		x1, y2, col, row,
+		x2, y2, col + size, row,
+		x2, y1, col + size, row + size,
+		x1, y1, col, row + size,
+	}
+
+	gl.UseProgram(d.prog.prog)
+	gl.BindVertexArray(d.vao)
+	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
+	gl.BindBuffer(gl.ARRAY_BUFFER, d.vbo)
+	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
+
+	gl.EnableVertexAttribArray(d.position)
+	gl.VertexAttribPointer(d.position, 2, gl.FLOAT, false, 4*4, gl.PtrOffset(0))
+
+	gl.EnableVertexAttribArray(d.texcoord)
+	gl.VertexAttribPointer(d.texcoord, 2, gl.FLOAT, false, 4*4, gl.PtrOffset(2*4))
+
+	textureManager.Bind(consoleTexture)
 
 	gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
 }
@@ -211,13 +240,16 @@ func (d *drawProgram) Delete() {
 }
 
 var (
-	qDrawer *drawer
+	qDrawer         *drawer
+	consoleTexture  *Texture
+	backtileTexture *Texture
 )
 
 //export Draw_Init
 func Draw_Init() {
-	C.Draw_LoadPics()
 	qDrawer = NewDrawer()
+	consoleTexture = textureManager.LoadConsoleChars()
+	backtileTexture = textureManager.LoadBacktile()
 }
 
 //export Draw_Destroy
@@ -294,9 +326,6 @@ func applyCanvas() (float32, float32) {
 	case CANVAS_WARPIMAGE:
 		//gl.Viewport(0,0,viewport.width,viewport.height)
 		return float32(2) / 128, float32(2) / 128
-	case CANVAS_CROSSHAIR:
-		//gl.Viewport(0,0,viewport.width,viewport.height)
-		return 0, 0 // TODO
 	case CANVAS_BOTTOMRIGHT:
 		s := float32(viewport.width) / float32(console.width)
 		gl.Viewport(
@@ -310,6 +339,22 @@ func applyCanvas() (float32, float32) {
 		Error("SetCanvas: bad canvas type")
 		return 0, 0
 	}
+}
+
+func DrawCrosshair() {
+	// s := cvars.ScreenCrosshairScale.Value()
+	// if s < 1 { s = 1 } else if (s > 10) { s = 10 }
+	// 2s/screen.vrect.width 0 0 0
+	// 0 2s/screen.vrect.height 0 0
+	// 0 0 0 0
+	// 0 0 0 1
+	//gl.Viewport(
+	// screen.vrect.x,
+	// viewport.height - screen.vrect.y - screen.vrect.height,
+	// screen.vrect.width &^1,
+	// screen.vrect.height &^1)
+
+	// DrawCharacterWhite(-4, -4, '+')
 }
 
 type Color struct {
@@ -331,7 +376,7 @@ func DrawCharacterWhite(x, y int, num int) {
 	if num == 32 {
 		return
 	}
-	C.Draw_CharacterQuad(C.int(x), C.int(y), C.char(num))
+	qDrawer.DrawQuad(float32(x), float32(y), byte(num))
 }
 
 func DrawCharacterCopper(x, y int, num int) {
@@ -341,7 +386,7 @@ func DrawCharacterCopper(x, y int, num int) {
 	}
 	num += 128
 	num &= 255
-	C.Draw_CharacterQuad(C.int(x), C.int(y), C.char(num))
+	qDrawer.DrawQuad(float32(x), float32(y), byte(num))
 }
 
 func DrawPicture(x, y int, p *QPic) {
@@ -358,17 +403,20 @@ func DrawPictureAlpha(x, y int, p *QPic, alpha float32) {
 	gl.Disable(gl.BLEND)
 }
 
+var (
+	drawTop    = -2
+	drawBottom = -2
+)
+
 func DrawTransparentPictureTranslate(x, y int, p *QPic, top, bottom int) {
-	pic := C.QPIC{
-		width:   C.int(p.Width),
-		height:  C.int(p.Height),
-		texture: C.uint32_t(p.Texture.glID),
-		sl:      0,
-		tl:      0,
-		sh:      1,
-		th:      1,
+	if top != drawTop || bottom != drawBottom {
+		drawTop = top
+		drawBottom = drawBottom
+		// TODO(therjak): do the mapping
+		textureManager.ReloadImage(p.Texture)
 	}
-	C.Draw_TransPicTranslate2(C.int(x), C.int(y), pic, C.int(top), C.int(bottom))
+
+	qDrawer.Draw(float32(x), float32(y), float32(p.Width), float32(p.Height), p.Texture)
 }
 
 func DrawConsoleBackground() {
@@ -414,8 +462,45 @@ func DrawFill(x, y, w, h int, c int, alpha float32) {
 	C.Draw_Fill(C.int(x), C.int(y), C.int(w), C.int(h), C.int(c), C.float(alpha))
 }
 
-func DrawTileClear(x, y, w, h int) {
-	C.Draw_TileClear(C.int(x), C.int(y), C.int(w), C.int(h))
+func DrawTileClear(xi, yi, wi, hi int) {
+	x, y, w, h := float32(xi), float32(yi), float32(wi), float32(hi)
+	qDrawer.TileClear(x, y, w, h)
+}
+
+func (d *drawer) TileClear(x, y, w, h float32) {
+	sx, sy := applyCanvas()
+	x1, x2 := x, x+w
+	y1, y2 := y+h, y
+	x1 = x1*sx - 1
+	x2 = x2*sx - 1
+	ys := yShift()
+	y1 = -y1*sy + ys
+	y2 = -y2*sy + ys
+	vertices := []float32{
+		x1, y2, x / 64, y / 64,
+		x2, y2, (x + w) / 64, y / 64,
+		x2, y1, (x + w) / 64, (y + h) / 64,
+		x1, y1, x / 64, (y + h) / 64,
+	}
+
+	gl.UseProgram(d.prog.prog)
+	gl.BindVertexArray(d.vao)
+	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
+	gl.BindBuffer(gl.ARRAY_BUFFER, d.vbo)
+	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
+
+	gl.EnableVertexAttribArray(d.position)
+	gl.VertexAttribPointer(d.position, 2, gl.FLOAT, false, 4*4, gl.PtrOffset(0))
+
+	gl.EnableVertexAttribArray(d.texcoord)
+	gl.VertexAttribPointer(d.texcoord, 2, gl.FLOAT, false, 4*4, gl.PtrOffset(2*4))
+
+	color := []float32{1.0, 1.0, 1.0, 1.0}
+	gl.TexParameterfv(gl.TEXTURE_2D, gl.TEXTURE_BORDER_COLOR, &(color[0]))
+
+	textureManager.Bind(backtileTexture)
+
+	gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
 }
 
 var (
@@ -497,7 +582,6 @@ func GetPictureFromBytes(n string, w, h int, d []byte) *QPic {
 // 128+ are normal
 // We draw on a 320x200 screen
 func DrawStringCopper(x, y int, t string) {
-	// TODO: unify into one draw call
 	nx := x
 	for i := 0; i < len(t); i++ {
 		DrawCharacterCopper(nx, y, int(t[i]))
@@ -506,7 +590,6 @@ func DrawStringCopper(x, y int, t string) {
 }
 
 func DrawStringWhite(x, y int, t string) {
-	// TODO: unify into one draw call
 	nx := x
 	for i := 0; i < len(t); i++ {
 		DrawCharacterWhite(nx, y, int(t[i]))

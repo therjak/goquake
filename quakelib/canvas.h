@@ -7,7 +7,6 @@ typedef enum {
   CANVAS_MENU,
   CANVAS_SBAR,
   CANVAS_WARPIMAGE,
-  CANVAS_CROSSHAIR,
   CANVAS_BOTTOMRIGHT,
 } canvastype;
 #endif

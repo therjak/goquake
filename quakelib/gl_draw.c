@@ -3,9 +3,6 @@
 #include "quakedef.h"
 #include "draw.h"
 
-uint32_t draw_backtile;
-uint32_t char_texture2;
-
 canvastype currentcanvas = CANVAS_NONE;  // johnfitz -- for GL_SetCanvas
 
 void SwapPic(qpic_t *pic) {
@@ -29,125 +26,11 @@ typedef struct cachepic_s {
 cachepic_t menu_cachepics[MAX_CACHED_PICS];
 int menu_numcachepics;
 
-/*
-===============
-Draw_LoadPics -- johnfitz
-===============
-*/
-void Draw_LoadPics(void) {
-  char_texture2 = TexMgrLoadConsoleChars();
-  if (!char_texture2) Go_Error("Draw_LoadPics: couldn't load conchars");
-  draw_backtile = TexMgrLoadBacktile("backtile");
-  if (!draw_backtile) Go_Error("Draw_LoadPics: couldn't load backtile");
-}
-
 //==============================================================================
 //
 //  2D DRAWING
 //
 //==============================================================================
-
-/*
-================
-Draw_CharacterQuad -- johnfitz -- seperate function to spit out verts
-================
-*/
-void Draw_CharacterQuad(int x, int y, char num) {
-  int row, col;
-  float frow, fcol, size;
-
-  row = num >> 4;
-  col = num & 15;
-
-  frow = row * 0.0625;
-  fcol = col * 0.0625;
-  size = 0.0625;
-
-  GLBind(char_texture2);
-  glBegin(GL_QUADS);
-
-  glTexCoord2f(fcol, frow);
-  glVertex2f(x, y);
-  glTexCoord2f(fcol + size, frow);
-  glVertex2f(x + 8, y);
-  glTexCoord2f(fcol + size, frow + size);
-  glVertex2f(x + 8, y + 8);
-  glTexCoord2f(fcol, frow + size);
-  glVertex2f(x, y + 8);
-
-  glEnd();
-}
-
-/*
-================
-Draw_Character -- johnfitz -- modified to call Draw_CharacterQuad
-================
-*/
-void Draw_Character(int x, int y, int num) {
-  if (y <= -8) return;  // totally off screen
-
-  num &= 255;
-
-  if (num == 32) return;  // don't waste verts on spaces
-
-  Draw_CharacterQuad(x, y, (char)num);
-}
-
-/*
-=============
-Draw_Pic -- johnfitz -- modified
-=============
-*/
-
-void Draw_Pic2(int x, int y, QPIC pic) {
-  GLBind(pic.texture);
-  glBegin(GL_QUADS);
-  glTexCoord2f(pic.sl, pic.tl);
-  glVertex2f(x, y);
-  glTexCoord2f(pic.sh, pic.tl);
-  glVertex2f(x + pic.width, y);
-  glTexCoord2f(pic.sh, pic.th);
-  glVertex2f(x + pic.width, y + pic.height);
-  glTexCoord2f(pic.sl, pic.th);
-  glVertex2f(x, y + pic.height);
-  glEnd();
-}
-
-void Draw_TransPicTranslate2(int x, int y, QPIC pic, int top, int bottom) {
-  static int oldtop = -2;
-  static int oldbottom = -2;
-
-  if (top != oldtop || bottom != oldbottom) {
-    uint32_t glt = pic.texture;
-    oldtop = top;
-    oldbottom = bottom;
-    TexMgrReloadImage(glt, top, bottom);
-  }
-  Draw_Pic2(x, y, pic);
-}
-
-/*
-=============
-Draw_TileClear
-
-This repeats a 64*64 tile graphic to fill the screen around a sized down
-refresh window.
-=============
-*/
-void Draw_TileClear(int x, int y, int w, int h) {
-  glColor3f(1, 1, 1);
-  GLBind(draw_backtile);
-  glBegin(GL_QUADS);
-  glTexCoord2f(x / 64.0, y / 64.0);
-  glVertex2f(x, y);
-  glTexCoord2f((x + w) / 64.0, y / 64.0);
-  glVertex2f(x + w, y);
-  glTexCoord2f((x + w) / 64.0, (y + h) / 64.0);
-  glVertex2f(x + w, y + h);
-  glTexCoord2f(x / 64.0, (y + h) / 64.0);
-  glVertex2f(x, y + h);
-  glEnd();
-}
 
 /*
 =============
@@ -259,15 +142,6 @@ void GL_SetCanvas(canvastype newcanvas) {
       glOrtho(0, 128, 0, 128, -99999, 99999);
       glViewport(0, GL_Height() - gl_warpimagesize,
                  gl_warpimagesize, gl_warpimagesize);
-      break;
-    case CANVAS_CROSSHAIR:  // 0,0 is center of viewport
-      s = CLAMP(1.0, Cvar_GetValue(&scr_crosshairscale), 10.0);
-      glOrtho(SCR_GetVRectWidth() / -2 / s, SCR_GetVRectWidth() / 2 / s,
-              SCR_GetVRectHeight() / 2 / s, SCR_GetVRectHeight() / -2 / s,
-              -99999, 99999);
-      glViewport(SCR_GetVRectX(),
-                 GL_Height() - SCR_GetVRectY() - SCR_GetVRectHeight(),
-                 SCR_GetVRectWidth() & ~1, SCR_GetVRectHeight() & ~1);
       break;
     case CANVAS_BOTTOMRIGHT:               // used by fps/clock
       s = (float)GL_Width() / ConWidth();  // use console scale

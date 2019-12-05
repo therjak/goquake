@@ -193,12 +193,11 @@ func Go_LoadWad() {
 	}
 }
 
-//export TexMgrLoadConsoleChars
-func TexMgrLoadConsoleChars() TexID {
+func (tm *texMgr) LoadConsoleChars() *Texture {
 	data := wad.GetConsoleChars()
 	if len(data) != 128*128 {
-		conlog.Printf("ConsoleChars not found")
-		return 0
+		Error("ConsoleChars not found")
+		return nil
 	}
 	var tn uint32
 	gl.GenTextures(1, &tn)
@@ -216,7 +215,7 @@ func TexMgrLoadConsoleChars() TexID {
 	textureManager.addActiveTexture(t)
 	textureManager.loadIndexed(t, data)
 	texmap[TexID(t.glID)] = t
-	return TexID(t.glID)
+	return t
 }
 
 func (tm *texMgr) LoadNoTex(name string, w, h int, data []byte) *Texture {
@@ -275,15 +274,14 @@ func (tm *texMgr) loadIndexdTex(name string, w, h int, flags TexPref, data []byt
 	return t
 }
 
-//export TexMgrLoadBacktile
-func TexMgrLoadBacktile() TexID {
+func (tm *texMgr) LoadBacktile() *Texture {
 	name := "backtile"
 	p := wad.GetPic(name)
 	if p == nil {
-		return 0
+		Error("Draw_LoadPics: couldn't load backtile")
+		return nil
 	}
-	t := textureManager.LoadWadTex(name, p.Width, p.Height, p.Data)
-	return TexID(t.glID)
+	return textureManager.LoadWadTex(name, p.Width, p.Height, p.Data)
 }
 
 //export TexMgrLoadParticleImage

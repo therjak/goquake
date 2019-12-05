@@ -362,8 +362,7 @@ func (s *qScreen) drawCrosshair() {
 	if !cvars.Crosshair.Bool() {
 		return
 	}
-	SetCanvas(CANVAS_CROSSHAIR)
-	DrawCharacterWhite(-4, -4, '+')
+	DrawCrosshair()
 }
 
 func (s *qScreen) CenterPrint(str string) {
