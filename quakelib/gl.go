@@ -10,8 +10,6 @@ import (
 )
 
 type glrect struct {
-	x      int32
-	y      int32
 	height int32
 	width  int32
 }
@@ -36,20 +34,8 @@ func GL_Width() int32 {
 	return viewport.width
 }
 
-//export GL_X
-func GL_X() int32 {
-	return viewport.x
-}
-
-//export GL_Y
-func GL_Y() int32 {
-	return viewport.y
-}
-
 //export UpdateViewport
 func UpdateViewport() {
-	viewport.x = 0
-	viewport.y = 0
 	viewport.width = int32(screen.Width)
 	viewport.height = int32(screen.Height)
 }

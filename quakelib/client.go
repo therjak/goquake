@@ -354,9 +354,13 @@ func CL_SetGameType(t int) {
 	cl.gameType = t
 }
 
+func (c *Client) DeathMatch() bool {
+	return cl.gameType == svc.GameDeathmatch
+}
+
 //export CL_GameTypeDeathMatch
 func CL_GameTypeDeathMatch() bool {
-	return cl.gameType == svc.GameDeathmatch
+	return cl.DeathMatch()
 }
 
 //export CL_HasItem

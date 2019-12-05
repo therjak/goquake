@@ -197,7 +197,7 @@ void R_UpdateWarpTextures(void) {
     if (!tx->update_warp) continue;
 
     // render warp
-    GL_SetCanvas(CANVAS_WARPIMAGE);
+    GLSetCanvas(CANVAS_WARPIMAGE);
     GLBind(tx->gltexture);
     for (x = 0.0; x < 128.0; x = x2) {
       x2 = x + warptess;
@@ -214,8 +214,8 @@ void R_UpdateWarpTextures(void) {
 
     // copy to texture
     GLBind(tx->warpimage);
-    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GL_X(),
-                        GL_Y() + GL_Height() - gl_warpimagesize, gl_warpimagesize,
+    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0,
+                        GL_Height() - gl_warpimagesize, gl_warpimagesize,
                         gl_warpimagesize);
 
     tx->update_warp = false;
@@ -223,7 +223,7 @@ void R_UpdateWarpTextures(void) {
 
   // ericw -- workaround for osx 10.6 driver bug when using FSAA. R_Clear only
   // clears the warpimage part of the screen.
-  GL_SetCanvas(CANVAS_DEFAULT);
+  GLSetCanvas(CANVAS_DEFAULT);
 
   // if warp render went down into sbar territory, we need to be sure to refresh
   // it next frame

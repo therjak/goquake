@@ -197,7 +197,7 @@ void GLSLGamma_GammaCorrect(void) {
   // copy the framebuffer to the texture
   GLDisableMultitexture();
   glBindTexture(GL_TEXTURE_2D, r_gamma_texture);
-  glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GL_X(), GL_Y(), GL_Width(),
+  glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, GL_Width(),
                       GL_Height());
 
   // draw the texture back to the framebuffer with a fragment shader
@@ -210,7 +210,7 @@ void GLSLGamma_GammaCorrect(void) {
   glDisable(GL_ALPHA_TEST);
   glDisable(GL_DEPTH_TEST);
 
-  glViewport(GL_X(), GL_Y(), GL_Width(), GL_Height());
+  glViewport(0, 0, GL_Width(), GL_Height());
 
   smax = GL_Width() / (float)r_gamma_texture_width;
   tmax = GL_Height() / (float)r_gamma_texture_height;
@@ -448,8 +448,8 @@ void R_SetupGL(void) {
   // johnfitz -- rewrote this section
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glViewport(GL_X() + r_refdef.vrect.x,
-             GL_Y() + GL_Height() - r_refdef.vrect.y - r_refdef.vrect.height,
+  glViewport(0 + r_refdef.vrect.x,
+             0 + GL_Height() - r_refdef.vrect.y - r_refdef.vrect.height,
              r_refdef.vrect.width, r_refdef.vrect.height);
   // johnfitz
 

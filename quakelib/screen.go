@@ -466,7 +466,7 @@ func (scr *qScreen) drawDevStats() {
 
 	     if (!Cvar_GetValue(&devstats)) return;
 
-	     GL_SetCanvas(CANVAS_BOTTOMLEFT);
+	     GLSetCanvas(CANVAS_BOTTOMLEFT);
 
 	     DrawFillC(x, y * 8, 19 * 8, 9 * 8, 0, 0.5);  // dark rectangle
 
@@ -685,7 +685,7 @@ func screenShot(_ []cmd.QArg, _ int) {
 	}
 	buffer := make([]byte, viewport.width*viewport.height*4)
 	gl.PixelStorei(gl.PACK_ALIGNMENT, 1)
-	gl.ReadPixels(viewport.x, viewport.y, viewport.width, viewport.height,
+	gl.ReadPixels(0, 0, viewport.width, viewport.height,
 		gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(buffer))
 	err := image.Write(fileName, buffer, int(viewport.width), int(viewport.height))
 	if err != nil {
