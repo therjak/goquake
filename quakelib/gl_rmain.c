@@ -448,8 +448,8 @@ void R_SetupGL(void) {
   // johnfitz -- rewrote this section
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glViewport(0 + r_refdef.vrect.x,
-             0 + GL_Height() - r_refdef.vrect.y - r_refdef.vrect.height,
+  glViewport(r_refdef.vrect.x,
+             GL_Height() - r_refdef.vrect.y - r_refdef.vrect.height,
              r_refdef.vrect.width, r_refdef.vrect.height);
   // johnfitz
 

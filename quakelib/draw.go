@@ -144,18 +144,21 @@ func NewDrawer() *drawer {
 }
 
 func (d *drawer) Draw(x, y, w, h float32, t *Texture) {
-	applyCanvas()
-
-	d.vertices[0] = x
-	d.vertices[1] = y + h
-	d.vertices[4] = x + w
-	d.vertices[5] = y + h
-	d.vertices[8] = x + w
-	d.vertices[9] = y
-	d.vertices[12] = x
-	d.vertices[13] = y
-
-	//TODO(therjak): include the glOrtho and glViewport stuff from GL_SetCanvas
+	sx, sy := applyCanvas()
+	x1, x2 := x, x+w
+	y1, y2 := y+h, y
+	x1 = x1*sx - 1
+	x2 = x2*sx - 1
+	y1 = -y1*sy + 1
+	y2 = -y2*sy + 1
+	d.vertices[0] = x1
+	d.vertices[1] = y2
+	d.vertices[4] = x2
+	d.vertices[5] = y2
+	d.vertices[8] = x2
+	d.vertices[9] = y1
+	d.vertices[12] = x1
+	d.vertices[13] = y1
 
 	gl.UseProgram(d.prog.prog)
 	gl.BindVertexArray(d.vao)
@@ -182,20 +185,20 @@ func (d *drawer) Delete() {
 }
 
 type drawProgram struct {
-	frag uint32
-	vert uint32
 	prog uint32
 }
 
 func newDrawProgram() *drawProgram {
+	vert := getShader(vertexSourceDrawer, gl.VERTEX_SHADER)
+	frag := getShader(fragmentSourceDrawer, gl.FRAGMENT_SHADER)
 	d := &drawProgram{
-		vert: getShader(vertexSourceDrawer, gl.VERTEX_SHADER),
-		frag: getShader(fragmentSourceDrawer, gl.FRAGMENT_SHADER),
 		prog: gl.CreateProgram(),
 	}
-	gl.AttachShader(d.prog, d.vert)
-	gl.AttachShader(d.prog, d.frag)
+	gl.AttachShader(d.prog, vert)
+	gl.AttachShader(d.prog, frag)
 	gl.LinkProgram(d.prog)
+	gl.DeleteShader(vert)
+	gl.DeleteShader(frag)
 	return d
 }
 
@@ -205,8 +208,6 @@ func (d *drawProgram) getAttribLocation(attrib string) uint32 {
 
 func (d *drawProgram) Delete() {
 	gl.DeleteProgram(d.prog)
-	gl.DeleteShader(d.vert)
-	gl.DeleteShader(d.frag)
 }
 
 var (
@@ -241,13 +242,18 @@ func SetCanvas(c canvas) {
 	C.GL_SetCanvas(C.canvastype(c))
 }
 
-func applyCanvas() {
+func applyCanvas() (float32, float32) {
 	switch qCanvas {
-	case CANVAS_DEFAULT:
+	case CANVAS_DEFAULT: // 1
 		gl.Viewport(0, 0, viewport.width, viewport.height)
-	case CANVAS_CONSOLE:
+		return 2 / float32(viewport.width), 2 / float32(viewport.height)
+	case CANVAS_CONSOLE: // 2
 		gl.Viewport(0, 0, viewport.width, viewport.height)
-	case CANVAS_MENU:
+		h := float32(console.height)
+		w := float32(console.width)
+		// part := float32(-1) // TODO
+		return 2 / w, 2 / h
+	case CANVAS_MENU: // 3
 		s := cvars.ScreenMenuScale.Value()
 		if s < 1 {
 			s = 1
@@ -264,28 +270,33 @@ func applyCanvas() {
 			int32((float32(viewport.width)-320*s)/2),
 			int32((float32(viewport.height)-200*s)/2),
 			int32(640*s), int32(200*s))
+		return float32(2) / 640, float32(2) / 200
 	case CANVAS_STATUSBAR:
+		w := float32(viewport.width)
 		s := cvars.ScreenStatusbarScale.Value()
 		if s < 1 {
 			s = 1
 		}
-		dw := float32(viewport.width) / 320
+		dw := w / 320
 		if s > dw {
 			s = dw
 		}
 		if cl.DeathMatch() {
 			gl.Viewport(0, 0, viewport.width, int32(48*s))
-		} else {
-			gl.Viewport(
-				int32((float32(viewport.width)-320*s)/2),
-				0,
-				int32(320*s),
-				int32(48*s))
+			return 2 * s / w, float32(2) / 48
 		}
+		gl.Viewport(
+			int32((float32(viewport.width)-320*s)/2),
+			0,
+			int32(320*s),
+			int32(48*s))
+		return float32(2) / 320, float32(2) / 48
 	case CANVAS_WARPIMAGE:
 		//gl.Viewport(0,0,viewport.width,viewport.height)
+		return float32(2) / 128, float32(2) / 128
 	case CANVAS_CROSSHAIR:
 		//gl.Viewport(0,0,viewport.width,viewport.height)
+		return 0, 0 // TODO
 	case CANVAS_BOTTOMRIGHT:
 		s := float32(viewport.width) / float32(console.width)
 		gl.Viewport(
@@ -293,9 +304,11 @@ func applyCanvas() {
 			int32(float32(viewport.height-200)*s),
 			int32(320*s),
 			int32(200*s))
+		return float32(2) / 320, float32(2) / 200
 	default:
 		// case CANVAS_NONE:
 		Error("SetCanvas: bad canvas type")
+		return 0, 0
 	}
 }
 
@@ -332,17 +345,7 @@ func DrawCharacterCopper(x, y int, num int) {
 }
 
 func DrawPicture(x, y int, p *QPic) {
-	//qDrawer.Draw(float32(x), float32(y), float32(p.Width), float32(p.Height), p.Texture)
-	pic := C.QPIC{
-		width:   C.int(p.Width),
-		height:  C.int(p.Height),
-		texture: C.uint32_t(p.Texture.glID),
-		sl:      0,
-		tl:      0,
-		sh:      1,
-		th:      1,
-	}
-	C.Draw_Pic2(C.int(x), C.int(y), pic)
+	qDrawer.Draw(float32(x), float32(y), float32(p.Width), float32(p.Height), p.Texture)
 }
 
 func DrawPictureAlpha(x, y int, p *QPic, alpha float32) {
@@ -350,16 +353,7 @@ func DrawPictureAlpha(x, y int, p *QPic, alpha float32) {
 	gl.BlendFunc(gl.CONSTANT_ALPHA, gl.ONE_MINUS_CONSTANT_ALPHA)
 	gl.Enable(gl.BLEND)
 
-	pic := C.QPIC{
-		width:   C.int(p.Width),
-		height:  C.int(p.Height),
-		texture: C.uint32_t(p.Texture.glID),
-		sl:      0,
-		tl:      0,
-		sh:      1,
-		th:      1,
-	}
-	C.Draw_Pic2(C.int(x), C.int(y), pic)
+	qDrawer.Draw(float32(x), float32(y), float32(p.Width), float32(p.Height), p.Texture)
 
 	gl.Disable(gl.BLEND)
 }
