@@ -329,8 +329,8 @@ func applyCanvas() (float32, float32) {
 	case CANVAS_BOTTOMRIGHT:
 		s := float32(viewport.width) / float32(console.width)
 		gl.Viewport(
-			int32(float32(viewport.width-320)*s),
-			int32(float32(viewport.height-200)*s),
+			int32(float32(viewport.width)-320*s),
+			0,
 			int32(320*s),
 			int32(200*s))
 		return float32(2) / 320, float32(2) / 200
