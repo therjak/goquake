@@ -3,8 +3,6 @@ package quakelib
 //#include "stdlib.h"
 //#include "draw.h"
 //void GL_SetCanvas(canvastype newCanvas);
-//void Draw_Fill(int x, int y, int w, int h, int c, float alpha);
-//void Draw_FadeScreen(void);
 import "C"
 
 import (
@@ -52,6 +50,16 @@ void main() {
   frag_color = texture(tex, Texcoord);
 }
 `
+	fragmentSourceColorRecDrawer = `
+#version 410
+in vec2 Texcoord;
+out vec4 frag_color;
+uniform vec4 in_color;
+
+void main() {
+  frag_color = in_color;
+}
+`
 )
 
 func getShader(src string, shaderType uint32) uint32 {
@@ -72,31 +80,65 @@ func getShader(src string, shaderType uint32) uint32 {
 	return shader
 }
 
-func drawRect(x, y, w, h float32, c Color) {
-	/*
-		fx, fy, fw, fh := float32(x), float32(y), float32(w), float32(h)
-		vertices := []float32{
-			fx, fy, 0,
-			fx + fw, fy, 0,
-			fx + fw, fy + fh, 0,
+type recDrawer struct {
+	vao      uint32
+	vbo      uint32
+	ebo      uint32
+	prog     uint32
+	position uint32
+	color    int32
+}
 
-			fx + fw, fy, 0,
-			fx + fw, fy + fh, 0,
-			fx, fy + fh, 0,
-		}
-		var VBO uint32
-		gl.GenBuffers(1, &VBO)
-		gl.BindBuffer(gl.ARRAY_BUFFER, VBO)
-		gl.BufferData(gl.ARRAY_BUFFER, len(vertices)*4, gl.Ptr(vertices), gl.STATIC_DRAW)
-		gl.Disable(gl.TEXTURE_2D)
-		gl.Enable(gl.BLEND)
-		// gl.BlendColor(float32(c*4)/255,....,alpha)
-		// gl.Begin(gl.QUADS)
-		// gl.End()
-		gl.Disable(gl.BLEND)
-		gl.Enable(gl.TEXTURE_2D)
-	*/
+func NewRecDrawer() *recDrawer {
+	d := &recDrawer{}
+	elements := []uint32{
+		0, 1, 2,
+		2, 3, 0,
+	}
+	gl.GenVertexArrays(1, &d.vao)
+	gl.GenBuffers(1, &d.vbo)
+	gl.GenBuffers(1, &d.ebo)
+	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
+	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
+	d.prog = newRecDrawProgram()
+	d.position = uint32(gl.GetAttribLocation(d.prog, gl.Str("position\x00")))
+	d.color = gl.GetUniformLocation(d.prog, gl.Str("in_color\x00"))
 
+	return d
+}
+
+func (d *recDrawer) Draw(x, y, w, h float32, c Color) {
+	sx, sy := applyCanvas()
+	x1, x2 := x, x+w
+	y1, y2 := y+h, y
+	x1 = x1*sx - 1
+	x2 = x2*sx - 1
+	ys := yShift()
+	y1 = -y1*sy + ys
+	y2 = -y2*sy + ys
+	vertices := []float32{
+		x1, y2, 0, 0,
+		x2, y2, 1, 0,
+		x2, y1, 1, 1,
+		x1, y1, 0, 1,
+	}
+
+	gl.Enable(gl.BLEND)
+
+	gl.UseProgram(d.prog)
+	gl.BindVertexArray(d.vao)
+	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
+	gl.BindBuffer(gl.ARRAY_BUFFER, d.vbo)
+	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
+
+	gl.EnableVertexAttribArray(d.position)
+	gl.VertexAttribPointer(d.position, 2, gl.FLOAT, false, 4*4, gl.PtrOffset(0))
+
+	gl.Uniform4f(d.color, c.R, c.G, c.B, c.A)
+
+	gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
+
+	gl.Disable(gl.BLEND)
 }
 
 type drawer struct {
@@ -213,8 +255,16 @@ func (d *drawer) Delete() {
 	gl.DeleteVertexArrays(1, &d.vao)
 }
 
-type drawProgram struct {
-	prog uint32
+func newRecDrawProgram() uint32 {
+	vert := getShader(vertexSourceDrawer, gl.VERTEX_SHADER)
+	frag := getShader(fragmentSourceColorRecDrawer, gl.FRAGMENT_SHADER)
+	d := gl.CreateProgram()
+	gl.AttachShader(d, vert)
+	gl.AttachShader(d, frag)
+	gl.LinkProgram(d)
+	gl.DeleteShader(vert)
+	gl.DeleteShader(frag)
+	return d
 }
 
 func newDrawProgram() uint32 {
@@ -229,12 +279,9 @@ func newDrawProgram() uint32 {
 	return d
 }
 
-func (d *drawProgram) getAttribLocation(attrib string) uint32 {
-	return uint32(gl.GetAttribLocation(d.prog, gl.Str(attrib)))
-}
-
 var (
 	qDrawer         *drawer
+	qRecDrawer      *recDrawer
 	consoleTexture  *Texture
 	backtileTexture *Texture
 )
@@ -242,6 +289,7 @@ var (
 //export Draw_Init
 func Draw_Init() {
 	qDrawer = NewDrawer()
+	qRecDrawer = NewRecDrawer()
 	consoleTexture = textureManager.LoadConsoleChars()
 	backtileTexture = textureManager.LoadBacktile()
 }
@@ -274,16 +322,15 @@ func SetCanvas(c canvas) {
 
 func applyCanvas() (float32, float32) {
 	switch qCanvas {
-	case CANVAS_DEFAULT: // 1
+	case CANVAS_DEFAULT:
 		gl.Viewport(0, 0, viewport.width, viewport.height)
 		return 2 / float32(viewport.width), 2 / float32(viewport.height)
-	case CANVAS_CONSOLE: // 2
+	case CANVAS_CONSOLE:
 		gl.Viewport(0, 0, viewport.width, viewport.height)
 		h := float32(console.height)
 		w := float32(console.width)
-		// part := float32(-1) // TODO
 		return 2 / w, 2 / h
-	case CANVAS_MENU: // 3
+	case CANVAS_MENU:
 		s := cvars.ScreenMenuScale.Value()
 		if s < 1 {
 			s = 1
@@ -356,7 +403,7 @@ func DrawCrosshair() {
 }
 
 type Color struct {
-	R, G, B, A uint8
+	R, G, B, A float32
 }
 
 type QPic struct {
@@ -446,18 +493,19 @@ func DrawConsoleBackground() {
 }
 
 func DrawFadeScreen() {
-	C.Draw_FadeScreen()
+	c := Color{0, 0, 0, 0.5}
+	qRecDrawer.Draw(0, 0, float32(viewport.width), float32(viewport.height), c)
+	statusbar.MarkChanged()
 }
 
 func DrawFill(x, y, w, h int, c int, alpha float32) {
 	col := Color{
-		R: palette.table[c*4],
-		G: palette.table[c*4+1],
-		B: palette.table[c*4+2],
-		A: uint8(alpha * 255),
+		R: float32(palette.table[c*4]) / 255,
+		G: float32(palette.table[c*4+1]) / 255,
+		B: float32(palette.table[c*4+2]) / 255,
+		A: alpha,
 	}
-	drawRect(float32(x), float32(y), float32(w), float32(h), col)
-	C.Draw_Fill(C.int(x), C.int(y), C.int(w), C.int(h), C.int(c), C.float(alpha))
+	qRecDrawer.Draw(float32(x), float32(y), float32(w), float32(h), col)
 }
 
 func DrawTileClear(xi, yi, wi, hi int) {
