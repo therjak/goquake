@@ -113,40 +113,10 @@ void GL_SetCanvas(canvastype newcanvas) {
       glOrtho(0, GL_Width(), GL_Height(), 0, -99999, 99999);
       glViewport(0, 0, GL_Width(), GL_Height());
       break;
-    case CANVAS_CONSOLE:
-      lines = ConHeight() -
-              (GetScreenConsoleCurrentHeight() * ConHeight() / GL_Height());
-      glOrtho(0, ConWidth(), ConHeight() + lines, lines, -99999, 99999);
-      glViewport(0, 0, GL_Width(), GL_Height());
-      break;
-    case CANVAS_MENU:
-      s = q_min((float)GL_Width() / 320.0, (float)GL_Height() / 200.0);
-      s = CLAMP(1.0, Cvar_GetValue(&scr_menuscale), s);
-      // ericw -- doubled width to 640 to accommodate long keybindings
-      glOrtho(0, 640, 200, 0, -99999, 99999);
-      glViewport((GL_Width() - 320 * s) / 2,
-                 (GL_Height() - 200 * s) / 2, 640 * s, 200 * s);
-      break;
-    case CANVAS_SBAR:
-      s = CLAMP(1.0, Cvar_GetValue(&scr_sbarscale), (float)GL_Width() / 320.0);
-      if (CL_GameTypeDeathMatch()) {
-        glOrtho(0, GL_Width() / s, 48, 0, -99999, 99999);
-        glViewport(0, 0, GL_Width(), 48 * s);
-      } else {
-        glOrtho(0, 320, 48, 0, -99999, 99999);
-        glViewport((GL_Width() - 320 * s) / 2, 0, 320 * s,
-                   48 * s);
-      }
-      break;
     case CANVAS_WARPIMAGE:
       glOrtho(0, 128, 0, 128, -99999, 99999);
       glViewport(0, GL_Height() - gl_warpimagesize,
                  gl_warpimagesize, gl_warpimagesize);
-      break;
-    case CANVAS_BOTTOMRIGHT:               // used by fps/clock
-      s = (float)GL_Width() / ConWidth();  // use console scale
-      glOrtho(0, 320, 200, 0, -99999, 99999);
-      glViewport(GL_Width() - 320 * s, 0, 320 * s, 200 * s);
       break;
     default:
       Go_Error("GL_SetCanvas: bad canvas type");

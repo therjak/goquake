@@ -103,7 +103,7 @@ type drawer struct {
 	vao      uint32
 	vbo      uint32
 	ebo      uint32
-	prog     *drawProgram
+	prog     uint32
 	position uint32
 	texcoord uint32
 }
@@ -120,8 +120,8 @@ func NewDrawer() *drawer {
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
 	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
 	d.prog = newDrawProgram()
-	d.position = d.prog.getAttribLocation("position\x00")
-	d.texcoord = d.prog.getAttribLocation("texcoord\x00")
+	d.position = uint32(gl.GetAttribLocation(d.prog, gl.Str("position\x00")))
+	d.texcoord = uint32(gl.GetAttribLocation(d.prog, gl.Str("texcoord\x00")))
 
 	return d
 }
@@ -152,7 +152,7 @@ func (d *drawer) Draw(x, y, w, h float32, t *Texture) {
 		x1, y1, 0, 1,
 	}
 
-	gl.UseProgram(d.prog.prog)
+	gl.UseProgram(d.prog)
 	gl.BindVertexArray(d.vao)
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, d.vbo)
@@ -189,7 +189,7 @@ func (d *drawer) DrawQuad(x, y float32, num byte) {
 		x1, y1, col, row + size,
 	}
 
-	gl.UseProgram(d.prog.prog)
+	gl.UseProgram(d.prog)
 	gl.BindVertexArray(d.vao)
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, d.vbo)
@@ -207,7 +207,7 @@ func (d *drawer) DrawQuad(x, y float32, num byte) {
 }
 
 func (d *drawer) Delete() {
-	d.prog.Delete()
+	gl.DeleteProgram(d.prog)
 	gl.DeleteBuffers(1, &d.ebo)
 	gl.DeleteBuffers(1, &d.vbo)
 	gl.DeleteVertexArrays(1, &d.vao)
@@ -217,15 +217,13 @@ type drawProgram struct {
 	prog uint32
 }
 
-func newDrawProgram() *drawProgram {
+func newDrawProgram() uint32 {
 	vert := getShader(vertexSourceDrawer, gl.VERTEX_SHADER)
 	frag := getShader(fragmentSourceDrawer, gl.FRAGMENT_SHADER)
-	d := &drawProgram{
-		prog: gl.CreateProgram(),
-	}
-	gl.AttachShader(d.prog, vert)
-	gl.AttachShader(d.prog, frag)
-	gl.LinkProgram(d.prog)
+	d := gl.CreateProgram()
+	gl.AttachShader(d, vert)
+	gl.AttachShader(d, frag)
+	gl.LinkProgram(d)
 	gl.DeleteShader(vert)
 	gl.DeleteShader(frag)
 	return d
@@ -233,10 +231,6 @@ func newDrawProgram() *drawProgram {
 
 func (d *drawProgram) getAttribLocation(attrib string) uint32 {
 	return uint32(gl.GetAttribLocation(d.prog, gl.Str(attrib)))
-}
-
-func (d *drawProgram) Delete() {
-	gl.DeleteProgram(d.prog)
 }
 
 var (
@@ -271,7 +265,11 @@ func SetCanvas(c canvas) {
 		return
 	}
 	qCanvas = c
-	C.GL_SetCanvas(C.canvastype(c))
+	switch c {
+	case CANVAS_BOTTOMRIGHT, CANVAS_CONSOLE, CANVAS_MENU, CANVAS_STATUSBAR:
+	default:
+		C.GL_SetCanvas(C.canvastype(c))
+	}
 }
 
 func applyCanvas() (float32, float32) {
@@ -483,7 +481,7 @@ func (d *drawer) TileClear(x, y, w, h float32) {
 		x1, y1, x / 64, (y + h) / 64,
 	}
 
-	gl.UseProgram(d.prog.prog)
+	gl.UseProgram(d.prog)
 	gl.BindVertexArray(d.vao)
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, d.vbo)
