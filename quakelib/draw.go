@@ -142,6 +142,7 @@ func (d *recDrawer) Draw(x, y, w, h float32, c Color) {
 
 	gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
 
+	gl.DisableVertexAttribArray(d.position)
 	gl.Disable(gl.BLEND)
 }
 
@@ -213,6 +214,8 @@ func (d *drawer) Draw(x, y, w, h float32, t *Texture) {
 	textureManager.Bind(t)
 
 	gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
+	gl.DisableVertexAttribArray(d.texcoord)
+	gl.DisableVertexAttribArray(d.position)
 }
 
 func (d *drawer) DrawQuad(x, y float32, num byte) {
@@ -250,6 +253,9 @@ func (d *drawer) DrawQuad(x, y float32, num byte) {
 	textureManager.Bind(consoleTexture)
 
 	gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
+
+	gl.DisableVertexAttribArray(d.texcoord)
+	gl.DisableVertexAttribArray(d.position)
 }
 
 func (d *drawer) Delete() {
@@ -564,6 +570,9 @@ func (d *drawer) TileClear(x, y, w, h float32) {
 	textureManager.Bind(backtileTexture)
 
 	gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
+
+	gl.DisableVertexAttribArray(d.texcoord)
+	gl.DisableVertexAttribArray(d.position)
 }
 
 var (
