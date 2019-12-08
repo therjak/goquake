@@ -55,7 +55,9 @@ void GL_SetCanvas(canvastype newcanvas) {
     default:
       Go_Error("GL_SetCanvas: bad canvas type");
   }
+}
 
+void GL_CanvasEnd(void) {
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 }

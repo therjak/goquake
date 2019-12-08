@@ -3,6 +3,7 @@ package quakelib
 //#include "stdlib.h"
 //#include "draw.h"
 //void GL_SetCanvas(canvastype newCanvas);
+//void GL_CanvasEnd(void);
 import "C"
 
 import (
@@ -31,13 +32,13 @@ const (
 const (
 	vertexSourceDrawer = `
 #version 410
-in vec2 position;
+in vec3 position;
 in vec2 texcoord;
 out vec2 Texcoord;
 
 void main() {
 	Texcoord = texcoord;
-	gl_Position = vec4(position, 0.0, 1.0);
+	gl_Position = vec4(position, 1.0);
 }
 `
 	fragmentSourceDrawer = `
@@ -117,10 +118,10 @@ func (d *recDrawer) Draw(x, y, w, h float32, c Color) {
 	y1 = -y1*sy + ys
 	y2 = -y2*sy + ys
 	vertices := []float32{
-		x1, y2, 0, 0,
-		x2, y2, 1, 0,
-		x2, y1, 1, 1,
-		x1, y1, 0, 1,
+		x1, y2, 0, 0, 0,
+		x2, y2, 0, 1, 0,
+		x2, y1, 0, 1, 1,
+		x1, y1, 0, 0, 1,
 	}
 
 	gl.Enable(gl.BLEND)
@@ -132,7 +133,7 @@ func (d *recDrawer) Draw(x, y, w, h float32, c Color) {
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 
 	gl.EnableVertexAttribArray(d.position)
-	gl.VertexAttribPointer(d.position, 2, gl.FLOAT, false, 4*4, gl.PtrOffset(0))
+	gl.VertexAttribPointer(d.position, 3, gl.FLOAT, false, 4*5, gl.PtrOffset(0))
 
 	gl.Uniform4f(d.color, c.R, c.G, c.B, c.A)
 
@@ -188,10 +189,10 @@ func (d *drawer) Draw(x, y, w, h float32, t *Texture) {
 	y1 = -y1*sy + ys
 	y2 = -y2*sy + ys
 	vertices := []float32{
-		x1, y2, 0, 0,
-		x2, y2, 1, 0,
-		x2, y1, 1, 1,
-		x1, y1, 0, 1,
+		x1, y2, 0, 0, 0,
+		x2, y2, 0, 1, 0,
+		x2, y1, 0, 1, 1,
+		x1, y1, 0, 0, 1,
 	}
 
 	gl.UseProgram(d.prog)
@@ -201,10 +202,10 @@ func (d *drawer) Draw(x, y, w, h float32, t *Texture) {
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 
 	gl.EnableVertexAttribArray(d.position)
-	gl.VertexAttribPointer(d.position, 2, gl.FLOAT, false, 4*4, gl.PtrOffset(0))
+	gl.VertexAttribPointer(d.position, 3, gl.FLOAT, false, 4*5, gl.PtrOffset(0))
 
 	gl.EnableVertexAttribArray(d.texcoord)
-	gl.VertexAttribPointer(d.texcoord, 2, gl.FLOAT, false, 4*4, gl.PtrOffset(2*4))
+	gl.VertexAttribPointer(d.texcoord, 2, gl.FLOAT, false, 4*5, gl.PtrOffset(3*4))
 
 	textureManager.Bind(t)
 
@@ -225,10 +226,10 @@ func (d *drawer) DrawQuad(x, y float32, num byte) {
 	y1 = -y1*sy + ys
 	y2 = -y2*sy + ys
 	vertices := []float32{
-		x1, y2, col, row,
-		x2, y2, col + size, row,
-		x2, y1, col + size, row + size,
-		x1, y1, col, row + size,
+		x1, y2, 0, col, row,
+		x2, y2, 0, col + size, row,
+		x2, y1, 0, col + size, row + size,
+		x1, y1, 0, col, row + size,
 	}
 
 	gl.UseProgram(d.prog)
@@ -238,10 +239,10 @@ func (d *drawer) DrawQuad(x, y float32, num byte) {
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 
 	gl.EnableVertexAttribArray(d.position)
-	gl.VertexAttribPointer(d.position, 2, gl.FLOAT, false, 4*4, gl.PtrOffset(0))
+	gl.VertexAttribPointer(d.position, 3, gl.FLOAT, false, 4*5, gl.PtrOffset(0))
 
 	gl.EnableVertexAttribArray(d.texcoord)
-	gl.VertexAttribPointer(d.texcoord, 2, gl.FLOAT, false, 4*4, gl.PtrOffset(2*4))
+	gl.VertexAttribPointer(d.texcoord, 2, gl.FLOAT, false, 4*5, gl.PtrOffset(3*4))
 
 	textureManager.Bind(consoleTexture)
 
@@ -318,6 +319,7 @@ func SetCanvas(c canvas) {
 	default:
 		C.GL_SetCanvas(C.canvastype(c))
 	}
+	C.GL_CanvasEnd()
 }
 
 func applyCanvas() (float32, float32) {
@@ -523,10 +525,10 @@ func (d *drawer) TileClear(x, y, w, h float32) {
 	y1 = -y1*sy + ys
 	y2 = -y2*sy + ys
 	vertices := []float32{
-		x1, y2, x / 64, y / 64,
-		x2, y2, (x + w) / 64, y / 64,
-		x2, y1, (x + w) / 64, (y + h) / 64,
-		x1, y1, x / 64, (y + h) / 64,
+		x1, y2, 0, x / 64, y / 64,
+		x2, y2, 0, (x + w) / 64, y / 64,
+		x2, y1, 0, (x + w) / 64, (y + h) / 64,
+		x1, y1, 0, x / 64, (y + h) / 64,
 	}
 
 	gl.UseProgram(d.prog)
@@ -536,10 +538,10 @@ func (d *drawer) TileClear(x, y, w, h float32) {
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 
 	gl.EnableVertexAttribArray(d.position)
-	gl.VertexAttribPointer(d.position, 2, gl.FLOAT, false, 4*4, gl.PtrOffset(0))
+	gl.VertexAttribPointer(d.position, 3, gl.FLOAT, false, 4*5, gl.PtrOffset(0))
 
 	gl.EnableVertexAttribArray(d.texcoord)
-	gl.VertexAttribPointer(d.texcoord, 2, gl.FLOAT, false, 4*4, gl.PtrOffset(2*4))
+	gl.VertexAttribPointer(d.texcoord, 2, gl.FLOAT, false, 4*5, gl.PtrOffset(3*4))
 
 	color := []float32{1.0, 1.0, 1.0, 1.0}
 	gl.TexParameterfv(gl.TEXTURE_2D, gl.TEXTURE_BORDER_COLOR, &(color[0]))
