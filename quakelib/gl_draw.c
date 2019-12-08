@@ -61,20 +61,3 @@ void GL_CanvasEnd(void) {
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 }
-
-/*
-================
-GL_Set2D -- johnfitz -- rewritten
-================
-*/
-// THERJAK
-void GL_Set2D(void) {
-  currentcanvas = CANVAS_NONE;
-  GLSetCanvas(CANVAS_DEFAULT);
-
-  glDisable(GL_DEPTH_TEST);
-  glDisable(GL_CULL_FACE);
-  glDisable(GL_BLEND);
-  glEnable(GL_ALPHA_TEST);
-  glColor4f(1, 1, 1, 1);
-}

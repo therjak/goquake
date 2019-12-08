@@ -48,7 +48,10 @@ out vec4 frag_color;
 uniform sampler2D tex;
 
 void main() {
-  frag_color = texture(tex, Texcoord);
+  vec4 color = texture(tex, Texcoord);
+	if (color.a < 0.666)
+	  discard;
+  frag_color = color;
 }
 `
 	fragmentSourceColorRecDrawer = `
@@ -322,6 +325,14 @@ func SetCanvas(c canvas) {
 	C.GL_CanvasEnd()
 }
 
+func drawSet2D() {
+	qCanvas = CANVAS_NONE
+	SetCanvas(CANVAS_DEFAULT)
+	gl.Disable(gl.DEPTH_TEST)
+	gl.Disable(gl.CULL_FACE)
+	gl.Disable(gl.BLEND)
+}
+
 func applyCanvas() (float32, float32) {
 	switch qCanvas {
 	case CANVAS_DEFAULT:
@@ -371,7 +382,7 @@ func applyCanvas() (float32, float32) {
 			int32(48*s))
 		return float32(2) / 320, float32(2) / 48
 	case CANVAS_WARPIMAGE:
-		//gl.Viewport(0,0,viewport.width,viewport.height)
+		gl.Viewport(0, viewport.height-glWarpImageSize, glWarpImageSize, glWarpImageSize)
 		return float32(2) / 128, float32(2) / 128
 	case CANVAS_BOTTOMRIGHT:
 		s := float32(viewport.width) / float32(console.width)
@@ -495,12 +506,15 @@ func DrawConsoleBackground() {
 }
 
 func DrawFadeScreen() {
+	gl.Enable(gl.BLEND)
 	c := Color{0, 0, 0, 0.5}
 	qRecDrawer.Draw(0, 0, float32(viewport.width), float32(viewport.height), c)
 	statusbar.MarkChanged()
+	gl.Disable(gl.BLEND)
 }
 
 func DrawFill(x, y, w, h int, c int, alpha float32) {
+	gl.Enable(gl.BLEND)
 	col := Color{
 		R: float32(palette.table[c*4]) / 255,
 		G: float32(palette.table[c*4+1]) / 255,
@@ -508,6 +522,7 @@ func DrawFill(x, y, w, h int, c int, alpha float32) {
 		A: alpha,
 	}
 	qRecDrawer.Draw(float32(x), float32(y), float32(w), float32(h), col)
+	gl.Disable(gl.BLEND)
 }
 
 func DrawTileClear(xi, yi, wi, hi int) {

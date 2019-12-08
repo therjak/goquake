@@ -433,8 +433,8 @@ V_PolyBlend -- johnfitz -- moved here from gl_rmain.c, and rewritten to use
 glOrtho
 ============
 */
-void V_PolyBlend(void) {
-  if (!Cvar_GetValue(&gl_polyblend) || !v_blend[3]) return;
+void V_PolyBlend(float vb[4]) {
+  if (!Cvar_GetValue(&gl_polyblend) || !vb[3]) return;
 
   GLDisableMultitexture();
 
@@ -449,7 +449,7 @@ void V_PolyBlend(void) {
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
-  glColor4fv(v_blend);
+  glColor4fv(vb);
 
   glBegin(GL_QUADS);
   glVertex2f(0, 0);
@@ -773,7 +773,7 @@ void V_RenderView(void) {
 
   R_RenderView();
 
-  V_PolyBlend();  // johnfitz -- moved here from R_Renderview ();
+  V_PolyBlend(v_blend);  // johnfitz -- moved here from R_Renderview ();
 }
 
 /*

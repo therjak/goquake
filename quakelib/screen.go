@@ -604,7 +604,7 @@ func (scr *qScreen) Update() {
 	scr.setupToDrawConsole()
 
 	view.Render()
-	GL_Set2D()
+	drawSet2D()
 
 	scr.tileClear()
 

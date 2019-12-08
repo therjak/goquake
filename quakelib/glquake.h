@@ -26,8 +26,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <GL/gl.h>
 
-void GL_Set2D(void);
-
 #define GL_UNUSED_TEXTURE (~(GLuint)0)
 
 // r_local.h -- private refresh defs

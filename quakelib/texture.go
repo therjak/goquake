@@ -494,11 +494,16 @@ func TexMgrRecalcWarpImageSize() {
 	textureManager.RecalcWarpImageSize()
 }
 
+var (
+	glWarpImageSize int32
+)
+
 func (tm *texMgr) RecalcWarpImageSize() {
 	s := tm.safeTextureSize(512)
 	for s > int32(screen.Width) || s > int32(screen.Height) {
 		s >>= 1
 	}
+	glWarpImageSize = s
 	C.gl_warpimagesize = C.int(s)
 
 	// TODO(therjak): there should be a better way.
