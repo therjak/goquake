@@ -107,22 +107,20 @@ float V_CalcBob(void) {
 //=============================================================================
 
 void V_StartPitchDrift(void) {
-#if 1
-  if (cl.laststop == CL_Time()) {
+  if (CL_LastStop() == CL_Time()) {
     return;  // something else is keeping it from drifting
   }
-#endif
-  if (cl.nodrift || !cl.pitchvel) {
-    cl.pitchvel = Cvar_GetValue(&v_centerspeed);
-    cl.nodrift = false;
-    cl.driftmove = 0;
+  if (CL_NoDrift() || !CL_PitchVel()) {
+    CL_SetPitchVel(Cvar_GetValue(&v_centerspeed));
+    CL_SetNoDrift(false);
+    CL_SetDriftMove(0);
   }
 }
 
 void V_StopPitchDrift(void) {
-  cl.laststop = CL_Time();
-  cl.nodrift = true;
-  cl.pitchvel = 0;
+  CL_SetLastStop(CL_Time());
+  CL_SetNoDrift(true);
+  CL_SetPitchVel(0);
 }
 
 /*
@@ -145,43 +143,43 @@ void V_DriftPitch(void) {
   // FIXME: noclip_anglehack is set on the server, so in a nonlocal game this
   // won't work.
   {
-    cl.driftmove = 0;
-    cl.pitchvel = 0;
+    CL_SetDriftMove(0);
+    CL_SetPitchVel(0);
     return;
   }
 
   // don't count small mouse motion
-  if (cl.nodrift) {
+  if (CL_NoDrift()) {
     if (fabs(CL_CmdForwardMove()) < Cvar_GetValue(&cl_forwardspeed))
-      cl.driftmove = 0;
+      CL_SetDriftMove(0);
     else
-      cl.driftmove += HostFrameTime();
+      CL_SetDriftMove(CL_DriftMove() + HostFrameTime());
 
-    if (cl.driftmove > Cvar_GetValue(&v_centermove)) {
+    if (CL_DriftMove() > Cvar_GetValue(&v_centermove)) {
       if (Cvar_GetValue(&lookspring)) V_StartPitchDrift();
     }
     return;
   }
 
-  delta = cl.idealpitch - CLPitch();
+  delta = CL_IdealPitch() - CLPitch();
 
   if (!delta) {
-    cl.pitchvel = 0;
+    CL_SetPitchVel(0);
     return;
   }
 
-  move = HostFrameTime() * cl.pitchvel;
-  cl.pitchvel += HostFrameTime() * Cvar_GetValue(&v_centerspeed);
+  move = HostFrameTime() * CL_PitchVel();
+  CL_SetPitchVel(CL_PitchVel() + HostFrameTime() * Cvar_GetValue(&v_centerspeed));
 
   if (delta > 0) {
     if (move > delta) {
-      cl.pitchvel = 0;
+      CL_SetPitchVel(0);
       move = delta;
     }
     IncCLPitch(move);
   } else if (delta < 0) {
     if (move > -delta) {
-      cl.pitchvel = 0;
+      CL_SetPitchVel(0);
       move = -delta;
     }
     DecCLPitch(move);
@@ -655,7 +653,7 @@ void V_CalcRefdef(void) {
 
   // refresh position
   VectorCopy(ent->origin, r_refdef.vieworg);
-  r_refdef.vieworg[2] += cl.viewheight + bob;
+  r_refdef.vieworg[2] += CL_ViewHeight() + bob;
 
   // never let it sit exactly on a node line, because a water plane can
   // dissapear when viewed with the eye exactly on it.
@@ -696,7 +694,7 @@ void V_CalcRefdef(void) {
   CalcGunAngle();
 
   VectorCopy(ent->origin, view->origin);
-  view->origin[2] += cl.viewheight;
+  view->origin[2] += CL_ViewHeight();
 
   for (i = 0; i < 3; i++) view->origin[i] += forward[i] * bob * 0.4;
   view->origin[2] += bob;

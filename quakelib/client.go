@@ -200,12 +200,21 @@ type Client struct {
 	// sound_precache
 	// model_precache
 	// viewent.model
-	// mvelocity
-	// punchangle
-	// idealpitch
-	// viewheight
-	// mapname
-	// levelname
+
+	//
+
+	mViewAngles [2]vec.Vec3
+	viewAngles  vec.Vec3
+	mVelocity   [2]vec.Vec3 // update by server
+	velocity    vec.Vec3    // lerped from mvelocity
+	punchAngle  vec.Vec3
+	idealPitch  float32
+	pitchVel    float32
+	drift       bool
+	driftMove   float32
+	lastStop    float64
+	viewHeight  float32
+
 	//
 
 	mapName    string
@@ -253,6 +262,66 @@ var (
 	cls = ClientStatic{}
 	cl  = Client{}
 )
+
+//export CL_IdealPitch
+func CL_IdealPitch() float32 {
+	return cl.idealPitch
+}
+
+//export CL_SetIdealPitch
+func CL_SetIdealPitch(p float32) {
+	cl.idealPitch = p
+}
+
+//export CL_PitchVel
+func CL_PitchVel() float32 {
+	return cl.pitchVel
+}
+
+//export CL_SetPitchVel
+func CL_SetPitchVel(v float32) {
+	cl.pitchVel = v
+}
+
+//export CL_NoDrift
+func CL_NoDrift() bool {
+	return !cl.drift
+}
+
+//export CL_SetNoDrift
+func CL_SetNoDrift(b bool) {
+	cl.drift = !b
+}
+
+//export CL_DriftMove
+func CL_DriftMove() float32 {
+	return cl.driftMove
+}
+
+//export CL_SetDriftMove
+func CL_SetDriftMove(m float32) {
+	cl.driftMove = m
+}
+
+//export CL_LastStop
+func CL_LastStop() float64 {
+	return cl.lastStop
+}
+
+//export CL_SetLastStop
+func CL_SetLastStop(s float64) {
+	cl.lastStop = s
+}
+
+//export CL_ViewHeight
+func CL_ViewHeight() float32 {
+	return cl.viewHeight
+}
+
+//export CL_SetViewHeight
+func CL_SetViewHeight(h float32) {
+	cl.viewHeight = h
+}
 
 //export CL_MaxEdicts
 func CL_MaxEdicts() int {

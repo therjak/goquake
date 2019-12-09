@@ -628,14 +628,14 @@ void CL_ParseClientdata(void) {
   // johnfitz
 
   if (bits & SU_VIEWHEIGHT)
-    cl.viewheight = CL_MSG_ReadChar();
+    CL_SetViewHeight(CL_MSG_ReadChar());
   else
-    cl.viewheight = DEFAULT_VIEWHEIGHT;
+    CL_SetViewHeight(DEFAULT_VIEWHEIGHT);
 
   if (bits & SU_IDEALPITCH)
-    cl.idealpitch = CL_MSG_ReadChar();
+    CL_SetIdealPitch(CL_MSG_ReadChar());
   else
-    cl.idealpitch = 0;
+    CL_SetIdealPitch(0);
 
   VectorCopy(cl.mvelocity[0], cl.mvelocity[1]);
   for (i = 0; i < 3; i++) {
