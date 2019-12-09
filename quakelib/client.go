@@ -15,6 +15,7 @@ import "C"
 import (
 	"bytes"
 	"fmt"
+	"github.com/chewxy/math32"
 	"log"
 	"quake/cbuf"
 	"quake/cmd"
@@ -262,6 +263,16 @@ var (
 	cls = ClientStatic{}
 	cl  = Client{}
 )
+
+//export CL_SetMVelocity
+func CL_SetMVelocity(i, j int, v float32) {
+	cl.mVelocity[j][i] = v
+}
+
+//export CL_SetVelocity
+func CL_SetVelocity(i int, v float32) {
+	cl.velocity[i] = v
+}
 
 //export CL_IdealPitch
 func CL_IdealPitch() float32 {
@@ -1547,4 +1558,63 @@ func (c *Client) LerpPoint() float64 {
 	}
 
 	return frac
+}
+
+//export V_CalcBob
+func V_CalcBob() float32 {
+	return cl.calcBob()
+}
+
+func (c *Client) calcBob() float32 {
+	square := func(v float32) float32 {
+		return v * v
+	}
+	bobCycle := cvars.ClientBobCycle.Value()
+	bobUp := cvars.ClientBobUp.Value()
+	t := float32(c.time)
+
+	cycle := (t - math32.Trunc(t/bobCycle)*bobCycle) / bobCycle
+	if cycle < bobUp {
+		cycle = math32.Pi * cycle / bobUp
+	} else {
+		cycle = math32.Pi + math32.Pi*(cycle-bobUp)/(1-bobUp)
+	}
+	// bob is proportional to velocity in the xy plane
+	// (don't count Z, or jumping messes it up)
+	v := math32.Sqrt(square(cl.velocity[0]) + square(cl.velocity[1]))
+	bob := v * cvars.ClientBob.Value()
+	bob = 0.3*bob + 0.7*bob*math32.Sin(cycle)
+	if bob > 4 {
+		return 4
+	} else if bob < -7 {
+		return -7
+	}
+	return bob
+}
+
+//export V_StartPitchDrift
+func V_StartPitchDrift() {
+	cl.startPitchDrift()
+}
+
+func (c *Client) startPitchDrift() {
+	if c.lastStop == c.time {
+		return // something else is keeping it from drifting
+	}
+	if !c.drift || cl.pitchVel == 0 {
+		c.pitchVel = cvars.ViewCenterSpeed.Value()
+		c.drift = true
+		c.driftMove = 0
+	}
+}
+
+//export V_StopPitchDrift
+func V_StopPitchDrift() {
+	cl.stopPitchDrift()
+}
+
+func (c *Client) stopPitchDrift() {
+	c.lastStop = c.time
+	c.drift = false
+	c.pitchVel = 0
 }

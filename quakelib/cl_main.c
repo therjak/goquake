@@ -180,9 +180,11 @@ void CL_RelinkEntities(void) {
   //
   // interpolate player info
   //
-  for (i = 0; i < 3; i++)
+  for (i = 0; i < 3; i++) {
     cl.velocity[i] =
         cl.mvelocity[1][i] + frac * (cl.mvelocity[0][i] - cl.mvelocity[1][i]);
+    CL_SetVelocity(i, cl.velocity[i]);
+  }
 
   if (CLS_IsDemoPlayback()) {
     // interpolate the angles

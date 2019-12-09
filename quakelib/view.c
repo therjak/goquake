@@ -73,58 +73,6 @@ float V_CalcRoll(vec3_t angles, vec3_t velocity) {
 
 /*
 ===============
-V_CalcBob
-
-===============
-*/
-float V_CalcBob(void) {
-  float bob;
-  float cycle;
-
-  cycle = CL_Time() - (int)(CL_Time() / Cvar_GetValue(&cl_bobcycle)) *
-                          Cvar_GetValue(&cl_bobcycle);
-  cycle /= Cvar_GetValue(&cl_bobcycle);
-  if (cycle < Cvar_GetValue(&cl_bobup))
-    cycle = M_PI * cycle / Cvar_GetValue(&cl_bobup);
-  else
-    cycle = M_PI + M_PI * (cycle - Cvar_GetValue(&cl_bobup)) /
-                       (1.0 - Cvar_GetValue(&cl_bobup));
-
-  // bob is proportional to velocity in the xy plane
-  // (don't count Z, or jumping messes it up)
-
-  bob =
-      sqrt(cl.velocity[0] * cl.velocity[0] + cl.velocity[1] * cl.velocity[1]) *
-      Cvar_GetValue(&cl_bob);
-  bob = bob * 0.3 + bob * 0.7 * sin(cycle);
-  if (bob > 4)
-    bob = 4;
-  else if (bob < -7)
-    bob = -7;
-  return bob;
-}
-
-//=============================================================================
-
-void V_StartPitchDrift(void) {
-  if (CL_LastStop() == CL_Time()) {
-    return;  // something else is keeping it from drifting
-  }
-  if (CL_NoDrift() || !CL_PitchVel()) {
-    CL_SetPitchVel(Cvar_GetValue(&v_centerspeed));
-    CL_SetNoDrift(false);
-    CL_SetDriftMove(0);
-  }
-}
-
-void V_StopPitchDrift(void) {
-  CL_SetLastStop(CL_Time());
-  CL_SetNoDrift(true);
-  CL_SetPitchVel(0);
-}
-
-/*
-===============
 V_DriftPitch
 
 Moves the client pitch angle towards cl.idealpitch sent by the server.
