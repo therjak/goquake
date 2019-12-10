@@ -1,6 +1,5 @@
 package quakelib
 
-// void V_StopPitchDrift(void);
 import "C"
 
 import (
@@ -173,7 +172,7 @@ func (v *userView) mouseMove() {
 	}
 	if input.MLook.Down() {
 		if x != 0 || y != 0 {
-			C.V_StopPitchDrift()
+			cl.stopPitchDrift()
 		}
 	}
 	if input.MLook.Down() && !input.Strafe.Down() {

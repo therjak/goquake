@@ -1,6 +1,5 @@
 package quakelib
 
-//void V_StopPitchDrift(void);
 //void CL_StopPlayback(void);
 //void CL_Stop_f(void);
 //#define SFX_WIZHIT  0
@@ -97,16 +96,6 @@ func SetCLRoll(v C.float) {
 	cl.roll = float32(v)
 }
 
-//export IncCLPitch
-func IncCLPitch(v C.float) {
-	cl.pitch += float32(v)
-}
-
-//export DecCLPitch
-func DecCLPitch(v C.float) {
-	cl.pitch -= float32(v)
-}
-
 //export CL_AdjustAngles
 func CL_AdjustAngles() {
 	speed := func() float32 {
@@ -121,7 +110,7 @@ func CL_AdjustAngles() {
 		cl.yaw = math.AngleMod32(cl.yaw)
 	}
 	if input.KLook.Down() {
-		C.V_StopPitchDrift()
+		cl.stopPitchDrift()
 		cl.pitch -= speed * cvars.ClientPitchSpeed.Value() * input.Forward.ConsumeImpulse()
 		cl.pitch += speed * cvars.ClientPitchSpeed.Value() * input.Back.ConsumeImpulse()
 	}
@@ -133,7 +122,7 @@ func CL_AdjustAngles() {
 	cl.pitch += speed * cvars.ClientPitchSpeed.Value() * down
 
 	if up != 0 || down != 0 {
-		C.V_StopPitchDrift()
+		cl.stopPitchDrift()
 	}
 
 	cl.pitch = math.Clamp32(cvars.ClientMinPitch.Value(), cl.pitch, cvars.ClientMaxPitch.Value())
@@ -264,14 +253,30 @@ var (
 	cl  = Client{}
 )
 
+/*
+	mViewAngles [2]vec.Vec3
+	viewAngles  vec.Vec3
+	punchAngle  vec.Vec3
+*/
+
 //export CL_SetMVelocity
 func CL_SetMVelocity(i, j int, v float32) {
 	cl.mVelocity[j][i] = v
 }
 
+//export CL_MVelocity
+func CL_MVelocity(i, j int) float32 {
+	return cl.mVelocity[j][i]
+}
+
 //export CL_SetVelocity
 func CL_SetVelocity(i int, v float32) {
 	cl.velocity[i] = v
+}
+
+//export CL_Velocity
+func CL_Velocity(i int) float32 {
+	return cl.velocity[i]
 }
 
 //export CL_IdealPitch
@@ -1608,13 +1613,70 @@ func (c *Client) startPitchDrift() {
 	}
 }
 
-//export V_StopPitchDrift
-func V_StopPitchDrift() {
-	cl.stopPitchDrift()
-}
-
 func (c *Client) stopPitchDrift() {
 	c.lastStop = c.time
 	c.drift = false
 	c.pitchVel = 0
+}
+
+//export V_DriftPitch
+func V_DriftPitch() {
+	cl.driftPitch()
+}
+
+/*
+Moves the client pitch angle towards cl.idealPitch sent by the server.
+
+If the user is adjusting pitch manually, either with lookup/lookdown,
+mlook and mouse, or klook and keyboard, pitch drifting is constantly stopped.
+*/
+func (c *Client) driftPitch() {
+	//float delta, move;
+
+	if /* noclip_anglehack ||*/ !c.onGround || cls.demoPlayback {
+		// FIXME: noclip_anglehack is set on the server, so in a nonlocal game this
+		// won't work.
+		c.driftMove = 0
+		c.pitchVel = 0
+		return
+	}
+
+	// don't count small mouse motion
+	if !cl.drift {
+		if math32.Abs(cl.cmdForwardMove) < cvars.ClientForwardSpeed.Value() {
+			cl.driftMove = 0
+		} else {
+			cl.driftMove += float32(host.frameTime)
+		}
+
+		if cl.driftMove > cvars.ViewCenterMove.Value() {
+			if cvars.LookSpring.Bool() {
+				c.startPitchDrift()
+			}
+		}
+		return
+	}
+
+	delta := cl.idealPitch - cl.pitch
+	if delta == 0 {
+		cl.pitchVel = 0
+		return
+	}
+
+	move := float32(host.frameTime) * cl.pitchVel
+	cl.pitchVel += float32(host.frameTime) * cvars.ViewCenterSpeed.Value()
+
+	if delta > 0 {
+		if move > delta {
+			cl.pitchVel = 0
+			move = delta
+		}
+		cl.pitch += move
+	} else {
+		if move > -delta {
+			cl.pitchVel = 0
+			move = -delta
+		}
+		cl.pitch -= move
+	}
 }

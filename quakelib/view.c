@@ -71,86 +71,12 @@ float V_CalcRoll(vec3_t angles, vec3_t velocity) {
   return side * sign;
 }
 
-/*
-===============
-V_DriftPitch
-
-Moves the client pitch angle towards cl.idealpitch sent by the server.
-
-If the user is adjusting pitch manually, either with lookup/lookdown,
-mlook and mouse, or klook and keyboard, pitch drifting is constantly stopped.
-
-Drifting is enabled when the center view key is hit, mlook is released and
-lookspring is non 0, or when
-===============
-*/
-void V_DriftPitch(void) {
-  float delta, move;
-
-  if (noclip_anglehack || !CL_OnGround() || CLS_IsDemoPlayback())
-  // FIXME: noclip_anglehack is set on the server, so in a nonlocal game this
-  // won't work.
-  {
-    CL_SetDriftMove(0);
-    CL_SetPitchVel(0);
-    return;
-  }
-
-  // don't count small mouse motion
-  if (CL_NoDrift()) {
-    if (fabs(CL_CmdForwardMove()) < Cvar_GetValue(&cl_forwardspeed))
-      CL_SetDriftMove(0);
-    else
-      CL_SetDriftMove(CL_DriftMove() + HostFrameTime());
-
-    if (CL_DriftMove() > Cvar_GetValue(&v_centermove)) {
-      if (Cvar_GetValue(&lookspring)) V_StartPitchDrift();
-    }
-    return;
-  }
-
-  delta = CL_IdealPitch() - CLPitch();
-
-  if (!delta) {
-    CL_SetPitchVel(0);
-    return;
-  }
-
-  move = HostFrameTime() * CL_PitchVel();
-  CL_SetPitchVel(CL_PitchVel() + HostFrameTime() * Cvar_GetValue(&v_centerspeed));
-
-  if (delta > 0) {
-    if (move > delta) {
-      CL_SetPitchVel(0);
-      move = delta;
-    }
-    IncCLPitch(move);
-  } else if (delta < 0) {
-    if (move > -delta) {
-      CL_SetPitchVel(0);
-      move = -delta;
-    }
-    DecCLPitch(move);
-  }
-}
-
-/*
-==============================================================================
-
-        VIEW BLENDING
-
-==============================================================================
-*/
-
 cshift_t cshift_empty = {{130, 80, 50}, 0};
 cshift_t cshift_water = {{130, 80, 50}, 128};
 cshift_t cshift_slime = {{0, 25, 5}, 150};
 cshift_t cshift_lava = {{255, 80, 0}, 150};
 
 float v_blend[4];  // rgba 0.0 - 1.0
-
-// johnfitz -- deleted BuildGammaTable(), V_CheckGamma(), gammatable[], and
-// ramps[][]
 
 /*
 ===============
