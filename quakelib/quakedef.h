@@ -213,7 +213,6 @@ typedef struct {
 
 #include "console.h"
 #include "vid.h"
-#include "screen.h"
 #include "draw.h"
 #include "render.h"
 #include "view.h"

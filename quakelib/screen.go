@@ -125,8 +125,8 @@ func (scr *qScreen) drawFPS() {
 	scr.ResetTileClearUpdates()
 }
 
-//export SCR_InitGo
-func SCR_InitGo() {
+//export SCR_Init
+func SCR_Init() {
 	screen.initialized = true
 }
 
