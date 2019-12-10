@@ -11,22 +11,15 @@ uint32_t playertextures[MAX_SCOREBOARD];  // johnfitz -- changed to an array
 
 #define NUMVERTEXNORMALS 162
 
-float r_avertexnormals[NUMVERTEXNORMALS][3] = {
-#include "anorms.h"
-};
-
 extern vec3_t
     lightcolor;  // johnfitz -- replaces "float shadelight" for lit support
 
 // precalculated dot products for quantized angles
 #define SHADEDOT_QUANT 16
-float r_avertexnormal_dots[SHADEDOT_QUANT][256] = {
-#include "anorm_dots.h"
-};
 
 extern vec3_t lightspot;
 
-float *shadedots = r_avertexnormal_dots[0];
+int shadeDots = 0;
 vec3_t shadevector;
 
 float entalpha;  // johnfitz
@@ -340,20 +333,20 @@ void GL_DrawAliasFrame(aliashdr_t *paliashdr, lerpdata_t lerpdata) {
           glColor3f(rand() % 256 / 255.0, rand() % 256 / 255.0,
                     rand() % 256 / 255.0);
         } else if (lerping) {
-          vertcolor[0] = (shadedots[verts1->lightnormalindex] * iblend +
-                          shadedots[verts2->lightnormalindex] * blend) *
+          vertcolor[0] = (R_and(shadeDots,verts1->lightnormalindex) * iblend +
+                          R_and(shadeDots,verts2->lightnormalindex) * blend) *
                          lightcolor[0];
-          vertcolor[1] = (shadedots[verts1->lightnormalindex] * iblend +
-                          shadedots[verts2->lightnormalindex] * blend) *
+          vertcolor[1] = (R_and(shadeDots,verts1->lightnormalindex) * iblend +
+                          R_and(shadeDots,verts2->lightnormalindex) * blend) *
                          lightcolor[1];
-          vertcolor[2] = (shadedots[verts1->lightnormalindex] * iblend +
-                          shadedots[verts2->lightnormalindex] * blend) *
+          vertcolor[2] = (R_and(shadeDots,verts1->lightnormalindex) * iblend +
+                          R_and(shadeDots,verts2->lightnormalindex) * blend) *
                          lightcolor[2];
           glColor4fv(vertcolor);
         } else {
-          vertcolor[0] = shadedots[verts1->lightnormalindex] * lightcolor[0];
-          vertcolor[1] = shadedots[verts1->lightnormalindex] * lightcolor[1];
-          vertcolor[2] = shadedots[verts1->lightnormalindex] * lightcolor[2];
+          vertcolor[0] = R_and(shadeDots,verts1->lightnormalindex) * lightcolor[0];
+          vertcolor[1] = R_and(shadeDots,verts1->lightnormalindex) * lightcolor[1];
+          vertcolor[2] = R_and(shadeDots,verts1->lightnormalindex) * lightcolor[2];
           glColor4fv(vertcolor);
         }
       }
@@ -574,7 +567,7 @@ void R_SetupAliasLighting(entity_t *e) {
   VectorNormalize(shadevector);
   // ericw --
 
-  shadedots = r_avertexnormal_dots[quantizedangle];
+  shadeDots = quantizedangle;
   VectorScale(lightcolor, 1.0f / 200.0f, lightcolor);
 }
 

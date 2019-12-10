@@ -380,9 +380,6 @@ void GL_MakeAliasModelDisplayLists_VBO(void) {
   GLMesh_LoadVertexBuffer(aliasmodel, pheader);
 }
 
-#define NUMVERTEXNORMALS 162
-extern float r_avertexnormals[NUMVERTEXNORMALS][3];
-
 /*
 ================
 GLMesh_LoadVertexBuffer
@@ -464,9 +461,9 @@ static void GLMesh_LoadVertexBuffer(qmodel_t *m, const aliashdr_t *hdr) {
       // this introduces some error (less than 0.004), but the normals were very
       // coarse
       // to begin with
-      xyz[v].normal[0] = 127 * r_avertexnormals[trivert.lightnormalindex][0];
-      xyz[v].normal[1] = 127 * r_avertexnormals[trivert.lightnormalindex][1];
-      xyz[v].normal[2] = 127 * r_avertexnormals[trivert.lightnormalindex][2];
+      xyz[v].normal[0] = 127 * R_avertexnormals(trivert.lightnormalindex,0);
+      xyz[v].normal[1] = 127 * R_avertexnormals(trivert.lightnormalindex,1);
+      xyz[v].normal[2] = 127 * R_avertexnormals(trivert.lightnormalindex,2);
       xyz[v].normal[3] = 0;  // unused; for 4-byte alignment
     }
   }

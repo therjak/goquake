@@ -147,7 +147,6 @@ R_EntityParticles
 ===============
 */
 #define NUMVERTEXNORMALS 162
-extern float r_avertexnormals[NUMVERTEXNORMALS][3];
 vec3_t avelocities[NUMVERTEXNORMALS];
 float beamlength = 16;
 vec3_t avelocity = {23, 7, 3};
@@ -200,11 +199,11 @@ void R_EntityParticles(entity_t *ent) {
     p->color = 0x6f;
     p->type = pt_explode;
 
-    p->org[0] = ent->origin[0] + r_avertexnormals[i][0] * dist +
+    p->org[0] = ent->origin[0] + R_avertexnormals(i,0) * dist +
                 forward[0] * beamlength;
-    p->org[1] = ent->origin[1] + r_avertexnormals[i][1] * dist +
+    p->org[1] = ent->origin[1] + R_avertexnormals(i,1) * dist +
                 forward[1] * beamlength;
-    p->org[2] = ent->origin[2] + r_avertexnormals[i][2] * dist +
+    p->org[2] = ent->origin[2] + R_avertexnormals(i,2) * dist +
                 forward[2] * beamlength;
   }
 }
