@@ -448,9 +448,9 @@ void R_SetupGL(void) {
   // johnfitz -- rewrote this section
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glViewport(r_refdef.vrect.x,
-             GL_Height() - r_refdef.vrect.y - r_refdef.vrect.height,
-             r_refdef.vrect.width, r_refdef.vrect.height);
+  glViewport(R_Refdef_vrect_x(),
+             GL_Height() - R_Refdef_vrect_y() - R_Refdef_vrect_height(),
+             R_Refdef_vrect_width(), R_Refdef_vrect_height());
   // johnfitz
 
   GL_SetFrustum(r_fovx, r_fovy);  // johnfitz -- use r_fov* vars
@@ -533,8 +533,8 @@ void R_SetupView(void) {
   V_CalcBlend();
 
   // johnfitz -- calculate r_fovx and r_fovy here
-  r_fovx = r_refdef.fov_x;
-  r_fovy = r_refdef.fov_y;
+  r_fovx = R_Refdef_fov_x();
+  r_fovy = R_Refdef_fov_y();
   if (Cvar_GetValue(&r_waterwarp)) {
     int contents = Mod_PointInLeaf(r_origin, cl.worldmodel)->contents;
     if (contents == CONTENTS_WATER || contents == CONTENTS_SLIME ||
@@ -542,10 +542,10 @@ void R_SetupView(void) {
       // variance is a percentage of width, where width = 2 * tan(fov / 2)
       // otherwise the effect is too dramatic at high FOV and too subtle at low
       // FOV.  what a mess!
-      r_fovx = atan(tan(DEG2RAD(r_refdef.fov_x) / 2) *
+      r_fovx = atan(tan(DEG2RAD(R_Refdef_fov_x()) / 2) *
                     (0.97 + sin(CL_Time() * 1.5) * 0.03)) *
                2 / M_PI_DIV_180;
-      r_fovy = atan(tan(DEG2RAD(r_refdef.fov_y) / 2) *
+      r_fovy = atan(tan(DEG2RAD(R_Refdef_fov_y()) / 2) *
                     (1.03 - sin(CL_Time() * 1.5) * 0.03)) *
                2 / M_PI_DIV_180;
     }

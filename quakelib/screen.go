@@ -2,8 +2,6 @@ package quakelib
 
 // int GetRFrameCount();
 // void SCR_UpdateScreen2();
-// void SetRefdefRect(int x, int y, int w, int h);
-// void SetRefdefFov(float x, float y);
 import "C"
 
 import (
@@ -570,10 +568,9 @@ func (scr *qScreen) calcViewRect() {
 	scr.fovX = fovx
 	scr.fovY = fovy
 
-	// notify the C side
-	C.SetRefdefRect(C.int(scr.vrect.x), C.int(scr.vrect.y),
-		C.int(scr.vrect.width), C.int(scr.vrect.height))
-	C.SetRefdefFov(C.float(scr.fovX), C.float(scr.fovY))
+	qRefreshRect.fovX = float32(scr.fovX)
+	qRefreshRect.fovY = float32(scr.fovY)
+	qRefreshRect.viewRect = scr.vrect
 }
 
 func (scr *qScreen) Update() {

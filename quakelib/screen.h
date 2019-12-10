@@ -28,8 +28,4 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 void SCR_Init(void);
 
-extern cvar_t scr_menuscale;
-extern cvar_t scr_sbarscale;
-extern cvar_t scr_crosshairscale;
-
 #endif /* _QUAKE_SCREEN_H */
