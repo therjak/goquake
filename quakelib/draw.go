@@ -40,7 +40,7 @@ void main() {
 	Texcoord = texcoord;
 	gl_Position = vec4(position, 1.0);
 }
-`
+` + "\x00"
 	fragmentSourceDrawer = `
 #version 410
 in vec2 Texcoord;
@@ -53,7 +53,7 @@ void main() {
 	  discard;
   frag_color = color;
 }
-`
+` + "\x00"
 	fragmentSourceColorRecDrawer = `
 #version 410
 in vec2 Texcoord;
@@ -63,7 +63,7 @@ uniform vec4 in_color;
 void main() {
   frag_color = in_color;
 }
-`
+` + "\x00"
 )
 
 func getShader(src string, shaderType uint32) uint32 {
