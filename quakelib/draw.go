@@ -127,6 +127,7 @@ func (d *recDrawer) Draw(x, y, w, h float32, c Color) {
 		x1, y1, 0, 0, 1,
 	}
 
+	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	gl.Enable(gl.BLEND)
 
 	gl.UseProgram(d.prog)
@@ -465,6 +466,9 @@ func DrawPictureAlpha(x, y int, p *QPic, alpha float32) {
 	qDrawer.Draw(float32(x), float32(y), float32(p.Width), float32(p.Height), p.Texture)
 
 	gl.Disable(gl.BLEND)
+
+	// TODO(therjak): why reset the blend func? who misses to set it?
+	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 }
 
 var (
@@ -472,7 +476,7 @@ var (
 	drawBottom = -2
 )
 
-func DrawTransparentPictureTranslate(x, y int, p *QPic, top, bottom int) {
+func DrawPictureTranslate(x, y int, p *QPic, top, bottom int) {
 	if top != drawTop || bottom != drawBottom {
 		drawTop = top
 		drawBottom = drawBottom
@@ -504,23 +508,25 @@ func DrawConsoleBackground() {
 		gl.Enable(gl.BLEND)
 	}
 
-	DrawPicture(0, 0, pic)
+	//TODO(therjak): this should be without alpha test
+	qDrawer.Draw(0, 0, float32(pic.Width), float32(pic.Height), pic.Texture)
 
 	if alpha < 1 {
 		gl.Disable(gl.BLEND)
+		// TODO(therjak): why do we need to reset the blend func?
+		// check each gl.Enable(BLEND) to set it before
+		gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	}
 }
 
 func DrawFadeScreen() {
-	gl.Enable(gl.BLEND)
+	SetCanvas(CANVAS_DEFAULT)
 	c := Color{0, 0, 0, 0.5}
 	qRecDrawer.Draw(0, 0, float32(viewport.width), float32(viewport.height), c)
 	statusbar.MarkChanged()
-	gl.Disable(gl.BLEND)
 }
 
 func DrawFill(x, y, w, h int, c int, alpha float32) {
-	gl.Enable(gl.BLEND)
 	col := Color{
 		R: float32(palette.table[c*4]) / 255,
 		G: float32(palette.table[c*4+1]) / 255,
@@ -528,7 +534,6 @@ func DrawFill(x, y, w, h int, c int, alpha float32) {
 		A: alpha,
 	}
 	qRecDrawer.Draw(float32(x), float32(y), float32(w), float32(h), col)
-	gl.Disable(gl.BLEND)
 }
 
 func DrawTileClear(xi, yi, wi, hi int) {

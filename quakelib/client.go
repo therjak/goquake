@@ -9,6 +9,7 @@ package quakelib
 //#define SFX_RIC2  4
 //#define SFX_RIC3  5
 //#define SFX_R_EXP3  6
+//#include "cgo_help.h"
 import "C"
 
 import (
@@ -1679,4 +1680,20 @@ func (c *Client) driftPitch() {
 		}
 		cl.pitch -= move
 	}
+}
+
+//export V_PolyBlend
+func V_PolyBlend(vb *C.float) {
+	c := Color{
+		float32(C.cf(0, vb)),
+		float32(C.cf(1, vb)),
+		float32(C.cf(2, vb)),
+		float32(C.cf(3, vb)),
+	}
+	if !cvars.GlPolyBlend.Bool() || c.A == 0 {
+		return
+	}
+
+	textureManager.DisableMultiTexture()
+	qRecDrawer.Draw(0, 0, float32(viewport.width), float32(viewport.height), c)
 }
