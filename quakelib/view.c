@@ -33,7 +33,6 @@ cvar_t v_iroll_level;
 cvar_t v_ipitch_level;
 cvar_t v_idlescale;
 cvar_t crosshair;
-cvar_t gl_cshiftpercent;
 
 float v_dmg_time, v_dmg_roll, v_dmg_pitch;
 
@@ -66,11 +65,6 @@ float V_CalcRoll(vec3_t angles, vec3_t velocity) {
 
   return side * sign;
 }
-
-cshift_t cshift_empty = {{130, 80, 50}, 0};
-cshift_t cshift_water = {{130, 80, 50}, 128};
-cshift_t cshift_slime = {{0, 25, 5}, 150};
-cshift_t cshift_lava = {{255, 80, 0}, 150};
 
 float v_blend[4];  // rgba 0.0 - 1.0
 
@@ -486,7 +480,6 @@ void V_Init(void) {
 
   Cvar_FakeRegister(&v_idlescale, "v_idlescale");
   Cvar_FakeRegister(&crosshair, "crosshair");
-  Cvar_FakeRegister(&gl_cshiftpercent, "gl_cshiftpercent");
 
   Cvar_FakeRegister(&scr_ofsx, "scr_ofsx");
   Cvar_FakeRegister(&scr_ofsy, "scr_ofsy");
