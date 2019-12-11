@@ -4,6 +4,7 @@ import (
 	"quake/math/vec"
 )
 
+// Would be great to type these but positive values are node numbers or so....
 const (
 	CONTENTS_EMPTY        = -1
 	CONTENTS_SOLID        = -2

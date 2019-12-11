@@ -172,14 +172,9 @@ void CL_ParseServerMessage(void);
 //
 // view
 //
-void V_StartPitchDrift(void);
-void V_StopPitchDrift(void);
-
 void V_RenderView(void);
-// void V_UpdatePalette (void); //johnfitz
 void V_Register(void);
 void V_ParseDamage(int armor, int blood, float fromx, float fromy, float fromz);
-void V_SetContentsColor(int contents);
 
 //
 // cl_tent

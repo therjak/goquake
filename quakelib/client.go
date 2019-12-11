@@ -10,6 +10,7 @@ package quakelib
 //#define SFX_RIC3  5
 //#define SFX_R_EXP3  6
 //#include "cgo_help.h"
+//void V_CalcBlend(void);
 import "C"
 
 import (
@@ -28,6 +29,7 @@ import (
 	"quake/math/vec"
 	"quake/model"
 	"quake/net"
+	"quake/progs"
 	clc "quake/protocol/client"
 	svc "quake/protocol/server"
 	"quake/snd"
@@ -46,6 +48,13 @@ const (
 	Ric2      sfx = C.SFX_RIC2
 	Ric3      sfx = C.SFX_RIC3
 	RExp3     sfx = C.SFX_R_EXP3
+)
+
+const (
+	ColorShiftContents = iota
+	ColorShiftDamage
+	ColorShiftBonus
+	ColorShiftPowerup
 )
 
 func init() {
@@ -194,16 +203,18 @@ type Client struct {
 
 	//
 
-	mViewAngles [2]vec.Vec3
-	mVelocity   [2]vec.Vec3 // update by server
-	velocity    vec.Vec3    // lerped from mvelocity
-	punchAngle  [2]vec.Vec3 // v_punchangle
-	idealPitch  float32
-	pitchVel    float32
-	drift       bool
-	driftMove   float32
-	lastStop    float64
-	viewHeight  float32
+	mViewAngles     [2]vec.Vec3
+	mVelocity       [2]vec.Vec3 // update by server
+	velocity        vec.Vec3    // lerped from mvelocity
+	punchAngle      [2]vec.Vec3 // v_punchangle
+	idealPitch      float32
+	pitchVel        float32
+	drift           bool
+	driftMove       float32
+	lastStop        float64
+	viewHeight      float32
+	colorShifts     [4]Color
+	colorShiftsPrev [4]Color
 
 	//
 
@@ -226,6 +237,7 @@ type Client struct {
 	maxEdicts    int
 
 	scores []score // len() == maxClients
+
 }
 
 type ClientStats struct {
@@ -1695,6 +1707,66 @@ func (c *Client) driftPitch() {
 	}
 }
 
+//export V_CalcBlendGo
+func V_CalcBlendGo(r, g, b, a *C.float) {
+	c := cl.calcBlend()
+	*r = C.float(c.R)
+	*g = C.float(c.G)
+	*b = C.float(c.B)
+	*a = C.float(c.A)
+}
+
+func (c *Client) calcBlend() Color {
+	color := Color{}
+	p := cvars.GlColorShiftPercent.Value() / 100
+	if p != 0 {
+		for j, cs := range c.colorShifts {
+			if c.intermission != 0 && j != ColorShiftContents {
+				continue
+			}
+			a := cs.A * p
+			if a == 0 {
+				continue
+			}
+			color.A += (1 - color.A) * a
+			a /= color.A
+			color.R = math.Lerp(color.R, cs.R, a)
+			color.G = math.Lerp(color.G, cs.G, a)
+			color.B = math.Lerp(color.B, cs.B, a)
+		}
+	}
+	color.A = math.Clamp32(0, color.A, 1)
+	return color
+}
+
+//export V_UpdateBlend
+func V_UpdateBlend() {
+	cl.updateBlend()
+}
+
+func (c *Client) updateBlend() {
+	c.calcPowerupColorShift()
+	changed := false
+	for i := 0; i < len(c.colorShifts); i++ {
+		if c.colorShifts[i] != c.colorShiftsPrev[i] {
+			changed = true
+			c.colorShiftsPrev[i] = c.colorShifts[i]
+		}
+	}
+	ft := float32(host.frameTime)
+	c.colorShifts[ColorShiftDamage].A -= ft * 150 / 255.0
+	if c.colorShifts[ColorShiftDamage].A < 0 {
+		c.colorShifts[ColorShiftDamage].A = 0
+	}
+	c.colorShifts[ColorShiftBonus].A -= ft * 150 / 255.0
+	if c.colorShifts[ColorShiftBonus].A < 0 {
+		c.colorShifts[ColorShiftBonus].A = 0
+	}
+	if changed {
+		C.V_CalcBlend()
+	}
+}
+
 //export V_PolyBlend
 func V_PolyBlend(vb *C.float) {
 	c := Color{
@@ -1709,4 +1781,79 @@ func V_PolyBlend(vb *C.float) {
 
 	textureManager.DisableMultiTexture()
 	qRecDrawer.Draw(0, 0, float32(viewport.width), float32(viewport.height), c)
+}
+
+//export V_CalcPowerupCshift
+func V_CalcPowerupCshift() {
+	cl.calcPowerupColorShift()
+}
+
+func (c *Client) calcPowerupColorShift() {
+	switch {
+	case c.items&progs.ItemQuad != 0:
+		c.colorShifts[ColorShiftPowerup] = intColor(0, 0, 255, 30)
+	case c.items&progs.ItemSuit != 0:
+		c.colorShifts[ColorShiftPowerup] = intColor(0, 255, 0, 20)
+	case c.items&progs.ItemInvisibility != 0:
+		c.colorShifts[ColorShiftPowerup] = intColor(100, 100, 100, 100)
+	case c.items&progs.ItemInvulnerability != 0:
+		c.colorShifts[ColorShiftPowerup] = intColor(255, 255, 0, 30)
+	default:
+		c.colorShifts[ColorShiftPowerup].A = 0
+	}
+}
+
+//export V_SetContentsColor
+func V_SetContentsColor(c int) {
+	cl.setContentsColor(c)
+}
+
+func intColor(r, g, b, a float32) Color {
+	f := float32(255.0)
+	return Color{r / f, g / f, b / f, a / f}
+}
+
+var (
+	cshiftEmpty = intColor(130, 80, 50, 0)
+	cshiftLava  = intColor(255, 80, 0, 150)
+	cshiftSlime = intColor(0, 25, 5, 150)
+	cshiftWater = intColor(130, 80, 50, 128)
+)
+
+func (c *Client) setContentsColor(con int) {
+	switch con {
+	case model.CONTENTS_EMPTY, model.CONTENTS_SOLID, model.CONTENTS_SKY:
+		c.colorShifts[ColorShiftContents] = cshiftEmpty
+	case model.CONTENTS_LAVA:
+		c.colorShifts[ColorShiftContents] = cshiftLava
+	case model.CONTENTS_SLIME:
+		c.colorShifts[ColorShiftContents] = cshiftSlime
+	default:
+		c.colorShifts[ColorShiftContents] = cshiftWater
+	}
+}
+
+func (c *Client) bonusFlash() {
+	c.colorShifts[ColorShiftBonus] = intColor(215, 186, 69, 50)
+}
+
+func init() {
+	cmd.AddCommand("v_cshift", func(a []cmd.QArg, _ int) {
+		cshiftEmpty = Color{0, 0, 0, 0}
+		switch l := len(a); {
+		case l >= 4:
+			cshiftEmpty.A = a[3].Float32() / 255
+			fallthrough
+		case l == 3:
+			cshiftEmpty.B = a[2].Float32() / 255
+			fallthrough
+		case l == 2:
+			cshiftEmpty.G = a[1].Float32() / 255
+			fallthrough
+		case l == 1:
+			cshiftEmpty.R = a[0].Float32() / 255
+		}
+	})
+	cmd.AddCommand("bf", func(_ []cmd.QArg, _ int) { cl.bonusFlash() })
+	cmd.AddCommand("centerview", func(_ []cmd.QArg, _ int) { cl.startPitchDrift() })
 }

@@ -138,161 +138,12 @@ void V_ParseDamage(int armor, int blood, float fromx, float fromy,
 }
 
 /*
-==================
-V_cshift_f
-==================
-*/
-void V_cshift_f(void) {
-  cshift_empty.destcolor[0] = Cmd_ArgvAsInt(1);
-  cshift_empty.destcolor[1] = Cmd_ArgvAsInt(2);
-  cshift_empty.destcolor[2] = Cmd_ArgvAsInt(3);
-  cshift_empty.percent = Cmd_ArgvAsInt(4);
-}
-
-/*
-==================
-V_BonusFlash_f
-
-When you run over an item, the server sends this command
-==================
-*/
-void V_BonusFlash_f(void) {
-  cl.cshifts[CSHIFT_BONUS].destcolor[0] = 215;
-  cl.cshifts[CSHIFT_BONUS].destcolor[1] = 186;
-  cl.cshifts[CSHIFT_BONUS].destcolor[2] = 69;
-  cl.cshifts[CSHIFT_BONUS].percent = 50;
-}
-
-/*
-=============
-V_SetContentsColor
-
-Underwater, lava, etc each has a color shift
-=============
-*/
-void V_SetContentsColor(int contents) {
-  switch (contents) {
-    case CONTENTS_EMPTY:
-    case CONTENTS_SOLID:
-    case CONTENTS_SKY:  // johnfitz -- no blend in sky
-      cl.cshifts[CSHIFT_CONTENTS] = cshift_empty;
-      break;
-    case CONTENTS_LAVA:
-      cl.cshifts[CSHIFT_CONTENTS] = cshift_lava;
-      break;
-    case CONTENTS_SLIME:
-      cl.cshifts[CSHIFT_CONTENTS] = cshift_slime;
-      break;
-    default:
-      cl.cshifts[CSHIFT_CONTENTS] = cshift_water;
-  }
-}
-
-/*
-=============
-V_CalcPowerupCshift
-=============
-*/
-void V_CalcPowerupCshift(void) {
-  if (CL_HasItem(IT_QUAD)) {
-    cl.cshifts[CSHIFT_POWERUP].destcolor[0] = 0;
-    cl.cshifts[CSHIFT_POWERUP].destcolor[1] = 0;
-    cl.cshifts[CSHIFT_POWERUP].destcolor[2] = 255;
-    cl.cshifts[CSHIFT_POWERUP].percent = 30;
-  } else if (CL_HasItem(IT_SUIT)) {
-    cl.cshifts[CSHIFT_POWERUP].destcolor[0] = 0;
-    cl.cshifts[CSHIFT_POWERUP].destcolor[1] = 255;
-    cl.cshifts[CSHIFT_POWERUP].destcolor[2] = 0;
-    cl.cshifts[CSHIFT_POWERUP].percent = 20;
-  } else if (CL_HasItem(IT_INVISIBILITY)) {
-    cl.cshifts[CSHIFT_POWERUP].destcolor[0] = 100;
-    cl.cshifts[CSHIFT_POWERUP].destcolor[1] = 100;
-    cl.cshifts[CSHIFT_POWERUP].destcolor[2] = 100;
-    cl.cshifts[CSHIFT_POWERUP].percent = 100;
-  } else if (CL_HasItem(IT_INVULNERABILITY)) {
-    cl.cshifts[CSHIFT_POWERUP].destcolor[0] = 255;
-    cl.cshifts[CSHIFT_POWERUP].destcolor[1] = 255;
-    cl.cshifts[CSHIFT_POWERUP].destcolor[2] = 0;
-    cl.cshifts[CSHIFT_POWERUP].percent = 30;
-  } else
-    cl.cshifts[CSHIFT_POWERUP].percent = 0;
-}
-
-/*
 =============
 V_CalcBlend
 =============
 */
 void V_CalcBlend(void) {
-  float r, g, b, a, a2;
-  int j;
-
-  r = 0;
-  g = 0;
-  b = 0;
-  a = 0;
-
-  for (j = 0; j < NUM_CSHIFTS; j++) {
-    if (!Cvar_GetValue(&gl_cshiftpercent)) continue;
-
-    // johnfitz -- only apply leaf contents color shifts during intermission
-    if (CL_Intermission() && j != CSHIFT_CONTENTS) continue;
-    // johnfitz
-
-    a2 = ((cl.cshifts[j].percent * Cvar_GetValue(&gl_cshiftpercent)) / 100.0) /
-         255.0;
-    if (!a2) continue;
-    a = a + a2 * (1 - a);
-    a2 = a2 / a;
-    r = r * (1 - a2) + cl.cshifts[j].destcolor[0] * a2;
-    g = g * (1 - a2) + cl.cshifts[j].destcolor[1] * a2;
-    b = b * (1 - a2) + cl.cshifts[j].destcolor[2] * a2;
-  }
-
-  v_blend[0] = r / 255.0;
-  v_blend[1] = g / 255.0;
-  v_blend[2] = b / 255.0;
-  v_blend[3] = a;
-  if (v_blend[3] > 1) v_blend[3] = 1;
-  if (v_blend[3] < 0) v_blend[3] = 0;
-}
-
-/*
-=============
-V_UpdateBlend -- johnfitz -- V_UpdatePalette cleaned up and renamed
-=============
-*/
-void V_UpdateBlend(void) {
-  int i, j;
-  qboolean blend_changed;
-
-  V_CalcPowerupCshift();
-
-  blend_changed = false;
-
-  for (i = 0; i < NUM_CSHIFTS; i++) {
-    if (cl.cshifts[i].percent != cl.prev_cshifts[i].percent) {
-      blend_changed = true;
-      cl.prev_cshifts[i].percent = cl.cshifts[i].percent;
-    }
-    for (j = 0; j < 3; j++)
-      if (cl.cshifts[i].destcolor[j] != cl.prev_cshifts[i].destcolor[j]) {
-        blend_changed = true;
-        cl.prev_cshifts[i].destcolor[j] = cl.cshifts[i].destcolor[j];
-      }
-  }
-
-  // drop the damage value
-  cl.cshifts[CSHIFT_DAMAGE].percent -= HostFrameTime() * 150;
-  if (cl.cshifts[CSHIFT_DAMAGE].percent <= 0)
-    cl.cshifts[CSHIFT_DAMAGE].percent = 0;
-
-  // drop the bonus value
-  cl.cshifts[CSHIFT_BONUS].percent -= HostFrameTime() * 100;
-  if (cl.cshifts[CSHIFT_BONUS].percent <= 0)
-    cl.cshifts[CSHIFT_BONUS].percent = 0;
-
-  if (blend_changed) V_CalcBlend();
+  V_CalcBlendGo(&v_blend[0],&v_blend[1],&v_blend[2],&v_blend[3]);
 }
 
 /*
@@ -623,10 +474,6 @@ V_Init
 =============
 */
 void V_Init(void) {
-  Cmd_AddCommand("v_cshift", V_cshift_f);
-  Cmd_AddCommand("bf", V_BonusFlash_f);
-  Cmd_AddCommand("centerview", V_StartPitchDrift);
-
   Cvar_FakeRegister(&v_centermove, "v_centermove");
   Cvar_FakeRegister(&v_centerspeed, "v_centerspeed");
 

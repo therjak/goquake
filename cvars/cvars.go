@@ -48,7 +48,7 @@ var (
 	GameCfg                *cvar.Cvar
 	Gamma                  *cvar.Cvar
 	GlAffineModels         *cvar.Cvar
-	GlCShiftPercent        *cvar.Cvar
+	GlColorShiftPercent    *cvar.Cvar
 	GlClear                *cvar.Cvar
 	GlCull                 *cvar.Cvar
 	GlFarClip              *cvar.Cvar
@@ -247,7 +247,7 @@ func init() {
 	GameCfg = cvar.MustRegister("gamecfg", "0", cvar.NONE)
 	Gamma = cvar.MustRegister("gamma", "1", cvar.ARCHIVE)
 	GlAffineModels = cvar.MustRegister("gl_affinemodels", "0", cvar.NONE)
-	GlCShiftPercent = cvar.MustRegister("gl_cshiftpercent", "100", cvar.NONE)
+	GlColorShiftPercent = cvar.MustRegister("gl_cshiftpercent", "100", cvar.NONE)
 	GlClear = cvar.MustRegister("gl_clear", "1", cvar.NONE)
 	GlCull = cvar.MustRegister("gl_cull", "1", cvar.NONE)
 	GlFarClip = cvar.MustRegister("gl_farclip", "16384", cvar.ARCHIVE)
