@@ -97,10 +97,10 @@ int CL_GetDemoMessage(void) {
   // get the next message
   int cursize = 0;
   fread(&cursize, 4, 1, cls.demofile);
-  VectorCopy(cl.mviewangles[0], cl.mviewangles[1]);
   for (i = 0; i < 3; i++) {
     r = fread(&f, 4, 1, cls.demofile);
-    cl.mviewangles[0][i] = LittleFloat(f);
+    SetCL_MViewAngles(1,i,CL_MViewAngles(0,i));
+    SetCL_MViewAngles(0,i,LittleFloat(f));
   }
 
   cursize = LittleLong(cursize);

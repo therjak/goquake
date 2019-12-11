@@ -84,15 +84,7 @@ typedef struct {
   cshift_t cshifts[NUM_CSHIFTS];       // color shifts for damage, powerups
   cshift_t prev_cshifts[NUM_CSHIFTS];  // and content types
 
-  // the client maintains its own idea of view angles, which are
-  // sent to the server each frame.  The server sets punchangle when
-  // the view is temporarliy offset, and an angle reset commands at the start
-  // of each level and after teleporting.
-  vec3_t mviewangles[2];  // during demo playback viewangles is lerped
-  // between these
-  vec3_t viewangles;
-
-  vec3_t mvelocity[2];  // update by server, used for lean+bob
+  //vec3_t mvelocity[2];  // update by server, used for lean+bob
   // (0 is newest)
   vec3_t velocity;  // lerped between mvelocity[0] and [1]
 

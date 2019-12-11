@@ -195,7 +195,6 @@ type Client struct {
 	//
 
 	mViewAngles [2]vec.Vec3
-	viewAngles  vec.Vec3
 	mVelocity   [2]vec.Vec3 // update by server
 	velocity    vec.Vec3    // lerped from mvelocity
 	punchAngle  vec.Vec3
@@ -254,20 +253,28 @@ var (
 	cl  = Client{}
 )
 
+//export CL_MViewAngles
+func CL_MViewAngles(i, j int) float32 {
+	return cl.mViewAngles[i][j]
+}
+
+//export SetCL_MViewAngles
+func SetCL_MViewAngles(i, j int, v float32) {
+	cl.mViewAngles[i][j] = v
+}
+
 /*
-	mViewAngles [2]vec.Vec3
-	viewAngles  vec.Vec3
 	punchAngle  vec.Vec3
 */
 
 //export CL_SetMVelocity
 func CL_SetMVelocity(i, j int, v float32) {
-	cl.mVelocity[j][i] = v
+	cl.mVelocity[i][j] = v
 }
 
 //export CL_MVelocity
 func CL_MVelocity(i, j int) float32 {
-	return cl.mVelocity[j][i]
+	return cl.mVelocity[i][j]
 }
 
 //export CL_SetVelocity

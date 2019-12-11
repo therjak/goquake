@@ -637,20 +637,17 @@ void CL_ParseClientdata(void) {
   else
     CL_SetIdealPitch(0);
 
-  VectorCopy(cl.mvelocity[0], cl.mvelocity[1]);
   for (i = 0; i < 3; i++) {
-    CL_SetMVelocity(i, 1, cl.mvelocity[0][i]);
+    CL_SetMVelocity(1, i, CL_MVelocity(0,i));
     if (bits & (SU_PUNCH1 << i))
       cl.punchangle[i] = CL_MSG_ReadChar();
     else
       cl.punchangle[i] = 0;
 
     if (bits & (SU_VELOCITY1 << i)) {
-      cl.mvelocity[0][i] = CL_MSG_ReadChar() * 16;
-      CL_SetMVelocity(i, 0, cl.mvelocity[0][i]);
+      CL_SetMVelocity(0, i, CL_MSG_ReadChar() * 16);
     } else {
-      cl.mvelocity[0][i] = 0;
-      CL_SetMVelocity(i, 0, 0);
+      CL_SetMVelocity(0, i, 0);
     }
   }
 

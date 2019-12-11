@@ -182,35 +182,35 @@ void CL_RelinkEntities(void) {
   //
   for (i = 0; i < 3; i++) {
     cl.velocity[i] =
-        cl.mvelocity[1][i] + frac * (cl.mvelocity[0][i] - cl.mvelocity[1][i]);
+        CL_MVelocity(1,i) + frac * (CL_MVelocity(0,i) - CL_MVelocity(1,i));
     CL_SetVelocity(i, cl.velocity[i]);
   }
 
   if (CLS_IsDemoPlayback()) {
     // interpolate the angles
     {
-      d = cl.mviewangles[0][0] - cl.mviewangles[1][0];
+      d = CL_MViewAngles(0,0) - CL_MViewAngles(1,0);
       if (d > 180)
         d -= 360;
       else if (d < -180)
         d += 360;
-      SetCLPitch(cl.mviewangles[1][0] + frac * d);
+      SetCLPitch(CL_MViewAngles(1,0) + frac * d);
     }
     {
-      d = cl.mviewangles[0][1] - cl.mviewangles[1][1];
+      d = CL_MViewAngles(0,1) - CL_MViewAngles(1,1);
       if (d > 180)
         d -= 360;
       else if (d < -180)
         d += 360;
-      SetCLYaw(cl.mviewangles[1][1] + frac * d);
+      SetCLYaw(CL_MViewAngles(1,1) + frac * d);
     }
     {
-      d = cl.mviewangles[0][2] - cl.mviewangles[1][2];
+      d = CL_MViewAngles(0,2) - CL_MViewAngles(1,2);
       if (d > 180)
         d -= 360;
       else if (d < -180)
         d += 360;
-      SetCLRoll(cl.mviewangles[1][2] + frac * d);
+      SetCLRoll(CL_MViewAngles(1,2) + frac * d);
     }
   }
 
