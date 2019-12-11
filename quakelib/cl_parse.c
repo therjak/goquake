@@ -196,10 +196,6 @@ const char *svc_strings[] = {
 
 qboolean warn_about_nehahra_protocol;  // johnfitz
 
-extern vec3_t v_punchangles[2];  // johnfitz
-
-//=============================================================================
-
 /*
 ===============
 CL_EntityNum
@@ -617,6 +613,7 @@ void CL_ParseClientdata(void) {
   // TODO(therjak): this can be moved to go if Sbar_Changed and cl?
   int i, j;
   int bits;  // johnfitz
+  vec3_t punchangle;
 
   bits =
       (unsigned short)CL_MSG_ReadShort();  // johnfitz -- read bits here isntead
@@ -640,9 +637,9 @@ void CL_ParseClientdata(void) {
   for (i = 0; i < 3; i++) {
     CL_SetMVelocity(1, i, CL_MVelocity(0,i));
     if (bits & (SU_PUNCH1 << i))
-      cl.punchangle[i] = CL_MSG_ReadChar();
+      punchangle[i] = CL_MSG_ReadChar();
     else
-      cl.punchangle[i] = 0;
+      punchangle[i] = 0;
 
     if (bits & (SU_VELOCITY1 << i)) {
       CL_SetMVelocity(0, i, CL_MSG_ReadChar() * 16);
@@ -651,14 +648,16 @@ void CL_ParseClientdata(void) {
     }
   }
 
-  // johnfitz -- update v_punchangles
-  if (v_punchangles[0][0] != cl.punchangle[0] ||
-      v_punchangles[0][1] != cl.punchangle[1] ||
-      v_punchangles[0][2] != cl.punchangle[2]) {
-    VectorCopy(v_punchangles[0], v_punchangles[1]);
-    VectorCopy(cl.punchangle, v_punchangles[0]);
+  if (CL_PunchAngle(0,0) != punchangle[0] ||
+      CL_PunchAngle(0,1) != punchangle[1] ||
+      CL_PunchAngle(0,2) != punchangle[2]) {
+    SetCL_PunchAngle(1,0, CL_PunchAngle(0,0));
+    SetCL_PunchAngle(1,1, CL_PunchAngle(0,1));
+    SetCL_PunchAngle(1,2, CL_PunchAngle(0,2));
+    SetCL_PunchAngle(0,0, punchangle[0]);
+    SetCL_PunchAngle(0,1, punchangle[1]);
+    SetCL_PunchAngle(0,2, punchangle[2]);
   }
-  // johnfitz
 
   // [always sent]	if (bits & SU_ITEMS)
   i = CL_MSG_ReadLong();

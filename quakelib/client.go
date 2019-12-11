@@ -197,7 +197,7 @@ type Client struct {
 	mViewAngles [2]vec.Vec3
 	mVelocity   [2]vec.Vec3 // update by server
 	velocity    vec.Vec3    // lerped from mvelocity
-	punchAngle  vec.Vec3
+	punchAngle  [2]vec.Vec3 // v_punchangle
 	idealPitch  float32
 	pitchVel    float32
 	drift       bool
@@ -263,9 +263,15 @@ func SetCL_MViewAngles(i, j int, v float32) {
 	cl.mViewAngles[i][j] = v
 }
 
-/*
-	punchAngle  vec.Vec3
-*/
+//export SetCL_PunchAngle
+func SetCL_PunchAngle(i, j int, v float32) {
+	cl.punchAngle[i][j] = v
+}
+
+//export CL_PunchAngle
+func CL_PunchAngle(i, j int) float32 {
+	return cl.punchAngle[i][j]
+}
 
 //export CL_SetMVelocity
 func CL_SetMVelocity(i, j int, v float32) {

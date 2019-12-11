@@ -39,10 +39,6 @@ float v_dmg_time, v_dmg_roll, v_dmg_pitch;
 
 extern int in_forward, in_forward2, in_back;
 
-vec3_t v_punchangles[2];  // johnfitz -- copied from cl.punchangle.  0 is
-                          // current, 1 is previous value. never the same unless
-                          // map just loaded
-
 /*
 ===============
 V_CalcRoll
@@ -543,20 +539,22 @@ void V_CalcRefdef(void) {
   view->frame = CL_Stats(STAT_WEAPONFRAME);
 
   // johnfitz -- v_gunkick
-  if (Cvar_GetValue(&v_gunkick) == 1)  // original quake kick
-    VectorAdd(r_refdef.viewangles, cl.punchangle, r_refdef.viewangles);
-  if (Cvar_GetValue(&v_gunkick) == 2)  // lerped kick
-  {
+  if (Cvar_GetValue(&v_gunkick) == 1) { // original quake kick
+    r_refdef.viewangles[0] += CL_PunchAngle(0,0);
+    r_refdef.viewangles[1] += CL_PunchAngle(0,1);
+    r_refdef.viewangles[2] += CL_PunchAngle(0,2);
+  }
+  if (Cvar_GetValue(&v_gunkick) == 2) { // lerped kick
     for (i = 0; i < 3; i++)
-      if (punch[i] != v_punchangles[0][i]) {
+      if (punch[i] != CL_PunchAngle(0,i)) {
         // speed determined by how far we need to lerp in 1/10th of a second
         delta =
-            (v_punchangles[0][i] - v_punchangles[1][i]) * HostFrameTime() * 10;
+            (CL_PunchAngle(0,i) - CL_PunchAngle(1,i)) * HostFrameTime() * 10;
 
         if (delta > 0)
-          punch[i] = q_min(punch[i] + delta, v_punchangles[0][i]);
+          punch[i] = q_min(punch[i] + delta, CL_PunchAngle(0,i));
         else if (delta < 0)
-          punch[i] = q_max(punch[i] + delta, v_punchangles[0][i]);
+          punch[i] = q_max(punch[i] + delta, CL_PunchAngle(0,i));
       }
 
     VectorAdd(r_refdef.viewangles, punch, r_refdef.viewangles);

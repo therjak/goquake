@@ -88,8 +88,6 @@ typedef struct {
   // (0 is newest)
   vec3_t velocity;  // lerped between mvelocity[0] and [1]
 
-  vec3_t punchangle;  // temporary offset
-
   //
   // information that is static for the entire time connected to a server
   //
