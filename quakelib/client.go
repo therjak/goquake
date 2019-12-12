@@ -1888,6 +1888,26 @@ func (c *Client) boundOffsets() {
 	qRefreshRect.viewOrg[2] = math.Clamp32(o[2]-22, qRefreshRect.viewOrg[2], o[2]+30)
 }
 
+//export CalcGunAngle
+func CalcGunAngle() {
+	cl.calcGunAngle()
+}
+
+func (c *Client) calcGunAngle() {
+	idlescale := cvars.ViewIdleScale.Value()
+	sway := func(cycle, level float32) float32 {
+		return idlescale * math32.Sin(float32(c.time)*cycle) * level
+	}
+	yaw := qRefreshRect.viewAngles[YAW]
+	pitch := qRefreshRect.viewAngles[PITCH]
+	w := cl_weapon()
+	w.ptr.angles[YAW] = C.float(yaw)
+	w.ptr.angles[PITCH] = C.float(-pitch)
+	w.ptr.angles[ROLL] -= C.float(sway(cvars.ViewIRollCycle.Value(), cvars.ViewIRollLevel.Value()))
+	w.ptr.angles[PITCH] -= C.float(sway(cvars.ViewIPitchCycle.Value(), cvars.ViewIPitchLevel.Value()))
+	w.ptr.angles[YAW] -= C.float(sway(cvars.ViewIYawCycle.Value(), cvars.ViewIYawLevel.Value()))
+}
+
 //export V_AddIdle
 func V_AddIdle(idlescale float32) {
 	cl.addIdle(idlescale)
@@ -1913,7 +1933,8 @@ func (c *Client) calcIntermissionRefreshRect() {
 	qRefreshRect.viewOrg = ent.origin()
 	qRefreshRect.viewAngles = ent.angles()
 	// weaponmodel
-	//cl.viewent.model = null
+	w := cl_weapon()
+	w.ptr.model = nil
 
 	c.addIdle(1)
 }

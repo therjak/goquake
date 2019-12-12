@@ -48,69 +48,6 @@ void V_CalcBlend(void) {
 }
 
 /*
-==============================================================================
-
-        VIEW RENDERING
-
-==============================================================================
-*/
-
-float angledelta(float a) {
-  a = anglemod(a);
-  if (a > 180) a -= 360;
-  return a;
-}
-
-/*
-==================
-CalcGunAngle
-==================
-*/
-void CalcGunAngle(void) {
-  float yaw, pitch, move;
-  static float oldyaw = 0;
-  static float oldpitch = 0;
-
-  yaw = r_refdef.viewangles[YAW];
-  pitch = -r_refdef.viewangles[PITCH];
-
-  yaw = angledelta(yaw - r_refdef.viewangles[YAW]) * 0.4;
-  if (yaw > 10) yaw = 10;
-  if (yaw < -10) yaw = -10;
-  pitch = angledelta(-pitch - r_refdef.viewangles[PITCH]) * 0.4;
-  if (pitch > 10) pitch = 10;
-  if (pitch < -10) pitch = -10;
-  move = HostFrameTime() * 20;
-  if (yaw > oldyaw) {
-    if (oldyaw + move < yaw) yaw = oldyaw + move;
-  } else {
-    if (oldyaw - move > yaw) yaw = oldyaw - move;
-  }
-
-  if (pitch > oldpitch) {
-    if (oldpitch + move < pitch) pitch = oldpitch + move;
-  } else {
-    if (oldpitch - move > pitch) pitch = oldpitch - move;
-  }
-
-  oldyaw = yaw;
-  oldpitch = pitch;
-
-  cl_viewent.angles[YAW] = r_refdef.viewangles[YAW] + yaw;
-  cl_viewent.angles[PITCH] = -(r_refdef.viewangles[PITCH] + pitch);
-
-  cl_viewent.angles[ROLL] -= Cvar_GetValue(&v_idlescale) *
-                             sin(CL_Time() * Cvar_GetValue(&v_iroll_cycle)) *
-                             Cvar_GetValue(&v_iroll_level);
-  cl_viewent.angles[PITCH] -= Cvar_GetValue(&v_idlescale) *
-                              sin(CL_Time() * Cvar_GetValue(&v_ipitch_cycle)) *
-                              Cvar_GetValue(&v_ipitch_level);
-  cl_viewent.angles[YAW] -= Cvar_GetValue(&v_idlescale) *
-                            sin(CL_Time() * Cvar_GetValue(&v_iyaw_cycle)) *
-                            Cvar_GetValue(&v_iyaw_level);
-}
-
-/*
 ==================
 V_CalcRefdef
 ==================
