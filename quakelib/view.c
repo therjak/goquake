@@ -34,102 +34,9 @@ cvar_t v_ipitch_level;
 cvar_t v_idlescale;
 cvar_t crosshair;
 
-float v_dmg_time, v_dmg_roll, v_dmg_pitch;
-
 extern int in_forward, in_forward2, in_back;
 
-/*
-===============
-V_CalcRoll
-
-Used by view and sv_user
-===============
-*/
-float V_CalcRoll(vec3_t angles, vec3_t velocity) {
-  vec3_t forward, right, up;
-  float sign;
-  float side;
-  float value;
-
-  AngleVectors(angles, forward, right, up);
-  side = DotProduct(velocity, right);
-  sign = side < 0 ? -1 : 1;
-  side = fabs(side);
-
-  value = Cvar_GetValue(&cl_rollangle);
-
-  if (side < Cvar_GetValue(&cl_rollspeed))
-    side = side * value / Cvar_GetValue(&cl_rollspeed);
-  else
-    side = value;
-
-  return side * sign;
-}
-
 float v_blend[4];  // rgba 0.0 - 1.0
-
-/*
-===============
-V_ParseDamage
-===============
-*/
-void V_ParseDamage(int armor, int blood, float fromx, float fromy,
-                   float fromz) {
-  vec3_t from;
-  int i;
-  vec3_t forward, right, up;
-  entity_t *ent;
-  float side;
-  float count;
-
-  from[0] = fromx;
-  from[1] = fromy;
-  from[2] = fromz;
-
-  count = blood * 0.5 + armor * 0.5;
-  if (count < 10) count = 10;
-
-  // but sbar face into pain frame
-  CL_UpdateFaceAnimTime();
-
-  cl.cshifts[CSHIFT_DAMAGE].percent += 3 * count;
-  if (cl.cshifts[CSHIFT_DAMAGE].percent < 0)
-    cl.cshifts[CSHIFT_DAMAGE].percent = 0;
-  if (cl.cshifts[CSHIFT_DAMAGE].percent > 150)
-    cl.cshifts[CSHIFT_DAMAGE].percent = 150;
-
-  if (armor > blood) {
-    cl.cshifts[CSHIFT_DAMAGE].destcolor[0] = 200;
-    cl.cshifts[CSHIFT_DAMAGE].destcolor[1] = 100;
-    cl.cshifts[CSHIFT_DAMAGE].destcolor[2] = 100;
-  } else if (armor) {
-    cl.cshifts[CSHIFT_DAMAGE].destcolor[0] = 220;
-    cl.cshifts[CSHIFT_DAMAGE].destcolor[1] = 50;
-    cl.cshifts[CSHIFT_DAMAGE].destcolor[2] = 50;
-  } else {
-    cl.cshifts[CSHIFT_DAMAGE].destcolor[0] = 255;
-    cl.cshifts[CSHIFT_DAMAGE].destcolor[1] = 0;
-    cl.cshifts[CSHIFT_DAMAGE].destcolor[2] = 0;
-  }
-
-  //
-  // calculate view angle kicks
-  //
-  ent = &cl_entities[CL_Viewentity()];
-
-  VectorSubtract(from, ent->origin, from);
-  VectorNormalize(from);
-
-  AngleVectors(ent->angles, forward, right, up);
-
-  side = DotProduct(from, right);
-  v_dmg_roll = count * side * Cvar_GetValue(&v_kickroll);
-
-  side = DotProduct(from, forward);
-  v_dmg_pitch = count * side * Cvar_GetValue(&v_kickpitch);
-
-  v_dmg_time = Cvar_GetValue(&v_kicktime);
-}
 
 /*
 =============
@@ -247,33 +154,6 @@ void V_AddIdle(float idlescale) {
   r_refdef.viewangles[YAW] += idlescale *
                               sin(CL_Time() * Cvar_GetValue(&v_iyaw_cycle)) *
                               Cvar_GetValue(&v_iyaw_level);
-}
-
-/*
-==============
-V_CalcViewRoll
-
-Roll is induced by movement and damage
-==============
-*/
-void V_CalcViewRoll(void) {
-  float side;
-
-  side = V_CalcRoll(cl_entities[CL_Viewentity()].angles, cl.velocity);
-  r_refdef.viewangles[ROLL] += side;
-
-  if (v_dmg_time > 0) {
-    r_refdef.viewangles[ROLL] +=
-        v_dmg_time / Cvar_GetValue(&v_kicktime) * v_dmg_roll;
-    r_refdef.viewangles[PITCH] +=
-        v_dmg_time / Cvar_GetValue(&v_kicktime) * v_dmg_pitch;
-    v_dmg_time -= HostFrameTime();
-  }
-
-  if (CL_Stats(STAT_HEALTH) <= 0) {
-    r_refdef.viewangles[ROLL] = 80;  // dead view angle
-    return;
-  }
 }
 
 /*

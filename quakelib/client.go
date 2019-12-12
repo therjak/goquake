@@ -197,7 +197,6 @@ type Client struct {
 	// don't change view angle, full screen, etc
 	intermission int
 	// num_statics
-	// sound_precache
 	// model_precache
 	// viewent.model
 
@@ -215,6 +214,9 @@ type Client struct {
 	viewHeight      float32
 	colorShifts     [4]Color
 	colorShiftsPrev [4]Color
+	dmgTime         float32
+	dmgRoll         float32
+	dmgPitch        float32
 
 	//
 
@@ -1800,6 +1802,73 @@ func (c *Client) calcPowerupColorShift() {
 		c.colorShifts[ColorShiftPowerup] = intColor(255, 255, 0, 30)
 	default:
 		c.colorShifts[ColorShiftPowerup].A = 0
+	}
+}
+
+//export V_ParseDamage
+func V_ParseDamage(armor, blood int, x, y, z float32) {
+	cl.parseDamage(armor, blood, vec.Vec3{x, y, z})
+}
+
+func (c *Client) parseDamage(armor, blood int, from vec.Vec3) {
+	count := float32(armor)*0.5 + float32(blood)*0.5
+	if count < 10 {
+		count = 10
+	}
+	count /= 255
+
+	//put statusbar face into pain frame
+	c.UpdateFaceAnimTime()
+
+	cs := &c.colorShifts[ColorShiftDamage]
+
+	cs.A += 3 * count
+	cs.A = math.Clamp32(0, cs.A, 150/255.0)
+	switch {
+	case armor > blood:
+		cs.R = 200 / 255.0
+		cs.G = 100 / 255.0
+		cs.B = 100 / 255.0
+	case armor != 0:
+		cs.R = 220 / 255.0
+		cs.G = 50 / 255.0
+		cs.B = 50 / 255.0
+	default:
+		cs.R = 1
+		cs.G = 0
+		cs.B = 0
+	}
+
+	ent := cl_entities(c.viewentity)
+	origin := ent.origin()
+	from = from.Sub(origin).Normalize()
+	angles := ent.angles()
+	forward, right, _ := vec.AngleVectors(angles)
+	cl.dmgRoll = count * vec.Dot(from, right) * cvars.ViewKickRoll.Value()
+	cl.dmgPitch = count * vec.Dot(from, forward) * cvars.ViewKickPitch.Value()
+	cl.dmgTime = cvars.ViewKickTime.Value()
+}
+
+//export V_CalcViewRoll
+func V_CalcViewRoll() {
+	cl.calcViewRoll()
+}
+
+func (c *Client) calcViewRoll() {
+	ent := cl_entities(c.viewentity)
+	angles := ent.angles()
+	side := CalcRoll(angles, c.velocity)
+	qRefreshRect.viewAngles[ROLL] += side
+
+	if c.dmgTime > 0 {
+		kt := cvars.ViewKickTime.Value()
+		qRefreshRect.viewAngles[ROLL] += c.dmgTime / kt * c.dmgRoll
+		qRefreshRect.viewAngles[PITCH] += c.dmgTime / kt * c.dmgPitch
+		c.dmgTime -= float32(host.frameTime)
+	}
+	if c.stats.health <= 0 {
+		// dead view angle
+		qRefreshRect.viewAngles[ROLL] = 80
 	}
 }
 

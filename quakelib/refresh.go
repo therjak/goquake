@@ -6,6 +6,12 @@ import (
 	"quake/math/vec"
 )
 
+const (
+	PITCH = iota
+	YAW
+	ROLL
+)
+
 type refreshRect struct {
 	viewRect   Rect
 	viewOrg    vec.Vec3

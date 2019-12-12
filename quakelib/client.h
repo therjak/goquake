@@ -174,7 +174,6 @@ void CL_ParseServerMessage(void);
 //
 void V_RenderView(void);
 void V_Register(void);
-void V_ParseDamage(int armor, int blood, float fromx, float fromy, float fromz);
 
 //
 // cl_tent
