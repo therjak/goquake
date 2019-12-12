@@ -11,26 +11,10 @@ when crossing a water boudnary.
 
 */
 
-cvar_t v_centermove;
-cvar_t v_centerspeed;
 cvar_t scr_ofsx;
 cvar_t scr_ofsy;
 cvar_t scr_ofsz;
-cvar_t cl_rollspeed;
-cvar_t cl_rollangle;
-cvar_t cl_bob;
-cvar_t cl_bobcycle;
-cvar_t cl_bobup;
-cvar_t v_kicktime;
-cvar_t v_kickroll;
-cvar_t v_kickpitch;
 cvar_t v_gunkick;
-cvar_t v_iyaw_cycle;
-cvar_t v_iroll_cycle;
-cvar_t v_ipitch_cycle;
-cvar_t v_iyaw_level;
-cvar_t v_iroll_level;
-cvar_t v_ipitch_level;
 cvar_t v_idlescale;
 cvar_t crosshair;
 
@@ -216,30 +200,12 @@ V_Init
 =============
 */
 void V_Init(void) {
-  Cvar_FakeRegister(&v_centermove, "v_centermove");
-  Cvar_FakeRegister(&v_centerspeed, "v_centerspeed");
-
-  Cvar_FakeRegister(&v_iyaw_cycle, "v_iyaw_cycle");
-  Cvar_FakeRegister(&v_iroll_cycle, "v_iroll_cycle");
-  Cvar_FakeRegister(&v_ipitch_cycle, "v_ipitch_cycle");
-  Cvar_FakeRegister(&v_iyaw_level, "v_iyaw_level");
-  Cvar_FakeRegister(&v_iroll_level, "v_iroll_level");
-  Cvar_FakeRegister(&v_ipitch_level, "v_ipitch_level");
-
   Cvar_FakeRegister(&v_idlescale, "v_idlescale");
   Cvar_FakeRegister(&crosshair, "crosshair");
 
   Cvar_FakeRegister(&scr_ofsx, "scr_ofsx");
   Cvar_FakeRegister(&scr_ofsy, "scr_ofsy");
   Cvar_FakeRegister(&scr_ofsz, "scr_ofsz");
-  Cvar_FakeRegister(&cl_rollspeed, "cl_rollspeed");
-  Cvar_FakeRegister(&cl_rollangle, "cl_rollangle");
-  Cvar_FakeRegister(&cl_bob, "cl_bob");
-  Cvar_FakeRegister(&cl_bobcycle, "cl_bobcycle");
-  Cvar_FakeRegister(&cl_bobup, "cl_bobup");
 
-  Cvar_FakeRegister(&v_kicktime, "v_kicktime");
-  Cvar_FakeRegister(&v_kickroll, "v_kickroll");
-  Cvar_FakeRegister(&v_kickpitch, "v_kickpitch");
   Cvar_FakeRegister(&v_gunkick, "v_gunkick");
 }
