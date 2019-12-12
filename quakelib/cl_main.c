@@ -25,6 +25,7 @@ entity_t *cl_entities;  // johnfitz -- was a static array, now on hunk
 
 int cl_numvisedicts;
 entity_t *cl_visedicts[MAX_VISEDICTS];
+entity_t cl_viewent;  // the gun model
 
 extern cvar_t r_lerpmodels, r_lerpmove;  // johnfitz
 
@@ -288,7 +289,7 @@ void CL_RelinkEntities(void) {
       // looks bad when lerped
       if (Cvar_GetValue(&r_lerpmodels) != 2) {
         if (ent == &cl_entities[CL_Viewentity()])
-          cl.viewent.lerpflags |=
+          cl_viewent.lerpflags |=
               LERP_RESETANIM | LERP_RESETANIM2;  // no lerping for two frames
         else
           ent->lerpflags |=

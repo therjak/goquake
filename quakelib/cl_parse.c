@@ -751,17 +751,17 @@ void CL_ParseClientdata(void) {
   if (bits & SU_WEAPONFRAME2)
     statOr(STAT_WEAPONFRAME, (CL_MSG_ReadByte() << 8));
   if (bits & SU_WEAPONALPHA) {
-    cl.viewent.alpha = CL_MSG_ReadByte();
+    cl_viewent.alpha = CL_MSG_ReadByte();
   } else {
-    cl.viewent.alpha = ENTALPHA_DEFAULT;
+    cl_viewent.alpha = ENTALPHA_DEFAULT;
   }
   // johnfitz
 
   // johnfitz -- lerping
   // ericw -- this was done before the upper 8 bits of cl.stats[STAT_WEAPON]
   // were filled in, breaking on large maps like zendar.bsp
-  if (cl.viewent.model != cl.model_precache[CL_Stats(STAT_WEAPON)]) {
-    cl.viewent.lerpflags |=
+  if (cl_viewent.model != cl.model_precache[CL_Stats(STAT_WEAPON)]) {
+    cl_viewent.lerpflags |=
         LERP_RESETANIM;  // don't lerp animation across model changes
   }
   // johnfitz

@@ -636,7 +636,7 @@ void R_DrawViewModel(void) {
 
   if (CL_HasItem(IT_INVISIBILITY) || CL_Stats(STAT_HEALTH) <= 0) return;
 
-  currententity = &cl.viewent;
+  currententity = &cl_viewent;
   if (!currententity->model) return;
 
   // johnfitz -- this fixes a crash
@@ -738,7 +738,7 @@ void R_ShowTris(void) {
     }
 
     // viewmodel
-    currententity = &cl.viewent;
+    currententity = &cl_viewent;
     if (Cvar_GetValue(&r_drawviewmodel) && !Cvar_GetValue(&chase_active) &&
         CL_Stats(STAT_HEALTH) > 0 && !(CL_HasItem(IT_INVISIBILITY)) &&
         currententity->model && currententity->model->Type == mod_alias) {
@@ -790,7 +790,7 @@ void R_DrawShadows(void) {
 
     if (currententity->model->Type != mod_alias) continue;
 
-    if (currententity == &cl.viewent) return;
+    if (currententity == &cl_viewent) return;
 
     GL_DrawAliasShadow(currententity);
   }

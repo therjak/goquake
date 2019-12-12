@@ -96,16 +96,16 @@ void CalcGunAngle(void) {
   oldyaw = yaw;
   oldpitch = pitch;
 
-  cl.viewent.angles[YAW] = r_refdef.viewangles[YAW] + yaw;
-  cl.viewent.angles[PITCH] = -(r_refdef.viewangles[PITCH] + pitch);
+  cl_viewent.angles[YAW] = r_refdef.viewangles[YAW] + yaw;
+  cl_viewent.angles[PITCH] = -(r_refdef.viewangles[PITCH] + pitch);
 
-  cl.viewent.angles[ROLL] -= Cvar_GetValue(&v_idlescale) *
+  cl_viewent.angles[ROLL] -= Cvar_GetValue(&v_idlescale) *
                              sin(CL_Time() * Cvar_GetValue(&v_iroll_cycle)) *
                              Cvar_GetValue(&v_iroll_level);
-  cl.viewent.angles[PITCH] -= Cvar_GetValue(&v_idlescale) *
+  cl_viewent.angles[PITCH] -= Cvar_GetValue(&v_idlescale) *
                               sin(CL_Time() * Cvar_GetValue(&v_ipitch_cycle)) *
                               Cvar_GetValue(&v_ipitch_level);
-  cl.viewent.angles[YAW] -= Cvar_GetValue(&v_idlescale) *
+  cl_viewent.angles[YAW] -= Cvar_GetValue(&v_idlescale) *
                             sin(CL_Time() * Cvar_GetValue(&v_iyaw_cycle)) *
                             Cvar_GetValue(&v_iyaw_level);
 }
@@ -130,7 +130,7 @@ void V_CalcRefdef(void) {
   // ent is the player model (visible when out of body)
   ent = &cl_entities[CL_Viewentity()];
   // view is the weapon model (only visible from inside body)
-  view = &cl.viewent;
+  view = &cl_viewent;
 
   // transform the view offset by the model's matrix to get the offset from
   // model origin for the view

@@ -41,10 +41,10 @@ void Chase_UpdateForDrawing(void) {
 
   // calc ideal camera location before checking for walls
   for (i = 0; i < 3; i++)
-    ideal[i] = cl.viewent.origin[i] - forward[i] * Cvar_GetValue(&chase_back) +
+    ideal[i] = cl_viewent.origin[i] - forward[i] * Cvar_GetValue(&chase_back) +
                right[i] * Cvar_GetValue(&chase_right);
   //+ up[i]*Cvar_GetValue(&chase_up);
-  ideal[2] = cl.viewent.origin[2] + Cvar_GetValue(&chase_up);
+  ideal[2] = cl_viewent.origin[2] + Cvar_GetValue(&chase_up);
 
   // make sure camera is not in or behind a wall
   TraceLine(r_refdef.vieworg, ideal, temp);
@@ -54,8 +54,8 @@ void Chase_UpdateForDrawing(void) {
   VectorCopy(ideal, r_refdef.vieworg);
 
   // find the spot the player is looking at
-  VectorMA(cl.viewent.origin, 4096, forward, temp);
-  TraceLine(cl.viewent.origin, temp, crosshair);
+  VectorMA(cl_viewent.origin, 4096, forward, temp);
+  TraceLine(cl_viewent.origin, temp, crosshair);
 
   // calculate camera angles to look at the same spot
   VectorSubtract(crosshair, r_refdef.vieworg, temp);

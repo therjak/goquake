@@ -100,11 +100,13 @@ typedef struct {
   struct efrag_s *free_efrags;
   int num_entities;  // held in cl_entities array
   int num_statics;   // held in cl_staticentities array
-  entity_t viewent;  // the gun model
+  //entity_t viewent;  // the gun model
 
   // frag scoreboard
   scoreboard_t *scores;  // [cl.maxclients] // therjak
 } client_state_t;
+
+extern entity_t cl_viewent;  // the gun model
 
 extern client_state_t cl;
 //
