@@ -1872,6 +1872,52 @@ func (c *Client) calcViewRoll() {
 	}
 }
 
+//export V_BoundOffsets
+func V_BoundOffsets() {
+	cl.boundOffsets()
+}
+
+func (c *Client) boundOffsets() {
+	ent := cl_entities(c.viewentity)
+
+	// absolutely bound refresh relative to entity clipping hull
+	// so the view can never be inside a solid wall
+	o := ent.origin()
+	qRefreshRect.viewOrg[0] = math.Clamp32(o[0]-14, qRefreshRect.viewOrg[0], o[0]+14)
+	qRefreshRect.viewOrg[1] = math.Clamp32(o[1]-14, qRefreshRect.viewOrg[1], o[1]+14)
+	qRefreshRect.viewOrg[2] = math.Clamp32(o[2]-22, qRefreshRect.viewOrg[2], o[2]+30)
+}
+
+//export V_AddIdle
+func V_AddIdle(idlescale float32) {
+	cl.addIdle(idlescale)
+}
+
+func (c *Client) addIdle(idlescale float32) {
+	sway := func(cycle, level float32) float32 {
+		return idlescale * math32.Sin(float32(c.time)*cycle) * level
+	}
+	qRefreshRect.viewAngles[ROLL] += sway(cvars.ViewIRollCycle.Value(), cvars.ViewIRollLevel.Value())
+	qRefreshRect.viewAngles[PITCH] += sway(cvars.ViewIPitchCycle.Value(), cvars.ViewIPitchLevel.Value())
+	qRefreshRect.viewAngles[YAW] += sway(cvars.ViewIYawCycle.Value(), cvars.ViewIYawLevel.Value())
+}
+
+//export V_CalcIntermissionRefdef
+func V_CalcIntermissionRefdef() {
+	cl.calcIntermissionRefreshRect()
+}
+
+func (c *Client) calcIntermissionRefreshRect() {
+	ent := cl_entities(c.viewentity)
+	// body
+	qRefreshRect.viewOrg = ent.origin()
+	qRefreshRect.viewAngles = ent.angles()
+	// weaponmodel
+	//cl.viewent.model = null
+
+	c.addIdle(1)
+}
+
 //export V_SetContentsColor
 func V_SetContentsColor(c int) {
 	cl.setContentsColor(c)

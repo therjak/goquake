@@ -2,7 +2,6 @@ package quakelib
 
 //#include "q_stdinc.h"
 //#include "render.h"
-//#include "cgo_help.h"
 //extern entity_t *cl_entities;
 //typedef entity_t* entityPtr;
 //entity_t* getCLEntity(int i) { return &cl_entities[i]; }
