@@ -124,7 +124,8 @@ void R_DrawBrushModel(entity_t *e) {
   currententity = e;
   clmodel = e->model;
 
-  VectorSubtract(r_refdef.vieworg, e->origin, modelorg);
+  vec3_t vieworg = {R_Refdef_vieworg(0),R_Refdef_vieworg(1),R_Refdef_vieworg(2)};
+  VectorSubtract(vieworg, e->origin, modelorg);
   if (e->angles[0] || e->angles[1] || e->angles[2]) {
     vec3_t temp;
     vec3_t forward, right, up;
@@ -199,7 +200,8 @@ void R_DrawBrushModel_ShowTris(entity_t *e) {
   currententity = e;
   clmodel = e->model;
 
-  VectorSubtract(r_refdef.vieworg, e->origin, modelorg);
+  vec3_t vieworg = {R_Refdef_vieworg(0),R_Refdef_vieworg(1),R_Refdef_vieworg(2)};
+  VectorSubtract(vieworg, e->origin, modelorg);
   if (e->angles[0] || e->angles[1] || e->angles[2]) {
     vec3_t temp;
     vec3_t forward, right, up;

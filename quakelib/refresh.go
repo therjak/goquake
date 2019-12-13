@@ -13,11 +13,14 @@ const (
 )
 
 type refreshRect struct {
-	viewRect   Rect
-	viewOrg    vec.Vec3
-	viewAngles vec.Vec3
-	fovX       float32
-	fovY       float32
+	viewRect    Rect
+	viewOrg     vec.Vec3
+	viewAngles  vec.Vec3
+	fovX        float32
+	fovY        float32
+	viewForward vec.Vec3 // vpn
+	viewRight   vec.Vec3 // vright
+	viewUp      vec.Vec3 // vup
 }
 
 var (
@@ -52,4 +55,19 @@ func R_Refdef_vrect_width() int {
 //export R_Refdef_vrect_height
 func R_Refdef_vrect_height() int {
 	return qRefreshRect.viewRect.height
+}
+
+//export R_Refdef_vieworg
+func R_Refdef_vieworg(i int) float32 {
+	return qRefreshRect.viewOrg[i]
+}
+
+//export R_Refdef_viewangles
+func R_Refdef_viewangles(i int) float32 {
+	return qRefreshRect.viewAngles[i]
+}
+
+//export UpdateVpnGo
+func UpdateVpnGo() {
+	qRefreshRect.viewForward, qRefreshRect.viewRight, qRefreshRect.viewUp = vec.AngleVectors(qRefreshRect.viewAngles)
 }

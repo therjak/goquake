@@ -146,20 +146,21 @@ vieworg
 */
 qboolean R_BackFaceCull(msurface_t *surf) {
   double dot;
+  vec3_t vieworg = {R_Refdef_vieworg(0),R_Refdef_vieworg(1),R_Refdef_vieworg(2)};
 
   switch (surf->plane->Type) {
     case PLANE_X:
-      dot = r_refdef.vieworg[0] - surf->plane->dist;
+      dot = vieworg[0] - surf->plane->dist;
       break;
     case PLANE_Y:
-      dot = r_refdef.vieworg[1] - surf->plane->dist;
+      dot = vieworg[1] - surf->plane->dist;
       break;
     case PLANE_Z:
-      dot = r_refdef.vieworg[2] - surf->plane->dist;
+      dot = vieworg[2] - surf->plane->dist;
       break;
     default:
       dot =
-          DotProduct(r_refdef.vieworg, surf->plane->normal) - surf->plane->dist;
+          DotProduct(vieworg, surf->plane->normal) - surf->plane->dist;
       break;
   }
 

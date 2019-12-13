@@ -475,6 +475,8 @@ void Sky_ProcessEntities(void) {
 
   if (!Cvar_GetValue(&r_drawentities)) return;
 
+  vec3_t vieworg = {R_Refdef_vieworg(0),R_Refdef_vieworg(1),R_Refdef_vieworg(2)};
+
   for (i = 0; i < cl_numvisedicts; i++) {
     e = cl_visedicts[i];
 
@@ -484,7 +486,7 @@ void Sky_ProcessEntities(void) {
 
     if (e->alpha == ENTALPHA_ZERO) continue;
 
-    VectorSubtract(r_refdef.vieworg, e->origin, modelorg);
+    VectorSubtract(vieworg, e->origin, modelorg);
     if (e->angles[0] || e->angles[1] || e->angles[2]) {
       rotated = true;
       AngleVectors(e->angles, forward, right, up);

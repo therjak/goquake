@@ -10,7 +10,8 @@ package quakelib
 //#define SFX_RIC3  5
 //#define SFX_R_EXP3  6
 //#include "cgo_help.h"
-//void V_CalcBlend(void);
+//extern float v_blend[4];
+//void SetCLWeaponModel(int v);
 import "C"
 
 import (
@@ -1709,16 +1710,12 @@ func (c *Client) driftPitch() {
 	}
 }
 
-//export V_CalcBlendGo
-func V_CalcBlendGo(r, g, b, a *C.float) {
-	c := cl.calcBlend()
-	*r = C.float(c.R)
-	*g = C.float(c.G)
-	*b = C.float(c.B)
-	*a = C.float(c.A)
+//export V_CalcBlend
+func V_CalcBlend() {
+	cl.calcBlend()
 }
 
-func (c *Client) calcBlend() Color {
+func (c *Client) calcBlend() {
 	color := Color{}
 	p := cvars.GlColorShiftPercent.Value() / 100
 	if p != 0 {
@@ -1738,7 +1735,11 @@ func (c *Client) calcBlend() Color {
 		}
 	}
 	color.A = math.Clamp32(0, color.A, 1)
-	return color
+
+	C.v_blend[0] = C.float(color.R)
+	C.v_blend[1] = C.float(color.G)
+	C.v_blend[2] = C.float(color.B)
+	C.v_blend[3] = C.float(color.A)
 }
 
 //export V_UpdateBlend
@@ -1765,7 +1766,7 @@ func (c *Client) updateBlend() {
 		c.colorShifts[ColorShiftBonus].A = 0
 	}
 	if changed {
-		C.V_CalcBlend()
+		c.calcBlend()
 	}
 }
 
@@ -1890,10 +1891,10 @@ func (c *Client) boundOffsets() {
 
 //export CalcGunAngle
 func CalcGunAngle() {
-	cl.calcGunAngle()
+	cl.calcWeaponAngle()
 }
 
-func (c *Client) calcGunAngle() {
+func (c *Client) calcWeaponAngle() {
 	idlescale := cvars.ViewIdleScale.Value()
 	sway := func(cycle, level float32) float32 {
 		return idlescale * math32.Sin(float32(c.time)*cycle) * level
@@ -1992,4 +1993,142 @@ func init() {
 	})
 	cmd.AddCommand("bf", func(_ []cmd.QArg, _ int) { cl.bonusFlash() })
 	cmd.AddCommand("centerview", func(_ []cmd.QArg, _ int) { cl.startPitchDrift() })
+}
+
+//export V_CalcRefdef
+func V_CalcRefdef() {
+	cl.calcRefreshRect()
+}
+
+var (
+	calcRefreshRectOldZ = float32(0)
+)
+
+func (c *Client) calcRefreshRect() {
+	/*
+	  entity_t *ent, *view;
+	  int i;
+	  vec3_t forward, right, up;
+	  vec3_t angles;
+	  float bob;
+	  static float oldz = 0;
+	  static vec3_t punch = {0, 0, 0};  // johnfitz -- v_gunkick
+	  float delta;                      // johnfitz -- v_gunkick
+	*/
+	c.driftPitch()
+
+	// ent is the player model (visible when out of body)
+	ent := cl_entities(c.viewentity)
+	// view is the weapon model (only visible from inside body)
+	w := cl_weapon() // view
+
+	// transform the view offset by the model's matrix to get the offset from
+	// model origin for the view
+	ent.ptr.angles[YAW] = C.float(c.yaw) // the model should face the view dir
+	// the model should face the view dir
+	ent.ptr.angles[PITCH] = -C.float(c.pitch)
+
+	bob := c.calcBob()
+
+	// refresh position
+	qRefreshRect.viewOrg = ent.origin()
+	qRefreshRect.viewOrg[2] += c.viewHeight + bob
+
+	// never let it sit exactly on a node line, because a water plane can
+	// dissapear when viewed with the eye exactly on it.
+	// the server protocol only specifies to 1/16 pixel, so add 1/32 in each axis
+	qRefreshRect.viewOrg[0] += 1.0 / 32
+	qRefreshRect.viewOrg[1] += 1.0 / 32
+	qRefreshRect.viewOrg[2] += 1.0 / 32
+
+	qRefreshRect.viewAngles[ROLL] = c.roll
+	qRefreshRect.viewAngles[PITCH] = c.pitch
+	qRefreshRect.viewAngles[YAW] = c.yaw
+
+	c.calcViewRoll()
+	c.addIdle(cvars.ViewIdleScale.Value())
+
+	/*
+	  // offsets
+	  // because entity pitches are actually backward
+	  angles[PITCH] = -ent->angles[PITCH];
+	  angles[YAW] = ent->angles[YAW];
+	  angles[ROLL] = ent->angles[ROLL];
+
+	  AngleVectors(angles, forward, right, up);
+
+	  if (CL_MaxClients() <= 1)
+	    for (i = 0; i < 3; i++)
+	      r_refdef.vieworg[i] += Cvar_GetValue(&scr_ofsx) * forward[i] +
+	                             Cvar_GetValue(&scr_ofsy) * right[i] +
+	                             Cvar_GetValue(&scr_ofsz) * up[i];
+	*/
+	c.boundOffsets()
+
+	w.ptr.angles[ROLL] = C.float(c.roll)
+	w.ptr.angles[PITCH] = C.float(c.pitch)
+	w.ptr.angles[YAW] = C.float(c.yaw)
+
+	c.calcWeaponAngle()
+	w.ptr.origin[0] = ent.ptr.origin[0]
+	w.ptr.origin[1] = ent.ptr.origin[1]
+	w.ptr.origin[2] = ent.ptr.origin[2] + C.float(c.viewHeight)
+	/*
+	  for (i = 0; i < 3; i++) view->origin[i] += forward[i] * bob * 0.4;
+	*/
+	w.ptr.origin[2] += C.float(bob)
+
+	C.SetCLWeaponModel(C.int(c.stats.weapon))
+	w.ptr.frame = C.int(cl.stats.weaponFrame)
+
+	/*
+	  if (Cvar_GetValue(&v_gunkick) == 1) { // original quake kick
+	    r_refdef.viewangles[0] += CL_PunchAngle(0,0);
+	    r_refdef.viewangles[1] += CL_PunchAngle(0,1);
+	    r_refdef.viewangles[2] += CL_PunchAngle(0,2);
+	  }
+	  if (Cvar_GetValue(&v_gunkick) == 2) { // lerped kick
+	    for (i = 0; i < 3; i++)
+	      if (punch[i] != CL_PunchAngle(0,i)) {
+	        // speed determined by how far we need to lerp in 1/10th of a second
+	        delta =
+	            (CL_PunchAngle(0,i) - CL_PunchAngle(1,i)) * HostFrameTime() * 10;
+
+	        if (delta > 0)
+	          punch[i] = q_min(punch[i] + delta, CL_PunchAngle(0,i));
+	        else if (delta < 0)
+	          punch[i] = q_max(punch[i] + delta, CL_PunchAngle(0,i));
+	      }
+
+	    VectorAdd(r_refdef.viewangles, punch, r_refdef.viewangles);
+	  }
+	*/
+
+	// smooth out stair step ups
+	origin := ent.origin()
+	if /*!noclip_anglehack &&*/ c.onGround && origin[2]-calcRefreshRectOldZ > 0 {
+		// FIXME: noclip_anglehack is set on the server, so in a nonlocal game this
+		// won't work.
+
+		steptime := float32(c.time - c.oldTime)
+		if steptime < 0 {
+			steptime = 0
+		}
+
+		calcRefreshRectOldZ += steptime * 80
+		if calcRefreshRectOldZ > origin[2] {
+			calcRefreshRectOldZ = origin[2]
+		}
+		if origin[2]-calcRefreshRectOldZ > 12 {
+			calcRefreshRectOldZ = origin[2] - 12
+		}
+		qRefreshRect.viewOrg[2] += calcRefreshRectOldZ - origin[2]
+		w.ptr.origin[2] += C.float(calcRefreshRectOldZ - origin[2])
+	} else {
+		calcRefreshRectOldZ = origin[2]
+	}
+
+	if cvars.ChaseActive.Bool() {
+		Chase_UpdateForDrawing()
+	}
 }

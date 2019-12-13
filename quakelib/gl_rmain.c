@@ -463,11 +463,12 @@ void R_SetupGL(void) {
 
   glRotatef(-90, 1, 0, 0);  // put Z going up
   glRotatef(90, 0, 0, 1);   // put Z going up
-  glRotatef(-r_refdef.viewangles[2], 1, 0, 0);
-  glRotatef(-r_refdef.viewangles[0], 0, 1, 0);
-  glRotatef(-r_refdef.viewangles[1], 0, 0, 1);
-  glTranslatef(-r_refdef.vieworg[0], -r_refdef.vieworg[1],
-               -r_refdef.vieworg[2]);
+  vec3_t viewangles = {R_Refdef_viewangles(0),R_Refdef_viewangles(1),R_Refdef_viewangles(2)};
+  glRotatef(-viewangles[2], 1, 0, 0);
+  glRotatef(-viewangles[0], 0, 1, 0);
+  glRotatef(-viewangles[1], 0, 0, 1);
+  vec3_t vieworg = {R_Refdef_vieworg(0),R_Refdef_vieworg(1),R_Refdef_vieworg(2)};
+  glTranslatef(-vieworg[0], -vieworg[1], -vieworg[2]);
 
   //
   // set drawing parms
@@ -522,8 +523,11 @@ void R_SetupView(void) {
   Fog_SetupFrame();  // johnfitz
 
   // build the transformation matrix for the given view angles
-  VectorCopy(r_refdef.vieworg, r_origin);
-  AngleVectors(r_refdef.viewangles, vpn, vright, vup);
+  vec3_t vieworg = {R_Refdef_vieworg(0),R_Refdef_vieworg(1),R_Refdef_vieworg(2)};
+  VectorCopy(vieworg, r_origin);
+  vec3_t viewangles = {R_Refdef_viewangles(0),R_Refdef_viewangles(1),R_Refdef_viewangles(2)};
+  AngleVectors(viewangles, vpn, vright, vup);
+  UpdateVpnGo();
 
   // current viewleaf
   r_oldviewleaf = r_viewleaf;
@@ -872,7 +876,9 @@ void R_RenderView(void) {
     float eyesep = CLAMP(-8.0f, Cvar_GetValue(&r_stereo), 8.0f);
     float fdepth = CLAMP(32.0f, Cvar_GetValue(&r_stereodepth), 1024.0f);
 
-    AngleVectors(r_refdef.viewangles, vpn, vright, vup);
+  vec3_t viewangles = {R_Refdef_viewangles(0),R_Refdef_viewangles(1),R_Refdef_viewangles(2)};
+    AngleVectors(viewangles, vpn, vright, vup);
+    UpdateVpnGo();
 
     // render left eye (red)
     glColorMask(1, 0, 0, 1);

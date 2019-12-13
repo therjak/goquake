@@ -22,3 +22,42 @@ func TraceLine(start, end, impact *C.float) {
 	*C.cfp(1, impact) = C.float(trace.EndPos[1])
 	*C.cfp(2, impact) = C.float(trace.EndPos[2])
 }
+
+func Chase_UpdateForDrawing() {
+	// orient camera based on client. called before drawing
+	/*
+	  int i;
+	  vec3_t forward, up, right;
+	  vec3_t ideal, crosshair, temp;
+	  vec3_t clviewangles;
+	  clviewangles[PITCH] = CLPitch();
+	  clviewangles[YAW] = CLYaw();
+	  clviewangles[ROLL] = CLRoll();
+
+	  AngleVectors(clviewangles, forward, right, up);
+
+	  // calc ideal camera location before checking for walls
+	  for (i = 0; i < 3; i++)
+	    ideal[i] = cl_viewent.origin[i] - forward[i] * Cvar_GetValue(&chase_back) +
+	               right[i] * Cvar_GetValue(&chase_right);
+	  //+ up[i]*Cvar_GetValue(&chase_up);
+	  ideal[2] = cl_viewent.origin[2] + Cvar_GetValue(&chase_up);
+
+	  // make sure camera is not in or behind a wall
+	  TraceLine(r_refdef.vieworg, ideal, temp);
+	  if (VectorLength(temp) != 0) VectorCopy(temp, ideal);
+
+	  // place camera
+	  VectorCopy(ideal, r_refdef.vieworg);
+
+	  // find the spot the player is looking at
+	  VectorMA(cl_viewent.origin, 4096, forward, temp);
+	  TraceLine(cl_viewent.origin, temp, crosshair);
+
+	  // calculate camera angles to look at the same spot
+	  VectorSubtract(crosshair, r_refdef.vieworg, temp);
+	  VectorAngles(temp, r_refdef.viewangles);
+	  if (r_refdef.viewangles[PITCH] == 90 || r_refdef.viewangles[PITCH] == -90)
+	    r_refdef.viewangles[YAW] = CLYaw();
+	*/
+}
