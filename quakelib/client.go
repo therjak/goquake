@@ -2048,21 +2048,21 @@ func (c *Client) calcRefreshRect() {
 	c.calcViewRoll()
 	c.addIdle(cvars.ViewIdleScale.Value())
 
-	/*
-	  // offsets
-	  // because entity pitches are actually backward
-	  angles[PITCH] = -ent->angles[PITCH];
-	  angles[YAW] = ent->angles[YAW];
-	  angles[ROLL] = ent->angles[ROLL];
+	// offsets
+	angles := ent.angles()
+	// because entity pitches are actually backward
+	angles[PITCH] *= -1
+	forward, right, up := vec.AngleVectors(angles)
 
-	  AngleVectors(angles, forward, right, up);
+	if c.maxClients <= 1 {
+		sx := cvars.ScreenOffsetX.Value()
+		sy := cvars.ScreenOffsetY.Value()
+		sz := cvars.ScreenOffsetZ.Value()
+		qRefreshRect.viewOrg[0] += sx*forward[0] + sy*right[0] + sz*up[0]
+		qRefreshRect.viewOrg[1] += sx*forward[1] + sy*right[1] + sz*up[1]
+		qRefreshRect.viewOrg[2] += sx*forward[2] + sy*right[2] + sz*up[2]
+	}
 
-	  if (CL_MaxClients() <= 1)
-	    for (i = 0; i < 3; i++)
-	      r_refdef.vieworg[i] += Cvar_GetValue(&scr_ofsx) * forward[i] +
-	                             Cvar_GetValue(&scr_ofsy) * right[i] +
-	                             Cvar_GetValue(&scr_ofsz) * up[i];
-	*/
 	c.boundOffsets()
 
 	w.ptr.angles[ROLL] = C.float(c.roll)
@@ -2073,9 +2073,11 @@ func (c *Client) calcRefreshRect() {
 	w.ptr.origin[0] = ent.ptr.origin[0]
 	w.ptr.origin[1] = ent.ptr.origin[1]
 	w.ptr.origin[2] = ent.ptr.origin[2] + C.float(c.viewHeight)
-	/*
-	  for (i = 0; i < 3; i++) view->origin[i] += forward[i] * bob * 0.4;
-	*/
+
+	w.ptr.origin[0] += C.float(forward[0] * bob * 0.4)
+	w.ptr.origin[1] += C.float(forward[1] * bob * 0.4)
+	w.ptr.origin[2] += C.float(forward[2] * bob * 0.4)
+
 	w.ptr.origin[2] += C.float(bob)
 
 	C.SetCLWeaponModel(C.int(c.stats.weapon))
