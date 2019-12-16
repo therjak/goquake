@@ -2001,20 +2001,11 @@ func V_CalcRefdef() {
 }
 
 var (
-	calcRefreshRectOldZ = float32(0)
+	calcRefreshRectOldZ  = float32(0)
+	calcRefreshRectPunch vec.Vec3
 )
 
 func (c *Client) calcRefreshRect() {
-	/*
-	  entity_t *ent, *view;
-	  int i;
-	  vec3_t forward, right, up;
-	  vec3_t angles;
-	  float bob;
-	  static float oldz = 0;
-	  static vec3_t punch = {0, 0, 0};  // johnfitz -- v_gunkick
-	  float delta;                      // johnfitz -- v_gunkick
-	*/
 	c.driftPitch()
 
 	// ent is the player model (visible when out of body)
@@ -2083,28 +2074,30 @@ func (c *Client) calcRefreshRect() {
 	C.SetCLWeaponModel(C.int(c.stats.weapon))
 	w.ptr.frame = C.int(cl.stats.weaponFrame)
 
-	/*
-	  if (Cvar_GetValue(&v_gunkick) == 1) { // original quake kick
-	    r_refdef.viewangles[0] += CL_PunchAngle(0,0);
-	    r_refdef.viewangles[1] += CL_PunchAngle(0,1);
-	    r_refdef.viewangles[2] += CL_PunchAngle(0,2);
-	  }
-	  if (Cvar_GetValue(&v_gunkick) == 2) { // lerped kick
-	    for (i = 0; i < 3; i++)
-	      if (punch[i] != CL_PunchAngle(0,i)) {
-	        // speed determined by how far we need to lerp in 1/10th of a second
-	        delta =
-	            (CL_PunchAngle(0,i) - CL_PunchAngle(1,i)) * HostFrameTime() * 10;
+	switch cvars.ViewGunKick.Value() {
+	case 1:
+		// original quake kick
+		qRefreshRect.viewAngles.Add(c.punchAngle[0])
+	case 2:
+		// lerped kick
+		for i := 0; i < 3; i++ {
+			if calcRefreshRectPunch[i] != c.punchAngle[0][i] {
+				// speed determined by how far we need to lerp in 1/10th of a second
+				delta := (c.punchAngle[0][i] - c.punchAngle[1][i]) * float32(host.frameTime) * 10
+				if delta > 0 {
+					calcRefreshRectPunch[i] = math32.Min(
+						calcRefreshRectPunch[i]+delta,
+						c.punchAngle[0][i])
+				} else if delta < 0 {
+					calcRefreshRectPunch[i] = math32.Max(
+						calcRefreshRectPunch[i]+delta,
+						c.punchAngle[0][i])
+				}
+			}
+		}
 
-	        if (delta > 0)
-	          punch[i] = q_min(punch[i] + delta, CL_PunchAngle(0,i));
-	        else if (delta < 0)
-	          punch[i] = q_max(punch[i] + delta, CL_PunchAngle(0,i));
-	      }
-
-	    VectorAdd(r_refdef.viewangles, punch, r_refdef.viewangles);
-	  }
-	*/
+		qRefreshRect.viewAngles.Add(calcRefreshRectPunch)
+	}
 
 	// smooth out stair step ups
 	origin := ent.origin()

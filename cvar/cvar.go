@@ -24,15 +24,6 @@ const (
 	CALLBACK   = 1 << 16
 )
 
-/*
-cvar_none = 0
-cvar_archive = 1
-cvar_notify = 1 << 1
-cvar_serverinfo = 1 << 2
-cvar_rom = 1 << 6
-cvar_registered = 1 << 10
-cvar_callback = 1 << 16
-*/
 type CallbackFunc func(cv *Cvar)
 
 type Cvar struct {
