@@ -45,8 +45,20 @@ func (q *QReader) ReadInt16() (int16, error) {
 	return r, err
 }
 
+func (q *QReader) ReadUint16() (uint16, error) {
+	var r uint16
+	err := binary.Read(q.r, binary.LittleEndian, &r)
+	return r, err
+}
+
 func (q *QReader) ReadInt32() (int32, error) {
 	var r int32
+	err := binary.Read(q.r, binary.LittleEndian, &r)
+	return r, err
+}
+
+func (q *QReader) ReadUint32() (uint32, error) {
+	var r uint32
 	err := binary.Read(q.r, binary.LittleEndian, &r)
 	return r, err
 }
