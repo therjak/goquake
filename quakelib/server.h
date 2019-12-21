@@ -17,7 +17,4 @@ const char *SV_ModelName();
 #define EF_BRIGHTLIGHT 4
 #define EF_DIMLIGHT 8
 
-extern cvar_t teamplay;
-extern cvar_t skill;
-
 #endif /* _QUAKE_SERVER_H */

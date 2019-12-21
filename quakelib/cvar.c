@@ -83,10 +83,6 @@ void Cvar_SetValueQuick(cvar_t *var, float value) {
   CvarSetValueQuick(var->id, value);
 }
 
-void Cvar_Register(cvar_t *v, char *name, char *string, int flags) {
-  v->id = CvarRegister(name, string, flags);
-}
-
 void Cvar_FakeRegister(cvar_t *v, char *name) {
   v->id = CvarGetID(name);
 }

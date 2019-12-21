@@ -5,27 +5,6 @@
 
 canvastype currentcanvas = CANVAS_NONE;  // johnfitz -- for GL_SetCanvas
 
-void SwapPic(qpic_t *pic) {
-  pic->width = LittleLong(pic->width);
-  pic->height = LittleLong(pic->height);
-}
-
-//==============================================================================
-//
-//  PIC CACHING
-//
-//==============================================================================
-
-typedef struct cachepic_s {
-  char name[MAX_QPATH];
-  qpic_t pic;
-  byte padding[32];  // for appended glpic
-} cachepic_t;
-
-#define MAX_CACHED_PICS 128
-cachepic_t menu_cachepics[MAX_CACHED_PICS];
-int menu_numcachepics;
-
 /*
 ================
 GL_SetCanvas -- johnfitz -- support various canvas types

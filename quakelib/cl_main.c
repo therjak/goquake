@@ -6,10 +6,7 @@
 // references them even when on a unix system.
 
 // these two are not intended to be set directly
-cvar_t cl_name;
 cvar_t cl_shownet;
-cvar_t lookspring;
-cvar_t cl_forwardspeed;
 
 client_static_t cls;
 byte cls_msg_buf[1024];
@@ -180,9 +177,9 @@ void CL_RelinkEntities(void) {
   // interpolate player info
   //
   for (i = 0; i < 3; i++) {
-    cl.velocity[i] =
+    float v =
         CL_MVelocity(1,i) + frac * (CL_MVelocity(0,i) - CL_MVelocity(1,i));
-    CL_SetVelocity(i, cl.velocity[i]);
+    CL_SetVelocity(i, v);
   }
 
   if (CLS_IsDemoPlayback()) {
@@ -460,11 +457,7 @@ void CL_Init(void) {
 
   CL_InitTEnts();
 
-  Cvar_FakeRegister(&cl_name, "_cl_name");
   Cvar_FakeRegister(&cl_shownet, "cl_shownet");
-
-  Cvar_FakeRegister(&cl_forwardspeed, "cl_forwardspeed");
-  Cvar_FakeRegister(&lookspring, "lookspring");
 
   Cmd_AddCommand("entities", CL_PrintEntities_f);
   Cmd_AddCommand("record", CL_Record_f);

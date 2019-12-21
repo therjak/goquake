@@ -62,10 +62,6 @@ extern client_static_t cls;
 // server signon
 //
 typedef struct {
-  //vec3_t mvelocity[2];  // update by server, used for lean+bob
-  // (0 is newest)
-  vec3_t velocity;  // lerped between mvelocity[0] and [1]
-
   //
   // information that is static for the entire time connected to a server
   //
@@ -89,13 +85,7 @@ extern client_state_t cl;
 //
 // cvars
 //
-extern cvar_t cl_name;
-
-extern cvar_t cl_forwardspeed;
-
 extern cvar_t cl_shownet;
-
-extern cvar_t lookspring;
 
 #define MAX_TEMP_ENTITIES 256    // johnfitz -- was 64
 #define MAX_STATIC_ENTITIES 512  // johnfitz -- was 128
@@ -146,12 +136,6 @@ void CL_TimeDemo_f(void);
 // cl_parse.c
 //
 void CL_ParseServerMessage(void);
-
-//
-// view
-//
-void V_RenderView(void);
-void V_Register(void);
 
 //
 // cl_tent

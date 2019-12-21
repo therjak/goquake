@@ -32,9 +32,7 @@ cvar_t host_maxfps;
 cvar_t host_timescale;
 cvar_t max_edicts;
 cvar_t serverprofile;
-cvar_t teamplay;
 cvar_t samelevel;
-cvar_t skill;
 cvar_t developer;
 cvar_t devstats;
 cvar_t sv_gravity;
@@ -75,9 +73,7 @@ void Host_InitLocal(void) {
   Cvar_FakeRegister(&max_edicts, "max_edicts");
   Cvar_FakeRegister(&devstats, "devstats");
   Cvar_FakeRegister(&serverprofile, "serverprofile");
-  Cvar_FakeRegister(&teamplay, "teamplay");
   Cvar_FakeRegister(&samelevel, "samelevel");
-  Cvar_FakeRegister(&skill, "skill");
   Cvar_FakeRegister(&developer, "developer");
   Cvar_FakeRegister(&sv_gravity, "sv_gravity");
 
@@ -211,7 +207,6 @@ void Host_Init(void) {
   if (CLS_GetState() != ca_dedicated) {
     int length = 0;
 
-    V_Init();
     Chase_Init();
     // ExtraMaps_Init();  // johnfitz
     // Modlist_Init();    // johnfitz

@@ -18,7 +18,6 @@ float Cvar_GetValue(cvar_t *variable);
 const char *Cvar_GetString(cvar_t *variable);
 const char *Cvar_GetName(cvar_t *variable);
 
-void Cvar_Register(cvar_t *v, char *name, char *string, int flags);
 // registers a cvar
 void Cvar_FakeRegister(cvar_t *v, char *name);
 

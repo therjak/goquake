@@ -222,7 +222,7 @@ typedef struct {
 
 #include "gl_texmgr.h"  //johnfitz
 #include "keys.h"
-#include "menu.h"
+#include "_cgo_export.h"
 #include "glquake.h"
 
 //=============================================================================
@@ -238,9 +238,6 @@ extern qboolean noclip_anglehack;
 //
 extern quakeparms_t *host_parms;
 
-extern cvar_t sys_ticrate;
-extern cvar_t sys_throttle;
-extern cvar_t sys_nostdout;
 extern cvar_t developer;
 extern cvar_t max_edicts;  // johnfitz
 
@@ -251,10 +248,8 @@ extern int host_framecount;  // incremented every frame, never reset
 
 void Host_ClearMemory(void);
 void Host_ServerFrame(void);
-void Host_InitCommands(void);
 void Host_Init(void);
 void Host_Shutdown(void);
-void Host_Callback_Notify(cvar_t *var); /* callback function for CVAR_NOTIFY */
 void Host_Error(const char *error, ...);
 //    __attribute__((__format__(__printf__, 1, 2), __noreturn__));
 // void Host_EndGame(const char *message);
@@ -265,10 +260,6 @@ void Modlist_Init(void);
 void DemoList_Init(void);
 
 void DemoList_Rebuild(void);
-
-extern int current_skill;  // skill level for currently loaded level (in case
-                           //  the user changes the cvar while the level is
-                           //  running, this reflects the level actually in use)
 
 extern int minimum_memory;
 

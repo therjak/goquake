@@ -37,19 +37,6 @@ void callQuakeFunc(xcommand_t f) { f(); }
 void setInt(int* l, int v) { *l = v; }
 
 
-int Sys_FileTime(const char *path) {
-  FILE *f;
-
-  f = fopen(path, "rb");
-
-  if (f) {
-    fclose(f);
-    return 1;
-  }
-
-  return -1;
-}
-
 void Sys_mkdir(const char *path) {
   int rc = mkdir(path, 0777);
   if (rc != 0 && errno == EEXIST) {
