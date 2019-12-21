@@ -848,47 +848,9 @@ func CLS_SetSignon(s C.int) {
 	cls.signon = int(s)
 }
 
-//export CLSMessageWriteByte
-func CLSMessageWriteByte(c C.int) {
-	CLSMessageWriteByte2(byte(c))
-}
-
-func CLSMessageWriteByte2(c byte) {
-	cls.outMessage.WriteByte(c)
-}
-
-//export CLSMessageWriteString
-func CLSMessageWriteString(data *C.char) {
-	s := C.GoString(data)
-	CLSMessageWriteString2(s)
-}
-
-func CLSMessageWriteString2(s string) {
-	cls.outMessage.WriteString(s)
-	cls.outMessage.WriteByte(0)
-}
-
-//export CLSMessagePrint
-func CLSMessagePrint(data *C.char) {
-	s := C.GoString(data)
-	CLSMessagePrint2(s)
-}
-
-func CLSMessagePrint2(s string) {
-	// the original would override a trailing 0
-	// changed to not write a trailing 0 so it must be explicitly added by
-	// WriteByte if needed
-	cls.outMessage.WriteString(s)
-}
-
 //export CLSMessageClear
 func CLSMessageClear() {
 	cls.outMessage.Reset()
-}
-
-//export CLSHasMessage
-func CLSHasMessage() C.int {
-	return b2i(cls.outMessage.Len() > 0)
 }
 
 func executeOnServer(args []cmd.QArg, _ int) {
@@ -1131,30 +1093,6 @@ func CL_MSG_Replace(data unsafe.Pointer, size C.size_t) {
 	cls.inMessage = net.NewQReader(m)
 }
 
-//export CLSMessageSend
-func CLSMessageSend() C.int {
-	b := cls.outMessage.Bytes()
-	i := cls.connection.SendMessage(b)
-	return C.int(i)
-}
-
-//export CLSMessageSendUnreliable
-func CLSMessageSendUnreliable() C.int {
-	b := cls.outMessage.Bytes()
-	i := cls.connection.SendUnreliableMessage(b)
-	return C.int(i)
-}
-
-//export CLS_NET_Close
-func CLS_NET_Close() {
-	cls.connection.Close()
-}
-
-//export CLS_NET_CanSendMessage
-func CLS_NET_CanSendMessage() C.int {
-	return b2i(cls.connection.CanSendMessage())
-}
-
 //Sends a disconnect message to the server
 //This is also called on Host_Error, so it shouldn't cause any errors
 //export CL_Disconnect
@@ -1200,11 +1138,6 @@ func (c *ClientStatic) Disconnect() {
 	cl.intermission = 0
 }
 
-//export CL_Disconnect_f
-func CL_Disconnect_f() {
-	clientDisconnect()
-}
-
 func clientDisconnect() {
 	cls.Disconnect()
 	if sv.active {
@@ -1221,16 +1154,6 @@ func clientReconnect() {
 	screen.BeginLoadingPlaque()
 	// need new connection messages
 	cls.signon = 0
-}
-
-//export Host_Reconnect_f
-func Host_Reconnect_f() {
-	clientReconnect()
-}
-
-//export CL_EstablishConnection
-func CL_EstablishConnection(host *C.char) {
-	clEstablishConnection(C.GoString(host))
 }
 
 // Host should be either "local" or a net address to be passed on
@@ -1324,7 +1247,6 @@ func clientStartDemos(args []cmd.QArg, player int) {
 }
 
 // Called to play the next demo in the demo loop
-//export CL_NextDemo
 func CL_NextDemo() {
 	if cls.demoNum == -1 {
 		// don't play demos
@@ -1595,11 +1517,6 @@ func (c *Client) LerpPoint() float64 {
 	return frac
 }
 
-//export V_CalcBob
-func V_CalcBob() float32 {
-	return cl.calcBob()
-}
-
 func (c *Client) calcBob() float32 {
 	square := func(v float32) float32 {
 		return v * v
@@ -1627,11 +1544,6 @@ func (c *Client) calcBob() float32 {
 	return bob
 }
 
-//export V_StartPitchDrift
-func V_StartPitchDrift() {
-	cl.startPitchDrift()
-}
-
 func (c *Client) startPitchDrift() {
 	if c.lastStop == c.time {
 		return // something else is keeping it from drifting
@@ -1647,11 +1559,6 @@ func (c *Client) stopPitchDrift() {
 	c.lastStop = c.time
 	c.drift = false
 	c.pitchVel = 0
-}
-
-//export V_DriftPitch
-func V_DriftPitch() {
-	cl.driftPitch()
 }
 
 /*
@@ -1741,11 +1648,6 @@ func (c *Client) calcBlend() {
 	C.v_blend[1] = C.float(color.G)
 	C.v_blend[2] = C.float(color.B)
 	C.v_blend[3] = C.float(color.A)
-}
-
-//export V_UpdateBlend
-func V_UpdateBlend() {
-	cl.updateBlend()
 }
 
 func (c *Client) updateBlend() {
@@ -2139,10 +2041,6 @@ func CL_ParseClientdata() {
 }
 
 func (c *Client) parseClientData() error {
-	// int i, j;
-	// int bits;  // johnfitz
-	// vec3_t punchangle;
-
 	m, err := cls.inMessage.ReadUint16()
 	if err != nil {
 		return err

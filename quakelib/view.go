@@ -1,7 +1,7 @@
 package quakelib
 
-// void V_UpdateBlend(void);
-// void V_RenderView(void);
+// void R_RenderView(void);
+// extern float v_blend[4];
 import "C"
 
 import (
@@ -41,9 +41,22 @@ var (
 )
 
 func (v *qView) UpdateBlend() {
-	C.V_UpdateBlend()
+	cl.updateBlend()
 }
 
+// The player's clipping box goes from (-16 -16 -24) to (16 16 32) from
+// the entity origin, so any view position inside that will be valid
 func (v *qView) Render() {
-	C.V_RenderView()
+	if console.forceDuplication {
+		return
+	}
+	if cl.intermission != 0 {
+		cl.calcIntermissionRefreshRect()
+	} else if !cl.paused {
+		cl.calcRefreshRect()
+	}
+
+	C.R_RenderView()
+
+	V_PolyBlend(&C.v_blend[0])
 }
