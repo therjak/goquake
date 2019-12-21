@@ -7,37 +7,6 @@ int r_dlightframecount;
 extern cvar_t r_flatlightstyles;  // johnfitz
 
 /*
-==================
-R_AnimateLight
-==================
-*/
-void R_AnimateLight(void) {
-  int i, j, k;
-
-  //
-  // light animations
-  // 'm' is normal light, 'a' is no light, 'z' is double bright
-  i = (int)(CL_Time() * 10);
-  for (j = 0; j < MAX_LIGHTSTYLES; j++) {
-    if (!cl_lightstyle[j].length) {
-      d_lightstylevalue[j] = 256;
-      continue;
-    }
-    // johnfitz -- r_flatlightstyles
-    if (Cvar_GetValue(&r_flatlightstyles) == 2)
-      k = cl_lightstyle[j].peak - 'a';
-    else if (Cvar_GetValue(&r_flatlightstyles) == 1)
-      k = cl_lightstyle[j].average - 'a';
-    else {
-      k = i % cl_lightstyle[j].length;
-      k = cl_lightstyle[j].map[k] - 'a';
-    }
-    d_lightstylevalue[j] = k * 22;
-    // johnfitz
-  }
-}
-
-/*
 =============================================================================
 
 DYNAMIC LIGHTS BLEND RENDERING (gl_flashblend 1)

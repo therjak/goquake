@@ -596,6 +596,7 @@ func cl_setStats(s, v int) {
 func CL_Clear() {
 	// cl: there is a memset 0 in CL_ClearState
 	cl = Client{}
+	clearLightStyles()
 }
 
 //export CL_SetViewentity
@@ -2312,6 +2313,8 @@ func (c *Client) parseClientData() error {
 		return err
 	}
 	if cmdl.Quoth() || cmdl.Rogue() || cmdl.Hipnotic() {
+		//TODO(therjak): why is the command line setting responsible for how the server
+		// message is interpreted?
 		if c.stats.activeWeapon != (1 << activeWeapon) {
 			c.stats.activeWeapon = (1 << activeWeapon)
 			statusbar.MarkChanged()

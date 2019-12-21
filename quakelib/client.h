@@ -4,26 +4,8 @@
 // client.h
 
 typedef struct {
-  int length;
-  char map[MAX_STYLESTRING];
-  char average;  // johnfitz
-  char peak;     // johnfitz
-} lightstyle_t;
-
-typedef struct {
   char name[MAX_SCOREBOARDNAME];
 } scoreboard_t;
-
-typedef struct {
-  int destcolor[3];
-  int percent;  // 0-256
-} cshift_t;
-
-#define CSHIFT_CONTENTS 0
-#define CSHIFT_DAMAGE 1
-#define CSHIFT_BONUS 2
-#define CSHIFT_POWERUP 3
-#define NUM_CSHIFTS 4
 
 #define NAME_LENGTH 64
 
@@ -80,10 +62,6 @@ extern client_static_t cls;
 // server signon
 //
 typedef struct {
-  // information for local display
-  cshift_t cshifts[NUM_CSHIFTS];       // color shifts for damage, powerups
-  cshift_t prev_cshifts[NUM_CSHIFTS];  // and content types
-
   //vec3_t mvelocity[2];  // update by server, used for lean+bob
   // (0 is newest)
   vec3_t velocity;  // lerped between mvelocity[0] and [1]
@@ -126,7 +104,6 @@ extern cvar_t lookspring;
 // FIXME, allocate dynamically
 extern efrag_t cl_efrags[MAX_EFRAGS];
 extern entity_t cl_static_entities[MAX_STATIC_ENTITIES];
-extern lightstyle_t cl_lightstyle[MAX_LIGHTSTYLES];
 extern dlight_t cl_dlights[MAX_DLIGHTS];
 extern entity_t cl_temp_entities[MAX_TEMP_ENTITIES];
 extern beam_t cl_beams[MAX_BEAMS];

@@ -1,5 +1,7 @@
 #include "quakedef.h"
 
+//THERJAK: this should be possible to move now
+
 static void CL_FinishTimeDemo(void);
 
 /*
