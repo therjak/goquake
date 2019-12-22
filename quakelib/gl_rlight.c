@@ -14,18 +14,6 @@ DYNAMIC LIGHTS BLEND RENDERING (gl_flashblend 1)
 =============================================================================
 */
 
-void AddLightBlend(float r, float g, float b, float a2) {
-  float a;
-
-  v_blend[3] = a = v_blend[3] + a2 * (1 - v_blend[3]);
-
-  a2 = a2 / a;
-
-  v_blend[0] = v_blend[1] * (1 - a2) + r * a2;
-  v_blend[1] = v_blend[1] * (1 - a2) + g * a2;
-  v_blend[2] = v_blend[2] * (1 - a2) + b * a2;
-}
-
 void R_RenderDlight(dlight_t *light) {
   int i, j;
   float a;

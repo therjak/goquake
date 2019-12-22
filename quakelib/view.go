@@ -1,7 +1,6 @@
 package quakelib
 
 // void R_RenderView(void);
-// extern float v_blend[4];
 import "C"
 
 import (
@@ -34,7 +33,9 @@ func CalcRoll(angles, velocity vec.Vec3) float32 {
 	return r
 }
 
-type qView struct{}
+type qView struct {
+	blendColor Color
+}
 
 var (
 	view qView
@@ -42,6 +43,20 @@ var (
 
 func (v *qView) UpdateBlend() {
 	cl.updateBlend()
+}
+
+//export AddLightBlend
+func AddLightBlend(r, g, b, a float32) {
+	view.addLightBlend(r, g, b, a)
+}
+
+func (v *qView) addLightBlend(r, g, b, a2 float32) {
+	a := v.blendColor.A + a2*(1-v.blendColor.A)
+	v.blendColor.A = a
+	a2 /= a
+	v.blendColor.R = v.blendColor.R*(1-a2) + r*a2
+	v.blendColor.G = v.blendColor.G*(1-a2) + g*a2
+	v.blendColor.B = v.blendColor.B*(1-a2) + b*a2
 }
 
 // The player's clipping box goes from (-16 -16 -24) to (16 16 32) from
@@ -58,5 +73,14 @@ func (v *qView) Render() {
 
 	C.R_RenderView()
 
-	V_PolyBlend(&C.v_blend[0])
+	v.polyBlend()
+}
+
+func (v *qView) polyBlend() {
+	if !cvars.GlPolyBlend.Bool() || v.blendColor.A == 0 {
+		return
+	}
+
+	textureManager.DisableMultiTexture()
+	qRecDrawer.Draw(0, 0, float32(viewport.width), float32(viewport.height), v.blendColor)
 }

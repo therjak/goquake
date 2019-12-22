@@ -11,8 +11,6 @@ when crossing a water boudnary.
 
 */
 
-float v_blend[4];  // rgba 0.0 - 1.0
-
 void SetCLWeaponModel(int v) {
   entity_t *view;
   view = &cl_viewent;

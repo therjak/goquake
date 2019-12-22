@@ -10,7 +10,6 @@ package quakelib
 //#define SFX_RIC3  5
 //#define SFX_R_EXP3  6
 //#include "cgo_help.h"
-//extern float v_blend[4];
 //void SetCLWeaponModel(int v);
 import "C"
 
@@ -1620,10 +1619,10 @@ func (c *Client) driftPitch() {
 
 //export V_CalcBlend
 func V_CalcBlend() {
-	cl.calcBlend()
+	view.blendColor = cl.calcBlend()
 }
 
-func (c *Client) calcBlend() {
+func (c *Client) calcBlend() Color {
 	color := Color{}
 	p := cvars.GlColorShiftPercent.Value() / 100
 	if p != 0 {
@@ -1643,11 +1642,7 @@ func (c *Client) calcBlend() {
 		}
 	}
 	color.A = math.Clamp32(0, color.A, 1)
-
-	C.v_blend[0] = C.float(color.R)
-	C.v_blend[1] = C.float(color.G)
-	C.v_blend[2] = C.float(color.B)
-	C.v_blend[3] = C.float(color.A)
+	return color
 }
 
 func (c *Client) updateBlend() {
@@ -1669,24 +1664,8 @@ func (c *Client) updateBlend() {
 		c.colorShifts[ColorShiftBonus].A = 0
 	}
 	if changed {
-		c.calcBlend()
+		view.blendColor = c.calcBlend()
 	}
-}
-
-//export V_PolyBlend
-func V_PolyBlend(vb *C.float) {
-	c := Color{
-		float32(C.cf(0, vb)),
-		float32(C.cf(1, vb)),
-		float32(C.cf(2, vb)),
-		float32(C.cf(3, vb)),
-	}
-	if !cvars.GlPolyBlend.Bool() || c.A == 0 {
-		return
-	}
-
-	textureManager.DisableMultiTexture()
-	qRecDrawer.Draw(0, 0, float32(viewport.width), float32(viewport.height), c)
 }
 
 //export V_CalcPowerupCshift
