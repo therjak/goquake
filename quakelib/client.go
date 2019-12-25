@@ -1102,7 +1102,7 @@ func CL_Disconnect() {
 func (c *ClientStatic) Disconnect() {
 	if keyDestination == keys.Message {
 		// don't get stuck in chat mode
-		keyEndChat()
+		chatEnd()
 	}
 
 	// stop sounds (especially looping!)

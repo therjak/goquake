@@ -164,20 +164,10 @@ extern int key_linepos;
 extern int key_insert;
 extern double key_blinktime;
 
-extern qboolean chat_team;
-
 void Key_Init(void);
-
-const char *Key_KeynumToString(int keynum);
-
-void Key_EndChat(void);
-const char *Key_GetChatBuffer(void);
-int Key_GetChatMsgLen(void);
 
 void History_Init(void);
 void History_Shutdown(void);
-void M_FindKeysForCommand(const char* command, int* threekeys);
-void M_UnbindCommand(const char* command);
 qboolean Key_ShiftDown();
 
 #endif /* _QUAKE_KEYS_H */

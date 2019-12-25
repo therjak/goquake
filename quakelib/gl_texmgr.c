@@ -1,8 +1,5 @@
 // gl_texmgr.c -- fitzquake's texture manager. manages opengl texture images
 
-// THERJAK:
-// change gltexture_t to simple int (index)
-
 #include "quakedef.h"
 
 unsigned int d_8to24table[256];

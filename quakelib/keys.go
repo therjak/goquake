@@ -4,8 +4,6 @@ package quakelib
 //#define KEYDEST_T
 //typedef enum { key_game, key_console, key_message, key_menu } keydest_t;
 //#endif
-//void Key_EndChat(void);
-//void Key_Message(int key);
 import "C"
 
 import (
@@ -382,10 +380,6 @@ func SetKeyDest(k C.keydest_t) {
 	}
 }
 
-func keyEndChat() {
-	C.Key_EndChat()
-}
-
 var (
 	updateKeyDestForced = false
 )
@@ -515,7 +509,7 @@ func keyEvent(key kc.KeyCode, down bool) {
 		default: //keys.Game & keys.Console
 			toggleMenu()
 		case keys.Message:
-			C.Key_Message(C.int(key))
+			chatKey(key)
 		case keys.Menu:
 			qmenu.HandleKey(key)
 		}
@@ -555,9 +549,46 @@ func keyEvent(key kc.KeyCode, down bool) {
 	default: //keys.Game & keys.Console
 		keyInput.consoleKeyEvent(key)
 	case keys.Message:
-		C.Key_Message(C.int(key))
+		chatKey(key)
 	case keys.Menu:
 		qmenu.HandleKey(key)
+	}
+}
+
+var (
+	chatBuilder strings.Builder
+)
+
+func chatEnd() {
+	keyDestination = keys.Game
+	chatBuilder.Reset()
+}
+
+func chatKey(key kc.KeyCode) {
+	switch key {
+	case kc.ENTER, kc.KP_ENTER:
+		if console.chatTeam {
+			cbuf.AddText("say_team \"")
+		} else {
+			cbuf.AddText("say \"")
+		}
+		cbuf.AddText(chatBuilder.String())
+		cbuf.AddText("\"\n")
+		chatEnd()
+	case kc.ESCAPE:
+		chatEnd()
+	case kc.BACKSPACE:
+		cur := chatBuilder.String()
+		chatBuilder.Reset()
+		last := true
+		cur = strings.TrimRightFunc(cur, func(_ rune) bool {
+			if last {
+				last = false
+				return true
+			}
+			return false
+		})
+		chatBuilder.WriteString(cur)
 	}
 }
 
@@ -582,8 +613,7 @@ func charEvent(key rune) {
 	case keys.Console:
 		keyInput.consoleTextEvent(key)
 	case keys.Message:
-		// TODO(therjak): fix chat
-		//C.Char_Message(key)
+		chatBuilder.WriteRune(key)
 	case keys.Menu:
 		qmenu.RuneInput(key)
 	default:

@@ -31,53 +31,6 @@ extern char key_tabpartial[MAXCMDLINE];
 
 //============================================================================
 
-qboolean chat_team = false;  // therjak: extern
-static char chat_buffer[MAXCMDLINE];
-static int chat_bufferlen = 0;
-
-const char *Key_GetChatBuffer(void) { return chat_buffer; }
-
-int Key_GetChatMsgLen(void) { return chat_bufferlen; }
-
-void Key_EndChat(void) {
-  SetKeyDest(key_game);
-  chat_bufferlen = 0;
-  chat_buffer[0] = 0;
-}
-
-void Key_Message(int key) {
-  switch (key) {
-    case K_ENTER:
-    case K_KP_ENTER:
-      if (chat_team)
-        Cbuf_AddText("say_team \"");
-      else
-        Cbuf_AddText("say \"");
-      Cbuf_AddText(chat_buffer);
-      Cbuf_AddText("\"\n");
-
-      Key_EndChat();
-      return;
-
-    case K_ESCAPE:
-      Key_EndChat();
-      return;
-
-    case K_BACKSPACE:
-      if (chat_bufferlen) chat_buffer[--chat_bufferlen] = 0;
-      return;
-  }
-}
-
-void Char_Message(int key) {
-  if (chat_bufferlen == sizeof(chat_buffer) - 1) return;  // all full
-
-  chat_buffer[chat_bufferlen++] = key;
-  chat_buffer[chat_bufferlen] = 0;
-}
-
-//============================================================================
-
 void History_Init(void) {
   int i, c;
   FILE *hf;

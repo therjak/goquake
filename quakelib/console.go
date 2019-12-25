@@ -259,7 +259,7 @@ func (q *qconsole) messageMode(team bool) {
 		return
 	}
 	q.chatTeam = team
-	keyDestination = keys.Menu
+	keyDestination = keys.Message
 }
 
 /*
