@@ -161,13 +161,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 extern char key_lines[32][MAXCMDLINE];
 extern int edit_line;
 extern int key_linepos;
-extern int key_insert;
 extern double key_blinktime;
 
 void Key_Init(void);
 
-void History_Init(void);
-void History_Shutdown(void);
 qboolean Key_ShiftDown();
 
 #endif /* _QUAKE_KEYS_H */

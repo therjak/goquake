@@ -9,17 +9,21 @@ import "C"
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
+	"path/filepath"
 	"quake/cbuf"
 	"quake/cmd"
 	"quake/conlog"
 	"quake/cvars"
 	kc "quake/keycode"
 	"quake/keys"
+	"quake/protos"
 	"sort"
 	"strings"
 	"time"
 	"unsafe"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -33,7 +37,85 @@ var (
 	keyBindings map[kc.KeyCode]string
 
 	keyInput qKeyInput
+	history  qHistory
 )
+
+type qHistory struct {
+	txt []string
+	idx int
+}
+
+func (h *qHistory) String() string {
+	if len(h.txt) == h.idx {
+		return ""
+	}
+	return h.txt[h.idx]
+}
+
+func (h *qHistory) Up() {
+	if h.idx > 0 {
+		h.idx--
+	}
+}
+
+func (h *qHistory) Down() {
+	if h.idx < len(h.txt) {
+		h.idx++
+	}
+}
+
+func (h *qHistory) Add(s string) {
+	h.txt = append(h.txt, s)
+	h.idx = len(h.txt)
+}
+
+const (
+	historyFilename = "history.txt"
+)
+
+func (h *qHistory) Load() {
+	fullname := filepath.Join(BaseDirectory(), historyFilename)
+	in, err := ioutil.ReadFile(fullname)
+	if err != nil {
+		return
+	}
+	data := &protos.History{}
+	if err := proto.Unmarshal(in, data); err != nil {
+		conlog.Printf("failed to decode history.\n")
+		return
+	}
+	h.txt = data.Entries
+	h.idx = len(h.txt)
+}
+
+func (h *qHistory) Save() {
+	fullname := filepath.Join(BaseDirectory(), historyFilename)
+	max := 32 // add a max size to prevent the file from growing indefinitely
+	if len(h.txt) < max {
+		max = len(h.txt)
+	}
+	data := &protos.History{
+		Entries: h.txt[:max],
+	}
+	out, err := proto.Marshal(data)
+	if err != nil {
+		conlog.Printf("failed to encode history.\n")
+		return
+	}
+	if err := ioutil.WriteFile(fullname, out, 0660); err != nil {
+		conlog.Printf("ERROR: couln't write file.\n")
+	}
+}
+
+//export History_Init
+func History_Init() {
+	history.Load()
+}
+
+//export History_Shutdown
+func History_Shutdown() {
+	history.Save()
+}
 
 type qKeyInput struct {
 	text       string
@@ -56,6 +138,7 @@ func (k *qKeyInput) consoleKeyEvent(key kc.KeyCode) {
 	case kc.KP_ENTER, kc.ENTER:
 		t := k.String() + "\n"
 		cbuf.AddText(t)
+		history.Add(k.String()) // do not duplicate the '\n'
 		conlog.Printf(t)
 		k.buf = make([]byte, 0, 40)
 		k.cursorXPos = 0
@@ -104,8 +187,14 @@ func (k *qKeyInput) consoleKeyEvent(key kc.KeyCode) {
 			k.blinkTime = time.Now()
 		}
 	case kc.UPARROW:
+		history.Up()
+		k.buf = []byte(history.String())
+		k.cursorXPos = len(k.buf)
 		// TODO(therjak): history scroll up
 	case kc.DOWNARROW:
+		history.Down()
+		k.buf = []byte(history.String())
+		k.cursorXPos = len(k.buf)
 		// TODO(therjak): history scroll down
 	case kc.INS:
 		k.insert = !k.insert

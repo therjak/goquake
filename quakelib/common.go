@@ -82,6 +82,10 @@ func GameDirectory() string {
 	return gameDirectory
 }
 
+func BaseDirectory() string {
+	return baseDirectory
+}
+
 func addGameDirectory(base, dir string) {
 	gameDirectory = filepath.Join(base, dir)
 	filesystem.AddGameDir(gameDirectory)
