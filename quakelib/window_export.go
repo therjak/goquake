@@ -11,16 +11,6 @@ import (
 	"unsafe"
 )
 
-//export ConsoleWidth
-func ConsoleWidth() C.int {
-	return C.int(console.lineWidth)
-}
-
-//export SetConsoleWidth
-func SetConsoleWidth(w C.int) {
-	console.lineWidth = int(w)
-}
-
 //export VID_Locked
 func VID_Locked() C.int {
 	return b2i(videoLocked)

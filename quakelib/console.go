@@ -1,7 +1,5 @@
 package quakelib
 
-//void ConInit(void);
-//void ConTabComplete(void);
 import "C"
 
 import (
@@ -63,6 +61,16 @@ func Con_CheckResize() {
 	console.CheckResize()
 }
 
+//export ConsoleWidth
+func ConsoleWidth() C.int {
+	return C.int(console.lineWidth)
+}
+
+//export SetConsoleWidth
+func SetConsoleWidth(w C.int) {
+	console.lineWidth = int(w)
+}
+
 // produce new line breaks in case of a new width
 func (c *qconsole) CheckResize() {
 	w := (c.width / 8) - 2
@@ -79,7 +87,9 @@ func (c *qconsole) CheckResize() {
 
 //export Con_Init
 func Con_Init() {
-	C.ConInit()
+	console.lineWidth = 38
+	conlog.Printf("Console initialized.\n")
+
 	console.initialized = true
 }
 
@@ -127,11 +137,6 @@ func (c *qconsole) Toggle() {
 
 	screen.EndLoadingPlaque()
 	c.ClearNotify()
-}
-
-//export Con_TabComplete
-func Con_TabComplete() {
-	C.ConTabComplete()
 }
 
 //export Con_LogCenterPrint

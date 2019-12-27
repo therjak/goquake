@@ -221,7 +221,6 @@ typedef struct {
 #include "gl_model.h"
 
 #include "gl_texmgr.h"  //johnfitz
-#include "keys.h"
 #include "_cgo_export.h"
 #include "glquake.h"
 

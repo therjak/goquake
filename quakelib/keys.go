@@ -107,8 +107,8 @@ func (h *qHistory) Save() {
 	}
 }
 
-//export History_Init
-func History_Init() {
+//export Key_Init
+func Key_Init() {
 	history.Load()
 }
 
@@ -190,12 +190,10 @@ func (k *qKeyInput) consoleKeyEvent(key kc.KeyCode) {
 		history.Up()
 		k.buf = []byte(history.String())
 		k.cursorXPos = len(k.buf)
-		// TODO(therjak): history scroll up
 	case kc.DOWNARROW:
 		history.Down()
 		k.buf = []byte(history.String())
 		k.cursorXPos = len(k.buf)
-		// TODO(therjak): history scroll down
 	case kc.INS:
 		k.insert = !k.insert
 	case 'V', 'v':
