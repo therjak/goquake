@@ -91,10 +91,6 @@ Zone block
 
 void Memory_Init(void *buf, int size);
 
-void Z_Free(void *ptr);
-void *Z_Malloc(int size);  // returns 0 filled memory
-char *Z_Strdup(const char *s);
-
 void *Hunk_Alloc(int size);  // returns 0 filled memory
 void *Hunk_AllocName(int size, const char *name);
 
@@ -103,7 +99,9 @@ void Hunk_FreeToLowMark(int mark);
 
 void Hunk_Check(void);
 
-typedef struct cache_user_s { void *data; } cache_user_t;
+typedef struct cache_user_s {
+  void *data;
+} cache_user_t;
 
 void *Cache_Check(cache_user_t *c);
 // returns the cached data, and moves to the head of the LRU list

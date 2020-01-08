@@ -1,17 +1,11 @@
 // common.c -- misc functions used in client and server
 
 #include "common.h"
+
 #include <errno.h>
+
 #include "q_ctype.h"
 #include "quakedef.h"
-
-const char *Com_Basedir() {
-  static char buffer[MAX_OSPATH];
-  char *argv = COM_BaseDir();
-  strncpy(buffer, argv, MAX_OSPATH);
-  free(argv);
-  return buffer;
-}
 
 const char *Com_Gamedir() {
   static char buffer[MAX_OSPATH];
@@ -77,22 +71,6 @@ override an explicit setting on the original command line.
 
 ============================================================================
 */
-
-int q_strcasecmp(const char *s1, const char *s2) {
-  const char *p1 = s1;
-  const char *p2 = s2;
-  char c1, c2;
-
-  if (p1 == p2) return 0;
-
-  do {
-    c1 = q_tolower(*p1++);
-    c2 = q_tolower(*p2++);
-    if (c1 == '\0') break;
-  } while (c1 == c2);
-
-  return (int)(c1 - c2);
-}
 
 int q_strncasecmp(const char *s1, const char *s2, size_t n) {
   const char *p1 = s1;
@@ -162,112 +140,6 @@ void Q_memcpy(void *dest, const void *src, size_t count) {
     for (i = 0; i < count; i++) ((int *)dest)[i] = ((int *)src)[i];
   } else
     for (i = 0; i < count; i++) ((byte *)dest)[i] = ((byte *)src)[i];
-}
-
-int Q_memcmp(const void *m1, const void *m2, size_t count) {
-  while (count) {
-    count--;
-    if (((byte *)m1)[count] != ((byte *)m2)[count]) return -1;
-  }
-  return 0;
-}
-
-void Q_strcpy(char *dest, const char *src) {
-  while (*src) {
-    *dest++ = *src++;
-  }
-  *dest++ = 0;
-}
-
-int Q_strlen(const char *str) {
-  int count;
-
-  count = 0;
-  while (str[count]) count++;
-
-  return count;
-}
-
-char *Q_strrchr(const char *s, char c) {
-  int len = Q_strlen(s);
-  s += len;
-  while (len--) {
-    if (*--s == c) return (char *)s;
-  }
-  return NULL;
-}
-
-int Q_strcmp(const char *s1, const char *s2) {
-  while (1) {
-    if (*s1 != *s2) return -1;  // strings not equal
-    if (!*s1) return 0;         // strings are equal
-    s1++;
-    s2++;
-  }
-
-  return -1;
-}
-
-int Q_strncmp(const char *s1, const char *s2, int count) {
-  while (1) {
-    if (!count--) return 0;
-    if (*s1 != *s2) return -1;  // strings not equal
-    if (!*s1) return 0;         // strings are equal
-    s1++;
-    s2++;
-  }
-
-  return -1;
-}
-
-int Q_atoi(const char *str) {
-  int val;
-  int sign;
-  int c;
-
-  if (*str == '-') {
-    sign = -1;
-    str++;
-  } else
-    sign = 1;
-
-  val = 0;
-
-  //
-  // check for hex
-  //
-  if (str[0] == '0' && (str[1] == 'x' || str[1] == 'X')) {
-    str += 2;
-    while (1) {
-      c = *str++;
-      if (c >= '0' && c <= '9')
-        val = (val << 4) + c - '0';
-      else if (c >= 'a' && c <= 'f')
-        val = (val << 4) + c - 'a' + 10;
-      else if (c >= 'A' && c <= 'F')
-        val = (val << 4) + c - 'A' + 10;
-      else
-        return val * sign;
-    }
-  }
-
-  //
-  // check for character
-  //
-  if (str[0] == '\'') {
-    return sign * str[1];
-  }
-
-  //
-  // assume decimal
-  //
-  while (1) {
-    c = *str++;
-    if (c < '0' || c > '9') return val * sign;
-    val = val * 10 + c - '0';
-  }
-
-  return 0;
 }
 
 /*
@@ -447,67 +319,6 @@ skipwhite:
   return data;
 }
 
-/*
-============
-va
-
-does a varargs printf into a temp buffer. cycles between
-4 different static buffers. the number of buffers cycled
-is defined in VA_NUM_BUFFS.
-FIXME: make this buffer size safe someday
-============
-*/
-#define VA_NUM_BUFFS 4
-#define VA_BUFFERLEN 1024
-
-static char *get_va_buffer(void) {
-  static char va_buffers[VA_NUM_BUFFS][VA_BUFFERLEN];
-  static int buffer_idx = 0;
-  buffer_idx = (buffer_idx + 1) & (VA_NUM_BUFFS - 1);
-  return va_buffers[buffer_idx];
-}
-
-char *va(const char *format, ...) {
-  va_list argptr;
-  char *va_buf;
-
-  va_buf = get_va_buffer();
-  va_start(argptr, format);
-  q_vsnprintf(va_buf, VA_BUFFERLEN, format, argptr);
-  va_end(argptr);
-
-  return va_buf;
-}
-
-/*
-=============================================================================
-
-QUAKE FILESYSTEM
-
-=============================================================================
-*/
-
-/*
-============
-COM_CreatePath
-============
-*/
-void COM_CreatePath(char *path) {
-  char *ofs;
-
-  for (ofs = path + 1; *ofs; ofs++) {
-    if (*ofs == '/') {  // create the directory
-      *ofs = 0;
-      Sys_mkdir(path);
-      *ofs = '/';
-    }
-  }
-}
-
-//==============================================================================
-// johnfitz -- dynamic gamedir stuff -- modified by QuakeSpasm team.
-//==============================================================================
-void ExtraMaps_NewGame(void);
 static void COM_Game_f(void) {
   // TODO(therjak): broken as Cmd_Argv point always to the same buffer
 }

@@ -1,7 +1,6 @@
 #include <SDL2/SDL.h>
 
 #include "quakedef.h"
-#include "resource.h"
 
 #define MAX_MODE_LIST 600
 #define MAX_BPPS_LIST 5
