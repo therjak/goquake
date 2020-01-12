@@ -7,6 +7,7 @@ import "C"
 import (
 	"bytes"
 	"io/ioutil"
+	"log"
 	"math/rand"
 	"path/filepath"
 	"quake/cbuf"
@@ -20,6 +21,7 @@ import (
 	"quake/math"
 	"quake/net"
 	"quake/qtime"
+	"quake/snd"
 	"time"
 )
 
@@ -28,9 +30,11 @@ var (
 )
 
 type Host struct {
-	time      float64
-	oldTime   float64
-	frameTime float64
+	time        float64
+	oldTime     float64
+	frameTime   float64
+	initialized bool
+	isDown      bool
 }
 
 func Time() float64 {
@@ -336,12 +340,7 @@ func hostFrame() {
 }
 
 // Writes key bindings and archived cvars to config.cfg
-//export HostWriteConfiguration
 func HostWriteConfiguration() {
-	//if !host_initialized {
-	//  return
-	//}
-
 	// dedicated servers initialize the host but don't parse and set the
 	// config.cfg cvars
 	if cmdl.Dedicated() {
@@ -364,5 +363,35 @@ func HostWriteConfiguration() {
 	err := ioutil.WriteFile(filename, b.Bytes(), 0644)
 	if err != nil {
 		conlog.Printf("Couldn't write config.cfg.\n")
+	}
+}
+
+//export HostSetInitialized
+func HostSetInitialized() {
+	host.initialized = true
+}
+
+//export Host_Shutdown
+func Host_Shutdown() {
+	host.Shutdown()
+}
+
+func (h *Host) Shutdown() {
+	if h.isDown {
+		log.Printf("recursive shutdown\n")
+		return
+	}
+	h.isDown = true
+	screen.disabled = true
+	if host.initialized {
+		HostWriteConfiguration()
+	}
+	net.Shutdown()
+	if cls.state != ca_dedicated {
+		if console.initialized {
+			history.Save()
+		}
+		snd.Shutdown()
+		videoShutdown()
 	}
 }

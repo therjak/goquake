@@ -1,6 +1,5 @@
 package quakelib
 
-//void Host_Shutdown(void);
 import "C"
 
 import (
@@ -41,7 +40,7 @@ func Sys_DoubleTime() C.double {
 
 func Error(format string, v ...interface{}) {
 	debug.PrintStack()
-	C.Host_Shutdown()
+	host.Shutdown()
 	log.Fatalf(format, v...)
 }
 
@@ -62,7 +61,7 @@ func Go_Error_I(c *C.char, i C.int) {
 
 //export Sys_Quit
 func Sys_Quit() {
-	C.Host_Shutdown()
+	host.Shutdown()
 	os.Exit(0)
 }
 

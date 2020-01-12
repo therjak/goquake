@@ -248,11 +248,9 @@ extern int host_framecount;  // incremented every frame, never reset
 void Host_ClearMemory(void);
 void Host_ServerFrame(void);
 void Host_Init(void);
-void Host_Shutdown(void);
 void Host_Error(const char *error, ...);
 //    __attribute__((__format__(__printf__, 1, 2), __noreturn__));
 // void Host_EndGame(const char *message);
-void Host_WriteConfiguration(void);
 
 void ExtraMaps_Init(void);
 void Modlist_Init(void);

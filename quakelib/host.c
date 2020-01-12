@@ -81,21 +81,6 @@ void Host_InitLocal(void) {
 }
 
 /*
-===============
-Host_WriteConfiguration
-
-Writes key bindings and archived cvars to config.cfg
-===============
-*/
-void Host_WriteConfiguration(void) {
-  if (!host_initialized) {
-    return;
-  }
-  // everything else is done in go
-  HostWriteConfiguration();
-}
-
-/*
 ================
 Host_ClearMemory
 
@@ -224,7 +209,7 @@ void Host_Init(void) {
   Hunk_AllocName(0, "-HOST_HUNKLEVEL-");
   host_hunklevel = Hunk_LowMark();
 
-  host_initialized = true;
+  HostSetInitialized();
   Con_Printf("\n========= Quake Initialized =========\n\n");
 
   if (CLS_GetState() != ca_dedicated) {
@@ -241,36 +226,5 @@ void Host_Init(void) {
     Cbuf_AddText("stuffcmds");
     Cbuf_Execute();
     if (!SV_Active()) Cbuf_AddText("map start\n");
-  }
-}
-
-/*
-===============
-Host_Shutdown
-
-FIXME: this is a callback from Sys_Quit and Sys_Error.  It would be better
-to run quit through here before the final handoff to the sys code.
-===============
-*/
-void Host_Shutdown(void) {
-  static qboolean isdown = false;
-
-  if (isdown) {
-    printf("recursive shutdown\n");
-    return;
-  }
-  isdown = true;
-
-  // keep Con_Printf from trying to update the screen
-  SetScreenDisabled(true);
-
-  Host_WriteConfiguration();
-
-  NET_Shutdown();
-
-  if (CLS_GetState() != ca_dedicated) {
-    if (Con_Initialized()) History_Shutdown();
-    S_Shutdown();
-    VID_Shutdown();
   }
 }
