@@ -16,7 +16,6 @@ typedef void (*cvarcallback_t)(struct cvar_s *);
 
 float Cvar_GetValue(cvar_t *variable);
 const char *Cvar_GetString(cvar_t *variable);
-const char *Cvar_GetName(cvar_t *variable);
 
 // registers a cvar
 void Cvar_FakeRegister(cvar_t *v, char *name);
