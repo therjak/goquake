@@ -35,6 +35,4 @@ void Cvar_SetValueQuick(cvar_t *var, float value);
 // but are otherwise identical to the "non-Quick" versions.
 // the cvar MUST be registered.
 
-void Cvar_Init(void);
-
 #endif /* __CVAR_H__ */

@@ -248,9 +248,29 @@ func CvarToggle(args []cmd.QArg, _ int) {
 	}
 }
 
-func CvarCycle(_ []cmd.QArg, _ int) {
-	log.Printf("TODO")
-	// TODO(therjak): implement
+func CvarCycle(args []cmd.QArg, _ int) {
+	if len(args) < 2 {
+		conlog.Printf("cycle <cvar> <value list>: cycle cvar through a list of values\n")
+		return
+	}
+	cv, ok := cvar.Get(args[0].String())
+	if !ok {
+		conlog.Printf("Cvar_Set: variable %v not found\n", args[0].String())
+		return
+	}
+	// TODO: make entries in args[1:] unique
+	oldValue := cv.String()
+	i := 0
+	for i < len(args)-1 {
+		i++
+		if oldValue == args[i].String() {
+			break
+		}
+	}
+	i %= len(args) - 1
+	i++
+	conlog.Printf("cycle got %s: %s\n", args[0].String(), args[i].String())
+	cv.SetByString(args[i].String())
 }
 
 func CvarInc(args []cmd.QArg, _ int) {

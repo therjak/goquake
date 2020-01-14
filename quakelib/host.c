@@ -174,7 +174,6 @@ void Host_Init(void) {
               host_parms->memsize / (float)0x100000);
 
   Memory_Init(host_parms->membase, host_parms->memsize);
-  Cvar_Init();  // johnfitz
   COM_InitFilesystem();
   Host_InitLocal();
   Go_LoadWad();
