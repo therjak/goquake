@@ -1,3 +1,4 @@
+// THERJAK: this file should be ready to be converted
 #include <stdio.h>
 
 #include "quakedef.h"
@@ -8,6 +9,30 @@
 #define ABSOLUTE_MIN_PARTICLES \
   512  // no fewer than this no matter what's
        //  on the command line
+
+typedef enum {
+  pt_static,
+  pt_grav,
+  pt_slowgrav,
+  pt_fire,
+  pt_explode,
+  pt_explode2,
+  pt_blob,
+  pt_blob2
+} ptype_t;
+
+// !!! if this is changed, it must be changed in d_ifacea.h too !!!
+typedef struct particle_s {
+  // driver-usable fields
+  vec3_t org;
+  float color;
+  // drivers never touch the following fields
+  struct particle_s *next;
+  vec3_t vel;
+  float ramp;
+  float die;
+  ptype_t type;
+} particle_t;
 
 int ramp1[8] = {0x6f, 0x6d, 0x6b, 0x69, 0x67, 0x65, 0x63, 0x61};
 int ramp2[8] = {0x6f, 0x6e, 0x6d, 0x6c, 0x6b, 0x6a, 0x68, 0x66};
@@ -199,11 +224,11 @@ void R_EntityParticles(entity_t *ent) {
     p->color = 0x6f;
     p->type = pt_explode;
 
-    p->org[0] = ent->origin[0] + R_avertexnormals(i,0) * dist +
+    p->org[0] = ent->origin[0] + R_avertexnormals(i, 0) * dist +
                 forward[0] * beamlength;
-    p->org[1] = ent->origin[1] + R_avertexnormals(i,1) * dist +
+    p->org[1] = ent->origin[1] + R_avertexnormals(i, 1) * dist +
                 forward[1] * beamlength;
-    p->org[2] = ent->origin[2] + R_avertexnormals(i,2) * dist +
+    p->org[2] = ent->origin[2] + R_avertexnormals(i, 2) * dist +
                 forward[2] * beamlength;
   }
 }
