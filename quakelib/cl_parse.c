@@ -1,4 +1,22 @@
+#include "_cgo_export.h"
 #include "quakedef.h"
+
+const char *CL_MSG_ReadString(void) {
+  static char string[2048];
+  int c;
+  size_t l;
+
+  l = 0;
+  do {
+    c = CL_MSG_ReadByte();
+    if (c == -1 || c == 0) break;
+    string[l] = c;
+    l++;
+  } while (l < sizeof(string) - 1);
+
+  string[l] = 0;
+  return string;
+}
 
 int num_temp_entities;
 entity_t cl_temp_entities[MAX_TEMP_ENTITIES];
@@ -957,7 +975,7 @@ void CL_ParseServerMessage(void) {
         break;
 
       case svc_lightstyle:
-        ReadLightStyle(); // ReadByte + ReadString
+        ReadLightStyle();  // ReadByte + ReadString
         break;
 
       case svc_sound:

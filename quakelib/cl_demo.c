@@ -1,6 +1,8 @@
 #include "quakedef.h"
 
-//THERJAK: this should be possible to move now
+#define NET_MAXMESSAGE 64000
+
+// THERJAK: this should be possible to move now
 
 static void CL_FinishTimeDemo(void);
 
@@ -101,8 +103,8 @@ int CL_GetDemoMessage(void) {
   fread(&cursize, 4, 1, cls.demofile);
   for (i = 0; i < 3; i++) {
     r = fread(&f, 4, 1, cls.demofile);
-    SetCL_MViewAngles(1,i,CL_MViewAngles(0,i));
-    SetCL_MViewAngles(0,i,LittleFloat(f));
+    SetCL_MViewAngles(1, i, CL_MViewAngles(0, i));
+    SetCL_MViewAngles(0, i, LittleFloat(f));
   }
 
   cursize = LittleLong(cursize);
