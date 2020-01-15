@@ -3,9 +3,6 @@
 
 #include "quakedef.h"
 
-#define MAX_PARTICLES \
-  2048  // default max # of particles at one
-        //  time
 #define ABSOLUTE_MIN_PARTICLES \
   512  // no fewer than this no matter what's
        //  on the command line
@@ -40,12 +37,10 @@ int ramp3[8] = {0x6d, 0x6b, 6, 5, 4, 3};
 
 particle_t *active_particles, *free_particles, *particles;
 
-vec3_t r_pright, r_pup, r_ppn;
-
 int r_numparticles;
 
-uint32_t particletexture, particletexture1, particletexture2, particletexture3,
-    particletexture4;      // johnfitz
+uint32_t particletexture, particletexture1, particletexture2,
+    particletexture3;      // johnfitz
 float texturescalefactor;  // johnfitz -- compensate for apparent size of
                            // different particle textures
 
@@ -176,9 +171,6 @@ R_EntityParticles
 #define NUMVERTEXNORMALS 162
 vec3_t avelocities[NUMVERTEXNORMALS];
 float beamlength = 16;
-vec3_t avelocity = {23, 7, 3};
-float partstep = 0.01;
-float timescale = 0.01;
 
 // THERJAK: external
 void R_EntityParticles(entity_t *ent) {
@@ -186,13 +178,10 @@ void R_EntityParticles(entity_t *ent) {
   particle_t *p;
   float angle;
   float sp, sy, cp, cy;
-  //	float		sr, cr;
-  //	int		count;
   vec3_t forward;
   float dist;
 
   dist = 64;
-  //	count = 50;
 
   if (!avelocities[0][0]) {
     for (i = 0; i < NUMVERTEXNORMALS; i++) {
@@ -209,9 +198,6 @@ void R_EntityParticles(entity_t *ent) {
     angle = CL_Time() * avelocities[i][1];
     sp = sin(angle);
     cp = cos(angle);
-    angle = CL_Time() * avelocities[i][2];
-    //	sr = sin(angle);
-    //	cr = cos(angle);
 
     forward[0] = cp * cy;
     forward[1] = cp * sy;
