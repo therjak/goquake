@@ -72,10 +72,10 @@ typedef struct entity_s {
   struct efrag_s *efrag;   // linked list of efrags
   int frame;
   float syncbase;  // for client-side animations
-  int effects;   // light, particles, etc
-  int skinnum;   // for Alias models
-  int visframe;  // last frame this entity was
-                 //  found in an active leaf
+  int effects;     // light, particles, etc
+  int skinnum;     // for Alias models
+  int visframe;    // last frame this entity was
+                   //  found in an active leaf
 
   int dlightframe;  // dynamic lighting
   int dlightbits;
@@ -94,7 +94,8 @@ typedef struct entity_s {
                        // interval, use it instead of 0.1
   short previouspose;  // johnfitz -- animation lerping
   short currentpose;   // johnfitz -- animation lerping
-  //	short					futurepose;		//johnfitz
+  //	short					futurepose;
+  ////johnfitz
   //-- animation
   // lerping
   float movelerpstart;    // johnfitz -- transform lerping
@@ -130,21 +131,12 @@ void R_RemoveEfrags(entity_t *ent);
 
 void R_NewMap(void);
 
-void R_RunParticleEffect(vec3_t org, vec3_t dir, int color, int count);
-void R_RocketTrail(vec3_t start, vec3_t end, int type);
-void R_EntityParticles(entity_t *ent);
-void R_BlobExplosion(vec3_t org);
-void R_ParticleExplosion(vec3_t org);
-void R_ParticleExplosion2(vec3_t org, int colorStart, int colorLength);
-void R_LavaSplash(vec3_t org);
-void R_TeleportSplash(vec3_t org);
-
 void R_PushDlights(void);
 
 //
 // surface cache related
 //
-extern int reinit_surfcache;     // if 1, surface cache is currently empty and
+extern int reinit_surfcache;  // if 1, surface cache is currently empty and
 
 int D_SurfaceCacheForRes(int width, int height);
 void D_FlushCaches(void);

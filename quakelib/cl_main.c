@@ -178,35 +178,35 @@ void CL_RelinkEntities(void) {
   //
   for (i = 0; i < 3; i++) {
     float v =
-        CL_MVelocity(1,i) + frac * (CL_MVelocity(0,i) - CL_MVelocity(1,i));
+        CL_MVelocity(1, i) + frac * (CL_MVelocity(0, i) - CL_MVelocity(1, i));
     CL_SetVelocity(i, v);
   }
 
   if (CLS_IsDemoPlayback()) {
     // interpolate the angles
     {
-      d = CL_MViewAngles(0,0) - CL_MViewAngles(1,0);
+      d = CL_MViewAngles(0, 0) - CL_MViewAngles(1, 0);
       if (d > 180)
         d -= 360;
       else if (d < -180)
         d += 360;
-      SetCLPitch(CL_MViewAngles(1,0) + frac * d);
+      SetCLPitch(CL_MViewAngles(1, 0) + frac * d);
     }
     {
-      d = CL_MViewAngles(0,1) - CL_MViewAngles(1,1);
+      d = CL_MViewAngles(0, 1) - CL_MViewAngles(1, 1);
       if (d > 180)
         d -= 360;
       else if (d < -180)
         d += 360;
-      SetCLYaw(CL_MViewAngles(1,1) + frac * d);
+      SetCLYaw(CL_MViewAngles(1, 1) + frac * d);
     }
     {
-      d = CL_MViewAngles(0,2) - CL_MViewAngles(1,2);
+      d = CL_MViewAngles(0, 2) - CL_MViewAngles(1, 2);
       if (d > 180)
         d -= 360;
       else if (d < -180)
         d += 360;
-      SetCLRoll(CL_MViewAngles(1,2) + frac * d);
+      SetCLRoll(CL_MViewAngles(1, 2) + frac * d);
     }
   }
 
@@ -265,7 +265,7 @@ void CL_RelinkEntities(void) {
     // rotate binary objects locally
     if (ent->model->flags & EF_ROTATE) ent->angles[1] = bobjrotate;
 
-    if (ent->effects & EF_BRIGHTFIELD) R_EntityParticles(ent);
+    if (ent->effects & EF_BRIGHTFIELD) ParticlesAddEntity(ent);
 
     if (ent->effects & EF_MUZZLEFLASH) {
       vec3_t fv, rv, uv;
@@ -307,23 +307,23 @@ void CL_RelinkEntities(void) {
     }
 
     if (ent->model->flags & EF_GIB)
-      R_RocketTrail(oldorg, ent->origin, 2);
+      ParticlesAddRocketTrail(oldorg, ent->origin, 2);
     else if (ent->model->flags & EF_ZOMGIB)
-      R_RocketTrail(oldorg, ent->origin, 4);
+      ParticlesAddRocketTrail(oldorg, ent->origin, 4);
     else if (ent->model->flags & EF_TRACER)
-      R_RocketTrail(oldorg, ent->origin, 3);
+      ParticlesAddRocketTrail(oldorg, ent->origin, 3);
     else if (ent->model->flags & EF_TRACER2)
-      R_RocketTrail(oldorg, ent->origin, 5);
+      ParticlesAddRocketTrail(oldorg, ent->origin, 5);
     else if (ent->model->flags & EF_ROCKET) {
-      R_RocketTrail(oldorg, ent->origin, 0);
+      ParticlesAddRocketTrail(oldorg, ent->origin, 0);
       dl = CL_AllocDlight(i);
       VectorCopy(ent->origin, dl->origin);
       dl->radius = 200;
       dl->die = CL_Time() + 0.01;
     } else if (ent->model->flags & EF_GRENADE)
-      R_RocketTrail(oldorg, ent->origin, 1);
+      ParticlesAddRocketTrail(oldorg, ent->origin, 1);
     else if (ent->model->flags & EF_TRACER3)
-      R_RocketTrail(oldorg, ent->origin, 6);
+      ParticlesAddRocketTrail(oldorg, ent->origin, 6);
 
     ent->forcelink = false;
 

@@ -132,7 +132,7 @@ void _Host_Frame() {
 
   SCR_UpdateScreen();
 
-  CL_RunParticles();  // johnfitz -- seperated from rendering
+  ParticlesRun();  // johnfitz -- seperated from rendering
 
   if (Cvar_GetValue(&host_speeds)) time2 = Sys_DoubleTime();
 

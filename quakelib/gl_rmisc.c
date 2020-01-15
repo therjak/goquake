@@ -190,7 +190,7 @@ void R_Init(void) {
   Cvar_FakeRegister(&r_slimealpha, "r_slimealpha");
   Cvar_SetCallback(&r_slimealpha, R_SetSlimealpha_f);
 
-  R_InitParticles();
+  ParticlesInit();
   R_SetClearColor_f(&r_clearcolor);
 
   Sky_Init();
@@ -253,8 +253,7 @@ void R_TranslateNewPlayerSkin(int playernum) {
   q_snprintf(name, sizeof(name), "player_%i", playernum);
   playertextures[playernum] = TexMgrLoadImage2(
       currententity->model, name, paliashdr->skinwidth, paliashdr->skinheight,
-      SRC_INDEXED, pixels, "", 0,
-      TEXPREF_PAD | TEXPREF_OVERWRITE);
+      SRC_INDEXED, pixels, "", 0, TEXPREF_PAD | TEXPREF_OVERWRITE);
 
   // now recolor it
   R_TranslatePlayerSkin(playernum);
@@ -332,7 +331,7 @@ void R_NewMap(void) {
     cl.worldmodel->leafs[i].efrags = NULL;
 
   r_viewleaf = NULL;
-  R_ClearParticles();
+  ParticlesClear();
 
   GL_BuildLightmaps();
   GL_BuildBModelVertexBuffer();

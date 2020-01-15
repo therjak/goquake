@@ -197,8 +197,7 @@ void GLSLGamma_GammaCorrect(void) {
   // copy the framebuffer to the texture
   GLDisableMultitexture();
   glBindTexture(GL_TEXTURE_2D, r_gamma_texture);
-  glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, GL_Width(),
-                      GL_Height());
+  glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, GL_Width(), GL_Height());
 
   // draw the texture back to the framebuffer with a fragment shader
   GL_UseProgramFunc(r_gamma_program);
@@ -463,11 +462,13 @@ void R_SetupGL(void) {
 
   glRotatef(-90, 1, 0, 0);  // put Z going up
   glRotatef(90, 0, 0, 1);   // put Z going up
-  vec3_t viewangles = {R_Refdef_viewangles(0),R_Refdef_viewangles(1),R_Refdef_viewangles(2)};
+  vec3_t viewangles = {R_Refdef_viewangles(0), R_Refdef_viewangles(1),
+                       R_Refdef_viewangles(2)};
   glRotatef(-viewangles[2], 1, 0, 0);
   glRotatef(-viewangles[0], 0, 1, 0);
   glRotatef(-viewangles[1], 0, 0, 1);
-  vec3_t vieworg = {R_Refdef_vieworg(0),R_Refdef_vieworg(1),R_Refdef_vieworg(2)};
+  vec3_t vieworg = {R_Refdef_vieworg(0), R_Refdef_vieworg(1),
+                    R_Refdef_vieworg(2)};
   glTranslatef(-vieworg[0], -vieworg[1], -vieworg[2]);
 
   //
@@ -523,9 +524,11 @@ void R_SetupView(void) {
   Fog_SetupFrame();  // johnfitz
 
   // build the transformation matrix for the given view angles
-  vec3_t vieworg = {R_Refdef_vieworg(0),R_Refdef_vieworg(1),R_Refdef_vieworg(2)};
+  vec3_t vieworg = {R_Refdef_vieworg(0), R_Refdef_vieworg(1),
+                    R_Refdef_vieworg(2)};
   VectorCopy(vieworg, r_origin);
-  vec3_t viewangles = {R_Refdef_viewangles(0),R_Refdef_viewangles(1),R_Refdef_viewangles(2)};
+  vec3_t viewangles = {R_Refdef_viewangles(0), R_Refdef_viewangles(1),
+                       R_Refdef_viewangles(2)};
   AngleVectors(viewangles, vpn, vright, vup);
   UpdateVpnGo();
 
@@ -753,7 +756,7 @@ void R_ShowTris(void) {
   }
 
   if (Cvar_GetValue(&r_particles)) {
-    R_DrawParticles_ShowTris();
+    ParticlesDrawShowTris();
   }
 
   //	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -834,7 +837,7 @@ void R_RenderScene(void) {
 
   R_RenderDlights();  // triangle fan dlights -- johnfitz -- moved after water
 
-  R_DrawParticles();
+  ParticlesDraw();
 
   Fog_DisableGFog();  // johnfitz
 
@@ -876,7 +879,8 @@ void R_RenderView(void) {
     float eyesep = CLAMP(-8.0f, Cvar_GetValue(&r_stereo), 8.0f);
     float fdepth = CLAMP(32.0f, Cvar_GetValue(&r_stereodepth), 1024.0f);
 
-  vec3_t viewangles = {R_Refdef_viewangles(0),R_Refdef_viewangles(1),R_Refdef_viewangles(2)};
+    vec3_t viewangles = {R_Refdef_viewangles(0), R_Refdef_viewangles(1),
+                         R_Refdef_viewangles(2)};
     AngleVectors(viewangles, vpn, vright, vup);
     UpdateVpnGo();
 

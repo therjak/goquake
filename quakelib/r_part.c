@@ -128,6 +128,7 @@ void R_InitParticleTextures(void) {
 R_SetParticleTexture_f -- johnfitz
 ===============
 */
+// THERJAK: cvar callback
 static void R_SetParticleTexture_f(cvar_t *var) {
   switch ((int)(Cvar_GetValue(&r_particles))) {
     case 1:
@@ -150,6 +151,7 @@ static void R_SetParticleTexture_f(cvar_t *var) {
 R_InitParticles
 ===============
 */
+// THERJAK: external
 void R_InitParticles(void) {
   r_numparticles = CMLParticles();
   if (r_numparticles < ABSOLUTE_MIN_PARTICLES) {
@@ -178,6 +180,7 @@ vec3_t avelocity = {23, 7, 3};
 float partstep = 0.01;
 float timescale = 0.01;
 
+// THERJAK: external
 void R_EntityParticles(entity_t *ent) {
   int i;
   particle_t *p;
@@ -238,6 +241,7 @@ void R_EntityParticles(entity_t *ent) {
 R_ClearParticles
 ===============
 */
+// THERJAK: external
 void R_ClearParticles(void) {
   int i;
 
@@ -253,6 +257,7 @@ void R_ClearParticles(void) {
 R_ReadPointFile_f
 ===============
 */
+// THERJAK: cmd
 void R_ReadPointFile_f(void) {
   // This is a file to debug maps. They should not be part of a pak.
   // It's to show ingame where the map has holes.
@@ -305,6 +310,7 @@ void R_ReadPointFile_f(void) {
 R_ParticleExplosion
 ===============
 */
+// THERJAK: external
 void R_ParticleExplosion(vec3_t org) {
   int i, j;
   particle_t *p;
@@ -340,6 +346,7 @@ void R_ParticleExplosion(vec3_t org) {
 R_ParticleExplosion2
 ===============
 */
+// THERJAK: external
 void R_ParticleExplosion2(vec3_t org, int colorStart, int colorLength) {
   int i, j;
   particle_t *p;
@@ -369,6 +376,7 @@ void R_ParticleExplosion2(vec3_t org, int colorStart, int colorLength) {
 R_BlobExplosion
 ===============
 */
+// THERJAK: external
 void R_BlobExplosion(vec3_t org) {
   int i, j;
   particle_t *p;
@@ -405,6 +413,7 @@ void R_BlobExplosion(vec3_t org) {
 R_RunParticleEffect
 ===============
 */
+// THERJAK: external
 void R_RunParticleEffect(vec3_t org, vec3_t dir, int color, int count) {
   int i, j;
   particle_t *p;
@@ -450,6 +459,7 @@ void R_RunParticleEffect(vec3_t org, vec3_t dir, int color, int count) {
 R_LavaSplash
 ===============
 */
+// THERJAK: external
 void R_LavaSplash(vec3_t org) {
   int i, j, k;
   particle_t *p;
@@ -488,6 +498,7 @@ void R_LavaSplash(vec3_t org) {
 R_TeleportSplash
 ===============
 */
+// THERJAK: external
 void R_TeleportSplash(vec3_t org) {
   int i, j, k;
   particle_t *p;
@@ -528,6 +539,7 @@ R_RocketTrail
 FIXME -- rename function and use #defined types instead of numbers
 ===============
 */
+// THERJAK: external
 void R_RocketTrail(vec3_t start, vec3_t end, int type) {
   vec3_t vec;
   float len;
@@ -624,6 +636,7 @@ CL_RunParticles -- johnfitz -- all the particle behavior, separated from
 R_DrawParticles
 ===============
 */
+// THERJAK: external
 void CL_RunParticles(void) {
   particle_t *p, *kill;
   int i;
@@ -719,6 +732,7 @@ void CL_RunParticles(void) {
 R_DrawParticles -- johnfitz -- moved all non-drawing code to CL_RunParticles
 ===============
 */
+// THERJAK: external
 void R_DrawParticles(void) {
   particle_t *p;
   float scale;
@@ -839,6 +853,7 @@ void R_DrawParticles(void) {
 R_DrawParticles_ShowTris -- johnfitz
 ===============
 */
+// THERJAK: external
 void R_DrawParticles_ShowTris(void) {
   particle_t *p;
   float scale;
