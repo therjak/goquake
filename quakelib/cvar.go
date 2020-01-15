@@ -269,7 +269,6 @@ func CvarCycle(args []cmd.QArg, _ int) {
 	}
 	i %= len(args) - 1
 	i++
-	conlog.Printf("cycle got %s: %s\n", args[0].String(), args[i].String())
 	cv.SetByString(args[i].String())
 }
 
