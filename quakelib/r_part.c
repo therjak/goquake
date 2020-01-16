@@ -172,7 +172,7 @@ R_EntityParticles
 vec3_t avelocities[NUMVERTEXNORMALS];
 float beamlength = 16;
 
-// THERJAK: external
+// THERJAK: done
 void R_EntityParticles(entity_t *ent) {
   int i;
   particle_t *p;
@@ -227,7 +227,7 @@ void R_EntityParticles(entity_t *ent) {
 R_ClearParticles
 ===============
 */
-// THERJAK: external
+// THERJAK: done
 void R_ClearParticles(void) {
   int i;
 
@@ -296,7 +296,7 @@ void R_ReadPointFile_f(void) {
 R_ParticleExplosion
 ===============
 */
-// THERJAK: external
+// THERJAK: done
 void R_ParticleExplosion(vec3_t org) {
   int i, j;
   particle_t *p;
@@ -332,7 +332,7 @@ void R_ParticleExplosion(vec3_t org) {
 R_ParticleExplosion2
 ===============
 */
-// THERJAK: external
+// THERJAK: done
 void R_ParticleExplosion2(vec3_t org, int colorStart, int colorLength) {
   int i, j;
   particle_t *p;
@@ -362,7 +362,7 @@ void R_ParticleExplosion2(vec3_t org, int colorStart, int colorLength) {
 R_BlobExplosion
 ===============
 */
-// THERJAK: external
+// THERJAK: done
 void R_BlobExplosion(vec3_t org) {
   int i, j;
   particle_t *p;
@@ -445,7 +445,7 @@ void R_RunParticleEffect(vec3_t org, vec3_t dir, int color, int count) {
 R_LavaSplash
 ===============
 */
-// THERJAK: external
+// THERJAK: done
 void R_LavaSplash(vec3_t org) {
   int i, j, k;
   particle_t *p;
@@ -484,7 +484,7 @@ void R_LavaSplash(vec3_t org) {
 R_TeleportSplash
 ===============
 */
-// THERJAK: external
+// THERJAK: done
 void R_TeleportSplash(vec3_t org) {
   int i, j, k;
   particle_t *p;

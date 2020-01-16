@@ -62,11 +62,13 @@ func ParticlesRunEffect(org, dir *C.float, color, count C.int) {
 //export ParticlesAddLavaSplash
 func ParticlesAddLavaSplash(org *C.float) {
 	C.R_LavaSplash(org)
+	particlesAddLavaSplash(p2v3(org), float32(cl.time))
 }
 
 //export ParticlesAddTeleportSplash
 func ParticlesAddTeleportSplash(org *C.float) {
 	C.R_TeleportSplash(org)
+	particlesAddTeleportSplash(p2v3(org), float32(cl.time))
 }
 
 //export ParticlesAddRocketTrail

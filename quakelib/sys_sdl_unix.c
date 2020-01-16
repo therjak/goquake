@@ -36,19 +36,6 @@ void callQuakeFunc(xcommand_t f) { f(); }
 
 void setInt(int* l, int v) { *l = v; }
 
-
-void Sys_mkdir(const char *path) {
-  int rc = mkdir(path, 0777);
-  if (rc != 0 && errno == EEXIST) {
-    struct stat st;
-    if (stat(path, &st) == 0 && S_ISDIR(st.st_mode)) rc = 0;
-  }
-  if (rc != 0) {
-    rc = errno;
-    Sys_Error("Unable to create directory %s: %s", path, strerror(rc));
-  }
-}
-
 static const char errortxt1[] = "\nERROR-OUT BEGIN\n\n";
 static const char errortxt2[] = "\nQUAKE ERROR: ";
 

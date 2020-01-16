@@ -210,6 +210,74 @@ func particlesAddBlobExplosion(origin vec.Vec3, now float32) {
 	}
 }
 
+func particlesAddLavaSplash(origin vec.Vec3, now float32) {
+	for i := -16; i < 16; i++ {
+		for j := -16; j < 16; j++ {
+			l := len(freeParticles)
+			if l == 0 {
+				return
+			}
+			p := freeParticles[l-1]
+			p.used = true
+			freeParticles = freeParticles[:l-1]
+
+			p.dieTime = now + 2 + float32(rand.Int()&31)*0.02
+			p.color = 224 + (rand.Int() & 7)
+			p.typ = ParticleTypeSlowGrav
+
+			dir := vec.Vec3{
+				float32(j*8 + rand.Int()&7),
+				float32(i*8 + rand.Int()&7),
+				256,
+			}
+
+			p.origin = vec.Vec3{
+				origin[0] + dir[0],
+				origin[1] + dir[1],
+				origin[2] + float32(rand.Int()&63),
+			}
+			vel := float32(50 + rand.Int()&63)
+			normalDir := dir.Normalize()
+			p.velocity = *normalDir.Scale(vel)
+		}
+	}
+}
+
+func particlesAddTeleportSplash(origin vec.Vec3, now float32) {
+	for i := -16; i < 16; i += 4 {
+		for j := -16; j < 16; j += 4 {
+			for k := -24; j < 32; k += 4 {
+				l := len(freeParticles)
+				if l == 0 {
+					return
+				}
+				p := freeParticles[l-1]
+				p.used = true
+				freeParticles = freeParticles[:l-1]
+
+				p.dieTime = now + 0.2 + float32(rand.Int()&7)*0.02
+				p.color = 7 + (rand.Int() & 7)
+				p.typ = ParticleTypeSlowGrav
+
+				dir := vec.Vec3{
+					float32(j * 8),
+					float32(i * 8),
+					float32(k * 8),
+				}
+
+				p.origin = vec.Vec3{
+					origin[0] + float32(i+rand.Int()&3),
+					origin[1] + float32(j+rand.Int()&3),
+					origin[2] + float32(j+rand.Int()&3),
+				}
+				vel := float32(50 + rand.Int()&63)
+				normalDir := dir.Normalize()
+				p.velocity = *normalDir.Scale(vel)
+			}
+		}
+	}
+}
+
 func particlesRun(now float32, lastFrame float32) {
 	frameTime := now - lastFrame
 	t3 := frameTime * 15
