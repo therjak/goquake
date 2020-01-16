@@ -434,7 +434,7 @@ void R_RunParticleEffect(vec3_t org, vec3_t dir, int color, int count) {
       p->type = pt_slowgrav;
       for (j = 0; j < 3; j++) {
         p->org[j] = org[j] + ((rand() & 15) - 8);
-        p->vel[j] = dir[j] * 15;  // + (rand()%300)-150;
+        p->vel[j] = dir[j] * 15;
       }
     }
   }

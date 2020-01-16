@@ -3,6 +3,7 @@ package quakelib
 import (
 	"math/rand"
 	"quake/commandline"
+	"quake/cvars"
 	"quake/math/vec"
 
 	"github.com/chewxy/math32"
@@ -23,7 +24,7 @@ const (
 
 type particle struct {
 	origin   vec.Vec3
-	color    float32
+	color    int
 	velocity vec.Vec3
 	ramp     float32
 	dieTime  float32 // if dieTime < now => dead, needs to be server controlled
@@ -130,7 +131,6 @@ func particlesAddExplosion(origin vec.Vec3, now float32) {
 
 		p.dieTime = now + 5
 		p.color = 0x6f
-		p.typ = ParticleTypeExplode
 		p.ramp = float32(rand.Int31() & 3)
 		p.origin = vec.Vec3{
 			origin[0] + float32((rand.Int31()%32)-16),
@@ -142,10 +142,135 @@ func particlesAddExplosion(origin vec.Vec3, now float32) {
 			float32((rand.Int31() % 512) - 256),
 			float32((rand.Int31() % 512) - 256),
 		}
-		if i&1 == 0 {
+		if i&1 == 1 {
 			p.typ = ParticleTypeExplode
 		} else {
 			p.typ = ParticleTypeExplode2
+		}
+	}
+}
+
+func particlesAddExplosion2(origin vec.Vec3, colorStart, colorLength int, now float32) {
+	for i := 0; i < 512; i++ {
+		l := len(freeParticles)
+		if l == 0 {
+			return
+		}
+		p := freeParticles[l-1]
+		p.used = true
+		freeParticles = freeParticles[:l-1]
+
+		p.dieTime = now + 0.3
+		p.color = colorStart + (i % colorLength)
+		p.typ = ParticleTypeBlob
+
+		p.origin = vec.Vec3{
+			origin[0] + float32((rand.Int31()%32)-16),
+			origin[1] + float32((rand.Int31()%32)-16),
+			origin[2] + float32((rand.Int31()%32)-16),
+		}
+		p.velocity = vec.Vec3{
+			float32((rand.Int31() % 512) - 256),
+			float32((rand.Int31() % 512) - 256),
+			float32((rand.Int31() % 512) - 256),
+		}
+	}
+}
+
+func particlesAddBlobExplosion(origin vec.Vec3, now float32) {
+	for i := 0; i < 1024; i++ {
+		l := len(freeParticles)
+		if l == 0 {
+			return
+		}
+		p := freeParticles[l-1]
+		p.used = true
+		freeParticles = freeParticles[:l-1]
+
+		p.dieTime = now + 1 + float32(rand.Int31()&8)*0.5
+
+		p.ramp = float32(rand.Int31() & 3)
+		p.origin = vec.Vec3{
+			origin[0] + float32((rand.Int31()%32)-16),
+			origin[1] + float32((rand.Int31()%32)-16),
+			origin[2] + float32((rand.Int31()%32)-16),
+		}
+		p.velocity = vec.Vec3{
+			float32((rand.Int31() % 512) - 256),
+			float32((rand.Int31() % 512) - 256),
+			float32((rand.Int31() % 512) - 256),
+		}
+		if i&1 == 1 {
+			p.typ = ParticleTypeBlob
+			p.color = 66 + rand.Int()%6
+		} else {
+			p.typ = ParticleTypeBlob2
+			p.color = 150 + rand.Int()%6
+		}
+	}
+}
+
+func particlesRun(now float32, lastFrame float32) {
+	frameTime := now - lastFrame
+	t3 := frameTime * 15
+	t2 := frameTime * 10
+	t1 := frameTime * 5
+	grav := frameTime * cvars.ServerGravity.Value() * 0.5
+	dvel := frameTime * 4
+
+	for i := 0; i < len(particles); i++ {
+		p := &particles[i]
+		if !p.used {
+			continue
+		}
+		if p.dieTime < now {
+			p.used = false
+			freeParticles = append(freeParticles, p)
+			continue
+		}
+		p.origin.Add(vec.Scale(frameTime, p.velocity))
+
+		switch p.typ {
+		case ParticleTypeFire:
+			p.ramp += t1
+			if p.ramp >= 6 {
+				p.dieTime = 0
+			} else {
+				p.color = ramp3[int(p.ramp)]
+			}
+			p.velocity[2] += grav
+
+		case ParticleTypeExplode:
+			p.ramp += t2
+			if p.ramp >= 8 {
+				p.dieTime = 0
+			} else {
+				p.color = ramp1[int(p.ramp)]
+			}
+			p.velocity.Add(vec.Scale(dvel, p.velocity))
+			p.velocity[2] -= grav
+
+		case ParticleTypeExplode2:
+			p.ramp += t3
+			if p.ramp >= 6 {
+				p.dieTime = 0
+			} else {
+				p.color = ramp2[int(p.ramp)]
+			}
+			p.velocity.Sub(vec.Scale(frameTime, p.velocity))
+			p.velocity[2] -= grav
+
+		case ParticleTypeBlob:
+			p.velocity.Add(vec.Scale(dvel, p.velocity))
+			p.velocity[2] -= grav
+
+		case ParticleTypeBlob2:
+			p.velocity[0] -= p.velocity[0] * dvel
+			p.velocity[1] -= p.velocity[1] * dvel
+			p.velocity[2] -= grav
+
+		case ParticleTypeGrav, ParticleTypeSlowGrav:
+			p.velocity[2] -= grav
 		}
 	}
 }

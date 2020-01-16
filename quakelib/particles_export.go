@@ -20,31 +20,38 @@ import "C"
 //export ParticlesInit
 func ParticlesInit() {
 	C.R_InitParticles()
+	particlesInit()
 }
 
 //export ParticlesAddEntity
 func ParticlesAddEntity(ent *C.entity_t) {
 	C.R_EntityParticles(ent)
+	e := Entity{ent}
+	particlesAddEntity(e.origin(), float32(cl.time))
 }
 
 //export ParticlesClear
 func ParticlesClear() {
 	C.R_ClearParticles()
+	particlesClear()
 }
 
 //export ParticlesAddExplosion
 func ParticlesAddExplosion(org *C.float) {
 	C.R_ParticleExplosion(org)
+	particlesAddExplosion(p2v3(org), float32(cl.time))
 }
 
 //export ParticlesAddExplosion2
 func ParticlesAddExplosion2(org *C.float, colorStart, colorLength C.int) {
 	C.R_ParticleExplosion2(org, colorStart, colorLength)
+	particlesAddExplosion2(p2v3(org), int(colorStart), int(colorLength), float32(cl.time))
 }
 
 //export ParticlesAddBlobExplosion
 func ParticlesAddBlobExplosion(org *C.float) {
 	C.R_BlobExplosion(org)
+	particlesAddBlobExplosion(p2v3(org), float32(cl.time))
 }
 
 //export ParticlesRunEffect
@@ -70,6 +77,7 @@ func ParticlesAddRocketTrail(start, end *C.float, typ C.int) {
 //export ParticlesRun
 func ParticlesRun() {
 	C.CL_RunParticles()
+	particlesRun(float32(cl.time), float32(cl.oldTime))
 }
 
 //export ParticlesDraw
