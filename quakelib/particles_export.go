@@ -74,6 +74,7 @@ func ParticlesAddTeleportSplash(org *C.float) {
 //export ParticlesAddRocketTrail
 func ParticlesAddRocketTrail(start, end *C.float, typ C.int) {
 	C.R_RocketTrail(start, end, typ)
+	particlesAddRocketTrail(p2v3(start), p2v3(end), int(typ), float32(cl.time))
 }
 
 //export ParticlesRun

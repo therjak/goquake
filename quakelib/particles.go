@@ -119,6 +119,16 @@ func particlesReadPointFile() {
 	// TODO(THERJAK):
 }
 
+// randVec returns a randomized vector with radius at most r
+func randVec(r int) vec.Vec3 {
+	d := 2 * r
+	return vec.Vec3{
+		float32((rand.Int() % d) - r),
+		float32((rand.Int() % d) - r),
+		float32((rand.Int() % d) - r),
+	}
+}
+
 func particlesAddExplosion(origin vec.Vec3, now float32) {
 	for i := 0; i < 1024; i++ {
 		l := len(freeParticles)
@@ -132,16 +142,8 @@ func particlesAddExplosion(origin vec.Vec3, now float32) {
 		p.dieTime = now + 5
 		p.color = 0x6f
 		p.ramp = float32(rand.Int31() & 3)
-		p.origin = vec.Vec3{
-			origin[0] + float32((rand.Int31()%32)-16),
-			origin[1] + float32((rand.Int31()%32)-16),
-			origin[2] + float32((rand.Int31()%32)-16),
-		}
-		p.velocity = vec.Vec3{
-			float32((rand.Int31() % 512) - 256),
-			float32((rand.Int31() % 512) - 256),
-			float32((rand.Int31() % 512) - 256),
-		}
+		p.origin = vec.Add(origin, randVec(16))
+		p.velocity = randVec(256)
 		if i&1 == 1 {
 			p.typ = ParticleTypeExplode
 		} else {
@@ -164,16 +166,8 @@ func particlesAddExplosion2(origin vec.Vec3, colorStart, colorLength int, now fl
 		p.color = colorStart + (i % colorLength)
 		p.typ = ParticleTypeBlob
 
-		p.origin = vec.Vec3{
-			origin[0] + float32((rand.Int31()%32)-16),
-			origin[1] + float32((rand.Int31()%32)-16),
-			origin[2] + float32((rand.Int31()%32)-16),
-		}
-		p.velocity = vec.Vec3{
-			float32((rand.Int31() % 512) - 256),
-			float32((rand.Int31() % 512) - 256),
-			float32((rand.Int31() % 512) - 256),
-		}
+		p.origin = vec.Add(origin, randVec(16))
+		p.velocity = randVec(256)
 	}
 }
 
@@ -190,16 +184,8 @@ func particlesAddBlobExplosion(origin vec.Vec3, now float32) {
 		p.dieTime = now + 1 + float32(rand.Int31()&8)*0.5
 
 		p.ramp = float32(rand.Int31() & 3)
-		p.origin = vec.Vec3{
-			origin[0] + float32((rand.Int31()%32)-16),
-			origin[1] + float32((rand.Int31()%32)-16),
-			origin[2] + float32((rand.Int31()%32)-16),
-		}
-		p.velocity = vec.Vec3{
-			float32((rand.Int31() % 512) - 256),
-			float32((rand.Int31() % 512) - 256),
-			float32((rand.Int31() % 512) - 256),
-		}
+		p.origin = vec.Add(origin, randVec(16))
+		p.velocity = randVec(256)
 		if i&1 == 1 {
 			p.typ = ParticleTypeBlob
 			p.color = 66 + rand.Int()%6
@@ -275,6 +261,82 @@ func particlesAddTeleportSplash(origin vec.Vec3, now float32) {
 				p.velocity = *normalDir.Scale(vel)
 			}
 		}
+	}
+}
+
+var (
+	rocketTrailTraceCount = 0
+)
+
+func particlesAddRocketTrail(start, end vec.Vec3, typ int, now float32) {
+	v := vec.Sub(end, start)
+	vl := v.Length()
+	dec := float32(3)
+	if typ >= 128 {
+		dec = 1
+		typ -= 128
+	}
+
+	for vl > 0 {
+		l := len(freeParticles)
+		if l == 0 {
+			return
+		}
+		p := freeParticles[l-1]
+		p.used = true
+		freeParticles = freeParticles[:l-1]
+
+		vl -= dec
+		p.velocity = vec.Vec3{}
+		p.dieTime = now + 2
+
+		switch typ {
+		case 0: // rocket trail
+			p.color = (rand.Int() & 3)
+			p.typ = ParticleTypeFire
+			p.origin = vec.Add(start, randVec(3))
+		case 1: //smoke smoke
+			p.color = 2 + (rand.Int() & 3)
+			p.typ = ParticleTypeFire
+			p.origin = vec.Add(start, randVec(3))
+		case 2: // blood
+			p.color = 67 + (rand.Int() & 3)
+			p.typ = ParticleTypeGrav
+			p.origin = vec.Add(start, randVec(3))
+		case 3, 5: // tracer
+			p.color = ((rocketTrailTraceCount & 4) << 1)
+			if typ == 3 {
+				p.color += 52
+			} else {
+				p.color += 230
+			}
+			rocketTrailTraceCount++
+			p.dieTime = now + 0.5
+			p.typ = ParticleTypeStatic
+			p.origin = start
+			if rocketTrailTraceCount&1 != 0 {
+				p.velocity[0] = 30 * v[0]
+				p.velocity[1] = 30 * -v[1]
+			} else {
+				p.velocity[0] = 30 * -v[1]
+				p.velocity[1] = 30 * v[0]
+			}
+		case 4: // slight blood
+			p.color = 67 + (rand.Int() & 3)
+			p.typ = ParticleTypeGrav
+			p.origin = vec.Add(start, randVec(3))
+			vl -= 3 // make it 'slight'
+		case 6: // voor trail
+			p.color = 9*16 + 8 + (rand.Int() & 3)
+			p.typ = ParticleTypeStatic
+			p.dieTime = now + 0.3
+			p.origin = vec.Vec3{
+				start[0] + float32((rand.Int()&15)-8),
+				start[1] + float32((rand.Int()&15)-8),
+				start[2] + float32((rand.Int()&15)-8),
+			}
+		}
+		start.Add(v)
 	}
 }
 
