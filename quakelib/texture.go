@@ -288,23 +288,28 @@ func (tm *texMgr) LoadBacktile() *Texture {
 func TexMgrLoadParticleImage(name *C.char, width C.int,
 	height C.int, data *C.byte) TexID {
 	d := C.GoBytes(unsafe.Pointer(data), width*height*4)
+	t := textureManager.loadParticleImage(C.GoString(name), int32(width), int32(height), d)
+	texmap[TexID(t.glID)] = t
+	return TexID(t.glID)
+}
+
+func (tm *texMgr) loadParticleImage(name string, width, height int32, data []byte) *Texture {
 	var tn uint32
 	gl.GenTextures(1, &tn)
 	t := &Texture{
 		glID:         tn,
-		glWidth:      int32(width),
-		glHeight:     int32(height),
-		sourceWidth:  int32(width),
-		sourceHeight: int32(height),
+		glWidth:      width,
+		glHeight:     height,
+		sourceWidth:  width,
+		sourceHeight: height,
 		flags:        TexPrefPersist | TexPrefAlpha | TexPrefLinear,
-		name:         C.GoString(name),
+		name:         name,
 		typ:          colorTypeRGBA,
-		data:         d,
+		data:         data,
 	}
 	textureManager.addActiveTexture(t)
-	textureManager.loadRGBA(t, d)
-	texmap[TexID(t.glID)] = t
-	return TexID(t.glID)
+	textureManager.loadRGBA(t, data)
+	return t
 }
 
 //export TexMgrLoadSkyTexture

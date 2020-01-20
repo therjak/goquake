@@ -57,6 +57,14 @@ const (
 	minParticles = 512
 )
 
+var (
+	particleTexture  *Texture
+	particleTexture1 *Texture
+	particleTexture2 *Texture
+
+	particleTextureScaleFactor = float32(1.27)
+)
+
 func particlesInit() {
 	max := commandline.Particles()
 	if max < minParticles {
@@ -68,8 +76,51 @@ func particlesInit() {
 		freeParticles = append(freeParticles, &particles[i])
 	}
 
-	//TODO(THERJAK): particleTextures
+	cycle := func(x, y, s int) byte {
+		x -= 16
+		y -= 16
+		r := x*x + y*y
+		if r > 255 {
+			r = 255
+		}
+		a := s * (255 - r)
+		if a > 255 {
+			return 255
+		}
+		return byte(a)
+	}
+	particleTexture1Data := make([]byte, 64*64*4)
+
+	i := 0
+	for x := 0; x < 64; x++ {
+		for y := 0; y < 64; y++ {
+			particleTexture1Data[i] = 255
+			i++
+			particleTexture1Data[i] = 255
+			i++
+			particleTexture1Data[i] = 255
+			i++
+			particleTexture1Data[i] = cycle(x, y, 8)
+			i++
+		}
+	}
+	particleTexture1 = textureManager.loadParticleImage("particle1", 64, 64, particleTexture1Data)
+
+	particleTexture2Data := []byte{
+		255, 255, 255, 255, 255, 255, 255, 0,
+		255, 255, 255, 0, 255, 255, 255, 0,
+	}
+
+	particleTexture2 = textureManager.loadParticleImage("particle2", 2, 2, particleTexture2Data)
+
+	particleTexture = particleTexture1
+	particleTextureScaleFactor = float32(1.27)
+
 	//TODO(THERJAK): cvar r_particles callback
+	// if r_particles == 1
+	// texture1 && factor 1.27
+	// if r_particles == 2
+	// texture2 && factor 1.0
 }
 
 func particlesAddEntity(origin vec.Vec3, now float32) {
@@ -117,6 +168,9 @@ func particlesClear() {
 // on cmd "pointfile"
 func particlesReadPointFile() {
 	// TODO(THERJAK):
+	// p.dieTime = 99999 // that is > 27h
+	// p.typ = ParticleTypeStatic
+	// p.velocity = vec.Vec3{}
 }
 
 // randVec returns a randomized vector with radius at most r
@@ -403,4 +457,10 @@ func particlesRun(now float32, lastFrame float32) {
 			p.velocity[2] -= grav
 		}
 	}
+}
+
+func particlesDraw() {
+	// vup == qRefreshRect.viewUp
+	// vright == qRefreshRect.viewRight
+	// vpn == qRefreshRect.viewForward
 }
