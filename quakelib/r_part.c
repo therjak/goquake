@@ -45,7 +45,6 @@ float texturescalefactor;  // johnfitz -- compensate for apparent size of
                            // different particle textures
 
 cvar_t r_particles;
-cvar_t r_quadparticles;
 
 /*
 ===============
@@ -158,7 +157,6 @@ void R_InitParticles(void) {
 
   Cvar_FakeRegister(&r_particles, "r_particles");
   Cvar_SetCallback(&r_particles, R_SetParticleTexture_f);
-  Cvar_FakeRegister(&r_quadparticles, "r_quadparticles");
 
   R_InitParticleTextures();  // johnfitz
 }
@@ -759,7 +757,11 @@ void R_DrawParticles(void) {
     color[2] = c[2];
     color[3] = 255;
     glColor4ubv(color);
+    // GL_MODULATE causes the result color of the vertex to be
+    // color[i] * textureValue[i]
 
+    // This looks stupid as only half of the texture is drawn but
+    // only the upper left quadrant of the texture contains data
     glTexCoord2f(0, 0);
     glVertex3fv(p->org);
 
@@ -770,8 +772,6 @@ void R_DrawParticles(void) {
     glTexCoord2f(0, 1);
     VectorMA(p->org, scale, right, p_right);
     glVertex3fv(p_right);
-
-    rs_particles++;
   }
   glEnd();
 

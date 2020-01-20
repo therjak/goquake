@@ -106,9 +106,10 @@ func particlesInit() {
 	}
 	particleTexture1 = textureManager.loadParticleImage("particle1", 64, 64, particleTexture1Data)
 
+	// very small cycle. aka a pixel...
 	particleTexture2Data := []byte{
-		255, 255, 255, 255, 255, 255, 255, 0,
-		255, 255, 255, 0, 255, 255, 255, 0,
+		255, 255, 255, 0, 255, 255, 255, 255,
+		255, 255, 255, 255, 255, 255, 255, 255,
 	}
 
 	particleTexture2 = textureManager.loadParticleImage("particle2", 2, 2, particleTexture2Data)
