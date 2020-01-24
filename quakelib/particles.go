@@ -461,6 +461,12 @@ func particlesRun(now float32, lastFrame float32) {
 }
 
 func particlesDraw() {
+	if !cvars.RParticles.Bool() {
+		return
+	}
+	// up := vec.Scale(1.5, qRefreshRect.viewUp)
+	// right := vec.Scale(1.5, qRefreshRect.viewRight)
+
 	// vup == qRefreshRect.viewUp
 	// vright == qRefreshRect.viewRight
 	// vpn == qRefreshRect.viewForward

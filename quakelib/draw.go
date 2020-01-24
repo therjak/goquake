@@ -64,6 +64,20 @@ void main() {
   frag_color = in_color;
 }
 ` + "\x00"
+
+	fragmentSourceParticleDrawer = `
+#version 410
+in vec2 Texcoord;
+out vec4 frag_color;
+uniform sampler2D tex;
+uniform vec4 in_color;
+
+void main() {
+	vec4 color = texture(tex, Texcoord);
+	frag_color = in_color;
+	frag_color.a = color.a;
+}
+` + "\x00"
 )
 
 func getShader(src string, shaderType uint32) uint32 {
@@ -82,6 +96,59 @@ func getShader(src string, shaderType uint32) uint32 {
 		Error("Failed to compile shader: %v", log)
 	}
 	return shader
+}
+
+type qParticleDrawer struct {
+	vao      uint32
+	vbo      uint32
+	ebo      uint32
+	prog     uint32
+	position uint32
+	color    int32
+	texcoord uint32
+}
+
+func newParticleDrawProgram() uint32 {
+	vert := getShader(vertexSourceDrawer, gl.VERTEX_SHADER)
+	frag := getShader(fragmentSourceParticleDrawer, gl.FRAGMENT_SHADER)
+	d := gl.CreateProgram()
+	gl.AttachShader(d, vert)
+	gl.AttachShader(d, frag)
+	gl.LinkProgram(d)
+	gl.DeleteShader(vert)
+	gl.DeleteShader(frag)
+	return d
+}
+
+func newParticleDrawer() *qParticleDrawer {
+	d := &qParticleDrawer{}
+	elements := []uint32{0, 1, 2}
+	gl.GenVertexArrays(1, &d.vao)
+	gl.GenBuffers(1, &d.vbo)
+	gl.GenBuffers(1, &d.ebo)
+	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
+	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
+	d.prog = newParticleDrawProgram()
+	d.position = uint32(gl.GetAttribLocation(d.prog, gl.Str("position\x00")))
+	d.texcoord = uint32(gl.GetAttribLocation(d.prog, gl.Str("texcoord\x00")))
+	d.color = gl.GetUniformLocation(d.prog, gl.Str("in_color\x00"))
+	return d
+}
+
+func (d *qParticleDrawer) Delete() {
+	gl.DeleteProgram(d.prog)
+	gl.DeleteBuffers(1, &d.ebo)
+	gl.DeleteBuffers(1, &d.vbo)
+	gl.DeleteVertexArrays(1, &d.vao)
+}
+
+func (d *qParticleDrawer) Draw() {
+	gl.Disable(gl.DEPTH_TEST)
+	gl.Disable(gl.BLEND)
+
+	// do the drawing
+
+	gl.Enable(gl.DEPTH_TEST)
 }
 
 type recDrawer struct {
@@ -109,6 +176,13 @@ func NewRecDrawer() *recDrawer {
 	d.color = gl.GetUniformLocation(d.prog, gl.Str("in_color\x00"))
 
 	return d
+}
+
+func (d *recDrawer) Delete() {
+	gl.DeleteProgram(d.prog)
+	gl.DeleteBuffers(1, &d.ebo)
+	gl.DeleteBuffers(1, &d.vbo)
+	gl.DeleteVertexArrays(1, &d.vao)
 }
 
 func (d *recDrawer) Draw(x, y, w, h float32, c Color) {
@@ -293,6 +367,7 @@ func newDrawProgram() uint32 {
 var (
 	qDrawer         *drawer
 	qRecDrawer      *recDrawer
+	particleDrawer  *qParticleDrawer
 	consoleTexture  *Texture
 	backtileTexture *Texture
 )
@@ -301,6 +376,7 @@ var (
 func Draw_Init() {
 	qDrawer = NewDrawer()
 	qRecDrawer = NewRecDrawer()
+	particleDrawer = newParticleDrawer()
 	consoleTexture = textureManager.LoadConsoleChars()
 	backtileTexture = textureManager.LoadBacktile()
 }
