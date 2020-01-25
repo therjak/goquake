@@ -7,6 +7,7 @@ import (
 	"quake/math/vec"
 
 	"github.com/chewxy/math32"
+	"github.com/go-gl/gl/v4.6-core/gl"
 )
 
 type particleType int
@@ -58,12 +59,51 @@ const (
 )
 
 var (
-	particleTexture  *Texture
-	particleTexture1 *Texture
-	particleTexture2 *Texture
+	particleTexture  uint32
+	particleTextures [2]uint32
 
 	particleTextureScaleFactor = float32(1.27)
+
+	p1TextureData = genCycle()
+	// very small cycle in a 2x2 image. aka a pixel...
+	p2TextureData = []float32{1, 0, 0, 0}
 )
+
+func genCycle() []float32 {
+	// simple visualisation of the build cycle image:
+	// *0
+	// 00
+	const r = 16
+	const r2 = r * 2
+	const rr = r * r
+	const s = 64
+	cycle := func(x, y float32) float32 {
+		if x >= r2 || y >= r2 {
+			return 0
+		}
+		x -= r
+		y -= r
+		cr := x*x + y*y
+		cr /= rr
+		if cr >= 1 {
+			return 0
+		}
+		a := 8 * (1 - cr) // increase the sharpness of the transition
+		if a >= 1 {
+			return 1
+		}
+		return a
+	}
+	d := make([]float32, s*s)
+	i := 0
+	for x := float32(0); x < s; x++ {
+		for y := float32(0); y < s; y++ {
+			d[i] = cycle(x, y)
+			i++
+		}
+	}
+	return d
+}
 
 func particlesInit() {
 	max := commandline.Particles()
@@ -76,45 +116,21 @@ func particlesInit() {
 		freeParticles = append(freeParticles, &particles[i])
 	}
 
-	cycle := func(x, y, s int) byte {
-		x -= 16
-		y -= 16
-		r := x*x + y*y
-		if r > 255 {
-			r = 255
-		}
-		a := s * (255 - r)
-		if a > 255 {
-			return 255
-		}
-		return byte(a)
-	}
-	particleTexture1Data := make([]byte, 64*64*4)
+	gl.GenTextures(2, &particleTextures[0])
+	gl.BindTexture(gl.TEXTURE_2D, particleTextures[0])
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RED, 64, 64, 0, gl.RED, gl.FLOAT, gl.Ptr(p1TextureData))
+	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
 
-	i := 0
-	for x := 0; x < 64; x++ {
-		for y := 0; y < 64; y++ {
-			particleTexture1Data[i] = 255
-			i++
-			particleTexture1Data[i] = 255
-			i++
-			particleTexture1Data[i] = 255
-			i++
-			particleTexture1Data[i] = cycle(x, y, 8)
-			i++
-		}
-	}
-	particleTexture1 = textureManager.loadParticleImage("particle1", 64, 64, particleTexture1Data)
+	gl.BindTexture(gl.TEXTURE_2D, particleTextures[1])
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RED, 2, 2, 0, gl.RED, gl.FLOAT, gl.Ptr(p2TextureData))
+	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
 
-	// very small cycle. aka a pixel...
-	particleTexture2Data := []byte{
-		255, 255, 255, 0, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255,
-	}
+	// particleTexture1 = textureManager.loadParticleImage("particle1", 64, 64, p1TextureData)
+	// particleTexture2 = textureManager.loadParticleImage("particle2", 2, 2, p2TextureData)
 
-	particleTexture2 = textureManager.loadParticleImage("particle2", 2, 2, particleTexture2Data)
-
-	particleTexture = particleTexture1
+	particleTexture = particleTextures[0]
 	particleTextureScaleFactor = float32(1.27)
 
 	//TODO(THERJAK): cvar r_particles callback
@@ -122,6 +138,10 @@ func particlesInit() {
 	// texture1 && factor 1.27
 	// if r_particles == 2
 	// texture2 && factor 1.0
+}
+
+func particlesDeinit() {
+	gl.DeleteTextures(2, &particleTextures[0])
 }
 
 func particlesAddEntity(origin vec.Vec3, now float32) {
