@@ -17,7 +17,11 @@ func Write(name string, data []byte, width, height int) error {
 		return fmt.Errorf("Tried to write an image but there is not enough data")
 	}
 	r := image.Rect(0, 0, width, height)
-	img := &image.NRGBA{data, 4 * width, r}
+	img := &image.NRGBA{
+		Pix:    data,
+		Stride: 4 * width,
+		Rect:   r,
+	}
 
 	f, err := os.Create(name)
 	if err != nil {

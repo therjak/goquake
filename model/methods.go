@@ -26,7 +26,6 @@ func (m *QModel) PointInLeaf(p vec.Vec3) (*MLeaf, error) {
 			node = n.Children[1]
 		}
 	}
-	return nil, nil
 }
 
 func (m *QModel) DecompressVis(in []byte) []byte {

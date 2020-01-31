@@ -6,7 +6,7 @@ import (
 
 func TestKeyToString(t *testing.T) {
 	tests := []struct {
-		key int
+		key KeyCode
 		str string
 	}{
 		{TAB, "TAB"},
@@ -29,7 +29,7 @@ func TestKeyToString(t *testing.T) {
 
 func TestStringToKey(t *testing.T) {
 	tests := []struct {
-		key int
+		key KeyCode
 		str string
 	}{
 		{TAB, "TAB"},

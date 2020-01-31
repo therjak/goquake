@@ -243,7 +243,6 @@ func (l *lexer) nextItem() item {
 			l.state = l.state(l)
 		}
 	}
-	panic("not reached")
 }
 
 func (l *lexer) emit(t itemType) {
@@ -353,7 +352,6 @@ func lexAction(l *lexer) stateFn {
 	default:
 		return l.errorf("unhandled char: %#U", r)
 	}
-	return lexAction
 }
 
 func lexSpace(l *lexer) stateFn {
