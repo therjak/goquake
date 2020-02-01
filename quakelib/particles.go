@@ -23,6 +23,109 @@ const (
 	ParticleTypeBlob2
 )
 
+const (
+	fragmentSourceParticleDrawer = `
+#version 410
+in vec2 Texcoord;
+out vec4 frag_color;
+uniform sampler2D tex;
+uniform vec4 in_color;
+
+void main() {
+	vec4 color = texture(tex, Texcoord);
+	frag_color = in_color;
+	frag_color.a = color.r; // texture has only one chan
+}
+` + "\x00"
+)
+
+var (
+	particleDrawer *qParticleDrawer
+)
+
+type qParticleDrawer struct {
+	vao      uint32
+	vbo      uint32
+	ebo      uint32
+	prog     uint32
+	position uint32
+	color    int32
+	texcoord uint32
+
+	texture            uint32
+	textures           [2]uint32
+	textureScaleFactor float32
+}
+
+func newParticleDrawProgram() uint32 {
+	vert := getShader(vertexSourceDrawer, gl.VERTEX_SHADER)
+	frag := getShader(fragmentSourceParticleDrawer, gl.FRAGMENT_SHADER)
+	d := gl.CreateProgram()
+	gl.AttachShader(d, vert)
+	gl.AttachShader(d, frag)
+	gl.LinkProgram(d)
+	gl.DeleteShader(vert)
+	gl.DeleteShader(frag)
+	return d
+}
+
+func newParticleDrawer() *qParticleDrawer {
+	d := &qParticleDrawer{}
+	elements := []uint32{0, 1, 2}
+	gl.GenVertexArrays(1, &d.vao)
+	gl.GenBuffers(1, &d.vbo)
+	gl.GenBuffers(1, &d.ebo)
+	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
+	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
+	d.prog = newParticleDrawProgram()
+	d.position = uint32(gl.GetAttribLocation(d.prog, gl.Str("position\x00")))
+	d.texcoord = uint32(gl.GetAttribLocation(d.prog, gl.Str("texcoord\x00")))
+	d.color = gl.GetUniformLocation(d.prog, gl.Str("in_color\x00"))
+
+	gl.GenTextures(2, &d.textures[0])
+	gl.BindTexture(gl.TEXTURE_2D, d.textures[0])
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RED, 64, 64, 0, gl.RED, gl.FLOAT, gl.Ptr(p1TextureData))
+	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
+
+	gl.BindTexture(gl.TEXTURE_2D, d.textures[1])
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RED, 2, 2, 0, gl.RED, gl.FLOAT, gl.Ptr(p2TextureData))
+	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
+
+	d.texture = d.textures[0]
+	d.textureScaleFactor = float32(1.27)
+	return d
+}
+
+func (d *qParticleDrawer) cleanup() {
+	gl.DeleteProgram(d.prog)
+	gl.DeleteBuffers(1, &d.ebo)
+	gl.DeleteBuffers(1, &d.vbo)
+	gl.DeleteVertexArrays(1, &d.vao)
+	gl.DeleteTextures(2, &d.textures[0])
+}
+
+func (d *qParticleDrawer) Draw(ps []particle) {
+	// up := vec.Scale(1.5, qRefreshRect.viewUp)
+	// right := vec.Scale(1.5, qRefreshRect.viewRight)
+
+	// vup == qRefreshRect.viewUp
+	// vright == qRefreshRect.viewRight
+	// vpn == qRefreshRect.viewForward
+
+	gl.Disable(gl.DEPTH_TEST)
+	gl.Disable(gl.BLEND)
+
+	gl.DepthMask(false)
+	gl.BindTexture(gl.TEXTURE_2D, d.texture)
+
+	// do the drawing
+
+	gl.DepthMask(true)
+	gl.Enable(gl.DEPTH_TEST)
+}
+
 type particle struct {
 	origin   vec.Vec3
 	color    int
@@ -59,11 +162,6 @@ const (
 )
 
 var (
-	particleTexture  uint32
-	particleTextures [2]uint32
-
-	particleTextureScaleFactor = float32(1.27)
-
 	p1TextureData = genCycle()
 	// very small cycle in a 2x2 image. aka a pixel...
 	p2TextureData = []float32{1, 0, 0, 0}
@@ -106,6 +204,7 @@ func genCycle() []float32 {
 }
 
 func particlesInit() {
+	// this is part of ui startup
 	max := commandline.Particles()
 	if max < minParticles {
 		max = minParticles
@@ -116,32 +215,19 @@ func particlesInit() {
 		freeParticles = append(freeParticles, &particles[i])
 	}
 
-	gl.GenTextures(2, &particleTextures[0])
-	gl.BindTexture(gl.TEXTURE_2D, particleTextures[0])
-	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RED, 64, 64, 0, gl.RED, gl.FLOAT, gl.Ptr(p1TextureData))
-	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
-
-	gl.BindTexture(gl.TEXTURE_2D, particleTextures[1])
-	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RED, 2, 2, 0, gl.RED, gl.FLOAT, gl.Ptr(p2TextureData))
-	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
-
-	// particleTexture1 = textureManager.loadParticleImage("particle1", 64, 64, p1TextureData)
-	// particleTexture2 = textureManager.loadParticleImage("particle2", 2, 2, p2TextureData)
-
-	particleTexture = particleTextures[0]
-	particleTextureScaleFactor = float32(1.27)
-
 	//TODO(THERJAK): cvar r_particles callback
 	// if r_particles == 1
 	// texture1 && factor 1.27
 	// if r_particles == 2
 	// texture2 && factor 1.0
+
+	particleDrawer = newParticleDrawer()
 }
 
 func particlesDeinit() {
-	gl.DeleteTextures(2, &particleTextures[0])
+	// to be clean this could be run on ui shutdown
+	particleDrawer.cleanup()
+	particleDrawer = nil
 }
 
 func particlesAddEntity(origin vec.Vec3, now float32) {
@@ -484,10 +570,5 @@ func particlesDraw() {
 	if !cvars.RParticles.Bool() {
 		return
 	}
-	// up := vec.Scale(1.5, qRefreshRect.viewUp)
-	// right := vec.Scale(1.5, qRefreshRect.viewRight)
-
-	// vup == qRefreshRect.viewUp
-	// vright == qRefreshRect.viewRight
-	// vpn == qRefreshRect.viewForward
+	particleDrawer.Draw(particles)
 }
