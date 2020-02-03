@@ -24,16 +24,31 @@ const (
 )
 
 const (
+	vertexSourceParticleDrawer = `
+#version 410
+in vec3 position;
+in vec2 texcoord;
+in vec3 in_color;
+out vec2 Texcoord;
+out vec3 InColor;
+
+void main() {
+	Texcoord = texcoord;
+	InColor = in_color;
+	gl_Position = vec4(position, 1.0);
+}
+` + "\x00"
+
 	fragmentSourceParticleDrawer = `
 #version 410
 in vec2 Texcoord;
+in vec3 InColor;
 out vec4 frag_color;
 uniform sampler2D tex;
-uniform vec4 in_color;
 
 void main() {
 	vec4 color = texture(tex, Texcoord);
-	frag_color = in_color;
+	frag_color.rgb = InColor;
 	frag_color.a = color.r; // texture has only one chan
 }
 ` + "\x00"
@@ -44,12 +59,12 @@ var (
 )
 
 type qParticleDrawer struct {
-	vao      uint32
-	vbo      uint32
-	ebo      uint32
+	vao uint32
+	vbo uint32
+	//ebo      uint32
 	prog     uint32
 	position uint32
-	color    int32
+	color    uint32
 	texcoord uint32
 
 	texture            uint32
@@ -58,7 +73,7 @@ type qParticleDrawer struct {
 }
 
 func newParticleDrawProgram() uint32 {
-	vert := getShader(vertexSourceDrawer, gl.VERTEX_SHADER)
+	vert := getShader(vertexSourceParticleDrawer, gl.VERTEX_SHADER)
 	frag := getShader(fragmentSourceParticleDrawer, gl.FRAGMENT_SHADER)
 	d := gl.CreateProgram()
 	gl.AttachShader(d, vert)
@@ -71,16 +86,16 @@ func newParticleDrawProgram() uint32 {
 
 func newParticleDrawer() *qParticleDrawer {
 	d := &qParticleDrawer{}
-	elements := []uint32{0, 1, 2}
+	//elements := []uint32{0, 1, 2}
 	gl.GenVertexArrays(1, &d.vao)
 	gl.GenBuffers(1, &d.vbo)
-	gl.GenBuffers(1, &d.ebo)
-	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
-	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
+	//gl.GenBuffers(1, &d.ebo)
+	//gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
+	//gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
 	d.prog = newParticleDrawProgram()
 	d.position = uint32(gl.GetAttribLocation(d.prog, gl.Str("position\x00")))
 	d.texcoord = uint32(gl.GetAttribLocation(d.prog, gl.Str("texcoord\x00")))
-	d.color = gl.GetUniformLocation(d.prog, gl.Str("in_color\x00"))
+	d.color = uint32(gl.GetAttribLocation(d.prog, gl.Str("in_color\x00")))
 
 	gl.GenTextures(2, &d.textures[0])
 	gl.BindTexture(gl.TEXTURE_2D, d.textures[0])
@@ -100,7 +115,7 @@ func newParticleDrawer() *qParticleDrawer {
 
 func (d *qParticleDrawer) cleanup() {
 	gl.DeleteProgram(d.prog)
-	gl.DeleteBuffers(1, &d.ebo)
+	//gl.DeleteBuffers(1, &d.ebo)
 	gl.DeleteBuffers(1, &d.vbo)
 	gl.DeleteVertexArrays(1, &d.vao)
 	gl.DeleteTextures(2, &d.textures[0])
@@ -113,16 +128,43 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 	// vup == qRefreshRect.viewUp
 	// vright == qRefreshRect.viewRight
 	// vpn == qRefreshRect.viewForward
+	//
+	vertices := []float32{
+		// x, y, z, tx, ty, r, g, b
+		1, 1, 1, 0, 0, 0, 0, 0,
+		2, 2, 2, 1, 0, 0, 0, 0,
+		3, 3, 3, 0, 1, 0, 0, 0,
+	}
 
 	gl.Disable(gl.DEPTH_TEST)
-	gl.Disable(gl.BLEND)
+	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+	gl.Enable(gl.BLEND)
 
 	gl.DepthMask(false)
 	gl.BindTexture(gl.TEXTURE_2D, d.texture)
 
-	// do the drawing
+	gl.UseProgram(d.prog)
+	gl.BindVertexArray(d.vao)
+	// gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
+	gl.BindBuffer(gl.ARRAY_BUFFER, d.vbo)
+	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
+	gl.EnableVertexAttribArray(d.position)
+	gl.VertexAttribPointer(d.position, 3, gl.FLOAT, false, 4*8, gl.PtrOffset(0))
+
+	gl.EnableVertexAttribArray(d.texcoord)
+	gl.VertexAttribPointer(d.texcoord, 2, gl.FLOAT, false, 4*8, gl.PtrOffset(3*4))
+
+	gl.EnableVertexAttribArray(d.color)
+	gl.VertexAttribPointer(d.color, 3, gl.FLOAT, false, 4*8, gl.PtrOffset(5*4))
+
+	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(vertices)))
+
+	gl.DisableVertexAttribArray(d.color)
+	gl.DisableVertexAttribArray(d.texcoord)
+	gl.DisableVertexAttribArray(d.position)
 
 	gl.DepthMask(true)
+	gl.Disable(gl.BLEND)
 	gl.Enable(gl.DEPTH_TEST)
 }
 
