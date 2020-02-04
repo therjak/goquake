@@ -1,6 +1,7 @@
 package quakelib
 
 import (
+	"log"
 	"math/rand"
 	"quake/commandline"
 	"quake/cvars"
@@ -49,7 +50,7 @@ uniform sampler2D tex;
 void main() {
 	vec4 color = texture(tex, Texcoord);
 	frag_color.rgb = InColor;
-	frag_color.a = color.r; // texture has only one chan
+	frag_color.a = 0.5;//color.r; // texture has only one chan
 }
 ` + "\x00"
 )
@@ -122,18 +123,48 @@ func (d *qParticleDrawer) cleanup() {
 }
 
 func (d *qParticleDrawer) Draw(ps []particle) {
-	// up := vec.Scale(1.5, qRefreshRect.viewUp)
-	// right := vec.Scale(1.5, qRefreshRect.viewRight)
+	up := vec.Scale(1.5, qRefreshRect.viewUp)
+	right := vec.Scale(1.5, qRefreshRect.viewRight)
 
-	// vup == qRefreshRect.viewUp
-	// vright == qRefreshRect.viewRight
-	// vpn == qRefreshRect.viewForward
-	//
-	vertices := []float32{
+	fwd := qRefreshRect.viewForward
+	origin := qRefreshRect.viewOrg
+	log.Printf("origin: %v", origin)
+
+	vertices := []float32{}
+	numVert := int32(0)
+	for _, p := range ps {
+		if !p.used {
+			continue
+		}
+		numVert++
+		o := p.origin
+		scale := (o[0]-origin[0])*fwd[0] +
+			(o[1]-origin[1])*fwd[1] +
+			(o[2]-origin[2])*fwd[2]
+		if scale < 20 {
+			scale = 1 + 0.08
+		} else {
+			scale = 1 + scale*0.004
+		}
+		scale *= d.textureScaleFactor
+		u := vec.Scale(scale, up)
+		r := vec.Scale(scale, right)
+
+		c := vec.Vec3{
+			float32(palette.table[p.color]) / 255,
+			float32(palette.table[p.color+1]) / 255,
+			float32(palette.table[p.color+2]) / 255,
+		}
+
 		// x, y, z, tx, ty, r, g, b
-		1, 1, 1, 0, 0, 0, 0, 0,
-		2, 2, 2, 1, 0, 0, 0, 0,
-		3, 3, 3, 0, 1, 0, 0, 0,
+		vertices = append(vertices,
+			o[0], o[1], o[2], 0, 0, c[0], c[1], c[2],
+			o[0]+u[0], o[1]+u[1], o[2]+u[2], 1, 0, c[0], c[1], c[2],
+			o[0]+r[0], o[1]+r[1], o[2]+r[2], 0, 1, c[0], c[1], c[2])
+	}
+	log.Printf("vectices: %v", numVert*3)
+	if len(vertices) == 0 {
+		return
 	}
 
 	gl.Disable(gl.DEPTH_TEST)
@@ -157,7 +188,7 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 	gl.EnableVertexAttribArray(d.color)
 	gl.VertexAttribPointer(d.color, 3, gl.FLOAT, false, 4*8, gl.PtrOffset(5*4))
 
-	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(vertices)))
+	gl.DrawArrays(gl.TRIANGLES, 0, numVert*3)
 
 	gl.DisableVertexAttribArray(d.color)
 	gl.DisableVertexAttribArray(d.texcoord)

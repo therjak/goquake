@@ -85,7 +85,8 @@ func ParticlesRun() {
 
 //export ParticlesDraw
 func ParticlesDraw() {
-	C.R_DrawParticles()
+	//C.R_DrawParticles()
+	particlesDraw()
 }
 
 //export ParticlesDrawShowTris
