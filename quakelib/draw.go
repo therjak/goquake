@@ -128,10 +128,10 @@ func (d *recDrawer) Draw(x, y, w, h float32, c Color) {
 	y1 = -y1*sy + ys
 	y2 = -y2*sy + ys
 	vertices := []float32{
-		x1, y2, 0, 0, 0,
-		x2, y2, 0, 1, 0,
-		x2, y1, 0, 1, 1,
-		x1, y1, 0, 0, 1,
+		x1, y2, 0,
+		x2, y2, 0,
+		x2, y1, 0,
+		x1, y1, 0,
 	}
 
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
@@ -144,7 +144,7 @@ func (d *recDrawer) Draw(x, y, w, h float32, c Color) {
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 
 	gl.EnableVertexAttribArray(d.position)
-	gl.VertexAttribPointer(d.position, 3, gl.FLOAT, false, 4*5, gl.PtrOffset(0))
+	gl.VertexAttribPointer(d.position, 3, gl.FLOAT, false, 4*3, gl.PtrOffset(0))
 
 	gl.Uniform4f(d.color, c.R, c.G, c.B, c.A)
 

@@ -1,7 +1,6 @@
 package quakelib
 
 import (
-	"log"
 	"math/rand"
 	"quake/commandline"
 	"quake/cvars"
@@ -87,12 +86,9 @@ func newParticleDrawProgram() uint32 {
 
 func newParticleDrawer() *qParticleDrawer {
 	d := &qParticleDrawer{}
-	//elements := []uint32{0, 1, 2}
 	gl.GenVertexArrays(1, &d.vao)
 	gl.GenBuffers(1, &d.vbo)
 	//gl.GenBuffers(1, &d.ebo)
-	//gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
-	//gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
 	d.prog = newParticleDrawProgram()
 	d.position = uint32(gl.GetAttribLocation(d.prog, gl.Str("position\x00")))
 	d.texcoord = uint32(gl.GetAttribLocation(d.prog, gl.Str("texcoord\x00")))
@@ -128,15 +124,14 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 
 	fwd := qRefreshRect.viewForward
 	origin := qRefreshRect.viewOrg
-	log.Printf("origin: %v", origin)
 
 	vertices := []float32{}
-	numVert := int32(0)
+	//elements := []uint32{}
+	numVert := uint32(0)
 	for _, p := range ps {
 		if !p.used {
 			continue
 		}
-		numVert++
 		o := p.origin
 		scale := (o[0]-origin[0])*fwd[0] +
 			(o[1]-origin[1])*fwd[1] +
@@ -155,6 +150,8 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 			float32(palette.table[p.color+1]) / 255,
 			float32(palette.table[p.color+2]) / 255,
 		}
+		//elements = append(elements, numVert, numVert+1, numVert+2)
+		numVert += 3
 
 		// x, y, z, tx, ty, r, g, b
 		vertices = append(vertices,
@@ -162,10 +159,28 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 			o[0]+u[0], o[1]+u[1], o[2]+u[2], 1, 0, c[0], c[1], c[2],
 			o[0]+r[0], o[1]+r[1], o[2]+r[2], 0, 1, c[0], c[1], c[2])
 	}
-	log.Printf("vectices: %v", numVert*3)
 	if len(vertices) == 0 {
 		return
 	}
+
+	// glMatrixMode(GL_PROJECTION)
+	gl.Viewport(
+		int32(qRefreshRect.viewRect.x),
+		viewport.height-int32(qRefreshRect.viewRect.y+qRefreshRect.viewRect.height),
+		int32(qRefreshRect.viewRect.width),
+		int32(qRefreshRect.viewRect.height))
+	// xmax :=  4*tan(qRefreshRect.fovx * pi / 360)
+	// ymax :=  4*tan(qRefreshRect.fovy * pi / 360)
+	// gl.Frustum(-xmax, xmax, -ymax, ymax, 4, cvars.GlFarClip.Value())
+
+	// glMatrixMode(GL_MODELVIEW)
+	// glLoadIdentity
+	// glRotatef(-90,1,0,0)
+	// glRotatef(90,0,0,1)
+	// glRotatef(-qRefreshRect.viewAngles[2], 1,0,0)
+	// glRotatef(-qRefreshRect.viewAngles[0], 0,1,0)
+	// glRotatef(-qRefreshRect.viewAngles[1], 0,0,1)
+	// glTranslatef(-qRefreshRect.viewOrg[0], -qRefreshRect.viewOrg[1], -qRefreshRect.viewOrg[2])
 
 	gl.Disable(gl.DEPTH_TEST)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
@@ -176,7 +191,9 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 
 	gl.UseProgram(d.prog)
 	gl.BindVertexArray(d.vao)
-	// gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
+	//gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
+	//gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
+
 	gl.BindBuffer(gl.ARRAY_BUFFER, d.vbo)
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 	gl.EnableVertexAttribArray(d.position)
@@ -188,7 +205,8 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 	gl.EnableVertexAttribArray(d.color)
 	gl.VertexAttribPointer(d.color, 3, gl.FLOAT, false, 4*8, gl.PtrOffset(5*4))
 
-	gl.DrawArrays(gl.TRIANGLES, 0, numVert*3)
+	gl.DrawArrays(gl.TRIANGLES, 0, int32(numVert))
+	//gl.DrawElements(gl.TRIANGLES, int32(numVert), gl.UNSIGNED_INT, gl.PtrOffset(0))
 
 	gl.DisableVertexAttribArray(d.color)
 	gl.DisableVertexAttribArray(d.texcoord)
