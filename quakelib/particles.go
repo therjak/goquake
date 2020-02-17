@@ -1,6 +1,8 @@
 package quakelib
 
 import (
+	"log"
+	"math"
 	"math/rand"
 	"quake/commandline"
 	"quake/cvars"
@@ -26,16 +28,16 @@ const (
 const (
 	vertexSourceParticleDrawer = `
 #version 410
-in vec3 position;
-in vec2 texcoord;
-in vec3 in_color;
+in vec3 vcolor;
+in vec3 vposition;
+in vec2 vtexcoord;
 out vec2 Texcoord;
 out vec3 InColor;
 
 void main() {
-	Texcoord = texcoord;
-	InColor = in_color;
-	gl_Position = vec4(position, 1.0);
+	Texcoord = vtexcoord;
+	InColor = vcolor;
+	gl_Position = vec4(vposition, 1.0);
 }
 ` + "\x00"
 
@@ -49,7 +51,7 @@ uniform sampler2D tex;
 void main() {
 	vec4 color = texture(tex, Texcoord);
 	frag_color.rgb = InColor;
-	frag_color.a = 0.5;//color.r; // texture has only one chan
+	frag_color.a = color.r; // texture has only one chan
 }
 ` + "\x00"
 )
@@ -74,6 +76,7 @@ type qParticleDrawer struct {
 
 func newParticleDrawProgram() uint32 {
 	vert := getShader(vertexSourceParticleDrawer, gl.VERTEX_SHADER)
+	log.Printf("vertex: %s", vertexSourceParticleDrawer)
 	frag := getShader(fragmentSourceParticleDrawer, gl.FRAGMENT_SHADER)
 	d := gl.CreateProgram()
 	gl.AttachShader(d, vert)
@@ -90,9 +93,9 @@ func newParticleDrawer() *qParticleDrawer {
 	gl.GenBuffers(1, &d.vbo)
 	//gl.GenBuffers(1, &d.ebo)
 	d.prog = newParticleDrawProgram()
-	d.position = uint32(gl.GetAttribLocation(d.prog, gl.Str("position\x00")))
-	d.texcoord = uint32(gl.GetAttribLocation(d.prog, gl.Str("texcoord\x00")))
-	d.color = uint32(gl.GetAttribLocation(d.prog, gl.Str("in_color\x00")))
+	d.color = uint32(gl.GetAttribLocation(d.prog, gl.Str("vcolor\x00")))
+	d.texcoord = uint32(gl.GetAttribLocation(d.prog, gl.Str("vtexcoord\x00")))
+	d.position = uint32(gl.GetAttribLocation(d.prog, gl.Str("vposition\x00")))
 
 	gl.GenTextures(2, &d.textures[0])
 	gl.BindTexture(gl.TEXTURE_2D, d.textures[0])
@@ -153,34 +156,59 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 		//elements = append(elements, numVert, numVert+1, numVert+2)
 		numVert += 3
 
+		// add
+		// glRotatef(-90,1,0,0)
+		// glRotatef(90,0,0,1)
+		// aka z is up
+		//		v1 := vec.Vec3{-o[2], -o[0], o[1]}
+		//		v2 := vec.Add(v1, vec.Vec3{-u[2], -u[0], u[1]})
+		//		v3 := vec.Add(v1, vec.Vec3{-r[2], -r[0], r[1]})
+
+		// add
+		// glRotatef(-qRefreshRect.viewAngles[2], 1,0,0)
+		// glRotatef(-qRefreshRect.viewAngles[0], 0,1,0)
+		// glRotatef(-qRefreshRect.viewAngles[1], 0,0,1)
+
+		// add
+		// glTranslatef(-qRefreshRect.viewOrg[0], -qRefreshRect.viewOrg[1], -qRefreshRect.viewOrg[2])
+		//		v1.Sub(qRefreshRect.viewOrg)
+		//		v2.Sub(qRefreshRect.viewOrg)
+		//		v3.Sub(qRefreshRect.viewOrg)
+
 		// x, y, z, tx, ty, r, g, b
 		vertices = append(vertices,
+			//			v1[0], v1[1], v1[2], 0, 0, c[0], c[1], c[2],
+			//			v2[0], v2[1], v2[2], 1, 0, c[0], c[1], c[2],
+			//			v3[0], v3[1], v3[2], 0, 1, c[0], c[1], c[2])
+
+			// orig:
 			o[0], o[1], o[2], 0, 0, c[0], c[1], c[2],
-			o[0]+u[0], o[1]+u[1], o[2]+u[2], 1, 0, c[0], c[1], c[2],
-			o[0]+r[0], o[1]+r[1], o[2]+r[2], 0, 1, c[0], c[1], c[2])
+			(o[0] + u[0]), (o[1] + u[1]), (o[2] + u[2]), 1, 0, c[0], c[1], c[2],
+			(o[0] + r[0]), (o[1] + r[1]), (o[2] + r[2]), 0, 1, c[0], c[1], c[2])
 	}
 	if len(vertices) == 0 {
 		return
 	}
 
-	// glMatrixMode(GL_PROJECTION)
+	gl.MatrixLoadIdentityEXT(gl.PATH_PROJECTION_NV)
 	gl.Viewport(
 		int32(qRefreshRect.viewRect.x),
 		viewport.height-int32(qRefreshRect.viewRect.y+qRefreshRect.viewRect.height),
 		int32(qRefreshRect.viewRect.width),
 		int32(qRefreshRect.viewRect.height))
-	// xmax :=  4*tan(qRefreshRect.fovx * pi / 360)
-	// ymax :=  4*tan(qRefreshRect.fovy * pi / 360)
-	// gl.Frustum(-xmax, xmax, -ymax, ymax, 4, cvars.GlFarClip.Value())
+	xmax := 4 * math.Tan(float64(qRefreshRect.fovX)*math.Pi/360)
+	ymax := 4 * math.Tan(float64(qRefreshRect.fovY)*math.Pi/360)
+	gl.MatrixFrustumEXT(gl.PATH_PROJECTION_NV, -xmax, xmax, -ymax, ymax, 4, float64(cvars.GlFarClip.Value()))
 
-	// glMatrixMode(GL_MODELVIEW)
-	// glLoadIdentity
-	// glRotatef(-90,1,0,0)
-	// glRotatef(90,0,0,1)
-	// glRotatef(-qRefreshRect.viewAngles[2], 1,0,0)
-	// glRotatef(-qRefreshRect.viewAngles[0], 0,1,0)
-	// glRotatef(-qRefreshRect.viewAngles[1], 0,0,1)
-	// glTranslatef(-qRefreshRect.viewOrg[0], -qRefreshRect.viewOrg[1], -qRefreshRect.viewOrg[2])
+	gl.MatrixLoadIdentityEXT(gl.PATH_MODELVIEW_NV)
+	gl.MatrixRotatefEXT(gl.PATH_MODELVIEW_NV, -90, 1, 0, 0)
+	gl.MatrixRotatefEXT(gl.PATH_MODELVIEW_NV, 90, 0, 0, 1)
+
+	gl.MatrixRotatefEXT(gl.PATH_MODELVIEW_NV, -qRefreshRect.viewAngles[2], 1, 0, 0)
+	gl.MatrixRotatefEXT(gl.PATH_MODELVIEW_NV, -qRefreshRect.viewAngles[0], 0, 1, 0)
+	gl.MatrixRotatefEXT(gl.PATH_MODELVIEW_NV, -qRefreshRect.viewAngles[1], 0, 0, 1)
+
+	gl.MatrixTranslatefEXT(gl.PATH_MODELVIEW_NV, -qRefreshRect.viewOrg[0], -qRefreshRect.viewOrg[1], -qRefreshRect.viewOrg[2])
 
 	gl.Disable(gl.DEPTH_TEST)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
