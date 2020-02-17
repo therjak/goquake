@@ -3,6 +3,7 @@ package window
 import (
 	"log"
 	"quake/cvars"
+	"unsafe"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/veandco/go-sdl2/sdl"
@@ -174,6 +175,22 @@ func SetMode(width, height, bpp int32, fullscreen bool) {
 		if err := gl.Init(); err != nil {
 			log.Fatalf("Couln't init gl: %v", err)
 		}
+		gl.DebugMessageCallback(debugCb, unsafe.Pointer(nil))
+	}
+}
+
+func debugCb(
+	source uint32,
+	gltype uint32,
+	id uint32,
+	severity uint32,
+	length int32,
+	message string,
+	userParam unsafe.Pointer) {
+	if severity == gl.DEBUG_SEVERITY_HIGH {
+		log.Panicf("[GL_DEBUG] source %d gltype %d id %d severity %d length %d: %s", source, gltype, id, severity, length, message)
+	} else {
+		log.Printf("[GL_DEBUG] source %d gltype %d id %d severity %d length %d: %s", source, gltype, id, severity, length, message)
 	}
 }
 
