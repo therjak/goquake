@@ -33,11 +33,13 @@ in vec3 vposition;
 in vec2 vtexcoord;
 out vec2 Texcoord;
 out vec3 InColor;
+uniform mat4 projection;
+uniform mat4 modelview;
 
 void main() {
 	Texcoord = vtexcoord;
 	InColor = vcolor;
-	gl_Position = vec4(vposition, 1.0);
+	gl_Position = /*projection * modelview */ vec4(vposition, 1.0);
 }
 ` + "\x00"
 
@@ -49,9 +51,10 @@ out vec4 frag_color;
 uniform sampler2D tex;
 
 void main() {
-	vec4 color = texture(tex, Texcoord);
+	float color = texture(tex, Texcoord).r;
 	frag_color.rgb = InColor;
-	frag_color.a = color.r; // texture has only one chan
+	frag_color.a = color + 0.1; // texture has only one chan
+	frag_color = clamp(frag_color, vec4(0,0,0,0), vec4(1,1,1,1));
 }
 ` + "\x00"
 )
@@ -61,13 +64,14 @@ var (
 )
 
 type qParticleDrawer struct {
-	vao uint32
-	vbo uint32
-	//ebo      uint32
-	prog     uint32
-	position uint32
-	color    uint32
-	texcoord uint32
+	vao        uint32
+	vbo        uint32
+	prog       uint32
+	position   uint32
+	color      uint32
+	texcoord   uint32
+	projection int32
+	modelview  int32
 
 	texture            uint32
 	textures           [2]uint32
@@ -91,20 +95,23 @@ func newParticleDrawer() *qParticleDrawer {
 	d := &qParticleDrawer{}
 	gl.GenVertexArrays(1, &d.vao)
 	gl.GenBuffers(1, &d.vbo)
-	//gl.GenBuffers(1, &d.ebo)
 	d.prog = newParticleDrawProgram()
 	d.color = uint32(gl.GetAttribLocation(d.prog, gl.Str("vcolor\x00")))
 	d.texcoord = uint32(gl.GetAttribLocation(d.prog, gl.Str("vtexcoord\x00")))
 	d.position = uint32(gl.GetAttribLocation(d.prog, gl.Str("vposition\x00")))
+	d.projection = gl.GetUniformLocation(d.prog, gl.Str("projection\x00"))
+	d.modelview = gl.GetUniformLocation(d.prog, gl.Str("modelview\x00"))
+
+	gl.PixelStorei(gl.UNPACK_ALIGNMENT, 1)
 
 	gl.GenTextures(2, &d.textures[0])
 	gl.BindTexture(gl.TEXTURE_2D, d.textures[0])
-	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RED, 64, 64, 0, gl.RED, gl.FLOAT, gl.Ptr(p1TextureData))
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.R16F, 64, 64, 0, gl.RED, gl.FLOAT, gl.Ptr(p1TextureData))
 	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
 	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
 
 	gl.BindTexture(gl.TEXTURE_2D, d.textures[1])
-	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RED, 2, 2, 0, gl.RED, gl.FLOAT, gl.Ptr(p2TextureData))
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.R16F, 2, 2, 0, gl.RED, gl.FLOAT, gl.Ptr(p2TextureData))
 	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
 	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
 
@@ -115,7 +122,6 @@ func newParticleDrawer() *qParticleDrawer {
 
 func (d *qParticleDrawer) cleanup() {
 	gl.DeleteProgram(d.prog)
-	//gl.DeleteBuffers(1, &d.ebo)
 	gl.DeleteBuffers(1, &d.vbo)
 	gl.DeleteVertexArrays(1, &d.vao)
 	gl.DeleteTextures(2, &d.textures[0])
@@ -129,7 +135,6 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 	origin := qRefreshRect.viewOrg
 
 	vertices := []float32{}
-	//elements := []uint32{}
 	numVert := uint32(0)
 	for _, p := range ps {
 		if !p.used {
@@ -153,7 +158,6 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 			float32(palette.table[p.color+1]) / 255,
 			float32(palette.table[p.color+2]) / 255,
 		}
-		//elements = append(elements, numVert, numVert+1, numVert+2)
 		numVert += 3
 
 		// add
@@ -186,41 +190,69 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 			(o[0] + u[0]), (o[1] + u[1]), (o[2] + u[2]), 1, 0, c[0], c[1], c[2],
 			(o[0] + r[0]), (o[1] + r[1]), (o[2] + r[2]), 0, 1, c[0], c[1], c[2])
 	}
+
+	numVert = 6
+	vertices = []float32{
+		0, 0, 0, 0, 0, 1, 0, 0,
+		-0.5, 0.5, 0, 0, 1, 1, 0, 0,
+		0.5, 0.5, 0, 1, 1, 1, 0, 0,
+
+		0, 0, 0, 1, 1, 1, 0, 0,
+		0.5, -0.5, 0, 1, 0, 1, 0, 0,
+		-0.5, -0.5, 0, 0, 0, 1, 0, 0,
+	}
+
 	if len(vertices) == 0 {
 		return
 	}
 
-	gl.MatrixLoadIdentityEXT(gl.PATH_PROJECTION_NV)
-	gl.Viewport(
-		int32(qRefreshRect.viewRect.x),
-		viewport.height-int32(qRefreshRect.viewRect.y+qRefreshRect.viewRect.height),
-		int32(qRefreshRect.viewRect.width),
-		int32(qRefreshRect.viewRect.height))
-	xmax := 4 * math.Tan(float64(qRefreshRect.fovX)*math.Pi/360)
-	ymax := 4 * math.Tan(float64(qRefreshRect.fovY)*math.Pi/360)
-	gl.MatrixFrustumEXT(gl.PATH_PROJECTION_NV, -xmax, xmax, -ymax, ymax, 4, float64(cvars.GlFarClip.Value()))
+	projection := [16]float32{
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1,
+	}
+	modelview := [16]float32{
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1,
+	}
+	gl.UniformMatrix4fv(d.projection, 1, false, &projection[0])
+	gl.UniformMatrix4fv(d.modelview, 1, false, &modelview[0])
 
-	gl.MatrixLoadIdentityEXT(gl.PATH_MODELVIEW_NV)
-	gl.MatrixRotatefEXT(gl.PATH_MODELVIEW_NV, -90, 1, 0, 0)
-	gl.MatrixRotatefEXT(gl.PATH_MODELVIEW_NV, 90, 0, 0, 1)
+	defer func() {
+		// To clean up again
+		gl.MatrixLoadIdentityEXT(gl.PATH_PROJECTION_NV)
+		gl.Viewport(
+			int32(qRefreshRect.viewRect.x),
+			viewport.height-int32(qRefreshRect.viewRect.y+qRefreshRect.viewRect.height),
+			int32(qRefreshRect.viewRect.width),
+			int32(qRefreshRect.viewRect.height))
+		xmax := 4 * math.Tan(float64(qRefreshRect.fovX)*math.Pi/360)
+		ymax := 4 * math.Tan(float64(qRefreshRect.fovY)*math.Pi/360)
+		gl.MatrixFrustumEXT(gl.PATH_PROJECTION_NV, -xmax, xmax, -ymax, ymax, 4, float64(cvars.GlFarClip.Value()))
 
-	gl.MatrixRotatefEXT(gl.PATH_MODELVIEW_NV, -qRefreshRect.viewAngles[2], 1, 0, 0)
-	gl.MatrixRotatefEXT(gl.PATH_MODELVIEW_NV, -qRefreshRect.viewAngles[0], 0, 1, 0)
-	gl.MatrixRotatefEXT(gl.PATH_MODELVIEW_NV, -qRefreshRect.viewAngles[1], 0, 0, 1)
+		gl.MatrixLoadIdentityEXT(gl.PATH_MODELVIEW_NV)
+		gl.MatrixRotatefEXT(gl.PATH_MODELVIEW_NV, -90, 1, 0, 0)
+		gl.MatrixRotatefEXT(gl.PATH_MODELVIEW_NV, 90, 0, 0, 1)
 
-	gl.MatrixTranslatefEXT(gl.PATH_MODELVIEW_NV, -qRefreshRect.viewOrg[0], -qRefreshRect.viewOrg[1], -qRefreshRect.viewOrg[2])
+		gl.MatrixRotatefEXT(gl.PATH_MODELVIEW_NV, -qRefreshRect.viewAngles[2], 1, 0, 0)
+		gl.MatrixRotatefEXT(gl.PATH_MODELVIEW_NV, -qRefreshRect.viewAngles[0], 0, 1, 0)
+		gl.MatrixRotatefEXT(gl.PATH_MODELVIEW_NV, -qRefreshRect.viewAngles[1], 0, 0, 1)
+
+		gl.MatrixTranslatefEXT(gl.PATH_MODELVIEW_NV, -qRefreshRect.viewOrg[0], -qRefreshRect.viewOrg[1], -qRefreshRect.viewOrg[2])
+	}()
 
 	gl.Disable(gl.DEPTH_TEST)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	gl.Enable(gl.BLEND)
 
 	gl.DepthMask(false)
-	gl.BindTexture(gl.TEXTURE_2D, d.texture)
 
 	gl.UseProgram(d.prog)
 	gl.BindVertexArray(d.vao)
-	//gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
-	//gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
+	gl.BindTexture(gl.TEXTURE_2D, d.textures[0])
 
 	gl.BindBuffer(gl.ARRAY_BUFFER, d.vbo)
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
@@ -234,7 +266,6 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 	gl.VertexAttribPointer(d.color, 3, gl.FLOAT, false, 4*8, gl.PtrOffset(5*4))
 
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(numVert))
-	//gl.DrawElements(gl.TRIANGLES, int32(numVert), gl.UNSIGNED_INT, gl.PtrOffset(0))
 
 	gl.DisableVertexAttribArray(d.color)
 	gl.DisableVertexAttribArray(d.texcoord)
