@@ -109,11 +109,13 @@ func newParticleDrawer() *qParticleDrawer {
 	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.R16F, 64, 64, 0, gl.RED, gl.FLOAT, gl.Ptr(p1TextureData))
 	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
 	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
+	gl.GenerateMipmap(gl.TEXTURE_2D)
 
 	gl.BindTexture(gl.TEXTURE_2D, d.textures[1])
 	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.R16F, 2, 2, 0, gl.RED, gl.FLOAT, gl.Ptr(p2TextureData))
 	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
 	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
+	gl.GenerateMipmap(gl.TEXTURE_2D)
 
 	d.texture = d.textures[0]
 	d.textureScaleFactor = float32(1.27)
