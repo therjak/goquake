@@ -591,7 +591,6 @@ func particlesAddRocketTrail(start, end vec.Vec3, typ int, now float32) {
 			return
 		}
 		p := freeParticles[l-1]
-		*p = particle{}
 		p.used = true
 		freeParticles = freeParticles[:l-1]
 
@@ -601,11 +600,13 @@ func particlesAddRocketTrail(start, end vec.Vec3, typ int, now float32) {
 
 		switch typ {
 		case 0: // rocket trail
-			p.color = (rand.Int() & 3)
+			p.ramp = float32(rand.Int() & 3)
+			p.color = ramp3[int(p.ramp)]
 			p.typ = ParticleTypeFire
 			p.origin = vec.Add(start, randVec(3))
 		case 1: //smoke smoke
-			p.color = 2 + (rand.Int() & 3)
+			p.ramp = float32((rand.Int() & 3) + 2)
+			p.color = ramp3[int(p.ramp)]
 			p.typ = ParticleTypeFire
 			p.origin = vec.Add(start, randVec(3))
 		case 2: // blood
