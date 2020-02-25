@@ -421,6 +421,7 @@ func particlesClear() {
 
 // on cmd "pointfile"
 func particlesReadPointFile() {
+	log.Printf("pointfile")
 	// TODO(THERJAK):
 	// p.dieTime = 99999 // that is > 27h
 	// p.typ = ParticleTypeStatic
@@ -504,6 +505,37 @@ func particlesAddBlobExplosion(origin vec.Vec3, now float32) {
 	}
 }
 
+func particlesRunEffect(origin, dir vec.Vec3, color, count int, now float32) {
+	for i := 0; i < count; i++ {
+		l := len(freeParticles)
+		if l == 0 {
+			return
+		}
+		p := freeParticles[l-1]
+		p.used = true
+		freeParticles = freeParticles[:l-1]
+
+		if count == 1024 { // rocket explosion, dead?
+			p.dieTime = now + 5
+			p.color = ramp1[0]
+			p.ramp = float32(rand.Int() & 3)
+			p.origin = vec.Add(origin, randVec(8))
+			p.velocity = randVec(256)
+			if i&1 != 0 {
+				p.typ = ParticleTypeExplode
+			} else {
+				p.typ = ParticleTypeExplode2
+			}
+		} else {
+			p.dieTime = now + 0.1*float32((rand.Int()%5))
+			p.color = (color &^ 7) + (rand.Int() & 7)
+			p.typ = ParticleTypeSlowGrav
+			p.origin = vec.Add(origin, randVec(8))
+			p.velocity = vec.Scale(15, dir)
+		}
+	}
+}
+
 func particlesAddLavaSplash(origin vec.Vec3, now float32) {
 	for i := -16; i < 16; i++ {
 		for j := -16; j < 16; j++ {
@@ -546,6 +578,7 @@ func particlesAddTeleportSplash(origin vec.Vec3, now float32) {
 					return
 				}
 				p := freeParticles[l-1]
+				*p = particle{}
 				p.used = true
 				freeParticles = freeParticles[:l-1]
 
@@ -560,13 +593,13 @@ func particlesAddTeleportSplash(origin vec.Vec3, now float32) {
 				}
 
 				p.origin = vec.Vec3{
-					origin[0] + float32(i+rand.Int()&3),
-					origin[1] + float32(j+rand.Int()&3),
-					origin[2] + float32(j+rand.Int()&3),
+					origin[0] + float32(i+(rand.Int()&3)),
+					origin[1] + float32(j+(rand.Int()&3)),
+					origin[2] + float32(j+(rand.Int()&3)),
 				}
 				vel := float32(50 + rand.Int()&63)
 				normalDir := dir.Normalize()
-				p.velocity = *normalDir.Scale(vel)
+				p.velocity = vec.Scale(vel, normalDir)
 			}
 		}
 	}
@@ -579,6 +612,9 @@ var (
 func particlesAddRocketTrail(start, end vec.Vec3, typ int, now float32) {
 	v := vec.Sub(end, start)
 	vl := v.Length()
+	if vl != 0 {
+		v.Scale(1 / vl)
+	}
 	dec := float32(3)
 	if typ >= 128 {
 		dec = 1

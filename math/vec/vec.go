@@ -70,7 +70,7 @@ func Scale(s float32, v Vec3) Vec3 {
 func (v Vec3) Normalize() Vec3 {
 	l := v.Length()
 	if l == 0 {
-		return Vec3{}
+		return v
 	}
 	return Scale(1/l, v)
 }

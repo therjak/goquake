@@ -19,77 +19,66 @@ import "C"
 
 //export ParticlesInit
 func ParticlesInit() {
-	C.R_InitParticles()
 	particlesInit()
 }
 
 //export ParticlesAddEntity
 func ParticlesAddEntity(ent *C.entity_t) {
-	C.R_EntityParticles(ent)
 	e := Entity{ent}
 	particlesAddEntity(e.origin(), float32(cl.time))
 }
 
 //export ParticlesClear
 func ParticlesClear() {
-	C.R_ClearParticles()
 	particlesClear()
 }
 
 //export ParticlesAddExplosion
 func ParticlesAddExplosion(org *C.float) {
-	C.R_ParticleExplosion(org)
 	particlesAddExplosion(p2v3(org), float32(cl.time))
 }
 
 //export ParticlesAddExplosion2
 func ParticlesAddExplosion2(org *C.float, colorStart, colorLength C.int) {
-	C.R_ParticleExplosion2(org, colorStart, colorLength)
 	particlesAddExplosion2(p2v3(org), int(colorStart), int(colorLength), float32(cl.time))
 }
 
 //export ParticlesAddBlobExplosion
 func ParticlesAddBlobExplosion(org *C.float) {
-	C.R_BlobExplosion(org)
 	particlesAddBlobExplosion(p2v3(org), float32(cl.time))
 }
 
 //export ParticlesRunEffect
 func ParticlesRunEffect(org, dir *C.float, color, count C.int) {
-	C.R_RunParticleEffect(org, dir, color, count)
+	particlesRunEffect(p2v3(org), p2v3(dir), int(color), int(count), float32(cl.time))
 }
 
 //export ParticlesAddLavaSplash
 func ParticlesAddLavaSplash(org *C.float) {
-	C.R_LavaSplash(org)
 	particlesAddLavaSplash(p2v3(org), float32(cl.time))
 }
 
 //export ParticlesAddTeleportSplash
 func ParticlesAddTeleportSplash(org *C.float) {
-	C.R_TeleportSplash(org)
 	particlesAddTeleportSplash(p2v3(org), float32(cl.time))
 }
 
 //export ParticlesAddRocketTrail
 func ParticlesAddRocketTrail(start, end *C.float, typ C.int) {
-	C.R_RocketTrail(start, end, typ)
 	particlesAddRocketTrail(p2v3(start), p2v3(end), int(typ), float32(cl.time))
 }
 
 //export ParticlesRun
 func ParticlesRun() {
-	C.CL_RunParticles()
 	particlesRun(float32(cl.time), float32(cl.oldTime))
 }
 
 //export ParticlesDraw
 func ParticlesDraw() {
-	//C.R_DrawParticles()
 	particlesDraw()
 }
 
 //export ParticlesDrawShowTris
 func ParticlesDrawShowTris() {
-	C.R_DrawParticles_ShowTris()
+	// C.R_DrawParticles_ShowTris()
 }
