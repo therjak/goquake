@@ -53,7 +53,7 @@ uniform sampler2D tex;
 void main() {
 	float color = texture(tex, Texcoord).r;
 	frag_color.rgb = InColor;
-	frag_color.a = color + 0.1; // texture has only one chan
+	frag_color.a = color; // texture has only one chan
 	frag_color = clamp(frag_color, vec4(0,0,0,0), vec4(1,1,1,1));
 }
 ` + "\x00"
@@ -155,10 +155,11 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 		u := vec.Scale(scale, up)
 		r := vec.Scale(scale, right)
 
+		ci := p.color * 4
 		c := vec.Vec3{
-			float32(palette.table[p.color]) / 255,
-			float32(palette.table[p.color+1]) / 255,
-			float32(palette.table[p.color+2]) / 255,
+			float32(palette.table[ci]) / 255,
+			float32(palette.table[ci+1]) / 255,
+			float32(palette.table[ci+2]) / 255,
 		}
 		numVert += 3
 
@@ -590,6 +591,7 @@ func particlesAddRocketTrail(start, end vec.Vec3, typ int, now float32) {
 			return
 		}
 		p := freeParticles[l-1]
+		*p = particle{}
 		p.used = true
 		freeParticles = freeParticles[:l-1]
 
@@ -652,7 +654,7 @@ func particlesRun(now float32, lastFrame float32) {
 	t3 := frameTime * 15
 	t2 := frameTime * 10
 	t1 := frameTime * 5
-	grav := frameTime * cvars.ServerGravity.Value() * 0.5
+	grav := frameTime * cvars.ServerGravity.Value() * 0.05
 	dvel := frameTime * 4
 
 	for i := 0; i < len(particles); i++ {
