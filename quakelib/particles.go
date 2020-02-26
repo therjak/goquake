@@ -569,10 +569,16 @@ func particlesAddLavaSplash(origin vec.Vec3, now float32) {
 	}
 }
 
+var (
+	teleportSplashIs = []int{-16, -12, -8, -4, 0, 4, 8, 12, 16}
+	teleportSplashJs = []int{-16, -12, -8, -4, 0, 4, 8, 12, 16}
+	teleportSplashKs = []int{-24, -20, -16, -12, -8, -4, 0, 4, 8, 12, 16, 20, 24, 28, 32}
+)
+
 func particlesAddTeleportSplash(origin vec.Vec3, now float32) {
-	for i := -16; i < 16; i += 4 {
-		for j := -16; j < 16; j += 4 {
-			for k := -24; k < 32; k += 4 {
+	for _, i := range teleportSplashIs {
+		for _, j := range teleportSplashJs {
+			for _, k := range teleportSplashKs {
 				l := len(freeParticles)
 				if l == 0 {
 					return
