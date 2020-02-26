@@ -696,84 +696,6 @@ void R_EmitWireBox(vec3_t mins, vec3_t maxs) {
 
 /*
 ================
-R_ShowTris -- johnfitz
-================
-*/
-void R_ShowTris(void) {
-  extern cvar_t r_particles;
-  int i;
-
-  if (Cvar_GetValue(&r_showtris) < 1 || Cvar_GetValue(&r_showtris) > 2 ||
-      CL_MaxClients() > 1) {
-    return;
-  }
-
-  if (Cvar_GetValue(&r_showtris) == 1) {
-    glDisable(GL_DEPTH_TEST);
-  }
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  GL_PolygonOffset(OFFSET_SHOWTRIS);
-  glDisable(GL_TEXTURE_2D);
-  glColor3f(1, 1, 1);
-  //	glEnable (GL_BLEND);
-  //	glBlendFunc (GL_ONE, GL_ONE);
-
-  if (Cvar_GetValue(&r_drawworld)) {
-    R_DrawWorld_ShowTris();
-  }
-
-  if (Cvar_GetValue(&r_drawentities)) {
-    for (i = 0; i < cl_numvisedicts; i++) {
-      currententity = cl_visedicts[i];
-
-      if (currententity == &cl_entities[CL_Viewentity()])  // chasecam
-        currententity->angles[0] *= 0.3;
-
-      switch (currententity->model->Type) {
-        case mod_brush:
-          R_DrawBrushModel_ShowTris(currententity);
-          break;
-        case mod_alias:
-          R_DrawAliasModel_ShowTris(currententity);
-          break;
-        case mod_sprite:
-          R_DrawSpriteModel(currententity);
-          break;
-        default:
-          break;
-      }
-    }
-
-    // viewmodel
-    currententity = &cl_viewent;
-    if (Cvar_GetValue(&r_drawviewmodel) && !Cvar_GetValue(&chase_active) &&
-        CL_Stats(STAT_HEALTH) > 0 && !(CL_HasItem(IT_INVISIBILITY)) &&
-        currententity->model && currententity->model->Type == mod_alias) {
-      glDepthRange(0, 0.3);
-      R_DrawAliasModel_ShowTris(currententity);
-      glDepthRange(0, 1);
-    }
-  }
-
-  if (Cvar_GetValue(&r_particles)) {
-    ParticlesDrawShowTris();
-  }
-
-  //	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  //	glDisable (GL_BLEND);
-  glColor3f(1, 1, 1);
-  glEnable(GL_TEXTURE_2D);
-  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-  GL_PolygonOffset(OFFSET_NONE);
-  if (Cvar_GetValue(&r_showtris) == 1) {
-    glEnable(GL_DEPTH_TEST);
-  }
-
-  Sbar_Changed();  // so we don't get dots collecting on the statusbar
-}
-
-/*
-================
 R_DrawShadows
 ================
 */
@@ -842,8 +764,6 @@ void R_RenderScene(void) {
   Fog_DisableGFog();  // johnfitz
 
   R_DrawViewModel();  // johnfitz -- moved here from R_RenderView
-
-  R_ShowTris();  // johnfitz
 }
 
 /*

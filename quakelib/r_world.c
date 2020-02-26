@@ -266,37 +266,6 @@ static void R_EndTransparentDrawing(float entalpha) {
 
 /*
 ================
-R_DrawTextureChains_ShowTris -- johnfitz
-================
-*/
-void R_DrawTextureChains_ShowTris(qmodel_t *model, texchain_t chain) {
-  int i;
-  msurface_t *s;
-  texture_t *t;
-  glpoly_t *p;
-
-  for (i = 0; i < model->numtextures; i++) {
-    t = model->textures[i];
-    if (!t) continue;
-
-    if (Cvar_GetValue(&r_oldwater) && t->texturechains[chain] &&
-        (t->texturechains[chain]->flags & SURF_DRAWTURB)) {
-      for (s = t->texturechains[chain]; s; s = s->texturechain)
-        if (!s->culled)
-          for (p = s->polys->next; p; p = p->next) {
-            DrawGLTriangleFan(p);
-          }
-    } else {
-      for (s = t->texturechains[chain]; s; s = s->texturechain)
-        if (!s->culled) {
-          DrawGLTriangleFan(s->polys);
-        }
-    }
-  }
-}
-
-/*
-================
 R_DrawTextureChains_Drawflat -- johnfitz
 ================
 */
@@ -1048,16 +1017,4 @@ void R_DrawWorld_Water(void) {
   if (!r_drawworld_cheatsafe) return;
 
   R_DrawTextureChains_Water(cl.worldmodel, NULL, chain_world);
-}
-
-/*
-=============
-R_DrawWorld_ShowTris -- ericw -- moved from R_DrawTextureChains_ShowTris, which
-is no longer specific to the world.
-=============
-*/
-void R_DrawWorld_ShowTris(void) {
-  if (!r_drawworld_cheatsafe) return;
-
-  R_DrawTextureChains_ShowTris(cl.worldmodel, chain_world);
 }

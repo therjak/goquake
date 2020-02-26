@@ -349,11 +349,6 @@ void R_BuildLightMap(msurface_t *surf, byte *dest, int stride);
 void R_RenderDynamicLightmaps(msurface_t *fa);
 void R_UploadLightmaps(void);
 
-void R_DrawWorld_ShowTris(void);
-void R_DrawBrushModel_ShowTris(entity_t *e);
-void R_DrawAliasModel_ShowTris(entity_t *e);
-void R_DrawParticles_ShowTris(void);
-
 GLint GL_GetUniformLocation(GLuint *programPtr, const char *name);
 GLuint GL_CreateProgram(const GLchar *vertSource, const GLchar *fragSource,
                         int numbindings, const glsl_attrib_binding_t *bindings);
