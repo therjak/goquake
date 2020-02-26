@@ -572,7 +572,7 @@ func particlesAddLavaSplash(origin vec.Vec3, now float32) {
 func particlesAddTeleportSplash(origin vec.Vec3, now float32) {
 	for i := -16; i < 16; i += 4 {
 		for j := -16; j < 16; j += 4 {
-			for k := -24; j < 32; k += 4 {
+			for k := -24; k < 32; k += 4 {
 				l := len(freeParticles)
 				if l == 0 {
 					return
