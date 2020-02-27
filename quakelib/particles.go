@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/rand"
 	"quake/commandline"
+	"quake/cvar"
 	"quake/cvars"
 	"quake/math/vec"
 
@@ -362,13 +363,21 @@ func particlesInit() {
 		freeParticles = append(freeParticles, &particles[i])
 	}
 
-	//TODO(THERJAK): cvar r_particles callback
-	// if r_particles == 1
-	// texture1 && factor 1.27
-	// if r_particles == 2
-	// texture2 && factor 1.0
-
 	particleDrawer = newParticleDrawer()
+}
+
+func init() {
+	cvars.RParticles.SetCallback(func(cv *cvar.Cvar) {
+		d := particleDrawer
+		switch int(cv.Value()) {
+		case 1:
+			d.texture = d.textures[0]
+			d.textureScaleFactor = float32(1.27)
+		case 2:
+			d.texture = d.textures[1]
+			d.textureScaleFactor = float32(1.0)
+		}
+	})
 }
 
 func particlesDeinit() {

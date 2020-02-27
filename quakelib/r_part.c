@@ -20,26 +20,6 @@ typedef struct particle_s {
 particle_t *active_particles, *free_particles, *particles;
 
 /*
-cvar_t r_particles;
-static void R_SetParticleTexture_f(cvar_t *var) {
-  switch ((int)(Cvar_GetValue(&r_particles))) {
-    case 1:
-      particletexture = particletexture1;
-      texturescalefactor = 1.27;
-      break;
-    case 2:
-      particletexture = particletexture2;
-      texturescalefactor = 1.0;
-      break;
-  }
-}
-
-void R_InitParticles(void) {
-  Cvar_FakeRegister(&r_particles, "r_particles");
-  Cvar_SetCallback(&r_particles, R_SetParticleTexture_f);
-}*/
-
-/*
 ===============
 R_ReadPointFile_f
 ===============
