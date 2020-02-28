@@ -130,7 +130,6 @@ void R_Init(void) {
   extern cvar_t gl_finish;
 
   Cmd_AddCommand("timerefresh", R_TimeRefresh_f);
-  Cmd_AddCommand("pointfile", R_ReadPointFile_f);
 
   Cvar_FakeRegister(&r_norefresh, "r_norefresh");
   Cvar_FakeRegister(&r_lightmap, "r_lightmap");
