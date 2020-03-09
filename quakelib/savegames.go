@@ -11,7 +11,7 @@ import (
 	"quake/protos"
 	"strings"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 func init() {

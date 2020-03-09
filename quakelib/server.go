@@ -24,7 +24,7 @@ import (
 	"quake/protos"
 
 	"github.com/chewxy/math32"
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 const (

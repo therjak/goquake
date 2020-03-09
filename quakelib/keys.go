@@ -23,8 +23,8 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/veandco/go-sdl2/sdl"
+	"google.golang.org/protobuf/proto"
 )
 
 var (

@@ -11,7 +11,7 @@ import (
 	"quake/menu"
 	"quake/protos"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 func enterLoadMenu() {
