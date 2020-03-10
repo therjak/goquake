@@ -1,8 +1,5 @@
 package quakelib
 
-//#include "q_stdinc.h"
-//#include "progdefs.h"
-//#include "cgo_help.h"
 //void Host_ClearMemory(void);
 import "C"
 

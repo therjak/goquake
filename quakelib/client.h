@@ -15,17 +15,6 @@ typedef struct {
 
 #define SIGNONS 4  // signon messages to receive before connected
 
-#define MAX_DLIGHTS 64  // johnfitz -- was 32
-typedef struct {
-  vec3_t origin;
-  float radius;
-  float die;       // stop lighting after this time
-  float decay;     // drop this each second
-  float minlight;  // don't add when contributing less
-  int key;
-  vec3_t color;  // johnfitz -- lit support via lordhavoc
-} dlight_t;
-
 #define MAX_BEAMS 32  // johnfitz -- was 24
 typedef struct {
   int entity;
@@ -94,7 +83,6 @@ extern cvar_t cl_shownet;
 // FIXME, allocate dynamically
 extern efrag_t cl_efrags[MAX_EFRAGS];
 extern entity_t cl_static_entities[MAX_STATIC_ENTITIES];
-extern dlight_t cl_dlights[MAX_DLIGHTS];
 extern entity_t cl_temp_entities[MAX_TEMP_ENTITIES];
 extern beam_t cl_beams[MAX_BEAMS];
 extern entity_t *cl_visedicts[MAX_VISEDICTS];
@@ -107,8 +95,6 @@ extern entity_t *cl_entities;  // johnfitz -- was a static array, now on hunk
 //
 // cl_main
 //
-dlight_t *CL_AllocDlight(int key);
-void CL_DecayLights(void);
 
 void CL_Init(void);
 

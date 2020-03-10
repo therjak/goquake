@@ -2,6 +2,8 @@
 
 #include "quakedef.h"
 
+#include "dlight.h"
+
 // we need to declare some mouse variables here, because the menu system
 // references them even when on a unix system.
 
@@ -96,72 +98,6 @@ void CL_PrintEntities_f(void) {
     Con_Printf("%s:%2i  (%5.1f,%5.1f,%5.1f) [%5.1f %5.1f %5.1f]\n",
                ent->model->name, ent->frame, ent->origin[0], ent->origin[1],
                ent->origin[2], ent->angles[0], ent->angles[1], ent->angles[2]);
-  }
-}
-
-/*
-===============
-CL_AllocDlight
-
-===============
-*/
-dlight_t *CL_AllocDlight(int key) {
-  int i;
-  dlight_t *dl;
-
-  // first look for an exact key match
-  if (key) {
-    dl = cl_dlights;
-    for (i = 0; i < MAX_DLIGHTS; i++, dl++) {
-      if (dl->key == key) {
-        memset(dl, 0, sizeof(*dl));
-        dl->key = key;
-        dl->color[0] = dl->color[1] = dl->color[2] =
-            1;  // johnfitz -- lit support via lordhavoc
-        return dl;
-      }
-    }
-  }
-
-  // then look for anything else
-  dl = cl_dlights;
-  for (i = 0; i < MAX_DLIGHTS; i++, dl++) {
-    if (dl->die < CL_Time()) {
-      memset(dl, 0, sizeof(*dl));
-      dl->key = key;
-      dl->color[0] = dl->color[1] = dl->color[2] =
-          1;  // johnfitz -- lit support via lordhavoc
-      return dl;
-    }
-  }
-
-  dl = &cl_dlights[0];
-  memset(dl, 0, sizeof(*dl));
-  dl->key = key;
-  dl->color[0] = dl->color[1] = dl->color[2] =
-      1;  // johnfitz -- lit support via lordhavoc
-  return dl;
-}
-
-/*
-===============
-CL_DecayLights
-
-===============
-*/
-void CL_DecayLights(void) {
-  int i;
-  dlight_t *dl;
-  float time;
-
-  time = CL_Time() - CL_OldTime();
-
-  dl = cl_dlights;
-  for (i = 0; i < MAX_DLIGHTS; i++, dl++) {
-    if (dl->die < CL_Time() || !dl->radius) continue;
-
-    dl->radius -= time * dl->decay;
-    if (dl->radius < 0) dl->radius = 0;
   }
 }
 

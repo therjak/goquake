@@ -1,6 +1,8 @@
 #include "_cgo_export.h"
 #include "quakedef.h"
 
+#include "dlight.h"
+
 const char *CL_MSG_ReadString(void) {
   static char string[2048];
   int c;
