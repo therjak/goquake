@@ -1,7 +1,5 @@
 package quakelib
 
-//void CL_StopPlayback(void);
-//void CL_Stop_f(void);
 //#define SFX_WIZHIT  0
 //#define SFX_KNIGHTHIT  1
 //#define SFX_TINK1  2
@@ -23,6 +21,7 @@ import (
 	cmdl "quake/commandline"
 	"quake/conlog"
 	"quake/cvars"
+	"quake/execute"
 	"quake/input"
 	"quake/keys"
 	"quake/math"
@@ -62,6 +61,10 @@ func init() {
 	cmd.AddCommand("reconnect", func(args []cmd.QArg, _ int) { clientReconnect() })
 
 	cmd.AddCommand("startdemos", clientStartDemos)
+	cmd.AddCommand("record", clientRecordDemo)
+	cmd.AddCommand("stop", clientStopDemoRecording)
+	cmd.AddCommand("playdemo", clientPlayDemo)
+	cmd.AddCommand("timedemo", clientTimeDemo)
 
 	//Cmd_AddCommand("mcache", Mod_Print);
 }
@@ -106,8 +109,7 @@ func SetCLRoll(v C.float) {
 	cl.roll = float32(v)
 }
 
-//export CL_AdjustAngles
-func CL_AdjustAngles() {
+func (c *Client) adjustAngles() {
 	speed := func() float32 {
 		if (cvars.ClientForwardSpeed.Value() > 200) != input.Speed.Down() {
 			return float32(FrameTime()) * cvars.ClientAngleSpeedKey.Value()
@@ -115,28 +117,28 @@ func CL_AdjustAngles() {
 		return float32(FrameTime())
 	}()
 	if !input.Strafe.Down() {
-		cl.yaw -= speed * cvars.ClientYawSpeed.Value() * input.Right.ConsumeImpulse()
-		cl.yaw += speed * cvars.ClientYawSpeed.Value() * input.Left.ConsumeImpulse()
-		cl.yaw = math.AngleMod32(cl.yaw)
+		c.yaw -= speed * cvars.ClientYawSpeed.Value() * input.Right.ConsumeImpulse()
+		c.yaw += speed * cvars.ClientYawSpeed.Value() * input.Left.ConsumeImpulse()
+		c.yaw = math.AngleMod32(cl.yaw)
 	}
 	if input.KLook.Down() {
-		cl.stopPitchDrift()
-		cl.pitch -= speed * cvars.ClientPitchSpeed.Value() * input.Forward.ConsumeImpulse()
-		cl.pitch += speed * cvars.ClientPitchSpeed.Value() * input.Back.ConsumeImpulse()
+		c.stopPitchDrift()
+		c.pitch -= speed * cvars.ClientPitchSpeed.Value() * input.Forward.ConsumeImpulse()
+		c.pitch += speed * cvars.ClientPitchSpeed.Value() * input.Back.ConsumeImpulse()
 	}
 
 	up := input.LookUp.ConsumeImpulse()
 	down := input.LookDown.ConsumeImpulse()
 
-	cl.pitch -= speed * cvars.ClientPitchSpeed.Value() * up
-	cl.pitch += speed * cvars.ClientPitchSpeed.Value() * down
+	c.pitch -= speed * cvars.ClientPitchSpeed.Value() * up
+	c.pitch += speed * cvars.ClientPitchSpeed.Value() * down
 
 	if up != 0 || down != 0 {
-		cl.stopPitchDrift()
+		c.stopPitchDrift()
 	}
 
-	cl.pitch = math.Clamp32(cvars.ClientMinPitch.Value(), cl.pitch, cvars.ClientMaxPitch.Value())
-	cl.roll = math.Clamp32(-50, cl.roll, 50)
+	c.pitch = math.Clamp32(cvars.ClientMinPitch.Value(), c.pitch, cvars.ClientMaxPitch.Value())
+	c.roll = math.Clamp32(-50, c.roll, 50)
 }
 
 // this is persistent through an arbitrary number of server connections
@@ -154,7 +156,7 @@ type ClientStatic struct {
 	forceTrack         int // -1 to use normal cd track
 	timeDemoLastFrame  int
 	timeDemoStartFrame int
-	timeDemoStartTime  float32
+	timeDemoStartTime  float64
 	// personalization data sent to server
 	// to restart a level
 	spawnParms string
@@ -733,14 +735,9 @@ func CLS_SetTimeDemoStartFrame(f C.int) {
 	cls.timeDemoStartFrame = int(f)
 }
 
-//export CLS_GetTimeDemoStartTime
-func CLS_GetTimeDemoStartTime() C.float {
-	return C.float(cls.timeDemoStartTime)
-}
-
 //export CLS_SetTimeDemoStartTime
-func CLS_SetTimeDemoStartTime(f C.float) {
-	cls.timeDemoStartTime = float32(f)
+func CLS_SetTimeDemoStartTime() {
+	cls.timeDemoStartTime = host.time
 }
 
 //export CLS_GetTimeDemoLastFrame
@@ -892,37 +889,37 @@ func init() {
 
 //export CL_GetMessage
 func CL_GetMessage() C.int {
-	return C.int(getMessage())
+	return C.int(cls.getMessage())
 }
 
-func getMessage() int {
+func (c *ClientStatic) getMessage() int {
 	// for cl_main: return -1 on error, return 0 for message end, everything else is continue
 	// for cl_parse: return 0 for end message, 2 && ReadByte == Nop continue, everything else is Host_Error
-	if cls.demoPlayback {
+	if c.demoPlayback {
 		return getDemoMessage()
 	}
 
 	r := 0
 	for {
-		cls.msgBadRead = false
+		c.msgBadRead = false
 
-		m, err := cls.connection.GetMessage()
+		m, err := c.connection.GetMessage()
 		if err != nil {
 			return -1
 		}
 		if m == nil || m.Len() == 0 {
 			return 0
 		}
-		cls.inMessage = m
-		b, err := cls.inMessage.ReadByte()
+		c.inMessage = m
+		b, err := c.inMessage.ReadByte()
 		if err != nil {
 			return -1
 		}
 		r = int(b)
 
 		// discard nop keepalive message
-		if cls.inMessage.Len() == 1 {
-			m, err := cls.inMessage.ReadByte()
+		if c.inMessage.Len() == 1 {
+			m, err := c.inMessage.ReadByte()
 			if err != nil {
 				// Should never happen as we already know there is exactly one byte
 				log.Fatalf("Error in GetMessage: %v", err)
@@ -933,7 +930,7 @@ func getMessage() int {
 				// The original was doing a BeginReading which was setting the read cursor to
 				// the begining so this was not needed. As the BeginReading was removed step
 				// back.
-				cls.inMessage.UnreadByte()
+				c.inMessage.UnreadByte()
 				break
 			}
 		} else {
@@ -941,11 +938,11 @@ func getMessage() int {
 		}
 	}
 
-	if cls.demoRecording {
-		writeDemoMessage()
+	if c.demoRecording {
+		cl.writeDemoMessage()
 	}
 
-	if cls.signon < 2 {
+	if c.signon < 2 {
 		// record messages before full connection, so that a
 		// demo record can happen after connection is done
 		cacheStartConnectionForDemo()
@@ -954,15 +951,6 @@ func getMessage() int {
 	return r
 }
 
-func getDemoMessage() int {
-	//TODO
-	// CL_GetDemoMessage
-	return 0
-}
-func writeDemoMessage() {
-	//TODO
-	//CL_WriteDemoMessage
-}
 func cacheStartConnectionForDemo() {
 	// TODO
 	//  memcpy(demo_head[CLS_GetSignon()], net_message.daTa, SB_GetCurSize(&net_message));
@@ -1110,10 +1098,10 @@ func (c *ClientStatic) Disconnect() {
 
 	// if running a local server, shut it down
 	if c.demoPlayback {
-		C.CL_StopPlayback()
+		cl.stopPlayback()
 	} else if c.state == ca_connected {
 		if c.demoRecording {
-			C.CL_Stop_f()
+			cl.stopDemoRecording()
 		}
 
 		conlog.DPrintf("Sending clc_disconnect\n")
@@ -1220,63 +1208,13 @@ func CL_SignonReply() {
 	}
 }
 
-func clientStartDemos(args []cmd.QArg, player int) {
-	if cls.state == ca_dedicated {
-		return
-	}
-
-	cls.demos = cls.demos[:0]
-	for _, a := range args {
-		cls.demos = append(cls.demos, a.String())
-	}
-	conlog.Printf("%d demo(s) in loop\n", len(cls.demos))
-
-	if !sv.active && cls.demoNum != -1 && !cls.demoPlayback {
-		cls.demoNum = 0
-		if !cmdl.Fitz() { // QuakeSpasm customization:
-			// go straight to menu, no CL_NextDemo
-			cls.demoNum = -1
-			cbuf.InsertText("menu_main\n")
-			return
-		}
-		CL_NextDemo()
-	} else {
-		cls.demoNum = -1
-	}
-}
-
-// Called to play the next demo in the demo loop
-func CL_NextDemo() {
-	if cls.demoNum == -1 {
-		// don't play demos
-		return
-	}
-
-	if len(cls.demos) == 0 {
-		conlog.Printf("No demos listed with startdemos\n")
-		cls.demoNum = -1
-		cls.Disconnect()
-		return
-	}
-
-	// TODO(therjak): Can this be integrated into CLS_NextDemoInCycle?
-	if cls.demoNum == len(cls.demos) {
-		cls.demoNum = 0
-	}
-
-	screen.BeginLoadingPlaque()
-
-	cbuf.InsertText(fmt.Sprintf("playdemo %s\n", cls.demos[cls.demoNum]))
-	cls.demoNum++
-}
-
 func CL_SendCmd() {
 	if cls.state != ca_connected {
 		return
 	}
 
 	if cls.signon == numSignonMessagesBeforeConn {
-		CL_AdjustAngles()
+		cl.adjustAngles()
 		HandleMove()
 	}
 
@@ -1418,7 +1356,7 @@ func CL_KeepaliveMessage() {
 
 Outer:
 	for {
-		switch ret := getMessage(); ret {
+		switch ret := cls.getMessage(); ret {
 		default:
 			HostError("CL_KeepaliveMessage: CL_GetMessage failed")
 		case 0:
@@ -2270,4 +2208,182 @@ func (c *Client) parseClientData() error {
 		}
 	*/
 	return nil
+}
+
+func (c *Client) stopPlayback() {
+	if !cls.demoPlayback {
+		return
+	}
+
+	// TODO: close file and null file handle
+	cls.demoPlayback = false
+	cls.demoPaused = false
+	cls.state = ca_disconnected
+
+	if cls.timeDemo {
+		c.finishTimeDemo()
+	}
+}
+
+func (c *Client) finishTimeDemo() {
+	cls.timeDemo = false
+	// the first frame didn't count
+	frames := host.frameCount - cls.timeDemoStartFrame - 1
+	time := host.time - float64(cls.timeDemoStartTime)
+	if time == 0 {
+		time = 1
+	}
+	conlog.Printf("%d frames %5.1f seconds %5.1f fps\n", frames, time, float64(frames)/time)
+}
+
+func (c *Client) writeDemoMessage() {
+	// write 4 bytes: length of net_message
+	// write 4 bytes: float of cl.pitch
+	// write 4 bytes: float of cl.yaw
+	// write 4 bytes: float of cl.roll
+	// write net_message
+	// flush
+}
+
+func clientStartDemos(args []cmd.QArg, player int) {
+	if cls.state == ca_dedicated {
+		return
+	}
+
+	cls.demos = cls.demos[:0]
+	for _, a := range args {
+		cls.demos = append(cls.demos, a.String())
+	}
+	conlog.Printf("%d demo(s) in loop\n", len(cls.demos))
+
+	if !sv.active && cls.demoNum != -1 && !cls.demoPlayback {
+		cls.demoNum = 0
+		if !cmdl.Fitz() { // QuakeSpasm customization:
+			// go straight to menu, no CL_NextDemo
+			cls.demoNum = -1
+			cbuf.InsertText("menu_main\n")
+			return
+		}
+		CL_NextDemo()
+	} else {
+		cls.demoNum = -1
+	}
+}
+
+func clientRecordDemo(args []cmd.QArg, player int) {
+	if !execute.IsSrcCommand() {
+		return
+	}
+	if cls.demoPlayback {
+		conlog.Printf("Can''t record during demo playback\n")
+		return
+	}
+	// len(args) must be 2,3,4...
+	// TODO
+	cl.recordDemo()
+}
+
+func clientStopDemoRecording(args []cmd.QArg, player int) {
+	if !execute.IsSrcCommand() {
+		return
+	}
+	if !cls.demoRecording {
+		conlog.Printf("Not recording a demo.\n")
+		return
+	}
+	cl.stopDemoRecording()
+}
+
+func clientPlayDemo(args []cmd.QArg, player int) {
+	if !execute.IsSrcCommand() {
+		return
+	}
+
+	if len(args) != 1 {
+		conlog.Printf("playdemo <demoname> : plays a demo\n")
+		return
+	}
+
+	if err := cl.playDemo(args[0].String()); err != nil {
+		conlog.Printf("Error: %v", err)
+	}
+}
+
+func clientTimeDemo(args []cmd.QArg, player int) {
+	if !execute.IsSrcCommand() {
+		return
+	}
+
+	if len(args) != 1 {
+		conlog.Printf("timedemo <demoname> : gets demo speeds\n")
+		return
+	}
+
+	cl.timeDemo(args[0].String())
+}
+
+// Called to play the next demo in the demo loop
+func CL_NextDemo() {
+	if cls.demoNum == -1 {
+		// don't play demos
+		return
+	}
+
+	if len(cls.demos) == 0 {
+		conlog.Printf("No demos listed with startdemos\n")
+		cls.demoNum = -1
+		cls.Disconnect()
+		return
+	}
+
+	// TODO(therjak): Can this be integrated into CLS_NextDemoInCycle?
+	if cls.demoNum == len(cls.demos) {
+		cls.demoNum = 0
+	}
+
+	screen.BeginLoadingPlaque()
+
+	cbuf.InsertText(fmt.Sprintf("playdemo %s\n", cls.demos[cls.demoNum]))
+	cls.demoNum++
+}
+
+func (c *Client) stopDemoRecording() {
+	// TODO:
+	// svc_disconnect
+	// demomessage
+	// close file
+	// cls.demofile = null
+
+	cls.demoRecording = false
+	conlog.Printf("Completed demo\n")
+}
+
+func (c *Client) recordDemo() {
+	if cls.demoRecording {
+		c.stopDemoRecording()
+	}
+	// TODO
+}
+
+func getDemoMessage() int {
+	//TODO
+	// CL_GetDemoMessage
+	// create a new cls.inMessage with data from the demo
+	return 0
+}
+
+func (c *Client) playDemo(name string) error {
+	// TODO:
+	return nil
+}
+
+func (c *Client) timeDemo(name string) {
+	if err := c.playDemo(name); err != nil {
+		return
+	}
+	// cls.timeDemoStartTime will be grabbed at the second frame of the demo,
+	// so all the loading time doesn't get counted
+	cls.timeDemo = true
+	cls.timeDemoStartFrame = host.frameCount
+	cls.timeDemoLastFrame = -1 // get a new message this frame
 }

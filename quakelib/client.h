@@ -108,17 +108,6 @@ void CL_UpdateTEnts(void);
 void CL_ClearState(void);
 
 //
-// cl_demo.c
-//
-void CL_StopPlayback(void);
-int CL_GetDemoMessage(void);
-
-void CL_Stop_f(void);
-void CL_Record_f(void);
-void CL_PlayDemo_f(void);
-void CL_TimeDemo_f(void);
-
-//
 // cl_parse.c
 //
 void CL_ParseServerMessage(void);

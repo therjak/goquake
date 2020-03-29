@@ -1,6 +1,5 @@
 package quakelib
 
-//void CL_StopPlayback(void);
 //void _Host_Frame();
 import "C"
 
@@ -35,6 +34,7 @@ type Host struct {
 	frameTime   float64
 	initialized bool
 	isDown      bool
+	frameCount  int
 }
 
 func Time() float64 {
@@ -196,7 +196,7 @@ func hostStopDemo(_ []cmd.QArg, _ int) {
 	if !cls.demoPlayback {
 		return
 	}
-	C.CL_StopPlayback()
+	cl.stopPlayback()
 	cls.Disconnect()
 }
 
@@ -300,6 +300,7 @@ func executeFrame() {
 			// this is for demo syncing
 		  host_framecount++;
 	*/
+	host.frameCount++
 }
 
 func hostFrame() {

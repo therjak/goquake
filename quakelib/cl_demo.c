@@ -4,8 +4,6 @@
 
 // THERJAK: this should be possible to move now
 
-static void CL_FinishTimeDemo(void);
-
 /*
 ==============================================================================
 
@@ -24,55 +22,12 @@ read from the demo file.
 // static byte demo_head[3][MAX_MSGLEN];
 // static int demo_head_size[2];
 
-/*
-==============
-CL_StopPlayback
-
-Called when a demo file runs out, or the user starts a game
-==============
-*/
-// public
 void CL_StopPlayback(void) {
-  if (!CLS_IsDemoPlayback()) return;
-
-  fclose(cls.demofile);
-  CLS_SetDemoPlayback(false);
-  CLS_SetDemoPaused(false);
-  cls.demofile = NULL;
-  CLS_SetState(ca_disconnected);
-
-  if (CLS_IsTimeDemo()) CL_FinishTimeDemo();
 }
 
-/*
-====================
-CL_WriteDemoMessage
-
-Dumps the current net message, prefixed by the length and view angles
-====================
-*/
-// thea: demo recording disabled
 void CL_WriteDemoMessage(void) {
-  /*
-  int len;
-  int i;
-  float f;
-
-  len = LittleLong(SB_GetCurSize(&net_message));
-  fwrite(&len, 4, 1, cls.demofile);
-
-  f = LittleFloat(CLPitch());
-  fwrite(&f, 4, 1, cls.demofile);
-  f = LittleFloat(CLYaw());
-  fwrite(&f, 4, 1, cls.demofile);
-  f = LittleFloat(CLRoll());
-  fwrite(&f, 4, 1, cls.demofile);
-
-  // write net_message to demofile
-  fwrite(net_message.daTa, SB_GetCurSize(&net_message), 1, cls.demofile);
-  fflush(cls.demofile);
-  */
 }
+
 
 int CL_GetDemoMessage(void) {
   int r, i;
@@ -91,7 +46,7 @@ int CL_GetDemoMessage(void) {
       // if this is the second frame, grab the real td_starttime
       // so the bogus time on the first frame doesn't count
       if (host_framecount == CLS_GetTimeDemoStartFrame() + 1) {
-        CLS_SetTimeDemoStartTime(HostRealTime());
+        CLS_SetTimeDemoStartTime();
       }
     } else if (/* cl.time > 0 && */ CL_Time() <= CL_MTime()) {
       return 0;  // don't need another message yet
@@ -378,49 +333,3 @@ void CL_PlayDemo_f(void) {
   */
 }
 
-/*
-====================
-CL_FinishTimeDemo
-
-====================
-*/
-static void CL_FinishTimeDemo(void) {
-  int frames;
-  float time;
-
-  CLS_SetTimeDemo(false);
-
-  // the first frame didn't count
-  frames = (host_framecount - CLS_GetTimeDemoStartFrame()) - 1;
-  time = HostRealTime() - CLS_GetTimeDemoStartTime();
-  if (!time) time = 1;
-  Con_Printf("%i frames %5.1f seconds %5.1f fps\n", frames, time,
-             frames / time);
-}
-
-/*
-====================
-CL_TimeDemo_f
-
-timedemo [demoname]
-====================
-*/
-// public
-void CL_TimeDemo_f(void) {
-  if (!IsSrcCommand()) return;
-
-  if (Cmd_Argc() != 2) {
-    Con_Printf("timedemo <demoname> : gets demo speeds\n");
-    return;
-  }
-
-  CL_PlayDemo_f();
-  if (!cls.demofile) return;
-
-  // cls.td_starttime will be grabbed at the second frame of the demo, so
-  // all the loading time doesn't get counted
-
-  CLS_SetTimeDemo(true);
-  CLS_SetTimeDemoStartFrame(host_framecount);
-  CLS_SetTimeDemoLastFrame(-1);  // get a new message this frame
-}
