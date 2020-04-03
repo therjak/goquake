@@ -82,7 +82,6 @@ type qParticleDrawer struct {
 
 func newParticleDrawProgram() uint32 {
 	vert := getShader(vertexSourceParticleDrawer, gl.VERTEX_SHADER)
-	log.Printf("vertex: %s", vertexSourceParticleDrawer)
 	frag := getShader(fragmentSourceParticleDrawer, gl.FRAGMENT_SHADER)
 	d := gl.CreateProgram()
 	gl.AttachShader(d, vert)

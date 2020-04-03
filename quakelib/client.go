@@ -22,6 +22,7 @@ import (
 	"quake/conlog"
 	"quake/cvars"
 	"quake/execute"
+	"quake/filesystem"
 	"quake/input"
 	"quake/keys"
 	"quake/math"
@@ -33,6 +34,7 @@ import (
 	svc "quake/protocol/server"
 	"quake/snd"
 	"quake/stat"
+	"strings"
 	"time"
 	"unsafe"
 )
@@ -164,6 +166,7 @@ type ClientStatic struct {
 	/*
 		demoFile 'filehandle'
 	*/
+	demoData   []byte
 	msgBadRead bool
 
 	// net.PacketCon
@@ -2304,7 +2307,7 @@ func clientPlayDemo(args []cmd.QArg, player int) {
 		return
 	}
 
-	if err := cl.playDemo(args[0].String()); err != nil {
+	if err := cls.playDemo(args[0].String()); err != nil {
 		conlog.Printf("Error: %v", err)
 	}
 }
@@ -2319,7 +2322,7 @@ func clientTimeDemo(args []cmd.QArg, player int) {
 		return
 	}
 
-	cl.timeDemo(args[0].String())
+	cls.startTimeDemo(args[0].String())
 }
 
 // Called to play the next demo in the demo loop
@@ -2372,18 +2375,38 @@ func getDemoMessage() int {
 	return 0
 }
 
-func (c *Client) playDemo(name string) error {
-	// TODO:
+func (c *ClientStatic) playDemo(name string) error {
+	c.Disconnect()
+	if !strings.HasSuffix(name, ".dem") {
+		name += ".dem"
+	}
+	b, err := filesystem.GetFileContents(name)
+	if err != nil {
+		c.demoNum = -1 // stop demo loop
+		return err
+	}
+	i := bytes.IndexByte(b, '\n')
+	if i > 13 {
+		c.demoData = []byte{}
+		c.demoNum = -1 // stop demo loop
+		return fmt.Errorf("demo \"%s\" is invalid\n", name)
+	}
+	c.demoData = b[i+1:] // cut the cd track + line break
+	c.demoPlayback = true
+	c.demoPaused = false
+	c.state = ca_connected
+	// get rid of the menu and/or console
+	keyDestination = keys.Game
 	return nil
 }
 
-func (c *Client) timeDemo(name string) {
+func (c *ClientStatic) startTimeDemo(name string) {
 	if err := c.playDemo(name); err != nil {
 		return
 	}
 	// cls.timeDemoStartTime will be grabbed at the second frame of the demo,
 	// so all the loading time doesn't get counted
-	cls.timeDemo = true
-	cls.timeDemoStartFrame = host.frameCount
-	cls.timeDemoLastFrame = -1 // get a new message this frame
+	c.timeDemo = true
+	c.timeDemoStartFrame = host.frameCount
+	c.timeDemoLastFrame = -1 // get a new message this frame
 }
