@@ -889,6 +889,7 @@ func (c *ClientStatic) getMessage() int {
 	// for cl_main: return -1 on error, return 0 for message end, everything else is continue
 	// for cl_parse: return 0 for end message, 2 && ReadByte == Nop continue, everything else is Host_Error
 	if c.demoPlayback {
+		c.msgBadRead = false
 		return cls.getDemoMessage()
 	}
 
@@ -2336,7 +2337,6 @@ func CL_NextDemo() {
 
 	screen.BeginLoadingPlaque()
 
-	log.Printf("Play demo %s", cls.demos[cls.demoNum])
 	cbuf.InsertText(fmt.Sprintf("playdemo %s\n", cls.demos[cls.demoNum]))
 	cls.demoNum++
 }
@@ -2401,10 +2401,10 @@ func (c *ClientStatic) getDemoMessage() int {
 
 	c.demoData = c.demoData[16:]
 	cl.mViewAngles[1][0] = cl.mViewAngles[0][0]
-	cl.mViewAngles[0][0] = h.ViewAngleX
 	cl.mViewAngles[1][1] = cl.mViewAngles[0][1]
-	cl.mViewAngles[0][1] = h.ViewAngleY
 	cl.mViewAngles[1][2] = cl.mViewAngles[0][2]
+	cl.mViewAngles[0][0] = h.ViewAngleX
+	cl.mViewAngles[0][1] = h.ViewAngleY
 	cl.mViewAngles[0][2] = h.ViewAngleZ
 
 	if len(c.demoData) < int(h.Size) {
@@ -2412,16 +2412,11 @@ func (c *ClientStatic) getDemoMessage() int {
 		return 0
 	}
 	c.inMessage = net.NewQReader(c.demoData[:h.Size])
-	if len(c.demoData) == int(h.Size) {
-		c.demoData = []byte{}
-	} else {
-		c.demoData = c.demoData[h.Size+1:]
-	}
+	c.demoData = c.demoData[h.Size:]
 	return 1
 }
 
 func (c *ClientStatic) playDemo(name string) error {
-	log.Printf("playDemo: %s", name)
 	c.Disconnect()
 	if !strings.HasSuffix(name, ".dem") {
 		name += ".dem"
