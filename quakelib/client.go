@@ -13,6 +13,7 @@ import "C"
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"github.com/chewxy/math32"
 	"log"
@@ -155,7 +156,6 @@ type ClientStatic struct {
 	connection         *net.Connection
 	inMessage          *net.QReader
 	outMessage         bytes.Buffer
-	forceTrack         int // -1 to use normal cd track
 	timeDemoLastFrame  int
 	timeDemoStartFrame int
 	timeDemoStartTime  float64
@@ -718,16 +718,6 @@ func CL_CompletedTime() C.int {
 	return C.int(cl.intermissionTime)
 }
 
-//export CLS_GetForceTrack
-func CLS_GetForceTrack() C.int {
-	return C.int(cls.forceTrack)
-}
-
-//export CLS_SetForceTrack
-func CLS_SetForceTrack(t C.int) {
-	cls.forceTrack = int(t)
-}
-
 //export CLS_GetTimeDemoStartFrame
 func CLS_GetTimeDemoStartFrame() C.int {
 	return C.int(cls.timeDemoStartFrame)
@@ -899,7 +889,7 @@ func (c *ClientStatic) getMessage() int {
 	// for cl_main: return -1 on error, return 0 for message end, everything else is continue
 	// for cl_parse: return 0 for end message, 2 && ReadByte == Nop continue, everything else is Host_Error
 	if c.demoPlayback {
-		return getDemoMessage()
+		return cls.getDemoMessage()
 	}
 
 	r := 0
@@ -1101,7 +1091,7 @@ func (c *ClientStatic) Disconnect() {
 
 	// if running a local server, shut it down
 	if c.demoPlayback {
-		cl.stopPlayback()
+		c.stopPlayback()
 	} else if c.state == ca_connected {
 		if c.demoRecording {
 			cl.stopDemoRecording()
@@ -2213,26 +2203,26 @@ func (c *Client) parseClientData() error {
 	return nil
 }
 
-func (c *Client) stopPlayback() {
-	if !cls.demoPlayback {
+func (c *ClientStatic) stopPlayback() {
+	if !c.demoPlayback {
 		return
 	}
 
 	// TODO: close file and null file handle
-	cls.demoPlayback = false
-	cls.demoPaused = false
-	cls.state = ca_disconnected
+	c.demoPlayback = false
+	c.demoPaused = false
+	c.state = ca_disconnected
 
-	if cls.timeDemo {
+	if c.timeDemo {
 		c.finishTimeDemo()
 	}
 }
 
-func (c *Client) finishTimeDemo() {
-	cls.timeDemo = false
+func (c *ClientStatic) finishTimeDemo() {
+	c.timeDemo = false
 	// the first frame didn't count
-	frames := host.frameCount - cls.timeDemoStartFrame - 1
-	time := host.time - float64(cls.timeDemoStartTime)
+	frames := host.frameCount - c.timeDemoStartFrame - 1
+	time := host.time - float64(c.timeDemoStartTime)
 	if time == 0 {
 		time = 1
 	}
@@ -2346,6 +2336,7 @@ func CL_NextDemo() {
 
 	screen.BeginLoadingPlaque()
 
+	log.Printf("Play demo %s", cls.demos[cls.demoNum])
 	cbuf.InsertText(fmt.Sprintf("playdemo %s\n", cls.demos[cls.demoNum]))
 	cls.demoNum++
 }
@@ -2368,14 +2359,69 @@ func (c *Client) recordDemo() {
 	// TODO
 }
 
-func getDemoMessage() int {
-	//TODO
-	// CL_GetDemoMessage
-	// create a new cls.inMessage with data from the demo
-	return 0
+func (c *ClientStatic) getDemoMessage() int {
+	if c.demoPaused {
+		return 0
+	}
+
+	// decide if it is time to grab the next message
+	if c.signon == 4 /*SIGNONS*/ {
+		// always grab until fully connected
+		if c.timeDemo {
+			if host.frameCount == c.timeDemoLastFrame {
+				// already read this frame's message
+				return 0
+			}
+			c.timeDemoLastFrame = host.frameCount
+			// if this is the second frame, grab the real timeDemoStartTime
+			// so the bogus time on the first frame doesn't count
+			if host.frameCount == c.timeDemoStartFrame+1 {
+				c.timeDemoStartTime = host.time
+			}
+		} else if cl.time <= cl.messageTime {
+			// don't need another message yet
+			return 0
+		}
+	}
+	// 32bit integer message size
+	// 3x 32bit float mViewAngle
+	// message
+	type demoHeader struct {
+		Size       int32
+		ViewAngleX float32
+		ViewAngleY float32
+		ViewAngleZ float32
+	}
+	var h demoHeader
+	r := bytes.NewReader(c.demoData)
+	if err := binary.Read(r, binary.LittleEndian, &h); err != nil {
+		c.stopPlayback()
+		return 0
+	}
+
+	c.demoData = c.demoData[16:]
+	cl.mViewAngles[1][0] = cl.mViewAngles[0][0]
+	cl.mViewAngles[0][0] = h.ViewAngleX
+	cl.mViewAngles[1][1] = cl.mViewAngles[0][1]
+	cl.mViewAngles[0][1] = h.ViewAngleY
+	cl.mViewAngles[1][2] = cl.mViewAngles[0][2]
+	cl.mViewAngles[0][2] = h.ViewAngleZ
+
+	if len(c.demoData) < int(h.Size) {
+		c.stopPlayback()
+		return 0
+	}
+	c.inMessage = net.NewQReader(c.demoData[:h.Size])
+	if len(c.demoData) == int(h.Size) {
+		c.demoData = []byte{}
+	} else {
+		c.demoData = c.demoData[h.Size+1:]
+	}
+	return 1
 }
 
 func (c *ClientStatic) playDemo(name string) error {
+	log.Printf("playDemo: %s", name)
 	c.Disconnect()
 	if !strings.HasSuffix(name, ".dem") {
 		name += ".dem"

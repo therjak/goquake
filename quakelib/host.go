@@ -196,7 +196,7 @@ func hostStopDemo(_ []cmd.QArg, _ int) {
 	if !cls.demoPlayback {
 		return
 	}
-	cl.stopPlayback()
+	cls.stopPlayback()
 	cls.Disconnect()
 }
 
