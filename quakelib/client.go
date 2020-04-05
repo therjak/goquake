@@ -37,7 +37,6 @@ import (
 	"quake/stat"
 	"strings"
 	"time"
-	"unsafe"
 )
 
 type sfx int
@@ -282,16 +281,6 @@ func SetCL_MViewAngles(i, j int, v float32) {
 	cl.mViewAngles[i][j] = v
 }
 
-//export SetCL_PunchAngle
-func SetCL_PunchAngle(i, j int, v float32) {
-	cl.punchAngle[i][j] = v
-}
-
-//export CL_PunchAngle
-func CL_PunchAngle(i, j int) float32 {
-	return cl.punchAngle[i][j]
-}
-
 //export CL_SetMVelocity
 func CL_SetMVelocity(i, j int, v float32) {
 	cl.mVelocity[i][j] = v
@@ -307,69 +296,9 @@ func CL_SetVelocity(i int, v float32) {
 	cl.velocity[i] = v
 }
 
-//export CL_Velocity
-func CL_Velocity(i int) float32 {
-	return cl.velocity[i]
-}
-
-//export CL_IdealPitch
-func CL_IdealPitch() float32 {
-	return cl.idealPitch
-}
-
-//export CL_SetIdealPitch
-func CL_SetIdealPitch(p float32) {
-	cl.idealPitch = p
-}
-
-//export CL_PitchVel
-func CL_PitchVel() float32 {
-	return cl.pitchVel
-}
-
-//export CL_SetPitchVel
-func CL_SetPitchVel(v float32) {
-	cl.pitchVel = v
-}
-
-//export CL_NoDrift
-func CL_NoDrift() bool {
-	return !cl.drift
-}
-
-//export CL_SetNoDrift
-func CL_SetNoDrift(b bool) {
-	cl.drift = !b
-}
-
-//export CL_DriftMove
-func CL_DriftMove() float32 {
-	return cl.driftMove
-}
-
-//export CL_SetDriftMove
-func CL_SetDriftMove(m float32) {
-	cl.driftMove = m
-}
-
-//export CL_LastStop
-func CL_LastStop() float64 {
-	return cl.lastStop
-}
-
 //export CL_SetLastStop
 func CL_SetLastStop(s float64) {
 	cl.lastStop = s
-}
-
-//export CL_ViewHeight
-func CL_ViewHeight() float32 {
-	return cl.viewHeight
-}
-
-//export CL_SetViewHeight
-func CL_SetViewHeight(h float32) {
-	cl.viewHeight = h
 }
 
 //export CL_MaxEdicts
@@ -382,28 +311,13 @@ func CL_SetMaxEdicts(num int) {
 	cl.maxEdicts = num
 }
 
-//export CL_Intermission
-func CL_Intermission() C.int {
-	return C.int(cl.intermission)
-}
-
 //export CL_SetIntermission
 func CL_SetIntermission(i C.int) {
 	cl.intermission = int(i)
 }
 
-//export CL_UpdateFaceAnimTime
-func CL_UpdateFaceAnimTime() {
-	cl.UpdateFaceAnimTime()
-}
-
 func (c *Client) UpdateFaceAnimTime() {
 	c.faceAnimTime = c.time + 0.2
-}
-
-//export CL_CheckFaceAnimTime
-func CL_CheckFaceAnimTime() bool {
-	return cl.CheckFaceAnimTime()
 }
 
 func (c *Client) CheckFaceAnimTime() bool {
@@ -486,24 +400,9 @@ func CL_HasItem(item uint32) bool {
 	return cl.items&item != 0
 }
 
-//export CL_Items
-func CL_Items() uint32 {
-	return cl.items
-}
-
-//export CL_SetItems
-func CL_SetItems(items uint32) {
-	cl.items = items
-}
-
 //export CL_ItemGetTime
 func CL_ItemGetTime(item int) float64 {
 	return cl.itemGetTime[item]
-}
-
-//export CL_SetItemGetTime
-func CL_SetItemGetTime(item int) {
-	cl.itemGetTime[item] = cl.time
 }
 
 //export CL_SoundPrecache
@@ -633,11 +532,6 @@ func CL_ProtocolFlags() C.uint {
 	return C.uint(cl.protocolFlags)
 }
 
-//export CL_CmdForwardMove
-func CL_CmdForwardMove() C.float {
-	return C.float(cl.cmdForwardMove)
-}
-
 //export CL_Paused
 func CL_Paused() C.int {
 	return b2i(cl.paused)
@@ -646,11 +540,6 @@ func CL_Paused() C.int {
 //export CL_SetPaused
 func CL_SetPaused(t C.int) {
 	cl.paused = (t != 0)
-}
-
-//export CL_OnGround
-func CL_OnGround() C.int {
-	return b2i(cl.onGround)
 }
 
 //export CL_SetOnGround
@@ -688,19 +577,9 @@ func CL_SetMTimeOld(t C.double) {
 	cl.messageTimeOld = float64(t)
 }
 
-//export CL_OldTime
-func CL_OldTime() C.double {
-	return C.double(cl.oldTime)
-}
-
 //export CL_SetOldTime
 func CL_SetOldTime(t C.double) {
 	cl.oldTime = float64(t)
-}
-
-//export CL_LastReceivedMessage
-func CL_LastReceivedMessage() C.double {
-	return C.double(cl.lastReceivedMessageTime)
 }
 
 //export CL_SetLastReceivedMessage
@@ -713,78 +592,14 @@ func CL_UpdateCompletedTime() {
 	cl.intermissionTime = int(cl.time)
 }
 
-//export CL_CompletedTime
-func CL_CompletedTime() C.int {
-	return C.int(cl.intermissionTime)
-}
-
-//export CLS_GetTimeDemoStartFrame
-func CLS_GetTimeDemoStartFrame() C.int {
-	return C.int(cls.timeDemoStartFrame)
-}
-
-//export CLS_SetTimeDemoStartFrame
-func CLS_SetTimeDemoStartFrame(f C.int) {
-	cls.timeDemoStartFrame = int(f)
-}
-
-//export CLS_SetTimeDemoStartTime
-func CLS_SetTimeDemoStartTime() {
-	cls.timeDemoStartTime = host.time
-}
-
-//export CLS_GetTimeDemoLastFrame
-func CLS_GetTimeDemoLastFrame() C.int {
-	return C.int(cls.timeDemoLastFrame)
-}
-
-//export CLS_SetTimeDemoLastFrame
-func CLS_SetTimeDemoLastFrame(f C.int) {
-	cls.timeDemoLastFrame = int(f)
-}
-
 //export CLS_GetState
 func CLS_GetState() C.int {
 	return C.int(cls.state)
 }
 
-//export CLS_SetState
-func CLS_SetState(s C.int) {
-	cls.state = int(s)
-}
-
-//export CLS_IsDemoCycleStopped
-func CLS_IsDemoCycleStopped() C.int {
-	return b2i(clsIsDemoCycleStopped())
-}
-
-func clsIsDemoCycleStopped() bool {
-	return cls.demoNum == -1
-}
-
-//export CLS_StopDemoCycle
-func CLS_StopDemoCycle() {
-	cls.demoNum = -1
-}
-
 //export CLS_NextDemoInCycle
 func CLS_NextDemoInCycle() {
 	cls.demoNum++
-}
-
-//export CLS_StartDemoCycle
-func CLS_StartDemoCycle() {
-	cls.demoNum = 0
-}
-
-//export CLS_GetDemoNum
-func CLS_GetDemoNum() C.int {
-	return C.int(cls.demoNum)
-}
-
-//export CLS_SetDemoNum
-func CLS_SetDemoNum(num C.int) {
-	cls.demoNum = int(num)
 }
 
 //export CLS_IsDemoRecording
@@ -800,31 +615,6 @@ func CLS_SetDemoRecording(state C.int) {
 //export CLS_IsDemoPlayback
 func CLS_IsDemoPlayback() C.int {
 	return b2i(cls.demoPlayback)
-}
-
-//export CLS_SetDemoPlayback
-func CLS_SetDemoPlayback(state C.int) {
-	cls.demoPlayback = (state != 0)
-}
-
-//export CLS_IsDemoPaused
-func CLS_IsDemoPaused() C.int {
-	return b2i(cls.demoPaused)
-}
-
-//export CLS_SetDemoPaused
-func CLS_SetDemoPaused(state C.int) {
-	cls.demoPaused = (state != 0)
-}
-
-//export CLS_IsTimeDemo
-func CLS_IsTimeDemo() C.int {
-	return b2i(cls.timeDemo)
-}
-
-//export CLS_SetTimeDemo
-func CLS_SetTimeDemo(state C.int) {
-	cls.timeDemo = (state != 0)
 }
 
 //export CLS_GetSignon
@@ -1068,19 +858,8 @@ func CL_MSG_ReadAngle16(flags C.uint) C.float {
 	return C.float(f)
 }
 
-//export CL_MSG_Replace
-func CL_MSG_Replace(data unsafe.Pointer, size C.size_t) {
-	m := C.GoBytes(data, C.int(size))
-	cls.inMessage = net.NewQReader(m)
-}
-
 //Sends a disconnect message to the server
 //This is also called on Host_Error, so it shouldn't cause any errors
-//export CL_Disconnect
-func CL_Disconnect() {
-	cls.Disconnect()
-}
-
 func (c *ClientStatic) Disconnect() {
 	if keyDestination == keys.Message {
 		// don't get stuck in chat mode
@@ -1600,11 +1379,6 @@ func (c *Client) updateBlend() {
 	}
 }
 
-//export V_CalcPowerupCshift
-func V_CalcPowerupCshift() {
-	cl.calcPowerupColorShift()
-}
-
 func (c *Client) calcPowerupColorShift() {
 	switch {
 	case c.items&progs.ItemQuad != 0:
@@ -1664,11 +1438,6 @@ func (c *Client) parseDamage(armor, blood int, from vec.Vec3) {
 	cl.dmgTime = cvars.ViewKickTime.Value()
 }
 
-//export V_CalcViewRoll
-func V_CalcViewRoll() {
-	cl.calcViewRoll()
-}
-
 func (c *Client) calcViewRoll() {
 	ent := cl_entities(c.viewentity)
 	angles := ent.angles()
@@ -1687,11 +1456,6 @@ func (c *Client) calcViewRoll() {
 	}
 }
 
-//export V_BoundOffsets
-func V_BoundOffsets() {
-	cl.boundOffsets()
-}
-
 func (c *Client) boundOffsets() {
 	ent := cl_entities(c.viewentity)
 
@@ -1701,11 +1465,6 @@ func (c *Client) boundOffsets() {
 	qRefreshRect.viewOrg[0] = math.Clamp32(o[0]-14, qRefreshRect.viewOrg[0], o[0]+14)
 	qRefreshRect.viewOrg[1] = math.Clamp32(o[1]-14, qRefreshRect.viewOrg[1], o[1]+14)
 	qRefreshRect.viewOrg[2] = math.Clamp32(o[2]-22, qRefreshRect.viewOrg[2], o[2]+30)
-}
-
-//export CalcGunAngle
-func CalcGunAngle() {
-	cl.calcWeaponAngle()
 }
 
 func (c *Client) calcWeaponAngle() {
@@ -1723,11 +1482,6 @@ func (c *Client) calcWeaponAngle() {
 	w.ptr.angles[YAW] -= C.float(sway(cvars.ViewIYawCycle.Value(), cvars.ViewIYawLevel.Value()))
 }
 
-//export V_AddIdle
-func V_AddIdle(idlescale float32) {
-	cl.addIdle(idlescale)
-}
-
 func (c *Client) addIdle(idlescale float32) {
 	sway := func(cycle, level float32) float32 {
 		return idlescale * math32.Sin(float32(c.time)*cycle) * level
@@ -1735,11 +1489,6 @@ func (c *Client) addIdle(idlescale float32) {
 	qRefreshRect.viewAngles[ROLL] += sway(cvars.ViewIRollCycle.Value(), cvars.ViewIRollLevel.Value())
 	qRefreshRect.viewAngles[PITCH] += sway(cvars.ViewIPitchCycle.Value(), cvars.ViewIPitchLevel.Value())
 	qRefreshRect.viewAngles[YAW] += sway(cvars.ViewIYawCycle.Value(), cvars.ViewIYawLevel.Value())
-}
-
-//export V_CalcIntermissionRefdef
-func V_CalcIntermissionRefdef() {
-	cl.calcIntermissionRefreshRect()
 }
 
 func (c *Client) calcIntermissionRefreshRect() {
@@ -1807,11 +1556,6 @@ func init() {
 	})
 	cmd.AddCommand("bf", func(_ []cmd.QArg, _ int) { cl.bonusFlash() })
 	cmd.AddCommand("centerview", func(_ []cmd.QArg, _ int) { cl.startPitchDrift() })
-}
-
-//export V_CalcRefdef
-func V_CalcRefdef() {
-	cl.calcRefreshRect()
 }
 
 var (

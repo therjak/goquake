@@ -22,60 +22,9 @@ read from the demo file.
 // static byte demo_head[3][MAX_MSGLEN];
 // static int demo_head_size[2];
 
-void CL_StopPlayback(void) {
-}
-
 void CL_WriteDemoMessage(void) {
 }
 
-
-int CL_GetDemoMessage(void) {
-  int r, i;
-  float f;
-  byte readbuf[NET_MAXMESSAGE];
-
-  if (CLS_IsDemoPaused()) return 0;
-
-  // decide if it is time to grab the next message
-  if (CLS_GetSignon() == SIGNONS)  // always grab until fully connected
-  {
-    if (CLS_IsTimeDemo()) {
-      if (host_framecount == CLS_GetTimeDemoLastFrame())
-        return 0;  // already read this frame's message
-      CLS_SetTimeDemoLastFrame(host_framecount);
-      // if this is the second frame, grab the real td_starttime
-      // so the bogus time on the first frame doesn't count
-      if (host_framecount == CLS_GetTimeDemoStartFrame() + 1) {
-        CLS_SetTimeDemoStartTime();
-      }
-    } else if (/* cl.time > 0 && */ CL_Time() <= CL_MTime()) {
-      return 0;  // don't need another message yet
-    }
-  }
-
-  // get the next message
-  int cursize = 0;
-  fread(&cursize, 4, 1, cls.demofile);
-  for (i = 0; i < 3; i++) {
-    r = fread(&f, 4, 1, cls.demofile);
-    SetCL_MViewAngles(1, i, CL_MViewAngles(0, i));
-    SetCL_MViewAngles(0, i, LittleFloat(f));
-  }
-
-  cursize = LittleLong(cursize);
-  if (cursize > NET_MAXMESSAGE) {
-    Go_Error("Demo message > NET_MAXMESSAGE");
-  }
-  // read demofile to net_message
-  r = fread(&readbuf, cursize, 1, cls.demofile);
-  CL_MSG_Replace(&readbuf, cursize);
-  if (r != 1) {
-    CL_StopPlayback();
-    return 0;
-  }
-
-  return 1;
-}
 
 /*
 ====================
@@ -256,80 +205,6 @@ void CL_Record_f(void) {
       net_message.daTa = data;
       SB_SetCurSize(&net_message, cursize);
     }
-  */
-}
-
-/*
-====================
-CL_PlayDemo_f
-
-play [demoname]
-====================
-*/
-// public
-void CL_PlayDemo_f(void) {
-  /*
-  char name[MAX_OSPATH];
-  int i, c;
-  qboolean neg;
-
-  if (!IsSrcCommand()) return;
-
-  if (Cmd_Argc() != 2) {
-    Con_Printf("playdemo <demoname> : plays a demo\n");
-    return;
-  }
-
-  // disconnect from server
-  CL_Disconnect();
-
-  // open the demo file
-  q_strlcpy(name, Cmd_Argv(1), sizeof(name));
-  COM_AddExtension(name, ".dem", sizeof(name));
-
-  Con_Printf("Playing demo from %s.\n", name);
-
-  COM_FOpenFile(name, &cls.demofile, NULL);
-  if (!cls.demofile) {
-    Con_Printf("ERROR: couldn't open %s\n", name);
-    CLS_StopDemoCycle();  // stop demo loop
-    return;
-  }
-
-  // ZOID, fscanf is evil
-  // O.S.: if a space character e.g. 0x20 (' ') follows '\n',
-  // fscanf skips that byte too and screws up further reads.
-  //	fscanf (cls.demofile, "%i\n", &cls.forcetrack);
-  CLS_SetForceTrack(0);
-  c = 0; // silence pesky compiler warnings
-  neg = false;
-  // read a decimal integer possibly with a leading '-',
-  // followed by a '\n':
-  for (i = 0; i < 13; i++) {
-    c = getc(cls.demofile);
-    if (c == '\n') break;
-    if (c == '-') {
-      neg = true;
-      continue;
-    }
-    // check for multiple '-' or legal digits? meh...
-    CLS_SetForceTrack(CLS_GetForceTrack() * 10 + (c - '0'));
-  }
-  if (c != '\n') {
-    fclose(cls.demofile);
-    cls.demofile = NULL;
-    CLS_StopDemoCycle();  // stop demo loop
-    Con_Printf("ERROR: demo \"%s\" is invalid\n", name);
-    return;
-  }
-  if (neg) CLS_SetForceTrack(-CLS_GetForceTrack());
-
-  CLS_SetDemoPlayback(true);
-  CLS_SetDemoPaused(false);
-  CLS_SetState(ca_connected);
-
-  // get rid of the menu and/or console
-  SetKeyDest(key_game);
   */
 }
 
