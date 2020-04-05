@@ -771,6 +771,7 @@ void CL_ParseTEnt(void) {
       float e1 = CL_MSG_ReadCoord();
       float e2 = CL_MSG_ReadCoord();
       float e3 = CL_MSG_ReadCoord();
+      // Thea: blocks conversion
       CL_ParseBeam("progs/bolt.mdl", ent, s1, s2, s3, e1, e2, e3);
     } break;
 

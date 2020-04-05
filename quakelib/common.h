@@ -53,11 +53,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 //============================================================================
 
-//============================================================================
-const char *CL_MSG_ReadString(void);
-
-//============================================================================
-
 void Q_memset(void *dest, int fill, size_t count);
 void Q_memcpy(void *dest, const void *src, size_t count);
 
