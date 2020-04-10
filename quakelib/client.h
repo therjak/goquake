@@ -15,13 +15,7 @@ typedef struct {
 
 #define SIGNONS 4  // signon messages to receive before connected
 
-#define MAX_BEAMS 32  // johnfitz -- was 24
-typedef struct {
-  int entity;
-  struct qmodel_s *model;
-  float endtime;
-  vec3_t start, end;
-} beam_t;
+#include "beam.h"
 
 #define MAX_EFRAGS 4096  // ericw -- was 2048 //johnfitz -- was 640
 
@@ -84,7 +78,6 @@ extern cvar_t cl_shownet;
 extern efrag_t cl_efrags[MAX_EFRAGS];
 extern entity_t cl_static_entities[MAX_STATIC_ENTITIES];
 extern entity_t cl_temp_entities[MAX_TEMP_ENTITIES];
-extern beam_t cl_beams[MAX_BEAMS];
 extern entity_t *cl_visedicts[MAX_VISEDICTS];
 extern int cl_numvisedicts;
 

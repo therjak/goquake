@@ -3,6 +3,12 @@
 
 #include "dlight.h"
 
+
+const char* BOLT1 = "progs/bolt.mdl";
+const char* BOLT2 = "progs/bolt2.mdl";
+const char* BOLT3 = "progs/bolt3.mdl";
+const char* BEAM = "progs/beam.mdl";
+
 const char *CL_MSG_ReadString(void) {
   static char string[2048];
   int c;
@@ -665,183 +671,6 @@ void CL_ParseStatic(int version)  // johnfitz -- added a parameter
   VectorCopy(ent->baseline.origin, ent->origin);
   VectorCopy(ent->baseline.angles, ent->angles);
   R_AddEfrags(ent);
-}
-
-/*
-=================
-CL_ParseTEnt
-=================
-*/
-// Only called from cl_parse, MSG_BeginReading called there
-void CL_ParseTEnt(void) {
-  int type;
-  vec3_t pos;
-  dlight_t *dl;
-  int rnd;
-  int colorStart, colorLength;
-
-  type = CL_MSG_ReadByte();
-  switch (type) {
-    case TE_WIZSPIKE:  // spike hitting wall
-      pos[0] = CL_MSG_ReadCoord();
-      pos[1] = CL_MSG_ReadCoord();
-      pos[2] = CL_MSG_ReadCoord();
-      ParticlesRunEffect(pos, vec3_origin, 20, 30);
-      CL_Sound(SFX_WIZHIT, pos);
-      break;
-
-    case TE_KNIGHTSPIKE:  // spike hitting wall
-      pos[0] = CL_MSG_ReadCoord();
-      pos[1] = CL_MSG_ReadCoord();
-      pos[2] = CL_MSG_ReadCoord();
-      ParticlesRunEffect(pos, vec3_origin, 226, 20);
-      CL_Sound(SFX_KNIGHTHIT, pos);
-      break;
-
-    case TE_SPIKE:  // spike hitting wall
-      pos[0] = CL_MSG_ReadCoord();
-      pos[1] = CL_MSG_ReadCoord();
-      pos[2] = CL_MSG_ReadCoord();
-      ParticlesRunEffect(pos, vec3_origin, 0, 10);
-      if (rand() % 5)
-        CL_Sound(SFX_TINK1, pos);
-      else {
-        rnd = rand() & 3;
-        if (rnd == 1)
-          CL_Sound(SFX_RIC1, pos);
-        else if (rnd == 2)
-          CL_Sound(SFX_RIC2, pos);
-        else
-          CL_Sound(SFX_RIC1, pos);
-      }
-      break;
-    case TE_SUPERSPIKE:  // super spike hitting wall
-      pos[0] = CL_MSG_ReadCoord();
-      pos[1] = CL_MSG_ReadCoord();
-      pos[2] = CL_MSG_ReadCoord();
-      ParticlesRunEffect(pos, vec3_origin, 0, 20);
-
-      if (rand() % 5)
-        CL_Sound(SFX_TINK1, pos);
-      else {
-        rnd = rand() & 3;
-        if (rnd == 1)
-          CL_Sound(SFX_RIC1, pos);
-        else if (rnd == 2)
-          CL_Sound(SFX_RIC2, pos);
-        else
-          CL_Sound(SFX_RIC3, pos);
-      }
-      break;
-
-    case TE_GUNSHOT:  // bullet hitting wall
-      pos[0] = CL_MSG_ReadCoord();
-      pos[1] = CL_MSG_ReadCoord();
-      pos[2] = CL_MSG_ReadCoord();
-      ParticlesRunEffect(pos, vec3_origin, 0, 20);
-      break;
-
-    case TE_EXPLOSION:  // rocket explosion
-      pos[0] = CL_MSG_ReadCoord();
-      pos[1] = CL_MSG_ReadCoord();
-      pos[2] = CL_MSG_ReadCoord();
-      ParticlesAddExplosion(pos);
-      dl = CL_AllocDlight(0);
-      VectorCopy(pos, dl->origin);
-      dl->radius = 350;
-      dl->die = CL_Time() + 0.5;
-      dl->decay = 300;
-      CL_Sound(SFX_R_EXP3, pos);
-      break;
-
-    case TE_TAREXPLOSION:  // tarbaby explosion
-      pos[0] = CL_MSG_ReadCoord();
-      pos[1] = CL_MSG_ReadCoord();
-      pos[2] = CL_MSG_ReadCoord();
-      ParticlesAddBlobExplosion(pos);
-
-      CL_Sound(SFX_R_EXP3, pos);
-      break;
-
-    case TE_LIGHTNING1: {  // lightning bolts
-      int ent = CL_MSG_ReadShort();
-      float s1 = CL_MSG_ReadCoord();
-      float s2 = CL_MSG_ReadCoord();
-      float s3 = CL_MSG_ReadCoord();
-      float e1 = CL_MSG_ReadCoord();
-      float e2 = CL_MSG_ReadCoord();
-      float e3 = CL_MSG_ReadCoord();
-      // Thea: blocks conversion
-      CL_ParseBeam("progs/bolt.mdl", ent, s1, s2, s3, e1, e2, e3);
-    } break;
-
-    case TE_LIGHTNING2: {  // lightning bolts
-      int ent = CL_MSG_ReadShort();
-      float s1 = CL_MSG_ReadCoord();
-      float s2 = CL_MSG_ReadCoord();
-      float s3 = CL_MSG_ReadCoord();
-      float e1 = CL_MSG_ReadCoord();
-      float e2 = CL_MSG_ReadCoord();
-      float e3 = CL_MSG_ReadCoord();
-      CL_ParseBeam("progs/bolt2.mdl", ent, s1, s2, s3, e1, e2, e3);
-    } break;
-
-    case TE_LIGHTNING3: {  // lightning bolts
-      int ent = CL_MSG_ReadShort();
-      float s1 = CL_MSG_ReadCoord();
-      float s2 = CL_MSG_ReadCoord();
-      float s3 = CL_MSG_ReadCoord();
-      float e1 = CL_MSG_ReadCoord();
-      float e2 = CL_MSG_ReadCoord();
-      float e3 = CL_MSG_ReadCoord();
-      CL_ParseBeam("progs/bolt3.mdl", ent, s1, s2, s3, e1, e2, e3);
-    } break;
-
-    // PGM 01/21/97
-    case TE_BEAM: {  // grappling hook beam
-      int ent = CL_MSG_ReadShort();
-      float s1 = CL_MSG_ReadCoord();
-      float s2 = CL_MSG_ReadCoord();
-      float s3 = CL_MSG_ReadCoord();
-      float e1 = CL_MSG_ReadCoord();
-      float e2 = CL_MSG_ReadCoord();
-      float e3 = CL_MSG_ReadCoord();
-      CL_ParseBeam("progs/beam.mdl", ent, s1, s2, s3, e1, e2, e3);
-    } break;
-      // PGM 01/21/97
-
-    case TE_LAVASPLASH:
-      pos[0] = CL_MSG_ReadCoord();
-      pos[1] = CL_MSG_ReadCoord();
-      pos[2] = CL_MSG_ReadCoord();
-      ParticlesAddLavaSplash(pos);
-      break;
-
-    case TE_TELEPORT:
-      pos[0] = CL_MSG_ReadCoord();
-      pos[1] = CL_MSG_ReadCoord();
-      pos[2] = CL_MSG_ReadCoord();
-      ParticlesAddTeleportSplash(pos);
-      break;
-
-    case TE_EXPLOSION2:  // color mapped explosion
-      pos[0] = CL_MSG_ReadCoord();
-      pos[1] = CL_MSG_ReadCoord();
-      pos[2] = CL_MSG_ReadCoord();
-      colorStart = CL_MSG_ReadByte();
-      colorLength = CL_MSG_ReadByte();
-      ParticlesAddExplosion2(pos, colorStart, colorLength);
-      dl = CL_AllocDlight(0);
-      VectorCopy(pos, dl->origin);
-      dl->radius = 350;
-      dl->die = CL_Time() + 0.5;
-      dl->decay = 300;
-      CL_Sound(SFX_R_EXP3, pos);
-      break;
-
-    default:
-      Go_Error("CL_ParseTEnt: bad type");
-  }
 }
 
 /*

@@ -69,6 +69,10 @@ func (q *QReader) ReadFloat32() (float32, error) {
 	return r, err
 }
 
+func (q *QReader) Read(data interface{}) error {
+	return binary.Read(q.r, binary.LittleEndian, data)
+}
+
 // 13.3 fixed point coords, max range +-4096
 func (q *QReader) ReadCoord16() (float32, error) {
 	i, err := q.ReadInt16()
