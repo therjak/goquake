@@ -1135,11 +1135,6 @@ var (
 	clSounds map[sfx]int
 )
 
-//export CL_Sound
-func CL_Sound(s sfx, origin *C.float) {
-	S_StartSound(-1, 0, C.int(clSounds[s]), origin, 1, 1)
-}
-
 //export CL_InitTEnts
 func CL_InitTEnts() {
 	clSounds = make(map[sfx]int)
