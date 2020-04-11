@@ -2165,7 +2165,9 @@ func (c *ClientStatic) startTimeDemo(name string) {
 // Only called from cl_parse, MSG_BeginReading called there
 //export CL_ParseTEnt
 func CL_ParseTEnt() {
-	cls.parseTEnt()
+	if err := cls.parseTEnt(); err != nil {
+		cls.msgBadRead = true
+	}
 }
 
 const (
@@ -2188,32 +2190,40 @@ const (
 func (c *ClientStatic) readCoordVec() (vec.Vec3, error) {
 	x, err := c.inMessage.ReadCoord(cl.protocolFlags)
 	if err != nil {
-		c.msgBadRead = true
 		return vec.Vec3{-1, -1, -1}, err
 	}
 	y, err := c.inMessage.ReadCoord(cl.protocolFlags)
 	if err != nil {
-		c.msgBadRead = true
 		return vec.Vec3{-1, -1, -1}, err
 	}
 	z, err := c.inMessage.ReadCoord(cl.protocolFlags)
 	if err != nil {
-		c.msgBadRead = true
 		return vec.Vec3{-1, -1, -1}, err
 	}
 	return vec.Vec3{x, y, z}, nil
 }
 
-func (c *ClientStatic) parseTEnt() {
+func parseBeam(name *C.char, ent int16, s, e vec.Vec3) {
+	C.CL_ParseBeam(name, C.int(ent),
+		C.float(s[0]), C.float(s[1]), C.float(s[2]),
+		C.float(e[0]), C.float(e[1]), C.float(e[2]))
+}
+
+func (c *ClientStatic) parseTEnt() error {
+	if c.inMessage.Len() == 0 {
+		return nil
+	}
 	t, err := c.inMessage.ReadByte()
 	if err != nil {
-		cls.msgBadRead = true
-		Error("CL_ParseTEnt: bad type")
+		return err
 	}
 	switch t {
 	case TE_SPIKE:
 		// spike hitting wall
-		pos, _ := c.readCoordVec()
+		pos, err := c.readCoordVec()
+		if err != nil {
+			return err
+		}
 		particlesRunEffect(pos, vec.Vec3{}, 0, 10, float32(cl.time))
 		s := func() sfx {
 			if rand.Int()%5 != 0 {
@@ -2229,7 +2239,10 @@ func (c *ClientStatic) parseTEnt() {
 		snd.Start(-1, 0, clSounds[s], pos, 1, 1, !loopingSound)
 	case TE_SUPERSPIKE:
 		// spike hitting wall
-		pos, _ := c.readCoordVec()
+		pos, err := c.readCoordVec()
+		if err != nil {
+			return err
+		}
 		particlesRunEffect(pos, vec.Vec3{}, 0, 20, float32(cl.time))
 		s := func() sfx {
 			if rand.Int()%5 != 0 {
@@ -2247,35 +2260,116 @@ func (c *ClientStatic) parseTEnt() {
 		snd.Start(-1, 0, clSounds[s], pos, 1, 1, !loopingSound)
 	case TE_GUNSHOT:
 		// bullet hitting wall
-		pos, _ := c.readCoordVec()
+		pos, err := c.readCoordVec()
+		if err != nil {
+			return err
+		}
 		particlesRunEffect(pos, vec.Vec3{}, 0, 20, float32(cl.time))
 	case TE_EXPLOSION:
+		// rocket explosion
+		pos, err := c.readCoordVec()
+		if err != nil {
+			return err
+		}
+		particlesAddExplosion(pos, float32(cl.time))
+		snd.Start(-1, 0, clSounds[RExp3], pos, 1, 1, !loopingSound)
 	case TE_TAREXPLOSION:
 		// tarbaby explosion
-		pos, _ := c.readCoordVec()
+		pos, err := c.readCoordVec()
+		if err != nil {
+			return err
+		}
 		particlesAddBlobExplosion(pos, float32(cl.time))
 		snd.Start(-1, 0, clSounds[RExp3], pos, 1, 1, !loopingSound)
 	case TE_LIGHTNING1:
+		// lightning bolts
+		ent, err := c.inMessage.ReadInt16()
+		if err != nil {
+			return err
+		}
+		s, err := c.readCoordVec()
+		if err != nil {
+			return err
+		}
+		e, err := c.readCoordVec()
+		if err != nil {
+			return err
+		}
+		parseBeam(C.BOLT1, ent, s, e)
 	case TE_LIGHTNING2:
+		// lightning bolts
+		ent, err := c.inMessage.ReadInt16()
+		if err != nil {
+			return err
+		}
+		s, err := c.readCoordVec()
+		if err != nil {
+			return err
+		}
+		e, err := c.readCoordVec()
+		if err != nil {
+			return err
+		}
+		parseBeam(C.BOLT2, ent, s, e)
 	case TE_WIZSPIKE:
 		// spike hitting wall
-		pos, _ := c.readCoordVec()
+		pos, err := c.readCoordVec()
+		if err != nil {
+			return err
+		}
 		particlesRunEffect(pos, vec.Vec3{}, 20, 30, float32(cl.time))
 		snd.Start(-1, 0, clSounds[WizHit], pos, 1, 1, !loopingSound)
 	case TE_KNIGHTSPIKE:
 		// spike hitting wall
-		pos, _ := c.readCoordVec()
+		pos, err := c.readCoordVec()
+		if err != nil {
+			return err
+		}
 		particlesRunEffect(pos, vec.Vec3{}, 226, 20, float32(cl.time))
 		snd.Start(-1, 0, clSounds[KnightHit], pos, 1, 1, !loopingSound)
 	case TE_LIGHTNING3:
+		// lightning bolts
+		ent, err := c.inMessage.ReadInt16()
+		if err != nil {
+			return err
+		}
+		s, err := c.readCoordVec()
+		if err != nil {
+			return err
+		}
+		e, err := c.readCoordVec()
+		if err != nil {
+			return err
+		}
+		parseBeam(C.BOLT3, ent, s, e)
 	case TE_LAVASPLASH:
-		pos, _ := c.readCoordVec()
+		pos, err := c.readCoordVec()
+		if err != nil {
+			return err
+		}
 		particlesAddLavaSplash(pos, float32(cl.time))
 	case TE_TELEPORT:
-		pos, _ := c.readCoordVec()
+		pos, err := c.readCoordVec()
+		if err != nil {
+			return err
+		}
 		particlesAddTeleportSplash(pos, float32(cl.time))
 	case TE_EXPLOSION2:
 	case TE_BEAM:
+		// grappling hook beam
+		ent, err := c.inMessage.ReadInt16()
+		if err != nil {
+			return err
+		}
+		s, err := c.readCoordVec()
+		if err != nil {
+			return err
+		}
+		e, err := c.readCoordVec()
+		if err != nil {
+			return err
+		}
+		parseBeam(C.BEAM, ent, s, e)
 	default:
 		Error("CL_ParseTEnt: bad type")
 	}
@@ -2301,51 +2395,6 @@ func (c *ClientStatic) parseTEnt() {
 	      CL_Sound(SFX_R_EXP3, pos);
 	      break;
 
-	    case TE_LIGHTNING1: {  // lightning bolts
-	      int ent = CL_MSG_ReadShort();
-	      float s1 = CL_MSG_ReadCoord();
-	      float s2 = CL_MSG_ReadCoord();
-	      float s3 = CL_MSG_ReadCoord();
-	      float e1 = CL_MSG_ReadCoord();
-	      float e2 = CL_MSG_ReadCoord();
-	      float e3 = CL_MSG_ReadCoord();
-	      // Thea: blocks conversion
-	      CL_ParseBeam("progs/bolt.mdl", ent, s1, s2, s3, e1, e2, e3);
-	    } break;
-
-	    case TE_LIGHTNING2: {  // lightning bolts
-	      int ent = CL_MSG_ReadShort();
-	      float s1 = CL_MSG_ReadCoord();
-	      float s2 = CL_MSG_ReadCoord();
-	      float s3 = CL_MSG_ReadCoord();
-	      float e1 = CL_MSG_ReadCoord();
-	      float e2 = CL_MSG_ReadCoord();
-	      float e3 = CL_MSG_ReadCoord();
-	      CL_ParseBeam("progs/bolt2.mdl", ent, s1, s2, s3, e1, e2, e3);
-	    } break;
-
-	    case TE_LIGHTNING3: {  // lightning bolts
-	      int ent = CL_MSG_ReadShort();
-	      float s1 = CL_MSG_ReadCoord();
-	      float s2 = CL_MSG_ReadCoord();
-	      float s3 = CL_MSG_ReadCoord();
-	      float e1 = CL_MSG_ReadCoord();
-	      float e2 = CL_MSG_ReadCoord();
-	      float e3 = CL_MSG_ReadCoord();
-	      CL_ParseBeam("progs/bolt3.mdl", ent, s1, s2, s3, e1, e2, e3);
-	    } break;
-
-	    case TE_BEAM: {  // grappling hook beam
-	      int ent = CL_MSG_ReadShort();
-	      float s1 = CL_MSG_ReadCoord();
-	      float s2 = CL_MSG_ReadCoord();
-	      float s3 = CL_MSG_ReadCoord();
-	      float e1 = CL_MSG_ReadCoord();
-	      float e2 = CL_MSG_ReadCoord();
-	      float e3 = CL_MSG_ReadCoord();
-	      CL_ParseBeam("progs/beam.mdl", ent, s1, s2, s3, e1, e2, e3);
-	    } break;
-
 	    case TE_EXPLOSION2:  // color mapped explosion
 	      pos[0] = CL_MSG_ReadCoord();
 	      pos[1] = CL_MSG_ReadCoord();
@@ -2362,4 +2411,5 @@ func (c *ClientStatic) parseTEnt() {
 	      break;
 	  }
 	*/
+	return nil
 }
