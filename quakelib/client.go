@@ -2272,6 +2272,13 @@ func (c *ClientStatic) parseTEnt() error {
 			return err
 		}
 		particlesAddExplosion(pos, float32(cl.time))
+		l := CL_AllocDlight(0)
+		l.origin[0] = C.float(pos[0])
+		l.origin[1] = C.float(pos[1])
+		l.origin[2] = C.float(pos[2])
+		l.radius = 350
+		l.die = C.float(cl.time) + 0.5
+		l.decay = 300
 		snd.Start(-1, 0, clSounds[RExp3], pos, 1, 1, !loopingSound)
 	case TE_TAREXPLOSION:
 		// tarbaby explosion
@@ -2355,6 +2362,27 @@ func (c *ClientStatic) parseTEnt() error {
 		}
 		particlesAddTeleportSplash(pos, float32(cl.time))
 	case TE_EXPLOSION2:
+		// color mapped explosion
+		pos, err := c.readCoordVec()
+		if err != nil {
+			return err
+		}
+		var color struct {
+			start byte
+			end   byte
+		}
+		if err = c.inMessage.Read(&color); err != nil {
+			return err
+		}
+		particlesAddExplosion2(pos, int(color.start), int(color.end), float32(cl.time))
+		l := CL_AllocDlight(0)
+		l.origin[0] = C.float(pos[0])
+		l.origin[1] = C.float(pos[1])
+		l.origin[2] = C.float(pos[2])
+		l.radius = 350
+		l.die = C.float(cl.time) + 0.5
+		l.decay = 300
+		snd.Start(-1, 0, clSounds[RExp3], pos, 1, 1, !loopingSound)
 	case TE_BEAM:
 		// grappling hook beam
 		ent, err := c.inMessage.ReadInt16()
@@ -2373,43 +2401,5 @@ func (c *ClientStatic) parseTEnt() error {
 	default:
 		Error("CL_ParseTEnt: bad type")
 	}
-	/*
-	  int type;
-	  vec3_t pos;
-	  dlight_t *dl;
-	  int rnd;
-	  int colorStart, colorLength;
-
-	  type = CL_MSG_ReadByte();
-	  switch (type) {
-	    case TE_EXPLOSION:  // rocket explosion
-	      pos[0] = CL_MSG_ReadCoord();
-	      pos[1] = CL_MSG_ReadCoord();
-	      pos[2] = CL_MSG_ReadCoord();
-	      ParticlesAddExplosion(pos);
-	      dl = CL_AllocDlight(0);
-	      VectorCopy(pos, dl->origin);
-	      dl->radius = 350;
-	      dl->die = CL_Time() + 0.5;
-	      dl->decay = 300;
-	      CL_Sound(SFX_R_EXP3, pos);
-	      break;
-
-	    case TE_EXPLOSION2:  // color mapped explosion
-	      pos[0] = CL_MSG_ReadCoord();
-	      pos[1] = CL_MSG_ReadCoord();
-	      pos[2] = CL_MSG_ReadCoord();
-	      colorStart = CL_MSG_ReadByte();
-	      colorLength = CL_MSG_ReadByte();
-	      ParticlesAddExplosion2(pos, colorStart, colorLength);
-	      dl = CL_AllocDlight(0);
-	      VectorCopy(pos, dl->origin);
-	      dl->radius = 350;
-	      dl->die = CL_Time() + 0.5;
-	      dl->decay = 300;
-	      CL_Sound(SFX_R_EXP3, pos);
-	      break;
-	  }
-	*/
 	return nil
 }
