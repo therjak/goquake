@@ -10,11 +10,15 @@ import (
 )
 
 type QReader struct {
+	b []byte
 	r *bytes.Reader
 }
 
 func NewQReader(data []byte) *QReader {
-	return &QReader{bytes.NewReader(data)}
+	return &QReader{
+		b: data,
+		r: bytes.NewReader(data),
+	}
 }
 
 func (q *QReader) ReadInt8() (int8, error) {
@@ -157,4 +161,9 @@ func (q *QReader) BeginReading() {
 	i, _ := q.r.Seek(0, io.SeekCurrent)
 	log.Printf("BeginReading while at %d", i)
 	q.r.Seek(0, io.SeekStart)
+}
+
+// Returns the bytes.
+func (q *QReader) Bytes() []byte {
+	return q.b
 }

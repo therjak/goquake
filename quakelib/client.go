@@ -21,6 +21,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/chewxy/math32"
+	"io"
 	"log"
 	"math/rand"
 	"quake/cbuf"
@@ -153,7 +154,6 @@ func (c *Client) adjustAngles() {
 type ClientStatic struct {
 	state              int // enum dedicated = 0, disconnected, connected
 	demoNum            int
-	demoRecording      bool
 	demoPlayback       bool
 	demoPaused         bool
 	timeDemo           bool
@@ -171,6 +171,7 @@ type ClientStatic struct {
 	/*
 		demoFile 'filehandle'
 	*/
+	demoWriter io.WriteCloser
 	demoData   []byte
 	msgBadRead bool
 
@@ -608,16 +609,6 @@ func CLS_NextDemoInCycle() {
 	cls.demoNum++
 }
 
-//export CLS_IsDemoRecording
-func CLS_IsDemoRecording() C.int {
-	return b2i(cls.demoRecording)
-}
-
-//export CLS_SetDemoRecording
-func CLS_SetDemoRecording(state C.int) {
-	cls.demoRecording = (state != 0)
-}
-
 //export CLS_IsDemoPlayback
 func CLS_IsDemoPlayback() C.int {
 	return b2i(cls.demoPlayback)
@@ -718,7 +709,7 @@ func (c *ClientStatic) getMessage() int {
 				// Con_Printf("<-- server to client keepalive\n")
 			} else {
 				// The original was doing a BeginReading which was setting the read cursor to
-				// the begining so this was not needed. As the BeginReading was removed step
+				// the begining so this was not needed. As the BeginReading was removed, step
 				// back.
 				c.inMessage.UnreadByte()
 				break
@@ -728,8 +719,8 @@ func (c *ClientStatic) getMessage() int {
 		}
 	}
 
-	if c.demoRecording {
-		cl.writeDemoMessage()
+	if c.demoWriter != nil {
+		c.writeDemoMessage(c.inMessage.Bytes())
 	}
 
 	if c.signon < 2 {
@@ -839,9 +830,7 @@ func (c *ClientStatic) Disconnect() {
 	if c.demoPlayback {
 		c.stopPlayback()
 	} else if c.state == ca_connected {
-		if c.demoRecording {
-			cl.stopDemoRecording()
-		}
+		c.stopDemoRecording()
 
 		conlog.DPrintf("Sending clc_disconnect\n")
 		c.outMessage.Reset()
@@ -1935,13 +1924,12 @@ func (c *ClientStatic) finishTimeDemo() {
 	conlog.Printf("%d frames %5.1f seconds %5.1f fps\n", frames, time, float64(frames)/time)
 }
 
-func (c *Client) writeDemoMessage() {
-	// write 4 bytes: length of net_message
-	// write 4 bytes: float of cl.pitch
-	// write 4 bytes: float of cl.yaw
-	// write 4 bytes: float of cl.roll
-	// write net_message
-	// flush
+func (c *ClientStatic) writeDemoMessage(data []byte) {
+	binary.Write(c.demoWriter, binary.LittleEndian, int32(len(data)))
+	binary.Write(c.demoWriter, binary.LittleEndian, cl.pitch)
+	binary.Write(c.demoWriter, binary.LittleEndian, cl.yaw)
+	binary.Write(c.demoWriter, binary.LittleEndian, cl.roll)
+	binary.Write(c.demoWriter, binary.LittleEndian, data)
 }
 
 func clientStartDemos(args []cmd.QArg, player int) {
@@ -1986,11 +1974,11 @@ func clientStopDemoRecording(args []cmd.QArg, player int) {
 	if !execute.IsSrcCommand() {
 		return
 	}
-	if !cls.demoRecording {
+	if cls.demoWriter == nil {
 		conlog.Printf("Not recording a demo.\n")
 		return
 	}
-	cl.stopDemoRecording()
+	cls.stopDemoRecording()
 }
 
 func clientPlayDemo(args []cmd.QArg, player int) {
@@ -2046,21 +2034,20 @@ func CL_NextDemo() {
 	cls.demoNum++
 }
 
-func (c *Client) stopDemoRecording() {
-	// TODO:
-	// svc_disconnect
-	// demomessage
-	// close file
-	// cls.demofile = null
+func (c *ClientStatic) stopDemoRecording() {
+	if c.demoWriter == nil {
+		return
+	}
 
-	cls.demoRecording = false
+	c.writeDemoMessage([]byte{svc.Disconnect})
+	c.demoWriter.Close()
+	c.demoWriter = nil
+
 	conlog.Printf("Completed demo\n")
 }
 
 func (c *Client) recordDemo() {
-	if cls.demoRecording {
-		c.stopDemoRecording()
-	}
+	cls.stopDemoRecording()
 	// TODO
 }
 
