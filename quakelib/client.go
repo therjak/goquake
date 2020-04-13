@@ -17,6 +17,7 @@ import (
 	"io"
 	"log"
 	"math/rand"
+	"path/filepath"
 	"quake/cbuf"
 	"quake/cmd"
 	cmdl "quake/commandline"
@@ -1958,9 +1959,33 @@ func clientRecordDemo(args []cmd.QArg, player int) {
 		conlog.Printf("Can''t record during demo playback\n")
 		return
 	}
-	// len(args) must be 2,3,4...
-	// TODO
-	cl.recordDemo()
+	switch len(args) {
+	case 1, 2, 3:
+		break
+	default:
+		conlog.Printf("record <demoname> [<map> [cd track]]\n")
+		return
+	}
+	if strings.Contains(args[0].String(), "..") {
+		conlog.Printf("Relavite pathnames are not allowed.\n")
+		return
+	}
+	if len(args) == 1 && cls.state == ca_connected && cls.signon < 2 {
+		conlog.Printf("Can't record - try again when connected\n")
+		return
+	}
+	track := -1
+	if len(args) == 3 {
+		track = args[2].Int()
+		conlog.Printf("Forcing CD track to %i\n", track)
+	}
+	if len(args) > 1 {
+		execute.Execute(fmt.Sprintf("map %s", args[1].String()), execute.Command, player)
+		if cls.state != ca_connected {
+			return
+		}
+	}
+	cls.recordDemo(args[0].String(), track)
 }
 
 func clientStopDemoRecording(args []cmd.QArg, player int) {
@@ -2039,9 +2064,17 @@ func (c *ClientStatic) stopDemoRecording() {
 	conlog.Printf("Completed demo\n")
 }
 
-func (c *Client) recordDemo() {
-	cls.stopDemoRecording()
+func (c *ClientStatic) recordDemo(filename string, cdtrack int) {
+	path := filepath.Join(gameDirectory, filename)
+	if !strings.HasSuffix(filename, ".dem") {
+		path += ".dem"
+	}
+	conlog.Printf("recording to %s\n", path)
 	// TODO
+	// open cls.demoWriter
+	// cls.demoWriter.Write([]byte{fmt.Sprintf("%i\n", cdtrack)})
+	// from ProQuake: initialize the demo file if we're already connected
+	// ...
 }
 
 func (c *ClientStatic) getDemoMessage() int {
