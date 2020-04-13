@@ -1,12 +1,5 @@
 package quakelib
 
-//#define SFX_WIZHIT  0
-//#define SFX_KNIGHTHIT  1
-//#define SFX_TINK1  2
-//#define SFX_RIC1  3
-//#define SFX_RIC2  4
-//#define SFX_RIC3  5
-//#define SFX_R_EXP3  6
 //void SetCLWeaponModel(int v);
 //void CL_ParseBeam(const char *name, int ent, float s1, float s2, float s3,
 //                  float e1, float e2, float e3);
@@ -49,13 +42,13 @@ import (
 type sfx int
 
 const (
-	WizHit    sfx = C.SFX_WIZHIT
-	KnightHit sfx = C.SFX_KNIGHTHIT
-	Tink1     sfx = C.SFX_TINK1
-	Ric1      sfx = C.SFX_RIC1
-	Ric2      sfx = C.SFX_RIC2
-	Ric3      sfx = C.SFX_RIC3
-	RExp3     sfx = C.SFX_R_EXP3
+	WizHit    sfx = 0
+	KnightHit sfx = 1
+	Tink1     sfx = 2
+	Ric1      sfx = 3
+	Ric2      sfx = 4
+	Ric3      sfx = 5
+	RExp3     sfx = 6
 )
 
 const (
