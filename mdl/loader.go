@@ -5,9 +5,9 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"math"
 	"quake/math/vec"
 	qm "quake/model"
-	// "github.com/chewxy/math32"
 )
 
 func init() {
@@ -115,8 +115,8 @@ func calcAliasBounds(mod *qm.QModel,
 		return a
 	}
 
-	mod.Mins = vec.Vec3{999999, 999999, 999999}
-	mod.Maxs = vec.Vec3{-999999, -999999, -999999}
+	mod.Mins = vec.Vec3{math.MaxFloat32, math.MaxFloat32, math.MaxFloat32}
+	mod.Maxs = vec.Vec3{-math.MaxFloat32, -math.MaxFloat32, -math.MaxFloat32}
 	/*
 	 radius := float32(0)
 	 yawradius := float32(0)

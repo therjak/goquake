@@ -65,6 +65,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <float.h>
 
 /*==========================================================================*/
 
@@ -80,13 +81,11 @@
 #define Q_MAXSHORT ((short)0x7fff)
 #define Q_MAXINT ((int)0x7fffffff)
 #define Q_MAXLONG ((int)0x7fffffff)
-#define Q_MAXFLOAT ((int)0x7fffffff)
 
 #define Q_MINCHAR ((char)0x80)
 #define Q_MINSHORT ((short)0x8000)
 #define Q_MININT ((int)0x80000000)
 #define Q_MINLONG ((int)0x80000000)
-#define Q_MINFLOAT ((int)0x7fffffff)
 
 #define COMPILE_TIME_ASSERT(name, x) typedef int dummy_##name[(x)*2 - 1]
 
