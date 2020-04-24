@@ -252,7 +252,7 @@ func loadFacesV0(data []byte) ([]*faceV0, error) {
 
 func buildSurfacesV0(f []*faceV0, plane []*qm.Plane, texinfo []*qm.Texinfo) ([]*qm.Surface, error) {
 	ret := make([]*qm.Surface, 0, len(f))
-	for _, _ /*sf*/ = range f {
+	for range /*sf*/ f {
 		nsf := &qm.Surface{
 			// PlaneID int32
 			// Side int32

@@ -320,4 +320,3 @@ func loadEntities(data []map[string]string) {
 
 	conlog.DPrintf("%d entities inhibited\n", inhibit)
 }
-

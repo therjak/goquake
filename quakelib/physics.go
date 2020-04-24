@@ -186,14 +186,14 @@ func (q *qphysics) tryUnstick(ent int, oldvel vec.Vec3) int {
 
 	for _, dir := range []vec.Vec3{
 		// try pushing a little in an axial direction
-		vec.Vec3{2, 0, 0},
-		vec.Vec3{0, 2, 0},
-		vec.Vec3{-2, 0, 0},
-		vec.Vec3{0, -2, 0},
-		vec.Vec3{2, 2, 0},
-		vec.Vec3{-2, 2, 0},
-		vec.Vec3{2, -2, 0},
-		vec.Vec3{-2, -2, 0},
+		{2, 0, 0},
+		{0, 2, 0},
+		{-2, 0, 0},
+		{0, -2, 0},
+		{2, 2, 0},
+		{-2, 2, 0},
+		{2, -2, 0},
+		{-2, -2, 0},
 	} {
 		pushEntity(ent, dir)
 		// retry the original move

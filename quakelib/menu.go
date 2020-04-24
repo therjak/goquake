@@ -9,10 +9,6 @@ import (
 	"quake/menu"
 )
 
-const ()
-
-var ()
-
 func nextDemo() {
 	CL_NextDemo()
 }

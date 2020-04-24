@@ -710,10 +710,10 @@ func checkBottom(ent int) bool {
 	// if all of the points under the corners are solid world, don't bother
 	// with the tougher checks
 	d := []vec.Vec3{
-		vec.Vec3{mins[0], mins[1], mins[2] - 1},
-		vec.Vec3{mins[0], maxs[1], mins[2] - 1},
-		vec.Vec3{maxs[0], mins[1], mins[2] - 1},
-		vec.Vec3{maxs[0], maxs[1], mins[2] - 1},
+		{mins[0], mins[1], mins[2] - 1},
+		{mins[0], maxs[1], mins[2] - 1},
+		{maxs[0], mins[1], mins[2] - 1},
+		{maxs[0], maxs[1], mins[2] - 1},
 	}
 	for _, start := range d {
 		if pointContents(start) != model.CONTENTS_SOLID {
@@ -741,10 +741,10 @@ func expensiveCheckBottom(ent int, mins, maxs vec.Vec3) bool {
 	bottom := trace.EndPos[2]
 
 	d := []vec.Vec3{
-		vec.Vec3{mins[0], mins[1], 0},
-		vec.Vec3{mins[0], maxs[1], 0},
-		vec.Vec3{maxs[0], mins[1], 0},
-		vec.Vec3{maxs[0], maxs[1], 0},
+		{mins[0], mins[1], 0},
+		{mins[0], maxs[1], 0},
+		{maxs[0], mins[1], 0},
+		{maxs[0], maxs[1], 0},
 	}
 
 	for _, p := range d {
