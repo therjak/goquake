@@ -2,6 +2,9 @@
 
 #include "quakedef.h"
 
+extern cvar_t vid_gamma;
+extern cvar_t vid_contrast;
+
 vec3_t modelorg, r_entorigin;
 entity_t *currententity;
 

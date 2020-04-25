@@ -29,29 +29,9 @@ func Sbar_Init() {
 	statusbar.LoadPictures()
 }
 
-//export Sbar_LoadPics
-func Sbar_LoadPics() {
-	statusbar.LoadPictures()
-}
-
 //export Sbar_Lines
 func Sbar_Lines() int {
 	return statusbar.Lines()
-}
-
-//export Sbar_IntermissionOverlay
-func Sbar_IntermissionOverlay() {
-	statusbar.IntermissionOverlay()
-}
-
-//export Sbar_FinaleOverlay
-func Sbar_FinaleOverlay() {
-	statusbar.FinaleOverlay()
-}
-
-//export Sbar_Draw
-func Sbar_Draw() {
-	statusbar.Draw()
 }
 
 func init() {

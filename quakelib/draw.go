@@ -312,11 +312,6 @@ func Draw_Init() {
 	backtileTexture = textureManager.LoadBacktile()
 }
 
-//export Draw_Destroy
-func Draw_Destroy() {
-	qDrawer.Delete()
-}
-
 var (
 	qCanvas canvas
 )

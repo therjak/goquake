@@ -534,8 +534,8 @@ func CL_ProtocolFlags() C.uint {
 }
 
 //export CL_Paused
-func CL_Paused() C.int {
-	return b2i(cl.paused)
+func CL_Paused() bool {
+	return cl.paused
 }
 
 //export CL_SetPaused
@@ -604,8 +604,8 @@ func CLS_NextDemoInCycle() {
 }
 
 //export CLS_IsDemoPlayback
-func CLS_IsDemoPlayback() C.int {
-	return b2i(cls.demoPlayback)
+func CLS_IsDemoPlayback() bool {
+	return cls.demoPlayback
 }
 
 //export CLS_GetSignon
@@ -734,9 +734,9 @@ func cacheStartConnectionForDemo() {
 }
 
 //export CL_MSG_BadRead
-func CL_MSG_BadRead() C.int {
+func CL_MSG_BadRead() bool {
 	// poor mans error handling :(
-	return b2i(cls.msgBadRead)
+	return cls.msgBadRead
 }
 
 //export CL_MSG_ReadChar

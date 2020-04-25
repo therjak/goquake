@@ -169,8 +169,8 @@ func SV_Clear() {
 }
 
 //export SV_Active
-func SV_Active() C.int {
-	return b2i(sv.active)
+func SV_Active() bool {
+	return sv.active
 }
 
 var (

@@ -112,11 +112,6 @@ func Key_Init() {
 	history.Load()
 }
 
-//export History_Shutdown
-func History_Shutdown() {
-	history.Save()
-}
-
 type qKeyInput struct {
 	text       string
 	buf        []byte
@@ -410,35 +405,6 @@ func unbindCommand(command string) {
 	}
 }
 
-//export ConsoleKeys
-func ConsoleKeys(k C.int) C.int {
-	return b2i(consoleKeys[kc.KeyCode(k)])
-}
-
-//export MenuBound
-func MenuBound(k C.int) C.int {
-	return b2i(menuBound[kc.KeyCode(k)])
-}
-
-//export Key_SetBinding
-func Key_SetBinding(keynum C.int, binding *C.char) {
-	keyBindings[kc.KeyCode(keynum)] = C.GoString(binding)
-}
-
-//export Key_HasBinding
-func Key_HasBinding(keynum C.int) C.int {
-	return b2i("" != keyBindings[kc.KeyCode(keynum)])
-}
-
-//export Key_Bindings
-func Key_Bindings(keynum C.int) *C.char {
-	b := keyBindings[kc.KeyCode(keynum)]
-	if b != "" {
-		return C.CString(b)
-	}
-	return nil
-}
-
 //export GetKeyDest
 func GetKeyDest() C.keydest_t {
 	switch keyDestination {
@@ -450,20 +416,6 @@ func GetKeyDest() C.keydest_t {
 		return C.key_message
 	case keys.Menu:
 		return C.key_menu
-	}
-}
-
-//export SetKeyDest
-func SetKeyDest(k C.keydest_t) {
-	switch k {
-	default:
-		keyDestination = keys.Game
-	case C.key_console:
-		keyDestination = keys.Console
-	case C.key_message:
-		keyDestination = keys.Message
-	case C.key_menu:
-		keyDestination = keys.Menu
 	}
 }
 
@@ -505,11 +457,6 @@ type qInputGrab struct {
 var (
 	inputGrab qInputGrab
 )
-
-//export KeyModalResult
-func KeyModalResult(timeout int) bool {
-	return modalResult(time.Second * time.Duration(timeout))
-}
 
 func modalResult(timeout time.Duration) bool {
 	Key_ClearStates()
@@ -707,18 +654,12 @@ func charEvent(key rune) {
 	}
 }
 
-//export Key_ClearStates
 func Key_ClearStates() {
 	for k, v := range keyDown {
 		if v {
 			keyEvent(k, false)
 		}
 	}
-}
-
-//export Key_Console
-func Key_Console(key int) {
-	keyInput.consoleKeyEvent(kc.KeyCode(key))
 }
 
 func keyTextEntry() bool {

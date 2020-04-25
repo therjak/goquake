@@ -19,8 +19,8 @@ func Cmd_ExecuteString(s *C.char, source C.int) {
 }
 
 //export IsSrcCommand
-func IsSrcCommand() C.int {
-	return b2i(execute.IsSrcCommand())
+func IsSrcCommand() bool {
+	return execute.IsSrcCommand()
 }
 
 func init() {

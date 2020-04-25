@@ -410,3 +410,9 @@ void CL_Init(void) {
   Cmd_AddCommand("tracepos", CL_Tracepos_f);
   Cmd_AddCommand("viewpos", CL_Viewpos_f);
 }
+
+void SetCLWeaponModel(int v) {
+  entity_t *view;
+  view = &cl_viewent;
+  view->model = cl.model_precache[v];
+}

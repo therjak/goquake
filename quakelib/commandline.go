@@ -6,92 +6,77 @@ import (
 )
 
 //export CMLCurrent
-func CMLCurrent() C.int {
-	return b2i(cmdl.Current())
+func CMLCurrent() bool {
+	return cmdl.Current()
 }
 
 //export CMLDedicated
-func CMLDedicated() C.int {
-	return b2i(cmdl.Dedicated())
-}
-
-//export CMLDedicatedNum
-func CMLDedicatedNum() C.int {
-	return C.int(cmdl.DedicatedNum())
+func CMLDedicated() bool {
+	return cmdl.Dedicated()
 }
 
 //export CMLFullscreen
-func CMLFullscreen() C.int {
-	return b2i(cmdl.Fullscreen())
+func CMLFullscreen() bool {
+	return cmdl.Fullscreen()
 }
 
 //export CMLMinMemory
-func CMLMinMemory() C.int {
-	return b2i(cmdl.MinMemory())
+func CMLMinMemory() bool {
+	return cmdl.MinMemory()
 }
 
 //export CMLAdd
-func CMLAdd() C.int {
-	return b2i(cmdl.Add())
+func CMLAdd() bool {
+	return cmdl.Add()
 }
 
 //export CMLCombine
-func CMLCombine() C.int {
-	return b2i(cmdl.Combine())
+func CMLCombine() bool {
+	return cmdl.Combine()
 }
 
 //export CMLMtext
-func CMLMtext() C.int {
-	return b2i(cmdl.Mtext())
+func CMLMtext() bool {
+	return cmdl.Mtext()
 }
 
 //export CMLHipnotic
-func CMLHipnotic() C.int {
+func CMLHipnotic() bool {
 	// TODO: why isQuoth?
-	return b2i(cmdl.Hipnotic() || cmdl.Quoth())
+	return cmdl.Hipnotic() || cmdl.Quoth()
 }
 
 //export CMLRogue
-func CMLRogue() C.int {
-	return b2i(cmdl.Rogue())
+func CMLRogue() bool {
+	return cmdl.Rogue()
 }
 
 //export CMLStandardQuake
-func CMLStandardQuake() C.int {
-	return b2i(!(cmdl.Quoth() || cmdl.Rogue() || cmdl.Hipnotic()))
+func CMLStandardQuake() bool {
+	return !(cmdl.Quoth() || cmdl.Rogue() || cmdl.Hipnotic())
 }
 
 //export CMLWindow
-func CMLWindow() C.int {
-	return b2i(cmdl.Window())
+func CMLWindow() bool {
+	return cmdl.Window()
 }
 
 //export CMLHeight
-func CMLHeight() C.int {
-	return C.int(cmdl.Height())
+func CMLHeight() int {
+	return cmdl.Height()
 }
 
 //export CMLWidth
-func CMLWidth() C.int {
-	return C.int(cmdl.Width())
+func CMLWidth() int {
+	return cmdl.Width()
 }
 
 //export CMLBpp
-func CMLBpp() C.int {
-	return C.int(cmdl.Bpp())
-}
-
-//export CMLParticles
-func CMLParticles() C.int {
-	return C.int(cmdl.Particles())
+func CMLBpp() int {
+	return cmdl.Bpp()
 }
 
 //export CMLZone
-func CMLZone() C.int {
-	return C.int(cmdl.Zone())
-}
-
-//export CMLConsoleSize
-func CMLConsoleSize() C.int {
-	return C.int(cmdl.ConsoleSize())
+func CMLZone() int {
+	return cmdl.Zone()
 }

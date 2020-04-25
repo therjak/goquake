@@ -8,17 +8,16 @@ import "C"
 
 import (
 	"quake/window"
-	"unsafe"
 )
 
 //export VID_Locked
-func VID_Locked() C.int {
-	return b2i(videoLocked)
+func VID_Locked() bool {
+	return videoLocked
 }
 
 //export VID_Initialized
-func VID_Initialized() C.int {
-	return b2i(videoInitialized)
+func VID_Initialized() bool {
+	return videoInitialized
 }
 
 //export SetVID_Locked
@@ -32,8 +31,8 @@ func SetVID_Initialized(v C.int) {
 }
 
 //export VIDGLSwapControl
-func VIDGLSwapControl() C.int {
-	return b2i(glSwapControl)
+func VIDGLSwapControl() bool {
+	return glSwapControl
 }
 
 //export SetVIDGLSwapControl
@@ -42,33 +41,13 @@ func SetVIDGLSwapControl(v C.int) {
 }
 
 //export VIDChanged
-func VIDChanged() C.int {
-	return b2i(videoChanged)
-}
-
-//export SetVIDChanged
-func SetVIDChanged(v C.int) {
-	videoChanged = (v != 0)
-}
-
-//export WINDOW_Get
-func WINDOW_Get() unsafe.Pointer {
-	return unsafe.Pointer(window.Get())
+func VIDChanged() bool {
+	return videoChanged
 }
 
 //export PL_SetWindowIcon
 func PL_SetWindowIcon() {
 	window.InitIcon()
-}
-
-//export WINDOW_Shutdown
-func WINDOW_Shutdown() {
-	window.Shutdown()
-}
-
-//export WINDOW_SetMode
-func WINDOW_SetMode(width, height, bpp, fullscreen C.int) {
-	windowSetMode(int32(width), int32(height), int32(bpp), fullscreen == 1)
 }
 
 //export VID_SetMode
@@ -99,18 +78,13 @@ func VID_GetCurrentBPP() C.int {
 }
 
 //export VID_GetFullscreen
-func VID_GetFullscreen() C.int {
-	return b2i(window.Fullscreen())
-}
-
-//export VID_GetDesktopFullscreen
-func VID_GetDesktopFullscreen() C.int {
-	return b2i(window.DesktopFullscreen())
+func VID_GetFullscreen() bool {
+	return window.Fullscreen()
 }
 
 //export VID_GetVSync
-func VID_GetVSync() C.int {
-	return b2i(window.VSync())
+func VID_GetVSync() bool {
+	return window.VSync()
 }
 
 //export VID_InitModelist
@@ -119,20 +93,8 @@ func VID_InitModelist() {
 }
 
 //export VID_ValidMode
-func VID_ValidMode(width, height, bpp, fullscreen C.int) C.int {
-	return b2i(validDisplayMode(int32(width), int32(height), uint32(bpp), fullscreen != 0))
-}
-
-//export VID_SetModeState
-func VID_SetModeState(s C.modestate_t) {
-	switch s {
-	case C.MS_WINDOWED:
-		modestate = MS_WINDOWED
-	case C.MS_FULLSCREEN:
-		modestate = MS_FULLSCREEN
-	default:
-		modestate = MS_UNINIT
-	}
+func VID_ValidMode(width, height, bpp, fullscreen C.int) bool {
+	return validDisplayMode(int32(width), int32(height), uint32(bpp), fullscreen != 0)
 }
 
 //export VID_GetModeState
@@ -147,44 +109,9 @@ func VID_GetModeState() C.modestate_t {
 	}
 }
 
-//export GetNumPages
-func GetNumPages() C.int {
-	return C.int(screen.numPages)
-}
-
-//export SetNumPages
-func SetNumPages(v C.int) {
-	screen.numPages = int(v)
-}
-
-//export GetRecalcRefdef
-func GetRecalcRefdef() C.int {
-	return b2i(screen.recalcViewRect)
-}
-
 //export SetRecalcRefdef
 func SetRecalcRefdef(v C.int) {
 	screen.recalcViewRect = (v != 0)
-}
-
-//export ConWidth
-func ConWidth() C.int {
-	return C.int(console.width)
-}
-
-//export ConHeight
-func ConHeight() C.int {
-	return C.int(console.height)
-}
-
-//export ScreenWidth
-func ScreenWidth() C.int {
-	return C.int(screen.Width)
-}
-
-//export ScreenHeight
-func ScreenHeight() C.int {
-	return C.int(screen.Height)
 }
 
 //export UpdateConsoleSize
@@ -195,9 +122,4 @@ func UpdateConsoleSize() {
 //export VID_SyncCvars
 func VID_SyncCvars() {
 	syncVideoCvars()
-}
-
-//export VID_Shutdown
-func VID_Shutdown() {
-	videoShutdown()
 }

@@ -149,7 +149,7 @@ static void VID_Test(void) {
   old_width = VID_GetCurrentWidth();
   old_height = VID_GetCurrentHeight();
   old_bpp = VID_GetCurrentBPP();
-  old_fullscreen = VID_GetFullscreen() ? true : false;
+  old_fullscreen = VID_GetFullscreen();
 
   VID_Restart();
 

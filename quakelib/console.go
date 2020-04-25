@@ -46,31 +46,6 @@ func Con_ResetLastCenterString() {
 	console.lastCenter = ""
 }
 
-//export Con_ForceDup
-func Con_ForceDup() bool {
-	return console.forceDuplication
-}
-
-//export Con_SetForceDup
-func Con_SetForceDup(s bool) {
-	console.forceDuplication = s
-}
-
-//export Con_CheckResize
-func Con_CheckResize() {
-	console.CheckResize()
-}
-
-//export ConsoleWidth
-func ConsoleWidth() C.int {
-	return C.int(console.lineWidth)
-}
-
-//export SetConsoleWidth
-func SetConsoleWidth(w C.int) {
-	console.lineWidth = int(w)
-}
-
 // produce new line breaks in case of a new width
 func (c *qconsole) CheckResize() {
 	w := (c.width / 8) - 2
@@ -91,31 +66,6 @@ func Con_Init() {
 	conlog.Printf("Console initialized.\n")
 
 	console.initialized = true
-}
-
-//export Con_Initialized
-func Con_Initialized() bool {
-	return console.initialized
-}
-
-//export Con_DrawConsole
-func Con_DrawConsole(lines int) {
-	console.Draw(lines)
-}
-
-//export Con_DrawNotify
-func Con_DrawNotify() {
-	console.DrawNotify()
-}
-
-//export Con_ClearNotify
-func Con_ClearNotify() {
-	console.ClearNotify()
-}
-
-//export Con_ToggleConsole_f
-func Con_ToggleConsole_f() {
-	console.Toggle()
 }
 
 func (c *qconsole) Toggle() {
@@ -149,21 +99,6 @@ func Con_LogCenterPrint(str *C.char) {
 //export Con_PrintStr
 func Con_PrintStr(str *C.char) {
 	console.Print(C.GoString(str))
-}
-
-//export Con_BackscrollHome
-func Con_BackscrollHome() {
-	console.BackScrollHome()
-}
-
-//export Con_BackscrollEnd
-func Con_BackscrollEnd() {
-	console.BackScrollEnd()
-}
-
-//export Con_BackscrollUp
-func Con_BackscrollUp(page bool) {
-	console.BackScrollUp(page)
 }
 
 func (c *qconsole) BackScrollEnd() {
@@ -202,11 +137,6 @@ func (c *qconsole) BackScrollUp(page bool) {
 func (c *qconsole) BackScrollDown(page bool) {
 	c.backScroll -= c.scrollStep(page)
 	c.clampBackScroll()
-}
-
-//export Con_BackscrollDown
-func Con_BackscrollDown(page bool) {
-	console.BackScrollDown(page)
 }
 
 var (

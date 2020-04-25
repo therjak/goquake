@@ -214,7 +214,6 @@ typedef struct {
 #include "vid.h"
 #include "draw.h"
 #include "render.h"
-#include "view.h"
 #include "client.h"
 
 #include "gl_model.h"
