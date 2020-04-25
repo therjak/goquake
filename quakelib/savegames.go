@@ -79,7 +79,7 @@ func saveGame(args []cmd.QArg, _ int) {
 		MapName:      sv.name,
 		MapTime:      sv.time,
 		LightStyles:  sv.lightStyles[:],    //[]string
-		Globals:      vm.saveGameGlobals(), // protos.Globals
+		Globals:      vm.SaveGameGlobals(), // protos.Globals
 		Edicts:       sv.saveGameEdicts(),  // []protos.Edict
 	}
 
@@ -156,7 +156,7 @@ func loadGame(args []cmd.QArg, _ int) {
 	// load the light styles
 	copy(sv.lightStyles[:], data.GetLightStyles())
 
-	vm.loadGameGlobals(data.GetGlobals())
+	vm.LoadGameGlobals(data.GetGlobals())
 	sv.loadGameEdicts(data.GetEdicts())
 
 	sv.time = data.GetMapTime()

@@ -24,7 +24,7 @@ const (
 	saveGlobal = (1 << 15)
 )
 
-func (v *virtualMachine) loadGameGlobals(g *protos.Globals) {
+func (v *virtualMachine) LoadGameGlobals(g *protos.Globals) {
 	for _, st := range g.Strings {
 		def, err := v.prog.FindGlobalDef(st.GetId())
 		if err != nil {
@@ -74,7 +74,7 @@ func (v *virtualMachine) saveGlobalEntity(name string, offset uint16) *protos.En
 	}
 }
 
-func (v *virtualMachine) saveGameGlobals() *protos.Globals {
+func (v *virtualMachine) SaveGameGlobals() *protos.Globals {
 	entities := []*protos.EntityDef{}
 	floats := []*protos.FloatDef{}
 	ostrings := []*protos.StringDef{}
