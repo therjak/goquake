@@ -28,14 +28,9 @@ int minimum_memory;
 jmp_buf host_abortserver;
 
 cvar_t host_speeds;
-cvar_t host_maxfps;
 cvar_t host_timescale;
 cvar_t max_edicts;
-cvar_t serverprofile;
-cvar_t samelevel;
 cvar_t developer;
-cvar_t devstats;
-cvar_t sv_gravity;
 
 devstats_t dev_stats, dev_peakstats;
 overflowtimes_t dev_overflows;  // this stores the last time overflow messages
@@ -71,11 +66,7 @@ void Host_InitLocal(void) {
   Cvar_FakeRegister(&host_speeds, "host_speeds");
   Cvar_FakeRegister(&host_timescale, "host_timescale");
   Cvar_FakeRegister(&max_edicts, "max_edicts");
-  Cvar_FakeRegister(&devstats, "devstats");
-  Cvar_FakeRegister(&serverprofile, "serverprofile");
-  Cvar_FakeRegister(&samelevel, "samelevel");
   Cvar_FakeRegister(&developer, "developer");
-  Cvar_FakeRegister(&sv_gravity, "sv_gravity");
 
   Host_FindMaxClients();
 }

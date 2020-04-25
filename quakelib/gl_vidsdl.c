@@ -72,8 +72,6 @@ static cvar_t vid_width;
 static cvar_t vid_height;
 static cvar_t vid_bpp;
 static cvar_t vid_vsync;
-static cvar_t vid_desktopfullscreen;
-static cvar_t vid_borderless;
 
 cvar_t vid_gamma;
 cvar_t vid_contrast;
@@ -475,8 +473,6 @@ void VID_Init(void) {
   Cvar_FakeRegister(&vid_height, "vid_height");
   Cvar_FakeRegister(&vid_bpp, "vid_bpp");
   Cvar_FakeRegister(&vid_vsync, "vid_vsync");
-  Cvar_FakeRegister(&vid_desktopfullscreen, "vid_desktopfullscreen");
-  Cvar_FakeRegister(&vid_borderless, "vid_borderless");
 
   Cmd_AddCommand("vid_restart", VID_Restart);
   Cmd_AddCommand("vid_test", VID_Test);

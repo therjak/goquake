@@ -254,7 +254,6 @@ extern int rs_dynamiclightmaps, rs_brushpasses, rs_aliaspasses, rs_skypasses;
 extern float rs_megatexels;
 
 // johnfitz -- track developer statistics that vary every frame
-extern cvar_t devstats;
 typedef struct {
   int packetsize;
   int edicts;
