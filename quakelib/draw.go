@@ -486,7 +486,7 @@ var (
 func DrawPictureTranslate(x, y int, p *QPic, top, bottom int) {
 	if top != drawTop || bottom != drawBottom {
 		drawTop = top
-		drawBottom = drawBottom
+		drawBottom = bottom
 		// TODO(therjak): do the mapping
 		textureManager.ReloadImage(p.Texture)
 	}
