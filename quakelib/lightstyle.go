@@ -10,9 +10,10 @@ import (
 )
 
 type lightStyle struct {
-	average  int
-	peak     int
-	lightMap []int
+	average     int
+	peak        int
+	unprocessed string // only used for demo recording
+	lightMap    []int
 }
 
 const (
@@ -68,6 +69,7 @@ func readLightStyle(msg *net.QReader) error {
 	if err != nil {
 		return err
 	}
+	style.unprocessed = str
 	style.lightMap = make([]int, len(str))
 	// we read content with bytes x : 'a' <= x <= 'z'
 	// and shift it to zero based and scaled by 22

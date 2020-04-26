@@ -716,14 +716,18 @@ func (c *ClientStatic) getMessage() int {
 	}
 
 	if c.demoWriter != nil {
-		c.writeDemoMessage(c.inMessage.Bytes())
+		// TODO: why do I need to remove 1 byte? Is it the BeginReading stuff again?
+		b := c.inMessage.Bytes()
+		c.writeDemoMessage(b[1:])
 	}
 
 	if c.signon < 2 {
 		// record messages before full connection, so that a
 		// demo record can happen after connection is done
 		c.demoSignon[c.signon].Reset()
-		c.demoSignon[c.signon].Write(c.inMessage.Bytes())
+		// TODO: why do I need to remove 1 byte?
+		b := c.inMessage.Bytes()
+		c.demoSignon[c.signon].Write(b[1:])
 	}
 
 	return r
@@ -1057,10 +1061,6 @@ var (
 // so the server doesn't disconnect.
 //export CL_KeepaliveMessage
 func CL_KeepaliveMessage() {
-	//float time;
-	//static float lastmsg;
-	//int ret;
-
 	if sv.active {
 		// no need if server is local
 		return
@@ -1069,9 +1069,9 @@ func CL_KeepaliveMessage() {
 		return
 	}
 
-	// read messages from server, should just be nops
 	msgBackup := cls.inMessage
 
+	// read messages from server, should just be nops
 Outer:
 	for {
 		switch ret := cls.getMessage(); ret {
@@ -2011,7 +2011,12 @@ func clientRecordDemo(args []cmd.QArg, player int) {
 			buf.WriteByte(byte(c))
 		}
 
-		// TODO: lightstyles
+		for i, ls := range lightStyles {
+			buf.WriteByte(svc.LightStyle)
+			buf.WriteByte(byte(i))
+			buf.WriteString(ls.unprocessed)
+			buf.WriteByte(0) // c-strings
+		}
 
 		buf.WriteByte(svc.UpdateStat)
 		buf.WriteByte(stat.TotalSecrets)
