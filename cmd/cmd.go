@@ -148,7 +148,7 @@ func Parse(s string) {
 			args.full = ""
 		}
 	}()
-	args.args = args.args[:0]
+	args.args = []QArg{}
 
 	l := lex(s)
 	for {

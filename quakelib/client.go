@@ -2128,7 +2128,7 @@ func (c *ClientStatic) createDemoFile(filename string, cdtrack int) error {
 		return fmt.Errorf("ERROR: couldn't create %s\n", path)
 	}
 	c.demoWriter = f
-	fmt.Fprintf(c.demoWriter, "%i\n", cdtrack)
+	fmt.Fprintf(c.demoWriter, "%d\n", cdtrack)
 	return nil
 }
 
