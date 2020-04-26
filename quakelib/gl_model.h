@@ -412,12 +412,6 @@ typedef struct qmodel_s {
   // johnfitz -- removed float radius;
 
   //
-  // solid volume for clipping
-  //
-  qboolean clipbox;
-  vec3_t clipmins, clipmaxs;
-
-  //
   // brush model
   //
   int firstmodelsurface, nummodelsurfaces;

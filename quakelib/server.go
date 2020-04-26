@@ -110,11 +110,6 @@ var (
 	host_client int
 )
 
-//export SV_ModelNameInt
-func SV_ModelNameInt() *C.char {
-	return C.CString(sv.modelName)
-}
-
 func svProtocol(args []cmd.QArg, _ int) {
 	switch len(args) {
 	default:

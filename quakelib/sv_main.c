@@ -60,11 +60,3 @@ byte *SV_FatPVS(vec3_t org, qmodel_t *worldmodel) {
   SV_AddToFatPVS(org, worldmodel->nodes, worldmodel);
   return fatpvs;
 }
-
-const char *SV_ModelName() {
-  static char buffer[2048];
-  char *s = SV_ModelNameInt();
-  strncpy(buffer, s, 2048);
-  free(s);
-  return buffer;
-}
