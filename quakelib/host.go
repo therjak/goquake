@@ -206,7 +206,7 @@ func hostDemos(_ []cmd.QArg, _ int) {
 		return
 	}
 	if cls.demoNum == -1 {
-		cls.demoNum = 0
+		cls.demoNum = 1
 	}
 	clientDisconnect()
 	CL_NextDemo()

@@ -17,6 +17,7 @@ import (
 	"io"
 	"log"
 	"math/rand"
+	"os"
 	"path/filepath"
 	"quake/cbuf"
 	"quake/cmd"
@@ -150,6 +151,7 @@ type ClientStatic struct {
 	demoNum            int
 	demoPlayback       bool
 	demoPaused         bool
+	demoSignon         [2]bytes.Buffer
 	timeDemo           bool
 	signon             int
 	connection         *net.Connection
@@ -720,17 +722,11 @@ func (c *ClientStatic) getMessage() int {
 	if c.signon < 2 {
 		// record messages before full connection, so that a
 		// demo record can happen after connection is done
-		cacheStartConnectionForDemo()
+		c.demoSignon[c.signon].Reset()
+		c.demoSignon[c.signon].Write(c.inMessage.Bytes())
 	}
 
 	return r
-}
-
-func cacheStartConnectionForDemo() {
-	// TODO
-	//  memcpy(demo_head[CLS_GetSignon()], net_message.daTa, SB_GetCurSize(&net_message));
-	//  demo_head_size[CLS_GetSigon()] = SB_GetCurSize(&net_message);
-	//
 }
 
 //export CL_MSG_BadRead
@@ -1897,7 +1893,7 @@ func (c *ClientStatic) stopPlayback() {
 		return
 	}
 
-	// TODO: close file and null file handle
+	c.demoData = []byte{}
 	c.demoPlayback = false
 	c.demoPaused = false
 	c.state = ca_disconnected
@@ -1959,6 +1955,9 @@ func clientRecordDemo(args []cmd.QArg, player int) {
 		conlog.Printf("Can''t record during demo playback\n")
 		return
 	}
+
+	cls.stopDemoRecording()
+
 	switch len(args) {
 	case 1, 2, 3:
 		break
@@ -1985,7 +1984,61 @@ func clientRecordDemo(args []cmd.QArg, player int) {
 			return
 		}
 	}
-	cls.recordDemo(args[0].String(), track)
+	err := cls.createDemoFile(args[0].String(), track)
+	if err != nil {
+		conlog.Printf(err.Error())
+		return
+	}
+	if len(args) == 1 && cls.state == ca_connected {
+		// initialize the demo file with a start connection dummy
+		var buf bytes.Buffer
+
+		for i := 0; i < cl.maxClients; i++ {
+			s := &cl.scores[i]
+
+			buf.WriteByte(svc.UpdateName)
+			buf.WriteByte(byte(i))
+			buf.WriteString(s.name)
+			buf.WriteByte(0) // c-strings
+
+			buf.WriteByte(svc.UpdateFrags)
+			buf.WriteByte(byte(i))
+			binary.Write(&buf, binary.LittleEndian, uint16(s.frags))
+
+			buf.WriteByte(svc.UpdateColors)
+			buf.WriteByte(byte(i))
+			c := ((s.topColor & 0xf) << 4) + s.bottomColor&0xf
+			buf.WriteByte(byte(c))
+		}
+
+		// TODO: lightstyles
+
+		buf.WriteByte(svc.UpdateStat)
+		buf.WriteByte(stat.TotalSecrets)
+		binary.Write(&buf, binary.LittleEndian, uint32(cl.stats.totalSecrets))
+
+		buf.WriteByte(svc.UpdateStat)
+		buf.WriteByte(stat.TotalMonsters)
+		binary.Write(&buf, binary.LittleEndian, uint32(cl.stats.totalMonsters))
+
+		buf.WriteByte(svc.UpdateStat)
+		buf.WriteByte(stat.Secrets)
+		binary.Write(&buf, binary.LittleEndian, uint32(cl.stats.secrets))
+
+		buf.WriteByte(svc.UpdateStat)
+		buf.WriteByte(stat.Monsters)
+		binary.Write(&buf, binary.LittleEndian, uint32(cl.stats.monsters))
+
+		buf.WriteByte(svc.SetView)
+		binary.Write(&buf, binary.LittleEndian, uint16(cl.viewentity))
+
+		buf.WriteByte(svc.SignonNum)
+		buf.WriteByte(3)
+
+		cls.writeDemoMessage(cls.demoSignon[0].Bytes())
+		cls.writeDemoMessage(cls.demoSignon[1].Bytes())
+		cls.writeDemoMessage(buf.Bytes())
+	}
 }
 
 func clientStopDemoRecording(args []cmd.QArg, player int) {
@@ -2064,17 +2117,19 @@ func (c *ClientStatic) stopDemoRecording() {
 	conlog.Printf("Completed demo\n")
 }
 
-func (c *ClientStatic) recordDemo(filename string, cdtrack int) {
+func (c *ClientStatic) createDemoFile(filename string, cdtrack int) error {
 	path := filepath.Join(gameDirectory, filename)
 	if !strings.HasSuffix(filename, ".dem") {
 		path += ".dem"
 	}
 	conlog.Printf("recording to %s\n", path)
-	// TODO
-	// open cls.demoWriter
-	// cls.demoWriter.Write([]byte{fmt.Sprintf("%i\n", cdtrack)})
-	// from ProQuake: initialize the demo file if we're already connected
-	// ...
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0644)
+	if err != nil {
+		return fmt.Errorf("ERROR: couldn't create %s\n", path)
+	}
+	c.demoWriter = f
+	fmt.Fprintf(c.demoWriter, "%i\n", cdtrack)
+	return nil
 }
 
 func (c *ClientStatic) getDemoMessage() int {
