@@ -76,11 +76,7 @@ const char *COM_Parse(const char *data);
 const char *COM_SkipPath(const char *pathname);
 void COM_StripExtension(const char *in, char *out, size_t outsize);
 void COM_FileBase(const char *in, char *out, size_t outsize);
-void COM_AddExtension(char *path, const char *extension, size_t len);
-const char *COM_FileGetExtension(const char *in); /* doesn't return NULL */
 
 //============================================================================
-
-const char *Com_Gamedir();
 
 #endif /* _Q_COMMON_H */

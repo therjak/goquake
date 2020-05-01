@@ -7,16 +7,6 @@
 #include "q_ctype.h"
 #include "quakedef.h"
 
-const char *Com_Gamedir() {
-  static char buffer[MAX_OSPATH];
-  char *argv = COM_GameDir();
-  strncpy(buffer, argv, MAX_OSPATH);
-  free(argv);
-  return buffer;
-}
-
-static void COM_Path_f(void);
-
 // if a packfile directory differs from this, it is assumed to be hacked
 #define PAK0_COUNT 339      /* id1/pak0.pak - v1.0x */
 #define PAK0_CRC_V100 13900 /* id1/pak0.pak - v1.00 */
@@ -183,27 +173,6 @@ void COM_StripExtension(const char *in, char *out, size_t outsize) {
 
 /*
 ============
-COM_FileGetExtension - doesn't return NULL
-============
-*/
-const char *COM_FileGetExtension(const char *in) {
-  const char *src;
-  size_t len;
-
-  len = strlen(in);
-  if (len < 2) /* nothing meaningful */
-    return "";
-
-  src = in + len - 1;
-  while (src != in && src[-1] != '.') src--;
-  if (src == in || strchr(src, '/') != NULL || strchr(src, '\\') != NULL)
-    return ""; /* no extension, or parent directory has a dot */
-
-  return src;
-}
-
-/*
-============
 COM_FileBase
 take 'somedir/otherdir/filename.ext',
 write only 'filename' to the output
@@ -230,18 +199,6 @@ void COM_FileBase(const char *in, char *out, size_t outsize) {
     memcpy(out, slash, len);
     out[len] = '\0';
   }
-}
-
-/*
-==================
-COM_AddExtension
-if path extension doesn't match .EXT, append it
-(extension should include the leading ".")
-==================
-*/
-void COM_AddExtension(char *path, const char *extension, size_t len) {
-  if (strcmp(COM_FileGetExtension(path), extension + 1) != 0)
-    q_strlcat(path, extension, len);
 }
 
 /*
