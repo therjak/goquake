@@ -1,7 +1,6 @@
 package quakelib
 
 // int GetRFrameCount();
-// void SCR_UpdateScreen2();
 import "C"
 
 import (
@@ -639,7 +638,11 @@ func (scr *qScreen) Update() {
 	}
 
 	view.UpdateBlend()
-	GLSLGamma_GammaCorrect()
+	gamma := cvars.Gamma.Value()
+	contrast := cvars.Contrast.Value()
+	if contrast != 1 || gamma != 1 {
+		postProcessGammaContrast(gamma, contrast)
+	}
 	window.EndRendering()
 }
 

@@ -169,6 +169,7 @@ GLSLGamma_GammaCorrect
 =============
 */
 void GLSLGamma_GammaCorrect(void) {
+  //THERJAK
   float smax, tmax;
 
   if (Cvar_GetValue(&vid_gamma) == 1 && Cvar_GetValue(&vid_contrast) == 1)
@@ -628,6 +629,7 @@ void R_DrawEntitiesOnList(qboolean alphapass)  // johnfitz -- added parameter
         R_DrawBrushModel(currententity);
         break;
       case mod_sprite:
+        //THERJAK
         R_DrawSpriteModel(currententity);
         break;
     }

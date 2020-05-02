@@ -16,15 +16,6 @@ func Cmd_AddCommand(cmd_name *C.char, f C.xcommand_t) {
 	cmd.AddCommand(name, func(_ []cmd.QArg, _ int) { C.callQuakeFunc(f) })
 }
 
-//export Cmd_Exists
-func Cmd_Exists(cmd_name *C.char) C.int {
-	ok := cmd.Exists(C.GoString(cmd_name))
-	if ok {
-		return 1
-	}
-	return 0
-}
-
 //export Cmd_Argc
 func Cmd_Argc() C.int {
 	// log.Printf("Argc: %v", args.Argc())
@@ -34,12 +25,6 @@ func Cmd_Argc() C.int {
 //export Cmd_ArgvInt
 func Cmd_ArgvInt(i C.int) *C.char {
 	return C.CString(cmd.Argv(int(i)).String())
-}
-
-//export Cmd_ArgvAsInt
-func Cmd_ArgvAsInt(i C.int) C.int {
-	r := cmd.Argv(int(i)).Int()
-	return C.int(r)
 }
 
 //export Cmd_ArgvAsDouble
