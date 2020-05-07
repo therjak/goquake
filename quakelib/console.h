@@ -14,4 +14,5 @@ void Con_DPrintf2(const char *fmt, ...)
 void Con_SafePrintf(const char *fmt, ...)
     __attribute__((__format__(__printf__, 1, 2)));
 
+void Sys_Error(const char *error, ...);
 #endif /* __CONSOLE_H */

@@ -73,10 +73,10 @@ extern "C" {
 #define DIST_EPSILON \
   (0.03125)  // 1/32 epsilon to keep floating point happy (moved from world.c)
 
-#define MAX_MSGLEN 64000  
-  // max length of a reliable message //ericw -- was 32000
-#define MAX_DATAGRAM 32000  
-  // max length of unreliable message //johnfitz -- was 1024
+#define MAX_MSGLEN 64000
+// max length of a reliable message //ericw -- was 32000
+#define MAX_DATAGRAM 32000
+// max length of unreliable message //johnfitz -- was 1024
 
 #define DATAGRAM_MTU \
   1400  // johnfitz -- actual limit for unreliable messages to nonlocal clients
@@ -193,32 +193,27 @@ typedef struct {
   int memsize;
 } quakeparms_t;
 
-#include "common.h"
 #include "bspfile.h"
-#include "sys.h"
-#include "zone.h"
-#include "mathlib.h"
-#include "cvar.h"
-
-#include "protocol.h"
-
 #include "cmd.h"
+#include "common.h"
+#include "cvar.h"
+#include "mathlib.h"
+#include "protocol.h"
+#include "zone.h"
 
 #ifndef APIENTRY
 #define APIENTRY
 #endif
 
-#include "console.h"
-#include "vid.h"
-#include "draw.h"
-#include "render.h"
-#include "client.h"
-
-#include "gl_model.h"
-
-#include "gl_texmgr.h"  //johnfitz
 #include "_cgo_export.h"
+#include "client.h"
+#include "console.h"
+#include "draw.h"
+#include "gl_model.h"
+#include "gl_texmgr.h"  //johnfitz
 #include "glquake.h"
+#include "render.h"
+#include "vid.h"
 
 //=============================================================================
 
