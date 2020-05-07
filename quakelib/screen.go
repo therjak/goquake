@@ -139,31 +139,6 @@ func SCR_CenterPrint(s *C.char) {
 	screen.CenterPrint(C.GoString(s))
 }
 
-//export SCR_SetDrawLoading
-func SCR_SetDrawLoading(b int) {
-	screen.loading = (b != 0)
-}
-
-//export SCR_GetVRectX
-func SCR_GetVRectX() int {
-	return screen.vrect.x
-}
-
-//export SCR_GetVRectY
-func SCR_GetVRectY() int {
-	return screen.vrect.y
-}
-
-//export SCR_GetVRectHeight
-func SCR_GetVRectHeight() int {
-	return screen.vrect.height
-}
-
-//export SCR_GetVRectWidth
-func SCR_GetVRectWidth() int {
-	return screen.vrect.width
-}
-
 //export SCR_ModalMessage
 func SCR_ModalMessage(c *C.char, timeout C.float) bool {
 	return screen.ModalMessage(C.GoString(c), time.Second*time.Duration(timeout))

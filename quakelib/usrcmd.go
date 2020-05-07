@@ -181,7 +181,6 @@ func (v *userView) mouseMove() {
 	}
 }
 
-//export HandleMove
 func HandleMove() {
 	v := userView{
 		pitch: cl.pitch,

@@ -68,16 +68,6 @@ func COM_InitFilesystem() {
 	}
 }
 
-//export COM_GameDir
-func COM_GameDir() *C.char {
-	return C.CString(gameDirectory)
-}
-
-//export COM_BaseDir
-func COM_BaseDir() *C.char {
-	return C.CString(baseDirectory)
-}
-
 func GameDirectory() string {
 	return gameDirectory
 }

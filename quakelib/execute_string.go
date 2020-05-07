@@ -18,11 +18,6 @@ func Cmd_ExecuteString(s *C.char, source C.int) {
 	}
 }
 
-//export IsSrcCommand
-func IsSrcCommand() bool {
-	return execute.IsSrcCommand()
-}
-
 func init() {
 	execute.SetExecutors([](func([]cmd.QArg, int) bool){
 		cmd.Execute,
