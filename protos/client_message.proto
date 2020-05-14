@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package protos;
+option go_package = ".;protos";
+
+// nop == empty Cmd
+// disconnect
+// stringcmd
+// move
+
+message UsrCmd {
+  float message_time = 1;
+  float pitch = 2;
+  float yaw = 3;
+  float roll = 4;
+  float forward = 5;
+  float side = 6;
+  float up = 7;
+  bool attack = 8;
+  bool jump = 9;
+  int32 impulse = 10;
+}
+
+message Cmd {
+  oneof cmd_onof {
+    bool disconnect = 1;
+    string string_cmd = 2;
+    UsrCmd move_cmd = 3;
+  }
+}
+
+message ClientMessage {
+  repeated Cmd cmd = 1;
+}
