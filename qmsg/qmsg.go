@@ -3,7 +3,7 @@ package qmsg
 import (
 	"bytes"
 	"encoding/binary"
-	prfl "quake/protocol/flags"
+	"quake/protocol"
 )
 
 type ClientWriter interface {
@@ -17,9 +17,9 @@ type ClientWriter interface {
 }
 
 func NewClientWriter(flags uint16) ClientWriter {
-	if flags&prfl.ANGLEFLOAT != 0 {
+	if flags&protocol.ANGLEFLOAT != 0 {
 		return &WriterFloatAngle{}
-	} else if flags&prfl.ANGLESHORT != 0 {
+	} else if flags&protocol.ANGLESHORT != 0 {
 		return &WriterShortAngle{}
 	}
 	return &WriterByteAngle{}

@@ -523,11 +523,13 @@ func CL_Protocol() C.uint {
 //export CL_SetProtocol
 func CL_SetProtocol(v C.uint) {
 	cl.protocol = uint16(v)
+	clc.SetProtocol(int(v))
 }
 
 //export CL_SetProtocolFlags
 func CL_SetProtocolFlags(v C.uint) {
 	cl.protocolFlags = uint16(v)
+	clc.SetProtocolFlags(int(v))
 }
 
 //export CL_ProtocolFlags

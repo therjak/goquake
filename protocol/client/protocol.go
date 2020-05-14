@@ -1,5 +1,9 @@
 package client
 
+import (
+	"quake/protos"
+)
+
 const (
 	//
 	// client to server
@@ -12,3 +16,20 @@ const (
 	// [string] message
 	StringCmd = 4
 )
+
+var (
+	protocol      int
+	protocolFlags int
+)
+
+func SetProtocol(p int) {
+	protocol = p
+}
+
+func SetProtocolFlags(f int) {
+	protocolFlags = f
+}
+
+func ToBytes(pb *protos.ClientMessage) []byte {
+	return nil
+}

@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 	"io"
 	"log"
-	prfl "quake/protocol/flags"
+	"quake/protocol"
 	"strings"
 )
 
@@ -107,21 +107,21 @@ func (q *QReader) ReadCoord32f() (float32, error) {
 // it is not needed to always check these flags, just change the called function
 // whenever cl.protocolflags would be changed
 func (q *QReader) ReadCoord(flags uint16) (float32, error) {
-	if flags&prfl.COORDFLOAT != 0 {
+	if flags&protocol.COORDFLOAT != 0 {
 		return q.ReadFloat32()
-	} else if flags&prfl.COORDINT32 != 0 {
+	} else if flags&protocol.COORDINT32 != 0 {
 		i, err := q.ReadInt32()
 		return float32(i) * (1.0 / 16.0), err
-	} else if flags&prfl.COORD24BIT != 0 {
+	} else if flags&protocol.COORD24BIT != 0 {
 		return q.ReadCoord24()
 	}
 	return q.ReadCoord16()
 }
 
 func (q *QReader) ReadAngle(flags uint32) (float32, error) {
-	if flags&prfl.ANGLEFLOAT != 0 {
+	if flags&protocol.ANGLEFLOAT != 0 {
 		return q.ReadFloat32()
-	} else if flags&prfl.ANGLESHORT != 0 {
+	} else if flags&protocol.ANGLESHORT != 0 {
 		i, err := q.ReadInt16()
 		return float32(i) * (360.0 / 65536.0), err
 	}
@@ -130,7 +130,7 @@ func (q *QReader) ReadAngle(flags uint32) (float32, error) {
 }
 
 func (q *QReader) ReadAngle16(flags uint32) (float32, error) {
-	if flags&prfl.ANGLEFLOAT != 0 {
+	if flags&protocol.ANGLEFLOAT != 0 {
 		return q.ReadFloat32()
 	}
 	i, err := q.ReadInt16()
