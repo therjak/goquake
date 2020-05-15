@@ -915,7 +915,7 @@ func CL_SignonReply() {
 
 		color := int(cvars.ClientColor.Value())
 		cls.outMessage.WriteByte(clc.StringCmd)
-		cls.outMessage.WriteString(fmt.Sprintf("color %d %d\n", color>>4, color&15))
+		cls.outMessage.WriteString(fmt.Sprintf("color %d %d", color>>4, color&15))
 		cls.outMessage.WriteByte(0)
 
 		cls.outMessage.WriteByte(clc.StringCmd)

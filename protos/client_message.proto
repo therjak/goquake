@@ -22,7 +22,7 @@ message UsrCmd {
 }
 
 message Cmd {
-  oneof cmd_onof {
+  oneof union {
     bool disconnect = 1;
     string string_cmd = 2;
     UsrCmd move_cmd = 3;

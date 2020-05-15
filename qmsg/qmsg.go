@@ -14,6 +14,7 @@ type ClientWriter interface {
 	WriteFloat(f float32) error
 	WriteAngle(f float32) error
 	WriteAngle16(f float32) error
+	WriteString(s string) (int, error)
 }
 
 func NewClientWriter(flags uint16) ClientWriter {
