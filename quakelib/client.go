@@ -681,57 +681,40 @@ func (c *ClientStatic) getMessage() int {
 	}
 
 	r := 0
+	var data []byte
+	var err error
 	for {
 		c.msgBadRead = false
 
-		m, err := c.connection.GetMessage()
+		data, err = c.connection.GetMessage()
 		if err != nil {
 			return -1
 		}
-		if m == nil || m.Len() == 0 {
+		if len(data) == 0 {
 			return 0
 		}
-		c.inMessage = m
-		b, err := c.inMessage.ReadByte()
-		if err != nil {
-			return -1
-		}
-		r = int(b)
-
 		// discard nop keepalive message
-		if c.inMessage.Len() == 1 {
-			m, err := c.inMessage.ReadByte()
-			if err != nil {
-				// Should never happen as we already know there is exactly one byte
-				log.Fatalf("Error in GetMessage: %v", err)
-			}
-			if m == svc.Nop {
-				// Con_Printf("<-- server to client keepalive\n")
-			} else {
-				// The original was doing a BeginReading which was setting the read cursor to
-				// the begining so this was not needed. As the BeginReading was removed, step
-				// back.
-				c.inMessage.UnreadByte()
-				break
-			}
-		} else {
-			break
+		if len(data) == 2 && data[1] == svc.Nop {
+			// Con_Printf("<-- server to client keepalive\n")
+			continue
 		}
+		r = int(data[0])
+		// drop the 'r' value as it is not part of the actual data and only
+		// indicates if it was a reliable (1) or unreliable (2) send
+		data = data[1:]
+		break
 	}
+	c.inMessage = net.NewQReader(data)
 
 	if c.demoWriter != nil {
-		// TODO: why do I need to remove 1 byte? Is it the BeginReading stuff again?
-		b := c.inMessage.Bytes()
-		c.writeDemoMessage(b[1:])
+		c.writeDemoMessage(data)
 	}
 
 	if c.signon < 2 {
 		// record messages before full connection, so that a
 		// demo record can happen after connection is done
 		c.demoSignon[c.signon].Reset()
-		// TODO: why do I need to remove 1 byte?
-		b := c.inMessage.Bytes()
-		c.demoSignon[c.signon].Write(b[1:])
+		c.demoSignon[c.signon].Write(data)
 	}
 
 	return r
@@ -1087,6 +1070,7 @@ Outer:
 		case 1:
 			HostError("CL_KeepaliveMessage: received a message")
 		case 2:
+			conlog.Printf("WTF? This should never happen")
 			i, err := cls.inMessage.ReadByte()
 			if err != nil || i != svc.Nop {
 				HostError("CL_KeepaliveMessage: datagram wasn't a nop")

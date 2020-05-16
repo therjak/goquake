@@ -10,7 +10,7 @@ import (
 	"quake/keys"
 	"quake/net"
 	"quake/protocol"
-	"quake/protocol/client"
+	clc "quake/protocol/client"
 	"quake/protocol/server"
 	"strings"
 	"time"
@@ -252,15 +252,15 @@ var (
 
 func (cl *SVClient) GetMessage() int {
 	msg_badread = false
-	r, err := cl.netConnection.GetMessage()
+	data, err := cl.netConnection.GetMessage()
 	if err != nil {
 		return -1
 	}
-	if r == nil || r.Len() == 0 {
+	if len(data) == 0 {
 		return 0
 	}
-	netMessage = r
-	b, err := r.ReadByte()
+	netMessage = net.NewQReader(data)
+	b, err := netMessage.ReadByte()
 	if err != nil {
 		return -1
 	}
@@ -373,10 +373,10 @@ outerloop:
 			default:
 				log.Printf("SV_ReadClientMessage: unknown command char\n")
 				return false
-			case client.Nop:
-			case client.Disconnect:
+			case clc.Nop:
+			case clc.Disconnect:
 				return false
-			case client.Move:
+			case clc.Move:
 				pt, err := netMessage.ReadFloat32()
 				if err != nil {
 					log.Printf("SV_ReadClientMessage: badread %v\n", err)
@@ -443,7 +443,7 @@ outerloop:
 				if impulse != 0 {
 					ev.Impulse = float32(impulse)
 				}
-			case client.StringCmd:
+			case clc.StringCmd:
 				s, err := netMessage.ReadString()
 				if err != nil {
 					log.Printf("SV_ReadClientMessage: badread 3 %v\n", err)

@@ -610,7 +610,7 @@ func (c *Connection) Close() {
 	// TODO: see loop.Close
 }
 
-func (c *Connection) GetMessage() (*QReader, error) {
+func (c *Connection) GetMessage() ([]byte, error) {
 	if c.in == nil {
 		return nil, fmt.Errorf("Connection is not established")
 	}
@@ -621,7 +621,7 @@ func (c *Connection) GetMessage() (*QReader, error) {
 			c.Close()
 			return nil, fmt.Errorf("Connection is not open")
 		}
-		return NewQReader(m.data), nil
+		return m.data, nil
 	default:
 		return nil, nil
 	}
