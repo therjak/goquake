@@ -244,27 +244,8 @@ TimeoutLoop:
 	}
 }
 
-var (
-	// There is only one reader which gets switched for each client
-	msg_badread = false
-	netMessage  *net.QReader
-)
-
-func (cl *SVClient) GetMessage() int {
-	msg_badread = false
-	data, err := cl.netConnection.GetMessage()
-	if err != nil {
-		return -1
-	}
-	if len(data) == 0 {
-		return 0
-	}
-	netMessage = net.NewQReader(data)
-	b, err := netMessage.ReadByte()
-	if err != nil {
-		return -1
-	}
-	return int(b)
+func (cl *SVClient) GetMessage() {
+	cl.netConnection.GetMessage()
 }
 
 func (c *SVClient) SendServerinfo() {
@@ -346,23 +327,20 @@ func (c *SVClient) ReadClientMessage(player int) bool {
 	ret := 1
 outerloop:
 	for ret == 1 {
-		ret = c.GetMessage()
-		if ret == -1 {
+		data, err := c.netConnection.GetMessage()
+		if err != nil {
 			log.Printf("SV_ReadClientMessage: ClientGetMessage failed\n")
 			return false
 		}
-		if ret == 0 {
+		if len(data) == 0 {
 			return true
 		}
+		ret = int(data[0])
+		netMessage := net.NewQReader(data[1:])
 
 		for {
 			if !c.active {
 				// a command caused an error
-				return false
-			}
-			if msg_badread {
-				// TODO: eleminate
-				log.Printf("SV_ReadClientMessage: badread\n")
 				return false
 			}
 			ccmd, err := netMessage.ReadInt8()
