@@ -1,6 +1,8 @@
 package client
 
 import (
+	"fmt"
+	"quake/net"
 	ptcl "quake/protocol"
 	"quake/protos"
 	"quake/qmsg"
@@ -76,4 +78,89 @@ func ToBytes(pb *protos.ClientMessage) []byte {
 		}
 	}
 	return b.Bytes()
+}
+
+func FromBytes(data []byte) (*protos.ClientMessage, error) {
+	netMessage := net.NewQReader(data)
+	readAngle := netMessage.ReadAngle16
+	if protocol == ptcl.NetQuake {
+		readAngle = netMessage.ReadAngle
+	}
+	pb := &protos.ClientMessage{}
+	flags := uint32(protocolFlags)
+	var err error
+	for netMessage.Len() != 0 {
+		ccmd, _ := netMessage.ReadInt8()
+		switch ccmd {
+		default:
+			return nil, fmt.Errorf("SV_ReadClientMessage: unknown command char %v\n", ccmd)
+		case Nop:
+			pb.Cmds = append(pb.Cmds, &protos.Cmd{})
+		case Disconnect:
+			pb.Cmds = append(pb.Cmds, &protos.Cmd{
+				Union: &protos.Cmd_Disconnect{true},
+			})
+		case Move:
+			cmd := &protos.UsrCmd{}
+			cmd.MessageTime, err = netMessage.ReadFloat32()
+			if err != nil {
+				return nil, fmt.Errorf("SV_ReadClientMessage: badread %v\n", err)
+			}
+
+			cmd.Pitch, err = readAngle(flags)
+			if err != nil {
+				return nil, fmt.Errorf("SV_ReadClientMessage: badread %v\n", err)
+			}
+			cmd.Yaw, err = readAngle(flags)
+			if err != nil {
+				return nil, fmt.Errorf("SV_ReadClientMessage: badread %v\n", err)
+			}
+			cmd.Roll, err = readAngle(flags)
+			if err != nil {
+				return nil, fmt.Errorf("SV_ReadClientMessage: badread %v\n", err)
+			}
+
+			forward, err := netMessage.ReadInt16()
+			if err != nil {
+				return nil, fmt.Errorf("SV_ReadClientMessage: badread %v\n", err)
+			}
+			side, err := netMessage.ReadInt16()
+			if err != nil {
+				return nil, fmt.Errorf("SV_ReadClientMessage: badread %v\n", err)
+			}
+			upward, err := netMessage.ReadInt16()
+			if err != nil {
+				return nil, fmt.Errorf("SV_ReadClientMessage: badread %v\n", err)
+			}
+			cmd.Forward = float32(forward)
+			cmd.Side = float32(side)
+			cmd.Up = float32(upward)
+
+			bits, err := netMessage.ReadByte()
+			if err != nil {
+				return nil, fmt.Errorf("SV_ReadClientMessage: badread %v\n", err)
+			}
+			cmd.Attack = (bits & 1) != 0
+			cmd.Jump = (bits & 2) != 0
+
+			impulse, err := netMessage.ReadByte()
+			if err != nil {
+				return nil, fmt.Errorf("SV_ReadClientMessage: badread %v\n", err)
+			}
+			cmd.Impulse = int32(impulse)
+
+			pb.Cmds = append(pb.Cmds, &protos.Cmd{
+				Union: &protos.Cmd_MoveCmd{cmd},
+			})
+		case StringCmd:
+			s, err := netMessage.ReadString()
+			if err != nil {
+				return nil, fmt.Errorf("SV_ReadClientMessage: badread %v\n", err)
+			}
+			pb.Cmds = append(pb.Cmds, &protos.Cmd{
+				Union: &protos.Cmd_StringCmd{s},
+			})
+		}
+	}
+	return pb, nil
 }
