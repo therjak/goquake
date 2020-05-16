@@ -7,9 +7,8 @@ import (
 	"quake/conlog"
 	"quake/cvars"
 	"quake/input"
-	"quake/protocol"
 	clc "quake/protocol/client"
-	"quake/qmsg"
+	"quake/protos"
 )
 
 var (
@@ -110,39 +109,25 @@ func (u *userMove) mouseMove() {
 
 // Send unreliable message (CL_SendMove)
 func send(v userView, m userMove) {
-	// m == cmd
-	b := qmsg.NewClientWriter(cl.protocolFlags)
+	cmd := &protos.UsrCmd{
+		MessageTime: float32(cl.messageTime),
+		Pitch:       v.pitch,
+		Yaw:         v.yaw,
+		Roll:        v.roll,
+		Forward:     m.forward,
+		Side:        m.side,
+		Up:          m.up,
+		Attack:      input.Attack.WentDown(),
+		Jump:        input.Jump.WentDown(),
+		Impulse:     int32(in_impulse),
+	}
+	pb := &protos.ClientMessage{}
+	pb.Cmds = append(pb.Cmds, &protos.Cmd{
+		Union: &protos.Cmd_MoveCmd{
+			cmd,
+		}})
 
 	cl.cmdForwardMove = m.forward
-
-	b.WriteByte(clc.Move)
-
-	b.WriteFloat(float32(cl.messageTime))
-
-	if cl.protocol == protocol.NetQuake {
-		b.WriteAngle(v.pitch)
-		b.WriteAngle(v.yaw)
-		b.WriteAngle(v.roll)
-	} else {
-		b.WriteAngle16(v.pitch)
-		b.WriteAngle16(v.yaw)
-		b.WriteAngle16(v.roll)
-	}
-
-	b.WriteShort(uint16(m.forward))
-	b.WriteShort(uint16(m.side))
-	b.WriteShort(uint16(m.up))
-
-	bits := byte(0)
-	if input.Attack.WentDown() {
-		bits |= 1
-	}
-	if input.Jump.WentDown() {
-		bits |= 2
-	}
-	b.WriteByte(bits)
-
-	b.WriteByte(byte(in_impulse))
 	in_impulse = 0
 
 	if cls.demoPlayback {
@@ -154,7 +139,7 @@ func send(v userView, m userMove) {
 		return
 	}
 
-	if cls.connection.SendUnreliableMessage(b.Bytes()) == -1 {
+	if cls.connection.SendUnreliableMessage(clc.ToBytes(pb)) == -1 {
 		conlog.Printf("CL_SendMove: lost server connection\n")
 		cls.Disconnect()
 	}

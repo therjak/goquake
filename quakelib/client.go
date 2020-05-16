@@ -35,6 +35,7 @@ import (
 	"quake/progs"
 	clc "quake/protocol/client"
 	svc "quake/protocol/server"
+	"quake/protos"
 	"quake/snd"
 	"quake/stat"
 	"strings"
@@ -156,7 +157,7 @@ type ClientStatic struct {
 	signon             int
 	connection         *net.Connection
 	inMessage          *net.QReader
-	outMessage         bytes.Buffer
+	outProto           protos.ClientMessage
 	timeDemoLastFrame  int
 	timeDemoStartFrame int
 	timeDemoStartTime  float64
@@ -624,7 +625,7 @@ func CLS_SetSignon(s C.int) {
 
 //export CLSMessageClear
 func CLSMessageClear() {
-	cls.outMessage.Reset()
+	cls.outProto.Reset()
 }
 
 func executeOnServer(args []cmd.QArg, _ int) {
@@ -636,9 +637,9 @@ func executeOnServer(args []cmd.QArg, _ int) {
 		return
 	}
 	if len(args) > 0 {
-		cls.outMessage.WriteByte(clc.StringCmd)
-		cls.outMessage.WriteString(cmd.Full())
-		cls.outMessage.WriteByte(0)
+		cls.outProto.Cmds = append(cls.outProto.Cmds, &protos.Cmd{
+			Union: &protos.Cmd_StringCmd{cmd.Full()},
+		})
 	}
 }
 
@@ -650,15 +651,16 @@ func forwardToServer(c string, args []cmd.QArg) {
 	if cls.demoPlayback {
 		return
 	}
-	cls.outMessage.WriteByte(clc.StringCmd)
-	cls.outMessage.WriteString(c)
 	if len(args) > 0 {
-		cls.outMessage.WriteString(" ")
-		cls.outMessage.WriteString(cmd.Full())
+		s := c + " " + cmd.Full()
+		cls.outProto.Cmds = append(cls.outProto.Cmds, &protos.Cmd{
+			Union: &protos.Cmd_StringCmd{s},
+		})
 	} else {
-		cls.outMessage.WriteString("\n")
+		cls.outProto.Cmds = append(cls.outProto.Cmds, &protos.Cmd{
+			Union: &protos.Cmd_StringCmd{c},
+		})
 	}
-	cls.outMessage.WriteByte(0)
 }
 
 func init() {
@@ -829,11 +831,13 @@ func (c *ClientStatic) Disconnect() {
 		c.stopDemoRecording()
 
 		conlog.DPrintf("Sending clc_disconnect\n")
-		c.outMessage.Reset()
-		c.outMessage.WriteByte(clc.Disconnect)
-		b := c.outMessage.Bytes()
+
+		cls.outProto.Cmds = append(cls.outProto.Cmds[:0], &protos.Cmd{
+			Union: &protos.Cmd_Disconnect{true},
+		})
+		b := clc.ToBytes(&cls.outProto)
 		c.connection.SendUnreliableMessage(b)
-		c.outMessage.Reset()
+		cls.outProto.Reset()
 		cls.connection.Close()
 
 		c.state = ca_disconnected
@@ -894,7 +898,7 @@ func clEstablishConnection(host string) {
 	cls.state = ca_connected
 	// need all the signon messages before playing
 	cls.signon = 0
-	cls.outMessage.WriteByte(clc.Nop)
+	cls.outProto.Cmds = append(cls.outProto.Cmds, &protos.Cmd{})
 }
 
 // An svc_signonnum has been received, perform a client side setup
@@ -904,28 +908,28 @@ func CL_SignonReply() {
 
 	switch cls.signon {
 	case 1:
-		cls.outMessage.WriteByte(clc.StringCmd)
-		cls.outMessage.WriteString("prespawn")
-		cls.outMessage.WriteByte(0)
+		cls.outProto.Cmds = append(cls.outProto.Cmds, &protos.Cmd{
+			Union: &protos.Cmd_StringCmd{"prespawn"},
+		})
 
 	case 2:
-		cls.outMessage.WriteByte(clc.StringCmd)
-		cls.outMessage.WriteString(fmt.Sprintf("name \"%s\"", cvars.ClientName.String()))
-		cls.outMessage.WriteByte(0)
-
 		color := int(cvars.ClientColor.Value())
-		cls.outMessage.WriteByte(clc.StringCmd)
-		cls.outMessage.WriteString(fmt.Sprintf("color %d %d", color>>4, color&15))
-		cls.outMessage.WriteByte(0)
-
-		cls.outMessage.WriteByte(clc.StringCmd)
-		cls.outMessage.WriteString(fmt.Sprintf("spawn %s", cls.spawnParms))
-		cls.outMessage.WriteByte(0)
+		cls.outProto.Cmds = append(cls.outProto.Cmds,
+			&protos.Cmd{
+				Union: &protos.Cmd_StringCmd{fmt.Sprintf("name \"%s\"", cvars.ClientName.String())},
+			},
+			&protos.Cmd{
+				Union: &protos.Cmd_StringCmd{fmt.Sprintf("color %d %d", color>>4, color&15)},
+			},
+			&protos.Cmd{
+				Union: &protos.Cmd_StringCmd{fmt.Sprintf("spawn %s", cls.spawnParms)},
+			},
+		)
 
 	case 3:
-		cls.outMessage.WriteByte(clc.StringCmd)
-		cls.outMessage.WriteString("begin")
-		cls.outMessage.WriteByte(0)
+		cls.outProto.Cmds = append(cls.outProto.Cmds, &protos.Cmd{
+			Union: &protos.Cmd_StringCmd{"begin"},
+		})
 
 	case 4:
 		screen.EndLoadingPlaque() // allow normal screen updates
@@ -943,12 +947,11 @@ func CL_SendCmd() {
 	}
 
 	if cls.demoPlayback {
-		cls.outMessage.Reset()
+		cls.outProto.Reset()
 		return
 	}
 
-	// send the reliable message
-	if cls.outMessage.Len() == 0 {
+	if len(cls.outProto.Cmds) == 0 {
 		return // no message at all
 	}
 
@@ -957,12 +960,12 @@ func CL_SendCmd() {
 		return
 	}
 
-	b := cls.outMessage.Bytes()
+	b := clc.ToBytes(&cls.outProto)
 	i := cls.connection.SendMessage(b)
 	if i == -1 {
 		HostError("CL_SendCmd: lost server connection")
 	}
-	cls.outMessage.Reset()
+	cls.outProto.Reset()
 }
 
 //export CL_ParseStartSoundPacket
@@ -1106,10 +1109,10 @@ Outer:
 	// write out a nop
 	conlog.Printf("--> client to server keepalive\n")
 
-	cls.outMessage.WriteByte(clc.Nop)
-	b := cls.outMessage.Bytes()
+	cls.outProto.Cmds = append(cls.outProto.Cmds, &protos.Cmd{})
+	b := clc.ToBytes(&cls.outProto)
 	cls.connection.SendMessage(b)
-	cls.outMessage.Reset()
+	cls.outProto.Reset()
 }
 
 var (

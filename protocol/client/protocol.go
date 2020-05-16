@@ -34,7 +34,7 @@ func SetProtocolFlags(f int) {
 
 func ToBytes(pb *protos.ClientMessage) []byte {
 	b := qmsg.NewClientWriter(uint16(protocolFlags))
-	for _, c := range pb.GetCmd() {
+	for _, c := range pb.GetCmds() {
 		switch c.Union.(type) {
 		default:
 			b.WriteByte(Nop)

@@ -86,11 +86,12 @@ func (a QArg) Float64() float64 {
 }
 
 func (a QArg) Bool() bool {
-	r, err := strconv.ParseBool(a.a)
-	if err != nil {
+	switch a.a {
+	case "1", "t", "T", "true", "TRUE", "True", "On", "ON", "on":
+		return true
+	default:
 		return false
 	}
-	return r
 }
 
 type commandArgs struct {

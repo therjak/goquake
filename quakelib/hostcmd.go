@@ -172,7 +172,11 @@ func hostFly(args []cmd.QArg, player int) {
 		}
 	}
 	ev.MoveType = float32(m)
-	HostClient().Printf("flymode %v\n", qFormatI(m&progs.MoveTypeFly))
+	if m == progs.MoveTypeFly {
+		HostClient().Printf("flymode %v\n", qFormatI(1))
+	} else {
+		HostClient().Printf("flymode %v\n", qFormatI(0))
+	}
 }
 
 func hostColor(args []cmd.QArg, _ int) {

@@ -30,5 +30,5 @@ message Cmd {
 }
 
 message ClientMessage {
-  repeated Cmd cmd = 1;
+  repeated Cmd cmds = 1;
 }
