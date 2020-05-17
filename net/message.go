@@ -56,7 +56,7 @@ func rint(x float32) int {
 	return int(x - 0.5)
 }
 
-func (m *Message) WriteCoord(f float32, flags int) {
+func (m *Message) WriteCoord(f float32, flags uint32) {
 	if flags&protocol.PRFL_FLOATCOORD != 0 {
 		m.WriteFloat(f)
 	} else if flags&protocol.PRFL_INT32COORD != 0 {
@@ -69,7 +69,7 @@ func (m *Message) WriteCoord(f float32, flags int) {
 	}
 }
 
-func (m *Message) WriteAngle(f float32, flags int) {
+func (m *Message) WriteAngle(f float32, flags uint32) {
 	if flags&protocol.PRFL_FLOATANGLE != 0 {
 		m.WriteFloat(f)
 	} else if flags&protocol.PRFL_SHORTANGLE != 0 {
@@ -79,7 +79,7 @@ func (m *Message) WriteAngle(f float32, flags int) {
 	}
 }
 
-func (m *Message) WriteAngle16(f float32, flags int) {
+func (m *Message) WriteAngle16(f float32, flags uint32) {
 	if flags&protocol.PRFL_FLOATANGLE != 0 {
 		m.WriteFloat(f)
 	} else {

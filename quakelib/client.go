@@ -188,8 +188,8 @@ type Client struct {
 	roll           float32 // 2
 	movemessages   int     // number of messages since connecting to skip the first couple
 	cmdForwardMove float32 // last command sent to the server
-	protocolFlags  uint16
-	protocol       uint16
+	protocolFlags  uint32
+	protocol       int
 	viewentity     int //cl_entities[cl.viewentity] = player
 	onGround       bool
 	paused         bool // music paused
@@ -523,14 +523,12 @@ func CL_Protocol() C.uint {
 
 //export CL_SetProtocol
 func CL_SetProtocol(v C.uint) {
-	cl.protocol = uint16(v)
-	clc.SetProtocol(int(v))
+	cl.protocol = int(v)
 }
 
 //export CL_SetProtocolFlags
 func CL_SetProtocolFlags(v C.uint) {
-	cl.protocolFlags = uint16(v)
-	clc.SetProtocolFlags(int(v))
+	cl.protocolFlags = uint32(v)
 }
 
 //export CL_ProtocolFlags
@@ -818,7 +816,7 @@ func (c *ClientStatic) Disconnect() {
 		cls.outProto.Cmds = append(cls.outProto.Cmds[:0], &protos.Cmd{
 			Union: &protos.Cmd_Disconnect{true},
 		})
-		b := clc.ToBytes(&cls.outProto)
+		b := clc.ToBytes(&cls.outProto, cl.protocol, cl.protocolFlags)
 		c.connection.SendUnreliableMessage(b)
 		cls.outProto.Reset()
 		cls.connection.Close()
@@ -943,7 +941,7 @@ func CL_SendCmd() {
 		return
 	}
 
-	b := clc.ToBytes(&cls.outProto)
+	b := clc.ToBytes(&cls.outProto, cl.protocol, cl.protocolFlags)
 	i := cls.connection.SendMessage(b)
 	if i == -1 {
 		HostError("CL_SendCmd: lost server connection")
@@ -1094,7 +1092,7 @@ Outer:
 	conlog.Printf("--> client to server keepalive\n")
 
 	cls.outProto.Cmds = append(cls.outProto.Cmds, &protos.Cmd{})
-	b := clc.ToBytes(&cls.outProto)
+	b := clc.ToBytes(&cls.outProto, cl.protocol, cl.protocolFlags)
 	cls.connection.SendMessage(b)
 	cls.outProto.Reset()
 }

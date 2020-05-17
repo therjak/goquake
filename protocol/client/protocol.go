@@ -21,20 +21,7 @@ const (
 	StringCmd = 4
 )
 
-var (
-	protocol      int
-	protocolFlags int
-)
-
-func SetProtocol(p int) {
-	protocol = p
-}
-
-func SetProtocolFlags(f int) {
-	protocolFlags = f
-}
-
-func ToBytes(pb *protos.ClientMessage) []byte {
+func ToBytes(pb *protos.ClientMessage, protocol int, protocolFlags uint32) []byte {
 	b := qmsg.NewClientWriter(uint16(protocolFlags))
 	for _, c := range pb.GetCmds() {
 		switch c.Union.(type) {
@@ -80,14 +67,13 @@ func ToBytes(pb *protos.ClientMessage) []byte {
 	return b.Bytes()
 }
 
-func FromBytes(data []byte) (*protos.ClientMessage, error) {
+func FromBytes(data []byte, protocol int, flags uint32) (*protos.ClientMessage, error) {
 	netMessage := net.NewQReader(data)
 	readAngle := netMessage.ReadAngle16
 	if protocol == ptcl.NetQuake {
 		readAngle = netMessage.ReadAngle
 	}
 	pb := &protos.ClientMessage{}
-	flags := uint32(protocolFlags)
 	var err error
 	for netMessage.Len() != 0 {
 		ccmd, _ := netMessage.ReadInt8()

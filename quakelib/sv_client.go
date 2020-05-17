@@ -12,6 +12,7 @@ import (
 	"quake/protocol"
 	clc "quake/protocol/client"
 	"quake/protocol/server"
+	"quake/protos"
 	"strings"
 	"time"
 )
@@ -324,112 +325,36 @@ func (c *SVClient) ReadClientMessage(player int) bool {
 	hasPrefix := func(s, prefix string) bool {
 		return len(s) >= len(prefix) && strings.ToLower(s[0:len(prefix)]) == prefix
 	}
-	ret := 1
-outerloop:
-	for ret == 1 {
+	for {
 		data, err := c.netConnection.GetMessage()
 		if err != nil {
 			log.Printf("SV_ReadClientMessage: ClientGetMessage failed\n")
 			return false
 		}
 		if len(data) == 0 {
-			return true
+			return true // this is the default exit
 		}
-		ret = int(data[0])
-		netMessage := net.NewQReader(data[1:])
-
-		for {
+		// we do not care about the first byte as it only indicates if it was
+		// send reliably (1) or not (2)
+		pb, err := clc.FromBytes(data[1:], sv.protocol, sv.protocolFlags)
+		if err != nil {
+			log.Printf("SV_ReadClientMessage: %v", err)
+			return false
+		}
+		for _, cmd := range pb.GetCmds() {
 			if !c.active {
 				// a command caused an error
 				return false
 			}
-			ccmd, err := netMessage.ReadInt8()
-			if err != nil {
-				continue outerloop
-			}
-			switch ccmd {
+			switch cmd.Union.(type) {
 			default:
-				log.Printf("SV_ReadClientMessage: unknown command char\n")
+				// nop
+			case *protos.Cmd_Disconnect:
 				return false
-			case clc.Nop:
-			case clc.Disconnect:
-				return false
-			case clc.Move:
-				pt, err := netMessage.ReadFloat32()
-				if err != nil {
-					log.Printf("SV_ReadClientMessage: badread %v\n", err)
-					return false
-				}
-				c.pingTimes[c.numPings%len(c.pingTimes)] = sv.time - pt
-				c.numPings++
-				c.numPings %= len(c.pingTimes)
-
-				ev := EntVars(c.edictId)
-				readAngle := netMessage.ReadAngle16
-				if sv.protocol == protocol.NetQuake {
-					readAngle = netMessage.ReadAngle
-				}
-				x, err := readAngle(uint32(sv.protocolFlags))
-				if err != nil {
-					log.Printf("SV_ReadClientMessage: badread %v\n", err)
-					return false
-				}
-				y, err := readAngle(uint32(sv.protocolFlags))
-				if err != nil {
-					log.Printf("SV_ReadClientMessage: badread %v\n", err)
-					return false
-				}
-				z, err := readAngle(uint32(sv.protocolFlags))
-				if err != nil {
-					log.Printf("SV_ReadClientMessage: badread %v\n", err)
-					return false
-				}
-				ev.VAngle[0] = x
-				ev.VAngle[1] = y
-				ev.VAngle[2] = z
-
-				forward, err := netMessage.ReadInt16()
-				if err != nil {
-					log.Printf("SV_ReadClientMessage: badread %v\n", err)
-					return false
-				}
-				side, err := netMessage.ReadInt16()
-				if err != nil {
-					log.Printf("SV_ReadClientMessage: badread %v\n", err)
-					return false
-				}
-				upward, err := netMessage.ReadInt16()
-				if err != nil {
-					log.Printf("SV_ReadClientMessage: badread %v\n", err)
-					return false
-				}
-				c.cmd.forwardmove = float32(forward)
-				c.cmd.sidemove = float32(side)
-				c.cmd.upmove = float32(upward)
-				bits, err := netMessage.ReadByte()
-				if err != nil {
-					log.Printf("SV_ReadClientMessage: badread %v\n", err)
-					return false
-				}
-				ev.Button0 = float32(bits & 1)
-				ev.Button2 = float32((bits & 2) >> 1)
-				impulse, err := netMessage.ReadByte()
-				if err != nil {
-					log.Printf("SV_ReadClientMessage: badread %v\n", err)
-					return false
-				}
-				if impulse != 0 {
-					ev.Impulse = float32(impulse)
-				}
-			case clc.StringCmd:
-				s, err := netMessage.ReadString()
-				if err != nil {
-					log.Printf("SV_ReadClientMessage: badread 3 %v\n", err)
-					return false
-				}
+			case *protos.Cmd_StringCmd:
+				s := cmd.GetStringCmd()
 				switch {
 				default:
-					ret = 0
 					conlog.Printf("%s tried to %s\n", c.name, s)
 				case
 					hasPrefix(s, "status"),
@@ -452,14 +377,34 @@ outerloop:
 					hasPrefix(s, "ping"),
 					hasPrefix(s, "give"),
 					hasPrefix(s, "ban"):
-					ret = 1
 					execute.Execute(s, execute.Client, player)
+				}
+			case *protos.Cmd_MoveCmd:
+				mc := cmd.GetMoveCmd()
+				c.pingTimes[c.numPings%len(c.pingTimes)] = sv.time - mc.GetMessageTime()
+				c.numPings++
+				c.numPings %= len(c.pingTimes)
+				ev := EntVars(c.edictId)
+				ev.VAngle[0] = mc.GetPitch()
+				ev.VAngle[1] = mc.GetYaw()
+				ev.VAngle[2] = mc.GetRoll()
+				c.cmd.forwardmove = mc.GetForward()
+				c.cmd.sidemove = mc.GetSide()
+				c.cmd.upmove = mc.GetUp()
+				ev.Button0 = 0
+				ev.Button2 = 0
+				if mc.GetAttack() {
+					ev.Button0 = 1
+				}
+				if mc.GetJump() {
+					ev.Button2 = 1
+				}
+				if impulse := mc.GetImpulse(); impulse != 0 {
+					ev.Impulse = float32(impulse)
 				}
 			}
 		}
 	}
-
-	return true
 }
 
 func SV_RunClients() {

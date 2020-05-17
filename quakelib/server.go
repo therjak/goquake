@@ -84,8 +84,8 @@ type Server struct {
 
 	edicts []Edict
 
-	protocol      uint16
-	protocolFlags int
+	protocol      int
+	protocolFlags uint32
 
 	state ServerState // some actions are only valid during load
 
@@ -1195,7 +1195,7 @@ func (s *Server) SpawnServer(name string) {
 	C.Host_ClearMemory()
 
 	s.name = name
-	s.protocol = uint16(sv_protocol)
+	s.protocol = sv_protocol
 
 	if s.protocol == protocol.RMQ {
 		s.protocolFlags = protocol.PRFL_INT32COORD | protocol.PRFL_SHORTANGLE

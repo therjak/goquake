@@ -139,7 +139,7 @@ func send(v userView, m userMove) {
 		return
 	}
 
-	if cls.connection.SendUnreliableMessage(clc.ToBytes(pb)) == -1 {
+	if cls.connection.SendUnreliableMessage(clc.ToBytes(pb, cl.protocol, cl.protocolFlags)) == -1 {
 		conlog.Printf("CL_SendMove: lost server connection\n")
 		cls.Disconnect()
 	}

@@ -106,7 +106,7 @@ func (q *QReader) ReadCoord32f() (float32, error) {
 // TODO(therjak):
 // it is not needed to always check these flags, just change the called function
 // whenever cl.protocolflags would be changed
-func (q *QReader) ReadCoord(flags uint16) (float32, error) {
+func (q *QReader) ReadCoord(flags uint32) (float32, error) {
 	if flags&protocol.COORDFLOAT != 0 {
 		return q.ReadFloat32()
 	} else if flags&protocol.COORDINT32 != 0 {
