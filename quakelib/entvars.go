@@ -4,8 +4,8 @@ package quakelib
 // It needs a progs.LoadedProg as input
 import (
 	"fmt"
-	"quake/conlog"
-	"quake/progs"
+	"github.com/therjak/goquake/conlog"
+	"github.com/therjak/goquake/progs"
 	"unsafe"
 )
 

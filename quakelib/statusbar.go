@@ -4,13 +4,13 @@ import "C"
 
 import (
 	"fmt"
+	"github.com/therjak/goquake/cmd"
+	cmdl "github.com/therjak/goquake/commandline"
+	"github.com/therjak/goquake/cvars"
+	"github.com/therjak/goquake/math"
+	"github.com/therjak/goquake/progs"
+	svc "github.com/therjak/goquake/protocol/server"
 	"math/bits"
-	"quake/cmd"
-	cmdl "quake/commandline"
-	"quake/cvars"
-	"quake/math"
-	"quake/progs"
-	svc "quake/protocol/server"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
 )

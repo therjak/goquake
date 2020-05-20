@@ -1,10 +1,10 @@
 package quakelib
 
 import (
-	"quake/cbuf"
-	kc "quake/keycode"
-	"quake/keys"
-	"quake/menu"
+	"github.com/therjak/goquake/cbuf"
+	kc "github.com/therjak/goquake/keycode"
+	"github.com/therjak/goquake/keys"
+	"github.com/therjak/goquake/menu"
 )
 
 func enterSinglePlayerMenu() {

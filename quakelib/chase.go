@@ -2,7 +2,7 @@ package quakelib
 
 //#include "cgo_help.h"
 import "C"
-import "quake/math/vec"
+import "github.com/therjak/goquake/math/vec"
 
 func p2v3(p *C.float) vec.Vec3 {
 	return vec.Vec3{

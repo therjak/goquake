@@ -9,9 +9,9 @@ import "C"
 import (
 	"encoding/binary"
 	"fmt"
-	"quake/cvars"
-	"quake/filesystem"
-	"quake/wad"
+	"github.com/therjak/goquake/cvars"
+	"github.com/therjak/goquake/filesystem"
+	"github.com/therjak/goquake/wad"
 	"strings"
 
 	"github.com/go-gl/gl/v4.6-core/gl"

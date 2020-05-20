@@ -1,8 +1,8 @@
 package window
 
 import (
+	"github.com/therjak/goquake/cvars"
 	"log"
-	"quake/cvars"
 	"unsafe"
 
 	"github.com/go-gl/gl/v4.6-core/gl"

@@ -3,10 +3,9 @@ package quakelib
 import "C"
 
 import (
-	cmdl "quake/commandline"
-	//"quake/conlog"
+	cmdl "github.com/therjak/goquake/commandline"
+	"github.com/therjak/goquake/net"
 	"log"
-	"quake/net"
 )
 
 //export NET_Init

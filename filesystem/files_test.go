@@ -1,8 +1,8 @@
 package filesystem
 
 import (
+	"github.com/therjak/goquake/pack"
 	"io/ioutil"
-	"quake/pack"
 	"testing"
 )
 

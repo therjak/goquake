@@ -1,9 +1,9 @@
 package quakelib
 
 import (
-	kc "quake/keycode"
-	"quake/keys"
-	"quake/menu"
+	kc "github.com/therjak/goquake/keycode"
+	"github.com/therjak/goquake/keys"
+	"github.com/therjak/goquake/menu"
 )
 
 func enterMultiPlayerMenu() {

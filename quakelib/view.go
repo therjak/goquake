@@ -4,8 +4,8 @@ package quakelib
 import "C"
 
 import (
-	"quake/cvars"
-	"quake/math/vec"
+	"github.com/therjak/goquake/cvars"
+	"github.com/therjak/goquake/math/vec"
 
 	"github.com/chewxy/math32"
 )

@@ -1,9 +1,9 @@
 package quakelib
 
 import (
-	"quake/conlog"
-	"quake/math/vec"
-	"quake/progs"
+	"github.com/therjak/goquake/conlog"
+	"github.com/therjak/goquake/math/vec"
+	"github.com/therjak/goquake/progs"
 	"strings"
 )
 

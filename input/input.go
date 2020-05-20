@@ -2,7 +2,7 @@
 package input
 
 import (
-	"quake/cmd"
+	"github.com/therjak/goquake/cmd"
 )
 
 type button struct {

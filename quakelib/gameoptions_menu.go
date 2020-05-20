@@ -2,13 +2,13 @@ package quakelib
 
 import (
 	"fmt"
-	"quake/cbuf"
-	cmdl "quake/commandline"
-	"quake/cvars"
-	kc "quake/keycode"
-	"quake/keys"
-	"quake/maps"
-	"quake/menu"
+	"github.com/therjak/goquake/cbuf"
+	cmdl "github.com/therjak/goquake/commandline"
+	"github.com/therjak/goquake/cvars"
+	kc "github.com/therjak/goquake/keycode"
+	"github.com/therjak/goquake/keys"
+	"github.com/therjak/goquake/maps"
+	"github.com/therjak/goquake/menu"
 )
 
 func enterGameOptionsMenu() {

@@ -3,11 +3,11 @@
 package quakelib
 
 import (
+	"github.com/therjak/goquake/cbuf"
+	"github.com/therjak/goquake/cmd"
+	"github.com/therjak/goquake/conlog"
+	"github.com/therjak/goquake/filesystem"
 	"os"
-	"quake/cbuf"
-	"quake/cmd"
-	"quake/conlog"
-	"quake/filesystem"
 	"strings"
 )
 

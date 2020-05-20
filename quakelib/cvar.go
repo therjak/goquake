@@ -6,11 +6,11 @@ package quakelib
 import "C"
 import (
 	"fmt"
+	"github.com/therjak/goquake/cmd"
+	"github.com/therjak/goquake/conlog"
+	"github.com/therjak/goquake/cvar"
 	"io"
 	"log"
-	"quake/cmd"
-	"quake/conlog"
-	"quake/cvar"
 )
 
 //export CvarGetValue

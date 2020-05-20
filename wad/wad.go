@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"github.com/therjak/goquake/filesystem"
 	"io"
 	"io/ioutil"
-	"quake/filesystem"
 	"strings"
 )
 

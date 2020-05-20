@@ -1,8 +1,8 @@
 package cbuf
 
 import (
-	"quake/cmd"
-	"quake/execute"
+	"github.com/therjak/goquake/cmd"
+	"github.com/therjak/goquake/execute"
 )
 
 var (

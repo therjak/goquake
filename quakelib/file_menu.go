@@ -2,14 +2,14 @@ package quakelib
 
 import (
 	"fmt"
+	"github.com/therjak/goquake/cbuf"
+	kc "github.com/therjak/goquake/keycode"
+	"github.com/therjak/goquake/keys"
+	"github.com/therjak/goquake/menu"
+	"github.com/therjak/goquake/protos"
 	"io/ioutil"
 	"log"
 	"path/filepath"
-	"quake/cbuf"
-	kc "quake/keycode"
-	"quake/keys"
-	"quake/menu"
-	"quake/protos"
 
 	"google.golang.org/protobuf/proto"
 )

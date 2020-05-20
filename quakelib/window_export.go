@@ -7,7 +7,7 @@ package quakelib
 import "C"
 
 import (
-	"quake/window"
+	"github.com/therjak/goquake/window"
 )
 
 //export VID_Locked

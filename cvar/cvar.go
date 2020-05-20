@@ -2,9 +2,9 @@ package cvar
 
 import (
 	"fmt"
+	"github.com/therjak/goquake/cmd"
+	"github.com/therjak/goquake/conlog"
 	"log"
-	"quake/cmd"
-	"quake/conlog"
 	"strconv"
 )
 

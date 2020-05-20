@@ -3,9 +3,9 @@ package net
 import (
 	"bytes"
 	"encoding/binary"
+	"github.com/therjak/goquake/protocol"
 	"io"
 	"log"
-	"quake/protocol"
 	"strings"
 )
 

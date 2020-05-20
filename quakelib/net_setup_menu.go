@@ -2,11 +2,11 @@ package quakelib
 
 import (
 	"fmt"
-	"quake/cbuf"
-	"quake/cvars"
-	kc "quake/keycode"
-	"quake/keys"
-	"quake/menu"
+	"github.com/therjak/goquake/cbuf"
+	"github.com/therjak/goquake/cvars"
+	kc "github.com/therjak/goquake/keycode"
+	"github.com/therjak/goquake/keys"
+	"github.com/therjak/goquake/menu"
 )
 
 func enterNetSetupMenu() {

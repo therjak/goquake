@@ -1,9 +1,9 @@
 package alias
 
 import (
-	"quake/cbuf"
-	"quake/cmd"
-	"quake/conlog"
+	"github.com/therjak/goquake/cbuf"
+	"github.com/therjak/goquake/cmd"
+	"github.com/therjak/goquake/conlog"
 	"strings"
 )
 

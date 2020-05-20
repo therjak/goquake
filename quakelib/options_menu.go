@@ -1,12 +1,12 @@
 package quakelib
 
 import (
-	"quake/cbuf"
-	"quake/cvars"
-	"quake/input"
-	kc "quake/keycode"
-	"quake/math"
-	"quake/menu"
+	"github.com/therjak/goquake/cbuf"
+	"github.com/therjak/goquake/cvars"
+	"github.com/therjak/goquake/input"
+	kc "github.com/therjak/goquake/keycode"
+	"github.com/therjak/goquake/math"
+	"github.com/therjak/goquake/menu"
 	"time"
 )
 

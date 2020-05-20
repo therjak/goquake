@@ -2,7 +2,7 @@ package quakelib
 
 import (
 	"C"
-	cmdl "quake/commandline"
+	cmdl "github.com/therjak/goquake/commandline"
 )
 
 //export CMLCurrent

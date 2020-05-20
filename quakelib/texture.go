@@ -8,19 +8,18 @@ package quakelib
 import "C"
 
 import (
+	"github.com/therjak/goquake/cmd"
+	"github.com/therjak/goquake/conlog"
+	"github.com/therjak/goquake/cvar"
+	"github.com/therjak/goquake/cvars"
+	"github.com/therjak/goquake/image"
+	"github.com/therjak/goquake/wad"
 	"log"
-	"quake/cmd"
-	"quake/conlog"
-	"quake/cvar"
-	"quake/cvars"
-	"quake/image"
-	"quake/wad"
 	"strconv"
 	"strings"
 	"unsafe"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
-	// "quake/crc"
 )
 
 type TexPref uint32

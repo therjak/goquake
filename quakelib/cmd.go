@@ -7,7 +7,7 @@ void callQuakeFunc(xcommand_t f);
 import "C"
 
 import (
-	"quake/cmd"
+	"github.com/therjak/goquake/cmd"
 )
 
 //export Cmd_AddCommand

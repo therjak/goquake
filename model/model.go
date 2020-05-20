@@ -1,7 +1,7 @@
 package model
 
 import (
-	"quake/math/vec"
+	"github.com/therjak/goquake/math/vec"
 )
 
 // Would be great to type these but positive values are node numbers or so....

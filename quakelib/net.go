@@ -1,11 +1,11 @@
 package quakelib
 
 import (
-	"quake/cbuf"
-	"quake/cmd"
-	"quake/conlog"
-	"quake/cvars"
-	"quake/net"
+	"github.com/therjak/goquake/cbuf"
+	"github.com/therjak/goquake/cmd"
+	"github.com/therjak/goquake/conlog"
+	"github.com/therjak/goquake/cvars"
+	"github.com/therjak/goquake/net"
 )
 
 var (

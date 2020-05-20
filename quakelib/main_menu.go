@@ -1,10 +1,10 @@
 package quakelib
 
 import (
-	cmdl "quake/commandline"
-	kc "quake/keycode"
-	"quake/keys"
-	"quake/menu"
+	cmdl "github.com/therjak/goquake/commandline"
+	kc "github.com/therjak/goquake/keycode"
+	"github.com/therjak/goquake/keys"
+	"github.com/therjak/goquake/menu"
 )
 
 var (

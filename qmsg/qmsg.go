@@ -3,7 +3,7 @@ package qmsg
 import (
 	"bytes"
 	"encoding/binary"
-	"quake/protocol"
+	"github.com/therjak/goquake/protocol"
 )
 
 type ClientWriter interface {

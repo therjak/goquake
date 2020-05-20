@@ -1,15 +1,15 @@
 package quakelib
 
 import (
-	"quake/cbuf"
-	"quake/cmd"
-	"quake/conlog"
-	"quake/cvar"
-	"quake/cvars"
-	"quake/keys"
-	"quake/math"
-	"quake/menu"
-	"quake/window"
+	"github.com/therjak/goquake/cbuf"
+	"github.com/therjak/goquake/cmd"
+	"github.com/therjak/goquake/conlog"
+	"github.com/therjak/goquake/cvar"
+	"github.com/therjak/goquake/cvars"
+	"github.com/therjak/goquake/keys"
+	"github.com/therjak/goquake/math"
+	"github.com/therjak/goquake/menu"
+	"github.com/therjak/goquake/window"
 	"strconv"
 
 	"github.com/veandco/go-sdl2/sdl"

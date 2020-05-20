@@ -4,9 +4,9 @@ import "C"
 
 import (
 	"fmt"
+	"github.com/therjak/goquake/qtime"
 	"log"
 	"os"
-	"quake/qtime"
 	"runtime/debug"
 	"time"
 )

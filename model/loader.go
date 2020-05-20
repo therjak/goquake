@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"quake/filesystem"
+	"github.com/therjak/goquake/filesystem"
 )
 
 var (

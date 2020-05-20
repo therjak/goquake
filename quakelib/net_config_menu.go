@@ -2,11 +2,11 @@ package quakelib
 
 import (
 	"fmt"
-	"quake/cbuf"
-	kc "quake/keycode"
-	"quake/keys"
-	"quake/menu"
-	"quake/net"
+	"github.com/therjak/goquake/cbuf"
+	kc "github.com/therjak/goquake/keycode"
+	"github.com/therjak/goquake/keys"
+	"github.com/therjak/goquake/menu"
+	"github.com/therjak/goquake/net"
 	"strconv"
 )
 

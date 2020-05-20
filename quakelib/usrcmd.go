@@ -1,14 +1,12 @@
 package quakelib
 
-import "C"
-
 import (
-	"quake/cmd"
-	"quake/conlog"
-	"quake/cvars"
-	"quake/input"
-	clc "quake/protocol/client"
-	"quake/protos"
+	"github.com/therjak/goquake/cmd"
+	"github.com/therjak/goquake/conlog"
+	"github.com/therjak/goquake/cvars"
+	"github.com/therjak/goquake/input"
+	clc "github.com/therjak/goquake/protocol/client"
+	"github.com/therjak/goquake/protos"
 )
 
 var (

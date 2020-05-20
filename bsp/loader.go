@@ -5,10 +5,10 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"github.com/therjak/goquake/math/vec"
+	qm "github.com/therjak/goquake/model"
 	"io"
 	"log"
-	"quake/math/vec"
-	qm "quake/model"
 )
 
 func init() {

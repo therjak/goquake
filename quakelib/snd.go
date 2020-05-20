@@ -7,10 +7,10 @@ package quakelib
 import "C"
 
 import (
+	"github.com/therjak/goquake/cmd"
+	"github.com/therjak/goquake/math/vec"
+	"github.com/therjak/goquake/snd"
 	"log"
-	"quake/cmd"
-	"quake/math/vec"
-	"quake/snd"
 )
 
 // it should support to play U8, S8 and S16 sounds (is it necessary to replicate this?)

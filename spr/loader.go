@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"quake/math/vec"
-	qm "quake/model"
+	"github.com/therjak/goquake/math/vec"
+	qm "github.com/therjak/goquake/model"
 )
 
 func init() {

@@ -2,7 +2,7 @@ package quakelib
 
 import "C"
 import (
-	"quake/cbuf"
+	"github.com/therjak/goquake/cbuf"
 )
 
 //export Cbuf_Execute

@@ -9,7 +9,7 @@ package quakelib
 import "C"
 
 import (
-	"quake/math/vec"
+	"github.com/therjak/goquake/math/vec"
 )
 
 type Entity struct {

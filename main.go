@@ -2,14 +2,14 @@ package main
 
 import (
 	"flag"
-	"quake/quakelib"
+	"github.com/therjak/goquake/quakelib"
 )
 
 import (
 	// register the model loaders
-	_ "quake/bsp"
-	_ "quake/mdl"
-	_ "quake/spr"
+	_ "github.com/therjak/goquake/bsp"
+	_ "github.com/therjak/goquake/mdl"
+	_ "github.com/therjak/goquake/spr"
 )
 
 func main() {

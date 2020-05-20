@@ -4,7 +4,7 @@ package quakelib
 import "C"
 
 import (
-	"quake/filesystem"
+	"github.com/therjak/goquake/filesystem"
 )
 
 type qPalette struct {

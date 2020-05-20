@@ -1,4 +1,4 @@
-module quake
+module github.com/therjak/goquake
 
 require (
 	github.com/chewxy/math32 v1.0.4

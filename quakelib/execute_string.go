@@ -3,10 +3,10 @@ package quakelib
 import "C"
 
 import (
-	"quake/alias"
-	"quake/cmd"
-	"quake/cvar"
-	"quake/execute"
+	"github.com/therjak/goquake/alias"
+	"github.com/therjak/goquake/cmd"
+	"github.com/therjak/goquake/cvar"
+	"github.com/therjak/goquake/execute"
 )
 
 //export Cmd_ExecuteString

@@ -3,7 +3,7 @@ package net
 import (
 	"bytes"
 	"encoding/binary"
-	"quake/protocol"
+	"github.com/therjak/goquake/protocol"
 )
 
 type Message struct {

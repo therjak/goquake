@@ -3,8 +3,8 @@ package execute
 import (
 	"log"
 
-	"quake/cmd"
-	"quake/conlog"
+	"github.com/therjak/goquake/cmd"
+	"github.com/therjak/goquake/conlog"
 )
 
 const (

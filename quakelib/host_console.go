@@ -2,9 +2,9 @@ package quakelib
 
 import (
 	"bufio"
+	"github.com/therjak/goquake/cbuf"
+	cmdl "github.com/therjak/goquake/commandline"
 	"os"
-	"quake/cbuf"
-	cmdl "quake/commandline"
 )
 
 var (

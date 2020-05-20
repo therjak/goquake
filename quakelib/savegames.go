@@ -2,13 +2,13 @@ package quakelib
 
 import (
 	"fmt"
+	"github.com/therjak/goquake/cmd"
+	"github.com/therjak/goquake/conlog"
+	"github.com/therjak/goquake/cvars"
+	"github.com/therjak/goquake/execute"
+	"github.com/therjak/goquake/protos"
 	"io/ioutil"
 	"path/filepath"
-	"quake/cmd"
-	"quake/conlog"
-	"quake/cvars"
-	"quake/execute"
-	"quake/protos"
 	"strings"
 
 	"google.golang.org/protobuf/proto"

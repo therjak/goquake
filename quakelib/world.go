@@ -2,12 +2,12 @@ package quakelib
 
 import (
 	"container/ring"
+	"github.com/therjak/goquake/conlog"
+	"github.com/therjak/goquake/math"
+	"github.com/therjak/goquake/math/vec"
+	"github.com/therjak/goquake/model"
+	"github.com/therjak/goquake/progs"
 	"log"
-	"quake/conlog"
-	"quake/math"
-	"quake/math/vec"
-	"quake/model"
-	"quake/progs"
 	"runtime/debug"
 )
 

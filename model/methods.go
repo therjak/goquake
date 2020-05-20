@@ -3,8 +3,8 @@ package model
 import (
 	"bytes"
 	"fmt"
+	"github.com/therjak/goquake/math/vec"
 	"log"
-	"quake/math/vec"
 )
 
 func (m *QModel) PointInLeaf(p vec.Vec3) (*MLeaf, error) {
