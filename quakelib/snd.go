@@ -54,12 +54,6 @@ func S_Shutdown() {
 	snd.Shutdown()
 }
 
-//export S_StartSound
-func S_StartSound(entnum C.int, entchannel C.int, sfx C.sfx_t, origin *C.float,
-	fvol C.float, attenuation C.float) {
-	snd.Start(int(entnum), int(entchannel), int(sfx), cfloatToVec3(origin), float32(fvol), float32(attenuation), !loopingSound)
-}
-
 //export S_StaticSound
 func S_StaticSound(sfx C.sfx_t, origin *C.float, vol C.float, attenuation C.float) {
 	// sfx is cached from S_PrecacheSound

@@ -10,7 +10,7 @@ import (
 	"github.com/therjak/goquake/model"
 	"github.com/therjak/goquake/progs"
 	"github.com/therjak/goquake/protocol"
-	"github.com/therjak/goquake/protocol/server"
+	svc "github.com/therjak/goquake/protocol/server"
 	"github.com/therjak/goquake/protos"
 	"log"
 	"math/rand"
@@ -350,7 +350,7 @@ func (v *virtualMachine) sprint() {
 	}
 	e--
 	c := sv_clients[e]
-	c.msg.WriteChar(server.Print)
+	c.msg.WriteChar(svc.Print)
 	c.msg.WriteString(s)
 }
 
@@ -364,7 +364,7 @@ func (v *virtualMachine) centerPrint() {
 	}
 	e--
 	c := sv_clients[e]
-	c.msg.WriteChar(server.CenterPrint)
+	c.msg.WriteChar(svc.CenterPrint)
 	c.msg.WriteString(s)
 }
 
@@ -547,9 +547,9 @@ func (v *virtualMachine) ambientSound() {
 
 	// add an svc_spawnambient command to the level signon packet
 	if large {
-		sv.signon.WriteByte(server.SpawnStaticSound2)
+		sv.signon.WriteByte(svc.SpawnStaticSound2)
 	} else {
-		sv.signon.WriteByte(server.SpawnStaticSound)
+		sv.signon.WriteByte(svc.SpawnStaticSound)
 	}
 
 	sv.signon.WriteCoord(pos[0], sv.protocolFlags)
@@ -767,7 +767,7 @@ func (v *virtualMachine) stuffCmd() {
 	}
 
 	c := sv_clients[entnum-1]
-	c.msg.WriteByte(server.StuffText)
+	c.msg.WriteByte(svc.StuffText)
 	c.msg.WriteString(str)
 }
 
@@ -1058,7 +1058,7 @@ func (v *virtualMachine) lightStyle() {
 
 	for _, c := range sv_clients {
 		if c.active || c.spawned {
-			c.msg.WriteChar(server.LightStyle)
+			c.msg.WriteChar(svc.LightStyle)
 			c.msg.WriteChar(style)
 			c.msg.WriteString(val)
 		}
@@ -1366,7 +1366,7 @@ func (v *virtualMachine) makeStatic() {
 	e := edictNum(ent)
 
 	// don't send invisible static entities
-	if e.Alpha == server.EntityAlphaZero {
+	if e.Alpha == svc.EntityAlphaZero {
 		v.edictFree(ent)
 		return
 	}
@@ -1388,30 +1388,30 @@ func (v *virtualMachine) makeStatic() {
 		}
 	} else {
 		if mi&0xFF00 != 0 {
-			bits |= server.EntityBaselineLargeModel
+			bits |= svc.EntityBaselineLargeModel
 		}
 		if frame&0xFF00 != 0 {
-			bits |= server.EntityBaselineLargeFrame
+			bits |= svc.EntityBaselineLargeFrame
 		}
-		if e.Alpha != server.EntityAlphaDefault {
-			bits |= server.EntityBaselineAlpha
+		if e.Alpha != svc.EntityAlphaDefault {
+			bits |= svc.EntityBaselineAlpha
 		}
 	}
 
 	if bits != 0 {
-		sv.signon.WriteByte(server.SpawnStatic2)
+		sv.signon.WriteByte(svc.SpawnStatic2)
 		sv.signon.WriteByte(bits)
 	} else {
-		sv.signon.WriteByte(server.SpawnStatic)
+		sv.signon.WriteByte(svc.SpawnStatic)
 	}
 
-	if bits&server.EntityBaselineLargeModel != 0 {
+	if bits&svc.EntityBaselineLargeModel != 0 {
 		sv.signon.WriteShort(mi)
 	} else {
 		sv.signon.WriteByte(mi)
 	}
 
-	if bits&server.EntityBaselineLargeFrame != 0 {
+	if bits&svc.EntityBaselineLargeFrame != 0 {
 		sv.signon.WriteShort(frame)
 	} else {
 		sv.signon.WriteByte(frame)
@@ -1424,7 +1424,7 @@ func (v *virtualMachine) makeStatic() {
 		sv.signon.WriteAngle(ev.Angles[i], sv.protocolFlags)
 	}
 
-	if bits&server.EntityBaselineAlpha != 0 {
+	if bits&svc.EntityBaselineAlpha != 0 {
 		sv.signon.WriteByte(int(e.Alpha))
 	}
 

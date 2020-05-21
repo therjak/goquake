@@ -39,8 +39,16 @@ var (
 )
 
 type playingSound struct {
-	channel            int // playing on channel
-	entchannel         int // entchannel
+	channel    int // playing on channel
+	entchannel int // entchannel
+	// TODO:
+	// entchannel. 0 willingly overrides, 1-7 always overrides
+	// 0 auto
+	// 1 weapon
+	// 2 voice
+	// 3 item
+	// 4 body
+	// 8 no phys add
 	entnum             int // entnum
 	distanceMultiplier float32
 	masterVolume       float32

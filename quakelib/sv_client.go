@@ -10,7 +10,7 @@ import (
 	"github.com/therjak/goquake/net"
 	"github.com/therjak/goquake/protocol"
 	clc "github.com/therjak/goquake/protocol/client"
-	"github.com/therjak/goquake/protocol/server"
+	svc "github.com/therjak/goquake/protocol/server"
 	"github.com/therjak/goquake/protos"
 	"log"
 	"strings"
@@ -93,12 +93,12 @@ func (c *SVClient) Printf(format string, v ...interface{}) {
 }
 
 func (c *SVClient) print(msg string) {
-	c.msg.WriteByte(server.Print)
+	c.msg.WriteByte(svc.Print)
 	c.msg.WriteString(msg)
 }
 
 func (c *SVClient) ClientCommands(msg string) {
-	c.msg.WriteByte(server.StuffText)
+	c.msg.WriteByte(svc.StuffText)
 	c.msg.WriteString(msg)
 }
 
@@ -157,7 +157,7 @@ func (cl *SVClient) SendMessage() int {
 }
 
 func (cl *SVClient) SendNop() {
-	if cl.netConnection.SendUnreliableMessage([]byte{server.Nop}) == -1 {
+	if cl.netConnection.SendUnreliableMessage([]byte{svc.Nop}) == -1 {
 		cl.Drop(true)
 	}
 	cl.lastMessage = host.time
@@ -167,7 +167,7 @@ func (cl *SVClient) Drop(crash bool) {
 	if !crash {
 		// send any final messages (don't check for errors)
 		if cl.CanSendMessage() {
-			cl.msg.WriteByte(server.Disconnect)
+			cl.msg.WriteByte(svc.Disconnect)
 			cl.SendMessage()
 		}
 
@@ -190,13 +190,13 @@ func (cl *SVClient) Drop(crash bool) {
 		if !c.active {
 			continue
 		}
-		c.msg.WriteByte(server.UpdateName)
+		c.msg.WriteByte(svc.UpdateName)
 		c.msg.WriteByte(cl.id)
 		c.msg.WriteString("")
-		c.msg.WriteByte(server.UpdateFrags)
+		c.msg.WriteByte(svc.UpdateFrags)
 		c.msg.WriteByte(cl.id)
 		c.msg.WriteShort(0)
-		c.msg.WriteByte(server.UpdateColors)
+		c.msg.WriteByte(svc.UpdateColors)
 		c.msg.WriteByte(cl.id)
 		c.msg.WriteByte(0)
 	}
@@ -206,7 +206,7 @@ func SendReconnectToAll() {
 	s := "reconnect\n\x00"
 	m := make([]byte, 0, len(s)+1)
 	buf := bytes.NewBuffer(m)
-	buf.WriteByte(server.StuffText)
+	buf.WriteByte(svc.StuffText)
 	buf.WriteString(s)
 	SendToAll(buf.Bytes())
 }
@@ -251,12 +251,12 @@ func (cl *SVClient) GetMessage() {
 
 func (c *SVClient) SendServerinfo() {
 	m := &c.msg
-	m.WriteByte(server.Print)
+	m.WriteByte(svc.Print)
 	m.WriteString(
 		fmt.Sprintf("%s\nFITZQUAKE %1.2f SERVER (%d CRC)\n",
 			[]byte{2}, FITZQUAKE_VERSION, progsdat.CRC))
 
-	m.WriteByte(int(server.ServerInfo))
+	m.WriteByte(int(svc.ServerInfo))
 	m.WriteLong(int(sv.protocol))
 
 	if sv.protocol == protocol.RMQ {
@@ -266,9 +266,9 @@ func (c *SVClient) SendServerinfo() {
 	c.msg.WriteByte(svs.maxClients)
 
 	if !cvars.Coop.Bool() && cvars.DeathMatch.Bool() {
-		m.WriteByte(server.GameDeathmatch)
+		m.WriteByte(svc.GameDeathmatch)
 	} else {
-		m.WriteByte(server.GameCoop)
+		m.WriteByte(svc.GameCoop)
 	}
 
 	s, err := progsdat.String(EntVars(0).Message)
@@ -293,14 +293,14 @@ func (c *SVClient) SendServerinfo() {
 	}
 	m.WriteByte(0)
 
-	m.WriteByte(server.CDTrack)
+	m.WriteByte(svc.CDTrack)
 	m.WriteByte(int(EntVars(0).Sounds))
 	m.WriteByte(int(EntVars(0).Sounds))
 
-	m.WriteByte(server.SetView)
+	m.WriteByte(svc.SetView)
 	m.WriteShort(c.edictId)
 
-	m.WriteByte(server.SignonNum)
+	m.WriteByte(svc.SignonNum)
 	m.WriteByte(1)
 
 	c.sendSignon = true

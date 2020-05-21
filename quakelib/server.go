@@ -16,7 +16,7 @@ import (
 	"github.com/therjak/goquake/net"
 	"github.com/therjak/goquake/progs"
 	"github.com/therjak/goquake/protocol"
-	"github.com/therjak/goquake/protocol/server"
+	svc "github.com/therjak/goquake/protocol/server"
 	"github.com/therjak/goquake/protos"
 	"log"
 
@@ -177,7 +177,7 @@ func (s *Server) StartParticle(org, dir vec.Vec3, color, count int) {
 	if s.datagram.Len()+16 > net.MAX_DATAGRAM {
 		return
 	}
-	s.datagram.WriteByte(server.Particle)
+	s.datagram.WriteByte(svc.Particle)
 	s.datagram.WriteCoord(org[0], s.protocolFlags)
 	s.datagram.WriteCoord(org[1], s.protocolFlags)
 	s.datagram.WriteCoord(org[2], s.protocolFlags)
@@ -263,38 +263,38 @@ func (s *Server) StartSound(entity, channel, volume int, sample string, attenuat
 func (s *Server) sendStartSound(entity, channel, volume, soundnum int, attenuation float32) {
 	fieldMask := 0
 	if volume != 255 {
-		fieldMask |= server.SoundVolume
+		fieldMask |= svc.SoundVolume
 	}
 	if attenuation != 1.0 {
-		fieldMask |= server.SoundAttenuation
+		fieldMask |= svc.SoundAttenuation
 	}
 	if entity >= 8192 {
 		if s.protocol == protocol.NetQuake {
 			return // protocol does not support this info
 		}
-		fieldMask |= server.SoundLargeEntity
+		fieldMask |= svc.SoundLargeEntity
 	}
 	if soundnum >= 256 || channel >= 8 {
 		if s.protocol == protocol.NetQuake {
 			return
 		}
-		fieldMask |= server.SoundLargeSound
+		fieldMask |= svc.SoundLargeSound
 	}
-	s.datagram.WriteByte(server.Sound)
+	s.datagram.WriteByte(svc.Sound)
 	s.datagram.WriteByte(fieldMask)
-	if fieldMask&server.SoundVolume != 0 {
+	if fieldMask&svc.SoundVolume != 0 {
 		s.datagram.WriteByte(volume)
 	}
-	if fieldMask&server.SoundAttenuation != 0 {
+	if fieldMask&svc.SoundAttenuation != 0 {
 		s.datagram.WriteByte(int(attenuation * 64))
 	}
-	if fieldMask&server.SoundLargeEntity != 0 {
+	if fieldMask&svc.SoundLargeEntity != 0 {
 		s.datagram.WriteShort(entity)
 		s.datagram.WriteByte(channel)
 	} else {
 		s.datagram.WriteShort((entity << 3) | channel)
 	}
-	if fieldMask&server.SoundLargeSound != 0 {
+	if fieldMask&svc.SoundLargeSound != 0 {
 		s.datagram.WriteShort(soundnum)
 	} else {
 		s.datagram.WriteByte(soundnum)
@@ -310,7 +310,7 @@ func (s *Server) CleanupEntvarEffects() {
 	for i := 1; i < s.numEdicts; i++ {
 		ev := EntVars(i)
 		eff := int(ev.Effects)
-		ev.Effects = float32(eff &^ server.EffectMuzzleFlash)
+		ev.Effects = float32(eff &^ svc.EffectMuzzleFlash)
 	}
 }
 
@@ -320,7 +320,7 @@ func (s *Server) WriteClientdataToMessage(player int) {
 	flags := s.protocolFlags
 	if e.DmgTake != 0 || e.DmgSave != 0 {
 		other := EntVars(int(e.DmgInflictor))
-		msgBuf.WriteByte(server.Damage)
+		msgBuf.WriteByte(svc.Damage)
 		msgBuf.WriteByte(int(e.DmgSave))
 		msgBuf.WriteByte(int(e.DmgTake))
 		msgBuf.WriteCoord(other.Origin[0]+0.5*(other.Mins[0]+other.Maxs[0]), flags)
@@ -335,7 +335,7 @@ func (s *Server) WriteClientdataToMessage(player int) {
 
 	// a fixangle might get lost in a dropped packet.  Oh well.
 	if e.FixAngle != 0 {
-		msgBuf.WriteByte(server.SetAngle)
+		msgBuf.WriteByte(svc.SetAngle)
 		msgBuf.WriteAngle(e.Angles[0], flags)
 		msgBuf.WriteAngle(e.Angles[1], flags)
 		msgBuf.WriteAngle(e.Angles[2], flags)
@@ -343,11 +343,11 @@ func (s *Server) WriteClientdataToMessage(player int) {
 	}
 
 	bits := 0
-	if e.ViewOfs[2] != server.DEFAULT_VIEWHEIGHT {
-		bits |= server.SU_VIEWHEIGHT
+	if e.ViewOfs[2] != svc.DEFAULT_VIEWHEIGHT {
+		bits |= svc.SU_VIEWHEIGHT
 	}
 	if e.IdealPitch != 0 {
-		bits |= server.SU_IDEALPITCH
+		bits |= svc.SU_IDEALPITCH
 	}
 	// stuff the sigil bits into the high bits of items for sbar, or else mix in items2
 	items := func() int {
@@ -359,38 +359,38 @@ func (s *Server) WriteClientdataToMessage(player int) {
 		*/
 		return int(e.Items) | int(progsdat.Globals.ServerFlags)<<28
 	}()
-	bits |= server.SU_ITEMS
+	bits |= svc.SU_ITEMS
 	if (int(e.Flags) & progs.FlagOnGround) != 0 {
-		bits |= server.SU_ONGROUND
+		bits |= svc.SU_ONGROUND
 	}
 	if e.WaterLevel >= 2 {
-		bits |= server.SU_INWATER
+		bits |= svc.SU_INWATER
 	}
 	if e.PunchAngle[0] != 0 {
-		bits |= server.SU_PUNCH1
+		bits |= svc.SU_PUNCH1
 	}
 	if e.PunchAngle[1] != 0 {
-		bits |= server.SU_PUNCH2
+		bits |= svc.SU_PUNCH2
 	}
 	if e.PunchAngle[2] != 0 {
-		bits |= server.SU_PUNCH3
+		bits |= svc.SU_PUNCH3
 	}
 	if e.Velocity[0] != 0 {
-		bits |= server.SU_VELOCITY1
+		bits |= svc.SU_VELOCITY1
 	}
 	if e.Velocity[1] != 0 {
-		bits |= server.SU_VELOCITY2
+		bits |= svc.SU_VELOCITY2
 	}
 	if e.Velocity[2] != 0 {
-		bits |= server.SU_VELOCITY3
+		bits |= svc.SU_VELOCITY3
 	}
 	if e.WeaponFrame != 0 {
-		bits |= server.SU_WEAPONFRAME
+		bits |= svc.SU_WEAPONFRAME
 	}
 	if e.ArmorValue != 0 {
-		bits |= server.SU_ARMOR
+		bits |= svc.SU_ARMOR
 	}
-	bits |= server.SU_WEAPON
+	bits |= svc.SU_WEAPON
 
 	wmi := 0
 	wms, err := progsdat.String(e.WeaponModel)
@@ -400,79 +400,79 @@ func (s *Server) WriteClientdataToMessage(player int) {
 
 	if s.protocol != protocol.NetQuake {
 		if (wmi & 0xFF00) != 0 {
-			bits |= server.SU_WEAPON2
+			bits |= svc.SU_WEAPON2
 		}
 		if (int(e.ArmorValue) & 0xFF00) != 0 {
-			bits |= server.SU_ARMOR2
+			bits |= svc.SU_ARMOR2
 		}
 		if (int(e.CurrentAmmo) & 0xFF00) != 0 {
-			bits |= server.SU_AMMO2
+			bits |= svc.SU_AMMO2
 		}
 		if (int(e.AmmoShells) & 0xFF00) != 0 {
-			bits |= server.SU_SHELLS2
+			bits |= svc.SU_SHELLS2
 		}
 		if (int(e.AmmoNails) & 0xFF00) != 0 {
-			bits |= server.SU_NAILS2
+			bits |= svc.SU_NAILS2
 		}
 		if (int(e.AmmoRockets) & 0xFF00) != 0 {
-			bits |= server.SU_ROCKETS2
+			bits |= svc.SU_ROCKETS2
 		}
 		if (int(e.AmmoCells) & 0xFF00) != 0 {
-			bits |= server.SU_CELLS2
+			bits |= svc.SU_CELLS2
 		}
-		if (bits&server.SU_WEAPONFRAME != 0) &&
+		if (bits&svc.SU_WEAPONFRAME != 0) &&
 			(int(e.WeaponFrame)&0xFF00) != 0 {
-			bits |= server.SU_WEAPONFRAME2
+			bits |= svc.SU_WEAPONFRAME2
 		}
 		if alpha != 0 {
-			bits |= server.SU_WEAPONALPHA
+			bits |= svc.SU_WEAPONALPHA
 		}
 		if bits >= 65536 {
-			bits |= server.SU_EXTEND1
+			bits |= svc.SU_EXTEND1
 		}
 		if bits >= 16777216 {
-			bits |= server.SU_EXTEND2
+			bits |= svc.SU_EXTEND2
 		}
 	}
-	msgBuf.WriteByte(server.ClientData)
+	msgBuf.WriteByte(svc.ClientData)
 	msgBuf.WriteShort(bits)
-	if (bits & server.SU_EXTEND1) != 0 {
+	if (bits & svc.SU_EXTEND1) != 0 {
 		msgBuf.WriteByte(bits >> 16)
 	}
-	if (bits & server.SU_EXTEND2) != 0 {
+	if (bits & svc.SU_EXTEND2) != 0 {
 		msgBuf.WriteByte(bits >> 24)
 	}
-	if (bits & server.SU_VIEWHEIGHT) != 0 {
+	if (bits & svc.SU_VIEWHEIGHT) != 0 {
 		msgBuf.WriteChar(int(e.ViewOfs[2]))
 	}
-	if (bits & server.SU_IDEALPITCH) != 0 {
+	if (bits & svc.SU_IDEALPITCH) != 0 {
 		msgBuf.WriteChar(int(e.IdealPitch))
 	}
-	if (bits & (server.SU_PUNCH1)) != 0 {
+	if (bits & (svc.SU_PUNCH1)) != 0 {
 		msgBuf.WriteChar(int(e.PunchAngle[0]))
 	}
-	if (bits & (server.SU_PUNCH2)) != 0 {
+	if (bits & (svc.SU_PUNCH2)) != 0 {
 		msgBuf.WriteChar(int(e.PunchAngle[1]))
 	}
-	if (bits & (server.SU_PUNCH3)) != 0 {
+	if (bits & (svc.SU_PUNCH3)) != 0 {
 		msgBuf.WriteChar(int(e.PunchAngle[2]))
 	}
-	if (bits & (server.SU_VELOCITY1)) != 0 {
+	if (bits & (svc.SU_VELOCITY1)) != 0 {
 		msgBuf.WriteChar(int(e.Velocity[0] / 16))
 	}
-	if (bits & (server.SU_VELOCITY2)) != 0 {
+	if (bits & (svc.SU_VELOCITY2)) != 0 {
 		msgBuf.WriteChar(int(e.Velocity[1] / 16))
 	}
-	if (bits & (server.SU_VELOCITY3)) != 0 {
+	if (bits & (svc.SU_VELOCITY3)) != 0 {
 		msgBuf.WriteChar(int(e.Velocity[2] / 16))
 	}
 
 	msgBuf.WriteLong(items)
 
-	if (bits & (server.SU_WEAPONFRAME)) != 0 {
+	if (bits & (svc.SU_WEAPONFRAME)) != 0 {
 		msgBuf.WriteByte(int(e.WeaponFrame))
 	}
-	if (bits & (server.SU_ARMOR)) != 0 {
+	if (bits & (svc.SU_ARMOR)) != 0 {
 		msgBuf.WriteByte(int(e.ArmorValue))
 	}
 	msgBuf.WriteByte(wmi)
@@ -493,34 +493,34 @@ func (s *Server) WriteClientdataToMessage(player int) {
 	} else {
 		msgBuf.WriteByte(int(e.Weapon))
 	}
-	if (bits & (server.SU_WEAPON2)) != 0 {
+	if (bits & (svc.SU_WEAPON2)) != 0 {
 		msgBuf.WriteByte(wmi >> 8)
 	}
-	if (bits & (server.SU_ARMOR2)) != 0 {
+	if (bits & (svc.SU_ARMOR2)) != 0 {
 		msgBuf.WriteByte(int(e.ArmorValue) >> 8)
 	}
-	if (bits & (server.SU_AMMO2)) != 0 {
+	if (bits & (svc.SU_AMMO2)) != 0 {
 		msgBuf.WriteByte(int(e.CurrentAmmo) >> 8)
 	}
-	if (bits & (server.SU_SHELLS2)) != 0 {
+	if (bits & (svc.SU_SHELLS2)) != 0 {
 		msgBuf.WriteByte(int(e.AmmoShells) >> 8)
 	}
-	if (bits & (server.SU_NAILS2)) != 0 {
+	if (bits & (svc.SU_NAILS2)) != 0 {
 		msgBuf.WriteByte(int(e.AmmoNails) >> 8)
 	}
-	if (bits & (server.SU_NAILS2)) != 0 {
+	if (bits & (svc.SU_NAILS2)) != 0 {
 		msgBuf.WriteByte(int(e.AmmoNails) >> 8)
 	}
-	if (bits & (server.SU_ROCKETS2)) != 0 {
+	if (bits & (svc.SU_ROCKETS2)) != 0 {
 		msgBuf.WriteByte(int(e.AmmoRockets) >> 8)
 	}
-	if (bits & (server.SU_CELLS2)) != 0 {
+	if (bits & (svc.SU_CELLS2)) != 0 {
 		msgBuf.WriteByte(int(e.AmmoCells) >> 8)
 	}
-	if (bits & (server.SU_WEAPONFRAME2)) != 0 {
+	if (bits & (svc.SU_WEAPONFRAME2)) != 0 {
 		msgBuf.WriteByte(int(e.WeaponFrame) >> 8)
 	}
-	if (bits & (server.SU_WEAPONALPHA)) != 0 {
+	if (bits & (svc.SU_WEAPONALPHA)) != 0 {
 		msgBuf.WriteByte(int(alpha))
 	}
 }
@@ -553,7 +553,7 @@ func (s *Server) SendClientDatagram(c *SVClient) bool {
 	if c.Address() != "LOCAL" {
 		msgBufMaxLen = net.DATAGRAM_MTU
 	}
-	msgBuf.WriteByte(server.Time)
+	msgBuf.WriteByte(svc.Time)
 	msgBuf.WriteFloat(s.time)
 
 	s.WriteClientdataToMessage(c.edictId)
@@ -571,7 +571,7 @@ func (s *Server) UpdateToReliableMessages() {
 			// Does it actually matter to compare as float32?
 			// These subtle C things...
 			if float32(cl.oldFrags) != newFrags {
-				cl.msg.WriteByte(server.UpdateFrags)
+				cl.msg.WriteByte(svc.UpdateFrags)
 				cl.msg.WriteByte(cl.id)
 				cl.msg.WriteShort(int(newFrags))
 			}
@@ -646,7 +646,7 @@ func (s *Server) CreateBaseline() {
 		if entnum > 0 && entnum <= svs.maxClients {
 			e.Baseline.ColorMap = byte(entnum)
 			e.Baseline.ModelIndex = uint16(s.ModelIndex("progs/player.mdl"))
-			e.Baseline.Alpha = server.EntityAlphaDefault
+			e.Baseline.Alpha = svc.EntityAlphaDefault
 		} else {
 			e.Baseline.ColorMap = 0
 			str, err := progsdat.String(sev.Model)
@@ -669,23 +669,23 @@ func (s *Server) CreateBaseline() {
 				frame = 0
 				e.Baseline.Frame = 0
 			}
-			e.Baseline.Alpha = server.EntityAlphaDefault
+			e.Baseline.Alpha = svc.EntityAlphaDefault
 		} else {
 			if mi&0xFF00 != 0 {
-				bits |= server.EntityBaselineLargeModel
+				bits |= svc.EntityBaselineLargeModel
 			}
 			if frame&0xFF00 != 0 {
-				bits |= server.EntityBaselineLargeFrame
+				bits |= svc.EntityBaselineLargeFrame
 			}
-			if e.Alpha != server.EntityAlphaDefault {
-				bits |= server.EntityBaselineAlpha
+			if e.Alpha != svc.EntityAlphaDefault {
+				bits |= svc.EntityBaselineAlpha
 			}
 		}
 
 		if bits != 0 {
-			s.signon.WriteByte(server.SpawnBaseline2)
+			s.signon.WriteByte(svc.SpawnBaseline2)
 		} else {
-			s.signon.WriteByte(server.SpawnBaseline)
+			s.signon.WriteByte(svc.SpawnBaseline)
 		}
 
 		s.signon.WriteShort(entnum)
@@ -693,13 +693,13 @@ func (s *Server) CreateBaseline() {
 			s.signon.WriteByte(bits)
 		}
 
-		if bits&server.EntityBaselineLargeModel != 0 {
+		if bits&svc.EntityBaselineLargeModel != 0 {
 			s.signon.WriteShort(mi)
 		} else {
 			s.signon.WriteByte(mi)
 		}
 
-		if bits&server.EntityBaselineLargeFrame != 0 {
+		if bits&svc.EntityBaselineLargeFrame != 0 {
 			s.signon.WriteShort(frame)
 		} else {
 			s.signon.WriteByte(frame)
@@ -712,7 +712,7 @@ func (s *Server) CreateBaseline() {
 			s.signon.WriteAngle(float32(e.Baseline.Angles[i]), s.protocolFlags)
 		}
 
-		if bits&server.EntityBaselineAlpha != 0 {
+		if bits&svc.EntityBaselineAlpha != 0 {
 			s.signon.WriteByte(int(e.Alpha))
 		}
 	}
@@ -1004,44 +1004,44 @@ func (s *Server) WriteEntitiesToClient(clent int) {
 		for i := uint32(0); i < 3; i++ {
 			miss := ev.Origin[i] - edict.Baseline.Origin[i]
 			if miss < -0.1 || miss > 0.1 {
-				bits |= server.U_ORIGIN1 << i
+				bits |= svc.U_ORIGIN1 << i
 			}
 		}
 
 		if ev.Angles[0] != edict.Baseline.Angles[0] {
-			bits |= server.U_ANGLE1
+			bits |= svc.U_ANGLE1
 		}
 
 		if ev.Angles[1] != edict.Baseline.Angles[1] {
-			bits |= server.U_ANGLE2
+			bits |= svc.U_ANGLE2
 		}
 
 		if ev.Angles[2] != edict.Baseline.Angles[2] {
-			bits |= server.U_ANGLE3
+			bits |= svc.U_ANGLE3
 		}
 
 		if ev.MoveType == progs.MoveTypeStep {
-			bits |= server.U_STEP // don't mess up the step animation
+			bits |= svc.U_STEP // don't mess up the step animation
 		}
 
 		if ev.ColorMap != float32(edict.Baseline.ColorMap) {
-			bits |= server.U_COLORMAP
+			bits |= svc.U_COLORMAP
 		}
 
 		if ev.Skin != float32(edict.Baseline.Skin) {
-			bits |= server.U_SKIN
+			bits |= svc.U_SKIN
 		}
 
 		if ev.Frame != float32(edict.Baseline.Frame) {
-			bits |= server.U_FRAME
+			bits |= svc.U_FRAME
 		}
 
 		if ev.Effects != float32(edict.Baseline.Effects) {
-			bits |= server.U_EFFECTS
+			bits |= svc.U_EFFECTS
 		}
 
 		if ev.ModelIndex != float32(edict.Baseline.ModelIndex) {
-			bits |= server.U_MODEL
+			bits |= svc.U_MODEL
 		}
 
 		//     if (pr_alpha_supported) {
@@ -1050,106 +1050,106 @@ func (s *Server) WriteEntitiesToClient(clent int) {
 		//     }
 
 		// don't send invisible entities unless they have effects
-		if edict.Alpha == server.EntityAlphaZero && ev.Effects == 0 {
+		if edict.Alpha == svc.EntityAlphaZero && ev.Effects == 0 {
 			continue
 		}
 
 		// fitzquake
 		if s.protocol != protocol.NetQuake {
 			if edict.Baseline.Alpha != edict.Alpha {
-				bits |= server.U_ALPHA
+				bits |= svc.U_ALPHA
 			}
-			if bits&server.U_FRAME != 0 &&
+			if bits&svc.U_FRAME != 0 &&
 				int(ev.Frame)&0xFF00 != 0 {
-				bits |= server.U_FRAME2
+				bits |= svc.U_FRAME2
 			}
-			if bits&server.U_MODEL != 0 &&
+			if bits&svc.U_MODEL != 0 &&
 				int(ev.ModelIndex)&0xFF00 != 0 {
-				bits |= server.U_MODEL2
+				bits |= svc.U_MODEL2
 			}
 			if edict.SendInterval {
-				bits |= server.U_LERPFINISH
+				bits |= svc.U_LERPFINISH
 			}
 			if bits >= 65536 {
-				bits |= server.U_EXTEND1
+				bits |= svc.U_EXTEND1
 			}
 			if bits >= 16777216 {
-				bits |= server.U_EXTEND2
+				bits |= svc.U_EXTEND2
 			}
 		}
 
 		if ent >= 256 {
-			bits |= server.U_LONGENTITY
+			bits |= svc.U_LONGENTITY
 		}
 
 		if bits >= 256 {
-			bits |= server.U_MOREBITS
+			bits |= svc.U_MOREBITS
 		}
 
 		// write the message
-		msgBuf.WriteByte(bits | server.U_SIGNAL)
+		msgBuf.WriteByte(bits | svc.U_SIGNAL)
 
-		if bits&server.U_MOREBITS != 0 {
+		if bits&svc.U_MOREBITS != 0 {
 			msgBuf.WriteByte(bits >> 8)
 		}
 
-		if bits&server.U_EXTEND1 != 0 {
+		if bits&svc.U_EXTEND1 != 0 {
 			msgBuf.WriteByte(bits >> 16)
 		}
-		if bits&server.U_EXTEND2 != 0 {
+		if bits&svc.U_EXTEND2 != 0 {
 			msgBuf.WriteByte(bits >> 24)
 		}
 
-		if bits&server.U_LONGENTITY != 0 {
+		if bits&svc.U_LONGENTITY != 0 {
 			msgBuf.WriteShort(ent)
 		} else {
 			msgBuf.WriteByte(ent)
 		}
 
-		if bits&server.U_MODEL != 0 {
+		if bits&svc.U_MODEL != 0 {
 			msgBuf.WriteByte(int(ev.ModelIndex))
 		}
-		if bits&server.U_FRAME != 0 {
+		if bits&svc.U_FRAME != 0 {
 			msgBuf.WriteByte(int(ev.Frame))
 		}
-		if bits&server.U_COLORMAP != 0 {
+		if bits&svc.U_COLORMAP != 0 {
 			msgBuf.WriteByte(int(ev.ColorMap))
 		}
-		if bits&server.U_SKIN != 0 {
+		if bits&svc.U_SKIN != 0 {
 			msgBuf.WriteByte(int(ev.Skin))
 		}
-		if bits&server.U_EFFECTS != 0 {
+		if bits&svc.U_EFFECTS != 0 {
 			msgBuf.WriteByte(int(ev.Effects))
 		}
-		if bits&server.U_ORIGIN1 != 0 {
+		if bits&svc.U_ORIGIN1 != 0 {
 			msgBuf.WriteCoord(ev.Origin[0], s.protocolFlags)
 		}
-		if bits&server.U_ANGLE1 != 0 {
+		if bits&svc.U_ANGLE1 != 0 {
 			msgBuf.WriteAngle(ev.Angles[0], s.protocolFlags)
 		}
-		if bits&server.U_ORIGIN2 != 0 {
+		if bits&svc.U_ORIGIN2 != 0 {
 			msgBuf.WriteCoord(ev.Origin[1], s.protocolFlags)
 		}
-		if bits&server.U_ANGLE2 != 0 {
+		if bits&svc.U_ANGLE2 != 0 {
 			msgBuf.WriteAngle(ev.Angles[1], s.protocolFlags)
 		}
-		if bits&server.U_ORIGIN3 != 0 {
+		if bits&svc.U_ORIGIN3 != 0 {
 			msgBuf.WriteCoord(ev.Origin[2], s.protocolFlags)
 		}
-		if bits&server.U_ANGLE3 != 0 {
+		if bits&svc.U_ANGLE3 != 0 {
 			msgBuf.WriteAngle(ev.Angles[2], s.protocolFlags)
 		}
 
-		if bits&server.U_ALPHA != 0 {
+		if bits&svc.U_ALPHA != 0 {
 			msgBuf.WriteByte(int(edict.Alpha))
 		}
-		if bits&server.U_FRAME2 != 0 {
+		if bits&svc.U_FRAME2 != 0 {
 			msgBuf.WriteByte(int(ev.Frame) >> 8)
 		}
-		if bits&server.U_MODEL2 != 0 {
+		if bits&svc.U_MODEL2 != 0 {
 			msgBuf.WriteByte(int(ev.ModelIndex) >> 8)
 		}
-		if bits&server.U_LERPFINISH != 0 {
+		if bits&svc.U_LERPFINISH != 0 {
 			msgBuf.WriteByte(int(math.Round((ev.NextThink - sv.time) * 255)))
 		}
 	}

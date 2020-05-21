@@ -12,7 +12,7 @@ import (
 	"github.com/therjak/goquake/net"
 	"github.com/therjak/goquake/progs"
 	"github.com/therjak/goquake/protocol"
-	"github.com/therjak/goquake/protocol/server"
+	svc "github.com/therjak/goquake/protocol/server"
 	"github.com/therjak/goquake/qtime"
 	"log"
 	"strings"
@@ -83,7 +83,7 @@ func hostPreSpawn(args []cmd.QArg, _ int) {
 		return
 	}
 	c.msg.WriteBytes(sv.signon.Bytes())
-	c.msg.WriteByte(server.SignonNum)
+	c.msg.WriteByte(svc.SignonNum)
 	c.msg.WriteByte(2)
 	c.sendSignon = true
 }
@@ -214,7 +214,7 @@ func hostColor(args []cmd.QArg, _ int) {
 	client := HostClient()
 	client.colors = c
 	EntVars(client.edictId).Team = float32(b + 1)
-	sv.reliableDatagram.WriteByte(server.UpdateColors)
+	sv.reliableDatagram.WriteByte(svc.UpdateColors)
 	sv.reliableDatagram.WriteByte(cID)
 	sv.reliableDatagram.WriteByte(c)
 }
@@ -244,7 +244,7 @@ func hostPause(args []cmd.QArg, player int) {
 		return "unpaused"
 	}())
 
-	sv.reliableDatagram.WriteByte(server.SetPause)
+	sv.reliableDatagram.WriteByte(svc.SetPause)
 	sv.reliableDatagram.WriteByte(func() int {
 		if sv.paused {
 			return 1
@@ -621,7 +621,7 @@ func hostSpawn(args []cmd.QArg, player int) {
 	c.msg.ClearMessage()
 
 	// send time of update
-	c.msg.WriteByte(server.Time)
+	c.msg.WriteByte(svc.Time)
 	c.msg.WriteFloat(sv.time)
 
 	for i, sc := range sv_clients {
@@ -629,38 +629,38 @@ func hostSpawn(args []cmd.QArg, player int) {
 			// TODO: figure out why it ever makes sense to have len(sv_clients) svs.maxClients
 			break
 		}
-		c.msg.WriteByte(server.UpdateName)
+		c.msg.WriteByte(svc.UpdateName)
 		c.msg.WriteByte(i)
 		c.msg.WriteString(sc.name)
-		c.msg.WriteByte(server.UpdateFrags)
+		c.msg.WriteByte(svc.UpdateFrags)
 		c.msg.WriteByte(i)
 		c.msg.WriteShort(sc.oldFrags)
-		c.msg.WriteByte(server.UpdateColors)
+		c.msg.WriteByte(svc.UpdateColors)
 		c.msg.WriteByte(i)
 		c.msg.WriteByte(sc.colors)
 	}
 
 	// send all current light styles
 	for i, ls := range sv.lightStyles {
-		c.msg.WriteByte(server.LightStyle)
+		c.msg.WriteByte(svc.LightStyle)
 		c.msg.WriteByte(i)
 		c.msg.WriteString(ls)
 	}
 
-	c.msg.WriteByte(server.UpdateStat)
-	c.msg.WriteByte(server.StatTotalSecrets)
+	c.msg.WriteByte(svc.UpdateStat)
+	c.msg.WriteByte(svc.StatTotalSecrets)
 	c.msg.WriteLong(int(progsdat.Globals.TotalSecrets))
 
-	c.msg.WriteByte(server.UpdateStat)
-	c.msg.WriteByte(server.StatTotalMonsters)
+	c.msg.WriteByte(svc.UpdateStat)
+	c.msg.WriteByte(svc.StatTotalMonsters)
 	c.msg.WriteLong(int(progsdat.Globals.TotalMonsters))
 
-	c.msg.WriteByte(server.UpdateStat)
-	c.msg.WriteByte(server.StatSecrets)
+	c.msg.WriteByte(svc.UpdateStat)
+	c.msg.WriteByte(svc.StatSecrets)
 	c.msg.WriteLong(int(progsdat.Globals.FoundSecrets))
 
-	c.msg.WriteByte(server.UpdateStat)
-	c.msg.WriteByte(server.StatMonsters)
+	c.msg.WriteByte(svc.UpdateStat)
+	c.msg.WriteByte(svc.StatMonsters)
 	c.msg.WriteLong(int(progsdat.Globals.KilledMonsters))
 
 	// send a fixangle
@@ -669,7 +669,7 @@ func hostSpawn(args []cmd.QArg, player int) {
 	// and it won't happen if the game was just loaded, so you wind up
 	// with a permanent head tilt
 	cid := HostClientID() + 1
-	c.msg.WriteByte(server.SetAngle)
+	c.msg.WriteByte(svc.SetAngle)
 	c.msg.WriteAngle(EntVars(cid).Angles[0], sv.protocolFlags)
 	c.msg.WriteAngle(EntVars(cid).Angles[1], sv.protocolFlags)
 	c.msg.WriteAngle(0, sv.protocolFlags)
@@ -679,7 +679,7 @@ func hostSpawn(args []cmd.QArg, player int) {
 	sv.WriteClientdataToMessage(player)
 	c.msg.WriteBytes(msgBuf.Bytes())
 
-	c.msg.WriteByte(server.SignonNum)
+	c.msg.WriteByte(svc.SignonNum)
 	c.msg.WriteByte(3)
 	c.sendSignon = true
 }
@@ -808,7 +808,7 @@ func hostName(args []cmd.QArg, _ int) {
 
 	// send notification to all clients
 	rd := &sv.reliableDatagram
-	rd.WriteByte(server.UpdateName)
+	rd.WriteByte(svc.UpdateName)
 	rd.WriteByte(HostClientID())
 	rd.WriteString(newName)
 }
@@ -918,7 +918,7 @@ func hostShutdownServer(crash bool) {
 	}
 
 	// make sure all the clients know we're disconnecting
-	SendToAll([]byte{server.Disconnect})
+	SendToAll([]byte{svc.Disconnect})
 
 	for _, c := range sv_clients {
 		if c.active {
