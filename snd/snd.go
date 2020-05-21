@@ -9,9 +9,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"github.com/therjak/goquake/commandline"
-	"github.com/therjak/goquake/cvar"
-	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/filesystem"
 	"github.com/therjak/goquake/math/vec"
 	"log"
@@ -52,7 +49,7 @@ type playingSound struct {
 	right              uint8
 	left               uint8
 	startTime          time.Time
-	sound              *Sound
+	sound              *pcmSound
 }
 
 /*
@@ -63,7 +60,6 @@ type Player struct {
 // NewPlayer(sampleRate,channelNum,bytesPerSample,bufferSize) (*Player, error)
 // player.Close() error
 // player.Write(data []byte) (int,error)
-// player.SetUnderrunCallback(f func()) (something like func() { log.Printf("You are slow") } )
 
 func NewPlayer() (*Player, error) {
 	bufferSize := func() int {
@@ -184,9 +180,8 @@ func soundCleanup(channel int) {
 	activeSounds.soundCleanup(channel)
 }
 
-func Init() {
-	log.Printf("Sound is %v", commandline.Sound())
-	if cvars.NoSound.Value() != 0 || !commandline.Sound() {
+func Init(active bool) {
+	if !active {
 		soundFlag = false
 		return
 	}
@@ -239,12 +234,15 @@ func Init() {
 }
 
 func Shutdown() {
+	if !soundFlag {
+		return
+	}
 	mix.CloseAudio()
 }
 
 func Start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3,
 	fvol float32, attenuation float32, looping bool) {
-	if cvars.NoSound.Value() != 0 || !soundFlag {
+	if !soundFlag {
 		return
 	}
 	if sfx < 0 || sfx >= len(soundPrecache) {
@@ -292,11 +290,17 @@ func Start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3,
 }
 
 func Stop(entnum, entchannel int) {
+	if !soundFlag {
+		return
+	}
 	// why does the server know which channel to stop
 	activeSounds.stop(entnum, entchannel)
 }
 
 func StopAll() {
+	if !soundFlag {
+		return
+	}
 	activeSounds.stopAll()
 }
 
@@ -318,7 +322,7 @@ func Update(l Listener) {
 
 // gets called when window looses focus
 func Block() {
-	if cvars.NoSound.Value() != 0 || !soundFlag {
+	if !soundFlag {
 		return
 	}
 	mix.Volume(-1, 0)
@@ -326,10 +330,13 @@ func Block() {
 
 // gets called when window gains focus
 func Unblock() {
-	onVolumeChange(nil)
+	if !soundFlag {
+		return
+	}
+	mix.Volume(-1, int(volume*mix.MAX_VOLUME))
 }
 
-type Sound struct {
+type pcmSound struct {
 	data       *mix.Chunk
 	name       string
 	samples    int // number of samples
@@ -341,7 +348,7 @@ type Sound struct {
 }
 
 // Resample converts to 16bit stereo
-func (s *Sound) Resample() error {
+func (s *pcmSound) Resample() error {
 	// TODO: this should convert to mustAudioFormat, mustSampleRate and mustChannelNum
 	// for now convert to 16 bit stereo (desired format)
 	// TODO: convert to 11025 sampleRate
@@ -363,7 +370,7 @@ func (s *Sound) Resample() error {
 	return fmt.Errorf("Unsupported sound format: %v", s.name)
 }
 
-func (s *Sound) resample16Mono() error {
+func (s *pcmSound) resample16Mono() error {
 	newPCM := make([]byte, len(s.pcm)*2)
 	for i := 0; i < len(s.pcm); i += 2 {
 		newPCM[i*2] = s.pcm[i]
@@ -376,7 +383,7 @@ func (s *Sound) resample16Mono() error {
 	return nil
 }
 
-func (s *Sound) resample8Stereo() error {
+func (s *pcmSound) resample8Stereo() error {
 	newPCM := make([]byte, len(s.pcm)*2)
 	for i := 0; i < len(s.pcm); i++ {
 		v := (int16(s.pcm[i]) - 128)
@@ -388,7 +395,7 @@ func (s *Sound) resample8Stereo() error {
 	return nil
 }
 
-func (s *Sound) resample8Mono() error {
+func (s *pcmSound) resample8Mono() error {
 	newPCM := make([]byte, len(s.pcm)*4)
 	for i := 0; i < len(s.pcm); i++ {
 		v := (int16(s.pcm[i]) - 128)
@@ -403,7 +410,7 @@ func (s *Sound) resample8Mono() error {
 	return nil
 }
 
-func (s *Sound) sdlLoad() error {
+func (s *pcmSound) sdlLoad() error {
 	l := s.samples * (s.bitrate / 8) * s.channelNum
 	if l > len(s.pcm) {
 		log.Printf("Bad sdlLoad")
@@ -418,7 +425,7 @@ func (s *Sound) sdlLoad() error {
 }
 
 var (
-	soundPrecache []*Sound
+	soundPrecache []*pcmSound
 )
 
 func PrecacheSound(n string) int {
@@ -461,7 +468,7 @@ type chunk struct {
 	Body []byte
 }
 
-func loadSFX(filename string) (*Sound, error) {
+func loadSFX(filename string) (*pcmSound, error) {
 	mem, err := filesystem.GetFileContents(filename)
 	if err != nil {
 		return nil, fmt.Errorf("Could not load file %v: %v", filename, err)
@@ -506,7 +513,7 @@ func loadSFX(filename string) (*Sound, error) {
 			chunkSize = chunkSize + 1 // (size + 1 ) &^ 1
 		}
 	}
-	output := &Sound{name: filename}
+	output := &pcmSound{name: filename}
 
 	gotFMT := 0
 	for _, c := range chunks {
@@ -655,27 +662,14 @@ func readFMT(c chunk) waveFmt {
 	return f
 }
 
-func onVolumeChange(_ *cvar.Cvar) {
-	if cvars.Volume == nil || !soundFlag {
+var volume float32
+
+func SetVolume(v float32) {
+	if !soundFlag {
 		return
 	}
-	v := cvars.Volume.Value()
-	if v > 1 {
-		cvars.Volume.SetByString("1")
-		// this will cause recursion so exit early
-		return
-	}
-	if v < 0 {
-		cvars.Volume.SetByString("0")
-		// this will cause recursion so exit early
-		return
-	}
+	volume = v
 	// this needs some init to work,
 	// can only be called between mix.OpenAudio and mix.CloseAudio
-	mix.Volume(-1, int(v*mix.MAX_VOLUME))
-}
-
-func init() {
-	// was called sfxvolume
-	cvars.Volume.SetCallback(onVolumeChange)
+	mix.Volume(-1, int(volume*mix.MAX_VOLUME))
 }

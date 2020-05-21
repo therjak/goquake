@@ -8,6 +8,9 @@ import "C"
 
 import (
 	"github.com/therjak/goquake/cmd"
+	"github.com/therjak/goquake/commandline"
+	"github.com/therjak/goquake/cvar"
+	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/math/vec"
 	"github.com/therjak/goquake/snd"
 	"log"
@@ -21,9 +24,29 @@ const (
 	loopingSound = true
 )
 
+func init() {
+	cvars.Volume.SetCallback(onVolumeChange)
+}
+
+func onVolumeChange(cv *cvar.Cvar) {
+	v := cv.Value()
+	if v > 1 {
+		cv.SetByString("1")
+		// recursion so exit early
+		return
+	}
+	if v < 0 {
+		cv.SetByString("0")
+		// recursion so exit early
+		return
+	}
+	snd.SetVolume(v)
+}
+
 //export S_Init
 func S_Init() {
-	snd.Init()
+	snd.Init(commandline.Sound() && !cvars.NoSound.Bool())
+	onVolumeChange(cvars.Volume)
 }
 
 //export S_Shutdown
