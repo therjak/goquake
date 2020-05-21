@@ -118,8 +118,6 @@ var (
 	RSkyQuality            *cvar.Cvar
 	RSlimeAlpha            *cvar.Cvar
 	RSpeeds                *cvar.Cvar
-	RStereo                *cvar.Cvar
-	RStereoDepth           *cvar.Cvar
 	RTeleAlpha             *cvar.Cvar
 	RWaterAlpha            *cvar.Cvar
 	RWaterQuality          *cvar.Cvar
@@ -316,8 +314,6 @@ func init() {
 	RSkyQuality = cvar.MustRegister("r_sky_quality", "12", cvar.NONE)
 	RSlimeAlpha = cvar.MustRegister("r_slimealpha", "0", cvar.NONE)
 	RSpeeds = cvar.MustRegister("r_speeds", "0", cvar.NONE)
-	RStereo = cvar.MustRegister("r_stereo", "0", cvar.NONE)
-	RStereoDepth = cvar.MustRegister("r_stereodepth", "128", cvar.NONE)
 	RTeleAlpha = cvar.MustRegister("r_telealpha", "0", cvar.NONE)
 	RWaterAlpha = cvar.MustRegister("r_wateralpha", "1", cvar.ARCHIVE)
 	RWaterQuality = cvar.MustRegister("r_waterquality", "8", cvar.NONE)

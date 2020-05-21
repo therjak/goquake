@@ -368,8 +368,9 @@ void CL_Tracepos_f(void) {
 
   if (CLS_GetState() != ca_connected) return;
 
-  VectorMA(r_refdef.vieworg, 8192.0, vpn, v);
-  TraceLine(r_refdef.vieworg, v, w);
+  vec3_t org = {R_Refdef_vieworg(0), R_Refdef_vieworg(1), R_Refdef_vieworg(2)};
+  VectorMA(org, 8192.0, vpn, v);
+  TraceLine(org, v, w);
 
   if (VectorLength(w) == 0)
     Con_Printf("Tracepos: trace didn't hit anything\n");

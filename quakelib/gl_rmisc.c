@@ -3,8 +3,6 @@
 #include "quakedef.h"
 
 // johnfitz -- new cvars
-extern cvar_t r_stereo;
-extern cvar_t r_stereodepth;
 extern cvar_t r_clearcolor;
 extern cvar_t r_drawflat;
 extern cvar_t r_flatlightstyles;
@@ -155,8 +153,6 @@ void R_Init(void) {
   Cvar_FakeRegister(&gl_playermip, "gl_playermip");
   Cvar_FakeRegister(&gl_nocolors, "gl_nocolors");
 
-  Cvar_FakeRegister(&r_stereo, "r_stereo");
-  Cvar_FakeRegister(&r_stereodepth, "r_stereodepth");
   Cvar_FakeRegister(&r_clearcolor, "r_clearcolor");
   Cvar_SetCallback(&r_clearcolor, R_SetClearColor_f);
   Cvar_FakeRegister(&r_waterquality, "r_waterquality");
@@ -368,7 +364,7 @@ void R_TimeRefresh_f(void) {
   start = Sys_DoubleTime();
   for (i = 0; i < 128; i++) {
     UpdateViewport();
-    r_refdef.viewangles[1] = i / 128.0 * 360.0;
+    R_Refdef_SetViewAngles(1, i / 128.0 * 360.0);
     R_RenderView();
     GL_EndRendering();
   }

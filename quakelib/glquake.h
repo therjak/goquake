@@ -91,7 +91,6 @@ extern vec3_t r_origin;
 //
 // screen size info
 //
-extern refdef_t r_refdef;
 extern mleaf_t *r_viewleaf, *r_oldviewleaf;
 extern int d_lightstylevalue[256];  // 8.8 fraction of base light value
 
