@@ -5,6 +5,7 @@ id1/config.cfg
 .hg
 .hgignore
 quake
+goquake
 protos/savegame.pb.go
 protos/history.pb.go
 protos/client_message.pb.go
