@@ -472,11 +472,6 @@ func (scr *qScreen) drawDevStats() {
 	   }*/
 }
 
-//export SCR_UpdateScreen
-func SCR_UpdateScreen() {
-	screen.Update()
-}
-
 func (scr *qScreen) calcViewRect() {
 	// TODO: figure out what Refdef is and rename this stuff
 

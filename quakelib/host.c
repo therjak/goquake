@@ -19,8 +19,6 @@ quakeparms_t *host_parms;
 
 qboolean host_initialized;  // true if into command execution
 
-int host_framecount;
-
 int host_hunklevel;
 
 int minimum_memory;
@@ -91,60 +89,6 @@ void Host_ClearMemory(void) {
   SV_Clear();
   CL_Clear();
   memset(&cl, 0, sizeof(cl));
-}
-
-//==============================================================================
-//
-// Host Frame
-//
-//==============================================================================
-
-/*
-==================
-Host_Frame
-
-Runs all active servers
-==================
-*/
-void _Host_Frame() {
-  static double time1 = 0;
-  static double time2 = 0;
-  static double time3 = 0;
-  int pass1, pass2, pass3;
-
-  // keep the random time dependent
-  rand();  // to keep the c side happy
-
-  // fetch results from server
-  if (CLS_GetState() == ca_connected) CL_ReadFromServer();
-
-  // update video
-  if (Cvar_GetValue(&host_speeds)) time1 = Sys_DoubleTime();
-
-  SCR_UpdateScreen();
-
-  ParticlesRun();  // johnfitz -- seperated from rendering
-
-  if (Cvar_GetValue(&host_speeds)) time2 = Sys_DoubleTime();
-
-  // update audio
-  // adds music raw samples and/or advances midi driver
-  if (CLS_GetSignon() == SIGNONS) {
-    S_Update(r_origin, vpn, vright, vup);
-    CL_DecayLights();
-  } else
-    S_Update(vec3_origin, vec3_origin, vec3_origin, vec3_origin);
-
-  if (Cvar_GetValue(&host_speeds)) {
-    pass1 = (time1 - time3) * 1000;
-    time3 = Sys_DoubleTime();
-    pass2 = (time2 - time1) * 1000;
-    pass3 = (time3 - time2) * 1000;
-    Con_Printf("%3i tot %3i server %3i gfx %3i snd\n", pass1 + pass2 + pass3,
-               pass1, pass2, pass3);
-  }
-
-  host_framecount++;
 }
 
 /*

@@ -46,7 +46,6 @@ func CL_AllocDlight(key int) *C.dlight_t {
 	return C.getDlight(0)
 }
 
-//export CL_DecayLights
 func CL_DecayLights() {
 	t := C.float(cl.time - cl.oldTime)
 	for i := 0; i < C.MAX_DLIGHTS; i++ {

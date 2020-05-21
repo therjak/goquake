@@ -94,8 +94,6 @@ void CL_Init(void);
 //
 // cl_input
 //
-int CL_ReadFromServer(void);
-
 void CL_UpdateTEnts(void);
 
 void CL_ClearState(void);
@@ -116,7 +114,6 @@ void CL_InitTEnts(void);
 extern cvar_t chase_active;
 
 void Chase_Init(void);
-void TraceLine(vec3_t start, vec3_t end, vec3_t impact);
 void Chase_UpdateForDrawing(void);  // johnfitz
 
 #endif /* _CLIENT_H_ */

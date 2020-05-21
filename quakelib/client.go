@@ -71,6 +71,7 @@ func init() {
 	cmd.AddCommand("playdemo", clientPlayDemo)
 	cmd.AddCommand("timedemo", clientTimeDemo)
 
+	cmd.AddCommand("tracepos", tracePosition)
 	//Cmd_AddCommand("mcache", Mod_Print);
 }
 
@@ -1610,6 +1611,24 @@ func (c *Client) calcRefreshRect() {
 
 	if cvars.ChaseActive.Bool() {
 		Chase_UpdateForDrawing()
+	}
+}
+
+// display impact point of trace along VPN
+func tracePosition(args []cmd.QArg, player int) {
+	if cls.state != ca_connected {
+		return
+	}
+	org := qRefreshRect.viewOrg
+	vpn := qRefreshRect.viewForward
+	v := vec.Add(org, vec.Scale(8192, vpn))
+	w := trace{}
+	recursiveHullCheck(&cl.worldModel.Hulls[0], 0, 0, 1, org, v, &w)
+
+	if w.EndPos.Length() == 0 {
+		conlog.Printf("Tracepos: trace didn't hit anything\n")
+	} else {
+		conlog.Printf("Tracepos: (%d %d %d)\n", w.EndPos[0], w.EndPos[1], w.EndPos[2])
 	}
 }
 

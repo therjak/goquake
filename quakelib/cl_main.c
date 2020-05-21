@@ -290,7 +290,7 @@ CL_ReadFromServer
 Read all incoming data from the server
 ===============
 */
-int CL_ReadFromServer(void) {
+void CL_ReadFromServer(void) {
   int ret;
   extern int num_temp_entities;  // johnfitz
   int num_beams = 0;             // johnfitz
@@ -353,29 +353,6 @@ int CL_ReadFromServer(void) {
   //
   // bring the links up to date
   //
-  return 0;
-}
-
-/*
-=============
-CL_Tracepos_f -- johnfitz
-
-display impact point of trace along VPN
-=============
-*/
-void CL_Tracepos_f(void) {
-  vec3_t v, w;
-
-  if (CLS_GetState() != ca_connected) return;
-
-  vec3_t org = {R_Refdef_vieworg(0), R_Refdef_vieworg(1), R_Refdef_vieworg(2)};
-  VectorMA(org, 8192.0, vpn, v);
-  TraceLine(org, v, w);
-
-  if (VectorLength(w) == 0)
-    Con_Printf("Tracepos: trace didn't hit anything\n");
-  else
-    Con_Printf("Tracepos: (%i %i %i)\n", (int)w[0], (int)w[1], (int)w[2]);
 }
 
 /*
@@ -408,7 +385,6 @@ void CL_Init(void) {
   Cvar_FakeRegister(&cl_shownet, "cl_shownet");
 
   Cmd_AddCommand("entities", CL_PrintEntities_f);
-  Cmd_AddCommand("tracepos", CL_Tracepos_f);
   Cmd_AddCommand("viewpos", CL_Viewpos_f);
 }
 

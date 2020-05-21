@@ -12,7 +12,7 @@ func p2v3(p *C.float) vec.Vec3 {
 	}
 }
 
-//export TraceLine
+/*
 func TraceLine(start, end, impact *C.float) {
 	s := p2v3(start)
 	e := p2v3(end)
@@ -22,7 +22,7 @@ func TraceLine(start, end, impact *C.float) {
 	*C.cfp(1, impact) = C.float(trace.EndPos[1])
 	*C.cfp(2, impact) = C.float(trace.EndPos[2])
 }
-
+*/
 func Chase_UpdateForDrawing() {
 	// orient camera based on client. called before drawing
 	/*

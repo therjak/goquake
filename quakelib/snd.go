@@ -69,7 +69,7 @@ func cfloatToVec3(f *C.float) vec.Vec3 {
 	return vec.Vec3{float32(a), float32(b), float32(c)}
 }
 
-//export S_Update
+/*
 func S_Update(origin *C.float, _ *C.float, right *C.float, _ *C.float) {
 	// update the direction and distance to all sound sources
 	listener := snd.Listener{
@@ -82,7 +82,7 @@ func S_Update(origin *C.float, _ *C.float, right *C.float, _ *C.float) {
 	// ambient_level
 	// ambient_sound_level per ambient channel [4]
 	snd.Update(listener)
-}
+}*/
 
 //export S_ExtraUpdate
 func S_ExtraUpdate() {}

@@ -1,6 +1,6 @@
 package quakelib
 
-//void _Host_Frame();
+//void CL_ReadFromServer(void);
 import "C"
 
 import (
@@ -220,6 +220,8 @@ func init() {
 var (
 	frameCount          = 0
 	frameCountStartTime time.Time
+
+	executeFrameTime time.Time
 )
 
 // Runs all active servers
@@ -264,42 +266,48 @@ func executeFrame() {
 		CL_SendCmd()
 	}
 
-	C._Host_Frame()
-	/*
-		  // fetch results from server
-		  if (CLS_GetState() == ca_connected) {
-				CL_ReadFromServer();
-			}
+	// fetch results from server
+	if cls.state == ca_connected {
+		C.CL_ReadFromServer()
+	}
 
-		  // update video
-		  if (Cvar_GetValue(&host_speeds)) time1 = Sys_DoubleTime();
+	var time1, time2, time3 time.Time
 
-		  screen.Update()
+	// update video
+	if cvars.HostSpeeds.Bool() {
+		time1 = time.Now()
+	}
 
-		  ParticlesRun();  // johnfitz -- seperated from rendering
+	screen.Update()
 
-		  if (Cvar_GetValue(&host_speeds)) time2 = Sys_DoubleTime();
+	particlesRun(float32(cl.time), float32(cl.oldTime)) // seperated from rendering
 
-		  // update audio
-		  // adds music raw samples and/or advances midi driver
-		  if (CLS_GetSignon() == SIGNONS) {
-		    S_Update(r_origin, vpn, vright, vup);
-		    CL_DecayLights();
-		  } else
-		    S_Update(vec3_origin, vec3_origin, vec3_origin, vec3_origin);
+	if cvars.HostSpeeds.Bool() {
+		time2 = time.Now()
+	}
 
-		  if (Cvar_GetValue(&host_speeds)) {
-		    pass1 = (time1 - time3) * 1000;
-		    time3 = Sys_DoubleTime();
-		    pass2 = (time2 - time1) * 1000;
-		    pass3 = (time3 - time2) * 1000;
-		    Con_Printf("%3i tot %3i server %3i gfx %3i snd\n", pass1 + pass2 + pass3,
-		               pass1, pass2, pass3);
-		  }
+	// update audio
+	listener := snd.Listener{
+		ID: cl.viewentity,
+	}
+	if cls.signon == 4 {
+		listener.Origin = qRefreshRect.viewOrg
+		listener.Right = qRefreshRect.viewRight
+		CL_DecayLights()
+	}
+	snd.Update(listener)
 
-			// this is for demo syncing
-		  host_framecount++;
-	*/
+	if cvars.HostSpeeds.Bool() {
+		pass1 := time1.Sub(executeFrameTime)
+		executeFrameTime = time.Now()
+		pass2 := time2.Sub(time1)
+		pass3 := time3.Sub(time2)
+		conlog.Printf("%3d tot %3d server %3d gfx %3d snd\n",
+			(pass1 + pass2 + pass3).Milliseconds(),
+			pass1.Milliseconds(), pass2.Milliseconds(), pass3.Milliseconds())
+	}
+
+	// this is for demo syncing
 	host.frameCount++
 }
 

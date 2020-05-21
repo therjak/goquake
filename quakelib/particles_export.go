@@ -30,11 +30,6 @@ func ParticlesAddRocketTrail(start, end *C.float, typ C.int) {
 	particlesAddRocketTrail(p2v3(start), p2v3(end), int(typ), float32(cl.time))
 }
 
-//export ParticlesRun
-func ParticlesRun() {
-	particlesRun(float32(cl.time), float32(cl.oldTime))
-}
-
 //export ParticlesDraw
 func ParticlesDraw() {
 	particlesDraw()
