@@ -10,7 +10,6 @@
 typedef struct {
   int width;
   int height;
-  int bpp;
 } vmode_t;
 
 static char *gl_extensions_nice;
@@ -66,29 +65,27 @@ QS_PFNGLUNIFORM4FPROC GL_Uniform4fFunc = NULL;
 static cvar_t vid_fullscreen;
 static cvar_t vid_width;
 static cvar_t vid_height;
-static cvar_t vid_bpp;
 static cvar_t vid_vsync;
 
 cvar_t vid_gamma;
 cvar_t vid_contrast;
 
 static void VID_Restart(void) {
-  int width, height, bpp;
+  int width, height;
   qboolean fullscreen;
 
   if (VID_Locked() || !VIDChanged()) return;
 
   width = (int)Cvar_GetValue(&vid_width);
   height = (int)Cvar_GetValue(&vid_height);
-  bpp = (int)Cvar_GetValue(&vid_bpp);
   fullscreen = Cvar_GetValue(&vid_fullscreen) ? true : false;
 
   //
   // validate new mode
   //
-  if (!VID_ValidMode(width, height, bpp, fullscreen)) {
+  if (!VID_ValidMode(width, height, fullscreen)) {
     Sys_Print("VID_ValidMode == false");
-    Con_Printf("%dx%dx%d %s is not a valid mode\n", width, height, bpp,
+    Con_Printf("%dx%d %s is not a valid mode\n", width, height,
                fullscreen ? "fullscreen" : "windowed");
     return;
   }
@@ -110,7 +107,7 @@ static void VID_Restart(void) {
   //
   // set new mode
   //
-  VID_SetMode(width, height, bpp, fullscreen);
+  VID_SetMode(width, height, fullscreen);
 
   GL_Init();
   TexMgrReloadImages();
@@ -139,12 +136,11 @@ static void VID_Restart(void) {
 }
 
 static void VID_Test(void) {
-  int old_width, old_height, old_bpp, old_fullscreen;
+  int old_width, old_height, old_fullscreen;
 
   if (VID_Locked() || !VIDChanged()) return;
   old_width = VID_GetCurrentWidth();
   old_height = VID_GetCurrentHeight();
-  old_bpp = VID_GetCurrentBPP();
   old_fullscreen = VID_GetFullscreen();
 
   VID_Restart();
@@ -153,7 +149,6 @@ static void VID_Test(void) {
                         5.0f)) {
     Cvar_SetValueQuick(&vid_width, old_width);
     Cvar_SetValueQuick(&vid_height, old_height);
-    Cvar_SetValueQuick(&vid_bpp, old_bpp);
     Cvar_SetQuick(&vid_fullscreen, old_fullscreen ? "1" : "0");
     VID_Restart();
   }
@@ -462,12 +457,9 @@ void GL_Init(void) {
 }
 
 void VID_Init(void) {
-  int p, width, height, bpp, display_width, display_height, display_bpp;
-  qboolean fullscreen;
   Cvar_FakeRegister(&vid_fullscreen, "vid_fullscreen");
   Cvar_FakeRegister(&vid_width, "vid_width");
   Cvar_FakeRegister(&vid_height, "vid_height");
-  Cvar_FakeRegister(&vid_bpp, "vid_bpp");
   Cvar_FakeRegister(&vid_vsync, "vid_vsync");
   Cvar_FakeRegister(&vid_gamma, "gamma");
   Cvar_FakeRegister(&vid_contrast, "contrast");

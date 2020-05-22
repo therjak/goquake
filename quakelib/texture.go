@@ -786,7 +786,7 @@ func (tm *texMgr) getTextureUsage() (int32, float32) {
 			}
 		}
 	}
-	mb := float32(texels) * (cvars.VideoBitsPerPixel.Value() / 8) / (1000 * 1000)
+	mb := float32(texels) * (24 / 8) / (1000 * 1000)
 	return texels, mb
 }
 

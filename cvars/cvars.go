@@ -176,7 +176,6 @@ var (
 	Throttle               *cvar.Cvar
 	TicRate                *cvar.Cvar
 	TimeLimit              *cvar.Cvar
-	VideoBitsPerPixel      *cvar.Cvar
 	VideoBorderLess        *cvar.Cvar
 	VideoDesktopFullscreen *cvar.Cvar
 	VideoFsaa              *cvar.Cvar
@@ -372,7 +371,6 @@ func init() {
 	Throttle = cvar.MustRegister("sys_throttle", "0.02", cvar.ARCHIVE)
 	TicRate = cvar.MustRegister("sys_ticrate", "0.05", cvar.NONE)
 	TimeLimit = cvar.MustRegister("timelimit", "0", cvar.NOTIFY|cvar.SERVERINFO)
-	VideoBitsPerPixel = cvar.MustRegister("vid_bpp", "16", cvar.ARCHIVE)
 	VideoBorderLess = cvar.MustRegister("vid_borderless", "0", cvar.ARCHIVE)
 	VideoDesktopFullscreen = cvar.MustRegister("vid_desktopfullscreen", "0", cvar.ARCHIVE)
 	VideoFsaa = cvar.MustRegister("vid_fsaa", "0", cvar.ARCHIVE)

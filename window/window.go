@@ -77,30 +77,24 @@ func BPP() int {
 	return int((pf >> 8) & 0xff)
 }
 
-func findDisplayMode(width, height int32, bpp int) *sdl.DisplayMode {
+func findDisplayMode(width, height int32) *sdl.DisplayMode {
 	num, _ := sdl.GetNumDisplayModes(0)
+	current, _ := sdl.GetDesktopDisplayMode(0)
 	for i := 0; i < num; i++ {
 		m, err := sdl.GetDisplayMode(0, i)
 		if err != nil {
 			continue
 		}
-		mbpp, _, _, _, _, _ := sdl.PixelFormatEnumToMasks(uint(m.Format))
-		if m.W == width && m.H == height && mbpp == bpp {
+		if m.W == width && m.H == height && m.Format == current.Format {
 			return &m
 		}
 	}
 	return nil
 }
 
-func SetMode(width, height int32, bpp int, fullscreen bool) {
-	depthbits, stencilbits := func() (int, int) {
-		if bpp == 16 {
-			return 16, 0
-		}
-		return 24, 8
-	}()
-	sdl.GLSetAttribute(sdl.GL_DEPTH_SIZE, depthbits)
-	sdl.GLSetAttribute(sdl.GL_STENCIL_SIZE, stencilbits)
+func SetMode(width, height int32, fullscreen bool) {
+	sdl.GLSetAttribute(sdl.GL_DEPTH_SIZE, 24)
+	sdl.GLSetAttribute(sdl.GL_STENCIL_SIZE, 8)
 
 	fsaa := int(cvars.VideoFsaa.Value())
 
@@ -149,7 +143,7 @@ func SetMode(width, height int32, bpp int, fullscreen bool) {
 	}
 	window.SetSize(width, height)
 	window.SetPosition(sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED)
-	window.SetDisplayMode(findDisplayMode(width, height, bpp))
+	window.SetDisplayMode(findDisplayMode(width, height))
 	window.SetBordered(cvars.VideoBorderLess.Value() == 0)
 	if fullscreen {
 		flags := func() uint32 {

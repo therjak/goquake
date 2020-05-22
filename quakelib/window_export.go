@@ -32,8 +32,8 @@ func VIDChanged() bool {
 }
 
 //export VID_SetMode
-func VID_SetMode(width, height, bpp, fullscreen C.int) {
-	videoSetMode(int32(width), int32(height), int(bpp), fullscreen == 1)
+func VID_SetMode(width, height, fullscreen C.int) {
+	videoSetMode(int32(width), int32(height), fullscreen == 1)
 }
 
 //export VID_GetCurrentWidth
@@ -64,8 +64,8 @@ func VID_GetFullscreen() bool {
 }
 
 //export VID_ValidMode
-func VID_ValidMode(width, height, bpp, fullscreen C.int) bool {
-	return validDisplayMode(int32(width), int32(height), int(bpp), fullscreen != 0)
+func VID_ValidMode(width, height, fullscreen C.int) bool {
+	return validDisplayMode(int32(width), int32(height), fullscreen != 0)
 }
 
 //export VID_GetModeState

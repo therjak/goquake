@@ -31,11 +31,11 @@ func windowSetMode(width, height, bpp int32, fullscreen bool) {
 	UpdateConsoleSize()
 }*/
 
-func videoSetMode(width, height int32, bpp int, fullscreen bool) {
+func videoSetMode(width, height int32, fullscreen bool) {
 	temp := screen.disabled
 	screen.disabled = true
 
-	window.SetMode(width, height, bpp, fullscreen)
+	window.SetMode(width, height, fullscreen)
 	screen.Width, screen.Height = window.Size()
 	UpdateConsoleSize()
 
@@ -67,9 +67,8 @@ func videoSetMode(width, height int32, bpp int, fullscreen bool) {
 }
 
 type DisplayMode struct {
-	Width        int32
-	Height       int32
-	BitsPerPixel []int // sorted, never empty
+	Width  int32
+	Height int32
 }
 
 var (
@@ -90,59 +89,40 @@ func updateAvailableDisplayModes() {
 		if err != nil {
 			continue
 		}
-		bpp := sdl.BitsPerPixel(mode.Format)
-		addMode(mode.W, mode.H, bpp)
+		addMode(mode.W, mode.H)
 	}
 }
 
-func appendMode(w, h int32, bpp int) {
+func appendMode(w, h int32) {
 	availableDisplayModes = append(availableDisplayModes,
 		DisplayMode{
-			Width:        w,
-			Height:       h,
-			BitsPerPixel: []int{bpp},
+			Width:  w,
+			Height: h,
 		})
 }
 
-func appendBpp(cur []int, n int) []int {
-	if len(cur) == 0 {
-		return []int{n}
-	}
-	if cur[len(cur)-1] == n {
-		return cur
-	}
-	return append(cur, n)
-}
-
-func addMode(w, h int32, bpp int) {
+func addMode(w, h int32) {
 	if len(availableDisplayModes) == 0 {
-		appendMode(w, h, bpp)
+		appendMode(w, h)
 		return
 	}
 	last := availableDisplayModes[len(availableDisplayModes)-1]
-	if last.Width == w && last.Height == h {
-		availableDisplayModes[len(availableDisplayModes)-1].BitsPerPixel =
-			appendBpp(last.BitsPerPixel, bpp)
-	} else {
-		appendMode(w, h, bpp)
+	if last.Width != w && last.Height != h {
+		appendMode(w, h)
 	}
 
 }
 
-func hasDisplayMode(width, height int32, bpp int) bool {
+func hasDisplayMode(width, height int32) bool {
 	for _, m := range availableDisplayModes {
 		if m.Height == height && m.Width == width {
-			for _, b := range m.BitsPerPixel {
-				if b == bpp {
-					return true
-				}
-			}
+			return true
 		}
 	}
 	return false
 }
 
-func validDisplayMode(width, height int32, bpp int, fullscreen bool) bool {
+func validDisplayMode(width, height int32, fullscreen bool) bool {
 	if fullscreen {
 		if cvars.VideoDesktopFullscreen.Value() != 0 {
 			return true
@@ -153,16 +133,11 @@ func validDisplayMode(width, height int32, bpp int, fullscreen bool) bool {
 		return false
 	}
 
-	if fullscreen && !hasDisplayMode(width, height, bpp) {
+	if fullscreen && !hasDisplayMode(width, height) {
 		return false
 	}
 
-	switch bpp {
-	case 16, 24, 32:
-		return true
-	}
-
-	return false
+	return true
 }
 
 const (
@@ -256,7 +231,6 @@ func init() {
 	cvars.VideoFullscreen.SetCallback(f)
 	cvars.VideoWidth.SetCallback(f)
 	cvars.VideoHeight.SetCallback(f)
-	cvars.VideoBitsPerPixel.SetCallback(f)
 	cvars.VideoVerticalSync.SetCallback(f)
 	cvars.VideoDesktopFullscreen.SetCallback(f)
 	cvars.VideoBorderLess.SetCallback(f)
@@ -276,7 +250,6 @@ func syncVideoCvars() {
 			cvars.VideoWidth.SetByString(strconv.FormatInt(int64(w), 10))
 			cvars.VideoHeight.SetByString(strconv.FormatInt(int64(h), 10))
 		}
-		cvars.VideoBitsPerPixel.SetByString(strconv.FormatInt(int64(window.BPP()), 10))
 		cvars.VideoFullscreen.SetByString(b2s(window.Fullscreen()))
 		cvars.VideoVerticalSync.SetByString(b2s(window.VSync()))
 	}
@@ -300,10 +273,8 @@ func describeCurrentMode(_ []cmd.QArg, _ int) {
 func describeModes(_ []cmd.QArg, _ int) {
 	count := 0
 	for _, m := range availableDisplayModes {
-		for _, d := range m.BitsPerPixel {
-			conlog.Printf("  %4d x %4d x %d\n", m.Width, m.Height, d)
-			count++
-		}
+		conlog.Printf("  %4d x %4d\n", m.Width, m.Height)
+		count++
 	}
 	conlog.Printf("%d modes\n", count)
 }
@@ -347,29 +318,11 @@ func getIndexCurrentDisplayMode() (int, bool) {
 	return 0, false
 }
 
-func getIndexCurrentBpp(m int) (int, bool) {
-	if m < 0 || m > len(availableDisplayModes) {
-		return 0, false
-	}
-	cb := int(cvars.VideoBitsPerPixel.Value())
-	for i, b := range availableDisplayModes[m].BitsPerPixel {
-		if b == cb {
-			return i, true
-		}
-	}
-	return 0, false
-}
-
 func chooseDisplayMode(w, h int32) {
 	ws := strconv.FormatInt(int64(w), 10)
 	hs := strconv.FormatInt(int64(h), 10)
 	cvars.VideoWidth.SetByString(ws)
 	cvars.VideoHeight.SetByString(hs)
-}
-
-func chooseBpp(b int) {
-	bs := strconv.FormatInt(int64(b), 10)
-	cvars.VideoBitsPerPixel.SetByString(bs)
 }
 
 func chooseMode(f func(int) int) {
@@ -378,17 +331,12 @@ func chooseMode(f func(int) int) {
 		if len(availableDisplayModes) != 0 {
 			m := availableDisplayModes[0]
 			chooseDisplayMode(m.Width, m.Height)
-			chooseBpp(m.BitsPerPixel[0])
 		}
 		return
 	}
 	ni := f(mi)
 	mode := availableDisplayModes[ni]
 	chooseDisplayMode(mode.Width, mode.Height)
-	_, ok = getIndexCurrentBpp(ni)
-	if !ok {
-		chooseBpp(mode.BitsPerPixel[0])
-	}
 }
 
 func chooseNextMode() {
@@ -403,34 +351,6 @@ func choosePrevMode() {
 	})
 }
 
-func chooseNextBpp() {
-	m, ok := getIndexCurrentDisplayMode()
-	if !ok {
-		return
-	}
-	i, ok := getIndexCurrentBpp(m)
-	if !ok {
-		chooseBpp(availableDisplayModes[m].BitsPerPixel[0])
-		return
-	}
-	i = (i + 1) % len(availableDisplayModes[m].BitsPerPixel)
-	chooseBpp(availableDisplayModes[m].BitsPerPixel[i])
-}
-
-func choosePrevBpp() {
-	m, ok := getIndexCurrentDisplayMode()
-	if !ok {
-		return
-	}
-	i, ok := getIndexCurrentBpp(m)
-	if !ok {
-		chooseBpp(availableDisplayModes[m].BitsPerPixel[0])
-		return
-	}
-	i = (i - 1 + len(availableDisplayModes[m].BitsPerPixel)) % len(availableDisplayModes[m].BitsPerPixel)
-	chooseBpp(availableDisplayModes[m].BitsPerPixel[i])
-}
-
 func videoInit() error {
 	err := sdl.InitSubSystem(sdl.INIT_VIDEO)
 	if err != nil {
@@ -440,8 +360,6 @@ func videoInit() error {
 	if err != nil {
 		return fmt.Errorf("Could not get desktop display mode")
 	}
-	bpp := sdl.BitsPerPixel(mode.Format)
-	cvars.VideoBitsPerPixel.SetValue(float32(bpp))
 
 	// TODO(therjak): It would be good to have read the configs already
 	// quakespams reads at least config.cfg here for its cvars. But cvars
@@ -471,33 +389,27 @@ func videoInit() error {
 				width = height * 4 / 3
 			}
 		}
-		clBpp := cmdl.Bpp()
-		if clBpp >= 0 {
-			bpp = clBpp
-		}
 		if cmdl.Window() {
 			fullscreen = false
 		} else if cmdl.Fullscreen() {
 			fullscreen = true
 		}
 	}
-	if !validDisplayMode(width, height, bpp, fullscreen) {
+	if !validDisplayMode(width, height, fullscreen) {
 		width = int32(cvars.VideoWidth.Value())
 		height = int32(cvars.VideoHeight.Value())
-		bpp = int(cvars.VideoBitsPerPixel.Value())
 		fullscreen = cvars.VideoFullscreen.Bool()
 	}
-	if !validDisplayMode(width, height, bpp, fullscreen) {
+	if !validDisplayMode(width, height, fullscreen) {
 		width = 640
 		height = 480
-		// bpp already is the displays bpp
 		fullscreen = false
 	}
 	videoInitialized = true
 
 	window.InitIcon()
 
-	videoSetMode(width, height, bpp, fullscreen)
+	videoSetMode(width, height, fullscreen)
 
 	// QuakeSpasm: current vid settings should override config file settings.
 	// so we have to lock the vid mode from now until after all config files are

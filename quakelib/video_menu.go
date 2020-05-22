@@ -64,7 +64,6 @@ var (
 func makeVideoMenuItems() []MenuItem {
 	return []MenuItem{
 		&MenuItemResolution{qMenuItem{168, 8 * 6}},
-		&MenuItemBitsPerPixel{qMenuItem{168, 8 * 7}},
 		&MenuItemFullscreen{qMenuItem{168, 8 * 8}},
 		&MenuItemVerticalSync{qMenuItem{168, 8 * 9}},
 		&MenuItemVideoTest{qMenuItem{168, 8 * 11}},
@@ -80,16 +79,6 @@ func (m *MenuItemResolution) Enter() { chooseNextMode() }
 func (m *MenuItemResolution) Draw() {
 	drawString(16, m.Y, "        Video mode")
 	drawString(184, m.Y, fmt.Sprintf("%.fx%.f", cvars.VideoWidth.Value(), cvars.VideoHeight.Value()))
-}
-
-type MenuItemBitsPerPixel struct{ qMenuItem }
-
-func (m *MenuItemBitsPerPixel) Left()  { chooseNextBpp() }
-func (m *MenuItemBitsPerPixel) Right() { choosePrevBpp() }
-func (m *MenuItemBitsPerPixel) Enter() { chooseNextBpp() }
-func (m *MenuItemBitsPerPixel) Draw() {
-	drawString(16, m.Y, "       Color depth")
-	drawString(184, m.Y, fmt.Sprintf("%.f", cvars.VideoBitsPerPixel.Value()))
 }
 
 type MenuItemFullscreen struct{ qMenuItem }
