@@ -1,5 +1,3 @@
-#include <SDL2/SDL.h>
-
 #include "quakedef.h"
 
 #define MAX_MODE_LIST 600
@@ -8,8 +6,6 @@
 #define WARP_HEIGHT 200
 #define MAXWIDTH 10000
 #define MAXHEIGHT 10000
-
-#define DEFAULT_SDL_FLAGS SDL_OPENGL
 
 typedef struct {
   int width;
@@ -273,7 +269,7 @@ static void GL_CheckExtensions(const char *gl_extensions) {
   if (!VIDGLSwapControl()) {
     Con_Warning(
         "vertical sync not supported (SDL_GL_SetSwapInterval failed)\n");
-  } else if ((swap_control = SDL_GL_GetSwapInterval()) == -1) {
+  } else if ((swap_control = VIDGetSwapInterval()) == -1) {
     SetVIDGLSwapControl(false);
     Con_Warning(
         "vertical sync not supported (SDL_GL_GetSwapInterval failed)\n");
@@ -433,7 +429,7 @@ static void GL_SetupState(void) {
 GL_Init
 ===============
 */
-static void GL_Init(void) {
+void GL_Init(void) {
   int gl_version_major;
   int gl_version_minor;
   const char *gl_vendor = (const char *)glGetString(GL_VENDOR);
@@ -473,91 +469,14 @@ void VID_Init(void) {
   Cvar_FakeRegister(&vid_height, "vid_height");
   Cvar_FakeRegister(&vid_bpp, "vid_bpp");
   Cvar_FakeRegister(&vid_vsync, "vid_vsync");
-
-  Cmd_AddCommand("vid_restart", VID_Restart);
-  Cmd_AddCommand("vid_test", VID_Test);
-
-  if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
-    Go_Error_S("Couldn't init SDL video: %v", SDL_GetError());
-
-  {
-    SDL_DisplayMode mode;
-    if (SDL_GetDesktopDisplayMode(0, &mode) != 0)
-      Go_Error("Could not get desktop display mode");
-
-    display_width = mode.w;
-    display_height = mode.h;
-    display_bpp = SDL_BITSPERPIXEL(mode.format);
-  }
-
-  Cvar_SetValueQuick(&vid_bpp, (float)display_bpp);
-
-  // TODO(therjak): It would be good to have read the configs already
-  // quakespams reads at least config.cfg here for its cvars. But cvars
-  // exist in autoexec.cfg and default.cfg as well.
-
-  VID_InitModelist();
-
-  width = (int)Cvar_GetValue(&vid_width);
-  height = (int)Cvar_GetValue(&vid_height);
-  bpp = (int)Cvar_GetValue(&vid_bpp);
-  fullscreen = (int)Cvar_GetValue(&vid_fullscreen);
-
-  if (CMLCurrent()) {
-    width = display_width;
-    height = display_height;
-    bpp = display_bpp;
-    fullscreen = true;
-  } else {
-    p = CMLWidth();
-    if (p >= 0) {
-      width = p;
-      if (CMLHeight() < 0) height = width * 3 / 4;
-    }
-    p = CMLHeight();
-    if (p >= 0) {
-      height = p;
-      if (CMLWidth() < 0) width = height * 4 / 3;
-    }
-    p = CMLBpp();
-    if (p >= 0) bpp = p;
-
-    if (CMLWindow())
-      fullscreen = false;
-    else if (CMLFullscreen())
-      fullscreen = true;
-  }
-
-  if (!VID_ValidMode(width, height, bpp, fullscreen)) {
-    width = (int)Cvar_GetValue(&vid_width);
-    height = (int)Cvar_GetValue(&vid_height);
-    bpp = (int)Cvar_GetValue(&vid_bpp);
-    fullscreen = (int)Cvar_GetValue(&vid_fullscreen);
-  }
-
-  if (!VID_ValidMode(width, height, bpp, fullscreen)) {
-    width = 640;
-    height = 480;
-    bpp = display_bpp;
-    fullscreen = false;
-  }
-
-  SetVID_Initialized(true);
-
-  PL_SetWindowIcon();
-
-  VID_SetMode(width, height, bpp, fullscreen);
-
-  GL_Init();
-  GL_SetupState();
-
   Cvar_FakeRegister(&vid_gamma, "gamma");
   Cvar_FakeRegister(&vid_contrast, "contrast");
 
-  // QuakeSpasm: current vid settings should override config file settings.
-  // so we have to lock the vid mode from now until after all config files are
-  // read.
-  SetVID_Locked(true);
+  Cmd_AddCommand("vid_restart", VID_Restart);
+  Cmd_AddCommand("vid_test", VID_Test);
+  
+  VID_Init_Go();
 
-  IN_Init();
+  GL_Init();
+  GL_SetupState();
 }

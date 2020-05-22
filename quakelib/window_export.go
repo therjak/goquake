@@ -7,27 +7,13 @@ package quakelib
 import "C"
 
 import (
+	"fmt"
 	"github.com/therjak/goquake/window"
 )
 
 //export VID_Locked
 func VID_Locked() bool {
 	return videoLocked
-}
-
-//export VID_Initialized
-func VID_Initialized() bool {
-	return videoInitialized
-}
-
-//export SetVID_Locked
-func SetVID_Locked(v C.int) {
-	videoLocked = (v != 0)
-}
-
-//export SetVID_Initialized
-func SetVID_Initialized(v C.int) {
-	videoInitialized = (v != 0)
 }
 
 //export VIDGLSwapControl
@@ -45,14 +31,9 @@ func VIDChanged() bool {
 	return videoChanged
 }
 
-//export PL_SetWindowIcon
-func PL_SetWindowIcon() {
-	window.InitIcon()
-}
-
 //export VID_SetMode
 func VID_SetMode(width, height, bpp, fullscreen C.int) {
-	videoSetMode(int32(width), int32(height), int32(bpp), fullscreen == 1)
+	videoSetMode(int32(width), int32(height), int(bpp), fullscreen == 1)
 }
 
 //export VID_GetCurrentWidth
@@ -82,19 +63,9 @@ func VID_GetFullscreen() bool {
 	return window.Fullscreen()
 }
 
-//export VID_GetVSync
-func VID_GetVSync() bool {
-	return window.VSync()
-}
-
-//export VID_InitModelist
-func VID_InitModelist() {
-	updateAvailableDisplayModes()
-}
-
 //export VID_ValidMode
 func VID_ValidMode(width, height, bpp, fullscreen C.int) bool {
-	return validDisplayMode(int32(width), int32(height), uint32(bpp), fullscreen != 0)
+	return validDisplayMode(int32(width), int32(height), int(bpp), fullscreen != 0)
 }
 
 //export VID_GetModeState
@@ -122,4 +93,18 @@ func UpdateConsoleSize() {
 //export VID_SyncCvars
 func VID_SyncCvars() {
 	syncVideoCvars()
+}
+
+//export VIDGetSwapInterval
+func VIDGetSwapInterval() int {
+	return getSwapInterval()
+}
+
+//export VID_Init_Go
+func VID_Init_Go() {
+	err := videoInit()
+	if err != nil {
+		fmt.Printf("%v", err)
+		Error(fmt.Sprintf("%v", err))
+	}
 }

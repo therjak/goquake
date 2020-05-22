@@ -77,7 +77,7 @@ func BPP() int {
 	return int((pf >> 8) & 0xff)
 }
 
-func findDisplayMode(width, height, bpp int32) *sdl.DisplayMode {
+func findDisplayMode(width, height int32, bpp int) *sdl.DisplayMode {
 	num, _ := sdl.GetNumDisplayModes(0)
 	for i := 0; i < num; i++ {
 		m, err := sdl.GetDisplayMode(0, i)
@@ -85,14 +85,14 @@ func findDisplayMode(width, height, bpp int32) *sdl.DisplayMode {
 			continue
 		}
 		mbpp, _, _, _, _, _ := sdl.PixelFormatEnumToMasks(uint(m.Format))
-		if m.W == width && m.H == height && mbpp == int(bpp) {
+		if m.W == width && m.H == height && mbpp == bpp {
 			return &m
 		}
 	}
 	return nil
 }
 
-func SetMode(width, height, bpp int32, fullscreen bool) {
+func SetMode(width, height int32, bpp int, fullscreen bool) {
 	depthbits, stencilbits := func() (int, int) {
 		if bpp == 16 {
 			return 16, 0

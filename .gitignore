@@ -9,4 +9,5 @@ goquake
 protos/savegame.pb.go
 protos/history.pb.go
 protos/client_message.pb.go
+protos/server_message.pb.go
 history.txt

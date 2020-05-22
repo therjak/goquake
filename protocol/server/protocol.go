@@ -213,3 +213,20 @@ const (
 	U_EXTEND2             // another byte to follow, future expansion
 	U_TRANS   = (1 << 15) // PROTOCOL_NEHAHRA transparency
 )
+
+const (
+	TE_SPIKE = iota
+	TE_SUPERSPIKE
+	TE_GUNSHOT
+	TE_EXPLOSION
+	TE_TAREXPLOSION
+	TE_LIGHTNING1
+	TE_LIGHTNING2
+	TE_WIZSPIKE
+	TE_KNIGHTSPIKE
+	TE_LIGHTNING3
+	TE_LAVASPLASH
+	TE_TELEPORT
+	TE_EXPLOSION2
+	TE_BEAM
+)

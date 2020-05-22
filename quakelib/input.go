@@ -62,8 +62,7 @@ var (
 	textmode = false // to make entering and leaving text mode lasy
 )
 
-//export IN_Init
-func IN_Init() {
+func inputInit() {
 	textmode = keyTextEntry()
 	selectTextMode(textmode)
 	if !cmdl.Mouse() {

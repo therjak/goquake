@@ -1,0 +1,98 @@
+syntax = "proto3";
+
+package protos;
+option go_package = ".;protos";
+
+message Coord {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+}
+
+message Line {
+  int32 entity = 1;
+  Coord start = 2;
+  Coord end = 3;
+}
+
+message Explosion2 {
+  Coord position = 1;
+  int32 start_color = 2;
+  int32 stop_color = 3;
+}
+
+message Empty {}
+
+message TempEntity {
+  oneof union {
+    Coord spike = 1;
+    Coord super_spike = 2;
+    Coord gunshot = 3;
+    Coord explosion = 4;
+    Coord tar_explosion = 5;
+    Line lightning_1 = 6;
+    Line lightning_2 = 7;
+    Coord wiz_spike = 8;
+    Coord knight_spike = 9;
+    Line lightning_3 = 10;
+    Coord lava_splash = 11;
+    Coord teleport = 12;
+    Explosion2 explosion2 = 13;
+    Line beam = 14;
+  }
+}
+
+message SCmd {
+  oneof union {
+    // nop = 1 == empty
+    bool disconnect = 2;
+    
+    // UpdateStat update_stat = 3;
+    int32 version = 4;
+    int32 set_view_entity = 5; // set_view
+    //Sound sound = 6;
+    
+    float time = 7;
+    string print = 8;
+    string stuff_text = 9;
+    /*
+    SetAngle set_angle = 10;
+    ServerInfo server_info = 11;
+    LightStyle light_style = 12;
+    UpdateName update_name = 13;
+    UpdateFrags update_frags = 14;
+    ClientData client_data = 15;
+    */
+    int32 stop_sound = 16;
+    /*
+    UpdateColors update_colors = 17;
+    Particle particle = 18;
+    Damage damage = 19;
+    // baseline spawn_static = 20;
+    // int32 + baseline spawn_baseline = 22;
+    */
+    TempEntity temp_entity = 23;
+    bool set_pause = 24;
+    int32 signon_num = 25;
+    string center_print = 26;
+    Empty killed_monster = 27;
+    Empty found_secret = 28;
+    // SpawnStaticSound spawn_static_sound = 29;
+    Empty intermission = 30;
+    string finale = 31;
+    
+    // CDTrack cd_track = 32;
+    Empty sell_screen = 33;
+    string cutscene = 34;
+    string skybox = 37;
+    Empty bf = 40;
+    // Fog fog = 41;
+    // int32 + baseline spawn_baseline2 = 42;
+    // baseline spawn_static2 = 43;
+    // SpawnStaticSound2 spawn_static_sound2 = 44;
+  }
+}
+
+message ServerMessage {
+  repeated SCmd cmds = 1;
+}

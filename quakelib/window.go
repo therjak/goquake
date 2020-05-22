@@ -1,8 +1,10 @@
 package quakelib
 
 import (
+	"fmt"
 	"github.com/therjak/goquake/cbuf"
 	"github.com/therjak/goquake/cmd"
+	cmdl "github.com/therjak/goquake/commandline"
 	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/cvar"
 	"github.com/therjak/goquake/cvars"
@@ -22,13 +24,14 @@ var (
 	videoLocked      = false
 )
 
+/*
 func windowSetMode(width, height, bpp int32, fullscreen bool) {
 	window.SetMode(width, height, bpp, fullscreen)
 	screen.Width, screen.Height = window.Size()
 	UpdateConsoleSize()
-}
+}*/
 
-func videoSetMode(width, height, bpp int32, fullscreen bool) {
+func videoSetMode(width, height int32, bpp int, fullscreen bool) {
 	temp := screen.disabled
 	screen.disabled = true
 
@@ -66,7 +69,7 @@ func videoSetMode(width, height, bpp int32, fullscreen bool) {
 type DisplayMode struct {
 	Width        int32
 	Height       int32
-	BitsPerPixel []uint32 // sorted, never empty
+	BitsPerPixel []int // sorted, never empty
 }
 
 var (
@@ -87,23 +90,23 @@ func updateAvailableDisplayModes() {
 		if err != nil {
 			continue
 		}
-		bpp := (mode.Format >> 8) & 0xff
+		bpp := sdl.BitsPerPixel(mode.Format)
 		addMode(mode.W, mode.H, bpp)
 	}
 }
 
-func appendMode(w, h int32, bpp uint32) {
+func appendMode(w, h int32, bpp int) {
 	availableDisplayModes = append(availableDisplayModes,
 		DisplayMode{
 			Width:        w,
 			Height:       h,
-			BitsPerPixel: []uint32{bpp},
+			BitsPerPixel: []int{bpp},
 		})
 }
 
-func appendBpp(cur []uint32, n uint32) []uint32 {
+func appendBpp(cur []int, n int) []int {
 	if len(cur) == 0 {
-		return []uint32{n}
+		return []int{n}
 	}
 	if cur[len(cur)-1] == n {
 		return cur
@@ -111,7 +114,7 @@ func appendBpp(cur []uint32, n uint32) []uint32 {
 	return append(cur, n)
 }
 
-func addMode(w, h int32, bpp uint32) {
+func addMode(w, h int32, bpp int) {
 	if len(availableDisplayModes) == 0 {
 		appendMode(w, h, bpp)
 		return
@@ -126,7 +129,7 @@ func addMode(w, h int32, bpp uint32) {
 
 }
 
-func hasDisplayMode(width, height int32, bpp uint32) bool {
+func hasDisplayMode(width, height int32, bpp int) bool {
 	for _, m := range availableDisplayModes {
 		if m.Height == height && m.Width == width {
 			for _, b := range m.BitsPerPixel {
@@ -139,7 +142,7 @@ func hasDisplayMode(width, height int32, bpp uint32) bool {
 	return false
 }
 
-func validDisplayMode(width, height int32, bpp uint32, fullscreen bool) bool {
+func validDisplayMode(width, height int32, bpp int, fullscreen bool) bool {
 	if fullscreen {
 		if cvars.VideoDesktopFullscreen.Value() != 0 {
 			return true
@@ -348,7 +351,7 @@ func getIndexCurrentBpp(m int) (int, bool) {
 	if m < 0 || m > len(availableDisplayModes) {
 		return 0, false
 	}
-	cb := uint32(cvars.VideoBitsPerPixel.Value())
+	cb := int(cvars.VideoBitsPerPixel.Value())
 	for i, b := range availableDisplayModes[m].BitsPerPixel {
 		if b == cb {
 			return i, true
@@ -364,7 +367,7 @@ func chooseDisplayMode(w, h int32) {
 	cvars.VideoHeight.SetByString(hs)
 }
 
-func chooseBpp(b uint32) {
+func chooseBpp(b int) {
 	bs := strconv.FormatInt(int64(b), 10)
 	cvars.VideoBitsPerPixel.SetByString(bs)
 }
@@ -428,11 +431,84 @@ func choosePrevBpp() {
 	chooseBpp(availableDisplayModes[m].BitsPerPixel[i])
 }
 
-//TODO
-func VID_Init() {}
+func videoInit() error {
+	err := sdl.InitSubSystem(sdl.INIT_VIDEO)
+	if err != nil {
+		return fmt.Errorf("Couldn't init SDL video: %v", err)
+	}
+	mode, err := sdl.GetDesktopDisplayMode(0) // TODO: fix multi monitor support
+	if err != nil {
+		return fmt.Errorf("Could not get desktop display mode")
+	}
+	bpp := sdl.BitsPerPixel(mode.Format)
+	cvars.VideoBitsPerPixel.SetValue(float32(bpp))
 
-/*
-SDL_GL_GetSwapInterval
-int SDL_GetNumDisplayModes(int)
-int SDL_GetDisplayMode(int,int,&mode)
-*/
+	// TODO(therjak): It would be good to have read the configs already
+	// quakespams reads at least config.cfg here for its cvars. But cvars
+	// exist in autoexec.cfg and default.cfg as well.
+
+	updateAvailableDisplayModes()
+	width := int32(cvars.VideoWidth.Value())
+	height := int32(cvars.VideoHeight.Value())
+	fullscreen := cvars.VideoFullscreen.Bool()
+
+	if cmdl.Current() {
+		width = mode.W
+		height = mode.H
+		fullscreen = true
+	} else {
+		clWidth := cmdl.Width()
+		clHeight := cmdl.Height()
+		if clWidth >= 0 {
+			width = int32(clWidth)
+			if clHeight < 0 {
+				height = width * 3 / 4
+			}
+		}
+		if clHeight >= 0 {
+			height = int32(clHeight)
+			if clWidth < 0 {
+				width = height * 4 / 3
+			}
+		}
+		clBpp := cmdl.Bpp()
+		if clBpp >= 0 {
+			bpp = clBpp
+		}
+		if cmdl.Window() {
+			fullscreen = false
+		} else if cmdl.Fullscreen() {
+			fullscreen = true
+		}
+	}
+	if !validDisplayMode(width, height, bpp, fullscreen) {
+		width = int32(cvars.VideoWidth.Value())
+		height = int32(cvars.VideoHeight.Value())
+		bpp = int(cvars.VideoBitsPerPixel.Value())
+		fullscreen = cvars.VideoFullscreen.Bool()
+	}
+	if !validDisplayMode(width, height, bpp, fullscreen) {
+		width = 640
+		height = 480
+		// bpp already is the displays bpp
+		fullscreen = false
+	}
+	videoInitialized = true
+
+	window.InitIcon()
+
+	videoSetMode(width, height, bpp, fullscreen)
+
+	// QuakeSpasm: current vid settings should override config file settings.
+	// so we have to lock the vid mode from now until after all config files are
+	// read.
+	videoLocked = true
+
+	inputInit()
+	return nil
+}
+
+func getSwapInterval() int {
+	i, _ := sdl.GLGetSwapInterval()
+	return i
+}
