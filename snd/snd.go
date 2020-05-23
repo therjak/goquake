@@ -284,7 +284,12 @@ func Start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3,
 		// should start at loopstart.
 		return -1 // loop infinite
 	}()
-	schan, err := s.data.Play(ps.channel, loop)
+	chunk, err := newSDLSound(s)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	schan, err := chunk.Play(ps.channel, loop)
 	if err != nil {
 		log.Printf("Playing Channels are %v", mix.Playing(-1))
 		log.Println(err)
@@ -345,7 +350,6 @@ func Unblock() {
 }
 
 type pcmSound struct {
-	data       *mix.Chunk
 	name       string
 	samples    int // number of samples
 	bitrate    int
@@ -418,18 +422,13 @@ func (s *pcmSound) resample8Mono() error {
 	return nil
 }
 
-func (s *pcmSound) sdlLoad() error {
+func newSDLSound(s *pcmSound) (*mix.Chunk, error) {
 	l := s.samples * (s.bitrate / 8) * s.channelNum
 	if l > len(s.pcm) {
 		log.Printf("Bad sdlLoad")
-		return fmt.Errorf("Bad sdlLoad")
+		return nil, fmt.Errorf("Bad sdlLoad")
 	}
-	c, err := mix.QuickLoadRAW(&s.pcm[0], uint32(l))
-	if err != nil {
-		return err
-	}
-	s.data = c
-	return nil
+	return mix.QuickLoadRAW(&s.pcm[0], uint32(l))
 }
 
 var (
@@ -452,10 +451,6 @@ func PrecacheSound(n string) int {
 		return -1
 	}
 	if err := s.Resample(); err != nil {
-		log.Println(err)
-		return -1
-	}
-	if err := s.sdlLoad(); err != nil {
 		log.Println(err)
 		return -1
 	}
