@@ -248,11 +248,11 @@ func Start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3,
 	if !soundFlag {
 		return
 	}
-	if sfx < 0 || sfx >= len(soundPrecache) {
+	s := soundPrecache.Get(sfx)
+	if s == nil {
 		log.Printf("asked found sound out of range %v", sfx)
 		return
 	}
-	s := soundPrecache[sfx]
 
 	// TODO(therjak): how to remove this allocation?
 	ps := &playingSound{
@@ -356,32 +356,24 @@ func newSDLSound(s *pcmSound) (*mix.Chunk, error) {
 	return mix.QuickLoadRAW(&s.pcm[0], uint32(l))
 }
 
-var (
-	soundPrecache []*pcmSound
-)
-
 func PrecacheSound(n string) int {
 	if soundFlag == false {
 		return -1
 	}
 	name := filepath.Join("sound", n)
-	for i, s := range soundPrecache {
-		if s.name == name {
-			return i
-		}
+	if i, ok := soundPrecache.Has(name); ok {
+		return i
 	}
 	s, err := loadSFX(name)
 	if err != nil {
 		log.Println(err)
 		return -1
 	}
-	if err := s.Resample(); err != nil {
+	if err := s.resample(); err != nil {
 		log.Println(err)
 		return -1
 	}
-	r := len(soundPrecache)
-	soundPrecache = append(soundPrecache, s)
-	return r
+	return soundPrecache.Add(s)
 }
 
 var volume float32

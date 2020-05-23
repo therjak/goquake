@@ -24,7 +24,7 @@ type pcmSound struct {
 }
 
 // Resample converts to 16bit stereo
-func (s *pcmSound) Resample() error {
+func (s *pcmSound) resample() error {
 	if s.bitrate == 16 && s.channelNum == 2 {
 		return nil
 	}
