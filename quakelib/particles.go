@@ -238,7 +238,7 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 		gl.MatrixTranslatefEXT(gl.PATH_MODELVIEW_NV, -qRefreshRect.viewOrg[0], -qRefreshRect.viewOrg[1], -qRefreshRect.viewOrg[2])
 	}()
 
-	gl.Disable(gl.DEPTH_TEST)
+	gl.Enable(gl.DEPTH_TEST)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	gl.Enable(gl.BLEND)
 
@@ -271,7 +271,6 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 
 	gl.DepthMask(true)
 	gl.Disable(gl.BLEND)
-	gl.Enable(gl.DEPTH_TEST)
 }
 
 type particle struct {
