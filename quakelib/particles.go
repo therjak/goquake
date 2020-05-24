@@ -68,7 +68,7 @@ var (
 type qParticleDrawer struct {
 	vao        uint32
 	vbo        uint32
-	prog       uint32
+	prog       *GlProgram
 	position   uint32
 	color      uint32
 	texcoord   uint32
@@ -80,16 +80,8 @@ type qParticleDrawer struct {
 	textureScaleFactor float32
 }
 
-func newParticleDrawProgram() uint32 {
-	vert := getShader(vertexSourceParticleDrawer, gl.VERTEX_SHADER)
-	frag := getShader(fragmentSourceParticleDrawer, gl.FRAGMENT_SHADER)
-	d := gl.CreateProgram()
-	gl.AttachShader(d, vert)
-	gl.AttachShader(d, frag)
-	gl.LinkProgram(d)
-	gl.DeleteShader(vert)
-	gl.DeleteShader(frag)
-	return d
+func newParticleDrawProgram() *GlProgram {
+	return newGlProgram(vertexSourceParticleDrawer, fragmentSourceParticleDrawer)
 }
 
 func newParticleDrawer() *qParticleDrawer {
@@ -97,11 +89,11 @@ func newParticleDrawer() *qParticleDrawer {
 	gl.GenVertexArrays(1, &d.vao)
 	gl.GenBuffers(1, &d.vbo)
 	d.prog = newParticleDrawProgram()
-	d.color = uint32(gl.GetAttribLocation(d.prog, gl.Str("vcolor\x00")))
-	d.texcoord = uint32(gl.GetAttribLocation(d.prog, gl.Str("vtexcoord\x00")))
-	d.position = uint32(gl.GetAttribLocation(d.prog, gl.Str("vposition\x00")))
-	d.projection = gl.GetUniformLocation(d.prog, gl.Str("projection\x00"))
-	d.modelview = gl.GetUniformLocation(d.prog, gl.Str("modelview\x00"))
+	d.color = d.prog.GetAttribLocation("vcolor")
+	d.texcoord = d.prog.GetAttribLocation("vtexcoord")
+	d.position = d.prog.GetAttribLocation("vposition")
+	d.projection = d.prog.GetUniformLocation("projection")
+	d.modelview = d.prog.GetUniformLocation("modelview")
 
 	gl.PixelStorei(gl.UNPACK_ALIGNMENT, 1)
 
@@ -124,7 +116,6 @@ func newParticleDrawer() *qParticleDrawer {
 }
 
 func (d *qParticleDrawer) cleanup() {
-	gl.DeleteProgram(d.prog)
 	gl.DeleteBuffers(1, &d.vbo)
 	gl.DeleteVertexArrays(1, &d.vao)
 	gl.DeleteTextures(2, &d.textures[0])
@@ -244,7 +235,7 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 
 	gl.DepthMask(false)
 
-	gl.UseProgram(d.prog)
+	d.prog.Use()
 	gl.BindVertexArray(d.vao)
 
 	gl.BindBuffer(gl.ARRAY_BUFFER, d.vbo)
