@@ -9,12 +9,13 @@ import "C"
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/faiface/mainthread"
+	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/filesystem"
 	"github.com/therjak/goquake/wad"
+	"runtime"
 	"strings"
-
-	"github.com/go-gl/gl/v4.6-core/gl"
 )
 
 type canvas int
@@ -66,6 +67,51 @@ void main() {
 ` + "\x00"
 )
 
+type GlProgram struct {
+	prog uint32
+}
+
+func newGlProgram(vertex, fragment string) *GlProgram {
+	p := &GlProgram{
+		prog: gl.CreateProgram(),
+	}
+	vert := getShader(vertex, gl.VERTEX_SHADER)
+	frag := getShader(fragment, gl.FRAGMENT_SHADER)
+	gl.AttachShader(p.prog, vert)
+	gl.AttachShader(p.prog, frag)
+	gl.LinkProgram(p.prog)
+	gl.DeleteShader(vert)
+	gl.DeleteShader(frag)
+	runtime.SetFinalizer(p, (*GlProgram).delete)
+	return p
+}
+
+func (p *GlProgram) delete() {
+	mainthread.CallNonBlock(func() {
+		gl.DeleteProgram(p.prog)
+	})
+}
+
+func (p *GlProgram) Use() {
+	gl.UseProgram(p.prog)
+}
+
+func (p *GlProgram) GetAttribLocation(n string) uint32 {
+	return uint32(gl.GetAttribLocation(p.prog, gl.Str(n+"\x00")))
+}
+
+func (p *GlProgram) GetUniformLocation(n string) int32 {
+	return gl.GetUniformLocation(p.prog, gl.Str(n+"\x00"))
+}
+
+func newRecDrawProgram() *GlProgram {
+	return newGlProgram(vertexSourceDrawer, fragmentSourceColorRecDrawer)
+}
+
+func newDrawProgram() *GlProgram {
+	return newGlProgram(vertexSourceDrawer, fragmentSourceDrawer)
+}
+
 func getShader(src string, shaderType uint32) uint32 {
 	shader := gl.CreateShader(shaderType)
 	csource, free := gl.Strs(src)
@@ -88,7 +134,7 @@ type recDrawer struct {
 	vao      uint32
 	vbo      uint32
 	ebo      uint32
-	prog     uint32
+	prog     *GlProgram
 	position uint32
 	color    int32
 }
@@ -105,14 +151,13 @@ func NewRecDrawer() *recDrawer {
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
 	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
 	d.prog = newRecDrawProgram()
-	d.position = uint32(gl.GetAttribLocation(d.prog, gl.Str("position\x00")))
-	d.color = gl.GetUniformLocation(d.prog, gl.Str("in_color\x00"))
+	d.position = d.prog.GetAttribLocation("position")
+	d.color = d.prog.GetUniformLocation("in_color")
 
 	return d
 }
 
 func (d *recDrawer) Delete() {
-	gl.DeleteProgram(d.prog)
 	gl.DeleteBuffers(1, &d.ebo)
 	gl.DeleteBuffers(1, &d.vbo)
 	gl.DeleteVertexArrays(1, &d.vao)
@@ -137,7 +182,7 @@ func (d *recDrawer) Draw(x, y, w, h float32, c Color) {
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	gl.Enable(gl.BLEND)
 
-	gl.UseProgram(d.prog)
+	d.prog.Use()
 	gl.BindVertexArray(d.vao)
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, d.vbo)
@@ -158,7 +203,7 @@ type drawer struct {
 	vao      uint32
 	vbo      uint32
 	ebo      uint32
-	prog     uint32
+	prog     *GlProgram
 	position uint32
 	texcoord uint32
 }
@@ -175,8 +220,8 @@ func NewDrawer() *drawer {
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
 	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
 	d.prog = newDrawProgram()
-	d.position = uint32(gl.GetAttribLocation(d.prog, gl.Str("position\x00")))
-	d.texcoord = uint32(gl.GetAttribLocation(d.prog, gl.Str("texcoord\x00")))
+	d.position = d.prog.GetAttribLocation("position")
+	d.texcoord = d.prog.GetAttribLocation("texcoord")
 
 	return d
 }
@@ -207,7 +252,7 @@ func (d *drawer) Draw(x, y, w, h float32, t *Texture) {
 		x1, y1, 0, 0, 1,
 	}
 
-	gl.UseProgram(d.prog)
+	d.prog.Use()
 	gl.BindVertexArray(d.vao)
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, d.vbo)
@@ -246,7 +291,7 @@ func (d *drawer) DrawQuad(x, y float32, num byte) {
 		x1, y1, 0, col, row + size,
 	}
 
-	gl.UseProgram(d.prog)
+	d.prog.Use()
 	gl.BindVertexArray(d.vao)
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, d.vbo)
@@ -267,34 +312,9 @@ func (d *drawer) DrawQuad(x, y float32, num byte) {
 }
 
 func (d *drawer) Delete() {
-	gl.DeleteProgram(d.prog)
 	gl.DeleteBuffers(1, &d.ebo)
 	gl.DeleteBuffers(1, &d.vbo)
 	gl.DeleteVertexArrays(1, &d.vao)
-}
-
-func newRecDrawProgram() uint32 {
-	vert := getShader(vertexSourceDrawer, gl.VERTEX_SHADER)
-	frag := getShader(fragmentSourceColorRecDrawer, gl.FRAGMENT_SHADER)
-	d := gl.CreateProgram()
-	gl.AttachShader(d, vert)
-	gl.AttachShader(d, frag)
-	gl.LinkProgram(d)
-	gl.DeleteShader(vert)
-	gl.DeleteShader(frag)
-	return d
-}
-
-func newDrawProgram() uint32 {
-	vert := getShader(vertexSourceDrawer, gl.VERTEX_SHADER)
-	frag := getShader(fragmentSourceDrawer, gl.FRAGMENT_SHADER)
-	d := gl.CreateProgram()
-	gl.AttachShader(d, vert)
-	gl.AttachShader(d, frag)
-	gl.LinkProgram(d)
-	gl.DeleteShader(vert)
-	gl.DeleteShader(frag)
-	return d
 }
 
 var (
@@ -303,6 +323,14 @@ var (
 	consoleTexture  *Texture
 	backtileTexture *Texture
 )
+
+//export Draw_Delete
+func Draw_Delete() {
+	qDrawer.Delete()
+	qDrawer = nil
+	qRecDrawer.Delete()
+	qRecDrawer = nil
+}
 
 //export Draw_Init
 func Draw_Init() {
@@ -559,7 +587,7 @@ func (d *drawer) TileClear(x, y, w, h float32) {
 		x1, y1, 0, x / 64, (y + h) / 64,
 	}
 
-	gl.UseProgram(d.prog)
+	d.prog.Use()
 	gl.BindVertexArray(d.vao)
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, d.vbo)
