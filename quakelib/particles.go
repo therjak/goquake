@@ -75,8 +75,8 @@ type qParticleDrawer struct {
 	projection int32
 	modelview  int32
 
-	texture            uint32
-	textures           [2]uint32
+	texture            *GlTexture
+	textures           [2]*GlTexture
 	textureScaleFactor float32
 }
 
@@ -97,14 +97,15 @@ func newParticleDrawer() *qParticleDrawer {
 
 	gl.PixelStorei(gl.UNPACK_ALIGNMENT, 1)
 
-	gl.GenTextures(2, &d.textures[0])
-	gl.BindTexture(gl.TEXTURE_2D, d.textures[0])
+	d.textures[0] = newGlTexture()
+	d.textures[1] = newGlTexture()
+	d.textures[0].Bind()
 	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.R16F, 64, 64, 0, gl.RED, gl.FLOAT, gl.Ptr(p1TextureData))
 	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
 	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
 	gl.GenerateMipmap(gl.TEXTURE_2D)
 
-	gl.BindTexture(gl.TEXTURE_2D, d.textures[1])
+	d.textures[1].Bind()
 	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.R16F, 2, 2, 0, gl.RED, gl.FLOAT, gl.Ptr(p2TextureData))
 	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
 	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
@@ -113,10 +114,6 @@ func newParticleDrawer() *qParticleDrawer {
 	d.texture = d.textures[0]
 	d.textureScaleFactor = float32(1.27)
 	return d
-}
-
-func (d *qParticleDrawer) cleanup() {
-	gl.DeleteTextures(2, &d.textures[0])
 }
 
 func (d *qParticleDrawer) Draw(ps []particle) {
@@ -250,7 +247,7 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 	gl.UniformMatrix4fv(d.projection, 1, false, &projection[0])
 	gl.UniformMatrix4fv(d.modelview, 1, false, &modelview[0])
 
-	gl.BindTexture(gl.TEXTURE_2D, d.texture)
+	d.texture.Bind()
 
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(numVert))
 
@@ -370,7 +367,6 @@ func init() {
 
 func particlesDeinit() {
 	// to be clean this could be run on ui shutdown
-	particleDrawer.cleanup()
 	particleDrawer = nil
 }
 
