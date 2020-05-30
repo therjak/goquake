@@ -410,7 +410,7 @@ void Mod_LoadTextures(lump_t *l) {
       if (!q_strncasecmp(tx->name, "sky", 3))  // sky texture //also note -- was
                                                // Q_strncmp, changed to match
                                                // qbsp
-        Sky_LoadTexture(tx);
+        Sky_LoadTexture(tx, loadmodel->name);
       else if (tx->name[0] == '*')  // warping texture
       {
         // external textures -- first look in "textures/mapname/" then look in

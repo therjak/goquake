@@ -362,7 +362,7 @@ void GL_MakeAliasModelDisplayLists(qmodel_t *m, aliashdr_t *hdr);
 void Sky_Init(void);
 void Sky_DrawSky(void);
 void Sky_NewMap(void);
-void Sky_LoadTexture(texture_t *mt);
+void Sky_LoadTexture(texture_t *mt, const char *loadmodelname);
 void Sky_LoadSkyBox(const char *name);
 
 void R_ClearTextureChains(qmodel_t *mod, texchain_t chain);

@@ -7,7 +7,6 @@
 float Fog_GetDensity(void);
 float *Fog_GetColor(void);
 
-extern qmodel_t *loadmodel;
 extern int rs_skypolys;   // for r_speeds readout
 extern int rs_skypasses;  // for r_speeds readout
 float skyflatcolor[3];
@@ -52,7 +51,7 @@ Sky_LoadTexture
 A sky texture is 256*128, with the left side being a masked overlay
 ==============
 */
-void Sky_LoadTexture(texture_t *mt) {
+void Sky_LoadTexture(texture_t *mt, const char* loadmodelname) {
   char texturename[64];
   int i, j, p, r, g, b, count;
   byte *src;
@@ -66,7 +65,7 @@ void Sky_LoadTexture(texture_t *mt) {
   for (i = 0; i < 128; i++)
     for (j = 0; j < 128; j++) back_data[(i * 128) + j] = src[i * 256 + j + 128];
 
-  q_snprintf(texturename, sizeof(texturename), "%s:%s_back", loadmodel->name,
+  q_snprintf(texturename, sizeof(texturename), "%s:%s_back", loadmodelname,
              mt->name);
   solidskytexture2 = TexMgrLoadSkyTexture(texturename, back_data, TEXPREF_NONE);
 
@@ -77,7 +76,7 @@ void Sky_LoadTexture(texture_t *mt) {
       if (front_data[(i * 128) + j] == 0) front_data[(i * 128) + j] = 255;
     }
 
-  q_snprintf(texturename, sizeof(texturename), "%s:%s_front", loadmodel->name,
+  q_snprintf(texturename, sizeof(texturename), "%s:%s_front", loadmodelname,
              mt->name);
   alphaskytexture2 =
       TexMgrLoadSkyTexture(texturename, front_data, TEXPREF_ALPHA);
