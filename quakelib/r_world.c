@@ -839,13 +839,6 @@ void R_DrawTextureChains(qmodel_t *model, entity_t *ent, texchain_t chain) {
   R_BuildLightmapChains(model, chain);
   R_UploadLightmaps();
 
-  if (r_fullbright_cheatsafe) {
-    R_BeginTransparentDrawing(entalpha);
-    R_DrawTextureChains_TextureOnly(model, ent, chain);
-    R_EndTransparentDrawing(entalpha);
-    goto fullbrights;
-  }
-
   R_BeginTransparentDrawing(entalpha);
 
   R_DrawTextureChains_NoTexture(model, chain);

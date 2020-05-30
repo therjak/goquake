@@ -656,30 +656,10 @@ void R_DrawAliasModel(entity_t *e) {
   //
   // draw it
   //
-  if (r_fullbright_cheatsafe) {
-    GLBind(tx);
-    shading = false;
-    glColor4f(1, 1, 1, entalpha);
-    GL_DrawAliasFrame(paliashdr, lerpdata);
-    if (fb) {
-      glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-      GLBind(fb);
-      glEnable(GL_BLEND);
-      glBlendFunc(GL_ONE, GL_ONE);
-      glDepthMask(GL_FALSE);
-      glColor3f(entalpha, entalpha, entalpha);
-      Fog_StartAdditive();
-      GL_DrawAliasFrame(paliashdr, lerpdata);
-      Fog_StopAdditive();
-      glDepthMask(GL_TRUE);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      glDisable(GL_BLEND);
-    }
-  }
   // call fast path if possible. if the shader compliation failed for some
   // reason,
   // r_alias_program will be 0.
-  else if (r_alias_program != 0) {
+  if (r_alias_program != 0) {
     GL_DrawAliasFrame_GLSL(paliashdr, lerpdata, tx, fb);
   } else if (overbright) {
     if (gl_texture_env_combine && gl_mtexable && gl_texture_env_add &&

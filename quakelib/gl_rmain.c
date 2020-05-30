@@ -92,7 +92,7 @@ cvar_t r_slimealpha;  // = {"r_slimealpha", "0", CVAR_NONE};
 
 float map_wateralpha, map_lavaalpha, map_telealpha, map_slimealpha;
 
-qboolean r_fullbright_cheatsafe, r_drawworld_cheatsafe;  // johnfitz
+qboolean r_drawworld_cheatsafe;  // johnfitz
 
 //==============================================================================
 //
@@ -561,13 +561,9 @@ void R_SetupView(void) {
   R_Clear();
 
   // johnfitz -- cheat-protect some draw modes
-  r_fullbright_cheatsafe = false;
   r_drawworld_cheatsafe = true;
   if (CL_MaxClients() == 1) {
     if (!Cvar_GetValue(&r_drawworld)) r_drawworld_cheatsafe = false;
-
-    if (Cvar_GetValue(&r_fullbright) || !cl.worldmodel->lightdata)
-      r_fullbright_cheatsafe = true;
   }
   // johnfitz
 }
