@@ -92,8 +92,6 @@ cvar_t r_slimealpha;  // = {"r_slimealpha", "0", CVAR_NONE};
 
 float map_wateralpha, map_lavaalpha, map_telealpha, map_slimealpha;
 
-qboolean r_drawworld_cheatsafe;  // johnfitz
-
 //==============================================================================
 //
 // GLSL GAMMA CORRECTION
@@ -559,13 +557,6 @@ void R_SetupView(void) {
   R_UpdateWarpTextures();  // johnfitz -- do this before R_Clear
 
   R_Clear();
-
-  // johnfitz -- cheat-protect some draw modes
-  r_drawworld_cheatsafe = true;
-  if (CL_MaxClients() == 1) {
-    if (!Cvar_GetValue(&r_drawworld)) r_drawworld_cheatsafe = false;
-  }
-  // johnfitz
 }
 
 //==============================================================================

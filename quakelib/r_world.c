@@ -179,8 +179,6 @@ void R_CullSurfaces(void) {
   int i;
   texture_t *t;
 
-  if (!r_drawworld_cheatsafe) return;
-
   // ericw -- instead of testing (s->visframe == r_visframecount) on all world
   // surfaces, use the chained surfaces, which is exactly the same set of
   // sufaces
@@ -943,7 +941,6 @@ void R_DrawTextureChains(qmodel_t *model, entity_t *ent, texchain_t chain) {
 
   R_EndTransparentDrawing(entalpha);
 
-fullbrights:
   if (Cvar_GetValue(&gl_fullbrights)) {
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
@@ -968,8 +965,6 @@ specific to the world.
 =============
 */
 void R_DrawWorld(void) {
-  if (!r_drawworld_cheatsafe) return;
-
   R_DrawTextureChains(cl.worldmodel, NULL, chain_world);
 }
 
@@ -980,7 +975,5 @@ longer specific to the world.
 =============
 */
 void R_DrawWorld_Water(void) {
-  if (!r_drawworld_cheatsafe) return;
-
   R_DrawTextureChains_Water(cl.worldmodel, NULL, chain_world);
 }

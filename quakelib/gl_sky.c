@@ -441,8 +441,6 @@ void Sky_ProcessTextureChains(void) {
   msurface_t *s;
   texture_t *t;
 
-  if (!r_drawworld_cheatsafe) return;
-
   for (i = 0; i < cl.worldmodel->numtextures; i++) {
     t = cl.worldmodel->textures[i];
 
