@@ -733,7 +733,7 @@ void R_RenderScene(void) {
 
   Fog_EnableGFog();  // johnfitz
 
-  Sky_DrawSky();  // johnfitz
+  SkyDrawSky();  // johnfitz
 
   R_DrawWorld();
 

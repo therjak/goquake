@@ -327,6 +327,10 @@ qboolean Mod_CheckFullbrights(byte *pixels, int count) {
   return false;
 }
 
+void Sky_LoadTexture(texture_t *mt, const char *loadmodelname) {
+  SkyLoadTexture((byte*)mt+mt->offsets[0], mt->name, loadmodelname);
+}
+
 /*
 =================
 Mod_LoadTextures

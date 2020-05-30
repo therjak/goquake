@@ -188,7 +188,7 @@ void R_Init(void) {
   ParticlesInit();
   R_SetClearColor_f(&r_clearcolor);
 
-  Sky_Init();
+  SkyInit();
   Fog_Init();
 }
 
@@ -336,7 +336,7 @@ void R_NewMap(void) {
   r_framecount = 0;     // johnfitz -- paranoid?
   r_visframecount = 0;  // johnfitz -- paranoid?
 
-  Sky_NewMap();         // johnfitz -- skybox in worldspawn
+  SkyNewMap();         // johnfitz -- skybox in worldspawn
   Fog_NewMap();         // johnfitz -- global fog in worldspawn
   R_ParseWorldspawn();  // ericw -- wateralpha, lavaalpha, telealpha, slimealpha
                         // in worldspawn

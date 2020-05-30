@@ -51,22 +51,19 @@ Sky_LoadTexture
 A sky texture is 256*128, with the left side being a masked overlay
 ==============
 */
-void Sky_LoadTexture(texture_t *mt, const char* loadmodelname) {
+void Sky_LoadTextureInt(const byte* src, const char* skyName, const char* modelName) {
   char texturename[64];
   int i, j, p, r, g, b, count;
-  byte *src;
   static byte front_data[128 * 128];  // FIXME: Hunk_Alloc
   static byte back_data[128 * 128];   // FIXME: Hunk_Alloc
   unsigned *rgba;
-
-  src = (byte *)mt + mt->offsets[0];
 
   // extract back layer and upload
   for (i = 0; i < 128; i++)
     for (j = 0; j < 128; j++) back_data[(i * 128) + j] = src[i * 256 + j + 128];
 
-  q_snprintf(texturename, sizeof(texturename), "%s:%s_back", loadmodelname,
-             mt->name);
+  q_snprintf(texturename, sizeof(texturename), "%s:%s_back", modelName,
+             skyName);
   solidskytexture2 = TexMgrLoadSkyTexture(texturename, back_data, TEXPREF_NONE);
 
   // extract front layer and upload
@@ -76,8 +73,8 @@ void Sky_LoadTexture(texture_t *mt, const char* loadmodelname) {
       if (front_data[(i * 128) + j] == 0) front_data[(i * 128) + j] = 255;
     }
 
-  q_snprintf(texturename, sizeof(texturename), "%s:%s_front", loadmodelname,
-             mt->name);
+  q_snprintf(texturename, sizeof(texturename), "%s:%s_front", modelName,
+             skyName);
   alphaskytexture2 =
       TexMgrLoadSkyTexture(texturename, front_data, TEXPREF_ALPHA);
 

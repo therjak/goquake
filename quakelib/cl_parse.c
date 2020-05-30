@@ -970,7 +970,7 @@ void CL_ParseServerMessage(void) {
 
       // johnfitz -- new svc types
       case svc_skybox:
-        Sky_LoadSkyBox(CL_MSG_ReadString());
+        SkyLoadSkyBox(CL_MSG_ReadString());
         break;
 
       case svc_bf:

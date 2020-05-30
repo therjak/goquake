@@ -359,12 +359,6 @@ void DrawGLPoly(glpoly_t *p);
 void DrawWaterPoly(glpoly_t *p);
 void GL_MakeAliasModelDisplayLists(qmodel_t *m, aliashdr_t *hdr);
 
-void Sky_Init(void);
-void Sky_DrawSky(void);
-void Sky_NewMap(void);
-void Sky_LoadTexture(texture_t *mt, const char *loadmodelname);
-void Sky_LoadSkyBox(const char *name);
-
 void R_ClearTextureChains(qmodel_t *mod, texchain_t chain);
 void R_ChainSurface(msurface_t *surf, texchain_t chain);
 void R_DrawTextureChains(qmodel_t *model, entity_t *ent, texchain_t chain);
