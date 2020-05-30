@@ -92,7 +92,7 @@ cvar_t r_slimealpha;  // = {"r_slimealpha", "0", CVAR_NONE};
 
 float map_wateralpha, map_lavaalpha, map_telealpha, map_slimealpha;
 
-qboolean r_drawflat_cheatsafe, r_fullbright_cheatsafe, r_drawworld_cheatsafe;  // johnfitz
+qboolean r_fullbright_cheatsafe, r_drawworld_cheatsafe;  // johnfitz
 
 //==============================================================================
 //
@@ -561,14 +561,12 @@ void R_SetupView(void) {
   R_Clear();
 
   // johnfitz -- cheat-protect some draw modes
-  r_drawflat_cheatsafe = r_fullbright_cheatsafe = false;
+  r_fullbright_cheatsafe = false;
   r_drawworld_cheatsafe = true;
   if (CL_MaxClients() == 1) {
     if (!Cvar_GetValue(&r_drawworld)) r_drawworld_cheatsafe = false;
 
-    if (Cvar_GetValue(&r_drawflat))
-      r_drawflat_cheatsafe = true;
-    else if (Cvar_GetValue(&r_fullbright) || !cl.worldmodel->lightdata)
+    if (Cvar_GetValue(&r_fullbright) || !cl.worldmodel->lightdata)
       r_fullbright_cheatsafe = true;
   }
   // johnfitz
@@ -692,8 +690,7 @@ R_DrawShadows
 void R_DrawShadows(void) {
   int i;
 
-  if (!Cvar_GetValue(&r_shadows) || !Cvar_GetValue(&r_drawentities) ||
-      r_drawflat_cheatsafe)
+  if (!Cvar_GetValue(&r_shadows) || !Cvar_GetValue(&r_drawentities))
     return;
 
   // Use stencil buffer to prevent self-intersecting shadows, from Baker (MarkV)

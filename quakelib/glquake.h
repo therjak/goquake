@@ -283,8 +283,7 @@ extern uint32_t
 
 extern int gl_warpimagesize;  // johnfitz -- for water warp
 
-extern qboolean r_drawflat_cheatsafe, r_fullbright_cheatsafe,
-    r_drawworld_cheatsafe;  // johnfitz
+extern qboolean r_fullbright_cheatsafe, r_drawworld_cheatsafe;  // johnfitz
 
 typedef struct glsl_attrib_binding_s {
   const char *name;

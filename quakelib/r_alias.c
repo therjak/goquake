@@ -328,11 +328,7 @@ void GL_DrawAliasFrame(aliashdr_t *paliashdr, lerpdata_t lerpdata) {
       commands += 2;
 
       if (shading) {
-        if (r_drawflat_cheatsafe) {
-          srand(count * (unsigned int)(src_offset_t)commands);
-          glColor3f(rand() % 256 / 255.0, rand() % 256 / 255.0,
-                    rand() % 256 / 255.0);
-        } else if (lerping) {
+        if (lerping) {
           vertcolor[0] = (R_and(shadeDots,verts1->lightnormalindex) * iblend +
                           R_and(shadeDots,verts2->lightnormalindex) * blend) *
                          lightcolor[0];
@@ -606,7 +602,7 @@ void R_DrawAliasModel(entity_t *e) {
   //
   // random stuff
   //
-  if (Cvar_GetValue(&gl_smoothmodels) && !r_drawflat_cheatsafe)
+  if (Cvar_GetValue(&gl_smoothmodels))
     glShadeModel(GL_SMOOTH);
   if (Cvar_GetValue(&gl_affinemodels))
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
@@ -616,10 +612,7 @@ void R_DrawAliasModel(entity_t *e) {
   //
   // set up for alpha blending
   //
-  if (r_drawflat_cheatsafe)  // no alpha in drawflat or lightmap mode
-    entalpha = 1;
-  else
-    entalpha = ENTALPHA_DECODE(e->alpha);
+  entalpha = ENTALPHA_DECODE(e->alpha);
   if (entalpha == 0) goto cleanup;
   if (entalpha < 1) {
     if (!gl_texture_env_combine)
@@ -663,12 +656,7 @@ void R_DrawAliasModel(entity_t *e) {
   //
   // draw it
   //
-  if (r_drawflat_cheatsafe) {
-    glDisable(GL_TEXTURE_2D);
-    GL_DrawAliasFrame(paliashdr, lerpdata);
-    glEnable(GL_TEXTURE_2D);
-    srand((int)(CL_Time() * 1000));  // restore randomness
-  } else if (r_fullbright_cheatsafe) {
+  if (r_fullbright_cheatsafe) {
     GLBind(tx);
     shading = false;
     glColor4f(1, 1, 1, entalpha);

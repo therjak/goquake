@@ -856,10 +856,6 @@ called once per frame before drawing anything else
 void Sky_DrawSky(void) {
   int i;
 
-  // in these special render modes, the sky faces are handled in the normal
-  // world/brush renderer
-  if (r_drawflat_cheatsafe) return;
-
   //
   // reset sky bounds
   //

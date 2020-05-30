@@ -573,12 +573,6 @@ void R_DrawTextureChains_Water(qmodel_t *model, entity_t *ent,
   qboolean bound;
   float entalpha;
 
-  if (r_drawflat_cheatsafe)  // ericw --
-                                                     // !r_drawworld_cheatsafe
-                                                     // check moved to
-                                                     // R_DrawWorld_Water ()
-    return;
-
   if (Cvar_GetValue(&r_oldwater)) {
     for (i = 0; i < model->numtextures; i++) {
       t = model->textures[i];
@@ -844,13 +838,6 @@ void R_DrawTextureChains(qmodel_t *model, entity_t *ent, texchain_t chain) {
   // late which was visible under some conditions, this method avoids that.
   R_BuildLightmapChains(model, chain);
   R_UploadLightmaps();
-
-  if (r_drawflat_cheatsafe) {
-    glDisable(GL_TEXTURE_2D);
-    R_DrawTextureChains_Drawflat(model, chain);
-    glEnable(GL_TEXTURE_2D);
-    return;
-  }
 
   if (r_fullbright_cheatsafe) {
     R_BeginTransparentDrawing(entalpha);
