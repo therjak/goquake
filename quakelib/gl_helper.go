@@ -65,6 +65,27 @@ func (b *GlBuffer) Bind(target uint32) {
 	gl.BindBuffer(target, b.buf)
 }
 
+type GlVertexArray struct {
+	a uint32
+}
+
+func newGlVertexArray() *GlVertexArray {
+	va := &GlVertexArray{}
+	gl.GenVertexArrays(1, &va.a)
+	runtime.SetFinalizer(va, (*GlVertexArray).delete)
+	return va
+}
+
+func (va *GlVertexArray) delete() {
+	mainthread.CallNonBlock(func() {
+		gl.DeleteVertexArrays(1, &va.a)
+	})
+}
+
+func (va *GlVertexArray) Bind() {
+	gl.BindVertexArray(va.a)
+}
+
 func getShader(src string, shaderType uint32) uint32 {
 	shader := gl.CreateShader(shaderType)
 	csource, free := gl.Strs(src)
