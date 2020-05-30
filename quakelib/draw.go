@@ -112,6 +112,27 @@ func newDrawProgram() *GlProgram {
 	return newGlProgram(vertexSourceDrawer, fragmentSourceDrawer)
 }
 
+type GlBuffer struct {
+	buf uint32
+}
+
+func newGlBuffer() *GlBuffer {
+	b := &GlBuffer{}
+	gl.GenBuffers(1, &b.buf)
+	runtime.SetFinalizer(b, (*GlBuffer).delete)
+	return b
+}
+
+func (b *GlBuffer) delete() {
+	mainthread.CallNonBlock(func() {
+		gl.DeleteBuffers(1, &b.buf)
+	})
+}
+
+func (b *GlBuffer) Bind(target uint32) {
+	gl.BindBuffer(target, b.buf)
+}
+
 func getShader(src string, shaderType uint32) uint32 {
 	shader := gl.CreateShader(shaderType)
 	csource, free := gl.Strs(src)
@@ -132,8 +153,8 @@ func getShader(src string, shaderType uint32) uint32 {
 
 type recDrawer struct {
 	vao      uint32
-	vbo      uint32
-	ebo      uint32
+	vbo      *GlBuffer
+	ebo      *GlBuffer
 	prog     *GlProgram
 	position uint32
 	color    int32
@@ -146,9 +167,9 @@ func NewRecDrawer() *recDrawer {
 		2, 3, 0,
 	}
 	gl.GenVertexArrays(1, &d.vao)
-	gl.GenBuffers(1, &d.vbo)
-	gl.GenBuffers(1, &d.ebo)
-	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
+	d.vbo = newGlBuffer()
+	d.ebo = newGlBuffer()
+	d.ebo.Bind(gl.ELEMENT_ARRAY_BUFFER)
 	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
 	d.prog = newRecDrawProgram()
 	d.position = d.prog.GetAttribLocation("position")
@@ -158,8 +179,6 @@ func NewRecDrawer() *recDrawer {
 }
 
 func (d *recDrawer) Delete() {
-	gl.DeleteBuffers(1, &d.ebo)
-	gl.DeleteBuffers(1, &d.vbo)
 	gl.DeleteVertexArrays(1, &d.vao)
 }
 
@@ -184,8 +203,8 @@ func (d *recDrawer) Draw(x, y, w, h float32, c Color) {
 
 	d.prog.Use()
 	gl.BindVertexArray(d.vao)
-	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, d.vbo)
+	d.ebo.Bind(gl.ELEMENT_ARRAY_BUFFER)
+	d.vbo.Bind(gl.ARRAY_BUFFER)
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 
 	gl.EnableVertexAttribArray(d.position)
@@ -201,8 +220,8 @@ func (d *recDrawer) Draw(x, y, w, h float32, c Color) {
 
 type drawer struct {
 	vao      uint32
-	vbo      uint32
-	ebo      uint32
+	vbo      *GlBuffer
+	ebo      *GlBuffer
 	prog     *GlProgram
 	position uint32
 	texcoord uint32
@@ -215,9 +234,9 @@ func NewDrawer() *drawer {
 		2, 3, 0,
 	}
 	gl.GenVertexArrays(1, &d.vao)
-	gl.GenBuffers(1, &d.vbo)
-	gl.GenBuffers(1, &d.ebo)
-	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
+	d.vbo = newGlBuffer()
+	d.ebo = newGlBuffer()
+	d.ebo.Bind(gl.ELEMENT_ARRAY_BUFFER)
 	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
 	d.prog = newDrawProgram()
 	d.position = d.prog.GetAttribLocation("position")
@@ -254,8 +273,8 @@ func (d *drawer) Draw(x, y, w, h float32, t *Texture) {
 
 	d.prog.Use()
 	gl.BindVertexArray(d.vao)
-	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, d.vbo)
+	d.ebo.Bind(gl.ELEMENT_ARRAY_BUFFER)
+	d.vbo.Bind(gl.ARRAY_BUFFER)
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 
 	gl.EnableVertexAttribArray(d.position)
@@ -293,8 +312,8 @@ func (d *drawer) DrawQuad(x, y float32, num byte) {
 
 	d.prog.Use()
 	gl.BindVertexArray(d.vao)
-	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, d.vbo)
+	d.ebo.Bind(gl.ELEMENT_ARRAY_BUFFER)
+	d.vbo.Bind(gl.ARRAY_BUFFER)
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 
 	gl.EnableVertexAttribArray(d.position)
@@ -312,8 +331,6 @@ func (d *drawer) DrawQuad(x, y float32, num byte) {
 }
 
 func (d *drawer) Delete() {
-	gl.DeleteBuffers(1, &d.ebo)
-	gl.DeleteBuffers(1, &d.vbo)
 	gl.DeleteVertexArrays(1, &d.vao)
 }
 
@@ -589,8 +606,8 @@ func (d *drawer) TileClear(x, y, w, h float32) {
 
 	d.prog.Use()
 	gl.BindVertexArray(d.vao)
-	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ebo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, d.vbo)
+	d.ebo.Bind(gl.ELEMENT_ARRAY_BUFFER)
+	d.vbo.Bind(gl.ARRAY_BUFFER)
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 
 	gl.EnableVertexAttribArray(d.position)

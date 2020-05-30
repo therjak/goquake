@@ -67,7 +67,7 @@ var (
 
 type qParticleDrawer struct {
 	vao        uint32
-	vbo        uint32
+	vbo        *GlBuffer
 	prog       *GlProgram
 	position   uint32
 	color      uint32
@@ -87,7 +87,7 @@ func newParticleDrawProgram() *GlProgram {
 func newParticleDrawer() *qParticleDrawer {
 	d := &qParticleDrawer{}
 	gl.GenVertexArrays(1, &d.vao)
-	gl.GenBuffers(1, &d.vbo)
+	d.vbo = newGlBuffer()
 	d.prog = newParticleDrawProgram()
 	d.color = d.prog.GetAttribLocation("vcolor")
 	d.texcoord = d.prog.GetAttribLocation("vtexcoord")
@@ -116,7 +116,6 @@ func newParticleDrawer() *qParticleDrawer {
 }
 
 func (d *qParticleDrawer) cleanup() {
-	gl.DeleteBuffers(1, &d.vbo)
 	gl.DeleteVertexArrays(1, &d.vao)
 	gl.DeleteTextures(2, &d.textures[0])
 }
@@ -238,7 +237,7 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 	d.prog.Use()
 	gl.BindVertexArray(d.vao)
 
-	gl.BindBuffer(gl.ARRAY_BUFFER, d.vbo)
+	d.vbo.Bind(gl.ARRAY_BUFFER)
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 	gl.EnableVertexAttribArray(d.position)
 	gl.VertexAttribPointer(d.position, 3, gl.FLOAT, false, 4*8, gl.PtrOffset(0))
