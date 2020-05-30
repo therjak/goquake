@@ -573,7 +573,7 @@ void R_DrawTextureChains_Water(qmodel_t *model, entity_t *ent,
   qboolean bound;
   float entalpha;
 
-  if (r_drawflat_cheatsafe || r_lightmap_cheatsafe)  // ericw --
+  if (r_drawflat_cheatsafe)  // ericw --
                                                      // !r_drawworld_cheatsafe
                                                      // check moved to
                                                      // R_DrawWorld_Water ()
@@ -857,20 +857,6 @@ void R_DrawTextureChains(qmodel_t *model, entity_t *ent, texchain_t chain) {
     R_DrawTextureChains_TextureOnly(model, ent, chain);
     R_EndTransparentDrawing(entalpha);
     goto fullbrights;
-  }
-
-  if (r_lightmap_cheatsafe) {
-    if (!Cvar_GetValue(&gl_overbright)) {
-      glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-      glColor3f(0.5, 0.5, 0.5);
-    }
-    R_DrawLightmapChains();
-    if (!Cvar_GetValue(&gl_overbright)) {
-      glColor3f(1, 1, 1);
-      glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-    }
-    R_DrawTextureChains_White(model, chain);
-    return;
   }
 
   R_BeginTransparentDrawing(entalpha);

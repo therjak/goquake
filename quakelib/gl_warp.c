@@ -185,8 +185,7 @@ void R_UpdateWarpTextures(void) {
   int i;
   float x, y, x2, warptess;
 
-  if (Cvar_GetValue(&r_oldwater) || CL_Paused() || r_drawflat_cheatsafe ||
-      r_lightmap_cheatsafe)
+  if (Cvar_GetValue(&r_oldwater) || CL_Paused() || r_drawflat_cheatsafe)
     return;
 
   warptess = 128.0 / CLAMP(3.0, floor(Cvar_GetValue(&r_waterquality)), 64.0);
