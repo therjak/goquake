@@ -273,30 +273,42 @@ func (tm *texMgr) loadParticleImage(name string, width, height int32, data []byt
 
 //export TexMgrLoadSkyTexture
 func TexMgrLoadSkyTexture(name *C.char, data *C.byte, flags C.unsigned) TexID {
-
 	n := C.GoString(name)
 	d := C.GoBytes(unsafe.Pointer(data), 128*128)
-	t := NewTexture(128, 128, TexPref(flags), n, colorTypeIndexed, d)
-	textureManager.addActiveTexture(t)
-	textureManager.loadIndexed(t, d)
-	texmap[TexID(t.glID.id)] = t
+	t := textureManager.LoadSkyTexture(n, d, TexPref(flags))
 	return TexID(t.glID.id)
+}
+
+func (tm *texMgr) LoadSkyTexture(n string, d []byte, flags TexPref) *Texture {
+	t := NewTexture(128, 128, flags, n, colorTypeIndexed, d)
+	tm.addActiveTexture(t)
+	tm.loadIndexed(t, d)
+	texmap[TexID(t.glID.id)] = t
+	return t
 }
 
 //export TexMgrLoadSkyBox
 func TexMgrLoadSkyBox(name *C.char) TexID {
 	n := C.GoString(name)
+	t := textureManager.LoadSkyBox(n)
+	if t == nil {
+		return 0
+	}
+	return TexID(t.glID.id)
+}
+
+func (tm *texMgr) LoadSkyBox(n string) *Texture {
 	img, err := image.Load(n)
 	if err != nil {
-		return 0
+		return nil
 	}
 	s := img.Bounds().Size()
 
 	t := NewTexture(int32(s.X), int32(s.Y), TexPrefNone, n, colorTypeRGBA, img.Pix)
-	textureManager.addActiveTexture(t)
-	textureManager.loadRGBA(t, img.Pix)
+	tm.addActiveTexture(t)
+	tm.loadRGBA(t, img.Pix)
 	texmap[TexID(t.glID.id)] = t
-	return TexID(t.glID.id)
+	return t
 }
 
 //export TexMgrLoadImage2
@@ -342,6 +354,9 @@ func TexMgrFreeTexture(id TexID) {
 func (tm *texMgr) FreeTexture(t *Texture) {
 	if inReloadImages {
 		// Stupid workaround. Needs real fix.
+		return
+	}
+	if t == noTexture {
 		return
 	}
 
@@ -566,6 +581,9 @@ func (tm *texMgr) ReloadImage(t *Texture) {
 }
 
 func (tm *texMgr) deleteTexture(t *Texture) {
+	if t == nil {
+		return
+	}
 	if t.glID.id == tm.currentTexture[0] {
 		tm.currentTexture[0] = unusedTexture
 	}
