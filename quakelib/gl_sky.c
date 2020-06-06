@@ -193,34 +193,14 @@ void Sky_NewMap(void) {
     if (!data) return;  // error
     strcpy(value, com_token);
 
-    if (!strcmp("sky", key)) Sky_LoadSkyBox(value);
+    if (!strcmp("sky", key)) SkyLoadSkyBox(value);
 
     if (!strcmp("skyfog", key)) skyfog = atof(value);
 
-#if 1                                  // also accept non-standard keys
     else if (!strcmp("skyname", key))  // half-life
-      Sky_LoadSkyBox(value);
+      SkyLoadSkyBox(value);
     else if (!strcmp("qlsky", key))  // quake lives
-      Sky_LoadSkyBox(value);
-#endif
-  }
-}
-
-/*
-=================
-Sky_SkyCommand_f
-=================
-*/
-void Sky_SkyCommand_f(void) {
-  switch (Cmd_Argc()) {
-    case 1:
-      Con_Printf("\"sky\" is \"%s\"\n", skybox_name);
-      break;
-    case 2:
-      Sky_LoadSkyBox(Cmd_Argv(1));
-      break;
-    default:
-      Con_Printf("usage: sky <skyname>\n");
+      SkyLoadSkyBox(value);
   }
 }
 
@@ -247,8 +227,6 @@ void Sky_Init(void) {
   Cvar_FakeRegister(&r_skyalpha, "r_skyalpha");
   Cvar_FakeRegister(&r_skyfog, "r_skyfog");
   Cvar_SetCallback(&r_skyfog, R_SetSkyfog_f);
-
-  Cmd_AddCommand("sky", Sky_SkyCommand_f);
 
   for (i = 0; i < 6; i++) skybox_textures[i] = 0;
 }

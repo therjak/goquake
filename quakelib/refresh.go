@@ -14,7 +14,7 @@ const (
 
 type refreshRect struct {
 	viewRect    Rect
-	viewOrg     vec.Vec3
+	viewOrg     vec.Vec3 //r_origin
 	viewAngles  vec.Vec3
 	fovX        float32
 	fovY        float32
