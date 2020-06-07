@@ -11,6 +11,7 @@ import (
 	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/cvar"
 	"github.com/therjak/goquake/cvars"
+	"github.com/therjak/goquake/glh"
 	"github.com/therjak/goquake/image"
 	"github.com/therjak/goquake/wad"
 	"log"
@@ -70,12 +71,10 @@ func init() {
 	})
 }
 
-type TexID uint32
-
 type texMgr struct {
 	multiTextureEnabled bool
 	currentTarget       uint32
-	currentTexture      [3]uint32
+	currentTexture      [3]*glh.Texture
 	glModeIndex         int // TODO(therjak): glmode_idx is still split between c and go
 
 	activeTextures map[*Texture]bool
@@ -97,7 +96,7 @@ const (
 )
 
 type Texture struct {
-	glID   *GlTexture
+	glID   *glh.Texture
 	width  int32 // mipmap can make it differ from source width
 	height int32
 	flags  TexPref
@@ -108,7 +107,7 @@ type Texture struct {
 
 func NewTexture(w, h int32, flags TexPref, name string, typ colorType, data []byte) *Texture {
 	t := &Texture{
-		glID:   newGlTexture(),
+		glID:   glh.NewTexture(),
 		width:  w,
 		height: h,
 		flags:  flags,
@@ -120,11 +119,11 @@ func NewTexture(w, h int32, flags TexPref, name string, typ colorType, data []by
 }
 
 const (
-	unusedTexture = ^uint32(0)
+	unusedTexture = glh.TexID(^uint32(0))
 )
 
 var (
-	texmap         map[TexID]*Texture
+	texmap         map[glh.TexID]*Texture
 	textureManager = texMgr{
 		currentTarget:  gl.TEXTURE0,
 		glModeIndex:    len(glModes) - 1,
@@ -136,7 +135,7 @@ var (
 )
 
 func init() {
-	texmap = make(map[TexID]*Texture)
+	texmap = make(map[glh.TexID]*Texture)
 	cvars.GlTextureMode.SetByString(glModes[textureManager.glModeIndex].name)
 	cvars.GlTextureAnisotropy.SetCallback(func(cv *cvar.Cvar) {
 		textureManager.anisotropyCallback(cv)
@@ -150,23 +149,23 @@ func init() {
 }
 
 //export GetNoTexture
-func GetNoTexture() TexID {
-	return TexID(noTexture.glID.id)
+func GetNoTexture() uint32 {
+	return uint32(noTexture.glID.ID())
 }
 
 //export GetTextureWidth
-func GetTextureWidth(id TexID) int32 {
-	return int32(texmap[id].width)
+func GetTextureWidth(id uint32) uint32 {
+	return uint32(texmap[glh.TexID(id)].width)
 }
 
 //export GetTextureHeight
-func GetTextureHeight(id TexID) int32 {
-	return int32(texmap[id].height)
+func GetTextureHeight(id uint32) int32 {
+	return int32(texmap[glh.TexID(id)].height)
 }
 
 //export TexMgrLoadLightMapImage
 func TexMgrLoadLightMapImage(owner *C.qmodel_t, name *C.char, width C.int,
-	height C.int, data *C.byte, flags C.unsigned) TexID {
+	height C.int, data *C.byte, flags C.unsigned) uint32 {
 
 	// TODO(therjak): add cache ala
 	// if TexPrefOverWrite && owner&name&crc match
@@ -178,8 +177,8 @@ func TexMgrLoadLightMapImage(owner *C.qmodel_t, name *C.char, width C.int,
 
 	textureManager.addActiveTexture(t)
 	textureManager.loadLightMap(t, d)
-	texmap[TexID(t.glID.id)] = t
-	return TexID(t.glID.id)
+	texmap[t.glID.ID()] = t
+	return uint32(t.glID.ID())
 }
 
 //export Go_LoadWad
@@ -201,7 +200,7 @@ func (tm *texMgr) LoadConsoleChars() *Texture {
 		"gfx.wad:conchars", colorTypeIndexed, data)
 	textureManager.addActiveTexture(t)
 	textureManager.loadIndexed(t, data)
-	texmap[TexID(t.glID.id)] = t
+	texmap[t.glID.ID()] = t
 	return t
 }
 
@@ -225,7 +224,7 @@ func (tm *texMgr) loadRGBATex(name string, w, h int, flags TexPref, data []byte)
 	t := NewTexture(int32(w), int32(h), flags, name, colorTypeRGBA, data)
 	tm.addActiveTexture(t)
 	tm.loadRGBA(t, data)
-	texmap[TexID(t.glID.id)] = t
+	texmap[t.glID.ID()] = t
 	return t
 }
 
@@ -239,7 +238,7 @@ func (tm *texMgr) loadIndexdTex(name string, w, h int, flags TexPref, data []byt
 		data)
 	tm.addActiveTexture(t)
 	tm.loadIndexed(t, data)
-	texmap[TexID(t.glID.id)] = t
+	texmap[t.glID.ID()] = t
 	return t
 }
 
@@ -255,11 +254,11 @@ func (tm *texMgr) LoadBacktile() *Texture {
 
 //export TexMgrLoadParticleImage
 func TexMgrLoadParticleImage(name *C.char, width C.int,
-	height C.int, data *C.byte) TexID {
+	height C.int, data *C.byte) uint32 {
 	d := C.GoBytes(unsafe.Pointer(data), width*height*4)
 	t := textureManager.loadParticleImage(C.GoString(name), int32(width), int32(height), d)
-	texmap[TexID(t.glID.id)] = t
-	return TexID(t.glID.id)
+	texmap[t.glID.ID()] = t
+	return uint32(t.glID.ID())
 }
 
 func (tm *texMgr) loadParticleImage(name string, width, height int32, data []byte) *Texture {
@@ -272,29 +271,29 @@ func (tm *texMgr) loadParticleImage(name string, width, height int32, data []byt
 }
 
 //export TexMgrLoadSkyTexture
-func TexMgrLoadSkyTexture(name *C.char, data *C.byte, flags C.unsigned) TexID {
+func TexMgrLoadSkyTexture(name *C.char, data *C.byte, flags C.unsigned) uint32 {
 	n := C.GoString(name)
 	d := C.GoBytes(unsafe.Pointer(data), 128*128)
 	t := textureManager.LoadSkyTexture(n, d, TexPref(flags))
-	return TexID(t.glID.id)
+	return uint32(t.glID.ID())
 }
 
 func (tm *texMgr) LoadSkyTexture(n string, d []byte, flags TexPref) *Texture {
 	t := NewTexture(128, 128, flags, n, colorTypeIndexed, d)
 	tm.addActiveTexture(t)
 	tm.loadIndexed(t, d)
-	texmap[TexID(t.glID.id)] = t
+	texmap[t.glID.ID()] = t
 	return t
 }
 
 //export TexMgrLoadSkyBox
-func TexMgrLoadSkyBox(name *C.char) TexID {
+func TexMgrLoadSkyBox(name *C.char) uint32 {
 	n := C.GoString(name)
 	t := textureManager.LoadSkyBox(n)
 	if t == nil {
 		return 0
 	}
-	return TexID(t.glID.id)
+	return uint32(t.glID.ID())
 }
 
 func (tm *texMgr) LoadSkyBox(n string) *Texture {
@@ -307,14 +306,14 @@ func (tm *texMgr) LoadSkyBox(n string) *Texture {
 	t := NewTexture(int32(s.X), int32(s.Y), TexPrefNone, n, colorTypeRGBA, img.Pix)
 	tm.addActiveTexture(t)
 	tm.loadRGBA(t, img.Pix)
-	texmap[TexID(t.glID.id)] = t
+	texmap[t.glID.ID()] = t
 	return t
 }
 
 //export TexMgrLoadImage2
 func TexMgrLoadImage2(owner *C.qmodel_t, name *C.char, width C.int,
 	height C.int, format C.enum_srcformat, data *C.byte, source_file *C.char,
-	source_offset C.src_offset_t, flags C.unsigned) TexID {
+	source_offset C.src_offset_t, flags C.unsigned) uint32 {
 
 	d, ct := func() ([]byte, colorType) {
 		switch format {
@@ -333,13 +332,13 @@ func TexMgrLoadImage2(owner *C.qmodel_t, name *C.char, width C.int,
 	default: // C.SRC_INDEXED
 		textureManager.loadIndexed(t, d)
 	}
-	texmap[TexID(t.glID.id)] = t
-	return TexID(t.glID.id)
+	texmap[t.glID.ID()] = t
+	return uint32(t.glID.ID())
 }
 
 //export TexMgrReloadImage
-func TexMgrReloadImage(id TexID, shirt C.int, pants C.int) {
-	t := texmap[id]
+func TexMgrReloadImage(id uint32, shirt C.int, pants C.int) {
+	t := texmap[glh.TexID(id)]
 	textureManager.ReloadImage(t)
 	// this is actually a 'map texture & reload'
 	// it should work quite different to the others.
@@ -347,8 +346,8 @@ func TexMgrReloadImage(id TexID, shirt C.int, pants C.int) {
 }
 
 //export TexMgrFreeTexture
-func TexMgrFreeTexture(id TexID) {
-	textureManager.FreeTexture(texmap[id])
+func TexMgrFreeTexture(id uint32) {
+	textureManager.FreeTexture(texmap[glh.TexID(id)])
 }
 
 func (tm *texMgr) FreeTexture(t *Texture) {
@@ -415,8 +414,8 @@ func TexMgrInit() {
 	})
 
 	// Mod_Init is called before, so we need to do this here
-	C.r_notexture_mip.gltexture = C.uint(noTexture.glID.id)
-	C.r_notexture_mip2.gltexture = C.uint(noTexture.glID.id)
+	C.r_notexture_mip.gltexture = C.uint(noTexture.glID.ID())
+	C.r_notexture_mip2.gltexture = C.uint(noTexture.glID.ID())
 }
 
 //export TexMgrDeleteTextureObjects
@@ -487,10 +486,11 @@ func (tm *texMgr) SelectTextureUnit(target uint32) {
 }
 
 //export GLBind
-func GLBind(id TexID) {
-	textureManager.Bind(texmap[id])
-	if texmap[id].glID.id != uint32(id) {
-		log.Printf("broken glID: %v, %v", texmap[id].glID, id)
+func GLBind(id uint32) {
+	qid := glh.TexID(id)
+	textureManager.Bind(texmap[qid])
+	if texmap[qid].glID.ID() != qid {
+		log.Printf("broken glID: %v, %v", texmap[qid].glID, id)
 	}
 }
 
@@ -498,8 +498,8 @@ func (tm *texMgr) Bind(t *Texture) {
 	if t == nil {
 		t = nullTexture
 	}
-	if t.glID.id != tm.currentTexture[tm.currentTarget-gl.TEXTURE0] {
-		tm.currentTexture[tm.currentTarget-gl.TEXTURE0] = t.glID.id
+	if t.glID != tm.currentTexture[tm.currentTarget-gl.TEXTURE0] {
+		tm.currentTexture[tm.currentTarget-gl.TEXTURE0] = t.glID
 		t.glID.Bind()
 	}
 }
@@ -584,17 +584,17 @@ func (tm *texMgr) deleteTexture(t *Texture) {
 	if t == nil {
 		return
 	}
-	if t.glID.id == tm.currentTexture[0] {
-		tm.currentTexture[0] = unusedTexture
+	if t.glID == tm.currentTexture[0] {
+		tm.currentTexture[0] = nil
 	}
-	if t.glID.id == tm.currentTexture[1] {
-		tm.currentTexture[1] = unusedTexture
+	if t.glID == tm.currentTexture[1] {
+		tm.currentTexture[1] = nil
 	}
-	if t.glID.id == tm.currentTexture[2] {
-		tm.currentTexture[2] = unusedTexture
+	if t.glID == tm.currentTexture[2] {
+		tm.currentTexture[2] = nil
 	}
 
-	delete(texmap, TexID(t.glID.id))
+	delete(texmap, t.glID.ID())
 }
 
 func (tm *texMgr) DisableMultiTexture() {
@@ -696,7 +696,7 @@ func GLClearBindings() {
 }
 
 func (tm *texMgr) ClearBindings() {
-	tm.currentTexture = [3]uint32{unusedTexture, unusedTexture, unusedTexture}
+	tm.currentTexture = [3]*glh.Texture{nil, nil, nil}
 }
 
 func (tm *texMgr) addActiveTexture(t *Texture) {

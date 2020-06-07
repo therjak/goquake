@@ -5,6 +5,7 @@ import (
 	"github.com/therjak/goquake/commandline"
 	"github.com/therjak/goquake/cvar"
 	"github.com/therjak/goquake/cvars"
+	"github.com/therjak/goquake/glh"
 	"github.com/therjak/goquake/math/vec"
 	"log"
 	"math"
@@ -66,29 +67,33 @@ var (
 )
 
 type qParticleDrawer struct {
-	vao        *GlVertexArray
-	vbo        *GlBuffer
-	prog       *GlProgram
+	vao        *glh.VertexArray
+	vbo        *glh.Buffer
+	prog       *glh.Program
 	position   uint32
 	color      uint32
 	texcoord   uint32
 	projection int32
 	modelview  int32
 
-	texture            *GlTexture
-	textures           [2]*GlTexture
+	texture            *glh.Texture
+	textures           [2]*glh.Texture
 	textureScaleFactor float32
 }
 
-func newParticleDrawProgram() *GlProgram {
-	return newGlProgram(vertexSourceParticleDrawer, fragmentSourceParticleDrawer)
+func newParticleDrawProgram() (*glh.Program, error) {
+	return glh.NewProgram(vertexSourceParticleDrawer, fragmentSourceParticleDrawer)
 }
 
 func newParticleDrawer() *qParticleDrawer {
 	d := &qParticleDrawer{}
-	d.vao = newGlVertexArray()
-	d.vbo = newGlBuffer()
-	d.prog = newParticleDrawProgram()
+	d.vao = glh.NewVertexArray()
+	d.vbo = glh.NewBuffer()
+	var err error
+	d.prog, err = newParticleDrawProgram()
+	if err != nil {
+		Error(err.Error())
+	}
 	d.color = d.prog.GetAttribLocation("vcolor")
 	d.texcoord = d.prog.GetAttribLocation("vtexcoord")
 	d.position = d.prog.GetAttribLocation("vposition")
@@ -97,8 +102,8 @@ func newParticleDrawer() *qParticleDrawer {
 
 	gl.PixelStorei(gl.UNPACK_ALIGNMENT, 1)
 
-	d.textures[0] = newGlTexture()
-	d.textures[1] = newGlTexture()
+	d.textures[0] = glh.NewTexture()
+	d.textures[1] = glh.NewTexture()
 	d.textures[0].Bind()
 	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.R16F, 64, 64, 0, gl.RED, gl.FLOAT, gl.Ptr(p1TextureData))
 	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)

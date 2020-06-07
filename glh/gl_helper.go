@@ -1,113 +1,126 @@
-package quakelib
+package glh
 
 import (
+	"fmt"
 	"github.com/faiface/mainthread"
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"runtime"
 	"strings"
 )
 
-type GlProgram struct {
+type Program struct {
 	prog uint32
 }
 
-func newGlProgram(vertex, fragment string) *GlProgram {
-	p := &GlProgram{
+func NewProgram(vertex, fragment string) (*Program, error) {
+	p := &Program{
 		prog: gl.CreateProgram(),
 	}
-	vert := getShader(vertex, gl.VERTEX_SHADER)
-	frag := getShader(fragment, gl.FRAGMENT_SHADER)
+	vert, err := GetShader(vertex, gl.VERTEX_SHADER)
+	if err != nil {
+		return nil, err
+	}
+	frag, err := GetShader(fragment, gl.FRAGMENT_SHADER)
+	if err != nil {
+		return nil, err
+	}
 	gl.AttachShader(p.prog, vert)
 	gl.AttachShader(p.prog, frag)
 	gl.LinkProgram(p.prog)
 	gl.DeleteShader(vert)
 	gl.DeleteShader(frag)
-	runtime.SetFinalizer(p, (*GlProgram).delete)
-	return p
+	runtime.SetFinalizer(p, (*Program).delete)
+	return p, nil
 }
 
-func (p *GlProgram) delete() {
+func (p *Program) delete() {
 	mainthread.CallNonBlock(func() {
 		gl.DeleteProgram(p.prog)
 	})
 }
 
-func (p *GlProgram) Use() {
+func (p *Program) Use() {
 	gl.UseProgram(p.prog)
 }
 
-func (p *GlProgram) GetAttribLocation(n string) uint32 {
+func (p *Program) GetAttribLocation(n string) uint32 {
 	return uint32(gl.GetAttribLocation(p.prog, gl.Str(n+"\x00")))
 }
 
-func (p *GlProgram) GetUniformLocation(n string) int32 {
+func (p *Program) GetUniformLocation(n string) int32 {
 	return gl.GetUniformLocation(p.prog, gl.Str(n+"\x00"))
 }
 
-type GlBuffer struct {
+type Buffer struct {
 	buf uint32
 }
 
-func newGlBuffer() *GlBuffer {
-	b := &GlBuffer{}
+func NewBuffer() *Buffer {
+	b := &Buffer{}
 	gl.GenBuffers(1, &b.buf)
-	runtime.SetFinalizer(b, (*GlBuffer).delete)
+	runtime.SetFinalizer(b, (*Buffer).delete)
 	return b
 }
 
-func (b *GlBuffer) delete() {
+func (b *Buffer) delete() {
 	mainthread.CallNonBlock(func() {
 		gl.DeleteBuffers(1, &b.buf)
 	})
 }
 
-func (b *GlBuffer) Bind(target uint32) {
+func (b *Buffer) Bind(target uint32) {
 	gl.BindBuffer(target, b.buf)
 }
 
-type GlVertexArray struct {
+type VertexArray struct {
 	a uint32
 }
 
-func newGlVertexArray() *GlVertexArray {
-	va := &GlVertexArray{}
+func NewVertexArray() *VertexArray {
+	va := &VertexArray{}
 	gl.GenVertexArrays(1, &va.a)
-	runtime.SetFinalizer(va, (*GlVertexArray).delete)
+	runtime.SetFinalizer(va, (*VertexArray).delete)
 	return va
 }
 
-func (va *GlVertexArray) delete() {
+func (va *VertexArray) delete() {
 	mainthread.CallNonBlock(func() {
 		gl.DeleteVertexArrays(1, &va.a)
 	})
 }
 
-func (va *GlVertexArray) Bind() {
+func (va *VertexArray) Bind() {
 	gl.BindVertexArray(va.a)
 }
 
-type GlTexture struct {
+type Texture struct {
 	id uint32
 }
 
-func newGlTexture() *GlTexture {
-	t := &GlTexture{}
+type TexID uint32
+
+func (t *Texture) ID() TexID {
+	return TexID(t.id)
+}
+
+func NewTexture() *Texture {
+	t := &Texture{}
 	gl.GenTextures(1, &t.id)
-	runtime.SetFinalizer(t, (*GlTexture).delete)
+	runtime.SetFinalizer(t, (*Texture).delete)
 	return t
 }
 
-func (t *GlTexture) delete() {
+func (t *Texture) delete() {
 	mainthread.CallNonBlock(func() {
 		gl.DeleteTextures(1, &t.id)
 	})
 }
 
-func (t *GlTexture) Bind() {
+func (t *Texture) Bind() {
 	gl.BindTexture(gl.TEXTURE_2D, t.id)
 }
 
-func getShader(src string, shaderType uint32) uint32 {
+func GetShader(src string, shaderType uint32) (uint32, error) {
 	shader := gl.CreateShader(shaderType)
 	csource, free := gl.Strs(src)
 	gl.ShaderSource(shader, 1, csource, nil)
@@ -120,7 +133,7 @@ func getShader(src string, shaderType uint32) uint32 {
 		gl.GetShaderiv(shader, gl.INFO_LOG_LENGTH, &logLength)
 		log := strings.Repeat("\x00", int(logLength+1))
 		gl.GetShaderInfoLog(shader, logLength, nil, gl.Str(log))
-		Error("Failed to compile shader: %v", log)
+		return 0, fmt.Errorf("Failed to compile shader: %v", log)
 	}
-	return shader
+	return shader, nil
 }

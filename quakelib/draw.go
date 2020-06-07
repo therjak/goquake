@@ -12,6 +12,7 @@ import (
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/filesystem"
+	"github.com/therjak/goquake/glh"
 	"github.com/therjak/goquake/wad"
 )
 
@@ -64,19 +65,19 @@ void main() {
 ` + "\x00"
 )
 
-func newRecDrawProgram() *GlProgram {
-	return newGlProgram(vertexSourceDrawer, fragmentSourceColorRecDrawer)
+func newRecDrawProgram() (*glh.Program, error) {
+	return glh.NewProgram(vertexSourceDrawer, fragmentSourceColorRecDrawer)
 }
 
-func newDrawProgram() *GlProgram {
-	return newGlProgram(vertexSourceDrawer, fragmentSourceDrawer)
+func newDrawProgram() (*glh.Program, error) {
+	return glh.NewProgram(vertexSourceDrawer, fragmentSourceDrawer)
 }
 
 type recDrawer struct {
-	vao      *GlVertexArray
-	vbo      *GlBuffer
-	ebo      *GlBuffer
-	prog     *GlProgram
+	vao      *glh.VertexArray
+	vbo      *glh.Buffer
+	ebo      *glh.Buffer
+	prog     *glh.Program
 	position uint32
 	color    int32
 }
@@ -87,12 +88,16 @@ func NewRecDrawer() *recDrawer {
 		0, 1, 2,
 		2, 3, 0,
 	}
-	d.vao = newGlVertexArray()
-	d.vbo = newGlBuffer()
-	d.ebo = newGlBuffer()
+	d.vao = glh.NewVertexArray()
+	d.vbo = glh.NewBuffer()
+	d.ebo = glh.NewBuffer()
 	d.ebo.Bind(gl.ELEMENT_ARRAY_BUFFER)
 	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
-	d.prog = newRecDrawProgram()
+	var err error
+	d.prog, err = newRecDrawProgram()
+	if err != nil {
+		Error(err.Error())
+	}
 	d.position = d.prog.GetAttribLocation("position")
 	d.color = d.prog.GetUniformLocation("in_color")
 
@@ -136,10 +141,10 @@ func (d *recDrawer) Draw(x, y, w, h float32, c Color) {
 }
 
 type drawer struct {
-	vao      *GlVertexArray
-	vbo      *GlBuffer
-	ebo      *GlBuffer
-	prog     *GlProgram
+	vao      *glh.VertexArray
+	vbo      *glh.Buffer
+	ebo      *glh.Buffer
+	prog     *glh.Program
 	position uint32
 	texcoord uint32
 }
@@ -150,12 +155,16 @@ func NewDrawer() *drawer {
 		0, 1, 2,
 		2, 3, 0,
 	}
-	d.vao = newGlVertexArray()
-	d.vbo = newGlBuffer()
-	d.ebo = newGlBuffer()
+	d.vao = glh.NewVertexArray()
+	d.vbo = glh.NewBuffer()
+	d.ebo = glh.NewBuffer()
 	d.ebo.Bind(gl.ELEMENT_ARRAY_BUFFER)
 	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
-	d.prog = newDrawProgram()
+	var err error
+	d.prog, err = newDrawProgram()
+	if err != nil {
+		Error(err.Error())
+	}
 	d.position = d.prog.GetAttribLocation("position")
 	d.texcoord = d.prog.GetAttribLocation("texcoord")
 
