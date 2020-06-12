@@ -281,8 +281,6 @@ extern int gl_lightmap_format, lightmap_bytes;
 extern uint32_t
     lightmap_textures[MAX_LIGHTMAPS];  // johnfitz -- changed to an array
 
-extern int gl_warpimagesize;  // johnfitz -- for water warp
-
 typedef struct glsl_attrib_binding_s {
   const char *name;
   GLuint attrib;

@@ -1,8 +1,5 @@
 package quakelib
 
-//void TexMgrLoadPalette(void);
-import "C"
-
 import (
 	"github.com/therjak/goquake/filesystem"
 )
@@ -19,12 +16,6 @@ type qPalette struct {
 var (
 	palette qPalette
 )
-
-//export TexMgr_LoadPalette
-func TexMgr_LoadPalette() {
-	C.TexMgrLoadPalette()
-	palette.Init()
-}
 
 func (p *qPalette) Init() {
 	b, err := filesystem.GetFileContents("gfx/palette.lmp")

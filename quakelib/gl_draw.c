@@ -28,8 +28,8 @@ void GL_SetCanvas(canvastype newcanvas) {
       break;
     case CANVAS_WARPIMAGE:
       glOrtho(0, 128, 0, 128, -99999, 99999);
-      glViewport(0, GL_Height() - gl_warpimagesize,
-                 gl_warpimagesize, gl_warpimagesize);
+      glViewport(0, GL_Height() - GL_warpimagesize(),
+                 GL_warpimagesize(), GL_warpimagesize());
       break;
     default:
       Go_Error("GL_SetCanvas: bad canvas type");

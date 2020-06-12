@@ -8,7 +8,6 @@ cvar_t r_oldwater;      // = {"r_oldwater", "0", CVAR_ARCHIVE};
 cvar_t r_waterquality;  // = {"r_waterquality", "8", CVAR_NONE};
 cvar_t r_waterwarp;     //= {"r_waterwarp", "1", CVAR_NONE};
 
-int gl_warpimagesize;
 float load_subdivide_size;  // johnfitz -- remember what subdivide_size value
                             // was when this map was loaded
 
@@ -214,8 +213,8 @@ void R_UpdateWarpTextures(void) {
     // copy to texture
     GLBind(tx->warpimage);
     glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0,
-                        GL_Height() - gl_warpimagesize, gl_warpimagesize,
-                        gl_warpimagesize);
+                        GL_Height() - GL_warpimagesize(), GL_warpimagesize(),
+                        GL_warpimagesize());
 
     tx->update_warp = false;
   }
@@ -226,7 +225,7 @@ void R_UpdateWarpTextures(void) {
 
   // if warp render went down into sbar territory, we need to be sure to refresh
   // it next frame
-  if (gl_warpimagesize + Sbar_Lines() > GL_Height()) Sbar_Changed();
+  if (GL_warpimagesize() + Sbar_Lines() > GL_Height()) Sbar_Changed();
 
   // if viewsize is less than 100, we need to redraw the frame around the
   // viewport

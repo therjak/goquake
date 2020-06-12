@@ -38,12 +38,13 @@ R_SetClearColor_f -- johnfitz
 ====================
 */
 static void R_SetClearColor_f(cvar_t *var) {
-  byte *rgb;
   int s;
 
   s = (int)Cvar_GetValue(&r_clearcolor) & 0xFF;
-  rgb = (byte *)(d_8to24table + s);
-  glClearColor(rgb[0] / 255.0, rgb[1] / 255.0, rgb[2] / 255.0, 0);
+  glClearColor(
+      D8To24Table(s,0) / 255.0,
+      D8To24Table(s,1) / 255.0,
+      D8To24Table(s,2) / 255.0, 0);
 }
 
 /*

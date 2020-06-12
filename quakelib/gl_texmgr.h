@@ -20,7 +20,4 @@
 enum srcformat { SRC_INDEXED, SRC_RGBA };
 typedef uintptr_t src_offset_t;
 
-extern unsigned int d_8to24table[256];
-
-void TexMgr_Init(void);
 #endif /* _GL_TEXMAN_H */

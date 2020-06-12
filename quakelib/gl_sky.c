@@ -56,7 +56,6 @@ void Sky_LoadTextureInt(const byte* src, const char* skyName, const char* modelN
   int i, j, p, r, g, b, count;
   static byte front_data[128 * 128];  // FIXME: Hunk_Alloc
   static byte back_data[128 * 128];   // FIXME: Hunk_Alloc
-  unsigned *rgba;
 
   // extract back layer and upload
   for (i = 0; i < 128; i++)
@@ -84,10 +83,9 @@ void Sky_LoadTextureInt(const byte* src, const char* skyName, const char* modelN
     for (j = 0; j < 128; j++) {
       p = src[i * 256 + j];
       if (p != 0) {
-        rgba = &d_8to24table[p];
-        r += ((byte *)rgba)[0];
-        g += ((byte *)rgba)[1];
-        b += ((byte *)rgba)[2];
+        r += D8To24Table(p,0);
+        g += D8To24Table(p,1);
+        b += D8To24Table(p,2);
         count++;
       }
     }

@@ -448,7 +448,7 @@ void Mod_LoadTextures(lump_t *l) {
 
         // now create the warpimage, using dummy data from the hunk to create
         // the initial image
-        Hunk_Alloc(gl_warpimagesize * gl_warpimagesize * 4);  // make sure hunk
+        Hunk_Alloc(GL_warpimagesize() * GL_warpimagesize() * 4);  // make sure hunk
                                                               // is big enough
                                                               // so we don't
                                                               // reach an
@@ -456,7 +456,7 @@ void Mod_LoadTextures(lump_t *l) {
         Hunk_FreeToLowMark(mark);
         q_snprintf(texturename, sizeof(texturename), "%s_warp", texturename);
         tx->warpimage = TexMgrLoadImage2(
-            loadmodel, texturename, gl_warpimagesize, gl_warpimagesize,
+            loadmodel, texturename, GL_warpimagesize(), GL_warpimagesize(),
             SRC_RGBA, hunk_base, "", (src_offset_t)hunk_base,
             TEXPREF_NOPICMIP | TEXPREF_WARPIMAGE);
         tx->update_warp = true;
@@ -2013,7 +2013,10 @@ void Mod_FloodFillSkin(byte *skin, int skinwidth, int skinheight) {
     filledcolor = 0;
     // attempt to find opaque black
     for (i = 0; i < 256; ++i)
-      if (d_8to24table[i] == (255 << 0))  // alpha 1.0
+      if (D8To24Table(i,0) == 0 &&
+          D8To24Table(i,1) == 0 &&
+          D8To24Table(i,2) == 0 &&
+          D8To24Table(i,3) == 255) // alpha 1.0
       {
         filledcolor = i;
         break;
