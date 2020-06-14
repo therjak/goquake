@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/therjak/goquake/math/vec"
+	"github.com/therjak/goquake/texture"
 )
 
 // Would be great to type these but positive values are node numbers or so....
@@ -86,9 +87,22 @@ type MLeaf struct {
 }
 
 type Efrag struct{}
+
 type Surface struct {
+	Flags        int
+	TextureChain *Surface
 }
+
 type Texinfo struct{}
+
+type Texture struct {
+	Width        int
+	Height       int
+	TextureChans [2]*Surface
+	Texture      *texture.Texture
+	Fullbright   *texture.Texture
+	Warp         *texture.Texture
+}
 
 // GLuint == uint32
 
@@ -136,15 +150,15 @@ type QModel struct {
 	Nodes    []*MNode
 	Texinfos []*Texinfo
 	Surfaces []*Surface
-	// surfedge
+	// surfedge []int ?
 	ClipNodes    []*ClipNode
 	MarkSurfaces []*Surface
+	Textures     []*Texture // only in brush
 
 	FrameCount int
 	SyncType   int
 
-	Hulls [MAX_MAP_HULLS]Hull
-	// textures
+	Hulls   [MAX_MAP_HULLS]Hull
 	VisData []byte
 
 	Entities []map[string]string

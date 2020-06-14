@@ -62,7 +62,7 @@ func SkyNewMap() {
 
 func (s *qSky) NewMap() {
 	s.boxName = ""
-	s.boxTextures = [6]*texture.Texture{noTexture, noTexture, noTexture, noTexture, noTexture, noTexture}
+	s.boxTextures = [6]*texture.Texture{}
 	// TODO:
 	// skyfog
 	// parse cl.worldmodel.entities
@@ -88,7 +88,7 @@ func (s *qSky) LoadBox(name string) {
 	s.boxName = name
 	for i, t := range s.boxTextures {
 		textureManager.FreeTexture(t)
-		s.boxTextures[i] = noTexture
+		s.boxTextures[i] = nil
 	}
 	if s.boxName == "" {
 		return
@@ -99,8 +99,6 @@ func (s *qSky) LoadBox(name string) {
 		s.boxTextures[i] = textureManager.LoadSkyBox(n)
 		if s.boxTextures[i] != nil {
 			noneFound = false
-		} else {
-			s.boxTextures[i] = noTexture
 		}
 	}
 	if noneFound {

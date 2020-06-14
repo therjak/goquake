@@ -69,7 +69,6 @@ var (
 		activeTextures: make(map[*texture.Texture]bool),
 		maxAnisotropy:  1,
 	}
-	noTexture   *texture.Texture
 	nullTexture *texture.Texture
 )
 
@@ -178,9 +177,6 @@ func (tm *texMgr) LoadSkyBox(n string) *texture.Texture {
 func (tm *texMgr) FreeTexture(t *texture.Texture) {
 	if inReloadImages {
 		// Stupid workaround. Needs real fix.
-		return
-	}
-	if t == noTexture {
 		return
 	}
 

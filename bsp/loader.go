@@ -17,6 +17,13 @@ func init() {
 	qm.Register(bsp2Versionbsp2, Load)
 }
 
+var (
+	noTextureMip = qm.Texture{
+		Width:  32,
+		Height: 32,
+	}
+)
+
 const (
 	bspVersion      = 29
 	bsp2Version2psb = 'B'<<24 | 'S'<<16 | 'P'<<8 | '2'

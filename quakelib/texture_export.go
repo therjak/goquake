@@ -35,7 +35,7 @@ func GetMTexEnabled() bool {
 
 //export GetNoTexture
 func GetNoTexture() uint32 {
-	return uint32(noTexture.ID())
+	return uint32(unusedTexture)
 }
 
 //export GetTextureWidth
@@ -165,20 +165,14 @@ func TexMgrInit() {
 	gl.GetIntegerv(gl.MAX_TEXTURE_SIZE, &textureManager.maxTextureSize)
 	palette.Init()
 	TexMgrRecalcWarpImageSize()
-	noTexture = textureManager.LoadNoTex("notexture", 2, 2, []byte{
-		159, 91, 83, 255, 0, 0, 0, 255,
-		0, 0, 0, 255, 159, 91, 83, 255,
-	})
 	nullTexture = textureManager.LoadNoTex("nulltexture", 2, 2, []byte{
 		127, 191, 255, 255, 0, 0, 0, 255,
 		0, 0, 0, 255, 127, 191, 255, 255,
 	})
 
 	// Mod_Init is called before, so we need to do this here
-	C.r_notexture_mip.gltexture = C.uint(noTexture.ID())
-	C.r_notexture_mip2.gltexture = C.uint(noTexture.ID())
-	texmap[noTexture.ID()] = noTexture
-	texmap[nullTexture.ID()] = nullTexture
+	C.r_notexture_mip.gltexture = C.uint(unusedTexture)
+	C.r_notexture_mip2.gltexture = C.uint(unusedTexture)
 }
 
 //export TexMgrDeleteTextureObjects
