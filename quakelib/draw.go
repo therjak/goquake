@@ -13,6 +13,7 @@ import (
 	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/filesystem"
 	"github.com/therjak/goquake/glh"
+	"github.com/therjak/goquake/texture"
 	"github.com/therjak/goquake/wad"
 )
 
@@ -181,7 +182,7 @@ func yShift() float32 {
 	return 3 - (2 * l)
 }
 
-func (d *drawer) Draw(x, y, w, h float32, t *Texture) {
+func (d *drawer) Draw(x, y, w, h float32, t *texture.Texture) {
 	sx, sy := applyCanvas()
 	x1, x2 := x, x+w
 	y1, y2 := y+h, y
@@ -259,8 +260,8 @@ func (d *drawer) DrawQuad(x, y float32, num byte) {
 var (
 	qDrawer         *drawer
 	qRecDrawer      *recDrawer
-	consoleTexture  *Texture
-	backtileTexture *Texture
+	consoleTexture  *texture.Texture
+	backtileTexture *texture.Texture
 )
 
 //export Draw_Delete
@@ -396,7 +397,7 @@ type Color struct {
 type QPic struct {
 	Width   int
 	Height  int
-	Texture *Texture
+	Texture *texture.Texture
 }
 
 func DrawCharacterWhite(x, y int, num int) {

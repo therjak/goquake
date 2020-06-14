@@ -7,30 +7,13 @@ import (
 	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/glh"
 	"github.com/therjak/goquake/image"
+	"github.com/therjak/goquake/texture"
 	"github.com/therjak/goquake/wad"
 	"log"
 	"strconv"
 	"strings"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
-)
-
-type TexPref uint32
-
-const (
-	TexPrefMipMap TexPref = 1 << iota
-	TexPrefLinear
-	TexPrefNearest
-	TexPrefAlpha
-	TexPrefPad
-	TexPrefPersist
-	TexPrefOverwrite
-	TexPrefNoPicMip
-	TexPrefFullBright
-	TexPrefNoBright
-	TexPrefConChars
-	TexPrefWarpImage
-	TexPrefNone TexPref = 0
 )
 
 type glMode struct {
@@ -67,43 +50,12 @@ func init() {
 type texMgr struct {
 	multiTextureEnabled bool
 	currentTarget       uint32
-	currentTexture      [3]*glh.Texture
+	currentTexture      [3]*texture.Texture
 	glModeIndex         int // TODO(therjak): glmode_idx is still split between c and go
 
-	activeTextures map[*Texture]bool
+	activeTextures map[*texture.Texture]bool
 	maxAnisotropy  float32
 	maxTextureSize int32
-}
-
-type colorType int
-
-const (
-	colorTypeIndexed colorType = iota
-	colorTypeRGBA
-	colorTypeLightmap
-)
-
-type Texture struct {
-	glID   *glh.Texture
-	width  int32 // mipmap can make it differ from source width
-	height int32
-	flags  TexPref
-	name   string
-	typ    colorType
-	data   []byte
-}
-
-func NewTexture(w, h int32, flags TexPref, name string, typ colorType, data []byte) *Texture {
-	t := &Texture{
-		glID:   glh.NewTexture(),
-		width:  w,
-		height: h,
-		flags:  flags,
-		name:   name,
-		typ:    typ,
-		data:   data,
-	}
-	return t
 }
 
 const (
@@ -111,19 +63,19 @@ const (
 )
 
 var (
-	texmap         map[glh.TexID]*Texture
+	texmap         map[glh.TexID]*texture.Texture
 	textureManager = texMgr{
 		currentTarget:  gl.TEXTURE0,
 		glModeIndex:    len(glModes) - 1,
-		activeTextures: make(map[*Texture]bool),
+		activeTextures: make(map[*texture.Texture]bool),
 		maxAnisotropy:  1,
 	}
-	noTexture   *Texture
-	nullTexture *Texture
+	noTexture   *texture.Texture
+	nullTexture *texture.Texture
 )
 
 func init() {
-	texmap = make(map[glh.TexID]*Texture)
+	texmap = make(map[glh.TexID]*texture.Texture)
 	cvars.GlTextureMode.SetByString(glModes[textureManager.glModeIndex].name)
 	cvars.GlTextureAnisotropy.SetCallback(func(cv *cvar.Cvar) {
 		textureManager.anisotropyCallback(cv)
@@ -136,60 +88,60 @@ func init() {
 	})
 }
 
-func (tm *texMgr) LoadConsoleChars() *Texture {
+func (tm *texMgr) LoadConsoleChars() *texture.Texture {
 	data := wad.GetConsoleChars()
 	if len(data) != 128*128 {
 		Error("ConsoleChars not found")
 		return nil
 	}
-	t := NewTexture(128, 128,
-		TexPrefAlpha|TexPrefNearest|TexPrefNoPicMip|TexPrefConChars,
-		"gfx.wad:conchars", colorTypeIndexed, data)
+	t := texture.NewTexture(128, 128,
+		texture.TexPrefAlpha|texture.TexPrefNearest|texture.TexPrefNoPicMip|texture.TexPrefConChars,
+		"gfx.wad:conchars", texture.ColorTypeIndexed, data)
 	textureManager.addActiveTexture(t)
 	textureManager.loadIndexed(t, data)
-	texmap[t.glID.ID()] = t
+	texmap[t.ID()] = t
 	return t
 }
 
-func (tm *texMgr) LoadNoTex(name string, w, h int, data []byte) *Texture {
-	flags := TexPrefNearest | TexPrefPersist | TexPrefNoPicMip
+func (tm *texMgr) LoadNoTex(name string, w, h int, data []byte) *texture.Texture {
+	flags := texture.TexPrefNearest | texture.TexPrefPersist | texture.TexPrefNoPicMip
 	return tm.loadRGBATex(name, w, h, flags, data)
 }
 
-func (tm *texMgr) LoadInternalTex(name string, w, h int, data []byte) *Texture {
-	flags := TexPrefNearest | TexPrefAlpha | TexPrefPersist |
-		TexPrefPad | TexPrefNoPicMip
+func (tm *texMgr) LoadInternalTex(name string, w, h int, data []byte) *texture.Texture {
+	flags := texture.TexPrefNearest | texture.TexPrefAlpha | texture.TexPrefPersist |
+		texture.TexPrefPad | texture.TexPrefNoPicMip
 	return tm.loadIndexdTex(name, w, h, flags, data)
 }
 
-func (tm *texMgr) LoadWadTex(name string, w, h int, data []byte) *Texture {
-	flags := TexPrefAlpha | TexPrefPad | TexPrefNoPicMip
+func (tm *texMgr) LoadWadTex(name string, w, h int, data []byte) *texture.Texture {
+	flags := texture.TexPrefAlpha | texture.TexPrefPad | texture.TexPrefNoPicMip
 	return tm.loadIndexdTex(name, w, h, flags, data)
 }
 
-func (tm *texMgr) loadRGBATex(name string, w, h int, flags TexPref, data []byte) *Texture {
-	t := NewTexture(int32(w), int32(h), flags, name, colorTypeRGBA, data)
+func (tm *texMgr) loadRGBATex(name string, w, h int, flags texture.TexPref, data []byte) *texture.Texture {
+	t := texture.NewTexture(int32(w), int32(h), flags, name, texture.ColorTypeRGBA, data)
 	tm.addActiveTexture(t)
 	tm.loadRGBA(t, data)
-	texmap[t.glID.ID()] = t
+	texmap[t.ID()] = t
 	return t
 }
 
-func (tm *texMgr) loadIndexdTex(name string, w, h int, flags TexPref, data []byte) *Texture {
-	t := NewTexture(
+func (tm *texMgr) loadIndexdTex(name string, w, h int, flags texture.TexPref, data []byte) *texture.Texture {
+	t := texture.NewTexture(
 		int32(w),
 		int32(h),
 		flags,
 		name,
-		colorTypeIndexed,
+		texture.ColorTypeIndexed,
 		data)
 	tm.addActiveTexture(t)
 	tm.loadIndexed(t, data)
-	texmap[t.glID.ID()] = t
+	texmap[t.ID()] = t
 	return t
 }
 
-func (tm *texMgr) LoadBacktile() *Texture {
+func (tm *texMgr) LoadBacktile() *texture.Texture {
 	name := "backtile"
 	p := wad.GetPic(name)
 	if p == nil {
@@ -199,38 +151,38 @@ func (tm *texMgr) LoadBacktile() *Texture {
 	return textureManager.LoadWadTex(name, p.Width, p.Height, p.Data)
 }
 
-func (tm *texMgr) loadParticleImage(name string, width, height int32, data []byte) *Texture {
-	t := NewTexture(width, height,
-		TexPrefPersist|TexPrefAlpha|TexPrefLinear,
-		name, colorTypeRGBA, data)
+func (tm *texMgr) loadParticleImage(name string, width, height int32, data []byte) *texture.Texture {
+	t := texture.NewTexture(width, height,
+		texture.TexPrefPersist|texture.TexPrefAlpha|texture.TexPrefLinear,
+		name, texture.ColorTypeRGBA, data)
 	textureManager.addActiveTexture(t)
 	textureManager.loadRGBA(t, data)
 	return t
 }
 
-func (tm *texMgr) LoadSkyTexture(n string, d []byte, flags TexPref) *Texture {
-	t := NewTexture(128, 128, flags, n, colorTypeIndexed, d)
+func (tm *texMgr) LoadSkyTexture(n string, d []byte, flags texture.TexPref) *texture.Texture {
+	t := texture.NewTexture(128, 128, flags, n, texture.ColorTypeIndexed, d)
 	tm.addActiveTexture(t)
 	tm.loadIndexed(t, d)
-	texmap[t.glID.ID()] = t
+	texmap[t.ID()] = t
 	return t
 }
 
-func (tm *texMgr) LoadSkyBox(n string) *Texture {
+func (tm *texMgr) LoadSkyBox(n string) *texture.Texture {
 	img, err := image.Load(n)
 	if err != nil {
 		return nil
 	}
 	s := img.Bounds().Size()
 
-	t := NewTexture(int32(s.X), int32(s.Y), TexPrefNone, n, colorTypeRGBA, img.Pix)
+	t := texture.NewTexture(int32(s.X), int32(s.Y), texture.TexPrefNone, n, texture.ColorTypeRGBA, img.Pix)
 	tm.addActiveTexture(t)
 	tm.loadRGBA(t, img.Pix)
-	texmap[t.glID.ID()] = t
+	texmap[t.ID()] = t
 	return t
 }
 
-func (tm *texMgr) FreeTexture(t *Texture) {
+func (tm *texMgr) FreeTexture(t *texture.Texture) {
 	if inReloadImages {
 		// Stupid workaround. Needs real fix.
 		return
@@ -283,11 +235,11 @@ func (tm *texMgr) RecalcWarpImageSize(w, h int) {
 	// TODO(therjak): there should be a better way.
 	dummy := make([]float32, s*s*3)
 	for t, b := range tm.activeTextures {
-		if b && (t.flags&TexPrefWarpImage != 0) {
+		if b && t.Flags(texture.TexPrefWarpImage) {
 			tm.Bind(t)
 			gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGB, s, s, 0, gl.RGB, gl.FLOAT, gl.Ptr(dummy))
-			t.width = s
-			t.height = s
+			t.Width = s
+			t.Height = s
 		}
 	}
 }
@@ -301,13 +253,13 @@ func (tm *texMgr) SelectTextureUnit(target uint32) {
 	tm.currentTarget = target
 }
 
-func (tm *texMgr) Bind(t *Texture) {
+func (tm *texMgr) Bind(t *texture.Texture) {
 	if t == nil {
 		t = nullTexture
 	}
-	if t.glID != tm.currentTexture[tm.currentTarget-gl.TEXTURE0] {
-		tm.currentTexture[tm.currentTarget-gl.TEXTURE0] = t.glID
-		t.glID.Bind()
+	if t != tm.currentTexture[tm.currentTarget-gl.TEXTURE0] {
+		tm.currentTexture[tm.currentTarget-gl.TEXTURE0] = t
+		t.Bind()
 	}
 }
 
@@ -324,7 +276,7 @@ func (tm *texMgr) DeleteTextureObjects() {
 func (tm *texMgr) reloadNoBrightImages() {
 	for k, v := range tm.activeTextures {
 		if v {
-			if k.flags&TexPrefNoBright != 0 {
+			if k.Flags(texture.TexPrefNoBright) {
 				tm.ReloadImage(k)
 			}
 		}
@@ -346,7 +298,7 @@ func (tm *texMgr) ReloadImages() {
 	inReloadImages = false
 }
 
-func (tm *texMgr) ReloadImage(t *Texture) {
+func (tm *texMgr) ReloadImage(t *texture.Texture) {
 	// TODO(therjak): color mapping for shirts and pants
 	/*
 	  if (glt->shirt > -1 && glt->pants > -1) {
@@ -377,31 +329,31 @@ func (tm *texMgr) ReloadImage(t *Texture) {
 	    data = translated;
 	  }
 	*/
-	switch t.typ {
-	case colorTypeIndexed:
-		tm.loadIndexed(t, t.data)
-	case colorTypeRGBA:
-		tm.loadRGBA(t, t.data)
-	case colorTypeLightmap:
-		tm.loadLightMap(t, t.data)
+	switch t.Typ {
+	case texture.ColorTypeIndexed:
+		tm.loadIndexed(t, t.Data)
+	case texture.ColorTypeRGBA:
+		tm.loadRGBA(t, t.Data)
+	case texture.ColorTypeLightmap:
+		tm.loadLightMap(t, t.Data)
 	}
 }
 
-func (tm *texMgr) deleteTexture(t *Texture) {
+func (tm *texMgr) deleteTexture(t *texture.Texture) {
 	if t == nil {
 		return
 	}
-	if t.glID == tm.currentTexture[0] {
+	if t == tm.currentTexture[0] {
 		tm.currentTexture[0] = nil
 	}
-	if t.glID == tm.currentTexture[1] {
+	if t == tm.currentTexture[1] {
 		tm.currentTexture[1] = nil
 	}
-	if t.glID == tm.currentTexture[2] {
+	if t == tm.currentTexture[2] {
 		tm.currentTexture[2] = nil
 	}
 
-	delete(texmap, t.glID.ID())
+	delete(texmap, t.ID())
 }
 
 func (tm *texMgr) DisableMultiTexture() {
@@ -420,17 +372,17 @@ func (tm *texMgr) EnableMultiTexture() {
 	tm.multiTextureEnabled = true
 }
 
-func (tm *texMgr) SetFilterModes(t *Texture) {
+func (tm *texMgr) SetFilterModes(t *texture.Texture) {
 	tm.Bind(t)
 	m := glModes[tm.glModeIndex]
 	switch {
-	case t.flags&TexPrefNearest != 0:
+	case t.Flags(texture.TexPrefNearest):
 		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
 		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-	case t.flags&TexPrefLinear != 0:
+	case t.Flags(texture.TexPrefLinear):
 		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
 		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
-	case t.flags&TexPrefMipMap != 0:
+	case t.Flags(texture.TexPrefMipMap):
 		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, m.magfilter)
 		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, m.minfilter)
 		v := cvars.GlTextureAnisotropy.Value()
@@ -452,7 +404,7 @@ func (tm *texMgr) anisotropyCallback(cv *cvar.Cvar) {
 	default:
 		for k, v := range tm.activeTextures {
 			if v {
-				if k.flags&TexPrefMipMap != 0 {
+				if k.Flags(texture.TexPrefMipMap) {
 					tm.Bind(k)
 					m := glModes[tm.glModeIndex]
 					gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, m.magfilter)
@@ -493,15 +445,15 @@ func (tm *texMgr) textureModeCallback(cv *cvar.Cvar) {
 		cv.SetByString(glModes[i-1].name)
 		return
 	}
-	conlog.Printf("\"%s\" is not a valid texturemade\n", name)
+	conlog.Printf("\"%s\" is not a valid texturemode\n", name)
 	cv.SetByString(glModes[tm.glModeIndex].name)
 }
 
 func (tm *texMgr) ClearBindings() {
-	tm.currentTexture = [3]*glh.Texture{nil, nil, nil}
+	tm.currentTexture = [3]*texture.Texture{nil, nil, nil}
 }
 
-func (tm *texMgr) addActiveTexture(t *Texture) {
+func (tm *texMgr) addActiveTexture(t *texture.Texture) {
 	tm.activeTextures[t] = true
 }
 
@@ -516,85 +468,79 @@ func (tm *texMgr) FrameUsage() float32 {
 	return mb
 }
 
-func (tm *texMgr) getTextureUsage() (int32, float32) {
-	texels := int32(0)
+func (tm *texMgr) getTextureUsage() (int, float32) {
+	texels := 0
 	for k, v := range tm.activeTextures {
 		if v {
-			if k.flags&TexPrefMipMap != 0 {
-				texels += k.width * k.height * 4 / 3
-			} else {
-				texels += k.width * k.height
-			}
+			texels += k.Texels()
 		}
 	}
 	mb := float32(texels) * (24 / 8) / (1000 * 1000)
 	return texels, mb
 }
 
-func (tm *texMgr) loadRGBA(t *Texture, data []byte) {
+func (tm *texMgr) loadRGBA(t *texture.Texture, data []byte) {
 	picmip := uint32(0)
-	if t.flags&TexPrefNoPicMip == 0 {
+	if !t.Flags(texture.TexPrefNoPicMip) {
 		pv := cvars.GlPicMip.Value()
 		if pv > 0 {
 			picmip = uint32(pv)
 		}
 	}
-	safeW := tm.safeTextureSize(t.width >> picmip)
-	safeH := tm.safeTextureSize(t.height >> picmip)
-	for t.width > safeW {
+	safeW := tm.safeTextureSize(t.Width >> picmip)
+	safeH := tm.safeTextureSize(t.Height >> picmip)
+	for t.Width > safeW {
 		log.Printf("safeW")
 		// half width
-		data = downScaleWidth(t.width, t.height, data)
-		t.width >>= 1
-		// if t.flags&TexPrefAlpha != 0 {
+		data = downScaleWidth(t.Width, t.Height, data)
+		t.Width >>= 1
+		// if t.Flags&texture.TexPrefAlpha != 0 {
 		// TODO(therjak): is this needed?
 		//   alphaEdgeFix(t.width, t.height, data)
 		// }
 	}
-	for t.height > safeH {
+	for t.Height > safeH {
 		log.Printf("safeH")
 		// half height
-		data = downScaleHeight(t.width, t.height, data)
-		t.height >>= 1
-		// if t.flags&TexPrefAlpha != 0 {
+		data = downScaleHeight(t.Width, t.Height, data)
+		t.Height >>= 1
+		// if t.Flags&texture.TexPrefAlpha != 0 {
 		// TODO(therjak): is this needed?
 		//   alphaEdgeFix(t.width, t.height, data)
 		//}
 	}
 	// Orig uses the 'old' values 3 or 4
 	internalformat := int32(gl.RGB)
-	if t.flags&TexPrefAlpha != 0 {
+	if t.Flags(texture.TexPrefAlpha) {
 		internalformat = gl.RGBA
 	}
 	tm.Bind(t)
-	gl.TexImage2D(gl.TEXTURE_2D, 0, internalformat, t.width, t.height,
+	gl.TexImage2D(gl.TEXTURE_2D, 0, internalformat, t.Width, t.Height,
 		0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(data))
 
 	gl.GenerateMipmap(gl.TEXTURE_2D)
 	tm.SetFilterModes(t)
 }
 
-func (tm *texMgr) loadLightMap(t *Texture, data []byte) {
+func (tm *texMgr) loadLightMap(t *texture.Texture, data []byte) {
 	tm.Bind(t)
-	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, t.width, t.height,
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, t.Width, t.Height,
 		0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(data))
 	tm.SetFilterModes(t)
 }
 
-func (tm *texMgr) loadIndexed(t *Texture, data []byte) {
+func (tm *texMgr) loadIndexed(t *texture.Texture, data []byte) {
 	var p *[256 * 4]byte
 	switch {
-	case t.flags&(TexPrefFullBright|TexPrefAlpha) ==
-		(TexPrefFullBright | TexPrefAlpha):
+	case t.Flags(texture.TexPrefFullBright) && t.Flags(texture.TexPrefAlpha):
 		p = &palette.tableFullBrightFence
-	case t.flags&TexPrefFullBright != 0:
+	case t.Flags(texture.TexPrefFullBright):
 		p = &palette.tableFullBright
-	case t.flags&(TexPrefNoBright|TexPrefAlpha) ==
-		(TexPrefNoBright | TexPrefAlpha):
+	case t.Flags(texture.TexPrefNoBright) && t.Flags(texture.TexPrefAlpha):
 		p = &palette.tableNoBrightFence
-	case t.flags&TexPrefNoBright != 0:
+	case t.Flags(texture.TexPrefNoBright):
 		p = &palette.tableNoBright
-	case t.flags&TexPrefConChars != 0:
+	case t.Flags(texture.TexPrefConChars):
 		p = &palette.tableConsoleChars
 	default:
 		p = &palette.table
@@ -608,8 +554,8 @@ func (tm *texMgr) loadIndexed(t *Texture, data []byte) {
 		nd = append(nd, pixel...)
 	}
 	// do we actually need padding?
-	if t.flags&TexPrefAlpha != 0 {
-		alphaEdgeFix(t.width, t.height, nd)
+	if t.Flags(texture.TexPrefAlpha) {
+		alphaEdgeFix(t.Width, t.Height, nd)
 	}
 	tm.loadRGBA(t, nd)
 }

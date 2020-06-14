@@ -13,6 +13,7 @@ import (
 	"github.com/therjak/goquake/cmd"
 	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/math/vec"
+	"github.com/therjak/goquake/texture"
 	"unsafe"
 )
 
@@ -33,9 +34,9 @@ func skyCommand(args []cmd.QArg, _ int) {
 
 type qSky struct {
 	boxName      string
-	boxTextures  [6]*Texture
-	solidTexture *Texture
-	alphaTexture *Texture
+	boxTextures  [6]*texture.Texture
+	solidTexture *texture.Texture
+	alphaTexture *texture.Texture
 	flat         Color
 	mins         [2][6]float32
 	maxs         [2][6]float32
@@ -61,7 +62,7 @@ func SkyNewMap() {
 
 func (s *qSky) NewMap() {
 	s.boxName = ""
-	s.boxTextures = [6]*Texture{noTexture, noTexture, noTexture, noTexture, noTexture, noTexture}
+	s.boxTextures = [6]*texture.Texture{noTexture, noTexture, noTexture, noTexture, noTexture, noTexture}
 	// TODO:
 	// skyfog
 	// parse cl.worldmodel.entities
@@ -145,8 +146,8 @@ func (s *qSky) LoadTexture(d []byte, skyName, modelName string) {
 	}
 	fn := fmt.Sprintf("%s:%s_front", modelName, skyName)
 	bn := fmt.Sprintf("%s:%s_back", modelName, skyName)
-	s.solidTexture = textureManager.LoadSkyTexture(bn, back[:], TexPrefNone)
-	s.alphaTexture = textureManager.LoadSkyTexture(fn, front[:], TexPrefAlpha)
+	s.solidTexture = textureManager.LoadSkyTexture(bn, back[:], texture.TexPrefNone)
+	s.alphaTexture = textureManager.LoadSkyTexture(fn, front[:], texture.TexPrefAlpha)
 	s.flat = Color{
 		R: float32(r) / (float32(count) * 255),
 		G: float32(g) / (float32(count) * 255),
