@@ -15,6 +15,14 @@ import (
 	"github.com/go-gl/gl/v4.6-core/gl"
 )
 
+var (
+	texmap map[glh.TexID]*texture.Texture
+)
+
+func init() {
+	texmap = make(map[glh.TexID]*texture.Texture)
+}
+
 //export GL_warpimagesize
 func GL_warpimagesize() int32 {
 	return glWarpImageSize
@@ -80,6 +88,7 @@ func TexMgrLoadSkyTexture(name *C.char, data *C.byte, flags C.unsigned) uint32 {
 	n := C.GoString(name)
 	d := C.GoBytes(unsafe.Pointer(data), 128*128)
 	t := textureManager.LoadSkyTexture(n, d, texture.TexPref(flags))
+	texmap[t.ID()] = t
 	return uint32(t.ID())
 }
 
@@ -90,6 +99,7 @@ func TexMgrLoadSkyBox(name *C.char) uint32 {
 	if t == nil {
 		return 0
 	}
+	texmap[t.ID()] = t
 	return uint32(t.ID())
 }
 
@@ -131,6 +141,7 @@ func TexMgrReloadImage(id uint32, shirt C.int, pants C.int) {
 //export TexMgrFreeTexture
 func TexMgrFreeTexture(id uint32) {
 	textureManager.FreeTexture(texmap[glh.TexID(id)])
+	delete(texmap, glh.TexID(id))
 }
 
 //export TexMgrFrameUsage
@@ -166,6 +177,8 @@ func TexMgrInit() {
 	// Mod_Init is called before, so we need to do this here
 	C.r_notexture_mip.gltexture = C.uint(noTexture.ID())
 	C.r_notexture_mip2.gltexture = C.uint(noTexture.ID())
+	texmap[noTexture.ID()] = noTexture
+	texmap[nullTexture.ID()] = nullTexture
 }
 
 //export TexMgrDeleteTextureObjects

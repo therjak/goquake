@@ -63,7 +63,6 @@ const (
 )
 
 var (
-	texmap         map[glh.TexID]*texture.Texture
 	textureManager = texMgr{
 		currentTarget:  gl.TEXTURE0,
 		glModeIndex:    len(glModes) - 1,
@@ -75,7 +74,6 @@ var (
 )
 
 func init() {
-	texmap = make(map[glh.TexID]*texture.Texture)
 	cvars.GlTextureMode.SetByString(glModes[textureManager.glModeIndex].name)
 	cvars.GlTextureAnisotropy.SetCallback(func(cv *cvar.Cvar) {
 		textureManager.anisotropyCallback(cv)
@@ -99,7 +97,6 @@ func (tm *texMgr) LoadConsoleChars() *texture.Texture {
 		"gfx.wad:conchars", texture.ColorTypeIndexed, data)
 	textureManager.addActiveTexture(t)
 	textureManager.loadIndexed(t, data)
-	texmap[t.ID()] = t
 	return t
 }
 
@@ -123,7 +120,6 @@ func (tm *texMgr) loadRGBATex(name string, w, h int, flags texture.TexPref, data
 	t := texture.NewTexture(int32(w), int32(h), flags, name, texture.ColorTypeRGBA, data)
 	tm.addActiveTexture(t)
 	tm.loadRGBA(t, data)
-	texmap[t.ID()] = t
 	return t
 }
 
@@ -137,7 +133,6 @@ func (tm *texMgr) loadIndexdTex(name string, w, h int, flags texture.TexPref, da
 		data)
 	tm.addActiveTexture(t)
 	tm.loadIndexed(t, data)
-	texmap[t.ID()] = t
 	return t
 }
 
@@ -164,7 +159,6 @@ func (tm *texMgr) LoadSkyTexture(n string, d []byte, flags texture.TexPref) *tex
 	t := texture.NewTexture(128, 128, flags, n, texture.ColorTypeIndexed, d)
 	tm.addActiveTexture(t)
 	tm.loadIndexed(t, d)
-	texmap[t.ID()] = t
 	return t
 }
 
@@ -178,7 +172,6 @@ func (tm *texMgr) LoadSkyBox(n string) *texture.Texture {
 	t := texture.NewTexture(int32(s.X), int32(s.Y), texture.TexPrefNone, n, texture.ColorTypeRGBA, img.Pix)
 	tm.addActiveTexture(t)
 	tm.loadRGBA(t, img.Pix)
-	texmap[t.ID()] = t
 	return t
 }
 
@@ -352,8 +345,6 @@ func (tm *texMgr) deleteTexture(t *texture.Texture) {
 	if t == tm.currentTexture[2] {
 		tm.currentTexture[2] = nil
 	}
-
-	delete(texmap, t.ID())
 }
 
 func (tm *texMgr) DisableMultiTexture() {
@@ -394,7 +385,6 @@ func (tm *texMgr) SetFilterModes(t *texture.Texture) {
 }
 
 func (tm *texMgr) anisotropyCallback(cv *cvar.Cvar) {
-	// TexMgr_Anisotropy_f
 	val := cv.Value()
 	switch {
 	case val < 1:
@@ -415,6 +405,7 @@ func (tm *texMgr) anisotropyCallback(cv *cvar.Cvar) {
 		}
 	}
 }
+
 func (tm *texMgr) textureModeCallback(cv *cvar.Cvar) {
 	name := cv.String()
 	for i, m := range glModes {
