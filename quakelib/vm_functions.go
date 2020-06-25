@@ -2,6 +2,11 @@ package quakelib
 
 import (
 	"fmt"
+	"log"
+	"math/rand"
+	"runtime"
+	"strings"
+
 	"github.com/therjak/goquake/cbuf"
 	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/cvars"
@@ -12,10 +17,6 @@ import (
 	"github.com/therjak/goquake/protocol"
 	svc "github.com/therjak/goquake/protocol/server"
 	"github.com/therjak/goquake/protos"
-	"log"
-	"math/rand"
-	"runtime"
-	"strings"
 
 	"github.com/chewxy/math32"
 )

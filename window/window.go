@@ -1,9 +1,10 @@
 package window
 
 import (
-	"github.com/therjak/goquake/cvars"
 	"log"
 	"unsafe"
+
+	"github.com/therjak/goquake/cvars"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/veandco/go-sdl2/sdl"

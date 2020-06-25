@@ -2,6 +2,7 @@ package quakelib
 
 import (
 	"fmt"
+
 	"github.com/therjak/goquake/cbuf"
 	"github.com/therjak/goquake/cvars"
 	kc "github.com/therjak/goquake/keycode"

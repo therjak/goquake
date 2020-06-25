@@ -9,12 +9,13 @@ import "C"
 
 import (
 	"fmt"
+	"unsafe"
+
 	"github.com/chewxy/math32"
 	"github.com/therjak/goquake/cmd"
 	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/math/vec"
 	"github.com/therjak/goquake/texture"
-	"unsafe"
 )
 
 func init() {

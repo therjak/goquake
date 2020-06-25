@@ -3,6 +3,7 @@ package quakelib
 import "C"
 import (
 	"fmt"
+
 	"github.com/therjak/goquake/conlog"
 )
 

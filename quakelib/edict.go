@@ -4,13 +4,14 @@ import "C"
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/therjak/goquake/cmd"
 	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/math"
 	"github.com/therjak/goquake/math/vec"
 	"github.com/therjak/goquake/progs"
-	"log"
 )
 
 const (

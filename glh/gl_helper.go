@@ -2,10 +2,11 @@ package glh
 
 import (
 	"fmt"
-	"github.com/faiface/mainthread"
-	"github.com/go-gl/gl/v4.6-core/gl"
 	"runtime"
 	"strings"
+
+	"github.com/faiface/mainthread"
+	"github.com/go-gl/gl/v4.6-core/gl"
 )
 
 type Program struct {

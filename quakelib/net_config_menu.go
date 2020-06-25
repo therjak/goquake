@@ -2,12 +2,13 @@ package quakelib
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/therjak/goquake/cbuf"
 	kc "github.com/therjak/goquake/keycode"
 	"github.com/therjak/goquake/keys"
 	"github.com/therjak/goquake/menu"
 	"github.com/therjak/goquake/net"
-	"strconv"
 )
 
 func enterNetNewGameMenu() {

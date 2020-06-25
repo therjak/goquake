@@ -2,6 +2,8 @@ package quakelib
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/therjak/goquake/cbuf"
 	"github.com/therjak/goquake/cmd"
 	cmdl "github.com/therjak/goquake/commandline"
@@ -12,7 +14,6 @@ import (
 	"github.com/therjak/goquake/math"
 	"github.com/therjak/goquake/menu"
 	"github.com/therjak/goquake/window"
-	"strconv"
 
 	"github.com/veandco/go-sdl2/sdl"
 )

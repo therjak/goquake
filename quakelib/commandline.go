@@ -2,6 +2,7 @@ package quakelib
 
 import (
 	"C"
+
 	cmdl "github.com/therjak/goquake/commandline"
 )
 

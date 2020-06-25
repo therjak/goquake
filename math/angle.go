@@ -1,8 +1,9 @@
 package math
 
 import (
-	"github.com/chewxy/math32"
 	"math"
+
+	"github.com/chewxy/math32"
 )
 
 // AngleMod32 changes an angle to be within 0-360 degrees

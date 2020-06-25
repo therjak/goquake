@@ -7,11 +7,12 @@ void Host_Init();
 import "C"
 
 import (
+	"log"
+	"time"
+
 	cmdl "github.com/therjak/goquake/commandline"
 	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/window"
-	"log"
-	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
 )

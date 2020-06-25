@@ -3,12 +3,13 @@
 package quakelib
 
 import (
+	"os"
+	"strings"
+
 	"github.com/therjak/goquake/cbuf"
 	"github.com/therjak/goquake/cmd"
 	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/filesystem"
-	"os"
-	"strings"
 )
 
 func echo(args []cmd.QArg, _ int) {

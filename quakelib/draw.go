@@ -9,6 +9,7 @@ import "C"
 import (
 	"encoding/binary"
 	"fmt"
+
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/filesystem"

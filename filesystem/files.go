@@ -4,13 +4,14 @@ package filesystem
 
 import (
 	"fmt"
-	"github.com/therjak/goquake/pack"
-	"golang.org/x/tools/godoc/vfs"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/therjak/goquake/pack"
+	"golang.org/x/tools/godoc/vfs"
 )
 
 var (

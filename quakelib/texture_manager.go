@@ -1,6 +1,10 @@
 package quakelib
 
 import (
+	"log"
+	"strconv"
+	"strings"
+
 	"github.com/therjak/goquake/cmd"
 	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/cvar"
@@ -9,9 +13,6 @@ import (
 	"github.com/therjak/goquake/image"
 	"github.com/therjak/goquake/texture"
 	"github.com/therjak/goquake/wad"
-	"log"
-	"strconv"
-	"strings"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
 )

@@ -5,6 +5,12 @@ import "C"
 
 import (
 	"fmt"
+	"math"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
 	"github.com/therjak/goquake/cmd"
 	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/cvar"
@@ -13,11 +19,6 @@ import (
 	"github.com/therjak/goquake/keys"
 	"github.com/therjak/goquake/snd"
 	"github.com/therjak/goquake/window"
-	"math"
-	"os"
-	"path/filepath"
-	"strings"
-	"time"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
 )

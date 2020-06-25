@@ -1,10 +1,11 @@
 package alias
 
 import (
+	"strings"
+
 	"github.com/therjak/goquake/cbuf"
 	"github.com/therjak/goquake/cmd"
 	"github.com/therjak/goquake/conlog"
-	"strings"
 )
 
 var (

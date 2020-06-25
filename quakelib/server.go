@@ -5,6 +5,8 @@ import "C"
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/therjak/goquake/cmd"
 	cmdl "github.com/therjak/goquake/commandline"
 	"github.com/therjak/goquake/conlog"
@@ -18,7 +20,6 @@ import (
 	"github.com/therjak/goquake/protocol"
 	svc "github.com/therjak/goquake/protocol/server"
 	"github.com/therjak/goquake/protos"
-	"log"
 
 	"github.com/chewxy/math32"
 	"google.golang.org/protobuf/proto"

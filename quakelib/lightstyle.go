@@ -5,6 +5,7 @@ import "C"
 
 import (
 	"fmt"
+
 	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/net"
 )

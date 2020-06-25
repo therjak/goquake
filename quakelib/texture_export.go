@@ -6,11 +6,12 @@ package quakelib
 import "C"
 
 import (
+	"log"
+	"unsafe"
+
 	"github.com/therjak/goquake/glh"
 	"github.com/therjak/goquake/texture"
 	"github.com/therjak/goquake/wad"
-	"log"
-	"unsafe"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
 )

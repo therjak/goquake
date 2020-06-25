@@ -2,6 +2,10 @@ package quakelib
 
 import (
 	"fmt"
+	"log"
+	"strings"
+	"time"
+
 	"github.com/therjak/goquake/cmd"
 	cmdl "github.com/therjak/goquake/commandline"
 	"github.com/therjak/goquake/conlog"
@@ -14,9 +18,6 @@ import (
 	"github.com/therjak/goquake/protocol"
 	svc "github.com/therjak/goquake/protocol/server"
 	"github.com/therjak/goquake/qtime"
-	"log"
-	"strings"
-	"time"
 )
 
 func init() {

@@ -5,6 +5,12 @@ import "C"
 
 import (
 	"bytes"
+	"io/ioutil"
+	"log"
+	"math/rand"
+	"path/filepath"
+	"time"
+
 	"github.com/therjak/goquake/cbuf"
 	"github.com/therjak/goquake/cmd"
 	cmdl "github.com/therjak/goquake/commandline"
@@ -17,11 +23,6 @@ import (
 	"github.com/therjak/goquake/net"
 	"github.com/therjak/goquake/qtime"
 	"github.com/therjak/goquake/snd"
-	"io/ioutil"
-	"log"
-	"math/rand"
-	"path/filepath"
-	"time"
 )
 
 var (

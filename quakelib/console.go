@@ -4,18 +4,19 @@ import "C"
 
 import (
 	"fmt"
-	"github.com/therjak/goquake/cmd"
-	"github.com/therjak/goquake/conlog"
-	"github.com/therjak/goquake/cvars"
-	"github.com/therjak/goquake/keys"
-	"github.com/therjak/goquake/math"
-	svc "github.com/therjak/goquake/protocol/server"
 	"io/ioutil"
 	"log"
 	"os"
 	"path"
 	"strings"
 	"time"
+
+	"github.com/therjak/goquake/cmd"
+	"github.com/therjak/goquake/conlog"
+	"github.com/therjak/goquake/cvars"
+	"github.com/therjak/goquake/keys"
+	"github.com/therjak/goquake/math"
+	svc "github.com/therjak/goquake/protocol/server"
 )
 
 const (

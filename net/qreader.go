@@ -3,10 +3,11 @@ package net
 import (
 	"bytes"
 	"encoding/binary"
-	"github.com/therjak/goquake/protocol"
 	"io"
 	"log"
 	"strings"
+
+	"github.com/therjak/goquake/protocol"
 )
 
 type QReader struct {

@@ -3,12 +3,13 @@ package image
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/therjak/goquake/filesystem"
 	"image"
 	"image/png"
 	"io"
 	"log"
 	"os"
+
+	"github.com/therjak/goquake/filesystem"
 )
 
 // Write expects RGBA 8bit data

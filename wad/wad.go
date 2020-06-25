@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"github.com/therjak/goquake/filesystem"
 	"io"
 	"io/ioutil"
 	"strings"
+
+	"github.com/therjak/goquake/filesystem"
 )
 
 const (

@@ -4,8 +4,9 @@ package quakelib
 import "C"
 
 import (
-	"github.com/therjak/goquake/model"
 	"log"
+
+	"github.com/therjak/goquake/model"
 )
 
 var (

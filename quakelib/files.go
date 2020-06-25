@@ -4,9 +4,10 @@ package quakelib
 import "C"
 
 import (
+	"log"
+
 	"github.com/therjak/goquake/filesystem"
 	image "github.com/therjak/goquake/image"
-	"log"
 )
 
 //export COM_LoadFileGo

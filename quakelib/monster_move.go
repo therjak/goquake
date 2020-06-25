@@ -1,11 +1,12 @@
 package quakelib
 
 import (
+	"math/rand"
+
 	"github.com/therjak/goquake/math"
 	"github.com/therjak/goquake/math/vec"
 	"github.com/therjak/goquake/model"
 	"github.com/therjak/goquake/progs"
-	"math/rand"
 
 	"github.com/chewxy/math32"
 )

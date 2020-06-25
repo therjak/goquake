@@ -8,13 +8,6 @@ import "C"
 
 import (
 	"fmt"
-	"github.com/therjak/goquake/cbuf"
-	"github.com/therjak/goquake/cmd"
-	"github.com/therjak/goquake/conlog"
-	"github.com/therjak/goquake/cvars"
-	kc "github.com/therjak/goquake/keycode"
-	"github.com/therjak/goquake/keys"
-	"github.com/therjak/goquake/protos"
 	"io"
 	"io/ioutil"
 	"path/filepath"
@@ -22,6 +15,14 @@ import (
 	"strings"
 	"time"
 	"unsafe"
+
+	"github.com/therjak/goquake/cbuf"
+	"github.com/therjak/goquake/cmd"
+	"github.com/therjak/goquake/conlog"
+	"github.com/therjak/goquake/cvars"
+	kc "github.com/therjak/goquake/keycode"
+	"github.com/therjak/goquake/keys"
+	"github.com/therjak/goquake/protos"
 
 	"github.com/veandco/go-sdl2/sdl"
 	"google.golang.org/protobuf/proto"
@@ -254,7 +255,7 @@ func (k *qKeyInput) paste() {
 		return
 	}
 	if k.cursorXPos == len(k.buf) {
-		k.buf = append(k.buf[:k.cursorXPos], []byte(t)...)
+		k.buf = append(k.buf[:k.cursorXPos], t...)
 	} else {
 		k.buf = append(k.buf[:k.cursorXPos],
 			append([]byte(t), k.buf[k.cursorXPos+1:]...)...)

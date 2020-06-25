@@ -1,8 +1,9 @@
 package cvars
 
 import (
-	"github.com/therjak/goquake/cvar"
 	"strings"
+
+	"github.com/therjak/goquake/cvar"
 )
 
 var (

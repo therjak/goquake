@@ -13,6 +13,14 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"io"
+	"log"
+	"math/rand"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
 	"github.com/chewxy/math32"
 	"github.com/therjak/goquake/cbuf"
 	"github.com/therjak/goquake/cmd"
@@ -33,13 +41,6 @@ import (
 	"github.com/therjak/goquake/protos"
 	"github.com/therjak/goquake/snd"
 	"github.com/therjak/goquake/stat"
-	"io"
-	"log"
-	"math/rand"
-	"os"
-	"path/filepath"
-	"strings"
-	"time"
 )
 
 type sfx int

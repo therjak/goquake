@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"github.com/therjak/goquake/qtime"
 	"io"
 	"log"
 	"net"
@@ -12,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/therjak/goquake/qtime"
 
 	"github.com/google/uuid"
 )

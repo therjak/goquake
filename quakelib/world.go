@@ -2,13 +2,14 @@ package quakelib
 
 import (
 	"container/ring"
+	"log"
+	"runtime/debug"
+
 	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/math"
 	"github.com/therjak/goquake/math/vec"
 	"github.com/therjak/goquake/model"
 	"github.com/therjak/goquake/progs"
-	"log"
-	"runtime/debug"
 )
 
 const (

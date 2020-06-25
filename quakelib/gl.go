@@ -4,8 +4,9 @@ package quakelib
 import "C"
 
 import (
-	"github.com/veandco/go-sdl2/sdl"
 	"unsafe"
+
+	"github.com/veandco/go-sdl2/sdl"
 )
 
 type glrect struct {

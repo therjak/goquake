@@ -3,15 +3,16 @@ package quakelib
 import "C"
 
 import (
+	"log"
+	"os"
+	"path/filepath"
+
 	"github.com/therjak/goquake/cmd"
 	cmdl "github.com/therjak/goquake/commandline"
 	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/cvar"
 	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/filesystem"
-	"log"
-	"os"
-	"path/filepath"
 )
 
 var (

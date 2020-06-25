@@ -3,6 +3,10 @@ package quakelib
 import (
 	"bytes"
 	"fmt"
+	"log"
+	"strings"
+	"time"
+
 	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/execute"
@@ -12,9 +16,6 @@ import (
 	clc "github.com/therjak/goquake/protocol/client"
 	svc "github.com/therjak/goquake/protocol/server"
 	"github.com/therjak/goquake/protos"
-	"log"
-	"strings"
-	"time"
 )
 
 type movecmd struct {

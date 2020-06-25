@@ -4,11 +4,12 @@ import "C"
 
 import (
 	"fmt"
-	"github.com/therjak/goquake/qtime"
 	"log"
 	"os"
 	"runtime/debug"
 	"time"
+
+	"github.com/therjak/goquake/qtime"
 )
 
 var (

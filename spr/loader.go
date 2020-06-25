@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+
 	"github.com/therjak/goquake/math/vec"
 	qm "github.com/therjak/goquake/model"
 )

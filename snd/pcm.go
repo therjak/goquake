@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"github.com/therjak/goquake/filesystem"
 	"log"
+
+	"github.com/therjak/goquake/filesystem"
 )
 
 const (

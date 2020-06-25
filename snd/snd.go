@@ -7,10 +7,11 @@ package snd
 
 import (
 	"fmt"
-	"github.com/therjak/goquake/math/vec"
 	"log"
 	"path/filepath"
 	"time"
+
+	"github.com/therjak/goquake/math/vec"
 
 	// "github.com/hajimehoshi/oto"
 

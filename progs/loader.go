@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"github.com/therjak/goquake/crc"
-	"github.com/therjak/goquake/filesystem"
 	"io"
 	"unsafe"
+
+	"github.com/therjak/goquake/crc"
+	"github.com/therjak/goquake/filesystem"
 )
 
 type prog struct {

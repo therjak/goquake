@@ -1,8 +1,9 @@
 package quakelib
 
 import (
-	"github.com/therjak/goquake/progs"
 	"log"
+
+	"github.com/therjak/goquake/progs"
 )
 
 var (
