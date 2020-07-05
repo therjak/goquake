@@ -302,6 +302,5 @@ func (s *qSky) ClipPoly(vecs []vec.Vec3, stage int) {
 // Fog_DisableGFog()
 // Fog_EnableGFog()
 // r_origin -> == qRefreshRect.viewOrg
-// gl_mtexable
 // rs_skypolys
 // rs_skypasses

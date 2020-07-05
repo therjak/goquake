@@ -51,7 +51,8 @@ Sky_LoadTexture
 A sky texture is 256*128, with the left side being a masked overlay
 ==============
 */
-void Sky_LoadTextureInt(const byte* src, const char* skyName, const char* modelName) {
+void Sky_LoadTextureInt(const byte *src, const char *skyName,
+                        const char *modelName) {
   char texturename[64];
   int i, j, p, r, g, b, count;
   static byte front_data[128 * 128];  // FIXME: Hunk_Alloc
@@ -83,9 +84,9 @@ void Sky_LoadTextureInt(const byte* src, const char* skyName, const char* modelN
     for (j = 0; j < 128; j++) {
       p = src[i * 256 + j];
       if (p != 0) {
-        r += D8To24Table(p,0);
-        g += D8To24Table(p,1);
-        b += D8To24Table(p,2);
+        r += D8To24Table(p, 0);
+        g += D8To24Table(p, 1);
+        b += D8To24Table(p, 2);
         count++;
       }
     }
@@ -193,7 +194,8 @@ void Sky_NewMap(void) {
 
     if (!strcmp("sky", key)) SkyLoadSkyBox(value);
 
-    if (!strcmp("skyfog", key)) skyfog = atof(value);
+    if (!strcmp("skyfog", key))
+      skyfog = atof(value);
 
     else if (!strcmp("skyname", key))  // half-life
       SkyLoadSkyBox(value);
@@ -445,7 +447,8 @@ void Sky_ProcessEntities(void) {
 
   if (!Cvar_GetValue(&r_drawentities)) return;
 
-  vec3_t vieworg = {R_Refdef_vieworg(0),R_Refdef_vieworg(1),R_Refdef_vieworg(2)};
+  vec3_t vieworg = {R_Refdef_vieworg(0), R_Refdef_vieworg(1),
+                    R_Refdef_vieworg(2)};
 
   for (i = 0; i < cl_numvisedicts; i++) {
     e = cl_visedicts[i];
@@ -667,7 +670,7 @@ void Sky_DrawFaceQuad(glpoly_t *p) {
   float *v;
   int i;
 
-  if (gl_mtexable && Cvar_GetValue(&r_skyalpha) >= 1.0) {
+  if (Cvar_GetValue(&r_skyalpha) >= 1.0) {
     GLBind(solidskytexture2);
     GLEnableMultitexture();
     GLBind(alphaskytexture2);
@@ -676,9 +679,9 @@ void Sky_DrawFaceQuad(glpoly_t *p) {
     glBegin(GL_QUADS);
     for (i = 0, v = p->verts[0]; i < 4; i++, v += VERTEXSIZE) {
       Sky_GetTexCoord(v, 8, &s, &t);
-      GL_MTexCoord2fFunc(GL_TEXTURE0_ARB, s, t);
+      glMultiTexCoord2f(GL_TEXTURE0_ARB, s, t);
       Sky_GetTexCoord(v, 16, &s, &t);
-      GL_MTexCoord2fFunc(GL_TEXTURE1_ARB, s, t);
+      glMultiTexCoord2f(GL_TEXTURE1_ARB, s, t);
       glVertex3fv(v);
     }
     glEnd();

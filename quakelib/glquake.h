@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifndef __GLQUAKE_H
 #define __GLQUAKE_H
 
+#define GL_GLEXT_PROTOTYPES 1
 #include <GL/gl.h>
 
 #define GL_UNUSED_TEXTURE (~(GLuint)0)
@@ -128,11 +129,6 @@ extern float load_subdivide_size;  // johnfitz -- remember what subdivide_size
 extern int gl_stencilbits;
 
 // Multitexture
-extern qboolean mtexenabled;
-extern qboolean gl_mtexable;
-extern PFNGLMULTITEXCOORD2FARBPROC GL_MTexCoord2fFunc;
-extern PFNGLACTIVETEXTUREARBPROC GL_SelectTextureFunc;
-extern PFNGLCLIENTACTIVETEXTUREARBPROC GL_ClientActiveTextureFunc;
 extern GLint gl_max_texture_units;  // ericw
 
 // johnfitz -- anisotropic filtering
@@ -140,15 +136,6 @@ extern GLint gl_max_texture_units;  // ericw
 #define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
 extern float gl_max_anisotropy;
 extern qboolean gl_anisotropy_able;
-
-// ericw -- VBO
-extern PFNGLBINDBUFFERARBPROC GL_BindBufferFunc;
-extern PFNGLBUFFERDATAARBPROC GL_BufferDataFunc;
-extern PFNGLBUFFERSUBDATAARBPROC GL_BufferSubDataFunc;
-extern PFNGLDELETEBUFFERSARBPROC GL_DeleteBuffersFunc;
-extern PFNGLGENBUFFERSARBPROC GL_GenBuffersFunc;
-extern qboolean gl_vbo_able;
-// ericw
 
 // ericw -- GLSL
 
@@ -198,29 +185,6 @@ typedef void(APIENTRYP QS_PFNGLUNIFORM4FPROC)(GLint location, GLfloat v0,
                                               GLfloat v1, GLfloat v2,
                                               GLfloat v3);
 
-extern QS_PFNGLCREATESHADERPROC GL_CreateShaderFunc;
-extern QS_PFNGLDELETESHADERPROC GL_DeleteShaderFunc;
-extern QS_PFNGLDELETEPROGRAMPROC GL_DeleteProgramFunc;
-extern QS_PFNGLSHADERSOURCEPROC GL_ShaderSourceFunc;
-extern QS_PFNGLCOMPILESHADERPROC GL_CompileShaderFunc;
-extern QS_PFNGLGETSHADERIVPROC GL_GetShaderivFunc;
-extern QS_PFNGLGETSHADERINFOLOGPROC GL_GetShaderInfoLogFunc;
-extern QS_PFNGLGETPROGRAMIVPROC GL_GetProgramivFunc;
-extern QS_PFNGLGETPROGRAMINFOLOGPROC GL_GetProgramInfoLogFunc;
-extern QS_PFNGLCREATEPROGRAMPROC GL_CreateProgramFunc;
-extern QS_PFNGLATTACHSHADERPROC GL_AttachShaderFunc;
-extern QS_PFNGLLINKPROGRAMPROC GL_LinkProgramFunc;
-extern QS_PFNGLBINDATTRIBLOCATIONFUNC GL_BindAttribLocationFunc;
-extern QS_PFNGLUSEPROGRAMPROC GL_UseProgramFunc;
-extern QS_PFNGLGETATTRIBLOCATIONPROC GL_GetAttribLocationFunc;
-extern QS_PFNGLVERTEXATTRIBPOINTERPROC GL_VertexAttribPointerFunc;
-extern QS_PFNGLENABLEVERTEXATTRIBARRAYPROC GL_EnableVertexAttribArrayFunc;
-extern QS_PFNGLDISABLEVERTEXATTRIBARRAYPROC GL_DisableVertexAttribArrayFunc;
-extern QS_PFNGLGETUNIFORMLOCATIONPROC GL_GetUniformLocationFunc;
-extern QS_PFNGLUNIFORM1IPROC GL_Uniform1iFunc;
-extern QS_PFNGLUNIFORM1FPROC GL_Uniform1fFunc;
-extern QS_PFNGLUNIFORM3FPROC GL_Uniform3fFunc;
-extern QS_PFNGLUNIFORM4FPROC GL_Uniform4fFunc;
 // ericw --
 
 // johnfitz -- polygon offset
@@ -244,8 +208,6 @@ void GL_PolygonOffset(int);
 #define GL_SOURCE1_RGB_EXT 0x8581
 #define GL_SOURCE0_ALPHA_EXT 0x8588
 #define GL_SOURCE1_ALPHA_EXT 0x8589
-extern qboolean gl_texture_env_combine;
-extern qboolean gl_texture_env_add;  // for GL_EXT_texture_env_add
 
 // johnfitz -- rendering statistics
 extern int rs_brushpolys, rs_aliaspolys, rs_skypolys, rs_particles, rs_fogpolys;

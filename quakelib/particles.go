@@ -31,7 +31,7 @@ const (
 
 const (
 	vertexSourceParticleDrawer = `
-#version 410
+#version 330
 in vec3 vcolor;
 in vec3 vposition;
 in vec2 vtexcoord;
@@ -48,7 +48,7 @@ void main() {
 ` + "\x00"
 
 	fragmentSourceParticleDrawer = `
-#version 410
+#version 330
 in vec2 Texcoord;
 in vec3 InColor;
 out vec4 frag_color;

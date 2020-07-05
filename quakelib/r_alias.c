@@ -7,7 +7,7 @@ extern cvar_t r_drawflat, gl_overbright_models, gl_fullbrights, r_lerpmodels,
 
 // up to 16 color translated skins
 uint32_t playertextures[MAX_SCOREBOARD];  // johnfitz -- changed to an array
-                                              // of pointers
+                                          // of pointers
 
 #define NUMVERTEXNORMALS 162
 
@@ -203,43 +203,42 @@ void GL_DrawAliasFrame_GLSL(aliashdr_t *paliashdr, lerpdata_t lerpdata,
     blend = 0;
   }
 
-  GL_UseProgramFunc(r_alias_program);
+  glUseProgram(r_alias_program);
 
   GL_BindBuffer(GL_ARRAY_BUFFER, currententity->model->meshvbo);
   GL_BindBuffer(GL_ELEMENT_ARRAY_BUFFER, currententity->model->meshindexesvbo);
 
-  GL_EnableVertexAttribArrayFunc(texCoordsAttrIndex);
-  GL_EnableVertexAttribArrayFunc(pose1VertexAttrIndex);
-  GL_EnableVertexAttribArrayFunc(pose2VertexAttrIndex);
-  GL_EnableVertexAttribArrayFunc(pose1NormalAttrIndex);
-  GL_EnableVertexAttribArrayFunc(pose2NormalAttrIndex);
+  glEnableVertexAttribArray(texCoordsAttrIndex);
+  glEnableVertexAttribArray(pose1VertexAttrIndex);
+  glEnableVertexAttribArray(pose2VertexAttrIndex);
+  glEnableVertexAttribArray(pose1NormalAttrIndex);
+  glEnableVertexAttribArray(pose2NormalAttrIndex);
 
-  GL_VertexAttribPointerFunc(texCoordsAttrIndex, 2, GL_FLOAT, GL_FALSE, 0,
-                             (void *)(intptr_t)currententity->model->vbostofs);
-  GL_VertexAttribPointerFunc(pose1VertexAttrIndex, 4, GL_UNSIGNED_BYTE,
-                             GL_FALSE, sizeof(meshxyz_t),
-                             GLARB_GetXYZOffset(paliashdr, lerpdata.pose1));
-  GL_VertexAttribPointerFunc(pose2VertexAttrIndex, 4, GL_UNSIGNED_BYTE,
-                             GL_FALSE, sizeof(meshxyz_t),
-                             GLARB_GetXYZOffset(paliashdr, lerpdata.pose2));
+  glVertexAttribPointer(texCoordsAttrIndex, 2, GL_FLOAT, GL_FALSE, 0,
+                        (void *)(intptr_t)currententity->model->vbostofs);
+  glVertexAttribPointer(pose1VertexAttrIndex, 4, GL_UNSIGNED_BYTE, GL_FALSE,
+                        sizeof(meshxyz_t),
+                        GLARB_GetXYZOffset(paliashdr, lerpdata.pose1));
+  glVertexAttribPointer(pose2VertexAttrIndex, 4, GL_UNSIGNED_BYTE, GL_FALSE,
+                        sizeof(meshxyz_t),
+                        GLARB_GetXYZOffset(paliashdr, lerpdata.pose2));
   // GL_TRUE to normalize the signed bytes to [-1 .. 1]
-  GL_VertexAttribPointerFunc(pose1NormalAttrIndex, 4, GL_BYTE, GL_TRUE,
-                             sizeof(meshxyz_t),
-                             GLARB_GetNormalOffset(paliashdr, lerpdata.pose1));
-  GL_VertexAttribPointerFunc(pose2NormalAttrIndex, 4, GL_BYTE, GL_TRUE,
-                             sizeof(meshxyz_t),
-                             GLARB_GetNormalOffset(paliashdr, lerpdata.pose2));
+  glVertexAttribPointer(pose1NormalAttrIndex, 4, GL_BYTE, GL_TRUE,
+                        sizeof(meshxyz_t),
+                        GLARB_GetNormalOffset(paliashdr, lerpdata.pose1));
+  glVertexAttribPointer(pose2NormalAttrIndex, 4, GL_BYTE, GL_TRUE,
+                        sizeof(meshxyz_t),
+                        GLARB_GetNormalOffset(paliashdr, lerpdata.pose2));
 
   // set uniforms
-  GL_Uniform1fFunc(blendLoc, blend);
-  GL_Uniform3fFunc(shadevectorLoc, shadevector[0], shadevector[1],
-                   shadevector[2]);
-  GL_Uniform4fFunc(lightColorLoc, lightcolor[0], lightcolor[1], lightcolor[2],
-                   entalpha);
-  GL_Uniform1iFunc(texLoc, 0);
-  GL_Uniform1iFunc(fullbrightTexLoc, 1);
-  GL_Uniform1iFunc(useFullbrightTexLoc, (fb != 0) ? 1 : 0);
-  GL_Uniform1fFunc(useOverbrightLoc, overbright ? 1 : 0);
+  glUniform1f(blendLoc, blend);
+  glUniform3f(shadevectorLoc, shadevector[0], shadevector[1], shadevector[2]);
+  glUniform4f(lightColorLoc, lightcolor[0], lightcolor[1], lightcolor[2],
+              entalpha);
+  glUniform1i(texLoc, 0);
+  glUniform1i(fullbrightTexLoc, 1);
+  glUniform1i(useFullbrightTexLoc, (fb != 0) ? 1 : 0);
+  glUniform1f(useOverbrightLoc, overbright ? 1 : 0);
 
   // set textures
   GLSelectTexture(GL_TEXTURE0);
@@ -255,13 +254,13 @@ void GL_DrawAliasFrame_GLSL(aliashdr_t *paliashdr, lerpdata_t lerpdata,
                  (void *)(intptr_t)currententity->model->vboindexofs);
 
   // clean up
-  GL_DisableVertexAttribArrayFunc(texCoordsAttrIndex);
-  GL_DisableVertexAttribArrayFunc(pose1VertexAttrIndex);
-  GL_DisableVertexAttribArrayFunc(pose2VertexAttrIndex);
-  GL_DisableVertexAttribArrayFunc(pose1NormalAttrIndex);
-  GL_DisableVertexAttribArrayFunc(pose2NormalAttrIndex);
+  glDisableVertexAttribArray(texCoordsAttrIndex);
+  glDisableVertexAttribArray(pose1VertexAttrIndex);
+  glDisableVertexAttribArray(pose2VertexAttrIndex);
+  glDisableVertexAttribArray(pose1NormalAttrIndex);
+  glDisableVertexAttribArray(pose2NormalAttrIndex);
 
-  GL_UseProgramFunc(0);
+  glUseProgram(0);
   GLSelectTexture(GL_TEXTURE0);
 
   rs_aliaspasses += paliashdr->numtris;
@@ -320,8 +319,8 @@ void GL_DrawAliasFrame(aliashdr_t *paliashdr, lerpdata_t lerpdata) {
       u = ((float *)commands)[0];
       v = ((float *)commands)[1];
       if (GetMTexEnabled()) {
-        GL_MTexCoord2fFunc(GL_TEXTURE0_ARB, u, v);
-        GL_MTexCoord2fFunc(GL_TEXTURE1_ARB, u, v);
+        glMultiTexCoord2f(GL_TEXTURE0_ARB, u, v);
+        glMultiTexCoord2f(GL_TEXTURE1_ARB, u, v);
       } else
         glTexCoord2f(u, v);
 
@@ -329,20 +328,23 @@ void GL_DrawAliasFrame(aliashdr_t *paliashdr, lerpdata_t lerpdata) {
 
       if (shading) {
         if (lerping) {
-          vertcolor[0] = (R_and(shadeDots,verts1->lightnormalindex) * iblend +
-                          R_and(shadeDots,verts2->lightnormalindex) * blend) *
+          vertcolor[0] = (R_and(shadeDots, verts1->lightnormalindex) * iblend +
+                          R_and(shadeDots, verts2->lightnormalindex) * blend) *
                          lightcolor[0];
-          vertcolor[1] = (R_and(shadeDots,verts1->lightnormalindex) * iblend +
-                          R_and(shadeDots,verts2->lightnormalindex) * blend) *
+          vertcolor[1] = (R_and(shadeDots, verts1->lightnormalindex) * iblend +
+                          R_and(shadeDots, verts2->lightnormalindex) * blend) *
                          lightcolor[1];
-          vertcolor[2] = (R_and(shadeDots,verts1->lightnormalindex) * iblend +
-                          R_and(shadeDots,verts2->lightnormalindex) * blend) *
+          vertcolor[2] = (R_and(shadeDots, verts1->lightnormalindex) * iblend +
+                          R_and(shadeDots, verts2->lightnormalindex) * blend) *
                          lightcolor[2];
           glColor4fv(vertcolor);
         } else {
-          vertcolor[0] = R_and(shadeDots,verts1->lightnormalindex) * lightcolor[0];
-          vertcolor[1] = R_and(shadeDots,verts1->lightnormalindex) * lightcolor[1];
-          vertcolor[2] = R_and(shadeDots,verts1->lightnormalindex) * lightcolor[2];
+          vertcolor[0] =
+              R_and(shadeDots, verts1->lightnormalindex) * lightcolor[0];
+          vertcolor[1] =
+              R_and(shadeDots, verts1->lightnormalindex) * lightcolor[1];
+          vertcolor[2] =
+              R_and(shadeDots, verts1->lightnormalindex) * lightcolor[2];
           glColor4fv(vertcolor);
         }
       }
@@ -602,8 +604,7 @@ void R_DrawAliasModel(entity_t *e) {
   //
   // random stuff
   //
-  if (Cvar_GetValue(&gl_smoothmodels))
-    glShadeModel(GL_SMOOTH);
+  if (Cvar_GetValue(&gl_smoothmodels)) glShadeModel(GL_SMOOTH);
   if (Cvar_GetValue(&gl_affinemodels))
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
   overbright = Cvar_GetValue(&gl_overbright_models);
@@ -615,9 +616,6 @@ void R_DrawAliasModel(entity_t *e) {
   entalpha = ENTALPHA_DECODE(e->alpha);
   if (entalpha == 0) goto cleanup;
   if (entalpha < 1) {
-    if (!gl_texture_env_combine)
-      overbright =
-          false;  // overbright can't be done in a single pass without combiners
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
   }
@@ -662,8 +660,7 @@ void R_DrawAliasModel(entity_t *e) {
   if (r_alias_program != 0) {
     GL_DrawAliasFrame_GLSL(paliashdr, lerpdata, tx, fb);
   } else if (overbright) {
-    if (gl_texture_env_combine && gl_mtexable && gl_texture_env_add &&
-        fb)  // case 1: everything in one pass
+    if (fb)  // case 1: everything in one pass
     {
       GLBind(tx);
       glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
@@ -679,8 +676,8 @@ void R_DrawAliasModel(entity_t *e) {
       glDisable(GL_BLEND);
       GLDisableMultitexture();
       glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-    } else if (gl_texture_env_combine)  // case 2: overbright in one pass, then
-                                        // fullbright pass
+    } else  // case 2: overbright in one pass, then
+            // fullbright pass
     {
       // first pass
       GLBind(tx);
@@ -709,45 +706,9 @@ void R_DrawAliasModel(entity_t *e) {
         glDisable(GL_BLEND);
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
       }
-    } else  // case 3: overbright in two passes, then fullbright pass
-    {
-      // first pass
-      GLBind(tx);
-      glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-      GL_DrawAliasFrame(paliashdr, lerpdata);
-      // second pass -- additive with black fog, to double the object colors but
-      // not the fog color
-      glEnable(GL_BLEND);
-      glBlendFunc(GL_ONE, GL_ONE);
-      glDepthMask(GL_FALSE);
-      Fog_StartAdditive();
-      GL_DrawAliasFrame(paliashdr, lerpdata);
-      Fog_StopAdditive();
-      glDepthMask(GL_TRUE);
-      glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      glDisable(GL_BLEND);
-      // third pass
-      if (fb) {
-        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-        GLBind(fb);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_ONE, GL_ONE);
-        glDepthMask(GL_FALSE);
-        shading = false;
-        glColor3f(entalpha, entalpha, entalpha);
-        Fog_StartAdditive();
-        GL_DrawAliasFrame(paliashdr, lerpdata);
-        Fog_StopAdditive();
-        glDepthMask(GL_TRUE);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glDisable(GL_BLEND);
-        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-      }
     }
   } else {
-    if (gl_mtexable && gl_texture_env_add &&
-        fb)  // case 4: fullbright mask using multitexture
+    if (fb)  // case 4: fullbright mask using multitexture
     {
       GLDisableMultitexture();  // selects TEXTURE0
       GLBind(tx);
@@ -796,9 +757,9 @@ cleanup:
 
 // johnfitz -- values for shadow matrix
 #define SHADOW_SKEW_X -0.7  // skew along x axis. -0.7 to mimic glquake shadows
-#define SHADOW_SKEW_Y 0     // skew along y axis. 0 to mimic glquake shadows
-#define SHADOW_VSCALE 0     // 0=completely flat
-#define SHADOW_HEIGHT 0.1   // how far above the floor to render the shadow
+#define SHADOW_SKEW_Y 0  // skew along y axis. 0 to mimic glquake shadows
+#define SHADOW_VSCALE 0  // 0=completely flat
+#define SHADOW_HEIGHT 0.1  // how far above the floor to render the shadow
 // johnfitz
 
 /*
@@ -870,4 +831,3 @@ void GL_DrawAliasShadow(entity_t *e) {
   // clean up
   glPopMatrix();
 }
-

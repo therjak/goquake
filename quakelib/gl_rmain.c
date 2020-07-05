@@ -159,7 +159,7 @@ GLSLGamma_GammaCorrect
 =============
 */
 void GLSLGamma_GammaCorrect(void) {
-  //THERJAK
+  // THERJAK
   float smax, tmax;
 
   if (Cvar_GetValue(&vid_gamma) == 1 && Cvar_GetValue(&vid_contrast) == 1)
@@ -194,11 +194,11 @@ void GLSLGamma_GammaCorrect(void) {
   glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, GL_Width(), GL_Height());
 
   // draw the texture back to the framebuffer with a fragment shader
-  GL_UseProgramFunc(r_gamma_program);
-  GL_Uniform1fFunc(gammaLoc, Cvar_GetValue(&vid_gamma));
-  GL_Uniform1fFunc(contrastLoc,
-                   q_min(2.0, q_max(1.0, Cvar_GetValue(&vid_contrast))));
-  GL_Uniform1iFunc(textureLoc, 0);  // use texture unit 0
+  glUseProgram(r_gamma_program);
+  glUniform1f(gammaLoc, Cvar_GetValue(&vid_gamma));
+  glUniform1f(contrastLoc,
+              q_min(2.0, q_max(1.0, Cvar_GetValue(&vid_contrast))));
+  glUniform1i(textureLoc, 0);  // use texture unit 0
 
   glDisable(GL_ALPHA_TEST);
   glDisable(GL_DEPTH_TEST);
@@ -219,7 +219,7 @@ void GLSLGamma_GammaCorrect(void) {
   glVertex2f(-1, 1);
   glEnd();
 
-  GL_UseProgramFunc(0);
+  glUseProgram(0);
 
   // clear cached binding
   GLClearBindings();
@@ -423,8 +423,7 @@ void GL_SetFrustum(float fovx, float fovy) {
   float xmax, ymax;
   xmax = NEARCLIP * tan(fovx * M_PI / 360.0);
   ymax = NEARCLIP * tan(fovy * M_PI / 360.0);
-  glFrustum(-xmax, xmax, -ymax, ymax, NEARCLIP,
-            Cvar_GetValue(&gl_farclip));
+  glFrustum(-xmax, xmax, -ymax, ymax, NEARCLIP, Cvar_GetValue(&gl_farclip));
 }
 
 /*
@@ -599,7 +598,7 @@ void R_DrawEntitiesOnList(qboolean alphapass)  // johnfitz -- added parameter
         R_DrawBrushModel(currententity);
         break;
       case mod_sprite:
-        //THERJAK
+        // THERJAK
         R_DrawSpriteModel(currententity);
         break;
     }
@@ -677,8 +676,7 @@ R_DrawShadows
 void R_DrawShadows(void) {
   int i;
 
-  if (!Cvar_GetValue(&r_shadows) || !Cvar_GetValue(&r_drawentities))
-    return;
+  if (!Cvar_GetValue(&r_shadows) || !Cvar_GetValue(&r_drawentities)) return;
 
   // Use stencil buffer to prevent self-intersecting shadows, from Baker (MarkV)
   if (gl_stencilbits) {

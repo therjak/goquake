@@ -32,7 +32,7 @@ const (
 
 const (
 	vertexSourceDrawer = `
-#version 410
+#version 330
 in vec3 position;
 in vec2 texcoord;
 out vec2 Texcoord;
@@ -43,7 +43,7 @@ void main() {
 }
 ` + "\x00"
 	fragmentSourceDrawer = `
-#version 410
+#version 330
 in vec2 Texcoord;
 out vec4 frag_color;
 uniform sampler2D tex;
@@ -56,7 +56,7 @@ void main() {
 }
 ` + "\x00"
 	fragmentSourceColorRecDrawer = `
-#version 410
+#version 330
 in vec2 Texcoord;
 out vec4 frag_color;
 uniform vec4 in_color;

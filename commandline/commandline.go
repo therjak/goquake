@@ -15,11 +15,8 @@ var (
 	fullscreen bool
 	hipnotic   bool
 	minMemory  bool
-	noCombine  bool
 	noMouse    bool
-	noMtext    bool
 	noSound    bool
-	noAdd      bool
 	quoth      bool
 	rogue      bool
 	safeMode   bool
@@ -80,10 +77,7 @@ func init() {
 	flag.BoolVar(&fullscreen, "fullscreen", false, "")
 	flag.BoolVar(&hipnotic, "hipnotic", false, "Runs as dedicated server")
 	flag.BoolVar(&minMemory, "minmemory", false, "")
-	flag.BoolVar(&noAdd, "noadd", false, "Runs as dedicated server")
-	flag.BoolVar(&noCombine, "nocombine", false, "")
 	flag.BoolVar(&noMouse, "nomouse", false, "Disable mouse input")
-	flag.BoolVar(&noMtext, "nomtex", false, "")
 	flag.BoolVar(&noSound, "nosound", false, "Disable sound output")
 	flag.BoolVar(&quoth, "quoth", false, "Runs quoth")
 	flag.BoolVar(&rogue, "roque", false, "Runs rogue")
@@ -204,20 +198,8 @@ func MinMemory() bool {
 	return minMemory
 }
 
-func Add() bool {
-	return !noAdd
-}
-
-func Combine() bool {
-	return !noCombine
-}
-
 func Mouse() bool {
 	return !noMouse
-}
-
-func Mtext() bool {
-	return !noMtext
 }
 
 func Sound() bool {

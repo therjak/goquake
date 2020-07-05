@@ -26,21 +26,6 @@ func CMLMinMemory() bool {
 	return cmdl.MinMemory()
 }
 
-//export CMLAdd
-func CMLAdd() bool {
-	return cmdl.Add()
-}
-
-//export CMLCombine
-func CMLCombine() bool {
-	return cmdl.Combine()
-}
-
-//export CMLMtext
-func CMLMtext() bool {
-	return cmdl.Mtext()
-}
-
 //export CMLHipnotic
 func CMLHipnotic() bool {
 	// TODO: why isQuoth?

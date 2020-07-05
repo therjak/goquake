@@ -112,6 +112,8 @@ func SetMode(width, height int32, fullscreen bool) {
 		if cvars.VideoBorderLess.Value() != 0 {
 			flags |= sdl.WINDOW_BORDERLESS
 		}
+		sdl.GLSetAttribute(sdl.GL_CONTEXT_MAJOR_VERSION, 3)
+		sdl.GLSetAttribute(sdl.GL_CONTEXT_MINOR_VERSION, 3)
 		window = func() *sdl.Window {
 			w, err := sdl.CreateWindow("GoQuake", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, width, height, flags)
 			if err == nil {
