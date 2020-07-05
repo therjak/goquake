@@ -841,51 +841,8 @@ void R_DrawTextureChains(qmodel_t *model, entity_t *ent, texchain_t chain) {
 
   R_DrawTextureChains_NoTexture(model, chain);
 
-  if (gl_max_texture_units >= 3) {
-    R_DrawTextureChains_Multitexture_VBO(model, ent, chain);
-    R_EndTransparentDrawing(entalpha);
-    return;
-  }
-
-  if (Cvar_GetValue(&gl_overbright)) {
-    GLEnableMultitexture();
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
-    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
-    glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, 2.0f);
-    GLDisableMultitexture();
-    R_DrawTextureChains_Multitexture(model, ent, chain);
-    GLEnableMultitexture();
-    glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, 1.0f);
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-    GLDisableMultitexture();
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-  } else {
-    GLEnableMultitexture();
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-    GLDisableMultitexture();
-    R_DrawTextureChains_Multitexture(model, ent, chain);
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-  }
-
+  R_DrawTextureChains_Multitexture_VBO(model, ent, chain);
   R_EndTransparentDrawing(entalpha);
-
-  if (Cvar_GetValue(&gl_fullbrights)) {
-    glDepthMask(GL_FALSE);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE);
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-    glColor3f(entalpha, entalpha, entalpha);
-    Fog_StartAdditive();
-    R_DrawTextureChains_Glow(model, ent, chain);
-    Fog_StopAdditive();
-    glColor3f(1, 1, 1);
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDisable(GL_BLEND);
-    glDepthMask(GL_TRUE);
-  }
 }
 
 /*

@@ -460,8 +460,6 @@ void GL_BuildLightmaps(void) {
 GLuint gl_bmodel_vbo = 0;
 
 void GL_DeleteBModelVertexBuffer(void) {
-  if (!(gl_max_texture_units >= 3)) return;
-
   glDeleteBuffers(1, &gl_bmodel_vbo);
   gl_bmodel_vbo = 0;
 
@@ -481,8 +479,6 @@ void GL_BuildBModelVertexBuffer(void) {
   int i, j;
   qmodel_t *m;
   float *varray;
-
-  if (!(gl_max_texture_units >= 3)) return;
 
   // ask GL for a name for our VBO
   glDeleteBuffers(1, &gl_bmodel_vbo);

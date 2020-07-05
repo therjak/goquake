@@ -20,7 +20,6 @@ static void GL_SetupState(void);
 qboolean gl_anisotropy_able = false;
 float gl_max_anisotropy;
 qboolean gl_glsl_able = false;
-GLint gl_max_texture_units = 0;
 int gl_stencilbits;
 
 //====================================
@@ -139,10 +138,6 @@ static qboolean GL_ParseExtensionList(const char *list, const char *name) {
 
 static void GL_CheckExtensions(const char *gl_extensions) {
   int swap_control;
-
-  glGetIntegerv(GL_MAX_TEXTURE_UNITS, &gl_max_texture_units);
-  Con_Printf("GL_MAX_TEXTURE_UNITS: %d\n", (int)gl_max_texture_units);
-
   // swap control
   //
   if (!VIDGLSwapControl()) {
@@ -282,3 +277,4 @@ void VID_Init(void) {
   GL_Init();
   GL_SetupState();
 }
+

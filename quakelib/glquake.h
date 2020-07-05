@@ -128,9 +128,6 @@ extern float load_subdivide_size;  // johnfitz -- remember what subdivide_size
 
 extern int gl_stencilbits;
 
-// Multitexture
-extern GLint gl_max_texture_units;  // ericw
-
 // johnfitz -- anisotropic filtering
 #define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
 #define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
