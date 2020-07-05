@@ -319,8 +319,8 @@ void GL_DrawAliasFrame(aliashdr_t *paliashdr, lerpdata_t lerpdata) {
       u = ((float *)commands)[0];
       v = ((float *)commands)[1];
       if (GetMTexEnabled()) {
-        glMultiTexCoord2f(GL_TEXTURE0_ARB, u, v);
-        glMultiTexCoord2f(GL_TEXTURE1_ARB, u, v);
+        glMultiTexCoord2f(GL_TEXTURE0, u, v);
+        glMultiTexCoord2f(GL_TEXTURE1, u, v);
       } else
         glTexCoord2f(u, v);
 
@@ -663,11 +663,11 @@ void R_DrawAliasModel(entity_t *e) {
     if (fb)  // case 1: everything in one pass
     {
       GLBind(tx);
-      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
-      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PRIMARY_COLOR_EXT);
-      glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, 2.0f);
+      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_PRIMARY_COLOR);
+      glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 2.0f);
       GLEnableMultitexture();  // selects TEXTURE1
       GLBind(fb);
       glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
@@ -681,13 +681,13 @@ void R_DrawAliasModel(entity_t *e) {
     {
       // first pass
       GLBind(tx);
-      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
-      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PRIMARY_COLOR_EXT);
-      glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, 2.0f);
+      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_PRIMARY_COLOR);
+      glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 2.0f);
       GL_DrawAliasFrame(paliashdr, lerpdata);
-      glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, 1.0f);
+      glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 1.0f);
       glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
       // second pass
       if (fb) {

@@ -450,8 +450,8 @@ void R_DrawTextureChains_Multitexture(qmodel_t *model, entity_t *ent,
         glBegin(GL_POLYGON);
         v = s->polys->verts[0];
         for (j = 0; j < s->polys->numverts; j++, v += VERTEXSIZE) {
-          glMultiTexCoord2f(GL_TEXTURE0_ARB, v[3], v[4]);
-          glMultiTexCoord2f(GL_TEXTURE1_ARB, v[5], v[6]);
+          glMultiTexCoord2f(GL_TEXTURE0, v[3], v[4]);
+          glMultiTexCoord2f(GL_TEXTURE1, v[5], v[6]);
           glVertex3fv(v);
         }
         glEnd();
@@ -712,31 +712,31 @@ void R_DrawTextureChains_Multitexture_VBO(qmodel_t *model, entity_t *ent,
   glVertexPointer(3, GL_FLOAT, VERTEXSIZE * sizeof(float), ((float *)0));
   glEnableClientState(GL_VERTEX_ARRAY);
 
-  glClientActiveTexture(GL_TEXTURE0_ARB);
+  glClientActiveTexture(GL_TEXTURE0);
   glTexCoordPointer(2, GL_FLOAT, VERTEXSIZE * sizeof(float), ((float *)0) + 3);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-  glClientActiveTexture(GL_TEXTURE1_ARB);
+  glClientActiveTexture(GL_TEXTURE1);
   glTexCoordPointer(2, GL_FLOAT, VERTEXSIZE * sizeof(float), ((float *)0) + 5);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
   // TMU 2 is for fullbrights; same texture coordinates as TMU 0
-  glClientActiveTexture(GL_TEXTURE2_ARB);
+  glClientActiveTexture(GL_TEXTURE2);
   glTexCoordPointer(2, GL_FLOAT, VERTEXSIZE * sizeof(float), ((float *)0) + 3);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
   // Setup TMU 1 (lightmap)
-  GLSelectTexture(GL_TEXTURE1_ARB);
-  glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
-  glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
-  glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
-  glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
-  glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT,
+  GLSelectTexture(GL_TEXTURE1);
+  glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+  glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
+  glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
+  glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+  glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE,
             Cvar_GetValue(&gl_overbright) ? 2.0f : 1.0f);
   glEnable(GL_TEXTURE_2D);
 
   // Setup TMU 2 (fullbrights)
-  GLSelectTexture(GL_TEXTURE2_ARB);
+  GLSelectTexture(GL_TEXTURE2);
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
 
   for (i = 0; i < model->numtextures; i++) {
@@ -747,7 +747,7 @@ void R_DrawTextureChains_Multitexture_VBO(qmodel_t *model, entity_t *ent,
       continue;
 
     // Enable/disable TMU 2 (fullbrights)
-    GLSelectTexture(GL_TEXTURE2_ARB);
+    GLSelectTexture(GL_TEXTURE2);
     if (Cvar_GetValue(&gl_fullbrights) &&
         (fullbright =
              R_TextureAnimation(t, ent != NULL ? ent->frame : 0)->fullbright)) {
@@ -764,7 +764,7 @@ void R_DrawTextureChains_Multitexture_VBO(qmodel_t *model, entity_t *ent,
       if (!s->culled) {
         if (!bound)  // only bind once we are sure we need this texture
         {
-          GLSelectTexture(GL_TEXTURE0_ARB);
+          GLSelectTexture(GL_TEXTURE0);
           GLBind(
               (R_TextureAnimation(t, ent != NULL ? ent->frame : 0))->gltexture);
 
@@ -777,7 +777,7 @@ void R_DrawTextureChains_Multitexture_VBO(qmodel_t *model, entity_t *ent,
 
         if (s->lightmaptexturenum != lastlightmap) R_FlushBatch();
 
-        GLSelectTexture(GL_TEXTURE1_ARB);
+        GLSelectTexture(GL_TEXTURE1);
         GLBind(lightmap_textures[s->lightmaptexturenum]);
         lastlightmap = s->lightmaptexturenum;
         R_BatchSurface(s);
@@ -792,27 +792,27 @@ void R_DrawTextureChains_Multitexture_VBO(qmodel_t *model, entity_t *ent,
   }
 
   // Reset TMU states
-  GLSelectTexture(GL_TEXTURE2_ARB);
+  GLSelectTexture(GL_TEXTURE2);
   glDisable(GL_TEXTURE_2D);
 
-  GLSelectTexture(GL_TEXTURE1_ARB);
-  glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, 1.0f);
+  GLSelectTexture(GL_TEXTURE1);
+  glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 1.0f);
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
   glDisable(GL_TEXTURE_2D);
 
-  GLSelectTexture(GL_TEXTURE0_ARB);
+  GLSelectTexture(GL_TEXTURE0);
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
   // Disable client state
   glDisableClientState(GL_VERTEX_ARRAY);
 
-  glClientActiveTexture(GL_TEXTURE0_ARB);
+  glClientActiveTexture(GL_TEXTURE0);
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
-  glClientActiveTexture(GL_TEXTURE1_ARB);
+  glClientActiveTexture(GL_TEXTURE1);
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
-  glClientActiveTexture(GL_TEXTURE2_ARB);
+  glClientActiveTexture(GL_TEXTURE2);
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
