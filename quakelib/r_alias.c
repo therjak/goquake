@@ -94,6 +94,7 @@ static void *GLARB_GetNormalOffset(aliashdr_t *hdr, int pose) {
 GLAlias_CreateShaders
 =============
 */
+// THERJAK: extern
 void GLAlias_CreateShaders(void) {
   const glsl_attrib_binding_t bindings[] = {
       {"TexCoords", texCoordsAttrIndex},
@@ -574,6 +575,7 @@ void R_SetupAliasLighting(entity_t *e) {
 R_DrawAliasModel -- johnfitz -- almost completely rewritten
 =================
 */
+// THERJAK: extern
 void R_DrawAliasModel(entity_t *e) {
   aliashdr_t *paliashdr;
   int i, anim;
@@ -654,96 +656,7 @@ void R_DrawAliasModel(entity_t *e) {
   //
   // draw it
   //
-  // call fast path if possible. if the shader compliation failed for some
-  // reason,
-  // r_alias_program will be 0.
-  if (r_alias_program != 0) {
-    GL_DrawAliasFrame_GLSL(paliashdr, lerpdata, tx, fb);
-  } else if (overbright) {
-    if (fb)  // case 1: everything in one pass
-    {
-      GLBind(tx);
-      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_PRIMARY_COLOR);
-      glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 2.0f);
-      GLEnableMultitexture();  // selects TEXTURE1
-      GLBind(fb);
-      glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
-      glEnable(GL_BLEND);
-      GL_DrawAliasFrame(paliashdr, lerpdata);
-      glDisable(GL_BLEND);
-      GLDisableMultitexture();
-      glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-    } else  // case 2: overbright in one pass, then
-            // fullbright pass
-    {
-      // first pass
-      GLBind(tx);
-      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_PRIMARY_COLOR);
-      glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 2.0f);
-      GL_DrawAliasFrame(paliashdr, lerpdata);
-      glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 1.0f);
-      glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-      // second pass
-      if (fb) {
-        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-        GLBind(fb);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_ONE, GL_ONE);
-        glDepthMask(GL_FALSE);
-        shading = false;
-        glColor3f(entalpha, entalpha, entalpha);
-        Fog_StartAdditive();
-        GL_DrawAliasFrame(paliashdr, lerpdata);
-        Fog_StopAdditive();
-        glDepthMask(GL_TRUE);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glDisable(GL_BLEND);
-        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-      }
-    }
-  } else {
-    if (fb)  // case 4: fullbright mask using multitexture
-    {
-      GLDisableMultitexture();  // selects TEXTURE0
-      GLBind(tx);
-      glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-      GLEnableMultitexture();  // selects TEXTURE1
-      GLBind(fb);
-      glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
-      glEnable(GL_BLEND);
-      GL_DrawAliasFrame(paliashdr, lerpdata);
-      glDisable(GL_BLEND);
-      GLDisableMultitexture();
-      glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-    } else  // case 5: fullbright mask without multitexture
-    {
-      // first pass
-      GLBind(tx);
-      glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-      GL_DrawAliasFrame(paliashdr, lerpdata);
-      // second pass
-      if (fb) {
-        GLBind(fb);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_ONE, GL_ONE);
-        glDepthMask(GL_FALSE);
-        shading = false;
-        glColor3f(entalpha, entalpha, entalpha);
-        Fog_StartAdditive();
-        GL_DrawAliasFrame(paliashdr, lerpdata);
-        Fog_StopAdditive();
-        glDepthMask(GL_TRUE);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glDisable(GL_BLEND);
-      }
-    }
-  }
+  GL_DrawAliasFrame_GLSL(paliashdr, lerpdata, tx, fb);
 
 cleanup:
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
@@ -769,6 +682,7 @@ GL_DrawAliasShadow -- johnfitz -- rewritten
 TODO: orient shadow onto "lightplane" (a global mplane_t*)
 =============
 */
+// THERJAK: extern
 void GL_DrawAliasShadow(entity_t *e) {
   float shadowmatrix[16] = {1,
                             0,
