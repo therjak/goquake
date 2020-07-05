@@ -17,8 +17,6 @@ static char *gl_extensions_nice;
 static void GL_Init(void);
 static void GL_SetupState(void);
 
-qboolean gl_anisotropy_able = false;
-float gl_max_anisotropy;
 qboolean gl_glsl_able = false;
 int gl_stencilbits;
 
@@ -154,45 +152,6 @@ static void GL_CheckExtensions(const char *gl_extensions) {
         "vertical sync not supported (swap_control doesn't match vid_vsync)\n");
   } else {
     Con_Printf("FOUND: SDL_GL_SetSwapInterval\n");
-  }
-
-  // anisotropic filtering
-  //
-  if (GL_ParseExtensionList(gl_extensions,
-                            "GL_EXT_texture_filter_anisotropic")) {
-    float test1, test2;
-    GLuint tex;
-
-    // test to make sure we really have control over it
-    // 1.0 and 2.0 should always be legal values
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0f);
-    glGetTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, &test1);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 2.0f);
-    glGetTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, &test2);
-    glDeleteTextures(1, &tex);
-
-    if (test1 == 1 && test2 == 2) {
-      Con_Printf("FOUND: EXT_texture_filter_anisotropic\n");
-      gl_anisotropy_able = true;
-    } else {
-      Con_Warning(
-          "anisotropic filtering locked by driver. Current driver setting is "
-          "%f\n",
-          test1);
-    }
-
-    // get max value either way, so the menu and stuff know it
-    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &gl_max_anisotropy);
-    if (gl_max_anisotropy < 2) {
-      gl_anisotropy_able = false;
-      gl_max_anisotropy = 1;
-      Con_Warning("anisotropic filtering broken: disabled\n");
-    }
-  } else {
-    gl_max_anisotropy = 1;
-    Con_Warning("texture_filter_anisotropic not supported\n");
   }
 }
 

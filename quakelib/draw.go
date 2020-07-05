@@ -275,6 +275,7 @@ func Draw_Delete() {
 func Draw_Init() {
 	qDrawer = NewDrawer()
 	qRecDrawer = NewRecDrawer()
+	textureManager.Init()
 	consoleTexture = textureManager.LoadConsoleChars()
 	backtileTexture = textureManager.LoadBacktile()
 }

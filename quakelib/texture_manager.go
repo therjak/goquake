@@ -86,6 +86,11 @@ func init() {
 	})
 }
 
+func (tm *texMgr) Init() {
+	// get correct maxAnisotropy
+	gl.GetFloatv(gl.MAX_TEXTURE_MAX_ANISOTROPY, &tm.maxAnisotropy)
+}
+
 func (tm *texMgr) LoadConsoleChars() *texture.Texture {
 	data := wad.GetConsoleChars()
 	if len(data) != 128*128 {
