@@ -114,6 +114,7 @@ func SetMode(width, height int32, fullscreen bool) {
 		}
 		sdl.GLSetAttribute(sdl.GL_CONTEXT_MAJOR_VERSION, 3)
 		sdl.GLSetAttribute(sdl.GL_CONTEXT_MINOR_VERSION, 3)
+		sdl.GLSetAttribute(sdl.GL_CONTEXT_PROFILE_MASK, sdl.GL_CONTEXT_PROFILE_COMPATIBILITY)
 		window = func() *sdl.Window {
 			w, err := sdl.CreateWindow("GoQuake", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, width, height, flags)
 			if err == nil {
