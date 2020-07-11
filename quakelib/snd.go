@@ -50,11 +50,6 @@ func S_Init() {
 	onVolumeChange(cvars.Volume)
 }
 
-//export S_Shutdown
-func S_Shutdown() {
-	snd.Shutdown()
-}
-
 //export S_StaticSound
 func S_StaticSound(sfx C.sfx_t, origin *C.float, vol C.float, attenuation C.float) {
 	// sfx is cached from S_PrecacheSound
@@ -66,13 +61,6 @@ func S_StaticSound(sfx C.sfx_t, origin *C.float, vol C.float, attenuation C.floa
 func S_StopSound(entnum C.int, entchannel C.int) {
 	// why does the server know which channel to stop?
 	snd.Stop(int(entnum), int(entchannel))
-}
-
-//export S_StopAllSounds
-func S_StopAllSounds(clear C.int) {
-	// clear is bool, indicates if S_ClearBuffer should be called
-	// clear is always true
-	snd.StopAll()
 }
 
 //export S_ClearBuffer
@@ -117,16 +105,10 @@ func S_TouchSound(sample *C.char) {
 	// Just ignore and let PrecacheSound handle it
 }
 
-//export S_LocalSound
-func S_LocalSound(name *C.char) {
-	// TODO name is a 'path/filename.wav'
-	// This is mostly for the menu sounds
-	// sfx := S_PrecacheSound(name)
-	// S_StartSound(cl.viewentity, -1, sfx, vec3_origin /* {0,0,0} */, 1,1 )
-	localSound(C.GoString(name))
-}
-
 func localSound(name string) {
+	// This is mostly for the menu sounds
+	sfx := snd.PrecacheSound(name)
+	snd.Start(cl.viewentity, -1, sfx, vec.Vec3{}, 1, 1, !loopingSound)
 }
 
 func init() {
