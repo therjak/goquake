@@ -445,11 +445,6 @@ func conPrintf(format string, v ...interface{}) {
 	console.Print(s)
 }
 
-//do not use. use conlog.Printf
-func conPrintStr(format string, v ...interface{}) {
-	console.Printf(format, v...)
-}
-
 //do not use. use conlog.SafePrintf
 func conSafePrintf(format string, v ...interface{}) {
 	tmp := screen.disabled
