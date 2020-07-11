@@ -22,10 +22,10 @@ func GL_Width() int32 {
 	return viewport.width
 }
 
-//export UpdateViewport
 func UpdateViewport() {
 	viewport.width = int32(screen.Width)
 	viewport.height = int32(screen.Height)
+	statusbar.UpdateSize()
 }
 
 func GLSLGamma_GammaCorrect() {

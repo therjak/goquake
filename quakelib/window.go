@@ -11,7 +11,6 @@ import (
 	"github.com/therjak/goquake/cvar"
 	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/keys"
-	"github.com/therjak/goquake/math"
 	"github.com/therjak/goquake/menu"
 	"github.com/therjak/goquake/window"
 
@@ -25,20 +24,13 @@ var (
 	videoLocked      = false
 )
 
-/*
-func windowSetMode(width, height, bpp int32, fullscreen bool) {
-	window.SetMode(width, height, bpp, fullscreen)
-	screen.Width, screen.Height = window.Size()
-	UpdateConsoleSize()
-}*/
-
 func videoSetMode(width, height int32, fullscreen bool) {
 	temp := screen.disabled
 	screen.disabled = true
 
 	window.SetMode(width, height, fullscreen)
-	screen.Width, screen.Height = window.Size()
-	UpdateConsoleSize()
+	w, h := window.Size()
+	screen.UpdateSize(w, h)
 
 	glSwapControl = true
 	vsync := func() int {
@@ -189,35 +181,8 @@ func toggleFullScreen() {
 	}
 	// this addition fixes at least the 'to fullscreen'
 	// not sure what the issue is with 'from fullscreen' as it looks distorted
-	screen.Width, screen.Height = window.Size()
-	screen.RecalcViewRect()
-	UpdateConsoleSize()
-}
-
-func init() {
-	f := func(_ *cvar.Cvar) {
-		screen.RecalcViewRect()
-		UpdateConsoleSize()
-	}
-	cvars.ScreenConsoleWidth.SetCallback(f)
-	cvars.ScreenConsoleScale.SetCallback(f)
-}
-
-func updateConsoleSize() {
-	w := func() int {
-		if cvars.ScreenConsoleWidth.Value() > 0 {
-			return int(cvars.ScreenConsoleWidth.Value())
-		}
-		if cvars.ScreenConsoleScale.Value() > 0 {
-			return int(float32(screen.Width) / cvars.ScreenConsoleScale.Value())
-		}
-		return screen.Width
-	}()
-	w = math.ClampI(320, w, screen.Width)
-	w &= 0xFFFFFFF8
-
-	console.width = int(w)
-	console.height = console.width * screen.Height / screen.Width
+	width, height := window.Size()
+	screen.UpdateSize(width, height)
 }
 
 func b2s(b bool) string {

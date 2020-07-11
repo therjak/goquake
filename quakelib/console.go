@@ -13,6 +13,7 @@ import (
 
 	"github.com/therjak/goquake/cmd"
 	"github.com/therjak/goquake/conlog"
+	"github.com/therjak/goquake/cvar"
 	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/keys"
 	"github.com/therjak/goquake/math"
@@ -40,6 +41,32 @@ type qconsole struct {
 	forceDuplication bool   // because no entities to refresh
 	lastCenter       string // just a temporary to prevent double print
 	visibleLines     int    // con_vislines
+}
+
+func init() {
+	f := func(_ *cvar.Cvar) {
+		screen.RecalcViewRect()
+		updateConsoleSize()
+	}
+	cvars.ScreenConsoleWidth.SetCallback(f)
+	cvars.ScreenConsoleScale.SetCallback(f)
+}
+
+func updateConsoleSize() {
+	w := func() int {
+		if cvars.ScreenConsoleWidth.Value() > 0 {
+			return int(cvars.ScreenConsoleWidth.Value())
+		}
+		if cvars.ScreenConsoleScale.Value() > 0 {
+			return int(float32(screen.Width) / cvars.ScreenConsoleScale.Value())
+		}
+		return screen.Width
+	}()
+	w = math.ClampI(320, w, screen.Width)
+	w &= 0xFFFFFFF8
+
+	console.width = int(w)
+	console.height = console.width * screen.Height / screen.Width
 }
 
 //export Con_ResetLastCenterString

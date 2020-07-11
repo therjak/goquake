@@ -126,8 +126,6 @@ R_Init
 void R_Init(void) {
   extern cvar_t gl_finish;
 
-  Cmd_AddCommand("timerefresh", R_TimeRefresh_f);
-
   Cvar_FakeRegister(&r_norefresh, "r_norefresh");
   Cvar_FakeRegister(&r_lightmap, "r_lightmap");
   Cvar_FakeRegister(&r_fullbright, "r_fullbright");
@@ -342,36 +340,6 @@ void R_NewMap(void) {
 
   // johnfitz -- is this the right place to set this?
   load_subdivide_size = Cvar_GetValue(&gl_subdivide_size);
-}
-
-/*
-====================
-R_TimeRefresh_f
-
-For program optimization
-====================
-*/
-void R_TimeRefresh_f(void) {
-  int i;
-  float start, stop, time;
-
-  if (CLS_GetState() != ca_connected) {
-    Con_Printf("Not connected to a server\n");
-    return;
-  }
-
-  start = Sys_DoubleTime();
-  for (i = 0; i < 128; i++) {
-    UpdateViewport();
-    R_Refdef_SetViewAngles(1, i / 128.0 * 360.0);
-    R_RenderView();
-    GL_EndRendering();
-  }
-
-  glFinish();
-  stop = Sys_DoubleTime();
-  time = stop - start;
-  Con_Printf("%f seconds (%f fps)\n", time, 128 / time);
 }
 
 void D_FlushCaches(void) {}

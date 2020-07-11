@@ -311,6 +311,9 @@ func drawSet2D() {
 }
 
 func applyCanvas() (float32, float32) {
+	// TODO(therjak): this computation is stupid.
+	// The result is only dependend on a few values that do not change often
+	// This should probably just be computed/set on SetCanvas
 	switch qCanvas {
 	case CANVAS_DEFAULT:
 		gl.Viewport(0, 0, viewport.width, viewport.height)

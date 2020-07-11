@@ -8,6 +8,7 @@ import (
 
 	"github.com/therjak/goquake/cmd"
 	cmdl "github.com/therjak/goquake/commandline"
+	"github.com/therjak/goquake/cvar"
 	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/math"
 	"github.com/therjak/goquake/progs"
@@ -84,6 +85,23 @@ type qstatusbar struct {
 	rammo     [3]*QPic
 
 	disc *QPic
+
+	scale float32
+}
+
+func init() {
+	f := func(_ *cvar.Cvar) {
+		screen.RecalcViewRect()
+		statusbar.UpdateSize()
+	}
+	cvars.ScreenStatusbarScale.SetCallback(f)
+	cvars.ScreenStatusbarAlpha.SetCallback(f)
+}
+
+func (s *qstatusbar) UpdateSize() {
+	scale := cvars.ScreenStatusbarScale.Value()
+	s.scale = math.Clamp32(1.0, scale, float32(viewport.width)/320.0)
+	s.MarkChanged()
 }
 
 //sortFrags updates s.sortByFrags to have descending frag counts
@@ -374,16 +392,14 @@ func (s *qstatusbar) DrawScrollString(x, y, width int, str string) {
 		return
 	}
 
-	scale := cvars.ScreenStatusbarScale.Value()
-	scale = math.Clamp32(1.0, scale, float32(viewport.width)/320.0)
-	left := float32(x) * scale
+	left := float32(x) * s.scale
 	if cl.gameType != svc.GameDeathmatch {
-		left += (float32(viewport.width) - 320.0*scale) / 2
+		left += (float32(viewport.width) - 320.0*s.scale) / 2
 	}
 
 	// TODO: there rest should probably go into draw.go as helper function
 	gl.Enable(gl.SCISSOR_TEST)
-	gl.Scissor(int32(left), 0, int32(float32(width)*scale), int32(viewport.height))
+	gl.Scissor(int32(left), 0, int32(float32(width)*s.scale), int32(viewport.height))
 
 	ps := fmt.Sprintf("%s /// %s", str, str)
 	l = (len(str) + 5) * 8
@@ -545,13 +561,12 @@ func toPalette(c int) int {
 func (s *qstatusbar) Lines() int {
 	// scan lines to draw
 	size := cvars.ViewSize.Value()
-	scale := math.Clamp32(1, cvars.ScreenStatusbarScale.Value(), float32(viewport.width)/320)
 	if size >= 120 || cl.intermission != 0 || cvars.ScreenStatusbarAlpha.Value() < 1 {
 		return 0
 	} else if size >= 110 {
-		return int(24 * scale)
+		return int(24 * s.scale)
 	}
-	return int(48 * scale)
+	return int(48 * s.scale)
 }
 
 func (s *qstatusbar) drawFrags() {
@@ -796,13 +811,9 @@ func (s *qstatusbar) drawArmor() {
 }
 
 func (s *qstatusbar) miniDeathmatchOverlay() {
-	scale := math.Clamp32(1.0,
-		cvars.ScreenStatusbarScale.Value(),
-		float32(viewport.width)/320.0)
-
 	// MAX_SCOREBOARDNAME = 32, so total width for this overlay plus sbar is 632,
 	// but we can cut off some i guess
-	if float32(viewport.width)/scale < 512 || cvars.ViewSize.Value() >= 120 {
+	if float32(viewport.width)/s.scale < 512 || cvars.ViewSize.Value() >= 120 {
 		return
 	}
 	s.sortFrags()

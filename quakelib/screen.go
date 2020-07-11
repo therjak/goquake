@@ -97,8 +97,6 @@ func init() {
 	f := func(_ *cvar.Cvar) {
 		screen.RecalcViewRect()
 	}
-	cvars.ScreenStatusbarScale.SetCallback(f)
-	cvars.ScreenStatusbarAlpha.SetCallback(f)
 	cvars.Fov.SetCallback(f)
 	cvars.FovAdapt.SetCallback(f)
 	cvars.ViewSize.SetCallback(f)
@@ -154,6 +152,13 @@ func (scr *qScreen) ResetTileClearUpdates() {
 	scr.tileClearUpdates = 0
 }
 
+func (scr *qScreen) UpdateSize(w, h int) {
+	scr.Width = w
+	scr.Height = h
+	scr.RecalcViewRect()
+	updateConsoleSize()
+}
+
 func (scr *qScreen) tileClear() {
 	if scr.tileClearUpdates >= scr.numPages &&
 		!cvars.GlClear.Bool() &&
@@ -162,11 +167,11 @@ func (scr *qScreen) tileClear() {
 	}
 	scr.tileClearUpdates++
 
-	h := int(viewport.height) - statusbar.Lines()
+	h := scr.Height - statusbar.Lines()
 	if scr.vrect.x > 0 {
 		sw := scr.vrect.x + scr.vrect.width
 		DrawTileClear(0, 0, scr.vrect.x, h)
-		DrawTileClear(sw, 0, int(viewport.width)-sw, h)
+		DrawTileClear(sw, 0, int(scr.Width)-sw, h)
 	}
 	if scr.vrect.y > 0 {
 		sh := scr.vrect.y + scr.vrect.height
@@ -184,10 +189,10 @@ func (scr *qScreen) setupToDrawConsole() {
 
 	lines := 0
 	if console.forceDuplication {
-		lines = int(viewport.height)
+		lines = scr.Height
 		scr.consoleLines = lines
 	} else if keyDestination == keys.Console {
-		lines = int(viewport.height / 2)
+		lines = scr.Height / 2
 	}
 
 	if lines != scr.consoleLines {
@@ -196,7 +201,7 @@ func (scr *qScreen) setupToDrawConsole() {
 			timeScale = 1
 		}
 		t := float32(host.frameTime) / timeScale
-		s := float32(viewport.height) / 600 // normalize for 800x600 screen
+		s := float32(scr.Height) / 600 // normalize for 800x600 screen
 		d := int(cvars.ScreenConsoleSpeed.Value() * s * t)
 		if scr.consoleLines < lines {
 			scr.consoleLines += d
@@ -438,7 +443,7 @@ func (scr *qScreen) drawDevStats() {
 
 	     if (!Cvar_GetValue(&devstats)) return;
 
-	     GLSetCanvas(CANVAS_BOTTOMLEFT);
+	     SetCanvas(CANVAS_BOTTOMLEFT);
 
 	     DrawFillC(x, y * 8, 19 * 8, 9 * 8, 0, 0.5);  // dark rectangle
 
@@ -470,7 +475,8 @@ func (scr *qScreen) drawDevStats() {
 
 	     sprintf(str, "Tempents |%4i %4i", dev_stats.tempents, dev_peakstats.tempents);
 	     Draw_String(x, (y++) * 8 - x, str);
-	   }*/
+	   }
+	*/
 }
 
 func (scr *qScreen) calcViewRect() {
@@ -502,17 +508,17 @@ func (scr *qScreen) calcViewRect() {
 	} else {
 		size /= 100
 	}
-	w := float32(viewport.width) * size
+	w := float32(scr.Width) * size
 	if w < 96 {
 		w = 96 // lower limit for icons
 	}
-	h := float32(viewport.height) * size
-	hbound := float32(viewport.height) - float32(statusbar.Lines())
+	h := float32(scr.Height) * size
+	hbound := float32(scr.Height) - float32(statusbar.Lines())
 	if h > hbound {
 		h = hbound // keep space for the statusbar
 	}
-	x := (float32(viewport.width) - w) / 2
-	y := (float32(viewport.height) - float32(statusbar.Lines()) - h) / 2
+	x := (float32(scr.Width) - w) / 2
+	y := (float32(scr.Height) - float32(statusbar.Lines()) - h) / 2
 
 	scr.vrect = Rect{
 		x:      int(x),

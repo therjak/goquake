@@ -42,7 +42,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define BACKFACE_EPSILON 0.01
 
-void R_TimeRefresh_f(void);
 void R_ReadPointFile_f(void);
 texture_t *R_TextureAnimation(texture_t *base, int frame);
 
