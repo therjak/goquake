@@ -53,38 +53,56 @@ func CallCMain() {
 	}
 }
 
+var (
+	quitChan chan bool
+)
+
+func init() {
+	quitChan = make(chan bool, 2)
+}
+
 func runDedicated() {
 	oldtime := time.Now()
 	for {
-		timediff := time.Since(oldtime)
-		oldtime = time.Now()
-		w := time.Duration(cvars.TicRate.Value()*float32(time.Second)) - timediff
-		time.Sleep(w)
+		select {
+		case <-quitChan:
+			return
+		default:
+			timediff := time.Since(oldtime)
+			oldtime = time.Now()
+			w := time.Duration(cvars.TicRate.Value()*float32(time.Second)) - timediff
+			time.Sleep(w)
 
-		hostFrame()
+			hostFrame()
+		}
 	}
 }
 
 func runNormal() {
 	oldtime := time.Now()
 	for {
-		// If we have no input focus at all, sleep a bit
-		if !window.InputFocus() || cl.paused {
-			time.Sleep(16 * time.Millisecond)
-		}
-		// If we're minimised, sleep a bit more
-		if window.Minimized() {
-			window.SetSkipUpdates(true)
-			time.Sleep(32 * time.Millisecond)
-		} else {
-			window.SetSkipUpdates(false)
-		}
+		select {
+		case <-quitChan:
+			return
+		default:
+			// If we have no input focus at all, sleep a bit
+			if !window.InputFocus() || cl.paused {
+				time.Sleep(16 * time.Millisecond)
+			}
+			// If we're minimised, sleep a bit more
+			if window.Minimized() {
+				window.SetSkipUpdates(true)
+				time.Sleep(32 * time.Millisecond)
+			} else {
+				window.SetSkipUpdates(false)
+			}
 
-		timediff := time.Since(oldtime)
-		oldtime = time.Now()
-		w := time.Duration(cvars.Throttle.Value()*float32(time.Second)) - timediff
-		time.Sleep(w)
+			timediff := time.Since(oldtime)
+			oldtime = time.Now()
+			w := time.Duration(cvars.Throttle.Value()*float32(time.Second)) - timediff
+			time.Sleep(w)
 
-		hostFrame()
+			hostFrame()
+		}
 	}
 }

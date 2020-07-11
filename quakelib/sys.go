@@ -5,7 +5,6 @@ import "C"
 import (
 	"fmt"
 	"log"
-	"os"
 	"runtime/debug"
 	"time"
 
@@ -63,7 +62,7 @@ func Go_Error_I(c *C.char, i C.int) {
 //export Sys_Quit
 func Sys_Quit() {
 	host.Shutdown()
-	os.Exit(0)
+	quitChan <- true
 }
 
 //export Sys_Sleep
