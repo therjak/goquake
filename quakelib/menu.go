@@ -211,7 +211,7 @@ func (m *qMenu) Draw() {
 
 	DrawFadeScreen()
 
-	SetCanvas(CANVAS_MENU)
+	qCanvas.Set(CANVAS_MENU)
 
 	switch qmenu.state {
 	case menu.Main:

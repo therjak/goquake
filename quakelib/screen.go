@@ -118,7 +118,7 @@ func (scr *qScreen) drawFPS() {
 	if cvars.ScreenClock.Bool() {
 		y -= 8
 	}
-	SetCanvas(CANVAS_BOTTOMRIGHT)
+	qCanvas.Set(CANVAS_BOTTOMRIGHT)
 	DrawStringWhite(x, y, t)
 	scr.ResetTileClearUpdates()
 }
@@ -241,7 +241,7 @@ func (scr *qScreen) drawConsole() {
 
 func (scr *qScreen) drawNotifyString() {
 	y := int(200 * 0.35)
-	SetCanvas(CANVAS_MENU)
+	qCanvas.Set(CANVAS_MENU)
 	for _, s := range scr.modalMsg {
 		x := (320 - len(s)*8) / 2
 		DrawStringWhite(x, y, s)
@@ -274,7 +274,7 @@ func (scr *qScreen) drawNet() {
 	if scr.netPic == nil {
 		scr.netPic = GetPictureFromWad("net")
 	}
-	SetCanvas(CANVAS_DEFAULT)
+	qCanvas.Set(CANVAS_DEFAULT)
 	DrawPicture(scr.vrect.x, scr.vrect.y, scr.netPic)
 }
 
@@ -292,7 +292,7 @@ func (scr *qScreen) drawTurtle() {
 	if scr.turtleCount < 3 {
 		return
 	}
-	SetCanvas(CANVAS_DEFAULT)
+	qCanvas.Set(CANVAS_DEFAULT)
 	DrawPicture(scr.vrect.x, scr.vrect.y, scr.turtlePic)
 }
 
@@ -300,7 +300,7 @@ func (scr *qScreen) drawLoading() {
 	if !scr.loading {
 		return // probably impossible to reach
 	}
-	SetCanvas(CANVAS_MENU)
+	qCanvas.Set(CANVAS_MENU)
 
 	p := GetCachedPicture("gfx/loading.lmp")
 	DrawPicture((320-p.Width)/2, (240-48-p.Height)/2, p)
@@ -317,7 +317,7 @@ func (scr *qScreen) drawClock() {
 	m, s := t/60, t%60
 	str := fmt.Sprintf("%d:%02d", m, s)
 
-	SetCanvas(CANVAS_BOTTOMRIGHT)
+	qCanvas.Set(CANVAS_BOTTOMRIGHT)
 	DrawStringWhite(320-len(str)*8, 200-8, str)
 	scr.ResetTileClearUpdates()
 }
@@ -329,7 +329,7 @@ func (s *qScreen) drawPause() {
 	if !cvars.ShowPause.Bool() {
 		return
 	}
-	SetCanvas(CANVAS_MENU)
+	qCanvas.Set(CANVAS_MENU)
 
 	p := GetCachedPicture("gfx/pause.lmp")
 	DrawPicture((320-p.Width)/2, (240-48-p.Height)/2, p)
@@ -350,7 +350,7 @@ func (s *qScreen) CenterPrint(str string) {
 }
 
 func (s *qScreen) drawCenterPrint() {
-	SetCanvas(CANVAS_MENU)
+	qCanvas.Set(CANVAS_MENU)
 
 	remaining := 9999
 	if cl.intermission != 0 {
@@ -444,7 +444,7 @@ func (scr *qScreen) drawDevStats() {
 
 	     if (!Cvar_GetValue(&devstats)) return;
 
-	     SetCanvas(CANVAS_BOTTOMLEFT);
+	     qCanvas.Set(CANVAS_BOTTOMLEFT);
 
 	     DrawFillC(x, y * 8, 19 * 8, 9 * 8, 0, 0.5);  // dark rectangle
 

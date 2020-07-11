@@ -711,7 +711,7 @@ func (s *qstatusbar) soloScoreboard() {
 }
 
 func (s *qstatusbar) deathmatchOverlay() {
-	SetCanvas(CANVAS_MENU)
+	qCanvas.Set(CANVAS_MENU)
 
 	pic := GetCachedPicture("gfx/ranking.lmp")
 	DrawPicture((320-pic.Width)/2, 8, pic)
@@ -741,7 +741,7 @@ func (s *qstatusbar) deathmatchOverlay() {
 		y += 10
 	}
 
-	SetCanvas(CANVAS_STATUSBAR)
+	qCanvas.Set(CANVAS_STATUSBAR)
 }
 
 func (s *qstatusbar) IntermissionOverlay() {
@@ -749,7 +749,7 @@ func (s *qstatusbar) IntermissionOverlay() {
 		s.deathmatchOverlay()
 		return
 	}
-	SetCanvas(CANVAS_MENU)
+	qCanvas.Set(CANVAS_MENU)
 
 	DrawPicture(64, 24, GetCachedPicture("gfx/complete.lmp"))
 	DrawPicture(0, 56, GetCachedPicture("gfx/inter.lmp"))
@@ -771,7 +771,7 @@ func (s *qstatusbar) IntermissionOverlay() {
 }
 
 func (s *qstatusbar) FinaleOverlay() {
-	SetCanvas(CANVAS_MENU)
+	qCanvas.Set(CANVAS_MENU)
 
 	pic := GetCachedPicture("gfx/finale.lmp")
 	DrawPicture((320-pic.Width)/2, 16, pic)
@@ -900,7 +900,7 @@ func (s *qstatusbar) Draw() {
 
 	s.updates++
 
-	SetCanvas(CANVAS_DEFAULT)
+	qCanvas.Set(CANVAS_DEFAULT)
 
 	alpha := cvars.ScreenStatusbarAlpha.Value()
 	lines := s.Lines()
@@ -922,7 +922,7 @@ func (s *qstatusbar) Draw() {
 		}
 	}
 
-	SetCanvas(CANVAS_STATUSBAR)
+	qCanvas.Set(CANVAS_STATUSBAR)
 
 	if cvars.ViewSize.Value() < 110 {
 		s.drawInventory()

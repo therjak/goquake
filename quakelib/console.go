@@ -300,7 +300,7 @@ func (c *qconsole) Print(txt string) {
 }
 
 func (c *qconsole) DrawNotify() {
-	SetCanvas(CANVAS_CONSOLE)
+	qCanvas.Set(CANVAS_CONSOLE)
 	y := c.height
 	lines := 0
 	delta := float64(cvars.ConsoleNotifyTime.Value()) // #sec to display
@@ -329,7 +329,7 @@ func (c *qconsole) Draw(lines int) {
 		return
 	}
 	c.visibleLines = lines * c.height / screen.Height
-	SetCanvas(CANVAS_CONSOLE)
+	qCanvas.Set(CANVAS_CONSOLE)
 
 	DrawConsoleBackground()
 

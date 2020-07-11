@@ -107,12 +107,12 @@ func NewRecDrawer() *recDrawer {
 }
 
 func (d *recDrawer) Draw(x, y, w, h float32, c Color) {
-	sx, sy := applyCanvas()
+	sx, sy := qCanvas.Apply()
 	x1, x2 := x, x+w
 	y1, y2 := y+h, y
 	x1 = x1*sx - 1
 	x2 = x2*sx - 1
-	ys := yShift()
+	ys := qCanvas.YShift()
 	y1 = -y1*sy + ys
 	y2 = -y2*sy + ys
 	vertices := []float32{
@@ -173,23 +173,13 @@ func NewDrawer() *drawer {
 	return d
 }
 
-func yShift() float32 {
-	if qCanvas != CANVAS_CONSOLE {
-		return 1
-	}
-	sh := float32(screen.consoleLines)
-	vh := float32(screen.Height)
-	l := (sh / vh)
-	return 3 - (2 * l)
-}
-
 func (d *drawer) Draw(x, y, w, h float32, t *texture.Texture) {
-	sx, sy := applyCanvas()
+	sx, sy := qCanvas.Apply()
 	x1, x2 := x, x+w
 	y1, y2 := y+h, y
 	x1 = x1*sx - 1
 	x2 = x2*sx - 1
-	ys := yShift()
+	ys := qCanvas.YShift()
 	y1 = -y1*sy + ys
 	y2 = -y2*sy + ys
 	vertices := []float32{
@@ -223,12 +213,12 @@ func (d *drawer) DrawQuad(x, y float32, num byte) {
 	row := float32(num>>4) * size
 	col := float32(num&15) * size
 
-	sx, sy := applyCanvas()
+	sx, sy := qCanvas.Apply()
 	x1, x2 := x, x+8
 	y1, y2 := y+8, y
 	x1 = x1*sx - 1
 	x2 = x2*sx - 1
-	ys := yShift()
+	ys := qCanvas.YShift()
 	y1 = -y1*sy + ys
 	y2 = -y2*sy + ys
 	vertices := []float32{
@@ -280,49 +270,54 @@ func Draw_Init() {
 	backtileTexture = textureManager.LoadBacktile()
 }
 
-var (
-	qCanvas canvas
-)
-
 //export GLSetCanvas
 func GLSetCanvas(c C.canvastype) {
-	SetCanvas(canvas(c))
-}
-
-func SetCanvas(c canvas) {
-	if qCanvas == c {
-		return
-	}
-	qCanvas = c
-	switch c {
-	case CANVAS_BOTTOMRIGHT, CANVAS_CONSOLE, CANVAS_MENU, CANVAS_STATUSBAR:
-	default:
-		C.GL_SetCanvas(C.canvastype(c))
-	}
-	C.GL_CanvasEnd()
+	qCanvas.Set(canvas(c))
 }
 
 func drawSet2D() {
-	qCanvas = CANVAS_NONE
-	SetCanvas(CANVAS_DEFAULT)
+	qCanvas.canvas = CANVAS_NONE
+	qCanvas.Set(CANVAS_DEFAULT)
 	gl.Disable(gl.DEPTH_TEST)
 	gl.Disable(gl.CULL_FACE)
 	gl.Disable(gl.BLEND)
 }
 
-func applyCanvas() (float32, float32) {
-	// TODO(therjak): this computation is stupid.
-	// The result is only dependend on a few values that do not change often
-	// This should probably just be computed/set on SetCanvas
-	switch qCanvas {
+type Canvas struct {
+	canvas
+	sx float32
+	sy float32
+}
+
+var (
+	qCanvas Canvas
+)
+
+func (c *Canvas) YShift() float32 {
+	if c.canvas != CANVAS_CONSOLE {
+		return 1
+	}
+	sh := float32(screen.consoleLines)
+	vh := float32(screen.Height)
+	l := (sh / vh)
+	return 3 - (2 * l)
+}
+
+func (c *Canvas) Set(nc canvas) {
+	if c.canvas == nc {
+		return
+	}
+	c.canvas = nc
+	switch c.canvas {
 	case CANVAS_DEFAULT:
 		gl.Viewport(0, 0, int32(screen.Width), int32(screen.Height))
-		return 2 / float32(screen.Width), 2 / float32(screen.Height)
+		c.sx, c.sy = 2/float32(screen.Width), 2/float32(screen.Height)
+		C.GL_SetCanvas(C.canvastype(nc))
 	case CANVAS_CONSOLE:
 		gl.Viewport(0, 0, int32(screen.Width), int32(screen.Height))
 		h := float32(console.height)
 		w := float32(console.width)
-		return 2 / w, 2 / h
+		c.sx, c.sy = 2/w, 2/h
 	case CANVAS_MENU:
 		s := cvars.ScreenMenuScale.Value()
 		if s < 1 {
@@ -340,7 +335,7 @@ func applyCanvas() (float32, float32) {
 			int32((float32(screen.Width)-320*s)/2),
 			int32((float32(screen.Height)-200*s)/2),
 			int32(640*s), int32(200*s))
-		return float32(2) / 640, float32(2) / 200
+		c.sx, c.sy = float32(2)/640, float32(2)/200
 	case CANVAS_STATUSBAR:
 		w := float32(screen.Width)
 		s := cvars.ScreenStatusbarScale.Value()
@@ -353,17 +348,19 @@ func applyCanvas() (float32, float32) {
 		}
 		if cl.DeathMatch() {
 			gl.Viewport(0, 0, int32(screen.Width), int32(48*s))
-			return 2 * s / w, float32(2) / 48
+			c.sx, c.sy = 2*s/w, float32(2)/48
+		} else {
+			gl.Viewport(
+				int32((float32(screen.Width)-320*s)/2),
+				0,
+				int32(320*s),
+				int32(48*s))
+			c.sx, c.sy = float32(2)/320, float32(2)/48
 		}
-		gl.Viewport(
-			int32((float32(screen.Width)-320*s)/2),
-			0,
-			int32(320*s),
-			int32(48*s))
-		return float32(2) / 320, float32(2) / 48
 	case CANVAS_WARPIMAGE:
 		gl.Viewport(0, int32(screen.Height)-glWarpImageSize, glWarpImageSize, glWarpImageSize)
-		return float32(2) / 128, float32(2) / 128
+		c.sx, c.sy = float32(2)/128, float32(2)/128
+		C.GL_SetCanvas(C.canvastype(nc))
 	case CANVAS_BOTTOMRIGHT:
 		s := float32(screen.Width) / float32(console.width)
 		gl.Viewport(
@@ -371,12 +368,17 @@ func applyCanvas() (float32, float32) {
 			0,
 			int32(320*s),
 			int32(200*s))
-		return float32(2) / 320, float32(2) / 200
+		c.sx, c.sy = float32(2)/320, float32(2)/200
 	default:
 		// case CANVAS_NONE:
 		Error("SetCanvas: bad canvas type")
-		return 0, 0
 	}
+
+	C.GL_CanvasEnd()
+}
+
+func (c *Canvas) Apply() (float32, float32) {
+	return c.sx, c.sy
 }
 
 func DrawCrosshair() {
@@ -473,7 +475,7 @@ func DrawConsoleBackground() {
 		return
 	}
 
-	SetCanvas(CANVAS_CONSOLE)
+	qCanvas.Set(CANVAS_CONSOLE)
 
 	if alpha < 1 {
 		gl.BlendColor(0, 0, 0, alpha)
@@ -493,7 +495,7 @@ func DrawConsoleBackground() {
 }
 
 func DrawFadeScreen() {
-	SetCanvas(CANVAS_DEFAULT)
+	qCanvas.Set(CANVAS_DEFAULT)
 	c := Color{0, 0, 0, 0.5}
 	qRecDrawer.Draw(0, 0, float32(screen.Width), float32(screen.Height), c)
 	statusbar.MarkChanged()
@@ -515,12 +517,12 @@ func DrawTileClear(xi, yi, wi, hi int) {
 }
 
 func (d *drawer) TileClear(x, y, w, h float32) {
-	sx, sy := applyCanvas()
+	sx, sy := qCanvas.Apply()
 	x1, x2 := x, x+w
 	y1, y2 := y+h, y
 	x1 = x1*sx - 1
 	x2 = x2*sx - 1
-	ys := yShift()
+	ys := qCanvas.YShift()
 	y1 = -y1*sy + ys
 	y2 = -y2*sy + ys
 	vertices := []float32{
