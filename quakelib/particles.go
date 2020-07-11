@@ -212,7 +212,7 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 		gl.MatrixLoadIdentityEXT(gl.PATH_PROJECTION_NV)
 		gl.Viewport(
 			int32(qRefreshRect.viewRect.x),
-			viewport.height-int32(qRefreshRect.viewRect.y+qRefreshRect.viewRect.height),
+			int32(screen.Height)-int32(qRefreshRect.viewRect.y+qRefreshRect.viewRect.height),
 			int32(qRefreshRect.viewRect.width),
 			int32(qRefreshRect.viewRect.height))
 		xmax := 4 * math.Tan(float64(qRefreshRect.fovX)*math.Pi/360)

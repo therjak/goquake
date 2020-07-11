@@ -225,21 +225,6 @@ func (q *qconsole) messageMode(team bool) {
 	keyDestination = keys.Message
 }
 
-/*
-// Con_Linefeed
-func (q *qconsole) lineFeed() {
-	if q.backScroll != 0 {
-		q.backScroll++
-	}
-	if q.backScroll > q.totalLines-int(viewport.height/8)-1 {
-		q.backScroll = q.totalLines - int(viewport.height/8) - 1
-	}
-	q.x = 0
-	q.current++
-	// memset(q.text[(q.current % q.totalLines) * q.width, ' ', q.width)
-}
-*/
-
 var (
 	printRecursionProtection = false
 )
@@ -343,7 +328,7 @@ func (c *qconsole) Draw(lines int) {
 	if lines <= 0 {
 		return
 	}
-	c.visibleLines = lines * c.height / int(viewport.height)
+	c.visibleLines = lines * c.height / screen.Height
 	SetCanvas(CANVAS_CONSOLE)
 
 	DrawConsoleBackground()

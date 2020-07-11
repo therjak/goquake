@@ -157,6 +157,7 @@ func (scr *qScreen) UpdateSize(w, h int) {
 	scr.Height = h
 	scr.RecalcViewRect()
 	updateConsoleSize()
+	statusbar.UpdateSize()
 }
 
 func (scr *qScreen) tileClear() {
@@ -568,8 +569,6 @@ func (scr *qScreen) Update() {
 		return
 	}
 
-	UpdateViewport()
-
 	if scr.recalcViewRect {
 		scr.calcViewRect()
 	}
@@ -659,11 +658,11 @@ func screenShot(_ []cmd.QArg, _ int) {
 			return
 		}
 	}
-	buffer := make([]byte, viewport.width*viewport.height*4)
+	buffer := make([]byte, screen.Width*screen.Height*4)
 	gl.PixelStorei(gl.PACK_ALIGNMENT, 1)
-	gl.ReadPixels(0, 0, viewport.width, viewport.height,
+	gl.ReadPixels(0, 0, int32(screen.Width), int32(screen.Height),
 		gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(buffer))
-	err := image.Write(fileName, buffer, int(viewport.width), int(viewport.height))
+	err := image.Write(fileName, buffer, screen.Width, screen.Height)
 	if err != nil {
 		conlog.Printf("Coudn't create screenshot file\n")
 	} else {

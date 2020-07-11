@@ -178,7 +178,7 @@ func yShift() float32 {
 		return 1
 	}
 	sh := float32(screen.consoleLines)
-	vh := float32(viewport.height)
+	vh := float32(screen.Height)
 	l := (sh / vh)
 	return 3 - (2 * l)
 }
@@ -316,10 +316,10 @@ func applyCanvas() (float32, float32) {
 	// This should probably just be computed/set on SetCanvas
 	switch qCanvas {
 	case CANVAS_DEFAULT:
-		gl.Viewport(0, 0, viewport.width, viewport.height)
-		return 2 / float32(viewport.width), 2 / float32(viewport.height)
+		gl.Viewport(0, 0, int32(screen.Width), int32(screen.Height))
+		return 2 / float32(screen.Width), 2 / float32(screen.Height)
 	case CANVAS_CONSOLE:
-		gl.Viewport(0, 0, viewport.width, viewport.height)
+		gl.Viewport(0, 0, int32(screen.Width), int32(screen.Height))
 		h := float32(console.height)
 		w := float32(console.width)
 		return 2 / w, 2 / h
@@ -328,21 +328,21 @@ func applyCanvas() (float32, float32) {
 		if s < 1 {
 			s = 1
 		}
-		dw := float32(viewport.width) / 320
+		dw := float32(screen.Width) / 320
 		if s > dw {
 			s = dw
 		}
-		dh := float32(viewport.height) / 200
+		dh := float32(screen.Height) / 200
 		if s > dh {
 			s = dh
 		}
 		gl.Viewport(
-			int32((float32(viewport.width)-320*s)/2),
-			int32((float32(viewport.height)-200*s)/2),
+			int32((float32(screen.Width)-320*s)/2),
+			int32((float32(screen.Height)-200*s)/2),
 			int32(640*s), int32(200*s))
 		return float32(2) / 640, float32(2) / 200
 	case CANVAS_STATUSBAR:
-		w := float32(viewport.width)
+		w := float32(screen.Width)
 		s := cvars.ScreenStatusbarScale.Value()
 		if s < 1 {
 			s = 1
@@ -352,22 +352,22 @@ func applyCanvas() (float32, float32) {
 			s = dw
 		}
 		if cl.DeathMatch() {
-			gl.Viewport(0, 0, viewport.width, int32(48*s))
+			gl.Viewport(0, 0, int32(screen.Width), int32(48*s))
 			return 2 * s / w, float32(2) / 48
 		}
 		gl.Viewport(
-			int32((float32(viewport.width)-320*s)/2),
+			int32((float32(screen.Width)-320*s)/2),
 			0,
 			int32(320*s),
 			int32(48*s))
 		return float32(2) / 320, float32(2) / 48
 	case CANVAS_WARPIMAGE:
-		gl.Viewport(0, viewport.height-glWarpImageSize, glWarpImageSize, glWarpImageSize)
+		gl.Viewport(0, int32(screen.Height)-glWarpImageSize, glWarpImageSize, glWarpImageSize)
 		return float32(2) / 128, float32(2) / 128
 	case CANVAS_BOTTOMRIGHT:
-		s := float32(viewport.width) / float32(console.width)
+		s := float32(screen.Width) / float32(console.width)
 		gl.Viewport(
-			int32(float32(viewport.width)-320*s),
+			int32(float32(screen.Width)-320*s),
 			0,
 			int32(320*s),
 			int32(200*s))
@@ -388,7 +388,7 @@ func DrawCrosshair() {
 	// 0 0 0 1
 	//gl.Viewport(
 	// screen.vrect.x,
-	// viewport.height - screen.vrect.y - screen.vrect.height,
+	// screen.Height - screen.vrect.y - screen.vrect.height,
 	// screen.vrect.width &^1,
 	// screen.vrect.height &^1)
 
@@ -495,7 +495,7 @@ func DrawConsoleBackground() {
 func DrawFadeScreen() {
 	SetCanvas(CANVAS_DEFAULT)
 	c := Color{0, 0, 0, 0.5}
-	qRecDrawer.Draw(0, 0, float32(viewport.width), float32(viewport.height), c)
+	qRecDrawer.Draw(0, 0, float32(screen.Width), float32(screen.Height), c)
 	statusbar.MarkChanged()
 }
 

@@ -100,7 +100,7 @@ func init() {
 
 func (s *qstatusbar) UpdateSize() {
 	scale := cvars.ScreenStatusbarScale.Value()
-	s.scale = math.Clamp32(1.0, scale, float32(viewport.width)/320.0)
+	s.scale = math.Clamp32(1.0, scale, float32(screen.Width)/320.0)
 	s.MarkChanged()
 }
 
@@ -394,12 +394,12 @@ func (s *qstatusbar) DrawScrollString(x, y, width int, str string) {
 
 	left := float32(x) * s.scale
 	if cl.gameType != svc.GameDeathmatch {
-		left += (float32(viewport.width) - 320.0*s.scale) / 2
+		left += (float32(screen.Width) - 320.0*s.scale) / 2
 	}
 
 	// TODO: there rest should probably go into draw.go as helper function
 	gl.Enable(gl.SCISSOR_TEST)
-	gl.Scissor(int32(left), 0, int32(float32(width)*s.scale), int32(viewport.height))
+	gl.Scissor(int32(left), 0, int32(float32(width)*s.scale), int32(screen.Height))
 
 	ps := fmt.Sprintf("%s /// %s", str, str)
 	l = (len(str) + 5) * 8
@@ -813,7 +813,7 @@ func (s *qstatusbar) drawArmor() {
 func (s *qstatusbar) miniDeathmatchOverlay() {
 	// MAX_SCOREBOARDNAME = 32, so total width for this overlay plus sbar is 632,
 	// but we can cut off some i guess
-	if float32(viewport.width)/s.scale < 512 || cvars.ViewSize.Value() >= 120 {
+	if float32(screen.Width)/s.scale < 512 || cvars.ViewSize.Value() >= 120 {
 		return
 	}
 	s.sortFrags()
@@ -904,8 +904,8 @@ func (s *qstatusbar) Draw() {
 
 	alpha := cvars.ScreenStatusbarAlpha.Value()
 	lines := s.Lines()
-	vw := int(viewport.width)
-	vh := int(viewport.height)
+	vw := screen.Width
+	vh := screen.Height
 	w := math.ClampI(320, int(cvars.ScreenStatusbarScale.Value()*320), vw)
 	if lines != 0 && vw > w {
 		if alpha < 1 {
