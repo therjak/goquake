@@ -165,31 +165,6 @@ void CL_UpdateTEnts(void) {
 qboolean warn_about_nehahra_protocol;  // johnfitz
 
 /*
-===============
-CL_EntityNum
-
-This error checks and tracks the total number of entities
-===============
-*/
-entity_t *CL_EntityNum(int num) {
-  // johnfitz -- check minimum number too
-  if (num < 0) Host_Error("CL_EntityNum: %i is an invalid number", num);
-  // john
-
-  if (num >= cl.num_entities) {
-    if (num >= CL_MaxEdicts())  // johnfitz -- no more MAX_EDICTS
-      Host_Error("CL_EntityNum: %i is an invalid number", num);
-    while (cl.num_entities <= num) {
-      cl_entities[cl.num_entities].lerpflags |=
-          LERP_RESETMOVE | LERP_RESETANIM;  // johnfitz
-      cl.num_entities++;
-    }
-  }
-
-  return &cl_entities[num];
-}
-
-/*
 ==================
 CL_ParseServerInfo
 ==================

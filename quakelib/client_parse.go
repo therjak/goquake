@@ -4,8 +4,6 @@ package quakelib
 //void CL_ParseServerInfo(void);
 //void CL_NewTranslation(int slot);
 //void CL_ParseStatic(int version);
-//struct entity_s;
-//struct entity_s* CL_EntityNum(int num);
 //void R_CheckEfrags(void);
 //void Fog_Update(float density, float red, float green, float blue, float time);
 import "C"
@@ -78,7 +76,8 @@ var (
 //export CL_ParseBaseline
 func CL_ParseBaseline(i, version int) {
 	var err error
-	e := CL_EntityNum(i)
+	// must use CL_EntityNum() to force cl.num_entities up
+	e := cl.EntityNum(i)
 	es := &EntityState{
 		Alpha: svc.EntityAlphaDefault,
 	}
@@ -422,7 +421,6 @@ func CL_ParseServerMessage() {
 				cls.msgBadRead = true
 				continue
 			}
-			// must use CL_EntityNum() to force cl.num_entities up
 			CL_ParseBaseline(int(i), 1)
 
 		case svc.SpawnStatic:
@@ -563,7 +561,6 @@ func CL_ParseServerMessage() {
 				cls.msgBadRead = true
 				continue
 			}
-			// must use CL_EntityNum() to force cl.num_entities up
 			CL_ParseBaseline(int(i), 2)
 
 		case svc.SpawnStatic2:

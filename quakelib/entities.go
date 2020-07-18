@@ -1,23 +1,33 @@
 package quakelib
 
+//#ifndef ENTITIES_H
+//#define ENTITIES_H
 //#include "q_stdinc.h"
 //#include "render.h"
 //extern entity_t *cl_entities;
 //extern entity_t cl_viewent;
 //typedef entity_t* entityPtr;
-//entity_t* getCLEntity(int i) { return &cl_entities[i]; }
-//entity_t *CL_EntityNum(int num); // has error checks
+//inline entity_t* getCLEntity(int i) { return &cl_entities[i]; }
+//#endif
 import "C"
 
 import (
 	"github.com/therjak/goquake/math/vec"
 )
 
+const (
+	lerpMoveStep   = 1 << iota // this is a MOVETYPE_STEP entity, enable movement lerp
+	lerpResetAnim              // disable anim lerping until next anim frame
+	lerpResetAnim2             // set his and the previous flag to disable anim lerping for two anim frames
+	lerpResetMove              // disable movement lerping until next origin/angles change
+	lerpFinish                 // use lerpfinish time from server update instead of assuming interval of 0.1
+)
+
 type Entity struct {
 	ptr C.entityPtr
 }
 
-func cl_entities(i int) Entity {
+func (c *Client) Entities(i int) Entity {
 	return Entity{C.getCLEntity(C.int(i))}
 }
 
@@ -41,8 +51,27 @@ func cl_weapon() Entity {
 	return Entity{&C.cl_viewent}
 }
 
-func CL_EntityNum(num int) *Entity {
-	return &Entity{C.CL_EntityNum(C.int(num))}
+// This one adds error checks to cl_entities
+//export CL_EntityNum
+func CL_EntityNum(num int) C.entityPtr {
+	if num < 0 {
+		Error("CL_EntityNum: %d is an invalid number", num)
+	}
+	if num >= cl.numEntities {
+		if num >= cl.maxEdicts {
+			Error("CL_EntityNum: %d is an invalid number", num)
+		}
+		for cl.numEntities <= num {
+			cl.Entities(num).ptr.lerpflags |= lerpResetMove | lerpResetAnim
+			cl.numEntities++
+		}
+	}
+
+	return cl.Entities(num).ptr
+}
+
+func (c *Client) EntityNum(num int) *Entity {
+	return &Entity{CL_EntityNum(num)}
 }
 
 func (e *Entity) SetBaseline(state *EntityState) {

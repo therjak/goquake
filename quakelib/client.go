@@ -206,7 +206,8 @@ type Client struct {
 
 	// don't change view angle, full screen, etc
 	intermission int
-	numStatics   int
+	numStatics   int // TODO: should be some len(x)
+	numEntities  int // TODO: should be some len(x)
 	// model_precache
 	// viewent.model
 
@@ -276,6 +277,11 @@ var (
 	cls = ClientStatic{}
 	cl  = Client{}
 )
+
+//export CL_num_entities
+func CL_num_entities() int {
+	return cl.numEntities
+}
 
 //export CL_num_statics
 func CL_num_statics() int {
@@ -728,12 +734,6 @@ func (c *ClientStatic) getMessage() int {
 	}
 
 	return r
-}
-
-//export CL_MSG_BadRead
-func CL_MSG_BadRead() bool {
-	// poor mans error handling :(
-	return cls.msgBadRead
 }
 
 //export CL_MSG_ReadChar
@@ -1367,18 +1367,18 @@ func (c *Client) parseDamage(armor, blood int, from vec.Vec3) {
 		cs.B = 0
 	}
 
-	ent := cl_entities(c.viewentity)
+	ent := c.Entities(c.viewentity)
 	origin := ent.origin()
 	from = from.Sub(origin).Normalize()
 	angles := ent.angles()
 	forward, right, _ := vec.AngleVectors(angles)
-	cl.dmgRoll = count * vec.Dot(from, right) * cvars.ViewKickRoll.Value()
-	cl.dmgPitch = count * vec.Dot(from, forward) * cvars.ViewKickPitch.Value()
-	cl.dmgTime = cvars.ViewKickTime.Value()
+	c.dmgRoll = count * vec.Dot(from, right) * cvars.ViewKickRoll.Value()
+	c.dmgPitch = count * vec.Dot(from, forward) * cvars.ViewKickPitch.Value()
+	c.dmgTime = cvars.ViewKickTime.Value()
 }
 
 func (c *Client) calcViewRoll() {
-	ent := cl_entities(c.viewentity)
+	ent := c.Entities(c.viewentity)
 	angles := ent.angles()
 	side := CalcRoll(angles, c.velocity)
 	qRefreshRect.viewAngles[ROLL] += side
@@ -1396,7 +1396,7 @@ func (c *Client) calcViewRoll() {
 }
 
 func (c *Client) boundOffsets() {
-	ent := cl_entities(c.viewentity)
+	ent := c.Entities(c.viewentity)
 
 	// absolutely bound refresh relative to entity clipping hull
 	// so the view can never be inside a solid wall
@@ -1431,7 +1431,7 @@ func (c *Client) addIdle(idlescale float32) {
 }
 
 func (c *Client) calcIntermissionRefreshRect() {
-	ent := cl_entities(c.viewentity)
+	ent := c.Entities(c.viewentity)
 	// body
 	qRefreshRect.viewOrg = ent.origin()
 	qRefreshRect.viewAngles = ent.angles()
@@ -1506,7 +1506,7 @@ func (c *Client) calcRefreshRect() {
 	c.driftPitch()
 
 	// ent is the player model (visible when out of body)
-	ent := cl_entities(c.viewentity)
+	ent := c.Entities(c.viewentity)
 	// view is the weapon model (only visible from inside body)
 	w := cl_weapon() // view
 

@@ -89,7 +89,7 @@ void CL_PrintEntities_f(void) {
 
   if (CLS_GetState() != ca_connected) return;
 
-  for (i = 0, ent = cl_entities; i < cl.num_entities; i++, ent++) {
+  for (i = 0, ent = cl_entities; i < CL_num_entities(); i++, ent++) {
     Con_Printf("%3i:", i);
     if (!ent->model) {
       Con_Printf("EMPTY\n");
@@ -160,7 +160,7 @@ void CL_RelinkEntities(void) {
   bobjrotate = anglemod(100 * CL_Time());
 
   // start on the entity after the world
-  for (i = 1, ent = cl_entities + 1; i < cl.num_entities; i++, ent++) {
+  for (i = 1, ent = cl_entities + 1; i < CL_num_entities(); i++, ent++) {
     if (!ent->model) {                          // empty slot
       if (ent->forcelink) R_RemoveEfrags(ent);  // just became empty
       continue;
