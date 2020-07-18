@@ -206,7 +206,7 @@ type Client struct {
 
 	// don't change view angle, full screen, etc
 	intermission int
-	// num_statics
+	numStatics   int
 	// model_precache
 	// viewent.model
 
@@ -276,6 +276,16 @@ var (
 	cls = ClientStatic{}
 	cl  = Client{}
 )
+
+//export CL_num_statics
+func CL_num_statics() int {
+	return cl.numStatics
+}
+
+//export Inc_CL_num_statics
+func Inc_CL_num_statics() {
+	cl.numStatics++
+}
 
 //export CL_MViewAngles
 func CL_MViewAngles(i, j int) float32 {

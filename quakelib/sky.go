@@ -1,5 +1,6 @@
 package quakelib
 
+//#include <stdlib.h>
 //void Sky_Init(void);
 //void Sky_DrawSky(void);
 //void Sky_NewMap(void);
@@ -83,6 +84,11 @@ var (
 )
 
 func (s *qSky) LoadBox(name string) {
+	cname := C.CString(name)
+	C.Sky_LoadSkyBox(cname)
+	C.free(unsafe.Pointer(cname))
+	return
+
 	if name == s.boxName {
 		return
 	}

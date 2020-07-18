@@ -56,7 +56,8 @@ typedef struct {
   struct qmodel_s *worldmodel;  // cl_entitites[0].model
   struct efrag_s *free_efrags;
   int num_entities;  // held in cl_entities array
-  int num_statics;   // held in cl_staticentities array
+  // See go: client.numStatics
+  // int num_statics;   // held in cl_staticentities array
 
   // frag scoreboard
   scoreboard_t *scores;  // [cl.maxclients] // therjak
