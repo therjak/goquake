@@ -435,7 +435,7 @@ void CL_ParseUpdate(int bits) {
   if (bits & U_EFFECTS)
     ent->effects = CL_MSG_ReadByte();
   else
-    ent->effects = ent->baseline.effects;
+    ent->effects = 0;
 
   // shift the known values for interpolation
   VectorCopy(ent->msg_origins[0], ent->msg_origins[1]);
@@ -540,36 +540,6 @@ void CL_ParseUpdate(int bits) {
 }
 
 /*
-==================
-CL_ParseBaseline
-==================
-*/
-void CL_ParseBaseline(entity_t *ent, int version)  // johnfitz -- added argument
-{
-  int i;
-  int bits;  // johnfitz
-
-  // johnfitz -- PROTOCOL_FITZQUAKE
-  bits = (version == 2) ? CL_MSG_ReadByte() : 0;
-  ent->baseline.modelindex =
-      (bits & B_LARGEMODEL) ? CL_MSG_ReadShort() : CL_MSG_ReadByte();
-  ent->baseline.frame =
-      (bits & B_LARGEFRAME) ? CL_MSG_ReadShort() : CL_MSG_ReadByte();
-  // johnfitz
-
-  CL_MSG_ReadByte();  // colormap -- no idea what this is good for
-  ent->baseline.skin = CL_MSG_ReadByte();
-  for (i = 0; i < 3; i++) {
-    ent->baseline.origin[i] = CL_MSG_ReadCoord();
-    ent->baseline.angles[i] = CL_MSG_ReadAngle(CL_ProtocolFlags());
-  }
-
-  ent->baseline.alpha =
-      (bits & B_ALPHA) ? CL_MSG_ReadByte()
-                       : ENTALPHA_DEFAULT;  // johnfitz -- PROTOCOL_FITZQUAKE
-}
-
-/*
 =====================
 CL_NewTranslation
 =====================
@@ -598,7 +568,7 @@ void CL_ParseStatic(int version)  // johnfitz -- added a parameter
 
   ent = &cl_static_entities[i];
   Inc_CL_num_statics();
-  CL_ParseBaseline(ent, version);  // johnfitz -- added second parameter
+  CL_ParseBaseline(i, version);  // johnfitz -- added second parameter
 
   // copy it to the current state
 
@@ -607,7 +577,7 @@ void CL_ParseStatic(int version)  // johnfitz -- added a parameter
   ent->frame = ent->baseline.frame;
 
   ent->skinnum = ent->baseline.skin;
-  ent->effects = ent->baseline.effects;
+  ent->effects = 0;
   ent->alpha = ent->baseline.alpha;  // johnfitz -- alpha
 
   VectorCopy(ent->baseline.origin, ent->origin);

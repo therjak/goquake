@@ -6,7 +6,6 @@ package quakelib
 //void CL_ParseStatic(int version);
 //struct entity_s;
 //struct entity_s* CL_EntityNum(int num);
-//void CL_ParseBaseline(struct entity_s *ent, int version);
 //void R_CheckEfrags(void);
 //void Fog_Update(float density, float red, float green, float blue, float time);
 import "C"
@@ -75,6 +74,106 @@ var (
 		"",                      // 49
 	}
 )
+
+//export CL_ParseBaseline
+func CL_ParseBaseline(i, version int) {
+	var err error
+	e := CL_EntityNum(i)
+	es := &EntityState{
+		Alpha: svc.EntityAlphaDefault,
+	}
+	bits := byte(0)
+	if version == 2 {
+		bits, err = cls.inMessage.ReadByte()
+		if err != nil {
+			cls.msgBadRead = true
+			return
+		}
+	}
+	if bits&svc.EntityBaselineLargeModel != 0 {
+		i, err := cls.inMessage.ReadUint16()
+		if err != nil {
+			cls.msgBadRead = true
+			return
+		}
+		es.ModelIndex = i
+	} else {
+		i, err := cls.inMessage.ReadByte()
+		if err != nil {
+			cls.msgBadRead = true
+			return
+		}
+		es.ModelIndex = uint16(i)
+	}
+	if bits&svc.EntityBaselineLargeFrame != 0 {
+		f, err := cls.inMessage.ReadUint16()
+		if err != nil {
+			cls.msgBadRead = true
+			return
+		}
+		es.Frame = f
+	} else {
+		f, err := cls.inMessage.ReadByte()
+		if err != nil {
+			cls.msgBadRead = true
+			return
+		}
+		es.Frame = uint16(f)
+	}
+
+	// colormap: no idea what this is good for. Is not really used.
+	es.ColorMap, err = cls.inMessage.ReadByte()
+	if err != nil {
+		cls.msgBadRead = true
+		return
+	}
+	es.Skin, err = cls.inMessage.ReadByte()
+	if err != nil {
+		cls.msgBadRead = true
+		return
+	}
+
+	es.Origin[0], err = cls.inMessage.ReadCoord(cl.protocolFlags)
+	if err != nil {
+		cls.msgBadRead = true
+		return
+	}
+	es.Angles[0], err = cls.inMessage.ReadAngle(cl.protocolFlags)
+	if err != nil {
+		cls.msgBadRead = true
+		return
+	}
+	es.Origin[1], err = cls.inMessage.ReadCoord(cl.protocolFlags)
+	if err != nil {
+		cls.msgBadRead = true
+		return
+	}
+	es.Angles[1], err = cls.inMessage.ReadAngle(cl.protocolFlags)
+	if err != nil {
+		cls.msgBadRead = true
+		return
+	}
+	es.Origin[2], err = cls.inMessage.ReadCoord(cl.protocolFlags)
+	if err != nil {
+		cls.msgBadRead = true
+		return
+	}
+	es.Angles[2], err = cls.inMessage.ReadAngle(cl.protocolFlags)
+	if err != nil {
+		cls.msgBadRead = true
+		return
+	}
+
+	if bits&svc.EntityBaselineAlpha != 0 {
+		es.Alpha, err = cls.inMessage.ReadByte()
+		if err != nil {
+			cls.msgBadRead = true
+			return
+		}
+	}
+
+	e.SetBaseline(es)
+}
 
 func parse3Coord() (vec.Vec3, error) {
 	x, err := cls.inMessage.ReadCoord(cl.protocolFlags)
@@ -324,7 +423,7 @@ func CL_ParseServerMessage() {
 				continue
 			}
 			// must use CL_EntityNum() to force cl.num_entities up
-			C.CL_ParseBaseline(C.CL_EntityNum(C.int(i)), 1)
+			CL_ParseBaseline(int(i), 1)
 
 		case svc.SpawnStatic:
 			C.CL_ParseStatic(1)
@@ -458,19 +557,19 @@ func CL_ParseServerMessage() {
 				}
 				C.Fog_Update(density, red, green, blue, time)
 			}
-		case svc.SpawnBaseline2: // PROTOCOL_FITZQUAKE
+		case svc.SpawnBaseline2:
 			i, err := cls.inMessage.ReadInt16()
 			if err != nil {
 				cls.msgBadRead = true
 				continue
 			}
 			// must use CL_EntityNum() to force cl.num_entities up
-			C.CL_ParseBaseline(C.CL_EntityNum(C.int(i)), 2)
+			CL_ParseBaseline(int(i), 2)
 
-		case svc.SpawnStatic2: // PROTOCOL_FITZQUAKE
+		case svc.SpawnStatic2:
 			C.CL_ParseStatic(2)
 
-		case svc.SpawnStaticSound2: // PROTOCOL_FITZQUAKE
+		case svc.SpawnStaticSound2:
 			org, err := parse3Coord()
 			if err != nil {
 				cls.msgBadRead = true
