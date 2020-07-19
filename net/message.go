@@ -19,35 +19,59 @@ func (m *Message) Len() int {
 	return m.buf.Len()
 }
 
-func (m *Message) write(data interface{}) {
+func (m *Message) Write(data interface{}) {
 	binary.Write(&m.buf, binary.LittleEndian, data)
 }
 
 func (m *Message) WriteChar(c int) {
-	m.write(uint8(c))
+	m.Write(uint8(c))
 }
 
 func (m *Message) WriteByte(c int) {
-	m.write(uint8(c))
+	m.Write(uint8(c))
+}
+
+func (m *Message) WriteInt8(c int8) {
+	m.Write(c)
+}
+
+func (m *Message) WriteUint8(c uint8) {
+	m.Write(c)
 }
 
 func (m *Message) WriteShort(c int) {
-	m.write(int16(c))
+	m.Write(int16(c))
+}
+
+func (m *Message) WriteInt16(c int16) {
+	m.Write(c)
+}
+
+func (m *Message) WriteUint16(c uint16) {
+	m.Write(c)
 }
 
 func (m *Message) WriteLong(c int) {
-	m.write(int32(c))
+	m.Write(int32(c))
+}
+
+func (m *Message) WriteInt32(c int32) {
+	m.Write(c)
+}
+
+func (m *Message) WriteUint32(c uint32) {
+	m.Write(c)
 }
 
 func (m *Message) WriteFloat(c float32) {
-	m.write(c)
+	m.Write(c)
 }
 
 func (m *Message) WriteString(c string) {
 	if len(c) != 0 {
 		m.buf.WriteString(c)
 	}
-	m.WriteByte(0)
+	m.WriteUint8(0)
 }
 
 func rint(x float32) int {
@@ -59,32 +83,32 @@ func rint(x float32) int {
 
 func (m *Message) WriteCoord(f float32, flags uint32) {
 	if flags&protocol.PRFL_FLOATCOORD != 0 {
-		m.WriteFloat(f)
+		m.Write(f)
 	} else if flags&protocol.PRFL_INT32COORD != 0 {
-		m.WriteLong(rint(f * 16))
+		m.Write(int32(rint(f * 16)))
 	} else if flags&protocol.PRFL_24BITCOORD != 0 {
-		m.WriteShort(int(f))
-		m.WriteByte(rint(f*255) % 255)
+		m.Write(int16(f))
+		m.Write(uint8(rint(f*255) % 0xff))
 	} else {
-		m.WriteShort(rint(f * 8))
+		m.Write(int16(rint(f * 8)))
 	}
 }
 
 func (m *Message) WriteAngle(f float32, flags uint32) {
 	if flags&protocol.PRFL_FLOATANGLE != 0 {
-		m.WriteFloat(f)
+		m.Write(f)
 	} else if flags&protocol.PRFL_SHORTANGLE != 0 {
-		m.WriteShort(rint(f*65536.0/360) & 65535)
+		m.Write(int16(rint(f*65536.0/360) & 0xffff))
 	} else {
-		m.WriteByte(rint(f*256.0/360.0) & 255)
+		m.Write(uint8(rint(f*256.0/360.0) & 0xff))
 	}
 }
 
 func (m *Message) WriteAngle16(f float32, flags uint32) {
 	if flags&protocol.PRFL_FLOATANGLE != 0 {
-		m.WriteFloat(f)
+		m.Write(f)
 	} else {
-		m.WriteShort(rint(f*65536.0/360.0) & 65535)
+		m.Write(int16(rint(f*65536.0/360.0) & 0xffff))
 	}
 }
 
