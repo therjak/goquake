@@ -190,6 +190,22 @@ func parse3Coord() (vec.Vec3, error) {
 	return vec.Vec3{x, y, z}, nil
 }
 
+func parse3Angle() (vec.Vec3, error) {
+	x, err := cls.inMessage.ReadAngle(cl.protocolFlags)
+	if err != nil {
+		return vec.Vec3{}, err
+	}
+	y, err := cls.inMessage.ReadAngle(cl.protocolFlags)
+	if err != nil {
+		return vec.Vec3{}, err
+	}
+	z, err := cls.inMessage.ReadAngle(cl.protocolFlags)
+	if err != nil {
+		return vec.Vec3{}, err
+	}
+	return vec.Vec3{x, y, z}, nil
+}
+
 //export CL_ParseServerMessage
 func CL_ParseServerMessage() {
 	//  int cmd;
@@ -323,12 +339,22 @@ func CL_ParseServerMessage() {
 			screen.recalcViewRect = true // leave intermission full screen
 
 		case svc.SetAngle:
-			SetCLPitch(CL_MSG_ReadAngle(CL_ProtocolFlags()))
-			SetCLYaw(CL_MSG_ReadAngle(CL_ProtocolFlags()))
-			SetCLRoll(CL_MSG_ReadAngle(CL_ProtocolFlags()))
+			a, err := parse3Angle()
+			if err != nil {
+				cls.msgBadRead = true
+				continue
+			}
+			cl.pitch = a[0]
+			cl.yaw = a[1]
+			cl.roll = a[2]
 
 		case svc.SetView:
-			CL_SetViewentity(CL_MSG_ReadShort())
+			ve, err := cls.inMessage.ReadUint16()
+			if err != nil {
+				cls.msgBadRead = true
+				continue
+			}
+			cl.viewentity = int(ve)
 
 		case svc.LightStyle:
 			ReadLightStyle() // ReadByte + ReadString
@@ -405,11 +431,21 @@ func CL_ParseServerMessage() {
 				cls.msgBadRead = true
 				continue
 			}
-			for i := 0; i < 3; i++ {
-				dir[i] = float32(CL_MSG_ReadChar()) * (1.0 / 16)
+			var data struct {
+				Dir   [3]int8
+				Count uint8
+				Color uint8
 			}
-			count := int(CL_MSG_ReadByte())
-			color := int(CL_MSG_ReadByte())
+			err = cls.inMessage.Read(&data)
+			if err != nil {
+				cls.msgBadRead = true
+				continue
+			}
+			dir[0] = float32(data.Dir[0]) * (1.0 / 16)
+			dir[1] = float32(data.Dir[1]) * (1.0 / 16)
+			dir[2] = float32(data.Dir[2]) * (1.0 / 16)
+			count := int(data.Count)
+			color := int(data.Color)
 			if count == 255 {
 				count = 1024
 			}
@@ -488,17 +524,29 @@ func CL_ParseServerMessage() {
 				cls.msgBadRead = true
 				continue
 			}
-			sound_num := CL_MSG_ReadByte()
-			vol := CL_MSG_ReadByte()
-			atten := CL_MSG_ReadByte()
-			snd.Start(0, 0, cl.soundPrecache[sound_num-1], org, float32(vol)/255, float32(atten)/64, loopingSound)
+			var data struct {
+				Num uint8
+				Vol uint8
+				Att uint8
+			}
+			err = cls.inMessage.Read(&data)
+			if err != nil {
+				cls.msgBadRead = true
+				continue
+			}
+			snd.Start(0, 0, cl.soundPrecache[data.Num-1], org, float32(data.Vol)/255, float32(data.Att)/64, loopingSound)
 
 		case svc.CDTrack:
 			// nobody uses cds anyway. just ignore
-			// track number
-			CL_MSG_ReadByte()
-			// read byte for cl.looptrack
-			CL_MSG_ReadByte()
+			var data struct {
+				TrackNumber uint8
+				Loop        uint8 // was for cl.looptrack
+			}
+			err := cls.inMessage.Read(&data)
+			if err != nil {
+				cls.msgBadRead = true
+				continue
+			}
 
 		case svc.Intermission:
 			CL_SetIntermission(1)
@@ -545,11 +593,23 @@ func CL_ParseServerMessage() {
 
 		case svc.Fog:
 			{
-				density := C.float(CL_MSG_ReadByte()) / 255.0
-				red := C.float(CL_MSG_ReadByte()) / 255.0
-				green := C.float(CL_MSG_ReadByte()) / 255.0
-				blue := C.float(CL_MSG_ReadByte()) / 255.0
-				time := C.float(CL_MSG_ReadByte()) / 100.0
+				var data struct {
+					Density uint8
+					Red     uint8
+					Green   uint8
+					Blue    uint8
+					Time    uint8
+				}
+				err := cls.inMessage.Read(&data)
+				if err != nil {
+					cls.msgBadRead = true
+					continue
+				}
+				density := C.float(data.Density) / 255.0
+				red := C.float(data.Red) / 255.0
+				green := C.float(data.Green) / 255.0
+				blue := C.float(data.Blue) / 255.0
+				time := C.float(data.Time) / 100.0
 				if time < 0 {
 					time = 0
 				}
@@ -572,10 +632,17 @@ func CL_ParseServerMessage() {
 				cls.msgBadRead = true
 				continue
 			}
-			sound_num := CL_MSG_ReadShort()
-			vol := CL_MSG_ReadByte()
-			atten := CL_MSG_ReadByte()
-			snd.Start(0, 0, cl.soundPrecache[sound_num-1], org, float32(vol)/255, float32(atten)/64, loopingSound)
+			var data struct {
+				Num uint16
+				Vol uint8
+				Att uint8
+			}
+			err = cls.inMessage.Read(&data)
+			if err != nil {
+				cls.msgBadRead = true
+				continue
+			}
+			snd.Start(0, 0, cl.soundPrecache[data.Num-1], org, float32(data.Vol)/255, float32(data.Att)/64, loopingSound)
 		}
 
 		lastcmd = cmd
