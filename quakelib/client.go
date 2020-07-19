@@ -298,16 +298,6 @@ func CL_MViewAngles(i, j int) float32 {
 	return cl.mViewAngles[i][j]
 }
 
-//export SetCL_MViewAngles
-func SetCL_MViewAngles(i, j int, v float32) {
-	cl.mViewAngles[i][j] = v
-}
-
-//export CL_SetMVelocity
-func CL_SetMVelocity(i, j int, v float32) {
-	cl.mVelocity[i][j] = v
-}
-
 //export CL_MVelocity
 func CL_MVelocity(i, j int) float32 {
 	return cl.mVelocity[i][j]
@@ -318,24 +308,9 @@ func CL_SetVelocity(i int, v float32) {
 	cl.velocity[i] = v
 }
 
-//export CL_SetLastStop
-func CL_SetLastStop(s float64) {
-	cl.lastStop = s
-}
-
-//export CL_MaxEdicts
-func CL_MaxEdicts() int {
-	return cl.maxEdicts
-}
-
 //export CL_SetMaxEdicts
 func CL_SetMaxEdicts(num int) {
 	cl.maxEdicts = num
-}
-
-//export CL_SetIntermission
-func CL_SetIntermission(i C.int) {
-	cl.intermission = int(i)
 }
 
 func (c *Client) UpdateFaceAnimTime() {
@@ -357,11 +332,6 @@ func CL_SetMaxClients(m int) {
 	cl.scores = make([]score, m)
 }
 
-//export CL_ScoresSetName
-func CL_ScoresSetName(i int, c *C.char) {
-	cl.scores[i].name = C.GoString(c)
-}
-
 //export CL_SetLevelName
 func CL_SetLevelName(c *C.char) {
 	cl.levelName = C.GoString(c)
@@ -370,22 +340,6 @@ func CL_SetLevelName(c *C.char) {
 //export CL_SetMapName
 func CL_SetMapName(c *C.char) {
 	cl.mapName = C.GoString(c)
-}
-
-//export CL_ScoresSetFrags
-func CL_ScoresSetFrags(i int, f int) {
-	cl.scores[i].frags = f
-}
-
-//export CL_ScoresFrags
-func CL_ScoresFrags(i int) int {
-	return cl.scores[i].frags
-}
-
-//export CL_ScoresSetColors
-func CL_ScoresSetColors(i int, c int) {
-	cl.scores[i].topColor = (c & 0xf0) >> 4
-	cl.scores[i].bottomColor = c & 0x0f
 }
 
 //export CL_ScoresColors
@@ -398,11 +352,6 @@ func CL_Stats(s C.int) C.int {
 	return C.int(cl_stats(int(s)))
 }
 
-//export CL_SetStats
-func CL_SetStats(s, v C.int) {
-	cl_setStats(int(s), int(v))
-}
-
 //export CL_SetGameType
 func CL_SetGameType(t int) {
 	cl.gameType = t
@@ -410,11 +359,6 @@ func CL_SetGameType(t int) {
 
 func (c *Client) DeathMatch() bool {
 	return cl.gameType == svc.GameDeathmatch
-}
-
-//export CL_GameTypeDeathMatch
-func CL_GameTypeDeathMatch() bool {
-	return cl.DeathMatch()
 }
 
 //export CL_HasItem
@@ -425,11 +369,6 @@ func CL_HasItem(item uint32) bool {
 //export CL_ItemGetTime
 func CL_ItemGetTime(item int) float64 {
 	return cl.itemGetTime[item]
-}
-
-//export CL_SoundPrecache
-func CL_SoundPrecache(idx int) int {
-	return cl.soundPrecache[idx-1]
 }
 
 //export CL_SoundPrecacheClear
@@ -446,34 +385,34 @@ func cl_stats(s int) int {
 	switch s {
 	case stat.Health:
 		return cl.stats.health
-	case stat.Frags:
-		return cl.stats.frags
+		//	case stat.Frags:
+		//		return cl.stats.frags
 	case stat.Weapon:
 		return cl.stats.weapon
-	case stat.Ammo:
-		return cl.stats.ammo
-	case stat.Armor:
-		return cl.stats.armor
-	case stat.WeaponFrame:
-		return cl.stats.weaponFrame
-	case stat.Shells:
-		return cl.stats.shells
-	case stat.Nails:
-		return cl.stats.nails
-	case stat.Rockets:
-		return cl.stats.rockets
-	case stat.Cells:
-		return cl.stats.cells
+		//	case stat.Ammo:
+		//		return cl.stats.ammo
+		//	case stat.Armor:
+		//		return cl.stats.armor
+		//	case stat.WeaponFrame:
+		//		return cl.stats.weaponFrame
+		//	case stat.Shells:
+		//		return cl.stats.shells
+		//	case stat.Nails:
+		//		return cl.stats.nails
+		//	case stat.Rockets:
+		//		return cl.stats.rockets
+		//	case stat.Cells:
+		//		return cl.stats.cells
 	case stat.ActiveWeapon:
 		return cl.stats.activeWeapon
-	case stat.TotalSecrets:
-		return cl.stats.totalSecrets
-	case stat.TotalMonsters:
-		return cl.stats.totalMonsters
-	case stat.Secrets:
-		return cl.stats.secrets
-	case stat.Monsters:
-		return cl.stats.monsters
+		//	case stat.TotalSecrets:
+		//		return cl.stats.totalSecrets
+		//	case stat.TotalMonsters:
+		//		return cl.stats.totalMonsters
+		//	case stat.Secrets:
+		//		return cl.stats.secrets
+		//	case stat.Monsters:
+		//		return cl.stats.monsters
 	default:
 		log.Printf("Unknown cl stat %v", s)
 		return 0
@@ -524,11 +463,6 @@ func CL_Clear() {
 	clearLightStyles()
 }
 
-//export CL_SetViewentity
-func CL_SetViewentity(v C.int) {
-	cl.viewentity = int(v)
-}
-
 //export CL_Viewentity
 func CL_Viewentity() C.int {
 	return C.int(cl.viewentity)
@@ -559,16 +493,6 @@ func CL_Paused() bool {
 	return cl.paused
 }
 
-//export CL_SetPaused
-func CL_SetPaused(t C.int) {
-	cl.paused = (t != 0)
-}
-
-//export CL_SetOnGround
-func CL_SetOnGround(t C.int) {
-	cl.onGround = (t != 0)
-}
-
 //export CL_Time
 func CL_Time() C.double {
 	return C.double(cl.time)
@@ -584,19 +508,9 @@ func CL_MTime() C.double {
 	return C.double(cl.messageTime)
 }
 
-//export CL_SetMTime
-func CL_SetMTime(t C.double) {
-	cl.messageTime = float64(t)
-}
-
 //export CL_MTimeOld
 func CL_MTimeOld() C.double {
 	return C.double(cl.messageTimeOld)
-}
-
-//export CL_SetMTimeOld
-func CL_SetMTimeOld(t C.double) {
-	cl.messageTimeOld = float64(t)
 }
 
 //export CL_SetOldTime
@@ -609,19 +523,9 @@ func CL_SetLastReceivedMessage(t C.double) {
 	cl.lastReceivedMessageTime = float64(t)
 }
 
-//export CL_UpdateCompletedTime
-func CL_UpdateCompletedTime() {
-	cl.intermissionTime = int(cl.time)
-}
-
 //export CLS_GetState
 func CLS_GetState() C.int {
 	return C.int(cls.state)
-}
-
-//export CLS_NextDemoInCycle
-func CLS_NextDemoInCycle() {
-	cls.demoNum++
 }
 
 //export CLS_IsDemoPlayback
@@ -734,16 +638,6 @@ func (c *ClientStatic) getMessage() int {
 	}
 
 	return r
-}
-
-//export CL_MSG_ReadChar
-func CL_MSG_ReadChar() C.int {
-	i, err := cls.inMessage.ReadInt8()
-	if err != nil {
-		cls.msgBadRead = true
-		return -1
-	}
-	return C.int(i)
 }
 
 //export CL_MSG_ReadByte
@@ -961,7 +855,6 @@ func CL_SendCmd() {
 	cls.outProto.Reset()
 }
 
-//export CL_ParseStartSoundPacket
 func CL_ParseStartSoundPacket() {
 	err := parseStartSoundPacket(cls.inMessage)
 	if err != nil {
@@ -1333,11 +1226,6 @@ func (c *Client) calcPowerupColorShift() {
 	}
 }
 
-//export V_ParseDamage
-func V_ParseDamage(armor, blood int, x, y, z float32) {
-	cl.parseDamage(armor, blood, vec.Vec3{x, y, z})
-}
-
 func (c *Client) parseDamage(armor, blood int, from vec.Vec3) {
 	count := float32(armor)*0.5 + float32(blood)*0.5
 	if count < 10 {
@@ -1644,14 +1532,6 @@ func tracePosition(args []cmd.QArg, player int) {
 }
 
 // Server information pertaining to this client only
-//export CL_ParseClientdata
-func CL_ParseClientdata() {
-	err := cl.parseClientData()
-	if err != nil {
-		cls.msgBadRead = true
-	}
-}
-
 func (c *Client) parseClientData() error {
 	m, err := cls.inMessage.ReadUint16()
 	if err != nil {

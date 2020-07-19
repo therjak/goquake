@@ -272,7 +272,11 @@ func CL_ParseServerMessage() {
 			cl.messageTime = float64(t)
 
 		case svc.ClientData:
-			CL_ParseClientdata()
+			err := cl.parseClientData()
+			if err != nil {
+				cls.msgBadRead = true
+				continue
+			}
 
 		case svc.Version:
 			i, err := cls.inMessage.ReadInt32()
@@ -549,13 +553,13 @@ func CL_ParseServerMessage() {
 			}
 
 		case svc.Intermission:
-			CL_SetIntermission(1)
-			CL_UpdateCompletedTime()
+			cl.intermission = 1
+			cl.intermissionTime = int(cl.time)
 			screen.recalcViewRect = true // go to full screen
 
 		case svc.Finale:
-			CL_SetIntermission(2)
-			CL_UpdateCompletedTime()
+			cl.intermission = 2
+			cl.intermissionTime = int(cl.time)
 			screen.recalcViewRect = true // go to full screen
 			s, err := cls.inMessage.ReadString()
 			if err != nil {
@@ -566,8 +570,8 @@ func CL_ParseServerMessage() {
 			console.CenterPrint(s)
 
 		case svc.Cutscene:
-			CL_SetIntermission(3)
-			CL_UpdateCompletedTime()
+			cl.intermission = 3
+			cl.intermissionTime = int(cl.time)
 			screen.recalcViewRect = true // go to full screen
 			s, err := cls.inMessage.ReadString()
 			if err != nil {
