@@ -1,27 +1,13 @@
 #ifndef _CLIENT_H_
 #define _CLIENT_H_
 
-// client.h
-
-typedef struct {
-  char name[MAX_SCOREBOARDNAME];
-} scoreboard_t;
-
-#define NAME_LENGTH 64
-
-//
 // client_state_t should hold all pieces of the client state
-//
 
 #define SIGNONS 4  // signon messages to receive before connected
 
 #include "beam.h"
 
 #define MAX_EFRAGS 4096  // ericw -- was 2048 //johnfitz -- was 640
-
-#define MAX_MAPSTRING 2048
-#define MAX_DEMOS 8
-#define MAX_DEMONAME 16
 
 typedef enum {
   ca_dedicated = 0,     // a dedicated server with no ability to start a client
@@ -54,8 +40,6 @@ extern cvar_t cl_shownet;
 #define MAX_STATIC_ENTITIES 512  // johnfitz -- was 128
 #define MAX_VISEDICTS 4096       // larger, now we support BSP2
 
-// FIXME, allocate dynamically
-extern efrag_t cl_efrags[MAX_EFRAGS];
 extern entity_t cl_static_entities[MAX_STATIC_ENTITIES];
 extern entity_t cl_temp_entities[MAX_TEMP_ENTITIES];
 extern entity_t *cl_visedicts[MAX_VISEDICTS];
@@ -65,35 +49,15 @@ extern entity_t *cl_entities;  // johnfitz -- was a static array, now on hunk
 
 //=============================================================================
 
-//
 // cl_main
-//
-
 void CL_Init(void);
 
-//
 // cl_input
-//
 void CL_UpdateTEnts(void);
-
 void CL_ClearState(void);
 
-//
-// cl_parse.c
-//
-void CL_ParseServerMessage(void);
-
-//
-// cl_tent
-//
-void CL_InitTEnts(void);
-
-//
 // chase
-//
 extern cvar_t chase_active;
-
 void Chase_Init(void);
-void Chase_UpdateForDrawing(void);  // johnfitz
 
 #endif /* _CLIENT_H_ */
