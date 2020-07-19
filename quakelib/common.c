@@ -275,7 +275,3 @@ skipwhite:
   com_token[len] = 0;
   return data;
 }
-
-static void COM_Game_f(void) {
-  // TODO(therjak): broken as Cmd_Argv point always to the same buffer
-}

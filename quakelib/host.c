@@ -17,16 +17,9 @@ Memory is cleared / released when a server or client begins, not when they end.
 
 quakeparms_t *host_parms;
 
-qboolean host_initialized;  // true if into command execution
-
 int host_hunklevel;
 
-int minimum_memory;
 
-jmp_buf host_abortserver;
-
-cvar_t host_speeds;
-cvar_t host_timescale;
 cvar_t max_edicts;
 cvar_t developer;
 
@@ -52,22 +45,6 @@ void Host_Error(const char *error, ...) {
 }
 
 qboolean noclip_anglehack;
-
-/*
-=======================
-Host_InitLocal
-======================
-*/
-void Host_InitLocal(void) {
-  // Host_InitCommands();
-
-  Cvar_FakeRegister(&host_speeds, "host_speeds");
-  Cvar_FakeRegister(&host_timescale, "host_timescale");
-  Cvar_FakeRegister(&max_edicts, "max_edicts");
-  Cvar_FakeRegister(&developer, "developer");
-
-  Host_FindMaxClients();
-}
 
 /*
 ================
@@ -97,6 +74,7 @@ Host_Init
 ====================
 */
 void Host_Init(void) {
+int minimum_memory;
   if (CMLStandardQuake())
     minimum_memory = MINIMUM_MEMORY;
   else
@@ -110,7 +88,9 @@ void Host_Init(void) {
 
   Memory_Init(host_parms->membase, host_parms->memsize);
   COM_InitFilesystem();
-  Host_InitLocal();
+  Cvar_FakeRegister(&max_edicts, "max_edicts");
+  Cvar_FakeRegister(&developer, "developer");
+  Host_FindMaxClients();
   Go_LoadWad();
   if (CLS_GetState() != ca_dedicated) {
     Key_Init();

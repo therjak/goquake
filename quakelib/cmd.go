@@ -22,11 +22,6 @@ func Cmd_Argc() C.int {
 	return C.int(cmd.Argc())
 }
 
-//export Cmd_ArgvInt
-func Cmd_ArgvInt(i C.int) *C.char {
-	return C.CString(cmd.Argv(int(i)).String())
-}
-
 //export Cmd_ArgvAsDouble
 func Cmd_ArgvAsDouble(i C.int) C.double {
 	return C.double(cmd.ArgvAsDouble(int(i)))

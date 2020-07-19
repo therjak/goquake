@@ -194,7 +194,6 @@ typedef struct {
 } quakeparms_t;
 
 #include "bspfile.h"
-#include "cmd.h"
 #include "common.h"
 #include "cvar.h"
 #include "mathlib.h"
@@ -231,24 +230,11 @@ extern quakeparms_t *host_parms;
 extern cvar_t developer;
 extern cvar_t max_edicts;  // johnfitz
 
-extern qboolean host_initialized;  // true if into command execution
-extern double host_frametime;
-extern byte *host_colormap;
-
 void Host_ClearMemory(void);
-void Host_ServerFrame(void);
 void Host_Init(void);
 void Host_Error(const char *error, ...);
 //    __attribute__((__format__(__printf__, 1, 2), __noreturn__));
 // void Host_EndGame(const char *message);
-
-void ExtraMaps_Init(void);
-void Modlist_Init(void);
-void DemoList_Init(void);
-
-void DemoList_Rebuild(void);
-
-extern int minimum_memory;
 
 #ifdef __cplusplus
 }
