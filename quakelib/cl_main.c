@@ -10,8 +10,6 @@
 // these two are not intended to be set directly
 cvar_t cl_shownet;
 
-client_static_t cls;
-byte cls_msg_buf[1024];
 client_state_t cl;
 
 // FIXME: put these on hunk?

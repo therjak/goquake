@@ -30,38 +30,16 @@ typedef enum {
 } cactive_t;
 
 //
-// the client_static_t structure is persistant through an arbitrary number
-// of server connections
-//
-typedef struct {
-  // demo loop control
-  FILE *demofile;
-} client_static_t;
-
-extern client_static_t cls;
-
-//
 // the client_state_t structure is wiped completely at every
 // server signon
 //
 typedef struct {
-  //
   // information that is static for the entire time connected to a server
-  //
   struct qmodel_s *model_precache[MAX_MODELS];
-
-  char mapname[128];  // therjak
 
   // refresh related state
   struct qmodel_s *worldmodel;  // cl_entitites[0].model
   struct efrag_s *free_efrags;
-  // See go: client.numEntities
-  // int num_entities;  // held in cl_entities array
-  // See go: client.numStatics
-  // int num_statics;   // held in cl_staticentities array
-
-  // frag scoreboard
-  scoreboard_t *scores;  // [cl.maxclients] // therjak
 } client_state_t;
 
 extern entity_t cl_viewent;  // the gun model

@@ -219,8 +219,6 @@ void CL_ParseServerInfo(void) {
   if (CL_MaxClients() < 1 || CL_MaxClients() > MAX_SCOREBOARD) {
     Host_Error("Bad maxclients (%u) from server", CL_MaxClients());
   }
-  cl.scores = (scoreboard_t *)Hunk_AllocName(
-      CL_MaxClients() * sizeof(*cl.scores), "scores");
 
   // parse gametype
   CL_SetGameType(CL_MSG_ReadByte());
@@ -279,9 +277,10 @@ void CL_ParseServerInfo(void) {
   //
 
   // copy the naked name of the map file to the cl structure -- O.S
-  COM_StripExtension(COM_SkipPath(model_precache[1]), cl.mapname,
-                     sizeof(cl.mapname));
-  CL_SetMapName(cl.mapname);
+  char mapname[128];
+  COM_StripExtension(COM_SkipPath(model_precache[1]), mapname,
+                     sizeof(mapname));
+  CL_SetMapName(mapname);
 
   for (i = 1; i < nummodels; i++) {
     cl.model_precache[i] = Mod_ForName(model_precache[i], false);
