@@ -12,8 +12,6 @@ typedef struct {
   int height;
 } vmode_t;
 
-static char *gl_extensions_nice;
-
 static void GL_Init(void);
 static void GL_SetupState(void);
 
@@ -114,27 +112,7 @@ static void VID_Test(void) {
   }
 }
 
-static qboolean GL_ParseExtensionList(const char *list, const char *name) {
-  const char *start;
-  const char *where, *terminator;
-
-  if (!list || !name || !*name) return false;
-  if (strchr(name, ' ') != NULL)
-    return false;  // extension names must not have spaces
-
-  start = list;
-  while (1) {
-    where = strstr(start, name);
-    if (!where) break;
-    terminator = where + strlen(name);
-    if (where == start || where[-1] == ' ')
-      if (*terminator == ' ' || *terminator == '\0') return true;
-    start = terminator;
-  }
-  return false;
-}
-
-static void GL_CheckExtensions(const char *gl_extensions) {
+static void GL_CheckExtensions() {
   int swap_control;
   // swap control
   //
@@ -194,7 +172,6 @@ void GL_Init(void) {
   const char *gl_vendor = (const char *)glGetString(GL_VENDOR);
   const char *gl_renderer = (const char *)glGetString(GL_RENDERER);
   const char *gl_version = (const char *)glGetString(GL_VERSION);
-  const char *gl_extensions = (const char *)glGetString(GL_EXTENSIONS);
 
   Con_SafePrintf("GL_VENDOR: %s\n", gl_vendor);
   Con_SafePrintf("GL_RENDERER: %s\n", gl_renderer);
@@ -208,7 +185,7 @@ void GL_Init(void) {
     Go_Error("Need OpenGL version 2 or later");
   }
 
-  GL_CheckExtensions(gl_extensions);
+  GL_CheckExtensions();
 
   // johnfitz -- intel video workarounds from Baker
   if (!strcmp(gl_vendor, "Intel")) {
