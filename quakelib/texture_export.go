@@ -165,7 +165,7 @@ func TexMgrInit() {
 	gl.GetFloatv(gl.MAX_TEXTURE_MAX_ANISOTROPY, &textureManager.maxAnisotropy)
 	gl.GetIntegerv(gl.MAX_TEXTURE_SIZE, &textureManager.maxTextureSize)
 	palette.Init()
-	TexMgrRecalcWarpImageSize()
+	textureManager.RecalcWarpImageSize(screen.Width, screen.Height)
 	nullTexture = textureManager.LoadNoTex("nulltexture", 2, 2, []byte{
 		127, 191, 255, 255, 0, 0, 0, 255,
 		0, 0, 0, 255, 127, 191, 255, 255,
@@ -188,11 +188,6 @@ func TexMgrReloadImages() {
 	// This is the reverse of TexMgrFreeTexturesObjects
 	// It is only called on VID_Restart (resolution change, vid_restart)
 	textureManager.ReloadImages()
-}
-
-//export TexMgrRecalcWarpImageSize
-func TexMgrRecalcWarpImageSize() {
-	textureManager.RecalcWarpImageSize(screen.Width, screen.Height)
 }
 
 //export GLDisableMultitexture

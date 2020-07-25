@@ -7,112 +7,15 @@
 #define MAXWIDTH 10000
 #define MAXHEIGHT 10000
 
-typedef struct {
-  int width;
-  int height;
-} vmode_t;
-
-static void GL_Init(void);
-static void GL_SetupState(void);
-
-qboolean gl_glsl_able = false;
-int gl_stencilbits;
-
 //====================================
 
-static cvar_t vid_fullscreen;
-static cvar_t vid_width;
-static cvar_t vid_height;
 static cvar_t vid_vsync;
+int gl_stencilbits; // TODO: fill with (SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &gl_stencilbits)
 
 cvar_t vid_gamma;
 cvar_t vid_contrast;
 
-static void VID_Restart(void) {
-  int width, height;
-  qboolean fullscreen;
-
-  if (VID_Locked() || !VIDChanged()) return;
-
-  width = (int)Cvar_GetValue(&vid_width);
-  height = (int)Cvar_GetValue(&vid_height);
-  fullscreen = Cvar_GetValue(&vid_fullscreen) ? true : false;
-
-  //
-  // validate new mode
-  //
-  if (!VID_ValidMode(width, height, fullscreen)) {
-    Sys_Print("VID_ValidMode == false");
-    Con_Printf("%dx%d %s is not a valid mode\n", width, height,
-               fullscreen ? "fullscreen" : "windowed");
-    return;
-  }
-
-  // ericw -- OS X, SDL1: textures, VBO's invalid after mode change
-  //          OS X, SDL2: still valid after mode change
-  // To handle both cases, delete all GL objects (textures, VBO, GLSL) now.
-  // We must not interleave deleting the old objects with creating new ones,
-  // because
-  // one of the new objects could be given the same ID as an invalid handle
-  // which is later deleted.
-
-  TexMgrDeleteTextureObjects();
-  GLSLGamma_DeleteTexture();
-  R_DeleteShaders();
-  GL_DeleteBModelVertexBuffer();
-  GLMesh_DeleteVertexBuffers();
-
-  //
-  // set new mode
-  //
-  VID_SetMode(width, height, fullscreen);
-
-  GL_Init();
-  TexMgrReloadImages();
-  GL_BuildBModelVertexBuffer();
-  GLMesh_LoadVertexBuffers();
-  GL_SetupState();
-  Fog_SetupState();
-
-  // warpimages needs to be recalculated
-  TexMgrRecalcWarpImageSize();
-
-  UpdateConsoleSize();
-  //
-  // keep cvars in line with actual mode
-  //
-  VID_SyncCvars();
-  //
-  // update mouse grab
-  //
-  if (GetKeyDest() == key_console || GetKeyDest() == key_menu) {
-    if (VID_GetModeState() == MS_WINDOWED)
-      IN_Deactivate();
-    else if (VID_GetModeState() == MS_FULLSCREEN)
-      IN_Activate();
-  }
-}
-
-static void VID_Test(void) {
-  int old_width, old_height, old_fullscreen;
-
-  if (VID_Locked() || !VIDChanged()) return;
-  old_width = VID_GetCurrentWidth();
-  old_height = VID_GetCurrentHeight();
-  old_fullscreen = VID_GetFullscreen();
-
-  VID_Restart();
-
-  if (!SCR_ModalMessage("Would you like to keep this\nvideo mode? (y/n)\n",
-                        5.0f)) {
-    Cvar_SetValueQuick(&vid_width, old_width);
-    Cvar_SetValueQuick(&vid_height, old_height);
-    Cvar_SetQuick(&vid_fullscreen, old_fullscreen ? "1" : "0");
-    VID_Restart();
-  }
-}
-
-static void GL_CheckExtensions() {
+void GL_CheckExtensions() {
   int swap_control;
   // swap control
   //
@@ -141,7 +44,7 @@ does all the stuff from GL_Init that needs to be done every time a new GL render
 context is created
 ===============
 */
-static void GL_SetupState(void) {
+void GL_SetupState(void) {
   glClearColor(0.15, 0.15, 0.15, 0);
   glCullFace(GL_BACK);
   glFrontFace(GL_CW);
@@ -198,15 +101,9 @@ void GL_Init(void) {
 }
 
 void VID_Init(void) {
-  Cvar_FakeRegister(&vid_fullscreen, "vid_fullscreen");
-  Cvar_FakeRegister(&vid_width, "vid_width");
-  Cvar_FakeRegister(&vid_height, "vid_height");
   Cvar_FakeRegister(&vid_vsync, "vid_vsync");
   Cvar_FakeRegister(&vid_gamma, "gamma");
   Cvar_FakeRegister(&vid_contrast, "contrast");
-
-  Cmd_AddCommand("vid_restart", VID_Restart);
-  Cmd_AddCommand("vid_test", VID_Test);
 
   VID_Init_Go();
 

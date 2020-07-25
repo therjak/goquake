@@ -71,7 +71,7 @@ func (m *MenuItemPlay) Enter() {
 		return
 	}
 
-	IN_Activate()
+	inputActivate()
 	keyDestination = keys.Game
 	if sv.active {
 		cbuf.AddText("disconnect\n")

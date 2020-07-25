@@ -103,7 +103,7 @@ func (c *qconsole) Toggle() {
 		// TODO(therjak): return to the bottom of the command history
 
 		if cls.state == ca_connected {
-			IN_Activate()
+			inputActivate()
 			keyDestination = keys.Game
 		} else {
 			enterMenuMain()

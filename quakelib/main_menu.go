@@ -50,7 +50,7 @@ func (m *qMainMenu) Draw() {
 func (m *qMainMenu) HandleKey(key kc.KeyCode) {
 	switch key {
 	case kc.ESCAPE, kc.BBUTTON:
-		IN_Activate()
+		inputActivate()
 		keyDestination = keys.Game
 		qmenu.state = menu.None
 		cls.demoNum = menuSaveDemoNumber

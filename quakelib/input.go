@@ -46,8 +46,7 @@ func (mouseFilter) FilterEvent(e sdl.Event, userdata interface{}) bool {
 
 var filterMouseEvents mouseFilter
 
-//export IN_Activate
-func IN_Activate() {
+func inputActivate() {
 	if !cmdl.Mouse() {
 		return
 	}
@@ -71,7 +70,7 @@ func inputInit() {
 			sdl.SetEventFilter(filterMouseEvents, nil)
 		}
 	}
-	IN_Activate()
+	inputActivate()
 }
 
 func updateInputMode() {

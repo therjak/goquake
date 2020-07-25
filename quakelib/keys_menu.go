@@ -79,7 +79,7 @@ func (m *qKeysMenu) HandleKey(key kc.KeyCode) {
 	case kc.ENTER, kc.KP_ENTER, kc.ABUTTON:
 		m.items[m.selectedIndex].Enter()
 		m.grabbed = true
-		IN_Activate()
+		inputActivate()
 	case kc.BACKSPACE, kc.DEL:
 		m.items[m.selectedIndex].Backspace()
 	}

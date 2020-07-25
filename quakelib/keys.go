@@ -433,7 +433,7 @@ func updateKeyDest() {
 	case keys.Console:
 		if updateKeyDestForced && cls.state == ca_connected {
 			updateKeyDestForced = false
-			IN_Activate()
+			inputActivate()
 			keyDestination = keys.Game
 		}
 	case keys.Game:

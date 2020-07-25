@@ -116,7 +116,7 @@ func toggleMenu() {
 }
 
 func enterMenuNone() {
-	IN_Activate()
+	inputActivate()
 	keyDestination = keys.Game
 	qmenu.state = menu.None
 }

@@ -119,7 +119,7 @@ func (m *MenuItemVideoAccept) Enter() {
 	cbuf.AddText("vid_restart\n")
 	keyDestination = keys.Game
 	qmenu.state = menu.None
-	IN_Activate()
+	inputActivate()
 }
 func (m *MenuItemVideoAccept) Draw() {
 	drawString(16, m.Y, "     Apply changes")

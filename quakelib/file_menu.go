@@ -73,7 +73,7 @@ func (m *fileMenuItem) Draw() {
 
 func (m *fileMenuItem) Save() {
 	qmenu.state = menu.None
-	IN_Activate()
+	inputActivate()
 	keyDestination = keys.Game
 	// TODO: use a direct save m.filename not cbuf style
 	cbuf.AddText(fmt.Sprintf("save %s\n", m.filename))
@@ -84,7 +84,7 @@ func (m *fileMenuItem) Load() {
 		return
 	}
 	qmenu.state = menu.None
-	IN_Activate()
+	inputActivate()
 	keyDestination = keys.Game
 
 	// Host_Loadgame_f can't bring up the loading plaque because too much

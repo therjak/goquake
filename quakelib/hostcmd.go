@@ -1048,7 +1048,7 @@ func hostMap(args []cmd.QArg, player int) {
 	hostShutdownServer(false)
 
 	if cls.state != ca_dedicated {
-		IN_Activate()
+		inputActivate()
 	}
 
 	keyDestination = keys.Game // remove console or menu
@@ -1093,7 +1093,7 @@ func hostChangelevel(args []cmd.QArg, player int) {
 		HostError("cannot find map %s", level)
 	}
 	if cls.state != ca_dedicated {
-		IN_Activate()
+		inputActivate()
 	}
 
 	// remove console or menu

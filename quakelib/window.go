@@ -1,8 +1,12 @@
 package quakelib
 
+//void GLSLGamma_DeleteTexture(void);
+import "C"
+
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/therjak/goquake/cbuf"
 	"github.com/therjak/goquake/cmd"
@@ -170,12 +174,13 @@ func toggleFullScreen() {
 			modestate = MS_WINDOWED
 		}
 		syncVideoCvars()
-		if keyDestination == keys.Console || keyDestination == keys.Menu {
+		switch keyDestination {
+		case keys.Console, keys.Menu:
 			switch modestate {
 			case MS_WINDOWED:
-				IN_Deactivate()
+				inputDeactivate(true) // free cursor
 			case MS_FULLSCREEN:
-				IN_Activate()
+				inputActivate()
 			}
 		}
 	}
@@ -249,6 +254,72 @@ func init() {
 	cmd.AddCommand("vid_describecurrentmode", describeCurrentMode)
 	cmd.AddCommand("vid_describemodes", describeModes)
 	cmd.AddCommand("vid_unlock", vidUnlock)
+	cmd.AddCommand("vid_restart", vidRestart)
+	cmd.AddCommand("vid_test", vidTest)
+}
+
+func vidRestart(_ []cmd.QArg, _ int) {
+	if videoLocked || !videoChanged {
+		return
+	}
+
+	width := int32(cvars.VideoWidth.Value())
+	height := int32(cvars.VideoHeight.Value())
+	fullscreen := cvars.VideoFullscreen.Bool()
+
+	if !validDisplayMode(width, height, fullscreen) {
+		mode := "fullscreen"
+		if !fullscreen {
+			mode = "windowed"
+		}
+		conlog.Printf("%dx%d %s is not a valid mode\n", width, height, mode)
+		return
+	}
+
+	C.GLSLGamma_DeleteTexture() // texture size matches screen size
+
+	videoSetMode(width, height, fullscreen)
+
+	// warpimages needs to be recalculated
+	textureManager.RecalcWarpImageSize(screen.Width, screen.Height)
+
+	updateConsoleSize()
+	// keep cvars in line with actual mode
+	syncVideoCvars()
+
+	qCanvas.UpdateSize()
+
+	// update mouse grab
+	switch keyDestination {
+	case keys.Console, keys.Menu:
+		switch modestate {
+		case MS_WINDOWED:
+			inputDeactivate(true) // free cursor
+		case MS_FULLSCREEN:
+			inputActivate()
+		}
+	}
+}
+
+func vidTest(_ []cmd.QArg, _ int) {
+	if videoLocked || !videoChanged {
+		return
+	}
+	oldWidth, oldHeight := window.Size()
+	oldFullscreen := window.Fullscreen()
+
+	vidRestart(nil, 0)
+
+	if !screen.ModalMessage("Would you like to keep this\nvideo mode? (y/n)\n", time.Second*5) {
+		cvars.VideoWidth.SetValue(float32(oldWidth))
+		cvars.VideoHeight.SetValue(float32(oldHeight))
+		if oldFullscreen {
+			cvars.VideoFullscreen.SetByString("1")
+		} else {
+			cvars.VideoFullscreen.SetByString("0")
+		}
+		vidRestart(nil, 0)
+	}
 }
 
 func vidUnlock(_ []cmd.QArg, _ int) {
