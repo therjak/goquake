@@ -212,7 +212,6 @@ typedef struct {
 #include "gl_texmgr.h"  //johnfitz
 #include "glquake.h"
 #include "render.h"
-#include "vid.h"
 
 //=============================================================================
 
