@@ -1,6 +1,7 @@
 package quakelib
 
 // void GLSLGamma_GammaCorrect(void);
+// void GLSLGamma_DeleteTexture(void);
 import "C"
 
 //export GL_Height
@@ -15,4 +16,8 @@ func GL_Width() int {
 
 func GLSLGamma_GammaCorrect() {
 	C.GLSLGamma_GammaCorrect()
+}
+
+func GLSLGamma_DeleteTexture() {
+	C.GLSLGamma_DeleteTexture()
 }

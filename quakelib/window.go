@@ -1,8 +1,5 @@
 package quakelib
 
-//void GLSLGamma_DeleteTexture(void);
-import "C"
-
 import (
 	"fmt"
 	"strconv"
@@ -277,7 +274,7 @@ func vidRestart(_ []cmd.QArg, _ int) {
 		return
 	}
 
-	C.GLSLGamma_DeleteTexture() // texture size matches screen size
+	GLSLGamma_DeleteTexture() // texture size matches screen size
 
 	videoSetMode(width, height, fullscreen)
 
