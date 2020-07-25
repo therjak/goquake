@@ -1,40 +1,11 @@
 #include "quakedef.h"
 
-#define MAX_MODE_LIST 600
-#define MAX_BPPS_LIST 5
-#define WARP_WIDTH 320
-#define WARP_HEIGHT 200
-#define MAXWIDTH 10000
-#define MAXHEIGHT 10000
-
 //====================================
 
-static cvar_t vid_vsync;
 int gl_stencilbits; // TODO: fill with (SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &gl_stencilbits)
 
 cvar_t vid_gamma;
 cvar_t vid_contrast;
-
-void GL_CheckExtensions() {
-  int swap_control;
-  // swap control
-  //
-  if (!VIDGLSwapControl()) {
-    Con_Warning(
-        "vertical sync not supported (SDL_GL_SetSwapInterval failed)\n");
-  } else if ((swap_control = VIDGetSwapInterval()) == -1) {
-    SetVIDGLSwapControl(false);
-    Con_Warning(
-        "vertical sync not supported (SDL_GL_GetSwapInterval failed)\n");
-  } else if ((Cvar_GetValue(&vid_vsync) && swap_control != 1) ||
-             (!Cvar_GetValue(&vid_vsync) && swap_control != 0)) {
-    SetVIDGLSwapControl(false);
-    Con_Warning(
-        "vertical sync not supported (swap_control doesn't match vid_vsync)\n");
-  } else {
-    Con_Printf("FOUND: SDL_GL_SetSwapInterval\n");
-  }
-}
 
 /*
 ===============
@@ -64,50 +35,14 @@ void GL_SetupState(void) {
   glDepthFunc(GL_LEQUAL);
 }
 
-/*
-===============
-GL_Init
-===============
-*/
-void GL_Init(void) {
-  int gl_version_major;
-  int gl_version_minor;
-  const char *gl_vendor = (const char *)glGetString(GL_VENDOR);
-  const char *gl_renderer = (const char *)glGetString(GL_RENDERER);
-  const char *gl_version = (const char *)glGetString(GL_VERSION);
-
-  Con_SafePrintf("GL_VENDOR: %s\n", gl_vendor);
-  Con_SafePrintf("GL_RENDERER: %s\n", gl_renderer);
-  Con_SafePrintf("GL_VERSION: %s\n", gl_version);
-
-  if (gl_version == NULL ||
-      sscanf(gl_version, "%d.%d", &gl_version_major, &gl_version_minor) < 2) {
-    gl_version_major = 0;
-  }
-  if (gl_version_major < 2) {
-    Go_Error("Need OpenGL version 2 or later");
-  }
-
-  GL_CheckExtensions();
-
-  // johnfitz -- intel video workarounds from Baker
-  if (!strcmp(gl_vendor, "Intel")) {
-    Con_Printf("Intel Display Adapter detected, enabling gl_clear\n");
-    Cbuf_AddText("gl_clear 1");
-  }
-
-  GLAlias_CreateShaders();
-  GL_ClearBufferBindings();
-}
-
 void VID_Init(void) {
-  Cvar_FakeRegister(&vid_vsync, "vid_vsync");
   Cvar_FakeRegister(&vid_gamma, "gamma");
   Cvar_FakeRegister(&vid_contrast, "contrast");
 
   VID_Init_Go();
 
-  GL_Init();
+	GLAlias_CreateShaders();
+	GL_ClearBufferBindings();
   GL_SetupState();
 }
 

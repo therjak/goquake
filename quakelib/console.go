@@ -449,7 +449,9 @@ func conPrintf(format string, v ...interface{}) {
 func conSafePrintf(format string, v ...interface{}) {
 	tmp := screen.disabled
 	screen.disabled = true
-	console.Printf(format, v...)
+	s := fmt.Sprintf(format, v...)
+	log.Print(s)
+	console.Print(s)
 	screen.disabled = tmp
 }
 

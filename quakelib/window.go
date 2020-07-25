@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/therjak/goquake/cbuf"
 	"github.com/therjak/goquake/cmd"
 	cmdl "github.com/therjak/goquake/commandline"
@@ -454,10 +455,42 @@ func videoInit() error {
 	videoLocked = true
 
 	inputInit()
+	printGLInfo()
+	checkVSync()
 	return nil
 }
 
-func getSwapInterval() int {
+func checkVSync() {
+	if !glSwapControl {
+		conlog.Warning("vertical sync not supported (SDL_GL_SetSwapInterval failed)\n")
+		return
+	}
 	i, _ := sdl.GLGetSwapInterval()
-	return i
+	wantVSync := cvars.VideoVerticalSync.Bool()
+	switch {
+	case i == -1:
+		glSwapControl = false
+		conlog.Warning("vertical sync not supported (SDL_GL_GetSwapInterval failed)\n")
+	case i == 0 && wantVSync, i == 1 && !wantVSync:
+		glSwapControl = false
+		conlog.Warning("vertical sync not supported (swap_control doesn't match vid_vsync)\n")
+	default:
+		conlog.Printf("FOUND: SDL_GL_SetSwapInterval\n")
+	}
+}
+
+func printGLInfo() {
+	vendor := gl.GoStr(gl.GetString(gl.VENDOR))
+	conlog.SafePrintf("GL_VENDOR: %s\n", vendor)
+
+	renderer := gl.GoStr(gl.GetString(gl.RENDERER))
+	conlog.SafePrintf("GL_RENDERER: %s\n", renderer)
+
+	version := gl.GoStr(gl.GetString(gl.VERSION))
+	conlog.SafePrintf("GL_VERSION: %s\n", version)
+
+	if vendor == "Intel" {
+		conlog.Printf("Intel Display Adapter detected, enabling gl_clear\n")
+		cbuf.AddText("gl_clear 1\n") // queue to override config file setting
+	}
 }

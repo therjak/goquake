@@ -6,21 +6,6 @@ import (
 	"fmt"
 )
 
-//export VIDGLSwapControl
-func VIDGLSwapControl() bool {
-	return glSwapControl
-}
-
-//export SetVIDGLSwapControl
-func SetVIDGLSwapControl(v C.int) {
-	glSwapControl = (v != 0)
-}
-
-//export VIDGetSwapInterval
-func VIDGetSwapInterval() int {
-	return getSwapInterval()
-}
-
 //export VID_Init_Go
 func VID_Init_Go() {
 	err := videoInit()
