@@ -73,11 +73,20 @@ var (
 	}
 )
 
-//export CL_ParseBaseline
-func CL_ParseBaseline(i, version int) {
+//export CL_ParseBaselineS
+func CL_ParseBaselineS(i, version int) {
+	e := cl.StaticEntityNum(i)
+	CL_ParseBaseline(e, version)
+}
+
+func CL_ParseBaselineD(i, version int) {
+	e := cl.EntityNum(i)
+	CL_ParseBaseline(e, version)
+}
+
+func CL_ParseBaseline(e *Entity, version int) {
 	var err error
 	// must use CL_EntityNum() to force cl.num_entities up
-	e := cl.EntityNum(i)
 	es := &EntityState{
 		Alpha: svc.EntityAlphaDefault,
 	}
@@ -461,7 +470,7 @@ func CL_ParseServerMessage() {
 				cls.msgBadRead = true
 				continue
 			}
-			CL_ParseBaseline(int(i), 1)
+			CL_ParseBaselineD(int(i), 1)
 
 		case svc.SpawnStatic:
 			C.CL_ParseStatic(1)
@@ -625,7 +634,7 @@ func CL_ParseServerMessage() {
 				cls.msgBadRead = true
 				continue
 			}
-			CL_ParseBaseline(int(i), 2)
+			CL_ParseBaselineD(int(i), 2)
 
 		case svc.SpawnStatic2:
 			C.CL_ParseStatic(2)

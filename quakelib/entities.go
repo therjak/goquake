@@ -8,6 +8,8 @@ package quakelib
 //extern entity_t cl_viewent;
 //typedef entity_t* entityPtr;
 //inline entity_t* getCLEntity(int i) { return &cl_entities[i]; }
+//extern entity_t cl_static_entities[512];
+//inline entity_t* getStaticEntity(int i) { return &cl_static_entities[i]; }
 //#endif
 import "C"
 
@@ -68,6 +70,10 @@ func CL_EntityNum(num int) C.entityPtr {
 	}
 
 	return cl.Entities(num).ptr
+}
+
+func (c *Client) StaticEntityNum(num int) *Entity {
+	return &Entity{C.getStaticEntity(C.int(num))}
 }
 
 func (c *Client) EntityNum(num int) *Entity {

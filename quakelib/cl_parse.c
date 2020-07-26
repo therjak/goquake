@@ -542,7 +542,7 @@ void CL_ParseStatic(int version)  // johnfitz -- added a parameter
 
   ent = &cl_static_entities[i];
   Inc_CL_num_statics();
-  CL_ParseBaseline(i, version);  // johnfitz -- added second parameter
+  CL_ParseBaselineS(i, version);  // johnfitz -- added second parameter
 
   // copy it to the current state
 
