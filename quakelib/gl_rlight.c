@@ -89,13 +89,12 @@ DYNAMIC LIGHTS
 R_MarkLights -- johnfitz -- rewritten to use LordHavoc's lighting speedup
 =============
 */
-void R_MarkLights(dlight_t *light, int num, mnode_t *node) {
+void R_MarkLight(dlight_t* light, int num, mnode_t *node) {
   mplane_t *splitplane;
   msurface_t *surf;
   vec3_t impact;
   float dist, l, maxdist;
   int i, j, s, t;
-
 start:
 
   if (node->contents < 0) return;
@@ -150,9 +149,9 @@ start:
   }
 
   if (node->children[0]->contents >= 0)
-    R_MarkLights(light, num, node->children[0]);
+    R_MarkLight(light, num, node->children[0]);
   if (node->children[1]->contents >= 0)
-    R_MarkLights(light, num, node->children[1]);
+    R_MarkLight(light, num, node->children[1]);
 }
 
 /*
@@ -161,20 +160,12 @@ R_PushDlights
 =============
 */
 void R_PushDlights(void) {
-  int i;
-  dlight_t *l;
-
   if (Cvar_GetValue(&gl_flashblend)) return; 
   // TODO(therjak): disabling flashblend is broken since transparent console
 
   r_dlightframecount = r_framecount + 1;  // because the count hasn't
                                           //  advanced yet for this frame
-  l = cl_dlights;
-
-  for (i = 0; i < MAX_DLIGHTS; i++, l++) {
-    if (l->die < CL_Time() || !l->radius) continue;
-    R_MarkLights(l, i, cl.worldmodel->nodes);
-  }
+  R_MarkLights(cl.worldmodel->nodes);
 }
 
 /*

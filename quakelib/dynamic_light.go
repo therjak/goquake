@@ -1,7 +1,9 @@
 package quakelib
 
 //#include "dlight.h"
+//#include "gl_model.h"
 //typedef dlight_t* dlightPtr;
+//void R_MarkLight(dlight_t* light, int num, mnode_t *node);
 //#ifndef HAS_GETDLIGHT
 //#define HAS_GETDLIGHT
 //static inline dlight_t* getDlight(int i) { return &cl_dlights[i]; }
@@ -57,5 +59,16 @@ func CL_DecayLights() {
 		if dl.radius < 0 {
 			dl.radius = 0
 		}
+	}
+}
+
+//export R_MarkLights
+func R_MarkLights(node *C.mnode_t) {
+	for i := 0; i < C.MAX_DLIGHTS; i++ {
+		dl := &C.cl_dlights[i]
+		if float64(dl.die) < cl.time || dl.radius == 0 {
+			continue
+		}
+		C.R_MarkLight(dl, C.int(i), node)
 	}
 }

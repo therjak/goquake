@@ -104,11 +104,6 @@ typedef struct entity_s {
   vec3_t currentangles;   // johnfitz -- transform lerping
 } entity_t;
 
-typedef struct {
-  vec3_t vieworg;
-  vec3_t viewangles;
-} refdef_t;
-
 //
 // refresh
 //

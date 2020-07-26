@@ -143,12 +143,7 @@ void R_DrawBrushModel(entity_t *e) {
   // calculate dynamic lighting for bmodel if it's not an
   // instanced model
   if (clmodel->firstmodelsurface != 0 && !Cvar_GetValue(&gl_flashblend)) {
-    for (k = 0; k < MAX_DLIGHTS; k++) {
-      if ((cl_dlights[k].die < CL_Time()) || (!cl_dlights[k].radius)) continue;
-
-      R_MarkLights(&cl_dlights[k], k,
-                   clmodel->nodes + clmodel->hulls[0].firstclipnode);
-    }
+    R_MarkLights(clmodel->nodes + clmodel->hulls[0].firstclipnode);
   }
 
   glPushMatrix();
