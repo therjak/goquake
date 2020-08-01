@@ -53,10 +53,22 @@ func Load(name string, data []byte) ([]*qm.QModel, error) {
 	}
 	switch h.Version {
 	case bspVersion:
-		// TODO: loadVertexes(fs(h.Vertexes, data),ret)
-		// TODO: loadEdgesV0(fs(h.Edges, data),ret)
+		vertexes, err := loadVertexes(fs(h.Vertexes, data))
+		if err != nil {
+			return nil, err
+		}
+		mod.Vertexes = vertexes
+		edges, err := loadEdgesV0(fs(h.Edges, data))
+		if err != nil {
+			return nil, err
+		}
+		mod.Edges = edges
 		// TODO: loadSurfaceEdges(fs(h.SurfaceEdges, data),ret)
-		// TODO: loadTextures(fs(h.Textures, data),ret)
+		textures, err := loadTextures(fs(h.Textures, data))
+		if err != nil {
+			return nil, err
+		}
+		mod.Textures = textures
 		// TODO: loadLighting(fs(h.Lighting, data),ret)
 		splanes, err := loadPlanes(fs(h.Planes, data))
 		if err != nil {
@@ -525,4 +537,103 @@ func buildSubmodels(mod []*model) ([]*qm.Submodel, error) {
 		})
 	}
 	return ret, nil
+}
+
+func loadTextures(data []byte) ([]*qm.Texture, error) {
+	numTex := int32(0)
+	buf := bytes.NewReader(data)
+	err := binary.Read(buf, binary.LittleEndian, &numTex)
+	if err != nil || numTex == 0 {
+		return nil, nil
+	}
+	t := make([]*qm.Texture, numTex)
+	for i := int32(0); i < numTex; i++ {
+		t[i] = &qm.Texture{}
+
+	}
+	// Texture {
+	// Width int
+	// Height int
+	// TextureChains [2]*Surface
+	// Texture
+	// Fullbright
+	// Warp }
+	return t, nil
+}
+
+func loadEdgesV0(data []byte) ([]*qm.MEdge, error) {
+	type dsedge struct {
+		V [2]uint16
+	}
+	const dsedgeSize = 4
+	if len(data)%dsedgeSize != 0 {
+		return nil, fmt.Errorf("MOD_LoadBmodel: funny lump size")
+	}
+	buf := bytes.NewReader(data)
+	count := len(data) / dsedgeSize
+	t := make([]*qm.MEdge, count)
+	var dedge dsedge
+	for i := 0; i < count; i++ {
+		err := binary.Read(buf, binary.LittleEndian, &dedge)
+		if err != nil {
+			return nil, fmt.Errorf("loadEdgesV0: %v", err)
+		}
+		edge := &qm.MEdge{}
+		edge.V[0] = int(dedge.V[0])
+		edge.V[1] = int(dedge.V[1])
+		t[i] = edge
+	}
+	return t, nil
+}
+
+func loadEdgesV2(data []byte) ([]*qm.MEdge, error) {
+	type dledge struct {
+		V [2]uint32
+	}
+	const dledgeSize = 8
+	if len(data)%dledgeSize != 0 {
+		return nil, fmt.Errorf("MOD_LoadBmodel: funny lump size")
+	}
+	buf := bytes.NewReader(data)
+	count := len(data) / dledgeSize
+	t := make([]*qm.MEdge, count)
+	var dedge dledge
+	for i := 0; i < count; i++ {
+		err := binary.Read(buf, binary.LittleEndian, &dedge)
+		if err != nil {
+			return nil, fmt.Errorf("loadEdgesV2: %v", err)
+		}
+		edge := &qm.MEdge{}
+		edge.V[0] = int(dedge.V[0])
+		edge.V[1] = int(dedge.V[1])
+		t[i] = edge
+	}
+	return t, nil
+}
+
+func loadVertexes(data []byte) ([]*qm.MVertex, error) {
+	type dvertex struct {
+		Point [3]float32
+	}
+	const dvertexSize = 12
+	if len(data)%dvertexSize != 0 {
+		return nil, fmt.Errorf("MOD_LoadBmodel: funny lump size")
+	}
+	buf := bytes.NewReader(data)
+	count := len(data) / dvertexSize
+	t := make([]*qm.MVertex, count)
+	var dv dvertex
+	for i := 0; i < count; i++ {
+		err := binary.Read(buf, binary.LittleEndian, &dv)
+		if err != nil {
+			return nil, fmt.Errorf("loadVertexes: %v", err)
+		}
+		v := &qm.MVertex{}
+		v.Position[0] = dv.Point[0]
+		v.Position[1] = dv.Point[1]
+		v.Position[2] = dv.Point[2]
+		t[i] = v
+	}
+	return t, nil
+
 }

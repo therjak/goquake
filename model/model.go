@@ -96,12 +96,12 @@ type Surface struct {
 type Texinfo struct{}
 
 type Texture struct {
-	Width        int
-	Height       int
-	TextureChans [2]*Surface
-	Texture      *texture.Texture
-	Fullbright   *texture.Texture
-	Warp         *texture.Texture
+	Width         int
+	Height        int
+	TextureChains [2]*Surface
+	Texture       *texture.Texture
+	Fullbright    *texture.Texture
+	Warp          *texture.Texture
 }
 
 // GLuint == uint32
@@ -109,9 +109,9 @@ type Texture struct {
 type ModType int
 
 const (
-	ModBrush  = ModType(iota)
-	ModSprite = ModType(iota)
-	ModAlias  = ModType(iota)
+	ModBrush ModType = iota
+	ModSprite
+	ModAlias
 )
 
 const (
@@ -130,6 +130,15 @@ type Submodel struct {
 	FaceCount    int
 }
 
+type MVertex struct {
+	Position vec.Vec3
+}
+
+type MEdge struct {
+	V                [2]int // unsigned int
+	CachedEdgeOffset int    // unsigned int
+}
+
 // Knows currently only what sv.models needs to know
 type QModel struct {
 	Name string
@@ -142,20 +151,20 @@ type QModel struct {
 	ClipMins vec.Vec3
 	ClipMaxs vec.Vec3
 
-	Submodels []*Submodel
-	Planes    []*Plane
-	Leafs     []*MLeaf
-	// vertexes
-	// edges
-	Nodes    []*MNode
-	Texinfos []*Texinfo
-	Surfaces []*Surface
-	// surfedge []int ?
+	Submodels    []*Submodel
+	Planes       []*Plane
+	Leafs        []*MLeaf
+	Vertexes     []*MVertex
+	Edges        []*MEdge
+	Nodes        []*MNode
+	Texinfos     []*Texinfo
+	Surfaces     []*Surface
+	SurfaceEdges []int
 	ClipNodes    []*ClipNode
 	MarkSurfaces []*Surface
 	Textures     []*Texture // only in brush
 
-	FrameCount int
+	FrameCount int // numframes
 	SyncType   int
 
 	Hulls   [MAX_MAP_HULLS]Hull
