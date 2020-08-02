@@ -23,10 +23,6 @@ int host_hunklevel;
 cvar_t max_edicts;
 cvar_t developer;
 
-devstats_t dev_stats, dev_peakstats;
-overflowtimes_t dev_overflows;  // this stores the last time overflow messages
-                                // were displayed, not the last time overflows
-                                // occured
 void VID_Init(void);
 
 /*

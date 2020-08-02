@@ -69,14 +69,6 @@ void CL_ParseBeam(const char *name, int ent, float s1, float s2, float s3,
       return;
     }
   }
-
-  // johnfitz -- less spammy overflow message
-  if (!dev_overflows.beams ||
-      dev_overflows.beams + CONSOLE_RESPAM_TIME < HostRealTime()) {
-    Con_Printf("Beam list overflow!\n");
-    dev_overflows.beams = HostRealTime();
-  }
-  // johnfitz
 }
 /*
 =================
@@ -178,11 +170,6 @@ void FinishCL_ParseServerInfo(void) {
   warn_about_nehahra_protocol = true;  // johnfitz -- warn about nehahra
                                        // protocol hack once per server
                                        // connection
-
-  // johnfitz -- reset developer stats
-  memset(&dev_stats, 0, sizeof(dev_stats));
-  memset(&dev_peakstats, 0, sizeof(dev_peakstats));
-  memset(&dev_overflows, 0, sizeof(dev_overflows));
 }
 
 /*

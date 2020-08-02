@@ -169,22 +169,6 @@ func serverFrame() {
 	if !sv.paused && (svs.maxClients > 1 || keyDestination == keys.Game) {
 		RunPhysics()
 	}
-	/*
-		  int i, active;
-		  if (CLS_GetSignon() == SIGNONS) {
-		    active := 0
-			  for (i = 0; i < SV_NumEdicts(); i++) {
-			    if (!sv.edicts[i].Free){
-			   	  active++;
-			   	}
-			  }
-			  if (active > 600 && dev_peakstats.edicts <= 600)
-			    Con_DWarning("%i edicts exceeds standard limit of 600.\n", active);
-			  dev_stats.edicts = active;
-			  dev_peakstats.edicts = q_max(active, dev_peakstats.edicts);
-		  }
-	*/
-
 	// send all messages to the clients
 	sv.SendClientMessages()
 }

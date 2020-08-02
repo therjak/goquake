@@ -138,27 +138,6 @@ extern int rs_brushpolys, rs_aliaspolys, rs_skypolys, rs_particles, rs_fogpolys;
 extern int rs_dynamiclightmaps, rs_brushpasses, rs_aliaspasses, rs_skypasses;
 extern float rs_megatexels;
 
-// johnfitz -- track developer statistics that vary every frame
-typedef struct {
-  int packetsize;
-  int edicts;
-  int visedicts;
-  int efrags;
-  int tempents;
-  int beams;
-  int dlights;
-} devstats_t;
-extern devstats_t dev_stats, dev_peakstats;
-
-// ohnfitz -- reduce overflow warning spam
-typedef struct {
-  double packetsize;
-  double efrags;
-  double beams;
-} overflowtimes_t;
-extern overflowtimes_t dev_overflows;  // this stores the last time overflow
-                                       // messages were displayed, not the last
-                                       // time overflows occured
 #define CONSOLE_RESPAM_TIME 3  // seconds between repeated warning messages
 
 // johnfitz -- moved here from r_brush.c

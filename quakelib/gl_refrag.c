@@ -80,13 +80,6 @@ void R_SplitEntityOnNode(mnode_t *node) {
     // grab an efrag off the free list
     ef = cl.free_efrags;
     if (!ef) {
-      // johnfitz -- less spammy overflow message
-      if (!dev_overflows.efrags ||
-          dev_overflows.efrags + CONSOLE_RESPAM_TIME < HostRealTime()) {
-        Con_Printf("Too many efrags!\n");
-        dev_overflows.efrags = HostRealTime();
-      }
-      // johnfitz
       return;  // no free fragments...
     }
     cl.free_efrags = cl.free_efrags->entnext;
@@ -129,20 +122,6 @@ R_CheckEfrags -- johnfitz -- check for excessive efrag count
 ===========
 */
 void R_CheckEfrags(void) {
-  efrag_t *ef;
-  int count;
-
-  if (CLS_GetSignon() < 2)
-    return;  // don't spam when still parsing signon packet full of static ents
-
-  for (count = MAX_EFRAGS, ef = cl.free_efrags; ef; count--, ef = ef->entnext)
-    ;
-
-  if (count > 640 && dev_peakstats.efrags <= 640)
-    Con_DWarning("%i efrags exceeds standard limit of 640.\n", count);
-
-  dev_stats.efrags = count;
-  dev_peakstats.efrags = q_max(count, dev_peakstats.efrags);
 }
 
 /*

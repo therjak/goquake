@@ -405,51 +405,6 @@ func (scr *qScreen) EndLoadingPlaque() {
 	console.ClearNotify()
 }
 
-func (scr *qScreen) drawDevStats() {
-	/*
-	   void SCR_DrawDevStats(void) {
-	     char str[40];
-	     int y = 25 - 9;  // 9=number of lines to print
-	     int x = 0;       // margin
-
-	     if (!Cvar_GetValue(&devstats)) return;
-
-	     qCanvas.Set(CANVAS_BOTTOMLEFT);
-
-	     DrawFillC(x, y * 8, 19 * 8, 9 * 8, 0, 0.5);  // dark rectangle
-
-	     sprintf(str, "devstats |Curr Peak");
-	     Draw_String(x, (y++) * 8 - x, str);
-
-	     sprintf(str, "---------+---------");
-	     Draw_String(x, (y++) * 8 - x, str);
-
-	     sprintf(str, "Edicts   |%4i %4i", dev_stats.edicts, dev_peakstats.edicts);
-	     Draw_String(x, (y++) * 8 - x, str);
-
-	     sprintf(str, "Packet   |%4i %4i", dev_stats.packetsize,
-	             dev_peakstats.packetsize);
-	     Draw_String(x, (y++) * 8 - x, str);
-
-	     sprintf(str, "Visedicts|%4i %4i", dev_stats.visedicts,
-	             dev_peakstats.visedicts);
-	     Draw_String(x, (y++) * 8 - x, str);
-
-	     sprintf(str, "Efrags   |%4i %4i", dev_stats.efrags, dev_peakstats.efrags);
-	     Draw_String(x, (y++) * 8 - x, str);
-
-	     sprintf(str, "Dlights  |%4i %4i", dev_stats.dlights, dev_peakstats.dlights);
-	     Draw_String(x, (y++) * 8 - x, str);
-
-	     sprintf(str, "Beams    |%4i %4i", dev_stats.beams, dev_peakstats.beams);
-	     Draw_String(x, (y++) * 8 - x, str);
-
-	     sprintf(str, "Tempents |%4i %4i", dev_stats.tempents, dev_peakstats.tempents);
-	     Draw_String(x, (y++) * 8 - x, str);
-	   }
-	*/
-}
-
 func (scr *qScreen) calcViewRect() {
 	// TODO: figure out what Refdef is and rename this stuff
 
@@ -576,7 +531,6 @@ func (scr *qScreen) Update() {
 		scr.drawPause()
 		scr.CheckDrawCenterPrint()
 		statusbar.Draw()
-		scr.drawDevStats()
 		scr.drawFPS()
 		scr.drawClock()
 		scr.drawConsole()

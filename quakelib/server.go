@@ -991,12 +991,7 @@ func (s *Server) WriteEntitiesToClient(clent int) {
 		// max size for protocol 15 is 18 bytes.
 		// for protocol 85 the max size is 24 bytes.
 		if msgBuf.Len()+24 > msgBufMaxLen {
-			// if (!dev_overflows.packetsize ||
-			//  dev_overflows.packetsize + CONSOLE_RESPAM_TIME < HostRealTime()) {
 			conlog.Printf("Packet overflow!\n")
-			//  dev_overflows.packetsize = HostRealTime();
-			//}
-			//goto stats;
 		}
 
 		// send an update
@@ -1154,15 +1149,6 @@ func (s *Server) WriteEntitiesToClient(clent int) {
 			msgBuf.WriteByte(int(math.Round((ev.NextThink - sv.time) * 255)))
 		}
 	}
-
-	/*
-	   stats:
-	     if (SV_MS_Len() > 1024 && dev_peakstats.packetsize <= 1024)
-	       Con_DWarning("%i byte packet exceeds standard limit of 1024.\n",
-	                    SV_MS_Len());
-	     dev_stats.packetsize = SV_MS_Len();
-	     dev_peakstats.packetsize = q_max(SV_MS_Len(), dev_peakstats.packetsize);
-	*/
 }
 
 func init() {
