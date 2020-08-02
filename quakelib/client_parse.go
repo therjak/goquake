@@ -1,15 +1,19 @@
 package quakelib
 
 //void CL_ParseUpdate(int bits);
-//void CL_ParseServerInfo(void);
 //void CL_NewTranslation(int slot);
 //void CL_ParseStatic(int version);
 //void R_CheckEfrags(void);
+//void CL_ClearState(void);
+//void CLPrecacheModelClear(void);
+//void FinishCL_ParseServerInfo(void);
 //void Fog_Update(float density, float red, float green, float blue, float time);
 import "C"
 
 import (
 	"fmt"
+	"path/filepath"
+	"strings"
 
 	"github.com/therjak/goquake/cbuf"
 	"github.com/therjak/goquake/conlog"
@@ -217,11 +221,6 @@ func parse3Angle() (vec.Vec3, error) {
 
 //export CL_ParseServerMessage
 func CL_ParseServerMessage() {
-	//  int cmd;
-	//  int i;
-	//  const char *str;        // johnfitz
-	//  int total, j, lastcmd;  // johnfitz
-
 	// if recording demos, copy the message out
 	switch cvars.ClientShowNet.String() {
 	case "1":
@@ -348,7 +347,11 @@ func CL_ParseServerMessage() {
 			cl.parseDamage(int(armor), int(blood), pos)
 
 		case svc.ServerInfo:
-			C.CL_ParseServerInfo()
+			err := CL_ParseServerInfo()
+			if err != nil {
+				cls.msgBadRead = true
+				continue
+			}
 			screen.recalcViewRect = true // leave intermission full screen
 
 		case svc.SetAngle:
@@ -438,7 +441,6 @@ func CL_ParseServerMessage() {
 
 		case svc.Particle:
 			var dir vec.Vec3
-			//int i, count, msgcount, color;
 			org, err := parse3Coord()
 			if err != nil {
 				cls.msgBadRead = true
@@ -479,7 +481,7 @@ func CL_ParseServerMessage() {
 			CL_ParseTEnt()
 
 		case svc.SetPause:
-			// therjak: this byte was used to pause cd audio
+			// this byte was used to pause cd audio, other pause as well?
 			i, err := cls.inMessage.ReadByte()
 			if err != nil {
 				cls.msgBadRead = true
@@ -660,4 +662,161 @@ func CL_ParseServerMessage() {
 
 		lastcmd = cmd
 	}
+}
+
+func CL_ParseServerInfo() error {
+	// protocol uint32
+	// if protocol RMQ protocolFlags uint32
+	// maxClients byte
+	// gameMode (coop/dethmatch) byte
+	// levelname string (EntVars(0).Message)
+	// []string modelPrecache
+	// 0 byte
+	// []string soundPrecache
+	// 0 byte
+
+	conlog.DPrintf("Serverinfo packet received.\n")
+
+	// bring up loading plaque for map changes within a demo.
+	// it will be hidden in CL_SignonReply.
+	if cls.demoPlayback {
+		screen.BeginLoadingPlaque()
+	}
+
+	C.CL_ClearState()
+
+	// parse protocol version number
+	ptl, err := cls.inMessage.ReadInt32()
+	if err != nil {
+		return err
+	}
+	switch ptl {
+	case protocol.NetQuake, protocol.FitzQuake, protocol.RMQ:
+	default:
+		conlog.Printf("\n") // because there's no newline after serverinfo print
+		HostError("Server returned version %d, not %d or %d or %d", ptl,
+			protocol.NetQuake, protocol.FitzQuake, protocol.RMQ)
+	}
+	cl.protocol = int(ptl)
+
+	if cl.protocol == protocol.RMQ {
+		const supportedflags uint32 = protocol.PRFL_SHORTANGLE |
+			protocol.PRFL_FLOATANGLE |
+			protocol.PRFL_24BITCOORD |
+			protocol.PRFL_FLOATCOORD |
+			protocol.PRFL_EDICTSCALE |
+			protocol.PRFL_INT32COORD
+
+		flags, err := cls.inMessage.ReadUint32()
+		if err != nil {
+			return err
+		}
+		cl.protocolFlags = flags
+
+		if cl.protocolFlags&^supportedflags != 0 {
+			conlog.Warning("PROTOCOL_RMQ protocolflags %i contains unsupported flags\n", cl.protocolFlags)
+		}
+	} else {
+		cl.protocolFlags = 0
+	}
+
+	maxClients, err := cls.inMessage.ReadByte()
+	if err != nil {
+		return err
+	}
+	if maxClients < 1 || maxClients > 16 {
+		HostError("Bad maxclients (%d) from server", maxClients)
+	}
+	cl.maxClients = int(maxClients)
+	cl.scores = make([]score, maxClients)
+
+	gameType, err := cls.inMessage.ReadByte()
+	if err != nil {
+		return err
+	}
+	cl.gameType = int(gameType)
+
+	levelName, err := cls.inMessage.ReadString()
+	if err != nil {
+		return err
+	}
+	cl.levelName = levelName
+
+	// seperate the printfs so the server message can have a color
+	console.printBar()
+	conlog.Printf("%c%s\n", 2, cl.levelName)
+
+	conlog.Printf("Using protocol %i\n", cl.protocol)
+
+	cl.modelPrecache = cl.modelPrecache[:]
+	var modelNames []string
+	for {
+		m, err := cls.inMessage.ReadString()
+		if err != nil {
+			return err
+		}
+		if m == "" {
+			break
+		}
+		if len(modelNames) == 2048 {
+			HostError("Server sent too many model precaches")
+		}
+		modelNames = append(modelNames, m)
+	}
+
+	if len(modelNames) >= 256 {
+		conlog.DWarning("%i models exceeds standard limit of 256.\n", len(modelNames))
+	}
+
+	cl.soundPrecache = cl.soundPrecache[:0]
+	var sounds []string
+	for {
+		s, err := cls.inMessage.ReadString()
+		if err != nil {
+			return err
+		}
+		if s == "" {
+			break
+		}
+		if len(sounds) == 2048 {
+			HostError("Server sent too many sound precaches")
+		}
+		sounds = append(sounds, s)
+	}
+
+	if len(sounds) >= 256 {
+		conlog.DWarning("%d sounds exceeds standard limit of 256.\n", len(sounds))
+	}
+
+	// now we try to load everything else until a cache allocation fails
+	cl.mapName = strings.TrimSuffix(filepath.Base(modelNames[0]), filepath.Ext(modelNames[0]))
+
+	C.CLPrecacheModelClear()
+	for i, mn := range modelNames {
+		m, ok := models[mn]
+		CLPrecacheModel(mn, i+1) // keep C side happy
+		if !ok {
+			loadModel(mn)
+			m, ok = models[mn]
+			if !ok {
+				HostError("Model %s not found", mn)
+			}
+		}
+		cl.modelPrecache = append(cl.modelPrecache, m)
+		CL_KeepaliveMessage()
+	}
+
+	for _, s := range sounds {
+		sfx := snd.PrecacheSound(s)
+		cl.soundPrecache = append(cl.soundPrecache, sfx)
+		CL_KeepaliveMessage()
+	}
+
+	cl.worldModel = cl.modelPrecache[0]
+
+	C.FinishCL_ParseServerInfo()
+
+	// we don't consider identical messages to be duplicates if the map has changed in between
+	console.lastCenter = ""
+	return nil
 }

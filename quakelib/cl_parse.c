@@ -164,154 +164,17 @@ void CL_UpdateTEnts(void) {
 
 qboolean warn_about_nehahra_protocol;  // johnfitz
 
-/*
-==================
-CL_ParseServerInfo
-==================
-*/
-void CL_ParseServerInfo(void) {
-  const char *str;
-  int i;
-  int nummodels, numsounds;
-  char model_precache[MAX_MODELS][MAX_QPATH];
-  char sound_precache[MAX_SOUNDS][MAX_QPATH];
+void CLPrecacheModel(const char* cn, int i) {
+  cl.model_precache[i] = Mod_ForName(cn, false);
+}
 
-  Con_DPrintf("Serverinfo packet received.\n");
-
-  // ericw -- bring up loading plaque for map changes within a demo.
-  //          it will be hidden in CL_SignonReply.
-  if (CLS_IsDemoPlayback()) SCR_BeginLoadingPlaque();
-
-  //
-  // wipe the client_state_t struct
-  //
-  CL_ClearState();
-
-  // parse protocol version number
-  i = CL_MSG_ReadLong();
-  // johnfitz -- support multiple protocols
-  if (i != PROTOCOL_NETQUAKE && i != PROTOCOL_FITZQUAKE && i != PROTOCOL_RMQ) {
-    Con_Printf("\n");  // because there's no newline after serverinfo print
-    Host_Error("Server returned version %i, not %i or %i or %i", i,
-               PROTOCOL_NETQUAKE, PROTOCOL_FITZQUAKE, PROTOCOL_RMQ);
-  }
-  CL_SetProtocol(i);
-  // johnfitz
-
-  if (CL_Protocol() == PROTOCOL_RMQ) {
-    const unsigned int supportedflags =
-        (PRFL_SHORTANGLE | PRFL_FLOATANGLE | PRFL_24BITCOORD | PRFL_FLOATCOORD |
-         PRFL_EDICTSCALE | PRFL_INT32COORD);
-
-    // mh - read protocol flags from server so that we know what protocol
-    // features to expect
-    CL_SetProtocolFlags((unsigned int)CL_MSG_ReadLong());
-
-    if (0 != (CL_ProtocolFlags() & (~supportedflags))) {
-      Con_Warning("PROTOCOL_RMQ protocolflags %i contains unsupported flags\n",
-                  CL_ProtocolFlags());
-    }
-  } else
-    CL_SetProtocolFlags(0);
-
-  // parse maxclients
-  CL_SetMaxClients(CL_MSG_ReadByte());
-  if (CL_MaxClients() < 1 || CL_MaxClients() > MAX_SCOREBOARD) {
-    Host_Error("Bad maxclients (%u) from server", CL_MaxClients());
-  }
-
-  // parse gametype
-  CL_SetGameType(CL_MSG_ReadByte());
-
-  // parse signon message
-  str = CL_MSG_ReadString();
-  CL_SetLevelName(str);
-
-  // seperate the printfs so the server message can have a color
-  ConPrintBar();
-  Con_Printf("%c%s\n", 2, str);
-
-  // johnfitz -- tell user which protocol this is
-  Con_Printf("Using protocol %i\n", i);
-
-  // first we go through and touch all of the precache data that still
-  // happens to be in the cache, so precaching something else doesn't
-  // needlessly purge it
-
-  // precache models
-  memset(cl.model_precache, 0, sizeof(cl.model_precache));
-  for (nummodels = 1;; nummodels++) {
-    str = CL_MSG_ReadString();
-    if (!str[0]) break;
-    if (nummodels == MAX_MODELS) {
-      Host_Error("Server sent too many model precaches");
-    }
-    q_strlcpy(model_precache[nummodels], str, MAX_QPATH);
-    Mod_TouchModel(str);
-  }
-
-  // johnfitz -- check for excessive models
-  if (nummodels >= 256)
-    Con_DWarning("%i models exceeds standard limit of 256.\n", nummodels);
-  // johnfitz
-
-  // precache sounds
-  CL_SoundPrecacheClear();
-  for (numsounds = 1;; numsounds++) {
-    str = CL_MSG_ReadString();
-    if (!str[0]) break;
-    if (numsounds == MAX_SOUNDS) {
-      Host_Error("Server sent too many sound precaches");
-    }
-    q_strlcpy(sound_precache[numsounds], str, MAX_QPATH);
-    S_TouchSound(str);
-  }
-
-  // johnfitz -- check for excessive sounds
-  if (numsounds >= 256)
-    Con_DWarning("%i sounds exceeds standard limit of 256.\n", numsounds);
-  // johnfitz
-
-  //
-  // now we try to load everything else until a cache allocation fails
-  //
-
-  // copy the naked name of the map file to the cl structure -- O.S
-  char mapname[128];
-  COM_StripExtension(COM_SkipPath(model_precache[1]), mapname,
-                     sizeof(mapname));
-  CL_SetMapName(mapname);
-
-  for (i = 1; i < nummodels; i++) {
-    cl.model_precache[i] = Mod_ForName(model_precache[i], false);
-    if (cl.model_precache[i] == NULL) {
-      Host_Error("Model %s not found", model_precache[i]);
-    }
-    CL_KeepaliveMessage();
-  }
-
-  for (i = 1; i < numsounds; i++) {
-    int s = S_PrecacheSound(sound_precache[i]);
-    CL_SoundPrecacheAdd(s);
-
-    CL_KeepaliveMessage();
-  }
-
+void FinishCL_ParseServerInfo(void) {
   // local state
   cl_entities[0].model = cl.worldmodel = cl.model_precache[1];
-  CLSetWorldModel(cl.worldmodel);  // notify the go side
-
   R_NewMap();
 
-  // johnfitz -- clear out string; we don't consider identical
-  // messages to be duplicates if the map has changed in between
-  Con_ResetLastCenterString();
-  // johnfitz
-
   Hunk_Check();  // make sure nothing is hurt
-
   noclip_anglehack = false;  // noclip is turned off at start
-
   warn_about_nehahra_protocol = true;  // johnfitz -- warn about nehahra
                                        // protocol hack once per server
                                        // connection

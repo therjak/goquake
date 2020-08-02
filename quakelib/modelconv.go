@@ -1,10 +1,13 @@
 package quakelib
 
+//#include <stdlib.h>
 //#include "gl_model.h"
+//void CLPrecacheModel(const char* cn, int i);
 import "C"
 
 import (
 	"log"
+	"unsafe"
 
 	"github.com/therjak/goquake/model"
 )
@@ -55,4 +58,10 @@ func CLSetWorldModel(m *C.qmodel_t) {
 			cl.worldModel = m
 		}
 	}
+}
+
+func CLPrecacheModel(name string, i int) {
+	cn := C.CString(name)
+	C.CLPrecacheModel(cn, C.int(i))
+	C.free(unsafe.Pointer(cn))
 }

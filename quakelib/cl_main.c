@@ -391,3 +391,7 @@ void SetCLWeaponModel(int v) {
   view = &cl_viewent;
   view->model = cl.model_precache[v];
 }
+
+void CLPrecacheModelClear(void) {
+  memset(cl.model_precache, 0, sizeof(cl.model_precache));
+}

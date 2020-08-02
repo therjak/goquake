@@ -91,7 +91,12 @@ func S_Update(origin *C.float, _ *C.float, right *C.float, _ *C.float) {
 }*/
 
 //export S_ExtraUpdate
-func S_ExtraUpdate() {}
+func S_ExtraUpdate() {
+	if cvars.SoundNoExtraUpdate.Bool() {
+		return
+	}
+	// snd.Update_
+}
 
 //export S_PrecacheSound
 func S_PrecacheSound(sample *C.char) C.sfx_t {
