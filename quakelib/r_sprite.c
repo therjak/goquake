@@ -62,7 +62,7 @@ void R_DrawSpriteModel(entity_t *e) {
   // TODO: frustum cull it?
 
   frame = R_GetSpriteFrame(e);
-  psprite = (msprite_t *)currententity->model->cache.data;
+  psprite = (msprite_t *)e->model->cache.data;
 
   switch (psprite->type) {
     case SPR_VP_PARALLEL_UPRIGHT:  // faces view plane, up is towards the
@@ -74,7 +74,7 @@ void R_DrawSpriteModel(entity_t *e) {
       s_right = vright;
       break;
     case SPR_FACING_UPRIGHT:  // faces camera origin, up is towards the heavens
-      VectorSubtract(currententity->origin, r_origin, v_forward);
+      VectorSubtract(e->origin, r_origin, v_forward);
       v_forward[2] = 0;
       VectorNormalizeFast(v_forward);
       v_right[0] = v_forward[1];
@@ -92,12 +92,12 @@ void R_DrawSpriteModel(entity_t *e) {
       s_right = vright;
       break;
     case SPR_ORIENTED:  // pitch yaw roll are independent of camera
-      AngleVectors(currententity->angles, v_forward, v_right, v_up);
+      AngleVectors(e->angles, v_forward, v_right, v_up);
       s_up = v_up;
       s_right = v_right;
       break;
     case SPR_VP_PARALLEL_ORIENTED:  // faces view plane, but obeys roll value
-      angle = currententity->angles[ROLL] * M_PI_DIV_180;
+      angle = e->angles[ROLL] * M_PI_DIV_180;
       sr = sin(angle);
       cr = cos(angle);
       v_right[0] = vright[0] * cr + vup[0] * sr;

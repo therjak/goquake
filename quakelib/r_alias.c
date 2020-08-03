@@ -510,7 +510,7 @@ void R_SetupAliasLighting(entity_t *e) {
   // add dlights
   for (i = 0; i < MAX_DLIGHTS; i++) {
     if (cl_dlights[i].die >= CL_Time()) {
-      VectorSubtract(currententity->origin, cl_dlights[i].origin, dist);
+      VectorSubtract(e->origin, cl_dlights[i].origin, dist);
       add = cl_dlights[i].radius - VectorLength(dist);
       if (add > 0) VectorMA(lightcolor, add, cl_dlights[i].color, lightcolor);
     }
@@ -527,8 +527,8 @@ void R_SetupAliasLighting(entity_t *e) {
   }
 
   // minimum light value on players (8)
-  if (currententity > cl_entities &&
-      currententity <= cl_entities + CL_MaxClients()) {
+  if (e > cl_entities &&
+      e <= cl_entities + CL_MaxClients()) {
     add = 24.0f - (lightcolor[0] + lightcolor[1] + lightcolor[2]);
     if (add > 0.0f) {
       lightcolor[0] += add / 3.0f;
