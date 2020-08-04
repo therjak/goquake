@@ -192,6 +192,8 @@ func convertToJSON(data []byte) []map[string]string {
 	data = bytes.ReplaceAll(data, []byte("\n"), []byte{})
 	data = bytes.ReplaceAll(data, []byte("\"\""), []byte("\",\""))
 	data = bytes.ReplaceAll(data, []byte("}{"), []byte("},{"))
+	// There should be nothing to escape and if we find a '\' it is probably from a windows path
+	data = bytes.ReplaceAll(data, []byte("\\"), []byte("/"))
 	j := make([]byte, len(data)+1)
 	copy(j[1:], data)
 	j[0] = '['
