@@ -295,7 +295,7 @@ func CL_ParseServerMessage() {
 			switch i {
 			case protocol.NetQuake, protocol.FitzQuake, protocol.RMQ:
 			default:
-				HostError("Server returned version %i, not %i or %i or %i", i,
+				HostError("Server returned version %d, not %d or %d or %d", i,
 					protocol.NetQuake, protocol.FitzQuake, protocol.RMQ)
 			}
 			cl.protocol = int(i)
@@ -503,7 +503,7 @@ func CL_ParseServerMessage() {
 			// check for excessive static ents and efrags
 			if i == 2 {
 				if cl.numStatics > 128 {
-					conlog.DWarning("%i static entities exceeds standard limit of 128.\n", cl.numStatics)
+					conlog.DWarning("%d static entities exceeds standard limit of 128.\n", cl.numStatics)
 				}
 				C.R_CheckEfrags()
 			}
@@ -714,7 +714,7 @@ func CL_ParseServerInfo() error {
 		cl.protocolFlags = flags
 
 		if cl.protocolFlags&^supportedflags != 0 {
-			conlog.Warning("PROTOCOL_RMQ protocolflags %i contains unsupported flags\n", cl.protocolFlags)
+			conlog.Warning("PROTOCOL_RMQ protocolflags %d contains unsupported flags\n", cl.protocolFlags)
 		}
 	} else {
 		cl.protocolFlags = 0
@@ -746,7 +746,7 @@ func CL_ParseServerInfo() error {
 	console.printBar()
 	conlog.Printf("%c%s\n", 2, cl.levelName)
 
-	conlog.Printf("Using protocol %i\n", cl.protocol)
+	conlog.Printf("Using protocol %d\n", cl.protocol)
 
 	cl.modelPrecache = cl.modelPrecache[:]
 	var modelNames []string
@@ -765,7 +765,7 @@ func CL_ParseServerInfo() error {
 	}
 
 	if len(modelNames) >= 256 {
-		conlog.DWarning("%i models exceeds standard limit of 256.\n", len(modelNames))
+		conlog.DWarning("%d models exceeds standard limit of 256.\n", len(modelNames))
 	}
 
 	cl.soundPrecache = cl.soundPrecache[:0]
