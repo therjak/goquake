@@ -52,6 +52,8 @@ static GLuint texLoc;
 static GLuint fullbrightTexLoc;
 static GLuint useFullbrightTexLoc;
 static GLuint useOverbrightLoc;
+static GLuint alFogDensity;
+static GLuint alFogColor;
 
 static const GLint pose1VertexAttrIndex = 0;
 static const GLint pose1NormalAttrIndex = 1;
@@ -115,6 +117,8 @@ void GLAlias_CreateShaders(void) {
       "attribute vec4 Pose2Vert;\n"
       "attribute vec3 Pose2Normal;\n"
       "varying float FogFragCoord;\n"
+      "varying vec4 glTexCoord;\n"
+      "varying vec4 frontColor;\n"
       "float r_avertexnormal_dot(vec3 vertexnormal) // from MH \n"
       "{\n"
       "        float dot = dot(vertexnormal, ShadeVector);\n"
@@ -127,36 +131,40 @@ void GLAlias_CreateShaders(void) {
       "}\n"
       "void main()\n"
       "{\n"
-      "	gl_TexCoord[0] = TexCoords;\n"
+      "	glTexCoord = TexCoords;\n"
       "	vec4 lerpedVert = mix(vec4(Pose1Vert.xyz, 1.0), vec4(Pose2Vert.xyz, 1.0), Blend);\n"
       "	gl_Position = gl_ModelViewProjectionMatrix * lerpedVert;\n"
       " FogFragCoord = gl_Position.w;\n"
       "	float dot1 = r_avertexnormal_dot(Pose1Normal);\n"
       "	float dot2 = r_avertexnormal_dot(Pose2Normal);\n"
-      "	gl_FrontColor = LightColor * vec4(vec3(mix(dot1, dot2, Blend)), 1.0);\n"
+      "	frontColor = LightColor * vec4(vec3(mix(dot1, dot2, Blend)), 1.0);\n"
       "}\n";
 
   const GLchar *fragSource =
-      "#version 110\n"
+      "#version 330\n"
       "\n"
       "uniform sampler2D Tex;\n"
       "uniform sampler2D FullbrightTex;\n"
       "uniform bool UseFullbrightTex;\n"
       "uniform bool UseOverbright;\n"
+      "uniform float FogDensity;\n"
+      "uniform vec4 FogColor;\n"
       "varying float FogFragCoord;\n"
+      "varying vec4 glTexCoord;\n"
+      "varying vec4 frontColor;\n"
       "void main()\n"
       "{\n"
-      "	vec4 result = texture2D(Tex, gl_TexCoord[0].xy);\n"
-      "	result *= gl_Color;\n"
+      "	vec4 result = texture2D(Tex, glTexCoord.xy);\n"
+      "	result *= frontColor;\n"
       "	if (UseOverbright)\n"
       "		result.rgb *= 2.0;\n"
       "	if (UseFullbrightTex)\n"
-      "		result += texture2D(FullbrightTex, gl_TexCoord[0].xy);\n"
+      "		result += texture2D(FullbrightTex, glTexCoord.xy);\n"
       "	result = clamp(result, 0.0, 1.0);\n"
-      "	float fog = exp(-gl_Fog.density * gl_Fog.density * FogFragCoord * FogFragCoord);\n"
+      "	float fog = exp(-FogDensity * FogDensity * FogFragCoord * FogFragCoord);\n"
       "	fog = clamp(fog, 0.0, 1.0);\n"
-      "	result = mix(gl_Fog.color, result, fog);\n"
-      "	result.a = gl_Color.a;\n"
+      "	result = mix(FogColor, result, fog);\n"
+      "	result.a = frontColor.a;\n"
       "	gl_FragColor = result;\n"
       "}\n";
 
@@ -173,6 +181,8 @@ void GLAlias_CreateShaders(void) {
     useFullbrightTexLoc =
         GL_GetUniformLocation(&r_alias_program, "UseFullbrightTex");
     useOverbrightLoc = GL_GetUniformLocation(&r_alias_program, "UseOverbright");
+    alFogDensity = GL_GetUniformLocation(&r_alias_program, "FogDensity");
+    alFogColor = GL_GetUniformLocation(&r_alias_program, "FogColor");
   }
 }
 
@@ -238,6 +248,10 @@ void GL_DrawAliasFrame_GLSL(aliashdr_t *paliashdr, lerpdata_t lerpdata,
   glUniform1i(fullbrightTexLoc, 1);
   glUniform1i(useFullbrightTexLoc, (fb != 0) ? 1 : 0);
   glUniform1f(useOverbrightLoc, overbright ? 1 : 0);
+  glUniform1f(alFogDensity, 0);
+  float currentFogColor[4];
+  glGetFloatv(GL_FOG_COLOR, currentFogColor);
+  glUniform4f(alFogColor, currentFogColor[0], currentFogColor[1], currentFogColor[2], currentFogColor[3]);
 
   // set textures
   GLSelectTexture(GL_TEXTURE0);
@@ -554,15 +568,13 @@ void R_SetupAliasLighting(entity_t *e) {
   quantizedangle =
       ((int)(e->angles[1] * (SHADEDOT_QUANT / 360.0))) & (SHADEDOT_QUANT - 1);
 
-  // ericw -- shadevector is passed to the shader to compute shadedots inside
-  // the
+  // shadevector is passed to the shader to compute shadedots inside the
   // shader, see GLAlias_CreateShaders()
   radiansangle = (quantizedangle / 16.0) * 2.0 * 3.14159;
   shadevector[0] = cos(-radiansangle);
   shadevector[1] = sin(-radiansangle);
   shadevector[2] = 1;
   VectorNormalize(shadevector);
-  // ericw --
 
   shadeDots = quantizedangle;
   VectorScale(lightcolor, 1.0f / 200.0f, lightcolor);
@@ -580,39 +592,29 @@ void R_DrawAliasModel(entity_t *e) {
   uint32_t tx, fb;
   lerpdata_t lerpdata;
 
-  //
   // setup pose/lerp data -- do it first so we don't miss updates due to culling
-  //
   paliashdr = (aliashdr_t *)Mod_Extradata(e->model);
   R_SetupAliasFrame(paliashdr, e->frame, &lerpdata);
   R_SetupEntityTransform(e, &lerpdata);
 
-  //
   // cull it
-  //
   if (R_CullModelForEntity(e)) return;
 
-  //
   // transform it
-  //
   glPushMatrix();
   R_RotateForEntity(lerpdata.origin, lerpdata.angles);
   glTranslatef(paliashdr->scale_origin[0], paliashdr->scale_origin[1],
                paliashdr->scale_origin[2]);
   glScalef(paliashdr->scale[0], paliashdr->scale[1], paliashdr->scale[2]);
 
-  //
   // random stuff
-  //
   if (Cvar_GetValue(&gl_smoothmodels)) glShadeModel(GL_SMOOTH);
   if (Cvar_GetValue(&gl_affinemodels))
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
   overbright = Cvar_GetValue(&gl_overbright_models);
   shading = true;
 
-  //
   // set up for alpha blending
-  //
   entalpha = ENTALPHA_DECODE(e->alpha);
   if (entalpha == 0) goto cleanup;
   if (entalpha < 1) {
@@ -620,15 +622,11 @@ void R_DrawAliasModel(entity_t *e) {
     glEnable(GL_BLEND);
   }
 
-  //
   // set up lighting
-  //
   rs_aliaspolys += paliashdr->numtris;
   R_SetupAliasLighting(e);
 
-  //
   // set up textures
-  //
   GLDisableMultitexture();
   anim = (int)(CL_Time() * 10) & 3;
   if ((e->skinnum >= paliashdr->numskins) || (e->skinnum < 0)) {
@@ -651,9 +649,6 @@ void R_DrawAliasModel(entity_t *e) {
   }
   if (!Cvar_GetValue(&gl_fullbrights)) fb = 0;
 
-  //
-  // draw it
-  //
   GL_DrawAliasFrame_GLSL(paliashdr, lerpdata, tx, fb);
 
 cleanup:
