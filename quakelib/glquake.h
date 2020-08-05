@@ -163,8 +163,6 @@ void Fog_SetupFrame(void);
 void Fog_NewMap(void);
 void Fog_Init(void);
 
-void R_NewGame(void);
-
 void R_AnimateLight(void);
 void R_MarkSurfaces(void);
 void R_CullSurfaces(void);

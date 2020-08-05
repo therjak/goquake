@@ -252,19 +252,6 @@ void R_TranslateNewPlayerSkin(int playernum) {
 }
 
 /*
-===============
-R_NewGame -- johnfitz -- handle a game switch
-===============
-*/
-void R_NewGame(void) {
-  int i;
-
-  // clear playertexture pointers (the textures themselves were freed by
-  // texmgr_newgame)
-  for (i = 0; i < MAX_SCOREBOARD; i++) playertextures[i] = 0;
-}
-
-/*
 =============
 R_ParseWorldspawn
 
