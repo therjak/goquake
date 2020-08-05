@@ -7,7 +7,6 @@ package quakelib
 //void CL_ClearState(void);
 //void CLPrecacheModelClear(void);
 //void FinishCL_ParseServerInfo(void);
-//void Fog_Update(float density, float red, float green, float blue, float time);
 import "C"
 
 import (
