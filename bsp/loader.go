@@ -192,8 +192,20 @@ func convertToJSON(data []byte) []map[string]string {
 	data = bytes.ReplaceAll(data, []byte("\n"), []byte{})
 	data = bytes.ReplaceAll(data, []byte("\"\""), []byte("\",\""))
 	data = bytes.ReplaceAll(data, []byte("}{"), []byte("},{"))
-	// There should be nothing to escape and if we find a '\' it is probably from a windows path
+	// Stupid workaround for escaping. Can happen in windows paths. Does probably not catch 100%
+	// Would be preferred to skip escaping in the JSON decoder.
+	// For now just 'fix' the 5 cases known inside the decoder.
+	data = bytes.ReplaceAll(data, []byte("\\b"), []byte("\b"))
+	data = bytes.ReplaceAll(data, []byte("\\f"), []byte("\f"))
+	data = bytes.ReplaceAll(data, []byte("\\n"), []byte("\n"))
+	data = bytes.ReplaceAll(data, []byte("\\r"), []byte("\r"))
+	data = bytes.ReplaceAll(data, []byte("\\t"), []byte("\t"))
 	data = bytes.ReplaceAll(data, []byte("\\"), []byte("/"))
+	data = bytes.ReplaceAll(data, []byte("\b"), []byte("\\b"))
+	data = bytes.ReplaceAll(data, []byte("\f"), []byte("\\f"))
+	data = bytes.ReplaceAll(data, []byte("\n"), []byte("\\n"))
+	data = bytes.ReplaceAll(data, []byte("\r"), []byte("\\r"))
+	data = bytes.ReplaceAll(data, []byte("\t"), []byte("\\t"))
 	j := make([]byte, len(data)+1)
 	copy(j[1:], data)
 	j[0] = '['
