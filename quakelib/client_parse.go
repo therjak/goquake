@@ -620,15 +620,15 @@ func CL_ParseServerMessage() {
 					cls.msgBadRead = true
 					continue
 				}
-				density := C.float(data.Density) / 255.0
-				red := C.float(data.Red) / 255.0
-				green := C.float(data.Green) / 255.0
-				blue := C.float(data.Blue) / 255.0
-				time := C.float(data.Time) / 100.0
+				density := float32(data.Density) / 255.0
+				red := float32(data.Red) / 255.0
+				green := float32(data.Green) / 255.0
+				blue := float32(data.Blue) / 255.0
+				time := float64(data.Time) / 100.0
 				if time < 0 {
 					time = 0
 				}
-				C.Fog_Update(density, red, green, blue, time)
+				fog.Update(density, red, green, blue, time)
 			}
 		case svc.SpawnBaseline2:
 			i, err := cls.inMessage.ReadInt16()

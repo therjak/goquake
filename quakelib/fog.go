@@ -1,13 +1,15 @@
 package quakelib
 
+//extern float fogColor[4];
 import "C"
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/therjak/goquake/cmd"
 	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/math"
-	"log"
 )
 
 const (
@@ -126,86 +128,52 @@ func (f *QFog) ParseWorldspawn() {
 	}
 }
 
-/*
-
-float *Fog_GetColor(void) {
-  static float c[4];
-  float f;
-  int i;
-
-  if (fade_done > CL_Time()) {
-    f = (fade_done - CL_Time()) / fade_time;
-    c[0] = f * old_red + (1.0 - f) * fog_red;
-    c[1] = f * old_green + (1.0 - f) * fog_green;
-    c[2] = f * old_blue + (1.0 - f) * fog_blue;
-    c[3] = 1.0;
-  } else {
-    c[0] = fog_red;
-    c[1] = fog_green;
-    c[2] = fog_blue;
-    c[3] = 1.0;
-  }
-
-  // find closest 24-bit RGB value, so solid-colored sky can match the fog
-  // perfectly
-  for (i = 0; i < 3; i++) c[i] = (float)(Q_rint(c[i] * 255)) / 255.0f;
-
-  return c;
+//export Fog_GetColor
+func Fog_GetColor() *C.float {
+	r, g, b, a := fog.GetColor()
+	C.fogColor[0] = C.float(r)
+	C.fogColor[1] = C.float(g)
+	C.fogColor[2] = C.float(b)
+	C.fogColor[3] = C.float(a)
+	return &C.fogColor[0]
 }
 
-float Fog_GetDensity(void) {
-  float f;
+func (f *QFog) GetColor() (float32, float32, float32, float32) {
+	var r, g, b float32
+	if f.Done > cl.time {
+		fade := (f.Done - cl.time) / f.Time
+		r = math.Lerp(f.Red, f.OldRed, float32(fade))
+		g = math.Lerp(f.Green, f.OldGreen, float32(fade))
+		b = math.Lerp(f.Blue, f.OldBlue, float32(fade))
+	} else {
+		r = f.Red
+		g = f.Green
+		b = f.Blue
+	}
 
-  if (fade_done > CL_Time()) {
-    f = (fade_done - CL_Time()) / fade_time;
-    return f * old_density + (1.0 - f) * fog_density;
-  } else
-    return fog_density;
+	// find closest 24-bit RGB value, so solid-colored sky can match the fog
+	// perfectly
+	r = math.Round(r*255) / 255
+	g = math.Round(g*255) / 255
+	b = math.Round(b*255) / 255
+
+	return r, g, b, 1
 }
 
-void Fog_SetupFrame(void) {
-  glFogfv(GL_FOG_COLOR, Fog_GetColor());
-  glFogf(GL_FOG_DENSITY, Fog_GetDensity() / 64.0);
+//export Fog_GetDensity
+func Fog_GetDensity() float32 {
+	return fog.GetDensity()
 }
 
-void Fog_EnableGFog(void) {
-  if (Fog_GetDensity() > 0) glEnable(GL_FOG);
+func (f *QFog) GetDensity() float32 {
+	if f.Done > cl.time {
+		fade := (f.Done - cl.time) / f.Time
+		return math.Lerp(f.Density, f.OldDensity, float32(fade))
+	}
+	return f.Density
 }
-
-void Fog_DisableGFog(void) {
-  if (Fog_GetDensity() > 0) glDisable(GL_FOG);
-}
-
-void Fog_StartAdditive(void) {
-  vec3_t color = {0, 0, 0};
-
-  if (Fog_GetDensity() > 0) glFogfv(GL_FOG_COLOR, color);
-}
-
-void Fog_StopAdditive(void) {
-  if (Fog_GetDensity() > 0) glFogfv(GL_FOG_COLOR, Fog_GetColor());
-}
-*/
 
 //export Fog_NewMap
 func Fog_NewMap() {
 	fog.ParseWorldspawn() // for global fog
 }
-
-/*
-void Fog_SetupState(void) {
-	glFogi(GL_FOG_MODE, GL_EXP2);
-}
-
-void Fog_Init(void) {
-  Cmd_AddCommand("fog", Fog_FogCommand_f);
-
-  // set up global fog
-  fog_density = DEFAULT_DENSITY;
-  fog_red = DEFAULT_GRAY;
-  fog_green = DEFAULT_GRAY;
-  fog_blue = DEFAULT_GRAY;
-
-  Fog_SetupState();
-}
-*/

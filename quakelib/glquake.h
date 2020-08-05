@@ -155,17 +155,13 @@ extern float map_wateralpha, map_lavaalpha, map_telealpha,
     map_slimealpha;  // ericw
 
 // johnfitz -- fog functions called from outside gl_fog.c
-void Fog_Update(float density, float red, float green, float blue, float time);
 float *Fog_GetColor(void);
 float Fog_GetDensity(void);
 void Fog_EnableGFog(void);
 void Fog_DisableGFog(void);
-void Fog_StartAdditive(void);
-void Fog_StopAdditive(void);
 void Fog_SetupFrame(void);
 void Fog_NewMap(void);
 void Fog_Init(void);
-void Fog_SetupState(void);
 
 void R_NewGame(void);
 
