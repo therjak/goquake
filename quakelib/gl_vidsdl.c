@@ -2,7 +2,7 @@
 
 //====================================
 
-int gl_stencilbits; // TODO: fill with (SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &gl_stencilbits)
+int gl_stencilbits = 0; // TODO(therjak): fill with (SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &gl_stencilbits)
 
 cvar_t vid_gamma;
 cvar_t vid_contrast;
