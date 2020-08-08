@@ -201,15 +201,11 @@ negative offset moves polygon closer to camera
 =============
 */
 void GL_PolygonOffset(int offset) {
-  if (offset > 0) {
-    glEnable(GL_POLYGON_OFFSET_FILL);
-    glEnable(GL_POLYGON_OFFSET_LINE);
-    glPolygonOffset(1, offset);
-  } else if (offset < 0) {
+  if (offset == OFFSET_DECAL) {
     glEnable(GL_POLYGON_OFFSET_FILL);
     glEnable(GL_POLYGON_OFFSET_LINE);
     glPolygonOffset(-1, offset);
-  } else {
+  } else { // OFFSET_NONE
     glDisable(GL_POLYGON_OFFSET_FILL);
     glDisable(GL_POLYGON_OFFSET_LINE);
   }
@@ -439,20 +435,15 @@ void R_DrawEntitiesOnList(qboolean alphapass)  // johnfitz -- added parameter
 
   if (!Cvar_GetValue(&r_drawentities)) return;
 
-  // johnfitz -- sprites are not a special case
   for (i = 0; i < cl_numvisedicts; i++) {
     currententity = cl_visedicts[i];
 
-    // johnfitz -- if alphapass is true, draw only alpha entites this time
-    // if alphapass is false, draw only nonalpha entities this time
     if ((ENTALPHA_DECODE(currententity->alpha) < 1 && !alphapass) ||
         (ENTALPHA_DECODE(currententity->alpha) == 1 && alphapass))
       continue;
 
-    // johnfitz -- chasecam
     if (currententity == &cl_entities[CL_Viewentity()])
       currententity->angles[0] *= 0.3;
-    // johnfitz
 
     switch (currententity->model->Type) {
       case mod_alias:
@@ -484,52 +475,15 @@ void R_DrawViewModel(void) {
   currententity = &cl_viewent;
   if (!currententity->model) return;
 
-  // johnfitz -- this fixes a crash
-  if (currententity->model->Type != mod_alias) return;
-  // johnfitz
+  if (currententity->model->Type != mod_alias) {
+    // this fixes a crash
+    return;
+  }
 
   // hack the depth range to prevent view model from poking into walls
   glDepthRange(0, 0.3);
   R_DrawAliasModel(currententity);
   glDepthRange(0, 1);
-}
-
-/*
-================
-R_EmitWirePoint -- johnfitz -- draws a wireframe cross shape for point entities
-================
-*/
-void R_EmitWirePoint(vec3_t origin) {
-  int size = 8;
-
-  glBegin(GL_LINES);
-  glVertex3f(origin[0] - size, origin[1], origin[2]);
-  glVertex3f(origin[0] + size, origin[1], origin[2]);
-  glVertex3f(origin[0], origin[1] - size, origin[2]);
-  glVertex3f(origin[0], origin[1] + size, origin[2]);
-  glVertex3f(origin[0], origin[1], origin[2] - size);
-  glVertex3f(origin[0], origin[1], origin[2] + size);
-  glEnd();
-}
-
-/*
-================
-R_EmitWireBox -- johnfitz -- draws one axis aligned bounding box
-================
-*/
-void R_EmitWireBox(vec3_t mins, vec3_t maxs) {
-  glBegin(GL_QUAD_STRIP);
-  glVertex3f(mins[0], mins[1], mins[2]);
-  glVertex3f(mins[0], mins[1], maxs[2]);
-  glVertex3f(maxs[0], mins[1], mins[2]);
-  glVertex3f(maxs[0], mins[1], maxs[2]);
-  glVertex3f(maxs[0], maxs[1], mins[2]);
-  glVertex3f(maxs[0], maxs[1], maxs[2]);
-  glVertex3f(mins[0], maxs[1], mins[2]);
-  glVertex3f(mins[0], maxs[1], maxs[2]);
-  glVertex3f(mins[0], mins[1], mins[2]);
-  glVertex3f(mins[0], mins[1], maxs[2]);
-  glEnd();
 }
 
 /*
@@ -542,7 +496,7 @@ void R_DrawShadows(void) {
 
   if (!Cvar_GetValue(&r_shadows) || !Cvar_GetValue(&r_drawentities)) return;
 
-  // Use stencil buffer to prevent self-intersecting shadows, from Baker (MarkV)
+  // Use stencil buffer to prevent self-intersecting shadows
   if (gl_stencilbits) {
     glClear(GL_STENCIL_BUFFER_BIT);
     glStencilFunc(GL_EQUAL, 0, ~0);
