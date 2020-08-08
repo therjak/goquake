@@ -708,7 +708,7 @@ void GL_DrawAliasShadow(entity_t *e) {
   R_SetupAliasFrame(paliashdr, e->frame, &lerpdata);
   R_SetupEntityTransform(e, &lerpdata);
   R_LightPoint(e->origin);
-  lheight = currententity->origin[2] - lightspot[2];
+  lheight = e->origin[2] - lightspot[2];
 
   // set up matrix
   glPushMatrix();

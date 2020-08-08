@@ -274,8 +274,6 @@ func vidRestart(_ []cmd.QArg, _ int) {
 		return
 	}
 
-	GLSLGamma_DeleteTexture() // texture size matches screen size
-
 	videoSetMode(width, height, fullscreen)
 
 	// warpimages needs to be recalculated

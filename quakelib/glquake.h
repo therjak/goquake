@@ -217,9 +217,6 @@ void R_DrawWorld_Water(void);
 void GL_BindBuffer(GLenum target, GLuint buffer);
 void GL_ClearBufferBindings();
 
-void GLSLGamma_DeleteTexture(void);
-void GLSLGamma_GammaCorrect(void);
-
 float GL_WaterAlphaForSurface(msurface_t *fa);
 
 #endif /* __GLQUAKE_H */

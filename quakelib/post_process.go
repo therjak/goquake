@@ -1,5 +1,125 @@
 package quakelib
 
-func postProcessGammaContrast(gamma, contrast float32) {
-	GLSLGamma_GammaCorrect()
+import (
+	"github.com/go-gl/gl/v4.6-core/gl"
+	"github.com/therjak/goquake/glh"
+	"github.com/therjak/goquake/math"
+)
+
+const (
+	postProcessFragment = `
+#version 330
+in vec2 Texcoord;
+out vec4 frag_color;
+uniform sampler2D tex;
+uniform float gamma;
+uniform float contrast;
+
+void main() {
+  vec4 color = texture(tex, Texcoord);
+	color.rgb = color.rgb * contrast;
+  frag_color = vec4(pow(color.rgb, vec3(gamma)), 1.0);
+}
+` + "\x00"
+)
+
+// use vertexSourceDrawer as vertex
+// and postProcessFragment as fragment
+
+type postProcess struct {
+	vao      *glh.VertexArray
+	vbo      *glh.Buffer
+	ebo      *glh.Buffer
+	prog     *glh.Program
+	position uint32
+	texcoord uint32
+	gamma    int32
+	contrast int32
+
+	// just used to check for changes as a change requires a new texture
+	width  int32
+	height int32
+
+	texture *glh.Texture
+}
+
+var pprocess *postProcess
+
+func newPostProcessor() *postProcess {
+	p := &postProcess{}
+	elements := []uint32{
+		0, 1, 2,
+		2, 3, 0,
+	}
+	vertices := []float32{
+		// vertex, tex
+		-1, -1, 0, 0,
+		1, -1, 1, 0,
+		1, 1, 1, 1,
+		-1, 1, 0, 1,
+	}
+	p.vao = glh.NewVertexArray()
+	p.vbo = glh.NewBuffer()
+	p.vbo.Bind(gl.ARRAY_BUFFER)
+	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
+	p.ebo = glh.NewBuffer()
+	p.ebo.Bind(gl.ELEMENT_ARRAY_BUFFER)
+	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
+	var err error
+	p.prog, err = glh.NewProgram(vertexSourceDrawer, postProcessFragment)
+	if err != nil {
+		Error(err.Error())
+	}
+	p.position = p.prog.GetAttribLocation("position")
+	p.texcoord = p.prog.GetAttribLocation("texcoord")
+	p.gamma = p.prog.GetUniformLocation("gamma")
+	p.contrast = p.prog.GetUniformLocation("contrast")
+	return p
+}
+
+func (p *postProcess) Draw(gamma, contrast float32, width, height int32) {
+	if p.texture == nil || p.width != width || p.height != height {
+		p.texture = glh.NewTexture()
+		p.texture.Bind()
+		p.width = width
+		p.height = height
+		gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, width, height,
+			0, gl.BGRA, gl.UNSIGNED_INT_8_8_8_8_REV, nil)
+		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+	}
+	gl.Viewport(0, 0, width, height)
+
+	textureManager.DisableMultiTexture()
+	p.texture.Bind()
+	gl.CopyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 0, 0, width, height)
+
+	p.prog.Use()
+	p.vao.Bind()
+	p.ebo.Bind(gl.ELEMENT_ARRAY_BUFFER)
+	p.vbo.Bind(gl.ARRAY_BUFFER)
+	gl.EnableVertexAttribArray(p.position)
+	gl.VertexAttribPointer(p.position, 2, gl.FLOAT, false, 4*4, gl.PtrOffset(0))
+	gl.EnableVertexAttribArray(p.texcoord)
+	gl.VertexAttribPointer(p.texcoord, 2, gl.FLOAT, false, 4*4, gl.PtrOffset(2*4))
+	gl.Uniform1f(p.gamma, gamma)
+	gl.Uniform1f(p.contrast, contrast)
+	gl.Disable(gl.DEPTH_TEST)
+
+	gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
+
+	// We bound a texture without the texture manager.
+	// Tell the texture manager that its cache is invalid.
+	textureManager.ClearBindings()
+}
+
+func postProcessGammaContrast(gamma, contrast float32, width, height int32) {
+	contrast = math.Clamp32(1, contrast, 2)
+	if pprocess == nil {
+		pprocess = newPostProcessor()
+	}
+	// TODO: seems we can only enable the post processing step after
+	// the fixed function pipeline is dead
+	// pprocess.Draw(gamma, contrast, width, height)
+	gl.UseProgram(0) // enable fixed function pipeline
 }

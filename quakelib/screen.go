@@ -541,8 +541,9 @@ func (scr *qScreen) Update() {
 	gamma := cvars.Gamma.Value()
 	contrast := cvars.Contrast.Value()
 	if contrast != 1 || gamma != 1 {
-		postProcessGammaContrast(gamma, contrast)
+		postProcessGammaContrast(gamma, contrast, int32(screen.Width), int32(screen.Height))
 	}
+
 	window.EndRendering()
 }
 
