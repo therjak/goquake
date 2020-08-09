@@ -89,70 +89,6 @@ cvar_t r_slimealpha;  // = {"r_slimealpha", "0", CVAR_NONE};
 
 float map_wateralpha, map_lavaalpha, map_telealpha, map_slimealpha;
 
-/*
-Returns true if the box is completely outside the frustum
-*/
-// THERJAK
-qboolean R_CullBox(vec3_t emins, vec3_t emaxs) {
-  int i;
-  mplane_t *p;
-  for (i = 0; i < 4; i++) {
-    p = frustum + i;
-    switch (p->signbits) {
-      default:
-      case 0:
-        if (p->normal[0] * emaxs[0] + p->normal[1] * emaxs[1] +
-                p->normal[2] * emaxs[2] <
-            p->dist)
-          return true;
-        break;
-      case 1:
-        if (p->normal[0] * emins[0] + p->normal[1] * emaxs[1] +
-                p->normal[2] * emaxs[2] <
-            p->dist)
-          return true;
-        break;
-      case 2:
-        if (p->normal[0] * emaxs[0] + p->normal[1] * emins[1] +
-                p->normal[2] * emaxs[2] <
-            p->dist)
-          return true;
-        break;
-      case 3:
-        if (p->normal[0] * emins[0] + p->normal[1] * emins[1] +
-                p->normal[2] * emaxs[2] <
-            p->dist)
-          return true;
-        break;
-      case 4:
-        if (p->normal[0] * emaxs[0] + p->normal[1] * emaxs[1] +
-                p->normal[2] * emins[2] <
-            p->dist)
-          return true;
-        break;
-      case 5:
-        if (p->normal[0] * emins[0] + p->normal[1] * emaxs[1] +
-                p->normal[2] * emins[2] <
-            p->dist)
-          return true;
-        break;
-      case 6:
-        if (p->normal[0] * emaxs[0] + p->normal[1] * emins[1] +
-                p->normal[2] * emins[2] <
-            p->dist)
-          return true;
-        break;
-      case 7:
-        if (p->normal[0] * emins[0] + p->normal[1] * emins[1] +
-                p->normal[2] * emins[2] <
-            p->dist)
-          return true;
-        break;
-    }
-  }
-  return false;
-}
-
 qboolean R_CullModelForEntity(entity_t *e) {
   vec3_t mins, maxs;
 
@@ -191,55 +127,7 @@ void GL_PolygonOffset(int offset) {
   }
 }
 
-// THERJAK
-int SignbitsForPlane(mplane_t *out) {
-  int bits, j;
-
-  // for fast box on planeside test
-
-  bits = 0;
-  for (j = 0; j < 3; j++) {
-    if (out->normal[j] < 0) bits |= 1 << j;
-  }
-  return bits;
-}
-
-/*
-turn forward towards side on the plane defined by forward and side
-if angle = 90, the result will be equal to side
-assumes side and forward are perpendicular, and normalized
-to turn away from side, use a negative angle
-*/
-// THERJAK
 #define DEG2RAD(a) ((a)*M_PI_DIV_180)
-void TurnVector(vec3_t out, const vec3_t forward, const vec3_t side,
-                float angle) {
-  float scale_forward, scale_side;
-
-  scale_forward = cos(DEG2RAD(angle));
-  scale_side = sin(DEG2RAD(angle));
-
-  out[0] = scale_forward * forward[0] + scale_side * side[0];
-  out[1] = scale_forward * forward[1] + scale_side * side[1];
-  out[2] = scale_forward * forward[2] + scale_side * side[2];
-}
-
-// THERJAK
-void R_SetFrustum(float fovx, float fovy) {
-  int i;
-
-  TurnVector(frustum[0].normal, vpn, vright, fovx / 2 - 90);  // left plane
-  TurnVector(frustum[1].normal, vpn, vright, 90 - fovx / 2);  // right plane
-  TurnVector(frustum[2].normal, vpn, vup, 90 - fovy / 2);     // bottom plane
-  TurnVector(frustum[3].normal, vpn, vup, fovy / 2 - 90);     // top plane
-
-  for (i = 0; i < 4; i++) {
-    frustum[i].Type = PLANE_ANYZ;
-    // FIXME: shouldn't this always be zero?
-    frustum[i].dist = DotProduct(r_origin, frustum[i].normal);
-    frustum[i].signbits = SignbitsForPlane(&frustum[i]);
-  }
-}
 
 // THERJAK
 #define NEARCLIP 4
