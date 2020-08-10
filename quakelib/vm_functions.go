@@ -627,7 +627,7 @@ func (v *virtualMachine) traceline() {
 		v2 = vec.Vec3{}
 	}
 
-	trace := svMove(v1, vec.Vec3{}, vec.Vec3{}, v2, int(nomonsters), ent)
+	t := svMove(v1, vec.Vec3{}, vec.Vec3{}, v2, int(nomonsters), ent)
 
 	b2f := func(b bool) float32 {
 		if b {
@@ -635,16 +635,16 @@ func (v *virtualMachine) traceline() {
 		}
 		return 0
 	}
-	v.prog.Globals.TraceAllSolid = b2f(trace.AllSolid)
-	v.prog.Globals.TraceStartSolid = b2f(trace.StartSolid)
-	v.prog.Globals.TraceFraction = trace.Fraction
-	v.prog.Globals.TraceInWater = b2f(trace.InWater)
-	v.prog.Globals.TraceInOpen = b2f(trace.InOpen)
-	v.prog.Globals.TraceEndPos = trace.EndPos
-	v.prog.Globals.TracePlaneNormal = trace.Plane.Normal
-	v.prog.Globals.TracePlaneDist = trace.Plane.Distance
-	if trace.EntPointer {
-		v.prog.Globals.TraceEnt = int32(trace.EntNumber)
+	v.prog.Globals.TraceAllSolid = b2f(t.AllSolid)
+	v.prog.Globals.TraceStartSolid = b2f(t.StartSolid)
+	v.prog.Globals.TraceFraction = t.Fraction
+	v.prog.Globals.TraceInWater = b2f(t.InWater)
+	v.prog.Globals.TraceInOpen = b2f(t.InOpen)
+	v.prog.Globals.TraceEndPos = t.EndPos
+	v.prog.Globals.TracePlaneNormal = t.Plane.Normal
+	v.prog.Globals.TracePlaneDist = t.Plane.Distance
+	if t.EntPointer {
+		v.prog.Globals.TraceEnt = int32(t.EntNumber)
 	} else {
 		v.prog.Globals.TraceEnt = 0
 	}
@@ -1028,15 +1028,15 @@ func (v *virtualMachine) dropToFloor() {
 	end := vec.VFromA(ev.Origin)
 	end[2] -= 256
 
-	trace := svMove(start, mins, maxs, end, MOVE_NORMAL, ent)
+	t := svMove(start, mins, maxs, end, MOVE_NORMAL, ent)
 
-	if trace.Fraction == 1 || trace.AllSolid {
+	if t.Fraction == 1 || t.AllSolid {
 		progsdat.Globals.Returnf()[0] = 0
 	} else {
-		ev.Origin = trace.EndPos
+		ev.Origin = t.EndPos
 		v.LinkEdict(ent, false)
 		ev.Flags = float32(int(ev.Flags) | FL_ONGROUND)
-		ev.GroundEntity = int32(trace.EntNumber)
+		ev.GroundEntity = int32(t.EntNumber)
 		progsdat.Globals.Returnf()[0] = 1
 	}
 }

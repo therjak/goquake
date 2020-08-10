@@ -407,9 +407,9 @@ func (q *qphysics) toss(ent int) {
 
 	velocity := ev.Velocity
 	move := vec.Scale(time, velocity)
-	trace := pushEntity(ent, move)
+	t := pushEntity(ent, move)
 
-	if trace.Fraction == 1 {
+	if t.Fraction == 1 {
 		return
 	}
 	if edictNum(ent).Free {
@@ -423,15 +423,15 @@ func (q *qphysics) toss(ent int) {
 		return 1
 	}()
 
-	n := trace.Plane.Normal
+	n := t.Plane.Normal
 	_, velocity = q.clipVelocity(velocity, n, backOff)
 	ev.Velocity = velocity
 
 	// stop if on ground
-	if trace.Plane.Normal[2] > 0.7 {
+	if t.Plane.Normal[2] > 0.7 {
 		if ev.Velocity[2] < 60 || ev.MoveType != progs.MoveTypeBounce {
 			ev.Flags = float32(int(ev.Flags) | FL_ONGROUND)
-			ev.GroundEntity = int32(trace.EntNumber)
+			ev.GroundEntity = int32(t.EntNumber)
 			ev.Velocity = [3]float32{0, 0, 0}
 			ev.AVelocity = [3]float32{0, 0, 0}
 		}
@@ -542,46 +542,46 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *trace) int {
 			origin[2] + time_left*velocity[2],
 		}
 
-		trace := svMove(origin, ev.Mins, ev.Maxs, end, MOVE_NORMAL, ent)
+		t := svMove(origin, ev.Mins, ev.Maxs, end, MOVE_NORMAL, ent)
 
-		if trace.AllSolid {
+		if t.AllSolid {
 			// entity is trapped in another solid
 			ev.Velocity = [3]float32{0, 0, 0}
 			return 3
 		}
 
-		if trace.Fraction > 0 {
+		if t.Fraction > 0 {
 			// actually covered some distance
-			ev.Origin = trace.EndPos
+			ev.Origin = t.EndPos
 			original_velocity = ev.Velocity
 			numplanes = 0
 		}
-		if trace.Fraction == 1 {
+		if t.Fraction == 1 {
 			// moved the entire distance
 			break
 		}
-		if !trace.EntPointer {
+		if !t.EntPointer {
 			Error("SV_FlyMove: !trace.ent")
 		}
-		if trace.Plane.Normal[2] > 0.7 {
+		if t.Plane.Normal[2] > 0.7 {
 			blocked |= 1 // floor
-			if EntVars(trace.EntNumber).Solid == SOLID_BSP {
+			if EntVars(t.EntNumber).Solid == SOLID_BSP {
 				ev.Flags = float32(int(ev.Flags) | FL_ONGROUND)
-				ev.GroundEntity = int32(trace.EntNumber)
+				ev.GroundEntity = int32(t.EntNumber)
 			}
 		}
-		if trace.Plane.Normal[2] == 0 {
+		if t.Plane.Normal[2] == 0 {
 			blocked |= 2 // step
 			if steptrace != nil {
-				*steptrace = trace // save for player extrafriction
+				*steptrace = t // save for player extrafriction
 			}
 		}
-		sv.Impact(ent, trace.EntNumber)
+		sv.Impact(ent, t.EntNumber)
 		if edictNum(ent).Free {
 			// removed by the impact function
 			break
 		}
-		time_left -= time_left * trace.Fraction
+		time_left -= time_left * t.Fraction
 
 		// cliped to another plane
 		if numplanes >= MAX_CLIP_PLANES {
@@ -590,7 +590,7 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *trace) int {
 			return 3
 		}
 
-		planes[numplanes] = trace.Plane.Normal
+		planes[numplanes] = t.Plane.Normal
 		numplanes++
 
 		// modify original_velocity so it parallels all of the clip planes

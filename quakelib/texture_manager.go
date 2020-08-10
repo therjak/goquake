@@ -200,7 +200,7 @@ func pad(s int32) int32 {
 func (tm *texMgr) safeTextureSize(s int32) int32 {
 	cv := int32(cvars.GlMaxSize.Value())
 	if cv > 0 {
-		cv := pad(cv)
+		cv = pad(cv)
 		if cv < s {
 			s = cv
 		}

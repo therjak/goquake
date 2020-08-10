@@ -148,10 +148,10 @@ func (c *SVClient) userFriction() {
 	stop := start
 	stop[2] -= 34
 
-	trace := svMove(start, vec.Vec3{}, vec.Vec3{}, stop, 1, c.edictId)
+	t := svMove(start, vec.Vec3{}, vec.Vec3{}, stop, 1, c.edictId)
 
 	friction := cvars.ServerFriction.Value()
-	if trace.Fraction == 1.0 {
+	if t.Fraction == 1.0 {
 		friction *= cvars.ServerEdgeFriction.Value()
 	}
 

@@ -414,22 +414,21 @@ func clipToLinks(a *areaNode, clip *moveClip) {
 				continue
 			}
 		}
-		trace := func() trace {
+		t := func() trace {
 			if (int(tv.Flags) & FL_MONSTER) != 0 {
 				// this just makes monstern easier to hit with missiles
 				return clipMoveToEntity(touch, clip.start, clip.mins2, clip.maxs2, clip.end)
 			}
 			return clipMoveToEntity(touch, clip.start, clip.mins, clip.maxs, clip.end)
 		}()
-		if trace.AllSolid || trace.StartSolid ||
-			trace.Fraction < clip.trace.Fraction {
-			trace.EntNumber = touch
-			trace.EntPointer = true
+		if t.AllSolid || t.StartSolid || t.Fraction < clip.trace.Fraction {
+			t.EntNumber = touch
+			t.EntPointer = true
 			if clip.trace.StartSolid {
-				clip.trace = trace
+				clip.trace = t
 				clip.trace.StartSolid = true
 			} else {
-				clip.trace = trace
+				clip.trace = t
 			}
 		}
 	}
@@ -631,25 +630,25 @@ func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 vec.Vec
 }
 
 func clipMoveToEntity(ent int, start, mins, maxs, end vec.Vec3) trace {
-	var trace trace
-	trace.Fraction = 1
-	trace.AllSolid = true
-	trace.EndPos = end
+	var t trace
+	t.Fraction = 1
+	t.AllSolid = true
+	t.EndPos = end
 	hull, offset := hullForEntity(EntVars(ent), mins, maxs)
 	startL := vec.Sub(start, offset)
 	endL := vec.Sub(end, offset)
-	recursiveHullCheck(hull, hull.FirstClipNode, 0, 1, startL, endL, &trace)
+	recursiveHullCheck(hull, hull.FirstClipNode, 0, 1, startL, endL, &t)
 
-	if trace.Fraction != 1 {
-		trace.EndPos[0] += offset[0]
-		trace.EndPos[1] += offset[1]
-		trace.EndPos[2] += offset[2]
+	if t.Fraction != 1 {
+		t.EndPos[0] += offset[0]
+		t.EndPos[1] += offset[1]
+		t.EndPos[2] += offset[2]
 	}
-	if trace.Fraction < 1 || trace.StartSolid {
-		trace.EntNumber = ent
-		trace.EntPointer = true
+	if t.Fraction < 1 || t.StartSolid {
+		t.EntNumber = ent
+		t.EntPointer = true
 	}
-	return trace
+	return t
 }
 
 func (c *moveClip) moveBounds(s, e vec.Vec3) {
@@ -660,8 +659,8 @@ func (c *moveClip) moveBounds(s, e vec.Vec3) {
 
 func testEntityPosition(ent int) bool {
 	ev := EntVars(ent)
-	trace := svMove(ev.Origin, ev.Mins, ev.Maxs, ev.Origin, MOVE_NORMAL, ent)
-	return trace.StartSolid
+	t := svMove(ev.Origin, ev.Mins, ev.Maxs, ev.Origin, MOVE_NORMAL, ent)
+	return t.StartSolid
 }
 
 // mins and maxs are relative
@@ -733,13 +732,13 @@ func expensiveCheckBottom(ent int, mins, maxs vec.Vec3) bool {
 		level,
 	}
 	stop := vec.Vec3{start[0], start[1], below}
-	trace := svMove(start, vec.Vec3{}, vec.Vec3{}, stop, MOVE_NOMONSTERS, ent)
+	t := svMove(start, vec.Vec3{}, vec.Vec3{}, stop, MOVE_NOMONSTERS, ent)
 
-	if trace.Fraction == 1.0 {
+	if t.Fraction == 1.0 {
 		return false
 	}
-	mid := trace.EndPos[2]
-	bottom := trace.EndPos[2]
+	mid := t.EndPos[2]
+	bottom := t.EndPos[2]
 
 	d := []vec.Vec3{
 		{mins[0], mins[1], 0},
@@ -751,12 +750,12 @@ func expensiveCheckBottom(ent int, mins, maxs vec.Vec3) bool {
 	for _, p := range d {
 		start := vec.Vec3{p[0], p[1], level}
 		stop := vec.Vec3{p[0], p[1], below}
-		trace := svMove(start, vec.Vec3{}, vec.Vec3{}, stop, MOVE_NOMONSTERS, ent)
+		t := svMove(start, vec.Vec3{}, vec.Vec3{}, stop, MOVE_NOMONSTERS, ent)
 
-		if trace.Fraction != 1.0 && trace.EndPos[2] > bottom {
-			bottom = trace.EndPos[2]
+		if t.Fraction != 1.0 && t.EndPos[2] > bottom {
+			bottom = t.EndPos[2]
 		}
-		if trace.Fraction == 1.0 || mid-trace.EndPos[2] > kStepSize {
+		if t.Fraction == 1.0 || mid-t.EndPos[2] > kStepSize {
 			return false
 		}
 	}
