@@ -45,59 +45,6 @@ float skyfog;  // ericw
 //==============================================================================
 
 /*
-==================
-Sky_LoadSkyBox
-==================
-*/
-const char *suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
-void Sky_LoadSkyBox(const char *name) {
-  int i, mark, width, height;
-  char filename[MAX_OSPATH];
-  byte *data;
-  qboolean nonefound = true;
-
-  if (strcmp(skybox_name, name) == 0) return;  // no change
-
-  // purge old textures
-  for (i = 0; i < 6; i++) {
-    if (skybox_textures[i] && skybox_textures[i] != GetNoTexture())
-      TexMgrFreeTexture(skybox_textures[i]);
-    skybox_textures[i] = 0;
-  }
-
-  // turn off skybox if sky is set to ""
-  if (name[0] == 0) {
-    skybox_name[0] = 0;
-    return;
-  }
-
-  // load textures
-  for (i = 0; i < 6; i++) {
-    q_snprintf(filename, sizeof(filename), "gfx/env/%s%s", name, suf[i]);
-    skybox_textures[i] = TexMgrLoadSkyBox(filename);
-    if (!skybox_textures[i]) {
-      Con_Printf("Couldn't load %s\n", filename);
-      skybox_textures[i] = GetNoTexture();
-    } else {
-      nonefound = false;
-    }
-  }
-
-  if (nonefound)  // go back to scrolling sky if skybox is totally missing
-  {
-    for (i = 0; i < 6; i++) {
-      if (skybox_textures[i] && skybox_textures[i] != GetNoTexture())
-        TexMgrFreeTexture(skybox_textures[i]);
-      skybox_textures[i] = 0;
-    }
-    skybox_name[0] = 0;
-    return;
-  }
-
-  strcpy(skybox_name, name);
-}
-
-/*
 =================
 Sky_NewMap
 =================

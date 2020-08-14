@@ -6,11 +6,9 @@ package quakelib
 //extern uint32_t skybox_textures[6];
 //extern uint32_t solidskytexture2;
 //extern uint32_t alphaskytexture2;
-//extern char skybox_name[32];
 //void Sky_Init(void);
 //void Sky_DrawSky(void);
 //void Sky_NewMap(void);
-//void Sky_LoadSkyBox(const char *name);
 import "C"
 
 import (
@@ -53,12 +51,13 @@ var sky qSky
 
 //export HasSkyBox
 func HasSkyBox() bool {
-	return C.skybox_name[0] != 0
+	return len(sky.boxName) != 0
 }
 
 //export ClearSkyBox
 func ClearSkyBox() {
-	C.skybox_name[0] = 0
+	sky.boxName = ""
+	sky.boxTextures = [6]*texture.Texture{}
 	C.skybox_textures[0] = 0
 	C.skybox_textures[1] = 0
 	C.skybox_textures[2] = 0
@@ -102,19 +101,15 @@ var (
 )
 
 func (s *qSky) LoadBox(name string) {
-	cname := C.CString(name)
-	C.Sky_LoadSkyBox(cname)
-	C.free(unsafe.Pointer(cname))
-	return
-
 	if name == s.boxName {
 		return
 	}
 	s.boxName = name
 	for i, t := range s.boxTextures {
-		textureManager.FreeTexture(t)
-		s.boxTextures[i] = nil
+		textureManager.FreeTexture(t) // clean up textureManager cache
+		C.skybox_textures[i] = 0
 	}
+	s.boxTextures = [6]*texture.Texture{}
 	if s.boxName == "" {
 		// Turn off skybox
 		return
@@ -131,6 +126,15 @@ func (s *qSky) LoadBox(name string) {
 		// boxName == "" => No DrawSkyBox but only DrawSkyLayers
 		s.boxName = ""
 		return
+	}
+
+	for i := 0; i < 6; i++ {
+		if s.boxTextures[i] != nil {
+			texmap[s.boxTextures[i].ID()] = s.boxTextures[i]
+			C.skybox_textures[i] = C.uint32_t(s.boxTextures[i].ID())
+		} else {
+			C.skybox_textures[i] = C.uint32_t(unusedTexture)
+		}
 	}
 }
 

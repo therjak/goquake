@@ -7,6 +7,7 @@ import "C"
 
 import (
 	"log"
+	"runtime/debug"
 	"unsafe"
 
 	"github.com/therjak/goquake/glh"
@@ -22,6 +23,7 @@ var (
 
 func init() {
 	texmap = make(map[glh.TexID]*texture.Texture)
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 }
 
 //export GL_warpimagesize
@@ -73,26 +75,6 @@ func Go_LoadWad() {
 	if err != nil {
 		Error("Could not load wad: %v", err)
 	}
-}
-
-//export TexMgrLoadParticleImage
-func TexMgrLoadParticleImage(name *C.char, width C.int,
-	height C.int, data *C.byte) uint32 {
-	d := C.GoBytes(unsafe.Pointer(data), width*height*4)
-	t := textureManager.loadParticleImage(C.GoString(name), int32(width), int32(height), d)
-	texmap[t.ID()] = t
-	return uint32(t.ID())
-}
-
-//export TexMgrLoadSkyBox
-func TexMgrLoadSkyBox(name *C.char) uint32 {
-	n := C.GoString(name)
-	t := textureManager.LoadSkyBox(n)
-	if t == nil {
-		return 0
-	}
-	texmap[t.ID()] = t
-	return uint32(t.ID())
 }
 
 //export TexMgrLoadImage2
@@ -198,6 +180,9 @@ func GLSelectTexture(target uint32) {
 
 //export GLBind
 func GLBind(id uint32) {
+	if id == 0 {
+		debug.PrintStack()
+	}
 	qid := glh.TexID(id)
 	textureManager.Bind(texmap[qid])
 	if texmap[qid].ID() != qid {
