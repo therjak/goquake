@@ -1,6 +1,10 @@
 package quakelib
 
 //#include <stdlib.h>
+//#include <stdint.h>
+//extern float skyflatcolor[3];
+//extern uint32_t solidskytexture2;
+//extern uint32_t alphaskytexture2;
 //void Sky_Init(void);
 //void Sky_DrawSky(void);
 //void Sky_NewMap(void);
