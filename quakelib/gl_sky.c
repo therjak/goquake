@@ -45,57 +45,6 @@ float skyfog;  // ericw
 //==============================================================================
 
 /*
-=============
-Sky_LoadTexture
-
-A sky texture is 256*128, with the left side being a masked overlay
-==============
-*/
-void Sky_LoadTextureInt(const byte *src, const char *skyName,
-                        const char *modelName) {
-  char texturename[64];
-  int i, j, p, r, g, b, count;
-  static byte front_data[128 * 128];  // FIXME: Hunk_Alloc
-  static byte back_data[128 * 128];   // FIXME: Hunk_Alloc
-
-  // extract back layer and upload
-  for (i = 0; i < 128; i++)
-    for (j = 0; j < 128; j++) back_data[(i * 128) + j] = src[i * 256 + j + 128];
-
-  q_snprintf(texturename, sizeof(texturename), "%s:%s_back", modelName,
-             skyName);
-  solidskytexture2 = TexMgrLoadSkyTexture(texturename, back_data, TEXPREF_NONE);
-
-  // extract front layer and upload
-  for (i = 0; i < 128; i++)
-    for (j = 0; j < 128; j++) {
-      front_data[(i * 128) + j] = src[i * 256 + j];
-      if (front_data[(i * 128) + j] == 0) front_data[(i * 128) + j] = 255;
-    }
-
-  q_snprintf(texturename, sizeof(texturename), "%s:%s_front", modelName,
-             skyName);
-  alphaskytexture2 =
-      TexMgrLoadSkyTexture(texturename, front_data, TEXPREF_ALPHA);
-
-  // calculate r_fastsky color based on average of all opaque foreground colors
-  r = g = b = count = 0;
-  for (i = 0; i < 128; i++)
-    for (j = 0; j < 128; j++) {
-      p = src[i * 256 + j];
-      if (p != 0) {
-        r += D8To24Table(p, 0);
-        g += D8To24Table(p, 1);
-        b += D8To24Table(p, 2);
-        count++;
-      }
-    }
-  skyflatcolor[0] = (float)r / (count * 255);
-  skyflatcolor[1] = (float)g / (count * 255);
-  skyflatcolor[2] = (float)b / (count * 255);
-}
-
-/*
 ==================
 Sky_LoadSkyBox
 ==================
@@ -161,8 +110,7 @@ void Sky_NewMap(void) {
   //
   // initially no sky
   //
-  skybox_name[0] = 0;
-  for (i = 0; i < 6; i++) skybox_textures[i] = 0;
+  ClearSkyBox();
   skyfog = Cvar_GetValue(&r_skyfog);
 
   //
@@ -862,7 +810,7 @@ void Sky_DrawSky(void) {
     glDepthFunc(GL_GEQUAL);
     glDepthMask(0);
 
-    if (skybox_name[0])
+    if (HasSkyBox())
       Sky_DrawSkyBox();
     else
       Sky_DrawSkyLayers();

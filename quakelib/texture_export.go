@@ -84,15 +84,6 @@ func TexMgrLoadParticleImage(name *C.char, width C.int,
 	return uint32(t.ID())
 }
 
-//export TexMgrLoadSkyTexture
-func TexMgrLoadSkyTexture(name *C.char, data *C.byte, flags C.unsigned) uint32 {
-	n := C.GoString(name)
-	d := C.GoBytes(unsafe.Pointer(data), 128*128)
-	t := textureManager.LoadSkyTexture(n, d, texture.TexPref(flags))
-	texmap[t.ID()] = t
-	return uint32(t.ID())
-}
-
 //export TexMgrLoadSkyBox
 func TexMgrLoadSkyBox(name *C.char) uint32 {
 	n := C.GoString(name)

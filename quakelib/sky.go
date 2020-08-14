@@ -3,13 +3,14 @@ package quakelib
 //#include <stdlib.h>
 //#include <stdint.h>
 //extern float skyflatcolor[3];
+//extern uint32_t skybox_textures[6];
 //extern uint32_t solidskytexture2;
 //extern uint32_t alphaskytexture2;
+//extern char skybox_name[32];
 //void Sky_Init(void);
 //void Sky_DrawSky(void);
 //void Sky_NewMap(void);
 //void Sky_LoadSkyBox(const char *name);
-//void Sky_LoadTextureInt(const unsigned char* src, const char* skyName, const char* modelName);
 import "C"
 
 import (
@@ -50,6 +51,22 @@ type qSky struct {
 
 var sky qSky
 
+//export HasSkyBox
+func HasSkyBox() bool {
+	return C.skybox_name[0] != 0
+}
+
+//export ClearSkyBox
+func ClearSkyBox() {
+	C.skybox_name[0] = 0
+	C.skybox_textures[0] = 0
+	C.skybox_textures[1] = 0
+	C.skybox_textures[2] = 0
+	C.skybox_textures[3] = 0
+	C.skybox_textures[4] = 0
+	C.skybox_textures[5] = 0
+}
+
 //export SkyInit
 func SkyInit() {
 	C.Sky_Init()
@@ -76,9 +93,6 @@ func (s *qSky) NewMap() {
 
 //export SkyLoadSkyBox
 func SkyLoadSkyBox(c *C.char) {
-	C.Sky_LoadSkyBox(c)
-	return
-
 	name := C.GoString(c)
 	sky.LoadBox(name)
 }
@@ -102,6 +116,7 @@ func (s *qSky) LoadBox(name string) {
 		s.boxTextures[i] = nil
 	}
 	if s.boxName == "" {
+		// Turn off skybox
 		return
 	}
 	noneFound := true
@@ -121,8 +136,6 @@ func (s *qSky) LoadBox(name string) {
 
 //export SkyLoadTexture
 func SkyLoadTexture(src *C.uchar, skyName *C.char, modelName *C.char) {
-	C.Sky_LoadTextureInt(src, skyName, modelName)
-	return
 	s := C.GoString(skyName)
 	m := C.GoString(modelName)
 	b := C.GoBytes(unsafe.Pointer(src), 256*128)
@@ -162,6 +175,14 @@ func (s *qSky) LoadTexture(d []byte, skyName, modelName string) {
 		G: float32(g) / (float32(count) * 255),
 		B: float32(b) / (float32(count) * 255),
 	}
+
+	texmap[s.solidTexture.ID()] = s.solidTexture
+	texmap[s.alphaTexture.ID()] = s.alphaTexture
+	C.solidskytexture2 = C.uint32_t(s.solidTexture.ID())
+	C.alphaskytexture2 = C.uint32_t(s.alphaTexture.ID())
+	C.skyflatcolor[0] = C.float(s.flat.R)
+	C.skyflatcolor[1] = C.float(s.flat.G)
+	C.skyflatcolor[2] = C.float(s.flat.B)
 }
 
 type skyVec [3]int
