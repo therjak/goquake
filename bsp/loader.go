@@ -187,7 +187,20 @@ func Load(name string, data []byte) ([]*qm.QModel, error) {
 	return ret, nil
 }
 
-func convertToJSON(data []byte) []map[string]string {
+func convertToJSON(data []byte) []*qm.Entity {
+	/*
+		The data looks like:
+			{
+				"name" "value"
+				"name2" "value2"
+			}
+			{
+				"name3" "value"
+				{
+					()()()...
+				}
+			}
+	*/
 	data = bytes.ReplaceAll(data, []byte("\" \""), []byte("\": \""))
 	data = bytes.ReplaceAll(data, []byte("\n"), []byte{})
 	data = bytes.ReplaceAll(data, []byte("\"\""), []byte("\",\""))
@@ -215,7 +228,11 @@ func convertToJSON(data []byte) []map[string]string {
 	if err != nil {
 		log.Printf("unmarshal err: %v", err)
 	}
-	return result
+	es := []*qm.Entity{}
+	for _, m := range result {
+		es = append(es, qm.NewEntity(m))
+	}
+	return es
 }
 
 func buildPlanes(pls []*plane) []*qm.Plane {

@@ -170,7 +170,7 @@ type QModel struct {
 	Hulls   [MAX_MAP_HULLS]Hull
 	VisData []byte
 
-	Entities []map[string]string
+	Entities []*Entity
 
 	Node Node
 }

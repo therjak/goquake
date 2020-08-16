@@ -111,8 +111,13 @@ func (f *QFog) ParseWorldspawn() {
 	f.Time = 0
 	f.Done = 0
 
+	// "worldspawn" should always be the first entity but just to be sure
 	for _, e := range cl.worldModel.Entities {
-		txt, ok := e["fog"]
+		n, ok := e.Name()
+		if !ok || n != "worldspawn" {
+			continue
+		}
+		txt, ok := e.Property("fog")
 		if ok {
 			var d, r, g, b float32
 			i, err := fmt.Sscanf(txt, "%f %f %f %f", &d, &r, &g, &b)

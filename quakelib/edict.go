@@ -11,6 +11,7 @@ import (
 	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/math"
 	"github.com/therjak/goquake/math/vec"
+	"github.com/therjak/goquake/model"
 	"github.com/therjak/goquake/progs"
 )
 
@@ -225,28 +226,34 @@ func UpdateEdictAlpha(ent int) {
 	edictNum(ent).Alpha = entAlphaEncode(v)
 }
 
-func parse(ed int, data map[string]string) {
+func parse(ed int, data *model.Entity) {
 	if ed != 0 {
 		ClearEntVars(ed)
 	}
-	for k, v := range data {
+	for _, on := range data.PropertyNames() {
 		// some hacks...
-		if k == "angle" {
-			k = "angles"
-			v = fmt.Sprintf("0 %s 0", v)
+		angleHack := false
+		n := on
+		if n == "angle" {
+			n = "angles"
+			angleHack = true
 		}
-		if k == "light" {
-			k = "light_lev"
+		if n == "light" {
+			n = "light_lev"
 		}
-		def, err := progsdat.FindFieldDef(k)
+		def, err := progsdat.FindFieldDef(n)
 		if err != nil {
-			if k != "sky" && k != "fog" && k != "alpha" {
-				log.Printf("Can't find field %s\n", k)
-				conlog.DPrintf("Can't find field %s\n", k)
+			if n != "sky" && n != "fog" && n != "alpha" {
+				log.Printf("Can't find field %s\n", n)
+				conlog.DPrintf("Can't find field %s\n", n)
 			}
 			continue
 		}
-		EntVarsParsePair(ed, def, v)
+		p, _ := data.Property(on)
+		if angleHack {
+			p = fmt.Sprintf("0 %s 0", p)
+		}
+		EntVarsParsePair(ed, def, p)
 	}
 }
 
@@ -266,7 +273,7 @@ const (
 //
 //Used for both fresh maps and savegame loads.  A fresh map would also need
 //to call ED_CallSpawnFunctions () to let the objects initialize themselves.
-func loadEntities(data []map[string]string) {
+func loadEntities(data []*model.Entity) {
 	progsdat.Globals.Time = sv.time
 	inhibit := 0
 	eNr := -1
