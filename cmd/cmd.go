@@ -185,9 +185,6 @@ const (
 	itemName   // name "...." or name xxxx xxx xxx, can put full text in argv[1]
 	itemSay    // say/say_team + text, can put full text in argv[1]
 	itemTextCmd
-	//	itemLeftMeta
-	//	itemRightMeta
-	//	itemNumber
 	itemString   // quoted string includes quotes
 	itemChar     // '{','}','(',')','\'',':'
 	itemSpace    // <=32
@@ -376,23 +373,6 @@ Loop:
 	l.emit(itemString)
 	return lexAction
 }
-
-/*
-func lexNumber(l *lexer) stateFn {
-	l.accept("+-")
-	digits := "0123456789"
-	l.acceptRun(digits)
-	if l.accept(".") {
-		l.acceptRun(digits)
-	}
-	if isAlphaNumeric(l.peek()) {
-		l.next()
-		return l.errorf("bad number syntax: %q", l.input[l.start:l.pos])
-	}
-	l.emit(itemNumber)
-	return lexInsideAction
-}
-*/
 
 func isQuakeRune(r rune) bool {
 	// this is an ugly ascii workaround
