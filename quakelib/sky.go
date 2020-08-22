@@ -6,6 +6,7 @@ package quakelib
 //extern uint32_t skybox_textures[6];
 //extern uint32_t solidskytexture2;
 //extern uint32_t alphaskytexture2;
+//extern float skyfog;
 //void Sky_Init(void);
 //void Sky_DrawSky(void);
 //void Sky_NewMap(void);
@@ -13,17 +14,24 @@ import "C"
 
 import (
 	"fmt"
+	"strconv"
 	"unsafe"
 
 	"github.com/chewxy/math32"
 	"github.com/therjak/goquake/cmd"
 	"github.com/therjak/goquake/conlog"
+	"github.com/therjak/goquake/cvar"
+	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/math/vec"
 	"github.com/therjak/goquake/texture"
 )
 
 func init() {
 	cmd.AddCommand("sky", skyCommand)
+	cvars.RSkyFog.SetCallback(func(cv *cvar.Cvar) {
+		C.skyfog = C.float(cv.Value())
+	})
+
 }
 
 func skyCommand(args []cmd.QArg, _ int) {
@@ -54,7 +62,6 @@ func HasSkyBox() bool {
 	return len(sky.boxName) != 0
 }
 
-//export ClearSkyBox
 func ClearSkyBox() {
 	sky.boxName = ""
 	sky.boxTextures = [6]*texture.Texture{}
@@ -78,22 +85,34 @@ func SkyDrawSky() {
 
 //export SkyNewMap
 func SkyNewMap() {
-	C.Sky_NewMap()
 	sky.NewMap()
 }
 
 func (s *qSky) NewMap() {
+	ClearSkyBox()
+	C.skyfog = C.float(cvars.RSkyFog.Value())
+
 	s.boxName = ""
 	s.boxTextures = [6]*texture.Texture{}
-	// TODO:
-	// skyfog
-	// parse cl.worldmodel.entities
-}
-
-//export SkyLoadSkyBox
-func SkyLoadSkyBox(c *C.char) {
-	name := C.GoString(c)
-	sky.LoadBox(name)
+	for _, e := range cl.worldModel.Entities {
+		if n, _ := e.Name(); n != "worldspawn" {
+			continue
+		}
+		if p, ok := e.Property("sky"); ok {
+			s.LoadBox(p)
+		}
+		if p, ok := e.Property("skyfog"); ok {
+			v, err := strconv.ParseFloat(p, 32)
+			if err == nil {
+				C.skyfog = C.float(v)
+			}
+		} else if p, ok := e.Property("skyname"); ok { // half-life
+			s.LoadBox(p)
+		} else if p, ok := e.Property("glsky"); ok { // quake lives
+			s.LoadBox(p)
+		}
+		return
+	}
 }
 
 var (

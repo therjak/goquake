@@ -21,7 +21,6 @@ extern cvar_t gl_farclip;
 cvar_t r_fastsky;
 cvar_t r_sky_quality;
 cvar_t r_skyalpha;
-cvar_t r_skyfog;
 
 int skytexorder[6] = {0, 2, 1, 3, 4, 5};  // for skybox
 
@@ -38,77 +37,6 @@ int vec_to_st[6][3] = {{-2, 3, 1},  {2, 3, -1},  {1, 3, 2},
 
 float skyfog;  // ericw
 
-//==============================================================================
-//
-//  INIT
-//
-//==============================================================================
-
-/*
-=================
-Sky_NewMap
-=================
-*/
-void Sky_NewMap(void) {
-  char key[128], value[4096];
-  const char *data;
-  int i;
-
-  //
-  // initially no sky
-  //
-  ClearSkyBox();
-  skyfog = Cvar_GetValue(&r_skyfog);
-
-  //
-  // read worldspawn (this is so ugly, and shouldn't it be done on the server?)
-  //
-  data = cl.worldmodel->entities;
-  if (!data)
-    return;  // FIXME: how could this possibly ever happen? -- if there's no
-  // worldspawn then the sever wouldn't send the loadmap message to the client
-
-  data = COM_Parse(data);
-  if (!data)                // should never happen
-    return;                 // error
-  if (com_token[0] != '{')  // should never happen
-    return;                 // error
-  while (1) {
-    data = COM_Parse(data);
-    if (!data) return;               // error
-    if (com_token[0] == '}') break;  // end of worldspawn
-    if (com_token[0] == '_')
-      strcpy(key, com_token + 1);
-    else
-      strcpy(key, com_token);
-    while (key[strlen(key) - 1] == ' ')  // remove trailing spaces
-      key[strlen(key) - 1] = 0;
-    data = COM_Parse(data);
-    if (!data) return;  // error
-    strcpy(value, com_token);
-
-    if (!strcmp("sky", key)) SkyLoadSkyBox(value);
-
-    if (!strcmp("skyfog", key))
-      skyfog = atof(value);
-
-    else if (!strcmp("skyname", key))  // half-life
-      SkyLoadSkyBox(value);
-    else if (!strcmp("qlsky", key))  // quake lives
-      SkyLoadSkyBox(value);
-  }
-}
-
-/*
-====================
-R_SetSkyfog_f -- ericw
-====================
-*/
-static void R_SetSkyfog_f(cvar_t *var) {
-  // clear any skyfog setting from worldspawn
-  skyfog = Cvar_GetValue(var);
-}
-
 /*
 =============
 Sky_Init
@@ -120,8 +48,6 @@ void Sky_Init(void) {
   Cvar_FakeRegister(&r_fastsky, "r_fastsky");
   Cvar_FakeRegister(&r_sky_quality, "r_sky_quality");
   Cvar_FakeRegister(&r_skyalpha, "r_skyalpha");
-  Cvar_FakeRegister(&r_skyfog, "r_skyfog");
-  Cvar_SetCallback(&r_skyfog, R_SetSkyfog_f);
 
   for (i = 0; i < 6; i++) skybox_textures[i] = 0;
 }
