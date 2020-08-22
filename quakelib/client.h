@@ -31,10 +31,6 @@ typedef struct {
 extern entity_t cl_viewent;  // the gun model
 
 extern client_state_t cl;
-//
-// cvars
-//
-extern cvar_t cl_shownet;
 
 #define MAX_TEMP_ENTITIES 256    // johnfitz -- was 64
 #define MAX_STATIC_ENTITIES 512  // johnfitz -- was 128

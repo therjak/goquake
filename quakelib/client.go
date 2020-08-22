@@ -7,6 +7,8 @@ package quakelib
 //extern const char* BOLT2;
 //extern const char* BOLT3;
 //extern const char* BEAM;
+//void CL_RelinkEntities(void);
+//void CL_UpdateTEnts(void);
 import "C"
 
 import (
@@ -119,9 +121,9 @@ func SetCLRoll(v C.float) {
 func (c *Client) adjustAngles() {
 	speed := func() float32 {
 		if (cvars.ClientForwardSpeed.Value() > 200) != input.Speed.Down() {
-			return float32(FrameTime()) * cvars.ClientAngleSpeedKey.Value()
+			return float32(host.frameTime) * cvars.ClientAngleSpeedKey.Value()
 		}
-		return float32(FrameTime())
+		return float32(host.frameTime)
 	}()
 	if !input.Strafe.Down() {
 		c.yaw -= speed * cvars.ClientYawSpeed.Value() * input.Right.ConsumeImpulse()
@@ -149,6 +151,7 @@ func (c *Client) adjustAngles() {
 }
 
 // this is persistent through an arbitrary number of server connections
+// TODO(therjak): merge with Client
 type ClientStatic struct {
 	state              int // enum dedicated = 0, disconnected, connected
 	demoNum            int
@@ -167,14 +170,9 @@ type ClientStatic struct {
 	// to restart a level
 	spawnParms string
 	demos      []string
-	/*
-		demoFile 'filehandle'
-	*/
 	demoWriter io.WriteCloser
 	demoData   []byte
 	msgBadRead bool
-
-	// net.PacketCon
 }
 
 type score struct {
@@ -549,6 +547,17 @@ func CLSMessageClear() {
 	cls.outProto.Reset()
 }
 
+func viewPositionCommand(args []cmd.QArg, _ int) {
+	if cls.state != ca_connected {
+		return
+	}
+	player := cl.Entities(cl.viewentity)
+	pos := player.origin()
+	conlog.Printf("Viewpos: (%.f %.f %.f) %.f %.f %.f\n",
+		pos[0], pos[1], pos[2],
+		cl.pitch, cl.yaw, cl.roll)
+}
+
 func executeOnServer(args []cmd.QArg, _ int) {
 	if cls.state != ca_connected {
 		conlog.Printf("Can't \"cmd\", not connected\n")
@@ -586,6 +595,34 @@ func forwardToServer(c string, args []cmd.QArg) {
 
 func init() {
 	cmd.AddCommand("cmd", executeOnServer)
+	cmd.AddCommand("viewpos", viewPositionCommand)
+}
+
+// Read all incoming data from the server
+func (c *Client) ReadFromServer() {
+	c.oldTime = cl.time
+	c.time += host.frameTime
+	for {
+		// TODO: code needs major cleanup (getMessage + CL_ParseServerMessage)
+		ret := cls.getMessage()
+		if ret == -1 {
+			HostError("CL_ReadFromServer: lost server connection")
+		}
+		if ret == 0 {
+			break
+		}
+		c.lastReceivedMessageTime = host.time
+		CL_ParseServerMessage()
+		if cls.state != ca_connected {
+			break
+		}
+	}
+	if cvars.ClientShowNet.Bool() {
+		conlog.Printf("\n")
+	}
+
+	C.CL_RelinkEntities()
+	C.CL_UpdateTEnts()
 }
 
 //export CL_GetMessage

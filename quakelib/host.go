@@ -1,6 +1,5 @@
 package quakelib
 
-//void CL_ReadFromServer(void);
 import "C"
 
 import (
@@ -42,10 +41,6 @@ func Time() float64 {
 	return host.time
 }
 
-func FrameTime() float64 {
-	return host.frameTime
-}
-
 func (h *Host) Reset() {
 	h.frameTime = 0.1
 }
@@ -74,11 +69,6 @@ func (h *Host) UpdateTime() bool {
 //export HostRealTime
 func HostRealTime() C.double {
 	return C.double(Time())
-}
-
-//export HostFrameTime
-func HostFrameTime() C.double {
-	return C.double(FrameTime())
 }
 
 //export Host_FindMaxClients
@@ -253,7 +243,7 @@ func executeFrame() {
 
 	// fetch results from server
 	if cls.state == ca_connected {
-		C.CL_ReadFromServer()
+		cl.ReadFromServer()
 	}
 
 	var time1, time2, time3 time.Time

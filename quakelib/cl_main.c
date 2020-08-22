@@ -7,9 +7,6 @@
 // we need to declare some mouse variables here, because the menu system
 // references them even when on a unix system.
 
-// these two are not intended to be set directly
-cvar_t cl_shownet;
-
 client_state_t cl;
 
 // FIXME: put these on hunk?
@@ -282,57 +279,6 @@ void CL_RelinkEntities(void) {
 }
 
 /*
-===============
-CL_ReadFromServer
-
-Read all incoming data from the server
-===============
-*/
-void CL_ReadFromServer(void) {
-  int ret;
-  extern int num_temp_entities;  // johnfitz
-  int num_beams = 0;             // johnfitz
-  int num_dlights = 0;           // johnfitz
-  beam_t *b;                     // johnfitz
-  dlight_t *l;                   // johnfitz
-  int i;                         // johnfitz
-
-  CL_SetOldTime(CL_Time());
-  CL_SetTime(CL_Time() + HostFrameTime());
-
-  do {
-    ret = CL_GetMessage();
-    if (ret == -1) Host_Error("CL_ReadFromServer: lost server connection");
-    if (!ret) break;
-
-    CL_SetLastReceivedMessage(HostRealTime());
-    CL_ParseServerMessage();
-  } while (ret && CLS_GetState() == ca_connected);
-
-  if (Cvar_GetValue(&cl_shownet)) Con_Printf("\n");
-
-  CL_RelinkEntities();
-  CL_UpdateTEnts();
-}
-
-/*
-=============
-CL_Viewpos_f -- johnfitz
-
-display client's position and angles
-=============
-*/
-void CL_Viewpos_f(void) {
-  if (CLS_GetState() != ca_connected) return;
-  // player position
-  Con_Printf("Viewpos: (%i %i %i) %i %i %i\n",
-             (int)cl_entities[CL_Viewentity()].origin[0],
-             (int)cl_entities[CL_Viewentity()].origin[1],
-             (int)cl_entities[CL_Viewentity()].origin[2], (int)CLPitch(),
-             (int)CLYaw(), (int)CLRoll());
-}
-
-/*
 =================
 CL_Init
 =================
@@ -342,10 +288,7 @@ void CL_Init(void) {
 
   CL_InitTEnts();
 
-  Cvar_FakeRegister(&cl_shownet, "cl_shownet");
-
   Cmd_AddCommand("entities", CL_PrintEntities_f);
-  Cmd_AddCommand("viewpos", CL_Viewpos_f);
 }
 
 void SetCLWeaponModel(int v) {
