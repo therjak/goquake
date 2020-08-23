@@ -69,10 +69,10 @@ Returns the offset of the first vertex's meshxyz_t.xyz in the vbo for the given
 model and pose.
 =============
 */
-static void *GLARB_GetXYZOffset(aliashdr_t *hdr, int pose) {
+static void *GLARB_GetXYZOffset(aliashdr_t *hdr, int pose, entity_t* e) {
   meshxyz_t dummy;
   int xyzoffs = ((char *)&dummy.xyz - (char *)&dummy);
-  return (void *)(currententity->model->vboxyzofs +
+  return (void *)(e->model->vboxyzofs +
                   (hdr->numverts_vbo * pose * sizeof(meshxyz_t)) + xyzoffs);
 }
 
@@ -84,10 +84,10 @@ Returns the offset of the first vertex's meshxyz_t.normal in the vbo for the
 given model and pose.
 =============
 */
-static void *GLARB_GetNormalOffset(aliashdr_t *hdr, int pose) {
+static void *GLARB_GetNormalOffset(aliashdr_t *hdr, int pose, entity_t* e) {
   meshxyz_t dummy;
   int normaloffs = ((char *)&dummy.normal - (char *)&dummy);
-  return (void *)(currententity->model->vboxyzofs +
+  return (void *)(e->model->vboxyzofs +
                   (hdr->numverts_vbo * pose * sizeof(meshxyz_t)) + normaloffs);
 }
 
@@ -202,6 +202,7 @@ Based on code by MH from RMQEngine
 */
 void GL_DrawAliasFrame_GLSL(aliashdr_t *paliashdr, lerpdata_t lerpdata,
                             uint32_t tx, uint32_t fb) {
+  entity_t* e = currententity;
   float blend;
 
   if (lerpdata.pose1 != lerpdata.pose2) {
@@ -214,8 +215,8 @@ void GL_DrawAliasFrame_GLSL(aliashdr_t *paliashdr, lerpdata_t lerpdata,
 
   glUseProgram(r_alias_program);
 
-  GL_BindBuffer(GL_ARRAY_BUFFER, currententity->model->meshvbo);
-  GL_BindBuffer(GL_ELEMENT_ARRAY_BUFFER, currententity->model->meshindexesvbo);
+  GL_BindBuffer(GL_ARRAY_BUFFER, e->model->meshvbo);
+  GL_BindBuffer(GL_ELEMENT_ARRAY_BUFFER, e->model->meshindexesvbo);
 
   glEnableVertexAttribArray(texCoordsAttrIndex);
   glEnableVertexAttribArray(pose1VertexAttrIndex);
@@ -224,20 +225,20 @@ void GL_DrawAliasFrame_GLSL(aliashdr_t *paliashdr, lerpdata_t lerpdata,
   glEnableVertexAttribArray(pose2NormalAttrIndex);
 
   glVertexAttribPointer(texCoordsAttrIndex, 2, GL_FLOAT, GL_FALSE, 0,
-                        (void *)(intptr_t)currententity->model->vbostofs);
+                        (void *)(intptr_t)e->model->vbostofs);
   glVertexAttribPointer(pose1VertexAttrIndex, 4, GL_UNSIGNED_BYTE, GL_FALSE,
                         sizeof(meshxyz_t),
-                        GLARB_GetXYZOffset(paliashdr, lerpdata.pose1));
+                        GLARB_GetXYZOffset(paliashdr, lerpdata.pose1, e));
   glVertexAttribPointer(pose2VertexAttrIndex, 4, GL_UNSIGNED_BYTE, GL_FALSE,
                         sizeof(meshxyz_t),
-                        GLARB_GetXYZOffset(paliashdr, lerpdata.pose2));
+                        GLARB_GetXYZOffset(paliashdr, lerpdata.pose2, e));
   // GL_TRUE to normalize the signed bytes to [-1 .. 1]
   glVertexAttribPointer(pose1NormalAttrIndex, 4, GL_BYTE, GL_TRUE,
                         sizeof(meshxyz_t),
-                        GLARB_GetNormalOffset(paliashdr, lerpdata.pose1));
+                        GLARB_GetNormalOffset(paliashdr, lerpdata.pose1, e));
   glVertexAttribPointer(pose2NormalAttrIndex, 4, GL_BYTE, GL_TRUE,
                         sizeof(meshxyz_t),
-                        GLARB_GetNormalOffset(paliashdr, lerpdata.pose2));
+                        GLARB_GetNormalOffset(paliashdr, lerpdata.pose2, e));
 
   // set uniforms
   glUniform1f(blendLoc, blend);
@@ -264,7 +265,7 @@ void GL_DrawAliasFrame_GLSL(aliashdr_t *paliashdr, lerpdata_t lerpdata,
 
   // draw
   glDrawElements(GL_TRIANGLES, paliashdr->numindexes, GL_UNSIGNED_SHORT,
-                 (void *)(intptr_t)currententity->model->vboindexofs);
+                 (void *)(intptr_t)e->model->vboindexofs);
 
   // clean up
   glDisableVertexAttribArray(texCoordsAttrIndex);
