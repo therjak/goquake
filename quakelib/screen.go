@@ -321,7 +321,7 @@ func (s *qScreen) drawCrosshair() {
 
 func (s *qScreen) CenterPrint(str string) {
 	s.centerTime = time.Now().Add(time.Second * 2) // scr_centertime
-	s.centerString = strings.Split(str, "\n")
+	s.centerString = strings.Split(str, "\\n")
 }
 
 func (s *qScreen) drawCenterPrint() {

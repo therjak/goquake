@@ -23,8 +23,6 @@ extern cvar_t r_noshadow_list;
 // johnfitz
 extern cvar_t gl_zfix;  // QuakeSpasm z-fighting fix
 
-extern uint32_t playertextures[MAX_SCOREBOARD];  // johnfitz
-
 /*
 ====================
 GL_Overbright_f -- johnfitz
@@ -191,25 +189,6 @@ void R_Init(void) {
 
 /*
 ===============
-R_TranslatePlayerSkin -- johnfitz -- rewritten.  also, only handles new colors,
-not new skins
-===============
-*/
-void R_TranslatePlayerSkin(int playernum) {
-  int top, bottom;
-
-  top = (CL_ScoresColors(playernum) & 0xf0) >> 4;
-  bottom = CL_ScoresColors(playernum) & 15;
-
-  // FIXME: if gl_nocolors is on, then turned off, the textures may be out of
-  // sync with the scoreboard colors.
-  if (!Cvar_GetValue(&gl_nocolors))
-    if (playertextures[playernum])
-      TexMgrReloadImage(playertextures[playernum], top, bottom);
-}
-
-/*
-===============
 R_TranslateNewPlayerSkin -- johnfitz -- split off of TranslatePlayerSkin -- this
 is called when
 the skin or model actually changes, instead of just new colors
@@ -243,10 +222,7 @@ void R_TranslateNewPlayerSkin(int playernum) {
            paliashdr->texels[skinnum];  // This is not a persistent place!
 
   // upload new image
-  q_snprintf(name, sizeof(name), "player_%i", playernum);
-  playertextures[playernum] = TexMgrLoadImage2(
-      ce->model, name, paliashdr->skinwidth, paliashdr->skinheight,
-      SRC_INDEXED, pixels, "", 0, TEXPREF_PAD | TEXPREF_OVERWRITE);
+  LoadPlayerTexture(playernum, paliashdr->skinwidth, paliashdr->skinheight, pixels);
 
   // now recolor it
   R_TranslatePlayerSkin(playernum);

@@ -341,11 +341,6 @@ func CL_SetMapName(c *C.char) {
 	cl.mapName = C.GoString(c)
 }
 
-//export CL_ScoresColors
-func CL_ScoresColors(i int) int {
-	return (cl.scores[i].topColor << 4) + cl.scores[i].bottomColor
-}
-
 //export CL_Stats
 func CL_Stats(s C.int) C.int {
 	return C.int(cl_stats(int(s)))
@@ -462,9 +457,9 @@ func CL_Clear() {
 	clearLightStyles()
 }
 
-//export CL_Viewentity
-func CL_Viewentity() C.int {
-	return C.int(cl.viewentity)
+//export CLViewentityNum
+func CLViewentityNum() int {
+	return cl.viewentity
 }
 
 //export CL_Protocol
@@ -551,6 +546,11 @@ func viewPositionCommand(args []cmd.QArg, _ int) {
 	if cls.state != ca_connected {
 		return
 	}
+	printPosition()
+}
+
+//export printPosition
+func printPosition() {
 	player := cl.Entities(cl.viewentity)
 	pos := player.origin()
 	conlog.Printf("Viewpos: (%.f %.f %.f) %.f %.f %.f\n",

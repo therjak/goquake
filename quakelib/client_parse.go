@@ -1,7 +1,6 @@
 package quakelib
 
 //void CL_ParseUpdate(int bits);
-//void CL_NewTranslation(int slot);
 //void CL_ParseStatic(int version);
 //void R_CheckEfrags(void);
 //void CL_ClearState(void);
@@ -436,7 +435,7 @@ func CL_ParseServerMessage() {
 			}
 			cl.scores[i].topColor = int((c & 0xf0) >> 4)
 			cl.scores[i].bottomColor = int(c & 0x0f)
-			C.CL_NewTranslation(C.int(i))
+			CL_NewTranslation(int(i))
 
 		case svc.Particle:
 			var dir vec.Vec3

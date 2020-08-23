@@ -263,7 +263,7 @@ func (c *qconsole) centerPrint(txt string) {
 	if w > c.lineWidth {
 		w = c.lineWidth
 	}
-	parts := strings.Split(txt, "\n")
+	parts := strings.Split(txt, "\\n")
 	// Split removes the '\n' so we can not forget to add it again.
 	// Its probably ok to use Split and create new strings afterwards
 	// as we add whitespace in most cases. The special case where we
@@ -335,7 +335,7 @@ func (c *qconsole) Draw(lines int) {
 
 	rows := (c.visibleLines + 7) / 8
 	y := c.height - rows*8
-	rows -= 2 // for intput and version line
+	rows -= 2 // for input and version line
 	sb := 0
 	if c.backScroll != 0 {
 		sb = 2

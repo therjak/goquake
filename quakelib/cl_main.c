@@ -225,7 +225,7 @@ void CL_RelinkEntities(void) {
       // johnfitz -- assume muzzle flash accompanied by muzzle flare, which
       // looks bad when lerped
       if (Cvar_GetValue(&r_lerpmodels) != 2) {
-        if (ent == &cl_entities[CL_Viewentity()])
+        if (ent == CLViewEntity())
           cl_viewent.lerpflags |=
               LERP_RESETANIM | LERP_RESETANIM2;  // no lerping for two frames
         else
@@ -269,7 +269,9 @@ void CL_RelinkEntities(void) {
 
     ent->forcelink = false;
 
-    if (i == CL_Viewentity() && !Cvar_GetValue(&chase_active)) continue;
+    if (i == CLViewentityNum() && !Cvar_GetValue(&chase_active)) {
+      continue;
+    }
 
     if (cl_numvisedicts < MAX_VISEDICTS) {
       cl_visedicts[cl_numvisedicts] = ent;

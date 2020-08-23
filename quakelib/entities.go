@@ -14,7 +14,9 @@ package quakelib
 import "C"
 
 import (
+	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/math/vec"
+	"github.com/therjak/goquake/texture"
 )
 
 const (
@@ -25,12 +27,61 @@ const (
 	lerpFinish                 // use lerpfinish time from server update instead of assuming interval of 0.1
 )
 
+var (
+	playerTextures map[C.entityPtr]*texture.Texture
+)
+
+func init() {
+	playerTextures = make(map[C.entityPtr]*texture.Texture)
+}
+
+//export PlayerTexture
+func PlayerTexture(ptr C.entityPtr) uint32 {
+	t, ok := playerTextures[ptr]
+	if !ok || t == nil {
+		return 0
+	}
+	texmap[t.ID()] = t
+	return uint32(t.ID())
+}
+
+//export CL_NewTranslation
+func CL_NewTranslation(i int) {
+	if i < 0 || i >= cl.maxClients {
+		Error("CL_NewTranslation: slot > cl.maxClients: %d", i)
+	}
+	R_TranslatePlayerSkin(i)
+}
+
+//export R_TranslatePlayerSkin
+func R_TranslatePlayerSkin(i int) {
+	if cvars.GlNoColors.Bool() {
+		return
+	}
+	if i < 0 || i >= cl.maxClients {
+		return
+	}
+	// s := cl.scores[i]
+	e := cl.Entities(i + 1)
+	t, ok := playerTextures[e.ptr]
+	if !ok || t == nil {
+		// There are R_TranslatePlayerSkin calls before we even loaded
+		// the player texture. So just ignore.
+		return
+	}
+	// TODO(therjak): do the remap from s.topColor & s.bottomColor
+	// we do have indexed colors for the texture
+	textureManager.ReloadImage(t)
+}
+
 type Entity struct {
 	ptr C.entityPtr
 }
 
-func (c *Client) Entities(i int) Entity {
-	return Entity{C.getCLEntity(C.int(i))}
+func (c *Client) Entities(i int) *Entity {
+	// TODO: make separate sets of Entities(0) for world and
+	// Entities(1 to cl.maxClients) for players
+	return &Entity{C.getCLEntity(C.int(i))}
 }
 
 func (e *Entity) origin() vec.Vec3 {
@@ -78,6 +129,16 @@ func (c *Client) StaticEntityNum(num int) *Entity {
 
 func (c *Client) EntityNum(num int) *Entity {
 	return &Entity{CL_EntityNum(num)}
+}
+
+// Entity return the player entity
+func (c *Client) Entity() *Entity {
+	return c.Entities(c.viewentity)
+}
+
+//export CLViewEntity
+func CLViewEntity() C.entityPtr {
+	return cl.Entity().ptr
 }
 
 func (e *Entity) SetBaseline(state *EntityState) {

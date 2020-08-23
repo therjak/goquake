@@ -6,6 +6,7 @@ package quakelib
 import "C"
 
 import (
+	"fmt"
 	"log"
 	"runtime/debug"
 	"unsafe"
@@ -77,8 +78,28 @@ func Go_LoadWad() {
 	}
 }
 
+//export LoadPlayerTexture
+func LoadPlayerTexture(playerNum int, width, height int, data *C.byte) {
+	// 1 to cl.maxClients
+	if playerNum < 0 || playerNum >= cl.maxClients {
+		log.Printf("Bad LoadPlayerTextures: %v", playerNum)
+		return
+	}
+	name := fmt.Sprintf("player_%d", playerNum)
+	flags := texture.TexPrefPad | texture.TexPrefOverwrite
+	d := C.GoBytes(unsafe.Pointer(data), C.int(width*height))
+
+	t := texture.NewTexture(int32(width), int32(height),
+		flags, name, texture.ColorTypeIndexed, d)
+	textureManager.addActiveTexture(t)
+	textureManager.loadIndexed(t, d)
+
+	e := cl.Entities(playerNum + 1)
+	playerTextures[e.ptr] = t
+}
+
 //export TexMgrLoadImage2
-func TexMgrLoadImage2(owner *C.qmodel_t, name *C.char, width C.int,
+func TexMgrLoadImage2(name *C.char, width C.int,
 	height C.int, format C.enum_srcformat, data *C.byte, source_file *C.char,
 	source_offset C.src_offset_t, flags C.unsigned) uint32 {
 
@@ -101,15 +122,6 @@ func TexMgrLoadImage2(owner *C.qmodel_t, name *C.char, width C.int,
 	}
 	texmap[t.ID()] = t
 	return uint32(t.ID())
-}
-
-//export TexMgrReloadImage
-func TexMgrReloadImage(id uint32, shirt C.int, pants C.int) {
-	t := texmap[glh.TexID(id)]
-	textureManager.ReloadImage(t)
-	// this is actually a 'map texture & reload'
-	// it should work quite different to the others.
-	// It also implies indexed colors
 }
 
 //export TexMgrFreeTexture

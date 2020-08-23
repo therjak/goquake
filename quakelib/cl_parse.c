@@ -113,8 +113,8 @@ void CL_UpdateTEnts(void) {
     if (!b->model || b->endtime < CL_Time()) continue;
 
     // if coming from the player, update the start position
-    if (b->entity == CL_Viewentity()) {
-      VectorCopy(cl_entities[CL_Viewentity()].origin, b->start);
+    if (b->entity == CLViewentityNum()) {
+      VectorCopy(CLViewEntity()->origin, b->start);
     }
 
     // calculate pitch and yaw
@@ -361,18 +361,6 @@ void CL_ParseUpdate(int bits) {
     VectorCopy(ent->msg_angles[0], ent->angles);
     ent->forcelink = true;
   }
-}
-
-/*
-=====================
-CL_NewTranslation
-=====================
-*/
-void CL_NewTranslation(int slot) {
-  if (slot > CL_MaxClients()) {
-    Go_Error("CL_NewTranslation: slot > cl.maxClients");
-  }
-  R_TranslatePlayerSkin(slot);
 }
 
 /*

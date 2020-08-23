@@ -247,7 +247,7 @@ void R_DrawEntitiesOnList(qboolean alphapass)
         (ENTALPHA_DECODE(ce->alpha) == 1 && alphapass))
       continue;
 
-    if (ce == &cl_entities[CL_Viewentity()])
+    if (ce == CLViewEntity())
       ce->angles[0] *= 0.3;
 
     switch (ce->model->Type) {
@@ -359,11 +359,7 @@ void R_RenderView(void) {
 
   time2 = Sys_DoubleTime();
   if (Cvar_GetValue(&r_pos)) {
-    Con_Printf("x %i y %i z %i (pitch %i yaw %i roll %i)\n",
-               (int)cl_entities[CL_Viewentity()].origin[0],
-               (int)cl_entities[CL_Viewentity()].origin[1],
-               (int)cl_entities[CL_Viewentity()].origin[2], (int)CLPitch(),
-               (int)CLYaw(), (int)CLRoll());
+    printPosition();
   } else if (Cvar_GetValue(&r_speeds) == 2) {
     Con_Printf(
         "%3i ms  %4i/%4i wpoly %4i/%4i epoly %3i lmap %4i/%4i sky %1.1f mtex\n",

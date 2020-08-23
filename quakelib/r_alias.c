@@ -5,10 +5,6 @@
 extern cvar_t r_drawflat, gl_overbright_models, gl_fullbrights, r_lerpmodels,
        r_lerpmove;  // johnfitz
 
-// up to 16 color translated skins
-uint32_t playertextures[MAX_SCOREBOARD];  // johnfitz -- changed to an array
-// of pointers
-
 #define NUMVERTEXNORMALS 162
 
 extern vec3_t
@@ -638,11 +634,9 @@ void R_DrawAliasModel(entity_t *e) {
     fb = paliashdr->fbtextures[e->skinnum][anim];
   }
   if (!Cvar_GetValue(&gl_nocolors)) {
-    i = e - cl_entities;
-    if (i >= 1 && i <= CL_MaxClients()  
-        // && !strcmp (e->model->name, "progs/player.mdl")
-    ) {
-      tx = playertextures[i - 1];
+    uint32_t t = PlayerTexture(e);
+    if (t != 0) {
+      tx = t;
     }
   }
   if (!Cvar_GetValue(&gl_fullbrights)) fb = 0;
