@@ -201,8 +201,7 @@ Based on code by MH from RMQEngine
 =============
 */
 void GL_DrawAliasFrame_GLSL(aliashdr_t *paliashdr, lerpdata_t lerpdata,
-                            uint32_t tx, uint32_t fb) {
-  entity_t* e = currententity;
+                            uint32_t tx, uint32_t fb, entity_t* e) {
   float blend;
 
   if (lerpdata.pose1 != lerpdata.pose2) {
@@ -386,8 +385,7 @@ void GL_DrawAliasFrame(aliashdr_t *paliashdr, lerpdata_t lerpdata) {
 R_SetupAliasFrame -- johnfitz -- rewritten to support lerping
 =================
 */
-void R_SetupAliasFrame(aliashdr_t *paliashdr, int frame, lerpdata_t *lerpdata) {
-  entity_t *e = currententity;
+void R_SetupAliasFrame(aliashdr_t *paliashdr, int frame, lerpdata_t *lerpdata, entity_t* e) {
   int posenum, numposes;
 
   if ((frame >= paliashdr->numframes) || (frame < 0)) {
@@ -595,7 +593,7 @@ void R_DrawAliasModel(entity_t *e) {
 
   // setup pose/lerp data -- do it first so we don't miss updates due to culling
   paliashdr = (aliashdr_t *)Mod_Extradata(e->model);
-  R_SetupAliasFrame(paliashdr, e->frame, &lerpdata);
+  R_SetupAliasFrame(paliashdr, e->frame, &lerpdata, e);
   R_SetupEntityTransform(e, &lerpdata);
 
   // cull it
@@ -650,7 +648,7 @@ void R_DrawAliasModel(entity_t *e) {
   }
   if (!Cvar_GetValue(&gl_fullbrights)) fb = 0;
 
-  GL_DrawAliasFrame_GLSL(paliashdr, lerpdata, tx, fb);
+  GL_DrawAliasFrame_GLSL(paliashdr, lerpdata, tx, fb, e);
 
 cleanup:
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
@@ -706,7 +704,7 @@ void GL_DrawAliasShadow(entity_t *e) {
   if (entalpha == 0) return;
 
   paliashdr = (aliashdr_t *)Mod_Extradata(e->model);
-  R_SetupAliasFrame(paliashdr, e->frame, &lerpdata);
+  R_SetupAliasFrame(paliashdr, e->frame, &lerpdata, e);
   R_SetupEntityTransform(e, &lerpdata);
   R_LightPoint(e->origin);
   lheight = e->origin[2] - lightspot[2];
