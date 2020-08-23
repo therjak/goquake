@@ -37,8 +37,7 @@ byte lightmaps[4 * MAX_LIGHTMAPS * BLOCK_WIDTH * BLOCK_HEIGHT];
 
 /*
 ===============
-R_TextureAnimation -- johnfitz -- added "frame" param to eliminate use of
-"currententity" global
+R_TextureAnimation
 
 Returns the proper texture for a given time and base texture
 ===============
@@ -121,7 +120,6 @@ void R_DrawBrushModel(entity_t *e) {
 
   if (R_CullModelForEntity(e)) return;
 
-  currententity = e;
   clmodel = e->model;
 
   vec3_t vieworg = {R_Refdef_vieworg(0), R_Refdef_vieworg(1),

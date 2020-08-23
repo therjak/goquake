@@ -3,7 +3,6 @@
 #include "quakedef.h"
 
 vec3_t modelorg, r_entorigin;
-entity_t *currententity;
 
 int r_visframecount;  // bumped when going to a new PVS
 int r_framecount;     // used for dlight push checking
@@ -237,57 +236,60 @@ void R_SetupView(void) {
 void R_DrawEntitiesOnList(qboolean alphapass)
 {
   int i;
+  entity_t* ce;
 
   if (!Cvar_GetValue(&r_drawentities)) return;
 
   for (i = 0; i < cl_numvisedicts; i++) {
-    currententity = cl_visedicts[i];
+    ce = cl_visedicts[i];
 
-    if ((ENTALPHA_DECODE(currententity->alpha) < 1 && !alphapass) ||
-        (ENTALPHA_DECODE(currententity->alpha) == 1 && alphapass))
+    if ((ENTALPHA_DECODE(ce->alpha) < 1 && !alphapass) ||
+        (ENTALPHA_DECODE(ce->alpha) == 1 && alphapass))
       continue;
 
-    if (currententity == &cl_entities[CL_Viewentity()])
-      currententity->angles[0] *= 0.3;
+    if (ce == &cl_entities[CL_Viewentity()])
+      ce->angles[0] *= 0.3;
 
-    switch (currententity->model->Type) {
+    switch (ce->model->Type) {
       case mod_alias:
-        R_DrawAliasModel(currententity);
+        R_DrawAliasModel(ce);
         break;
       case mod_brush:
-        R_DrawBrushModel(currententity);
+        R_DrawBrushModel(ce);
         break;
       case mod_sprite:
         // THERJAK
-        R_DrawSpriteModel(currententity);
+        R_DrawSpriteModel(ce);
         break;
     }
   }
 }
 
 void R_DrawViewModel(void) {
+  entity_t* ce;
   if (!Cvar_GetValue(&r_drawviewmodel) || !Cvar_GetValue(&r_drawentities) ||
       Cvar_GetValue(&chase_active))
     return;
 
   if (CL_HasItem(IT_INVISIBILITY) || CL_Stats(STAT_HEALTH) <= 0) return;
 
-  currententity = &cl_viewent;
-  if (!currententity->model) return;
+  ce = &cl_viewent;
+  if (!ce->model) return;
 
-  if (currententity->model->Type != mod_alias) {
+  if (ce->model->Type != mod_alias) {
     // this fixes a crash
     return;
   }
 
   // hack the depth range to prevent view model from poking into walls
   glDepthRange(0, 0.3);
-  R_DrawAliasModel(currententity);
+  R_DrawAliasModel(ce);
   glDepthRange(0, 1);
 }
 
 void R_DrawShadows(void) {
   int i;
+  entity_t* ce;
 
   if (!Cvar_GetValue(&r_shadows) || !Cvar_GetValue(&r_drawentities)) return;
 
@@ -300,13 +302,13 @@ void R_DrawShadows(void) {
   }
 
   for (i = 0; i < cl_numvisedicts; i++) {
-    currententity = cl_visedicts[i];
+    ce = cl_visedicts[i];
 
-    if (currententity->model->Type != mod_alias) continue;
+    if (ce->model->Type != mod_alias) continue;
 
-    if (currententity == &cl_viewent) return;
+    if (ce == &cl_viewent) return;
 
-    GL_DrawAliasShadow(currententity);
+    GL_DrawAliasShadow(ce);
   }
 
   if (gl_stencilbits) {

@@ -221,15 +221,16 @@ void R_TranslateNewPlayerSkin(int playernum) {
   byte *pixels;
   aliashdr_t *paliashdr;
   int skinnum;
+  entity_t* ce;
 
   // get correct texture pixels
-  currententity = &cl_entities[1 + playernum];
+  ce = &cl_entities[1 + playernum];
 
-  if (!currententity->model || currententity->model->Type != mod_alias) return;
+  if (!ce->model || ce->model->Type != mod_alias) return;
 
-  paliashdr = (aliashdr_t *)Mod_Extradata(currententity->model);
+  paliashdr = (aliashdr_t *)Mod_Extradata(ce->model);
 
-  skinnum = currententity->skinnum;
+  skinnum = ce->skinnum;
 
   // TODO: move these tests to the place where skinnum gets received from the
   // server
@@ -244,7 +245,7 @@ void R_TranslateNewPlayerSkin(int playernum) {
   // upload new image
   q_snprintf(name, sizeof(name), "player_%i", playernum);
   playertextures[playernum] = TexMgrLoadImage2(
-      currententity->model, name, paliashdr->skinwidth, paliashdr->skinheight,
+      ce->model, name, paliashdr->skinwidth, paliashdr->skinheight,
       SRC_INDEXED, pixels, "", 0, TEXPREF_PAD | TEXPREF_OVERWRITE);
 
   // now recolor it
