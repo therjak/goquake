@@ -45,6 +45,16 @@ func PlayerTexture(ptr C.entityPtr) uint32 {
 	return uint32(t.ID())
 }
 
+//export EntityIsPlayer
+func EntityIsPlayer(ptr C.entityPtr) bool {
+	for i := 0; i < cl.maxClients; i++ {
+		if cl.Entities(i+1).ptr == ptr {
+			return true
+		}
+	}
+	return false
+}
+
 //export CL_NewTranslation
 func CL_NewTranslation(i int) {
 	if i < 0 || i >= cl.maxClients {
