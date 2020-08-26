@@ -195,6 +195,7 @@ the skin or model actually changes, instead of just new colors
 added bug fix from bengt jardup
 ===============
 */
+// THERJAK: this and the aliashdr_t
 void R_TranslateNewPlayerSkin(int playernum) {
   char name[64];
   byte *pixels;
@@ -203,7 +204,7 @@ void R_TranslateNewPlayerSkin(int playernum) {
   entity_t* ce;
 
   // get correct texture pixels
-  ce = &cl_entities[1 + playernum];
+  ce = ClientEntity(playernum);
 
   if (!ce->model || ce->model->Type != mod_alias) return;
 

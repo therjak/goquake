@@ -3,10 +3,12 @@ package quakelib
 //#ifndef ENTITIES_H
 //#define ENTITIES_H
 //#include "q_stdinc.h"
+//#include "gl_model.h"
 //#include "render.h"
 //extern entity_t *cl_entities;
 //extern entity_t cl_viewent;
 //typedef entity_t* entityPtr;
+//typedef qmodel_t* modelPtr;
 //inline entity_t* getCLEntity(int i) { return &cl_entities[i]; }
 //extern entity_t cl_static_entities[512];
 //inline entity_t* getStaticEntity(int i) { return &cl_static_entities[i]; }
@@ -14,6 +16,8 @@ package quakelib
 import "C"
 
 import (
+	"github.com/therjak/goquake/cmd"
+	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/math/vec"
 	"github.com/therjak/goquake/texture"
@@ -33,6 +37,27 @@ var (
 
 func init() {
 	playerTextures = make(map[C.entityPtr]*texture.Texture)
+	cmd.AddCommand("entities", printEntities)
+}
+
+func printEntities(_ []cmd.QArg, _ int) {
+	if cls.state != ca_connected {
+		return
+	}
+	for i := 0; i < cl.numEntities; i++ {
+		conlog.Printf("%3d:", i)
+		e := cl.Entities(i)
+		if e.ptr.model == nil {
+			conlog.Printf("EMPTY\n")
+			continue
+		}
+		n := C.GoString(&e.ptr.model.name[0])
+		f := int(e.ptr.frame)
+		a := e.angles()
+		o := e.origin()
+		conlog.Printf("%s:%2d  (%5.1f,%5.1f,%5.1f) [%5.1f %5.1f %5.1f]\n",
+			n, f, o[0], o[1], o[2], a[0], a[1], a[2])
+	}
 }
 
 //export PlayerTexture
@@ -94,6 +119,14 @@ func (c *Client) Entities(i int) *Entity {
 	return &Entity{C.getCLEntity(C.int(i))}
 }
 
+func (c *Client) ClientEntity(i int) *Entity {
+	return &Entity{C.getCLEntity(C.int(i + 1))}
+}
+
+func (c *Client) WorldEntity() *Entity {
+	return &Entity{C.getCLEntity(0)}
+}
+
 func (e *Entity) origin() vec.Vec3 {
 	return vec.Vec3{
 		float32(e.ptr.origin[0]),
@@ -149,6 +182,16 @@ func (c *Client) Entity() *Entity {
 //export CLViewEntity
 func CLViewEntity() C.entityPtr {
 	return cl.Entity().ptr
+}
+
+//export ClientEntity
+func ClientEntity(i int) C.entityPtr {
+	return cl.ClientEntity(i).ptr
+}
+
+//export SetWorldEntityModel
+func SetWorldEntityModel(m C.modelPtr) {
+	cl.WorldEntity().ptr.model = m
 }
 
 func (e *Entity) SetBaseline(state *EntityState) {

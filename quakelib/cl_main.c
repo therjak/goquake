@@ -74,29 +74,6 @@ void CL_ClearState(void) {
 }
 
 /*
-==============
-CL_PrintEntities_f
-==============
-*/
-void CL_PrintEntities_f(void) {
-  entity_t *ent;
-  int i;
-
-  if (CLS_GetState() != ca_connected) return;
-
-  for (i = 0, ent = cl_entities; i < CL_num_entities(); i++, ent++) {
-    Con_Printf("%3i:", i);
-    if (!ent->model) {
-      Con_Printf("EMPTY\n");
-      continue;
-    }
-    Con_Printf("%s:%2i  (%5.1f,%5.1f,%5.1f) [%5.1f %5.1f %5.1f]\n",
-               ent->model->name, ent->frame, ent->origin[0], ent->origin[1],
-               ent->origin[2], ent->angles[0], ent->angles[1], ent->angles[2]);
-  }
-}
-
-/*
 ===============
 CL_RelinkEntities
 ===============
@@ -289,8 +266,6 @@ void CL_Init(void) {
   CLSMessageClear();
 
   CL_InitTEnts();
-
-  Cmd_AddCommand("entities", CL_PrintEntities_f);
 }
 
 void SetCLWeaponModel(int v) {

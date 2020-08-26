@@ -162,7 +162,9 @@ void CLPrecacheModel(const char* cn, int i) {
 
 void FinishCL_ParseServerInfo(void) {
   // local state
-  cl_entities[0].model = cl.worldmodel = cl.model_precache[1];
+  cl.worldmodel = cl.model_precache[1];
+  SetWorldEntityModel(cl.worldmodel);
+  
   R_NewMap();
 
   Hunk_Check();  // make sure nothing is hurt
