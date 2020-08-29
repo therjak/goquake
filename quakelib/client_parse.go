@@ -2,7 +2,6 @@ package quakelib
 
 //void CL_ParseUpdate(int bits);
 //void CL_ParseStatic(int version);
-//void R_CheckEfrags(void);
 //void CL_ClearState(void);
 //void CLPrecacheModelClear(void);
 //void FinishCL_ParseServerInfo(void);
@@ -503,7 +502,6 @@ func CL_ParseServerMessage() {
 				if cl.numStatics > 128 {
 					conlog.DWarning("%d static entities exceeds standard limit of 128.\n", cl.numStatics)
 				}
-				C.R_CheckEfrags()
 			}
 			CL_SignonReply()
 
