@@ -118,14 +118,6 @@ void R_SplitEntityOnNode(mnode_t *node) {
 
 /*
 ===========
-R_CheckEfrags -- johnfitz -- check for excessive efrag count
-===========
-*/
-void R_CheckEfrags(void) {
-}
-
-/*
-===========
 R_AddEfrags
 ===========
 */
@@ -150,8 +142,6 @@ void R_AddEfrags(entity_t *ent) {
   R_SplitEntityOnNode(cl.worldmodel->nodes);
 
   ent->topnode = r_pefragtopnode;
-
-  R_CheckEfrags();  // johnfitz
 }
 
 /*
