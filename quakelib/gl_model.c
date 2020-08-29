@@ -1880,7 +1880,6 @@ ALIAS MODELS
 ==============================================================================
 */
 
-aliashdr_t *pheader;
 
 stvert_t stverts[MAXALIASVERTS];
 mtriangle_t triangles[MAXALIASTRIS];
@@ -1898,7 +1897,7 @@ byte *player_8bit_texels;
 Mod_LoadAliasFrame
 =================
 */
-void *Mod_LoadAliasFrame(void *pin, maliasframedesc_t *frame) {
+void *Mod_LoadAliasFrame(void *pin, maliasframedesc_t *frame, aliashdr_t *ahdr) {
   trivertx_t *pinframe;
   int i;
   daliasframe_t *pdaliasframe;
@@ -1921,7 +1920,7 @@ void *Mod_LoadAliasFrame(void *pin, maliasframedesc_t *frame) {
   poseverts[posenum] = pinframe;
   posenum++;
 
-  pinframe += pheader->numverts;
+  pinframe += ahdr->numverts;
 
   return (void *)pinframe;
 }
@@ -1931,7 +1930,7 @@ void *Mod_LoadAliasFrame(void *pin, maliasframedesc_t *frame) {
 Mod_LoadAliasGroup
 =================
 */
-void *Mod_LoadAliasGroup(void *pin, maliasframedesc_t *frame) {
+void *Mod_LoadAliasGroup(void *pin, maliasframedesc_t *frame, aliashdr_t *ahdr) {
   daliasgroup_t *pingroup;
   int i, numframes;
   daliasinterval_t *pin_intervals;
@@ -1962,7 +1961,7 @@ void *Mod_LoadAliasGroup(void *pin, maliasframedesc_t *frame) {
     poseverts[posenum] = (trivertx_t *)((daliasframe_t *)ptemp + 1);
     posenum++;
 
-    ptemp = (trivertx_t *)((daliasframe_t *)ptemp + 1) + pheader->numverts;
+    ptemp = (trivertx_t *)((daliasframe_t *)ptemp + 1) + ahdr->numverts;
   }
 
   return ptemp;
@@ -2046,7 +2045,7 @@ void Mod_FloodFillSkin(byte *skin, int skinwidth, int skinheight) {
 Mod_LoadAllSkins
 ===============
 */
-void *Mod_LoadAllSkins(int numskins, daliasskintype_t *pskintype) {
+void *Mod_LoadAllSkins(int numskins, daliasskintype_t *pskintype, aliashdr_t *ahdr) {
   int i, j, k, size, groupskins;
   char name[MAX_QPATH];
   byte *skin, *texels;
@@ -2060,43 +2059,43 @@ void *Mod_LoadAllSkins(int numskins, daliasskintype_t *pskintype) {
   if (numskins < 1 || numskins > MAX_SKINS)
     Go_Error_I("Mod_LoadAliasModel: Invalid # of skins: %v\n", numskins);
 
-  size = pheader->skinwidth * pheader->skinheight;
+  size = ahdr->skinwidth * ahdr->skinheight;
 
   for (i = 0; i < numskins; i++) {
     if (pskintype->type == ALIAS_SKIN_SINGLE) {
-      Mod_FloodFillSkin(skin, pheader->skinwidth, pheader->skinheight);
+      Mod_FloodFillSkin(skin, ahdr->skinwidth, ahdr->skinheight);
 
       // save 8 bit texels for the player model to remap
       texels = (byte *)Hunk_AllocName(size, loadname);
-      pheader->texels[i] = texels - (byte *)pheader;
+      ahdr->texels[i] = texels - (byte *)ahdr;
       memcpy(texels, (byte *)(pskintype + 1), size);
 
       // johnfitz -- rewritten
       q_snprintf(name, sizeof(name), "%s:frame%i", loadmodel->name, i);
       offset = (src_offset_t)(pskintype + 1) - (src_offset_t)mod_base;
       if (Mod_CheckFullbrights((byte *)(pskintype + 1), size)) {
-        pheader->gltextures[i][0] = TexMgrLoadImage2(
-            name, pheader->skinwidth, pheader->skinheight,
+        ahdr->gltextures[i][0] = TexMgrLoadImage2(
+            name, ahdr->skinwidth, ahdr->skinheight,
             SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset,
             TEXPREF_PAD | TEXPREF_NOBRIGHT);
         q_snprintf(fbr_mask_name, sizeof(fbr_mask_name), "%s:frame%i_glow",
                    loadmodel->name, i);
-        pheader->fbtextures[i][0] = TexMgrLoadImage2(
-            fbr_mask_name, pheader->skinwidth, pheader->skinheight,
+        ahdr->fbtextures[i][0] = TexMgrLoadImage2(
+            fbr_mask_name, ahdr->skinwidth, ahdr->skinheight,
             SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset,
             TEXPREF_PAD | TEXPREF_FULLBRIGHT);
       } else {
-        pheader->gltextures[i][0] = TexMgrLoadImage2(
-            name, pheader->skinwidth, pheader->skinheight,
+        ahdr->gltextures[i][0] = TexMgrLoadImage2(
+            name, ahdr->skinwidth, ahdr->skinheight,
             SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset,
             TEXPREF_PAD);
-        pheader->fbtextures[i][0] = 0;
+        ahdr->fbtextures[i][0] = 0;
       }
 
-      pheader->gltextures[i][3] = pheader->gltextures[i][2] =
-          pheader->gltextures[i][1] = pheader->gltextures[i][0];
-      pheader->fbtextures[i][3] = pheader->fbtextures[i][2] =
-          pheader->fbtextures[i][1] = pheader->fbtextures[i][0];
+      ahdr->gltextures[i][3] = ahdr->gltextures[i][2] =
+          ahdr->gltextures[i][1] = ahdr->gltextures[i][0];
+      ahdr->fbtextures[i][3] = ahdr->fbtextures[i][2] =
+          ahdr->fbtextures[i][1] = ahdr->fbtextures[i][0];
       // johnfitz
 
       pskintype = (daliasskintype_t *)((byte *)(pskintype + 1) + size);
@@ -2110,10 +2109,10 @@ void *Mod_LoadAllSkins(int numskins, daliasskintype_t *pskintype) {
       pskintype = (daliasskintype_t *)(pinskinintervals + groupskins);
 
       for (j = 0; j < groupskins; j++) {
-        Mod_FloodFillSkin(skin, pheader->skinwidth, pheader->skinheight);
+        Mod_FloodFillSkin(skin, ahdr->skinwidth, ahdr->skinheight);
         if (j == 0) {
           texels = (byte *)Hunk_AllocName(size, loadname);
-          pheader->texels[i] = texels - (byte *)pheader;
+          ahdr->texels[i] = texels - (byte *)ahdr;
           memcpy(texels, (byte *)(pskintype), size);
         }
 
@@ -2122,22 +2121,22 @@ void *Mod_LoadAllSkins(int numskins, daliasskintype_t *pskintype) {
         offset =
             (src_offset_t)(pskintype) - (src_offset_t)mod_base;  // johnfitz
         if (Mod_CheckFullbrights((byte *)(pskintype), size)) {
-          pheader->gltextures[i][j & 3] = TexMgrLoadImage2(
-              name, pheader->skinwidth, pheader->skinheight,
+          ahdr->gltextures[i][j & 3] = TexMgrLoadImage2(
+              name, ahdr->skinwidth, ahdr->skinheight,
               SRC_INDEXED, (byte *)(pskintype), loadmodel->name, offset,
               TEXPREF_PAD | TEXPREF_NOBRIGHT);
           q_snprintf(fbr_mask_name, sizeof(fbr_mask_name), "%s:frame%i_%i_glow",
                      loadmodel->name, i, j);
-          pheader->fbtextures[i][j & 3] = TexMgrLoadImage2(
-              fbr_mask_name, pheader->skinwidth, pheader->skinheight,
+          ahdr->fbtextures[i][j & 3] = TexMgrLoadImage2(
+              fbr_mask_name, ahdr->skinwidth, ahdr->skinheight,
               SRC_INDEXED, (byte *)(pskintype), loadmodel->name, offset,
               TEXPREF_PAD | TEXPREF_FULLBRIGHT);
         } else {
-          pheader->gltextures[i][j & 3] = TexMgrLoadImage2(
-              name, pheader->skinwidth, pheader->skinheight,
+          ahdr->gltextures[i][j & 3] = TexMgrLoadImage2(
+              name, ahdr->skinwidth, ahdr->skinheight,
               SRC_INDEXED, (byte *)(pskintype), loadmodel->name, offset,
               TEXPREF_PAD);
-          pheader->fbtextures[i][j & 3] = 0;
+          ahdr->fbtextures[i][j & 3] = 0;
         }
         // johnfitz
 
@@ -2145,7 +2144,7 @@ void *Mod_LoadAllSkins(int numskins, daliasskintype_t *pskintype) {
       }
       k = j;
       for (/**/; j < 4; j++)
-        pheader->gltextures[i][j & 3] = pheader->gltextures[i][j - k];
+        ahdr->gltextures[i][j & 3] = ahdr->gltextures[i][j - k];
     }
   }
 
@@ -2177,7 +2176,7 @@ void Mod_CalcAliasBounds(aliashdr_t *a) {
     for (j = 0; j < a->numverts; j++) {
       for (k = 0; k < 3; k++)
         v[k] =
-            poseverts[i][j].v[k] * pheader->scale[k] + pheader->scale_origin[k];
+            poseverts[i][j].v[k] * a->scale[k] + a->scale_origin[k];
 
       for (k = 0; k < 3; k++) {
         loadmodel->mins[k] = q_min(loadmodel->mins[k], v[k]);
@@ -2270,6 +2269,8 @@ void Mod_LoadAliasModel(qmodel_t *mod, void *buffer) {
   daliasskintype_t *pskintype;
   int start, end, total;
 
+  aliashdr_t *pheader;
+
   start = Hunk_LowMark();
 
   pinmodel = (mdl_t *)buffer;
@@ -2332,7 +2333,7 @@ void Mod_LoadAliasModel(qmodel_t *mod, void *buffer) {
   //
   pskintype = (daliasskintype_t *)&pinmodel[1];
   pskintype =
-      (daliasskintype_t *)Mod_LoadAllSkins(pheader->numskins, pskintype);
+      (daliasskintype_t *)Mod_LoadAllSkins(pheader->numskins, pskintype, pheader);
 
   //
   // load base s and t vertices
@@ -2369,10 +2370,10 @@ void Mod_LoadAliasModel(qmodel_t *mod, void *buffer) {
     frametype = (aliasframetype_t)LittleLong(pframetype->type);
     if (frametype == ALIAS_SINGLE)
       pframetype = (daliasframetype_t *)Mod_LoadAliasFrame(pframetype + 1,
-                                                           &pheader->frames[i]);
+                                                           &pheader->frames[i], pheader);
     else
       pframetype = (daliasframetype_t *)Mod_LoadAliasGroup(pframetype + 1,
-                                                           &pheader->frames[i]);
+                                                           &pheader->frames[i], pheader);
   }
 
   pheader->numposes = posenum;

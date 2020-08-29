@@ -36,7 +36,7 @@ int stripcount;
 StripLength
 ================
 */
-int StripLength(int starttri, int startv) {
+int StripLength(int starttri, int startv, aliashdr_t *ahdr) {
   int m1, m2;
   int j;
   mtriangle_t *last, *check;
@@ -58,7 +58,7 @@ int StripLength(int starttri, int startv) {
 
 // look for a matching triangle
 nexttri:
-  for (j = starttri + 1, check = &triangles[starttri + 1]; j < pheader->numtris;
+  for (j = starttri + 1, check = &triangles[starttri + 1]; j < ahdr->numtris;
        j++, check++) {
     if (check->facesfront != last->facesfront) continue;
     for (k = 0; k < 3; k++) {
@@ -87,7 +87,7 @@ nexttri:
 done:
 
   // clear the temp used flags
-  for (j = starttri + 1; j < pheader->numtris; j++)
+  for (j = starttri + 1; j < ahdr->numtris; j++)
     if (used[j] == 2) used[j] = 0;
 
   return stripcount;
@@ -98,7 +98,7 @@ done:
 FanLength
 ===========
 */
-int FanLength(int starttri, int startv) {
+int FanLength(int starttri, int startv, aliashdr_t *ahdr) {
   int m1, m2;
   int j;
   mtriangle_t *last, *check;
@@ -120,7 +120,7 @@ int FanLength(int starttri, int startv) {
 
 // look for a matching triangle
 nexttri:
-  for (j = starttri + 1, check = &triangles[starttri + 1]; j < pheader->numtris;
+  for (j = starttri + 1, check = &triangles[starttri + 1]; j < ahdr->numtris;
        j++, check++) {
     if (check->facesfront != last->facesfront) continue;
     for (k = 0; k < 3; k++) {
@@ -146,7 +146,7 @@ nexttri:
 done:
 
   // clear the temp used flags
-  for (j = starttri + 1; j < pheader->numtris; j++)
+  for (j = starttri + 1; j < ahdr->numtris; j++)
     if (used[j] == 2) used[j] = 0;
 
   return stripcount;
@@ -160,7 +160,7 @@ Generate a list of trifans or strips
 for the model, which holds for all frames
 ================
 */
-void BuildTris(void) {
+void BuildTris(aliashdr_t *ahdr) {
   int i, j, k;
   int startv;
   float s, t;
@@ -175,7 +175,7 @@ void BuildTris(void) {
   numorder = 0;
   numcommands = 0;
   memset(used, 0, sizeof(used));
-  for (i = 0; i < pheader->numtris; i++) {
+  for (i = 0; i < ahdr->numtris; i++) {
     // pick an unused triangle and start the trifan
     if (used[i]) continue;
 
@@ -186,9 +186,9 @@ void BuildTris(void) {
     {
       for (startv = 0; startv < 3; startv++) {
         if (type == 1)
-          len = StripLength(i, startv);
+          len = StripLength(i, startv, ahdr);
         else
-          len = FanLength(i, startv);
+          len = FanLength(i, startv, ahdr);
         if (len > bestlen) {
           besttype = type;
           bestlen = len;
@@ -217,9 +217,9 @@ void BuildTris(void) {
       s = stverts[k].s;
       t = stverts[k].t;
       if (!triangles[besttris[0]].facesfront && stverts[k].onseam)
-        s += pheader->skinwidth / 2;  // on back side
-      s = (s + 0.5) / pheader->skinwidth;
-      t = (t + 0.5) / pheader->skinheight;
+        s += ahdr->skinwidth / 2;  // on back side
+      s = (s + 0.5) / ahdr->skinwidth;
+      t = (t + 0.5) / ahdr->skinheight;
 
       //	*(float *)&commands[numcommands++] = s;
       //	*(float *)&commands[numcommands++] = t;
@@ -234,14 +234,14 @@ void BuildTris(void) {
 
   commands[numcommands++] = 0;  // end of list marker
 
-  Con_DPrintf2("%3i tri %3i vert %3i cmd\n", pheader->numtris, numorder,
+  Con_DPrintf2("%3i tri %3i vert %3i cmd\n", ahdr->numtris, numorder,
                numcommands);
 
   allverts += numorder;
-  alltris += pheader->numtris;
+  alltris += ahdr->numtris;
 }
 
-static void GL_MakeAliasModelDisplayLists_VBO(void);
+static void GL_MakeAliasModelDisplayLists_VBO(aliashdr_t *ahdr);
 static void GLMesh_LoadVertexBuffer(qmodel_t *m, const aliashdr_t *hdr);
 
 /*
@@ -261,7 +261,7 @@ void GL_MakeAliasModelDisplayLists(qmodel_t *m, aliashdr_t *hdr) {
 
   // johnfitz -- generate meshes
   Con_DPrintf2("meshing %s...\n", m->name);
-  BuildTris();
+  BuildTris(hdr);
 
   // save the data out
 
@@ -293,7 +293,7 @@ void GL_MakeAliasModelDisplayLists(qmodel_t *m, aliashdr_t *hdr) {
     for (j = 0; j < numorder; j++) *verts++ = poseverts[i][vertexorder[j]];
 
   // ericw
-  GL_MakeAliasModelDisplayLists_VBO();
+  GL_MakeAliasModelDisplayLists_VBO(hdr);
 }
 
 unsigned int r_meshindexbuffer = 0;
@@ -309,7 +309,7 @@ is copied to Mod_Extradata.
 Original code by MH from RMQEngine
 ================
 */
-void GL_MakeAliasModelDisplayLists_VBO(void) {
+void GL_MakeAliasModelDisplayLists_VBO(aliashdr_t *ahdr) {
   int i, j;
   int maxverts_vbo;
   trivertx_t *verts;
@@ -326,18 +326,18 @@ void GL_MakeAliasModelDisplayLists_VBO(void) {
 
   // there can never be more than this number of verts and we just put them all
   // on the hunk
-  maxverts_vbo = pheader->numtris * 3;
+  maxverts_vbo = ahdr->numtris * 3;
   desc = (aliasmesh_t *)Hunk_Alloc(sizeof(aliasmesh_t) * maxverts_vbo);
 
   // there will always be this number of indexes
   indexes = (unsigned short *)Hunk_Alloc(sizeof(unsigned short) * maxverts_vbo);
 
-  pheader->indexes = (intptr_t)indexes - (intptr_t)pheader;
-  pheader->meshdesc = (intptr_t)desc - (intptr_t)pheader;
-  pheader->numindexes = 0;
-  pheader->numverts_vbo = 0;
+  ahdr->indexes = (intptr_t)indexes - (intptr_t)ahdr;
+  ahdr->meshdesc = (intptr_t)desc - (intptr_t)ahdr;
+  ahdr->numindexes = 0;
+  ahdr->numverts_vbo = 0;
 
-  for (i = 0; i < pheader->numtris; i++) {
+  for (i = 0; i < ahdr->numtris; i++) {
     for (j = 0; j < 3; j++) {
       int v;
 
@@ -350,34 +350,34 @@ void GL_MakeAliasModelDisplayLists_VBO(void) {
 
       // check for back side and adjust texcoord s
       if (!triangles[i].facesfront && stverts[vertindex].onseam)
-        s += pheader->skinwidth / 2;
+        s += ahdr->skinwidth / 2;
 
       // see does this vert already exist
-      for (v = 0; v < pheader->numverts_vbo; v++) {
+      for (v = 0; v < ahdr->numverts_vbo; v++) {
         // it could use the same xyz but have different s and t
         if (desc[v].vertindex == vertindex && (int)desc[v].st[0] == s &&
             (int)desc[v].st[1] == t) {
           // exists; emit an index for it
-          indexes[pheader->numindexes++] = v;
+          indexes[ahdr->numindexes++] = v;
 
           // no need to check any more
           break;
         }
       }
 
-      if (v == pheader->numverts_vbo) {
+      if (v == ahdr->numverts_vbo) {
         // doesn't exist; emit a new vert and index
-        indexes[pheader->numindexes++] = pheader->numverts_vbo;
+        indexes[ahdr->numindexes++] = ahdr->numverts_vbo;
 
-        desc[pheader->numverts_vbo].vertindex = vertindex;
-        desc[pheader->numverts_vbo].st[0] = s;
-        desc[pheader->numverts_vbo++].st[1] = t;
+        desc[ahdr->numverts_vbo].vertindex = vertindex;
+        desc[ahdr->numverts_vbo].st[0] = s;
+        desc[ahdr->numverts_vbo++].st[1] = t;
       }
     }
   }
 
   // upload immediately
-  GLMesh_LoadVertexBuffer(aliasmodel, pheader);
+  GLMesh_LoadVertexBuffer(aliasmodel, ahdr);
 }
 
 /*
