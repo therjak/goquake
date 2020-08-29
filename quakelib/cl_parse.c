@@ -365,27 +365,7 @@ void CL_ParseUpdate(int bits) {
   }
 }
 
-/*
-=====================
-CL_ParseStatic
-=====================
-*/
-void CL_ParseStatic(int version)  // johnfitz -- added a parameter
-{
-  // TODO(therjak): this can be moved to go if R_AddEfrags, CL_ParseBaseline,
-  // and cl?
-  entity_t *ent;
-  int i;
-
-  i = CL_num_statics();
-  if (i >= MAX_STATIC_ENTITIES) Host_Error("Too many static entities");
-
-  ent = &cl_static_entities[i];
-  Inc_CL_num_statics();
-  CL_ParseBaselineS(i, version);  // johnfitz -- added second parameter
-
-  // copy it to the current state
-
+void CL_ParseStaticC(entity_t* ent)  {
   ent->model = cl.model_precache[ent->baseline.modelindex];
   ent->lerpflags |= LERP_RESETANIM;  // johnfitz -- lerping
   ent->frame = ent->baseline.frame;
@@ -396,7 +376,4 @@ void CL_ParseStatic(int version)  // johnfitz -- added a parameter
 
   VectorCopy(ent->baseline.origin, ent->origin);
   VectorCopy(ent->baseline.angles, ent->angles);
-  R_AddEfrags(ent);
 }
-
-

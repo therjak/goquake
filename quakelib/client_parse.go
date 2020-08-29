@@ -1,7 +1,6 @@
 package quakelib
 
 //void CL_ParseUpdate(int bits);
-//void CL_ParseStatic(int version);
 //void CL_ClearState(void);
 //void CLPrecacheModelClear(void);
 //void FinishCL_ParseServerInfo(void);
@@ -472,7 +471,7 @@ func CL_ParseServerMessage() {
 			CL_ParseBaselineD(int(i), 1)
 
 		case svc.SpawnStatic:
-			C.CL_ParseStatic(1)
+			CL_ParseStatic(1)
 
 		case svc.TempEntity:
 			CL_ParseTEnt()
@@ -635,7 +634,7 @@ func CL_ParseServerMessage() {
 			CL_ParseBaselineD(int(i), 2)
 
 		case svc.SpawnStatic2:
-			C.CL_ParseStatic(2)
+			CL_ParseStatic(2)
 
 		case svc.SpawnStaticSound2:
 			org, err := parse3Coord()
@@ -815,4 +814,28 @@ func CL_ParseServerInfo() error {
 	// we don't consider identical messages to be duplicates if the map has changed in between
 	console.lastCenter = ""
 	return nil
+}
+
+func CL_ParseStatic(version int) {
+	i := cl.numStatics
+	if i >= 512 {
+		Error("Too many static entities")
+	}
+
+	ent := cl.StaticEntityNum(i)
+	cl.numStatics++
+	CL_ParseBaseline(ent, version)
+	// copy it to the current state
+
+	ent.Model = cl.modelPrecache[ent.Baseline.ModelIndex]
+	ent.LerpFlags |= lerpResetAnim // TODO(therjak): shouldn't this be an override instead of an OR?
+	ent.Frame = int(ent.Baseline.Frame)
+	ent.SkinNum = int(ent.Baseline.Skin)
+	ent.Effects = 0
+	ent.Alpha = ent.Baseline.Alpha
+	ent.Origin = ent.Baseline.Origin
+	ent.Angles = ent.Baseline.Angles
+	ent.ParseStaticC()
+
+	ent.R_AddEfrags()
 }

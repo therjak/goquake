@@ -12,6 +12,8 @@ package quakelib
 //inline entity_t* getCLEntity(int i) { return &cl_entities[i]; }
 //extern entity_t cl_static_entities[512];
 //inline entity_t* getStaticEntity(int i) { return &cl_static_entities[i]; }
+//void R_AddEfrags(entity_t* e);
+//void CL_ParseStaticC(entity_t* e);
 //#endif
 import "C"
 
@@ -113,37 +115,37 @@ func R_TranslatePlayerSkin(i int) {
 type Entity struct {
 	ptr C.entityPtr
 
-	forceLink  bool
-	updateType int
-	// baseline EntityState
-	msgTime   float64
-	msgOrigin [2]vec.Vec3
-	// origin    vec.Vec3
-	msgAngles [2]vec.Vec3
-	// angles    vec.Vec3
-	model *model.QModel
+	ForceLink  bool
+	UpdateType int
+	Baseline   EntityState
+	MsgTime    float64
+	MsgOrigin  [2]vec.Vec3
+	Origin     vec.Vec3
+	MsgAngles  [2]vec.Vec3
+	Angles     vec.Vec3
+	Model      *model.QModel
 	// efrag *efrag
-	frame         int
-	syncBase      float32
-	effects       int
-	skinNum       int
-	visFrame      int
-	dLightFrame   int
-	dLightBits    int // uint32?
-	trivialAccept int
+	Frame         int
+	SyncBase      float32
+	Effects       int
+	SkinNum       int
+	VisFrame      int
+	DLightFrame   int
+	DLightBits    int // uint32?
+	TrivialAccept int
 	// topNode *MNode_s
-	alpha          byte
-	lerpFlags      byte
-	lerpStart      float32
-	lerpTime       float32
-	lerpFinish     float32
-	previousPose   int16
-	currentPose    int16
-	moveLerpStart  float32
-	previousOrigin vec.Vec3
-	currentOrigin  vec.Vec3
-	previousAngles vec.Vec3
-	currentAngles  vec.Vec3
+	Alpha          byte
+	LerpFlags      byte
+	LerpStart      float32
+	LerpTime       float32
+	LerpFinish     float32
+	PreviousPose   int16
+	CurrentPose    int16
+	MoveLerpStart  float32
+	PreviousOrigin vec.Vec3
+	CurrentOrigin  vec.Vec3
+	PreviousAngles vec.Vec3
+	CurrentAngles  vec.Vec3
 }
 
 func (c *Client) Entities(i int) *Entity {
@@ -227,7 +229,16 @@ func SetWorldEntityModel(m C.modelPtr) {
 	cl.WorldEntity().ptr.model = m
 }
 
+func (e *Entity) R_AddEfrags() {
+	C.R_AddEfrags(e.ptr)
+}
+
+func (e *Entity) ParseStaticC() {
+	C.CL_ParseStaticC(e.ptr)
+}
+
 func (e *Entity) SetBaseline(state *EntityState) {
+	e.Baseline = *state
 	e.ptr.baseline.origin[0] = C.float(state.Origin[0])
 	e.ptr.baseline.origin[1] = C.float(state.Origin[1])
 	e.ptr.baseline.origin[2] = C.float(state.Origin[2])
