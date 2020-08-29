@@ -11,7 +11,7 @@ func ParticlesInit() {
 
 //export ParticlesAddEntity
 func ParticlesAddEntity(ent *C.entity_t) {
-	e := Entity{ent}
+	e := Entity{ptr: ent}
 	particlesAddEntity(e.origin(), float32(cl.time))
 }
 

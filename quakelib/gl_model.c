@@ -2294,7 +2294,7 @@ void Mod_LoadAliasModel(qmodel_t *mod, void *buffer) {
   //
   // endian-adjust and copy the data, starting with the alias model header
   //
-  pheader->boundingradius = LittleFloat(pinmodel->boundingradius);
+  // pheader->boundingradius = LittleFloat(pinmodel->boundingradius); // not read
   pheader->numskins = LittleLong(pinmodel->numskins);
   pheader->skinwidth = LittleLong(pinmodel->skinwidth);
   pheader->skinheight = LittleLong(pinmodel->skinheight);
@@ -2318,14 +2318,14 @@ void Mod_LoadAliasModel(qmodel_t *mod, void *buffer) {
   if (numframes < 1)
     Go_Error_I("Mod_LoadAliasModel: Invalid # of frames: %v\n", numframes);
 
-  pheader->size = LittleFloat(pinmodel->size) * ALIAS_BASE_SIZE_RATIO;
+  // pheader->size = LittleFloat(pinmodel->size) * ALIAS_BASE_SIZE_RATIO;
   mod->synctype = (synctype_t)LittleLong(pinmodel->synctype);
   mod->numframes = pheader->numframes;
 
   for (i = 0; i < 3; i++) {
     pheader->scale[i] = LittleFloat(pinmodel->scale[i]);
     pheader->scale_origin[i] = LittleFloat(pinmodel->scale_origin[i]);
-    pheader->eyeposition[i] = LittleFloat(pinmodel->eyeposition[i]);
+    // pheader->eyeposition[i] = LittleFloat(pinmodel->eyeposition[i]); //not read
   }
 
   //

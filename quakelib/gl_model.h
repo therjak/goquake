@@ -323,12 +323,12 @@ typedef struct mtriangle_s {
 
 #define MAX_SKINS 32
 typedef struct {
-  int ident;
-  int version;
+  // int ident;
+  // int version;
   vec3_t scale;
   vec3_t scale_origin;
-  float boundingradius;
-  vec3_t eyeposition;
+  // float boundingradius;
+  // vec3_t eyeposition;
   int numskins;
   int skinwidth;
   int skinheight;
@@ -337,7 +337,7 @@ typedef struct {
   int numframes;
   synctype_t synctype;
   int flags;
-  float size;
+  //float size;
 
   // ericw -- used to populate vbo
   int numverts_vbo;   // number of verts with unique x,y,z,s,t
@@ -354,8 +354,8 @@ typedef struct {
   int commands;  // gl command list with embedded s/t
   uint32_t gltextures[MAX_SKINS][4];  // johnfitz
   uint32_t fbtextures[MAX_SKINS][4];  // johnfitz
-  int texels[MAX_SKINS];                         // only for player skins
-  maliasframedesc_t frames[1];                   // variable sized
+  int texels[MAX_SKINS];  // only for player skins
+  maliasframedesc_t frames[1];  // variable sized
 } aliashdr_t;
 
 #define MAXALIASVERTS 2000  // johnfitz -- was 1024

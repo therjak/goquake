@@ -20,6 +20,7 @@ import (
 	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/math/vec"
+	"github.com/therjak/goquake/model"
 	"github.com/therjak/goquake/texture"
 )
 
@@ -111,20 +112,52 @@ func R_TranslatePlayerSkin(i int) {
 
 type Entity struct {
 	ptr C.entityPtr
+
+	forceLink  bool
+	updateType int
+	// baseline EntityState
+	msgTime   float64
+	msgOrigin [2]vec.Vec3
+	// origin    vec.Vec3
+	msgAngles [2]vec.Vec3
+	// angles    vec.Vec3
+	model *model.QModel
+	// efrag *efrag
+	frame         int
+	syncBase      float32
+	effects       int
+	skinNum       int
+	visFrame      int
+	dLightFrame   int
+	dLightBits    int // uint32?
+	trivialAccept int
+	// topNode *MNode_s
+	alpha          byte
+	lerpFlags      byte
+	lerpStart      float32
+	lerpTime       float32
+	lerpFinish     float32
+	previousPose   int16
+	currentPose    int16
+	moveLerpStart  float32
+	previousOrigin vec.Vec3
+	currentOrigin  vec.Vec3
+	previousAngles vec.Vec3
+	currentAngles  vec.Vec3
 }
 
 func (c *Client) Entities(i int) *Entity {
 	// TODO: make separate sets of Entities(0) for world and
 	// Entities(1 to cl.maxClients) for players
-	return &Entity{C.getCLEntity(C.int(i))}
+	return &Entity{ptr: C.getCLEntity(C.int(i))}
 }
 
 func (c *Client) ClientEntity(i int) *Entity {
-	return &Entity{C.getCLEntity(C.int(i + 1))}
+	return &Entity{ptr: C.getCLEntity(C.int(i + 1))}
 }
 
 func (c *Client) WorldEntity() *Entity {
-	return &Entity{C.getCLEntity(0)}
+	return &Entity{ptr: C.getCLEntity(0)}
 }
 
 func (e *Entity) origin() vec.Vec3 {
@@ -144,7 +177,7 @@ func (e *Entity) angles() vec.Vec3 {
 }
 
 func cl_weapon() Entity {
-	return Entity{&C.cl_viewent}
+	return Entity{ptr: &C.cl_viewent}
 }
 
 // This one adds error checks to cl_entities
@@ -167,11 +200,11 @@ func CL_EntityNum(num int) C.entityPtr {
 }
 
 func (c *Client) StaticEntityNum(num int) *Entity {
-	return &Entity{C.getStaticEntity(C.int(num))}
+	return &Entity{ptr: C.getStaticEntity(C.int(num))}
 }
 
 func (c *Client) EntityNum(num int) *Entity {
-	return &Entity{CL_EntityNum(num)}
+	return &Entity{ptr: CL_EntityNum(num)}
 }
 
 // Entity return the player entity
