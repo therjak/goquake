@@ -469,8 +469,7 @@ void R_SetupEntityTransform(entity_t *e, lerpdata_t *lerpdata) {
   }
 
   // set up values
-  if (Cvar_GetValue(&r_lerpmove) && e != &cl_viewent &&
-      e->lerpflags & LERP_MOVESTEP) {
+  if (Cvar_GetValue(&r_lerpmove) && e->lerpflags & LERP_MOVESTEP) {
     if (e->lerpflags & LERP_FINISH)
       blend = CLAMP(
           0,
@@ -526,7 +525,7 @@ void R_SetupAliasLighting(entity_t *e) {
   }
 
   // minimum light value on gun (24)
-  if (e == &cl_viewent) {
+  if (EntityIsPlayerWeapon(e)) {
     add = 72.0f - (lightcolor[0] + lightcolor[1] + lightcolor[2]);
     if (add > 0.0f) {
       lightcolor[0] += add / 3.0f;
@@ -690,7 +689,7 @@ void GL_DrawAliasShadow(entity_t *e) {
 
   if (R_CullModelForEntity(e)) return;
 
-  if (e == &cl_viewent || e->model->flags & MOD_NOSHADOW) return;
+  if (e->model->flags & MOD_NOSHADOW) return;
 
   entalpha = ENTALPHA_DECODE(e->alpha);
   if (entalpha == 0) return;

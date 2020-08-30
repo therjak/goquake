@@ -284,8 +284,6 @@ void R_DrawShadows(void) {
 
     if (ce->model->Type != mod_alias) continue;
 
-    if (ce == &cl_viewent) return;
-
     GL_DrawAliasShadow(ce);
   }
 

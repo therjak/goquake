@@ -86,6 +86,11 @@ func EntityIsPlayer(ptr C.entityPtr) bool {
 	return false
 }
 
+//export EntityIsPlayerWeapon
+func EntityIsPlayerWeapon(ptr C.entityPtr) bool {
+	return ptr == cl.WeaponEntity().ptr
+}
+
 //export CL_NewTranslation
 func CL_NewTranslation(i int) {
 	if i < 0 || i >= cl.maxClients {

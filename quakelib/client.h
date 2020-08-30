@@ -28,8 +28,6 @@ typedef struct {
   struct efrag_s *free_efrags;
 } client_state_t;
 
-extern entity_t cl_viewent;  // the gun model
-
 extern client_state_t cl;
 
 #define MAX_TEMP_ENTITIES 256    // johnfitz -- was 64
