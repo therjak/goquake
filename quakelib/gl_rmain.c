@@ -265,28 +265,6 @@ void R_DrawEntitiesOnList(qboolean alphapass)
   }
 }
 
-void R_DrawViewModel(void) {
-  entity_t* ce;
-  if (!Cvar_GetValue(&r_drawviewmodel) || !Cvar_GetValue(&r_drawentities) ||
-      Cvar_GetValue(&chase_active))
-    return;
-
-  if (CL_HasItem(IT_INVISIBILITY) || CL_Stats(STAT_HEALTH) <= 0) return;
-
-  ce = &cl_viewent;
-  if (!ce->model) return;
-
-  if (ce->model->Type != mod_alias) {
-    // this fixes a crash
-    return;
-  }
-
-  // hack the depth range to prevent view model from poking into walls
-  glDepthRange(0, 0.3);
-  R_DrawAliasModel(ce);
-  glDepthRange(0, 1);
-}
-
 void R_DrawShadows(void) {
   int i;
   entity_t* ce;

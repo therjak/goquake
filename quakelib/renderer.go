@@ -4,7 +4,11 @@ package quakelib
 import "C"
 import (
 	"github.com/chewxy/math32"
+	"github.com/go-gl/gl/v4.6-core/gl"
+	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/math/vec"
+	"github.com/therjak/goquake/model"
+	"github.com/therjak/goquake/progs"
 )
 
 type fPlane struct {
@@ -104,4 +108,34 @@ func (r *qRenderer) SetFrustum(fovx, fovy float32) {
 	r.frustum[1].TurnVector(qRefreshRect.viewForward, qRefreshRect.viewRight, 90-fovx/2) // right
 	r.frustum[2].TurnVector(qRefreshRect.viewForward, qRefreshRect.viewUp, 90-fovy/2)    // bottom
 	r.frustum[3].TurnVector(qRefreshRect.viewForward, qRefreshRect.viewUp, fovy/2-90)    // top
+}
+
+//export R_DrawViewModel
+func R_DrawViewModel() {
+	renderer.DrawWeaponModel()
+}
+
+func (r *qRenderer) DrawWeaponModel() {
+	if !cvars.RDrawViewModel.Bool() ||
+		!cvars.RDrawEntities.Bool() ||
+		cvars.ChaseActive.Bool() {
+		return
+	}
+	if cl.items&progs.ItemInvisibility != 0 ||
+		cl.stats.health <= 0 {
+		return
+	}
+	weapon := cl.WeaponEntity()
+	if weapon.Model == nil {
+		return
+	}
+	if weapon.Model.Type != model.ModAlias {
+		// this fixes a crash
+		return
+	}
+
+	// hack the depth range to prevent view model from poking into walls
+	gl.DepthRange(0, 0.3)
+	r.DrawAliasModel(weapon)
+	gl.DepthRange(0, 1)
 }

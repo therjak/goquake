@@ -16,6 +16,7 @@ package quakelib
 //inline entity_t* getStaticEntity(int i) { return &cl_static_entities[i]; }
 //void R_AddEfrags(entity_t* e);
 //void CL_ParseStaticC(entity_t* e);
+//void R_DrawAliasModel(entity_t* e);
 //#endif
 import "C"
 
@@ -270,4 +271,8 @@ func (e *Entity) SetBaseline(state *EntityState) {
 	e.ptr.baseline.frame = C.ushort(state.Frame)
 	e.ptr.baseline.skin = C.uchar(state.Skin)
 	e.ptr.baseline.alpha = C.uchar(state.Alpha)
+}
+
+func (r *qRenderer) DrawAliasModel(e *Entity) {
+	C.R_DrawAliasModel(e.ptr)
 }
