@@ -38,10 +38,10 @@ func Chase_UpdateForDrawing() {
 
 	  // calc ideal camera location before checking for walls
 	  for (i = 0; i < 3; i++)
-	    ideal[i] = cl_viewent.origin[i] - forward[i] * Cvar_GetValue(&chase_back) +
+	    ideal[i] = cl.WeaponEntity().Origin[i] - forward[i] * Cvar_GetValue(&chase_back) +
 	               right[i] * Cvar_GetValue(&chase_right);
 	  //+ up[i]*Cvar_GetValue(&chase_up);
-	  ideal[2] = cl_viewent.origin[2] + Cvar_GetValue(&chase_up);
+	  ideal[2] = cl.WeaponEntity().Origin[2] + Cvar_GetValue(&chase_up);
 
 	  // make sure camera is not in or behind a wall
 	  TraceLine(r_refdef.vieworg, ideal, temp);
@@ -51,8 +51,8 @@ func Chase_UpdateForDrawing() {
 	  VectorCopy(ideal, r_refdef.vieworg);
 
 	  // find the spot the player is looking at
-	  VectorMA(cl_viewent.origin, 4096, forward, temp);
-	  TraceLine(cl_viewent.origin, temp, crosshair);
+	  VectorMA(cl.WeaponEntity().Origin, 4096, forward, temp);
+	  TraceLine(cl.WeaponEntity().Origin, temp, crosshair);
 
 	  // calculate camera angles to look at the same spot
 	  VectorSubtract(crosshair, r_refdef.vieworg, temp);

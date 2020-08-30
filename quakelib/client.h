@@ -36,12 +36,9 @@ extern client_state_t cl;
 #define MAX_STATIC_ENTITIES 512  // johnfitz -- was 128
 #define MAX_VISEDICTS 4096       // larger, now we support BSP2
 
-extern entity_t cl_static_entities[MAX_STATIC_ENTITIES];
 extern entity_t cl_temp_entities[MAX_TEMP_ENTITIES];
 extern entity_t *cl_visedicts[MAX_VISEDICTS];
 extern int cl_numvisedicts;
-
-extern entity_t *cl_entities;  // johnfitz -- was a static array, now on hunk
 
 //=============================================================================
 

@@ -7,6 +7,8 @@ package quakelib
 //#include "render.h"
 //extern entity_t *cl_entities;
 //extern entity_t cl_viewent;
+//extern entity_t *cl_visedicts[4096];
+//extern entity_t cl_temp_entities[256];
 //typedef entity_t* entityPtr;
 //typedef qmodel_t* modelPtr;
 //inline entity_t* getCLEntity(int i) { return &cl_entities[i]; }
@@ -150,7 +152,7 @@ type Entity struct {
 
 func (c *Client) Entities(i int) *Entity {
 	// TODO: make separate sets of Entities(0) for world and
-	// Entities(1 to cl.maxClients) for players
+	// Entities(1 to cl.maxClients) for players ?
 	return &Entity{ptr: C.getCLEntity(C.int(i))}
 }
 
@@ -178,10 +180,6 @@ func (e *Entity) angles() vec.Vec3 {
 	}
 }
 
-func cl_weapon() Entity {
-	return Entity{ptr: &C.cl_viewent}
-}
-
 // This one adds error checks to cl_entities
 //export CL_EntityNum
 func CL_EntityNum(num int) C.entityPtr {
@@ -201,8 +199,31 @@ func CL_EntityNum(num int) C.entityPtr {
 	return cl.Entities(num).ptr
 }
 
+var (
+	clientWeapon       Entity
+	staticEntity       [512]Entity
+	clientVisEdicts    [4096]*Entity // pointers into clientEntities
+	clientTempEntities [256]Entity
+	clientEntities     []Entity
+)
+
+func init() {
+	clientWeapon.ptr = &C.cl_viewent
+	for i, _ := range staticEntity {
+		staticEntity[i].ptr = &C.cl_static_entities[i]
+	}
+	//extern entity_t *cl_visedicts[4096];
+	for i, _ := range clientTempEntities {
+		clientTempEntities[i].ptr = &C.cl_temp_entities[i]
+	}
+}
+
+func (c *Client) WeaponEntity() *Entity {
+	return &clientWeapon
+}
+
 func (c *Client) StaticEntityNum(num int) *Entity {
-	return &Entity{ptr: C.getStaticEntity(C.int(num))}
+	return &staticEntity[num]
 }
 
 func (c *Client) EntityNum(num int) *Entity {

@@ -1339,12 +1339,16 @@ func (c *Client) calcWeaponAngle() {
 	}
 	yaw := qRefreshRect.viewAngles[YAW]
 	pitch := qRefreshRect.viewAngles[PITCH]
-	w := cl_weapon()
-	w.ptr.angles[YAW] = C.float(yaw)
-	w.ptr.angles[PITCH] = C.float(-pitch)
-	w.ptr.angles[ROLL] -= C.float(sway(cvars.ViewIRollCycle.Value(), cvars.ViewIRollLevel.Value()))
-	w.ptr.angles[PITCH] -= C.float(sway(cvars.ViewIPitchCycle.Value(), cvars.ViewIPitchLevel.Value()))
-	w.ptr.angles[YAW] -= C.float(sway(cvars.ViewIYawCycle.Value(), cvars.ViewIYawLevel.Value()))
+	w := c.WeaponEntity()
+	w.Angles[YAW] = yaw
+	w.Angles[PITCH] = -pitch
+	w.Angles[ROLL] -= sway(cvars.ViewIRollCycle.Value(), cvars.ViewIRollLevel.Value())
+	w.Angles[PITCH] -= sway(cvars.ViewIPitchCycle.Value(), cvars.ViewIPitchLevel.Value())
+	w.Angles[YAW] -= sway(cvars.ViewIYawCycle.Value(), cvars.ViewIYawLevel.Value())
+
+	w.ptr.angles[ROLL] = C.float(w.Angles[ROLL])
+	w.ptr.angles[PITCH] = C.float(w.Angles[PITCH])
+	w.ptr.angles[YAW] = C.float(w.Angles[YAW])
 }
 
 func (c *Client) addIdle(idlescale float32) {
@@ -1362,7 +1366,8 @@ func (c *Client) calcIntermissionRefreshRect() {
 	qRefreshRect.viewOrg = ent.origin()
 	qRefreshRect.viewAngles = ent.angles()
 	// weaponmodel
-	w := cl_weapon()
+	w := c.WeaponEntity()
+	w.Model = nil
 	w.ptr.model = nil
 
 	c.addIdle(1)
@@ -1432,15 +1437,17 @@ func (c *Client) calcRefreshRect() {
 	c.driftPitch()
 
 	// ent is the player model (visible when out of body)
-	ent := c.Entities(c.viewentity)
+	ent := c.Entity()
 	// view is the weapon model (only visible from inside body)
-	w := cl_weapon() // view
+	w := c.WeaponEntity() // view
 
 	// transform the view offset by the model's matrix to get the offset from
 	// model origin for the view
-	ent.ptr.angles[YAW] = C.float(c.yaw) // the model should face the view dir
+	ent.Angles[YAW] = c.yaw // the model should face the view dir
 	// the model should face the view dir
-	ent.ptr.angles[PITCH] = -C.float(c.pitch)
+	ent.Angles[PITCH] = -c.pitch
+	ent.ptr.angles[YAW] = C.float(ent.Angles[YAW])
+	ent.ptr.angles[PITCH] = C.float(ent.Angles[PITCH])
 
 	bob := c.calcBob()
 
@@ -1479,23 +1486,29 @@ func (c *Client) calcRefreshRect() {
 
 	c.boundOffsets()
 
-	w.ptr.angles[ROLL] = C.float(c.roll)
-	w.ptr.angles[PITCH] = C.float(c.pitch)
-	w.ptr.angles[YAW] = C.float(c.yaw)
+	// set up gun position
+	w.Angles[ROLL] = c.roll
+	w.Angles[PITCH] = c.pitch
+	w.Angles[YAW] = c.yaw
+	w.ptr.angles[ROLL] = C.float(w.Angles[ROLL])
+	w.ptr.angles[PITCH] = C.float(w.Angles[PITCH])
+	w.ptr.angles[YAW] = C.float(w.Angles[YAW])
 
 	c.calcWeaponAngle()
-	w.ptr.origin[0] = ent.ptr.origin[0]
-	w.ptr.origin[1] = ent.ptr.origin[1]
-	w.ptr.origin[2] = ent.ptr.origin[2] + C.float(c.viewHeight)
+	w.Origin = ent.origin()
+	w.Origin[2] += c.viewHeight
 
-	w.ptr.origin[0] += C.float(forward[0] * bob * 0.4)
-	w.ptr.origin[1] += C.float(forward[1] * bob * 0.4)
-	w.ptr.origin[2] += C.float(forward[2] * bob * 0.4)
+	w.Origin.Add(vec.Scale(bob*0.4, forward))
+	w.Origin[2] += bob
 
-	w.ptr.origin[2] += C.float(bob)
+	w.ptr.origin[0] = C.float(w.Origin[0])
+	w.ptr.origin[1] = C.float(w.Origin[1])
+	w.ptr.origin[2] = C.float(w.Origin[2])
 
+	w.Model = c.modelPrecache[c.stats.weapon]
 	C.SetCLWeaponModel(C.int(c.stats.weapon))
-	w.ptr.frame = C.int(cl.stats.weaponFrame)
+	w.Frame = cl.stats.weaponFrame
+	w.ptr.frame = C.int(w.Frame)
 
 	switch cvars.ViewGunKick.Value() {
 	case 1:
@@ -1541,7 +1554,8 @@ func (c *Client) calcRefreshRect() {
 			calcRefreshRectOldZ = origin[2] - 12
 		}
 		qRefreshRect.viewOrg[2] += calcRefreshRectOldZ - origin[2]
-		w.ptr.origin[2] += C.float(calcRefreshRectOldZ - origin[2])
+		w.Origin[2] += calcRefreshRectOldZ - origin[2]
+		w.ptr.origin[2] = C.float(w.Origin[2])
 	} else {
 		calcRefreshRectOldZ = origin[2]
 	}
@@ -1803,23 +1817,22 @@ func (c *Client) parseClientData() error {
 			return err
 		}
 	}
-	cl_weapon().ptr.alpha = 0 // ENTALPHA_DEFAULT
+	weaponE := c.WeaponEntity()
+	weaponE.Alpha = 0 // ENTALPHA_DEFAULT
 	if bits&svc.SU_WEAPONALPHA != 0 {
 		a, err := cls.inMessage.ReadByte()
 		if err != nil {
 			return err
 		}
-		cl_weapon().ptr.alpha = C.uchar(a)
+		weaponE.Alpha = a
 	}
-	//TODO(THERJAK)
-	/*
-		// this was done before the upper 8 bits of cl.stats[STAT_WEAPON]
-		// were filled in, breaking on large maps like zendar.bsp
-		if cl_viewent.model != cl.model_precache[CL_Stats(STAT_WEAPON)] {
-			// don't lerp animation across model changes
-			cl_viewent.lerpflags |= LERP_RESETANIM
-		}
-	*/
+	weaponE.ptr.alpha = C.uchar(weaponE.Alpha)
+	// this was done before the upper 8 bits of cl.stats[STAT_WEAPON]
+	// were filled in, breaking on large maps like zendar.bsp
+	if weaponE.Model != c.modelPrecache[c.stats.weapon] {
+		// don't lerp animation across model changes
+		weaponE.LerpFlags |= lerpResetAnim
+	}
 	return nil
 }
 
