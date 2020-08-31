@@ -78,56 +78,16 @@ void CL_ClearState(void) {
 CL_RelinkEntities
 ===============
 */
-void CL_RelinkEntities(void) {
+void CL_RelinkEntities(float frac) {
   entity_t *ent;
   int i, j;
-  float frac, f, d;
+  float f, d;
   vec3_t delta;
   float bobjrotate;
   vec3_t oldorg;
   dlight_t *dl;
 
-  // determine partial update time
-  frac = CL_LerpPoint();
-
   cl_numvisedicts = 0;
-
-  //
-  // interpolate player info
-  //
-  for (i = 0; i < 3; i++) {
-    float v =
-        CL_MVelocity(1, i) + frac * (CL_MVelocity(0, i) - CL_MVelocity(1, i));
-    CL_SetVelocity(i, v);
-  }
-
-  if (CLS_IsDemoPlayback()) {
-    // interpolate the angles
-    {
-      d = CL_MViewAngles(0, 0) - CL_MViewAngles(1, 0);
-      if (d > 180)
-        d -= 360;
-      else if (d < -180)
-        d += 360;
-      SetCLPitch(CL_MViewAngles(1, 0) + frac * d);
-    }
-    {
-      d = CL_MViewAngles(0, 1) - CL_MViewAngles(1, 1);
-      if (d > 180)
-        d -= 360;
-      else if (d < -180)
-        d += 360;
-      SetCLYaw(CL_MViewAngles(1, 1) + frac * d);
-    }
-    {
-      d = CL_MViewAngles(0, 2) - CL_MViewAngles(1, 2);
-      if (d > 180)
-        d -= 360;
-      else if (d < -180)
-        d += 360;
-      SetCLRoll(CL_MViewAngles(1, 2) + frac * d);
-    }
-  }
 
   bobjrotate = anglemod(100 * CL_Time());
 

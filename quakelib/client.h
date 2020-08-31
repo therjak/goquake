@@ -45,7 +45,6 @@ void CL_Init(void);
 
 // cl_input
 void CL_UpdateTEnts(void);
-void CL_ClearState(void);
 
 void Chase_Init(void);
 

@@ -7,7 +7,7 @@ package quakelib
 //extern const char* BOLT2;
 //extern const char* BOLT3;
 //extern const char* BEAM;
-//void CL_RelinkEntities(void);
+//void CL_RelinkEntities(float frac);
 //void CL_UpdateTEnts(void);
 import "C"
 
@@ -492,7 +492,30 @@ func (c *Client) ReadFromServer() {
 		conlog.Printf("\n")
 	}
 
-	C.CL_RelinkEntities()
+	frac := float32(c.LerpPoint())
+	// interpolate player info
+	c.velocity = vec.Lerp(c.mVelocity[1], c.mVelocity[0], frac)
+	// mViewAngles [2]vec.Vec3
+	if cls.demoPlayback {
+		// interpolate the angles
+		// this has some problems as it could be off by 180 and
+		// the current computation could even result in values
+		// outside of [-180,180] but is consistend with orig
+		d := vec.Sub(c.mViewAngles[0], c.mViewAngles[1])
+		for i := 0; i < 3; i++ {
+			if d[i] > 180 {
+				d[i] -= 360
+			} else if d[i] < -180 {
+				d[i] += 360
+			}
+		}
+		df := vec.Add(c.mViewAngles[1], vec.Scale(frac, d))
+		c.pitch = df[0]
+		c.yaw = df[1]
+		c.roll = df[2]
+	}
+
+	C.CL_RelinkEntities(C.float(frac))
 	C.CL_UpdateTEnts()
 }
 
@@ -918,11 +941,6 @@ func CL_InitSounds() {
 
 // Determines the fraction between the last two messages that the objects
 // should be put at.
-//export CL_LerpPoint
-func CL_LerpPoint() float64 {
-	return cl.LerpPoint()
-}
-
 func (c *Client) LerpPoint() float64 {
 	f := c.messageTime - c.messageTimeOld
 
