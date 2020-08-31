@@ -30,9 +30,9 @@ func Chase_UpdateForDrawing() {
 	  vec3_t forward, up, right;
 	  vec3_t ideal, crosshair, temp;
 	  vec3_t clviewangles;
-	  clviewangles[PITCH] = CLPitch();
-	  clviewangles[YAW] = CLYaw();
-	  clviewangles[ROLL] = CLRoll();
+	  clviewangles[PITCH] = cl.pitch
+	  clviewangles[YAW] = cl.yaw
+	  clviewangles[ROLL] = cl.roll
 
 	  AngleVectors(clviewangles, forward, right, up);
 
@@ -58,6 +58,6 @@ func Chase_UpdateForDrawing() {
 	  VectorSubtract(crosshair, r_refdef.vieworg, temp);
 	  VectorAngles(temp, r_refdef.viewangles);
 	  if (r_refdef.viewangles[PITCH] == 90 || r_refdef.viewangles[PITCH] == -90)
-	    r_refdef.viewangles[YAW] = CLYaw();
+	    r_refdef.viewangles[YAW] = cl.yaw
 	*/
 }

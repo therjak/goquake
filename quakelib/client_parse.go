@@ -371,7 +371,7 @@ func CL_ParseServerMessage() {
 			snd.Stop(int(i)>>3, int(i)&7)
 
 		case svc.UpdateName:
-			Sbar_Changed()
+			statusbar.MarkChanged()
 			i, err := cls.inMessage.ReadByte()
 			if err != nil {
 				cls.msgBadRead = true
@@ -388,7 +388,7 @@ func CL_ParseServerMessage() {
 			cl.scores[i].name = s
 
 		case svc.UpdateFrags:
-			Sbar_Changed()
+			statusbar.MarkChanged()
 			i, err := cls.inMessage.ReadByte()
 			if err != nil {
 				cls.msgBadRead = true
@@ -405,7 +405,7 @@ func CL_ParseServerMessage() {
 			cl.scores[i].frags = int(f)
 
 		case svc.UpdateColors:
-			Sbar_Changed()
+			statusbar.MarkChanged()
 			i, err := cls.inMessage.ReadByte()
 			if err != nil {
 				cls.msgBadRead = true
@@ -464,7 +464,9 @@ func CL_ParseServerMessage() {
 			CL_ParseStatic(1)
 
 		case svc.TempEntity:
-			CL_ParseTEnt()
+			if err := cls.parseTEnt(); err != nil {
+				cls.msgBadRead = true
+			}
 
 		case svc.SetPause:
 			// this byte was used to pause cd audio, other pause as well?

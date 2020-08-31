@@ -88,21 +88,6 @@ const (
 	ca_connected    = 2
 )
 
-//export CLPitch
-func CLPitch() C.float {
-	return C.float(cl.pitch)
-}
-
-//export CLYaw
-func CLYaw() C.float {
-	return C.float(cl.yaw)
-}
-
-//export CLRoll
-func CLRoll() C.float {
-	return C.float(cl.roll)
-}
-
 //export SetCLPitch
 func SetCLPitch(v C.float) {
 	cl.pitch = float32(v)
@@ -282,16 +267,6 @@ func CL_num_entities() int {
 	return cl.numEntities
 }
 
-//export CL_num_statics
-func CL_num_statics() int {
-	return cl.numStatics
-}
-
-//export Inc_CL_num_statics
-func Inc_CL_num_statics() {
-	cl.numStatics++
-}
-
 //export CL_MViewAngles
 func CL_MViewAngles(i, j int) float32 {
 	return cl.mViewAngles[i][j]
@@ -325,32 +300,6 @@ func CL_MaxClients() int {
 	return cl.maxClients
 }
 
-//export CL_SetMaxClients
-func CL_SetMaxClients(m int) {
-	cl.maxClients = m
-	cl.scores = make([]score, m)
-}
-
-//export CL_SetLevelName
-func CL_SetLevelName(c *C.char) {
-	cl.levelName = C.GoString(c)
-}
-
-//export CL_SetMapName
-func CL_SetMapName(c *C.char) {
-	cl.mapName = C.GoString(c)
-}
-
-//export CL_Stats
-func CL_Stats(s C.int) C.int {
-	return C.int(cl_stats(int(s)))
-}
-
-//export CL_SetGameType
-func CL_SetGameType(t int) {
-	cl.gameType = t
-}
-
 func (c *Client) DeathMatch() bool {
 	return cl.gameType == svc.GameDeathmatch
 }
@@ -358,59 +307,6 @@ func (c *Client) DeathMatch() bool {
 //export CL_HasItem
 func CL_HasItem(item uint32) bool {
 	return cl.items&item != 0
-}
-
-//export CL_ItemGetTime
-func CL_ItemGetTime(item int) float64 {
-	return cl.itemGetTime[item]
-}
-
-//export CL_SoundPrecacheClear
-func CL_SoundPrecacheClear() {
-	cl.soundPrecache = cl.soundPrecache[:0]
-}
-
-//export CL_SoundPrecacheAdd
-func CL_SoundPrecacheAdd(snd int) {
-	cl.soundPrecache = append(cl.soundPrecache, snd)
-}
-
-func cl_stats(s int) int {
-	switch s {
-	case stat.Health:
-		return cl.stats.health
-		//	case stat.Frags:
-		//		return cl.stats.frags
-	case stat.Weapon:
-		return cl.stats.weapon
-		//	case stat.Ammo:
-		//		return cl.stats.ammo
-		//	case stat.Armor:
-		//		return cl.stats.armor
-		//	case stat.WeaponFrame:
-		//		return cl.stats.weaponFrame
-		//	case stat.Shells:
-		//		return cl.stats.shells
-		//	case stat.Nails:
-		//		return cl.stats.nails
-		//	case stat.Rockets:
-		//		return cl.stats.rockets
-		//	case stat.Cells:
-		//		return cl.stats.cells
-	case stat.ActiveWeapon:
-		return cl.stats.activeWeapon
-		//	case stat.TotalSecrets:
-		//		return cl.stats.totalSecrets
-		//	case stat.TotalMonsters:
-		//		return cl.stats.totalMonsters
-		//	case stat.Secrets:
-		//		return cl.stats.secrets
-		//	case stat.Monsters:
-		//		return cl.stats.monsters
-	default:
-		log.Printf("Unknown cl stat %v", s)
-		return 0
-	}
 }
 
 func cl_setStats(s, v int) {
@@ -467,16 +363,6 @@ func CL_Protocol() C.uint {
 	return C.uint(cl.protocol)
 }
 
-//export CL_SetProtocol
-func CL_SetProtocol(v C.uint) {
-	cl.protocol = int(v)
-}
-
-//export CL_SetProtocolFlags
-func CL_SetProtocolFlags(v C.uint) {
-	cl.protocolFlags = uint32(v)
-}
-
 //export CL_ProtocolFlags
 func CL_ProtocolFlags() C.uint {
 	return C.uint(cl.protocolFlags)
@@ -492,11 +378,6 @@ func CL_Time() C.double {
 	return C.double(cl.time)
 }
 
-//export CL_SetTime
-func CL_SetTime(t C.double) {
-	cl.time = float64(t)
-}
-
 //export CL_MTime
 func CL_MTime() C.double {
 	return C.double(cl.messageTime)
@@ -505,16 +386,6 @@ func CL_MTime() C.double {
 //export CL_MTimeOld
 func CL_MTimeOld() C.double {
 	return C.double(cl.messageTimeOld)
-}
-
-//export CL_SetOldTime
-func CL_SetOldTime(t C.double) {
-	cl.oldTime = float64(t)
-}
-
-//export CL_SetLastReceivedMessage
-func CL_SetLastReceivedMessage(t C.double) {
-	cl.lastReceivedMessageTime = float64(t)
 }
 
 //export CLS_GetState
@@ -625,11 +496,6 @@ func (c *Client) ReadFromServer() {
 	C.CL_UpdateTEnts()
 }
 
-//export CL_GetMessage
-func CL_GetMessage() C.int {
-	return C.int(cls.getMessage())
-}
-
 func (c *ClientStatic) getMessage() int {
 	// for cl_main: return -1 on error, return 0 for message end, everything else is continue
 	// for cl_parse: return 0 for end message, 2 && ReadByte == Nop continue, everything else is Host_Error
@@ -691,16 +557,6 @@ func CL_MSG_ReadByte() C.int {
 //export CL_MSG_ReadShort
 func CL_MSG_ReadShort() C.int {
 	i, err := cls.inMessage.ReadInt16()
-	if err != nil {
-		cls.msgBadRead = true
-		return -1
-	}
-	return C.int(i)
-}
-
-//export CL_MSG_ReadLong
-func CL_MSG_ReadLong() C.int {
-	i, err := cls.inMessage.ReadInt32()
 	if err != nil {
 		cls.msgBadRead = true
 		return -1
@@ -988,7 +844,6 @@ var (
 
 // When the client is taking a long time to load stuff, send keepalive messages
 // so the server doesn't disconnect.
-//export CL_KeepaliveMessage
 func CL_KeepaliveMessage() {
 	if sv.active {
 		// no need if server is local
@@ -1040,12 +895,17 @@ Outer:
 	cls.outProto.Reset()
 }
 
+//export CL_Init
+func CL_Init() {
+	cls.outProto.Reset()
+	CL_InitSounds()
+}
+
 var (
 	clSounds map[sfx]int
 )
 
-//export CL_InitTEnts
-func CL_InitTEnts() {
+func CL_InitSounds() {
 	clSounds = make(map[sfx]int)
 	clSounds[WizHit] = snd.PrecacheSound("wizard/hit.wav")
 	clSounds[KnightHit] = snd.PrecacheSound("hknight/hit.wav")
@@ -2176,14 +2036,6 @@ func (c *ClientStatic) startTimeDemo(name string) {
 	c.timeDemo = true
 	c.timeDemoStartFrame = host.frameCount
 	c.timeDemoLastFrame = -1 // get a new message this frame
-}
-
-// Only called from cl_parse, MSG_BeginReading called there
-//export CL_ParseTEnt
-func CL_ParseTEnt() {
-	if err := cls.parseTEnt(); err != nil {
-		cls.msgBadRead = true
-	}
 }
 
 const (

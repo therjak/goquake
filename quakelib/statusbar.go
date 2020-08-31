@@ -430,50 +430,53 @@ func (s *qstatusbar) drawInventory() {
 		w := s.items[weapon]
 		DrawPicture(w.x, w.y, w.pic[frame])
 	}
-	/*
-		  if cmdl.Hipnotic() {
-		    int grenadeflashing = 0;
-		    for (i = 0; i < 4; i++) {
-					//hipweapons: [23,7,4,16]
-		      if (CL_HasItem(1 << hipweapons[i])) {
-		        time = CL_ItemGetTime(hipweapons[i]);
-		        flashon = (int)((CL_Time() - time) * 10);
-		        if (flashon >= 10) {
-		          if (CL_Stats(STAT_ACTIVEWEAPON) == (1 << hipweapons[i]))
-		            flashon = 1;
-		          else
-		            flashon = 0;
-		        } else
-		          flashon = (flashon % 5) + 2;
-
-		        // check grenade launcher
-		        if (i == 2) {
-		          if (CL_HasItem(HIT_PROXIMITY_GUN)) {
-		            if (flashon) {
-		              grenadeflashing = 1;
-		              Draw_Pic(96, -16 + 24, hsb_weapons[flashon][2]);
-		            }
-		          }
-		        } else if (i == 3) {
-		          if (CL_HasItem(IT_SHOTGUN << 4)) {
-		            if (flashon && !grenadeflashing) {
-		              Draw_Pic(96, -16 + 24, hsb_weapons[flashon][3]);
-		            } else if (!grenadeflashing) {
-		              Draw_Pic(96, -16 + 24, hsb_weapons[0][3]);
-		            }
-		          } else
-		            Draw_Pic(96, -16 + 24, hsb_weapons[flashon][4]);
-		        } else
-		          Draw_Pic(176 + (i * 24), -16 + 24, hsb_weapons[flashon][i]);
-
-		        if (flashon > 1) {
-		          // force update to remove flash
-		          SBResetUpdates();
-		        }
-		      }
-		    }
-		  }
-	*/
+	if cmdl.Hipnotic() {
+		grenadeFlashing := 0
+		for i, hw := range []uint32{
+			progs.HipnoticItemLaserCannonBit,
+			progs.HipnoticItemMjolnirBit,
+			4,
+			progs.HipnoticItemProximityGunBit,
+		} {
+			if cl.items&(1<<hw) == 0 {
+				continue
+			}
+			frame := 0
+			if cl.stats.weapon == (1 << hw) {
+				frame = 1
+			}
+			if f := int((cl.time - cl.itemGetTime[hw]) * 10); f < 10 {
+				frame = (f % 5) + 2
+				// force update to remove flash
+				s.MarkChanged()
+			}
+			var w *spic
+			switch hw {
+			case 4:
+				// check grenade launcher
+				if cl.items&progs.HipnoticItemProximityGun != 0 {
+					if frame != 0 {
+						grenadeFlashing = 1
+						w = &s.hweapons[i]
+					}
+				}
+			case progs.HipnoticItemProximityGunBit:
+				if cl.items&(progs.ItemShotgun<<4) != 0 {
+					if grenadeFlashing == 0 {
+						frame = 0
+						w = &s.hweapons[i]
+					}
+				} else {
+					w = &s.hweapons[i+1]
+				}
+			default:
+				w = &s.hweapons[i]
+			}
+			if w != nil {
+				DrawPicture(w.x, w.y, w.pic[frame])
+			}
+		}
+	}
 
 	if cmdl.Rogue() {
 		for k, v := range s.rweapons {

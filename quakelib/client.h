@@ -47,8 +47,6 @@ void CL_Init(void);
 void CL_UpdateTEnts(void);
 void CL_ClearState(void);
 
-// chase
-extern cvar_t chase_active;
 void Chase_Init(void);
 
 #endif /* _CLIENT_H_ */

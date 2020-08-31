@@ -257,17 +257,6 @@ void CL_RelinkEntities(void) {
   }
 }
 
-/*
-=================
-CL_Init
-=================
-*/
-void CL_Init(void) {
-  CLSMessageClear();
-
-  CL_InitTEnts();
-}
-
 void SetCLWeaponModel(int v) {
   entity_t *view;
   view = &cl_viewent;
