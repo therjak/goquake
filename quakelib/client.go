@@ -190,7 +190,7 @@ type Client struct {
 	// don't change view angle, full screen, etc
 	intermission int
 	numStatics   int // TODO: should be some len(x)
-	numEntities  int // TODO: should be some len(x)
+	entities     []*Entity
 	// model_precache
 	// viewent.model
 
@@ -231,10 +231,8 @@ type Client struct {
 	items        uint32      // 32bit bit field
 	itemGetTime  [32]float64 // for blinking
 	faceAnimTime float64
-	maxEdicts    int
 
 	scores []score // len() == maxClients
-
 }
 
 type ClientStats struct {
@@ -264,7 +262,7 @@ var (
 
 //export CL_num_entities
 func CL_num_entities() int {
-	return cl.numEntities
+	return len(cl.entities)
 }
 
 //export CL_MViewAngles
@@ -284,7 +282,9 @@ func CL_SetVelocity(i int, v float32) {
 
 //export CL_SetMaxEdicts
 func CL_SetMaxEdicts(num int) {
-	cl.maxEdicts = num
+	cl.entities = make([]*Entity, 0, num)
+	// ensure at least a world entity at the start
+	CL_EntityNum(0)
 }
 
 func (c *Client) UpdateFaceAnimTime() {
@@ -845,7 +845,7 @@ func parseStartSoundPacket(msg *net.QReader) error {
 	if soundNum > maxSounds {
 		return fmt.Errorf("CL_ParseStartSoundPacket: %d > MAX_SOUNDS", soundNum)
 	}
-	if int(ent) > cl.maxEdicts {
+	if int(ent) > cap(cl.entities) {
 		return fmt.Errorf("CL_ParseStartSoundPacket: ent = %d", ent)
 	}
 	var origin vec.Vec3

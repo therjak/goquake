@@ -418,7 +418,7 @@ func (s *qstatusbar) drawInventory() {
 			continue
 		}
 		frame := 0
-		if cl.stats.weapon == weapon {
+		if cl.stats.activeWeapon == weapon {
 			frame = 1
 		}
 		b := bits.TrailingZeros32(uint32(weapon))
@@ -442,7 +442,7 @@ func (s *qstatusbar) drawInventory() {
 				continue
 			}
 			frame := 0
-			if cl.stats.weapon == (1 << hw) {
+			if cl.stats.activeWeapon == (1 << hw) {
 				frame = 1
 			}
 			if f := int((cl.time - cl.itemGetTime[hw]) * 10); f < 10 {

@@ -50,9 +50,8 @@ func printEntities(_ []cmd.QArg, _ int) {
 	if cls.state != ca_connected {
 		return
 	}
-	for i := 0; i < cl.numEntities; i++ {
+	for i, e := range cl.entities {
 		conlog.Printf("%3d:", i)
-		e := cl.Entities(i)
 		if e.ptr.model == nil {
 			conlog.Printf("EMPTY\n")
 			continue
@@ -159,15 +158,15 @@ type Entity struct {
 func (c *Client) Entities(i int) *Entity {
 	// TODO: make separate sets of Entities(0) for world and
 	// Entities(1 to cl.maxClients) for players ?
-	return &Entity{ptr: C.getCLEntity(C.int(i))}
+	return c.entities[i]
 }
 
 func (c *Client) ClientEntity(i int) *Entity {
-	return &Entity{ptr: C.getCLEntity(C.int(i + 1))}
+	return c.entities[i+1]
 }
 
 func (c *Client) WorldEntity() *Entity {
-	return &Entity{ptr: C.getCLEntity(0)}
+	return c.entities[0]
 }
 
 func (e *Entity) origin() vec.Vec3 {
@@ -192,25 +191,24 @@ func CL_EntityNum(num int) C.entityPtr {
 	if num < 0 {
 		Error("CL_EntityNum: %d is an invalid number", num)
 	}
-	if num >= cl.numEntities {
-		if num >= cl.maxEdicts {
+	if num >= len(cl.entities) {
+		if num >= cap(cl.entities) {
 			Error("CL_EntityNum: %d is an invalid number", num)
 		}
-		for cl.numEntities <= num {
-			cl.Entities(num).ptr.lerpflags |= lerpResetMove | lerpResetAnim
-			cl.numEntities++
+		for i := len(cl.entities); i <= num; i++ {
+			e := &Entity{ptr: C.getCLEntity(C.int(i))}
+			e.LerpFlags |= lerpResetMove | lerpResetAnim
+			e.ptr.lerpflags = C.uchar(e.LerpFlags)
+			cl.entities = append(cl.entities, e)
 		}
 	}
-
-	return cl.Entities(num).ptr
+	return cl.entities[num].ptr
 }
 
 var (
 	clientWeapon       Entity
 	staticEntity       [512]Entity
-	clientVisEdicts    [4096]*Entity // pointers into clientEntities
 	clientTempEntities [256]Entity
-	clientEntities     []Entity
 )
 
 func init() {
@@ -218,7 +216,6 @@ func init() {
 	for i, _ := range staticEntity {
 		staticEntity[i].ptr = &C.cl_static_entities[i]
 	}
-	//extern entity_t *cl_visedicts[4096];
 	for i, _ := range clientTempEntities {
 		clientTempEntities[i].ptr = &C.cl_temp_entities[i]
 	}
@@ -280,4 +277,48 @@ func (e *Entity) SetBaseline(state *EntityState) {
 
 func (r *qRenderer) DrawAliasModel(e *Entity) {
 	C.R_DrawAliasModel(e.ptr)
+}
+
+var clientVisibleEntities []*Entity // pointers into cl.entities, staticEntities, tempEntities
+
+//export ClearVisibleEntities
+func ClearVisibleEntities() {
+	clientVisibleEntities = clientVisibleEntities[:0]
+}
+
+//export AddVisibleTempEntity
+func AddVisibleTempEntity(e C.entityPtr) {
+	if len(clientVisibleEntities) >= 4096 {
+		return
+	}
+	// clientTempEntities [256]Entity
+	// clientVisibleEntities = append(clientVisibleEntities,
+}
+
+//export AddVisibleStaticEntity
+func AddVisibleStaticEntity(e C.entityPtr) {
+	if len(clientVisibleEntities) >= 4096 {
+		return
+	}
+	// staticEntity       [512]Entity
+	// clientVisibleEntities = append(clientVisibleEntities,
+}
+
+//export AddVisibleClientEntity
+func AddVisibleClientEntity(e C.entityPtr) {
+	if len(clientVisibleEntities) >= 4096 {
+		return
+	}
+	// clientEntities     []*Entity
+	// clientVisibleEntities = append(clientVisibleEntities,
+}
+
+//export VisibleEntity
+func VisibleEntity(i int) C.entityPtr {
+	return clientVisibleEntities[i].ptr
+}
+
+//export VisibleEntitiesNum
+func VisibleEntitiesNum() int {
+	return len(clientVisibleEntities)
 }

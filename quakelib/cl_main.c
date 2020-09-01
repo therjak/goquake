@@ -59,9 +59,9 @@ void CL_ClearState(void) {
   // johnfitz -- cl_entities is now dynamically allocated
   int cl_max_edicts =
       CLAMP(MIN_EDICTS, (int)Cvar_GetValue(&max_edicts), MAX_EDICTS);
-  CL_SetMaxEdicts(cl_max_edicts);
   cl_entities = (entity_t *)Hunk_AllocName(cl_max_edicts * sizeof(entity_t),
                                            "cl_entities");
+  CL_SetMaxEdicts(cl_max_edicts);
   // johnfitz
 
   //
