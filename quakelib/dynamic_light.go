@@ -23,12 +23,13 @@ func CL_AllocDlight(key int) *C.dlight_t {
 		dl.die = 0
 		dl.decay = 0
 		dl.minlight = 0
-		dl.key = C.int(key)
+		dl.key = C.int(key) // == index in cl_entities
 		dl.color[0] = 1
 		dl.color[1] = 1
 		dl.color[2] = 1
 	}
 	if key != 0 {
+		// key 0 is worldEntity or 'unowned'. world can have more than one
 		for i := 0; i < C.MAX_DLIGHTS; i++ {
 			d := &C.cl_dlights[i]
 			if d.key == C.int(key) {

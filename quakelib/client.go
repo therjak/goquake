@@ -516,6 +516,7 @@ func (c *Client) ReadFromServer() {
 	}
 
 	C.CL_RelinkEntities(C.float(frac))
+
 	C.CL_UpdateTEnts()
 }
 
@@ -2158,7 +2159,7 @@ func (c *ClientStatic) parseTEnt() error {
 			return err
 		}
 		particlesAddExplosion(pos, float32(cl.time))
-		l := CL_AllocDlight(0)
+		l := CL_AllocDlight(0) // 0 == worldEntity or 'unowned'
 		l.origin[0] = C.float(pos[0])
 		l.origin[1] = C.float(pos[1])
 		l.origin[2] = C.float(pos[2])
@@ -2261,7 +2262,7 @@ func (c *ClientStatic) parseTEnt() error {
 			return err
 		}
 		particlesAddExplosion2(pos, int(color.start), int(color.end), float32(cl.time))
-		l := CL_AllocDlight(0)
+		l := CL_AllocDlight(0) // 0 == worldEntity or 'unowned'
 		l.origin[0] = C.float(pos[0])
 		l.origin[1] = C.float(pos[1])
 		l.origin[2] = C.float(pos[2])

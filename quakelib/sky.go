@@ -343,8 +343,6 @@ func (s *qSky) ClipPoly(vecs []vec.Vec3, stage int) {
 }
 
 // uses
-// cl_numvisedicts
-// cl_visedicts
 // R_CullModelForEntity
 // cl.worldmodel->numtextures
 // cl.worldmodel->textures

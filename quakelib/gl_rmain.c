@@ -240,8 +240,8 @@ void R_DrawEntitiesOnList(qboolean alphapass)
 
   if (!Cvar_GetValue(&r_drawentities)) return;
 
-  for (i = 0; i < cl_numvisedicts; i++) {
-    ce = cl_visedicts[i];
+  for (i = 0; i < VisibleEntitiesNum(); i++) {
+    ce = VisibleEntity(i);
 
     if ((ENTALPHA_DECODE(ce->alpha) < 1 && !alphapass) ||
         (ENTALPHA_DECODE(ce->alpha) == 1 && alphapass))
@@ -279,8 +279,8 @@ void R_DrawShadows(void) {
     glEnable(GL_STENCIL_TEST);
   }
 
-  for (i = 0; i < cl_numvisedicts; i++) {
-    ce = cl_visedicts[i];
+  for (i = 0; i < VisibleEntitiesNum(); i++) {
+    ce = VisibleEntity(i);
 
     if (ce->model->Type != mod_alias) continue;
 

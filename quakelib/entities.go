@@ -7,6 +7,7 @@ package quakelib
 //#include "render.h"
 //extern entity_t *cl_entities;
 //extern entity_t cl_viewent;
+//extern int cl_numvisedicts;
 //extern entity_t *cl_visedicts[4096];
 //extern entity_t cl_temp_entities[256];
 //typedef entity_t* entityPtr;
@@ -17,6 +18,7 @@ package quakelib
 //void R_AddEfrags(entity_t* e);
 //void CL_ParseStaticC(entity_t* e);
 //void R_DrawAliasModel(entity_t* e);
+//int CL_RelinkEntitiesI(float frac, float bobjrotate, entity_t* e, int i);
 //#endif
 import "C"
 
@@ -185,6 +187,11 @@ func (e *Entity) angles() vec.Vec3 {
 	}
 }
 
+//TODO(therjak): remove idx and just use a pointer to Entity
+func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
+	// r := C.CL_RelinkEntitiesI(C.float(frac), C.float(bobjrotate), e.ptr, C.int(idx))
+}
+
 // This one adds error checks to cl_entities
 //export CL_EntityNum
 func CL_EntityNum(num int) C.entityPtr {
@@ -304,10 +311,14 @@ func AddVisibleStaticEntity(e C.entityPtr) {
 	// clientVisibleEntities = append(clientVisibleEntities,
 }
 
-//export AddVisibleClientEntity
-func AddVisibleClientEntity(e C.entityPtr) {
+//export AddVisibleEntity
+func AddVisibleEntity(e C.entityPtr) {
 	if len(clientVisibleEntities) >= 4096 {
 		return
+	}
+	if C.cl_numvisedicts < 4096 {
+		C.cl_visedicts[C.cl_numvisedicts] = e
+		C.cl_numvisedicts++
 	}
 	// clientEntities     []*Entity
 	// clientVisibleEntities = append(clientVisibleEntities,
@@ -315,10 +326,12 @@ func AddVisibleClientEntity(e C.entityPtr) {
 
 //export VisibleEntity
 func VisibleEntity(i int) C.entityPtr {
-	return clientVisibleEntities[i].ptr
+	return C.cl_visedicts[i]
+	// return clientVisibleEntities[i].ptr
 }
 
 //export VisibleEntitiesNum
 func VisibleEntitiesNum() int {
-	return len(clientVisibleEntities)
+	return int(C.cl_numvisedicts)
+	// return len(clientVisibleEntities)
 }

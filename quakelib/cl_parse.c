@@ -83,8 +83,7 @@ entity_t *CL_NewTempEntity(void) {
   ent = &cl_temp_entities[num_temp_entities];
   memset(ent, 0, sizeof(*ent));
   num_temp_entities++;
-  cl_visedicts[cl_numvisedicts] = ent;
-  cl_numvisedicts++;
+  AddVisibleEntity(ent);
 
   return ent;
 }

@@ -56,13 +56,11 @@ void CL_ClearState(void) {
   memset(cl_temp_entities, 0, sizeof(cl_temp_entities));
   memset(cl_beams, 0, sizeof(cl_beams));
 
-  // johnfitz -- cl_entities is now dynamically allocated
   int cl_max_edicts =
       CLAMP(MIN_EDICTS, (int)Cvar_GetValue(&max_edicts), MAX_EDICTS);
   cl_entities = (entity_t *)Hunk_AllocName(cl_max_edicts * sizeof(entity_t),
                                            "cl_entities");
   CL_SetMaxEdicts(cl_max_edicts);
-  // johnfitz
 
   //
   // allocate the efrags and chain together into a free list
@@ -78,6 +76,8 @@ void CL_ClearState(void) {
 CL_RelinkEntities
 ===============
 */
+int CL_RelinkEntitiesI(float frac, float bobjrotate, entity_t *ent, int i);
+
 void CL_RelinkEntities(float frac) {
   entity_t *ent;
   int i, j;
@@ -93,9 +93,24 @@ void CL_RelinkEntities(float frac) {
 
   // start on the entity after the world
   for (i = 1, ent = cl_entities + 1; i < CL_num_entities(); i++, ent++) {
-    if (!ent->model) {                          // empty slot
-      if (ent->forcelink) R_RemoveEfrags(ent);  // just became empty
+    int vis = CL_RelinkEntitiesI(frac, bobjrotate, ent, i);
+    if (!vis) {
       continue;
+    }
+    AddVisibleEntity(ent);
+  }
+}
+
+int CL_RelinkEntitiesI(float frac, float bobjrotate, entity_t *ent, int i) {
+  int j;
+  float f, d;
+  vec3_t delta;
+  vec3_t oldorg;
+  dlight_t *dl;
+
+  if (!ent->model) {                          // empty slot
+      if (ent->forcelink) R_RemoveEfrags(ent);  // just became empty
+      return 0;
     }
 
     // if the object wasn't included in the last packet, remove it
@@ -105,7 +120,7 @@ void CL_RelinkEntities(float frac) {
           LERP_RESETMOVE | LERP_RESETANIM;  // johnfitz -- next time this entity
                                             // slot is reused, the lerp will
                                             // need to be reset
-      continue;
+      return 0;
     }
 
     VectorCopy(ent->origin, oldorg);
@@ -185,36 +200,32 @@ void CL_RelinkEntities(float frac) {
       dl->die = CL_Time() + 0.001;
     }
 
-    if (ent->model->flags & EF_GIB)
+    if (ent->model->flags & EF_GIB) {
       ParticlesAddRocketTrail(oldorg, ent->origin, 2);
-    else if (ent->model->flags & EF_ZOMGIB)
+    } else if (ent->model->flags & EF_ZOMGIB) {
       ParticlesAddRocketTrail(oldorg, ent->origin, 4);
-    else if (ent->model->flags & EF_TRACER)
+    } else if (ent->model->flags & EF_TRACER) {
       ParticlesAddRocketTrail(oldorg, ent->origin, 3);
-    else if (ent->model->flags & EF_TRACER2)
+    } else if (ent->model->flags & EF_TRACER2) {
       ParticlesAddRocketTrail(oldorg, ent->origin, 5);
-    else if (ent->model->flags & EF_ROCKET) {
+    } else if (ent->model->flags & EF_ROCKET) {
       ParticlesAddRocketTrail(oldorg, ent->origin, 0);
       dl = CL_AllocDlight(i);
       VectorCopy(ent->origin, dl->origin);
       dl->radius = 200;
       dl->die = CL_Time() + 0.01;
-    } else if (ent->model->flags & EF_GRENADE)
+    } else if (ent->model->flags & EF_GRENADE) {
       ParticlesAddRocketTrail(oldorg, ent->origin, 1);
-    else if (ent->model->flags & EF_TRACER3)
+    } else if (ent->model->flags & EF_TRACER3) {
       ParticlesAddRocketTrail(oldorg, ent->origin, 6);
+    }
 
     ent->forcelink = false;
 
     if (i == CLViewentityNum() && !Cvar_GetValue(&chase_active)) {
-      continue;
+      return 0;
     }
-
-    if (cl_numvisedicts < MAX_VISEDICTS) {
-      cl_visedicts[cl_numvisedicts] = ent;
-      cl_numvisedicts++;
-    }
-  }
+    return 1;
 }
 
 void SetCLWeaponModel(int v) {

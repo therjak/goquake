@@ -271,8 +271,8 @@ void Sky_ProcessEntities(void) {
   vec3_t vieworg = {R_Refdef_vieworg(0), R_Refdef_vieworg(1),
                     R_Refdef_vieworg(2)};
 
-  for (i = 0; i < cl_numvisedicts; i++) {
-    e = cl_visedicts[i];
+  for (i = 0; i < VisibleEntitiesNum(); i++) {
+    e = VisibleEntity(i);
 
     if (e->model->Type != mod_brush) continue;
 
