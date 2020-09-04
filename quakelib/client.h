@@ -34,17 +34,10 @@ extern client_state_t cl;
 #define MAX_STATIC_ENTITIES 512  // johnfitz -- was 128
 #define MAX_VISEDICTS 4096       // larger, now we support BSP2
 
-extern entity_t cl_temp_entities[MAX_TEMP_ENTITIES];
-extern entity_t *cl_visedicts[MAX_VISEDICTS];
-extern int cl_numvisedicts;
-
 //=============================================================================
 
 // cl_main
 void CL_Init(void);
-
-// cl_input
-void CL_UpdateTEnts(void);
 
 void Chase_Init(void);
 

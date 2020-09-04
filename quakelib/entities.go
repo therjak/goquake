@@ -189,7 +189,10 @@ func (e *Entity) angles() vec.Vec3 {
 
 //TODO(therjak): remove idx and just use a pointer to Entity
 func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
-	// r := C.CL_RelinkEntitiesI(C.float(frac), C.float(bobjrotate), e.ptr, C.int(idx))
+	r := C.CL_RelinkEntitiesI(C.float(frac), C.float(bobjrotate), e.ptr, C.int(idx))
+	if r != 0 {
+		AddVisibleEntity(e.ptr)
+	}
 }
 
 // This one adds error checks to cl_entities
@@ -290,6 +293,7 @@ var clientVisibleEntities []*Entity // pointers into cl.entities, staticEntities
 
 //export ClearVisibleEntities
 func ClearVisibleEntities() {
+	C.cl_numvisedicts = 0
 	clientVisibleEntities = clientVisibleEntities[:0]
 }
 

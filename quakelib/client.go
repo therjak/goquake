@@ -515,8 +515,19 @@ func (c *Client) ReadFromServer() {
 		c.roll = df[2]
 	}
 
-	C.CL_RelinkEntities(C.float(frac))
+	c.RelinkEntities(frac)
+	c.UpdateTempEntities()
+}
 
+func (c *Client) RelinkEntities(frac float32) {
+	ClearVisibleEntities()
+	bobjrotate := float32(math.AngleMod(100 * c.time))
+	for i, e := range c.entities {
+		e.Relink(frac, bobjrotate, i)
+	}
+}
+
+func (c *Client) UpdateTempEntities() {
 	C.CL_UpdateTEnts()
 }
 

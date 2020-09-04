@@ -53,7 +53,6 @@ void CL_ClearState(void) {
   // clear other arrays
   memset(cl_efrags, 0, sizeof(cl_efrags));
   memset(cl_dlights, 0, sizeof(cl_dlights));
-  memset(cl_temp_entities, 0, sizeof(cl_temp_entities));
   memset(cl_beams, 0, sizeof(cl_beams));
 
   int cl_max_edicts =
@@ -69,36 +68,6 @@ void CL_ClearState(void) {
   for (i = 0; i < MAX_EFRAGS - 1; i++)
     cl.free_efrags[i].entnext = &cl.free_efrags[i + 1];
   cl.free_efrags[i].entnext = NULL;
-}
-
-/*
-===============
-CL_RelinkEntities
-===============
-*/
-int CL_RelinkEntitiesI(float frac, float bobjrotate, entity_t *ent, int i);
-
-void CL_RelinkEntities(float frac) {
-  entity_t *ent;
-  int i, j;
-  float f, d;
-  vec3_t delta;
-  float bobjrotate;
-  vec3_t oldorg;
-  dlight_t *dl;
-
-  cl_numvisedicts = 0;
-
-  bobjrotate = anglemod(100 * CL_Time());
-
-  // start on the entity after the world
-  for (i = 1, ent = cl_entities + 1; i < CL_num_entities(); i++, ent++) {
-    int vis = CL_RelinkEntitiesI(frac, bobjrotate, ent, i);
-    if (!vis) {
-      continue;
-    }
-    AddVisibleEntity(ent);
-  }
 }
 
 int CL_RelinkEntitiesI(float frac, float bobjrotate, entity_t *ent, int i) {

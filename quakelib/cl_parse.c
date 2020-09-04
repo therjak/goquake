@@ -78,8 +78,8 @@ CL_NewTempEntity
 entity_t *CL_NewTempEntity(void) {
   entity_t *ent;
 
-  if (cl_numvisedicts == MAX_VISEDICTS) return NULL;
-  if (num_temp_entities == MAX_TEMP_ENTITIES) return NULL;
+  if (VisibleEntitiesNum() >= MAX_VISEDICTS) return NULL;
+  if (num_temp_entities >= MAX_TEMP_ENTITIES) return NULL;
   ent = &cl_temp_entities[num_temp_entities];
   memset(ent, 0, sizeof(*ent));
   num_temp_entities++;
