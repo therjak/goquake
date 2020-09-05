@@ -1,7 +1,6 @@
 // draw.c -- 2d drawing
 
 #include "quakedef.h"
-#include "draw.h"
 
 canvastype currentcanvas = CANVAS_NONE;  // johnfitz -- for GL_SetCanvas
 

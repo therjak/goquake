@@ -207,7 +207,6 @@ typedef struct {
 #include "_cgo_export.h"
 #include "client.h"
 #include "console.h"
-#include "draw.h"
 #include "gl_model.h"
 #include "gl_texmgr.h"  //johnfitz
 #include "glquake.h"

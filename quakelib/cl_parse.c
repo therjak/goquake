@@ -165,6 +165,7 @@ If an entities model or origin changes from frame to frame, it must be
 relinked.  Other attributes can change without relinking.
 ==================
 */
+// THERJAK: all but some model stuff can be moved
 void CL_ParseUpdate(int bits) {
   int i;
   qmodel_t *model;
@@ -347,6 +348,7 @@ void CL_ParseUpdate(int bits) {
   }
 }
 
+// THERJAK: all but model can move
 void CL_ParseStaticC(entity_t* ent)  {
   ent->model = cl.model_precache[ent->baseline.modelindex];
   ent->lerpflags |= LERP_RESETANIM;  // johnfitz -- lerping

@@ -1,7 +1,7 @@
 package quakelib
 
 //#include "stdlib.h"
-//#include "draw.h"
+//#include "canvas.h"
 //void GL_SetCanvas(canvastype newCanvas);
 //void GL_CanvasEnd(void);
 import "C"
