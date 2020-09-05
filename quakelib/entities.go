@@ -199,21 +199,7 @@ func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
 // This one adds error checks to cl_entities
 //export CL_EntityNum
 func CL_EntityNum(num int) C.entityPtr {
-	if num < 0 {
-		Error("CL_EntityNum: %d is an invalid number", num)
-	}
-	if num >= len(cl.entities) {
-		if num >= cap(cl.entities) {
-			Error("CL_EntityNum: %d is an invalid number", num)
-		}
-		for i := len(cl.entities); i <= num; i++ {
-			e := &Entity{ptr: C.getCLEntity(C.int(i))}
-			e.LerpFlags |= lerpResetMove | lerpResetAnim
-			e.ptr.lerpflags = C.uchar(e.LerpFlags)
-			cl.entities = append(cl.entities, e)
-		}
-	}
-	return cl.entities[num].ptr
+	return cl.EntityNum(num).ptr
 }
 
 var (
@@ -242,7 +228,21 @@ func (c *Client) StaticEntityNum(num int) *Entity {
 }
 
 func (c *Client) EntityNum(num int) *Entity {
-	return &Entity{ptr: CL_EntityNum(num)}
+	if num < 0 {
+		Error("CL_EntityNum: %d is an invalid number", num)
+	}
+	if num >= len(cl.entities) {
+		if num >= cap(cl.entities) {
+			Error("CL_EntityNum: %d is an invalid number", num)
+		}
+		for i := len(cl.entities); i <= num; i++ {
+			e := &Entity{ptr: C.getCLEntity(C.int(i))}
+			e.LerpFlags |= lerpResetMove | lerpResetAnim
+			e.ptr.lerpflags = C.uchar(e.LerpFlags)
+			cl.entities = append(cl.entities, e)
+		}
+	}
+	return cl.entities[num]
 }
 
 // Entity return the player entity
