@@ -2,6 +2,7 @@ package quakelib
 
 //#ifndef ENTITIES_H
 //#define ENTITIES_H
+//#include <stdio.h>
 //#include "q_stdinc.h"
 //#include "gl_model.h"
 //#include "render.h"
@@ -24,6 +25,8 @@ package quakelib
 import "C"
 
 import (
+	"unsafe"
+
 	"github.com/therjak/goquake/cmd"
 	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/cvars"
@@ -210,12 +213,9 @@ var (
 
 func init() {
 	clientWeapon.ptr = &C.cl_viewent
-	clientTempEntities = make([]Entity, 256, 256)
+	clientTempEntities = make([]Entity, 0, 256)
 	for i, _ := range staticEntity {
 		staticEntity[i].ptr = &C.cl_static_entities[i]
-	}
-	for i, _ := range clientTempEntities {
-		clientTempEntities[i].ptr = &C.cl_temp_entities[i]
 	}
 }
 
@@ -227,6 +227,7 @@ func (c *Client) StaticEntityNum(num int) *Entity {
 	return &staticEntity[num]
 }
 
+// Returns cl.entities[num] and extends cl.entities if not long enough.
 func (c *Client) EntityNum(num int) *Entity {
 	if num < 0 {
 		Error("CL_EntityNum: %d is an invalid number", num)
@@ -305,6 +306,35 @@ func ClearTempEntities() {
 	clientTempEntities = clientTempEntities[:0]
 }
 
+//export CL_NewTempEntity
+func CL_NewTempEntity() C.entityPtr {
+	e := cl.NewTempEntity()
+	if e == nil {
+		return nil
+	}
+	return e.ptr
+}
+
+func (c *Client) NewTempEntity() *Entity {
+	// TODO(therjak): do not return nil, add error return value
+	if VisibleEntitiesNum() >= 4096 {
+		return nil
+	}
+	if len(clientTempEntities) == cap(clientTempEntities) {
+		return nil
+	}
+	i := len(clientTempEntities)
+	cptr := &C.cl_temp_entities[i]
+	C.memset(unsafe.Pointer(cptr), 0, C.sizeof_entity_t)
+	clientTempEntities = append(clientTempEntities,
+		Entity{
+			ptr: cptr,
+		})
+	ent := &clientTempEntities[i]
+	c.AddVisibleEntity(ent)
+	return ent
+}
+
 //export AddVisibleTempEntity
 func AddVisibleTempEntity(e C.entityPtr) {
 	if len(clientVisibleEntities) >= 4096 {
@@ -321,6 +351,10 @@ func AddVisibleStaticEntity(e C.entityPtr) {
 	}
 	// staticEntity       [512]Entity
 	// clientVisibleEntities = append(clientVisibleEntities,
+}
+
+func (c *Client) AddVisibleEntity(e *Entity) {
+	AddVisibleEntity(e.ptr)
 }
 
 //export AddVisibleEntity

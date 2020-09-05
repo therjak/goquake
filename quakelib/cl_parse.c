@@ -75,6 +75,7 @@ void CL_ParseBeam(const char *name, int ent, float s1, float s2, float s3,
 CL_NewTempEntity
 =================
 */
+/*
 entity_t *CL_NewTempEntity(void) {
   entity_t *ent;
 
@@ -86,7 +87,7 @@ entity_t *CL_NewTempEntity(void) {
   AddVisibleEntity(ent);
 
   return ent;
-}
+}*/
 
 /*
 =================
