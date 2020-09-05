@@ -9,6 +9,7 @@ package quakelib
 //extern entity_t cl_viewent;
 //extern int cl_numvisedicts;
 //extern entity_t *cl_visedicts[4096];
+//extern int num_temp_entities;
 //extern entity_t cl_temp_entities[256];
 //typedef entity_t* entityPtr;
 //typedef qmodel_t* modelPtr;
@@ -218,11 +219,12 @@ func CL_EntityNum(num int) C.entityPtr {
 var (
 	clientWeapon       Entity
 	staticEntity       [512]Entity
-	clientTempEntities [256]Entity
+	clientTempEntities []Entity
 )
 
 func init() {
 	clientWeapon.ptr = &C.cl_viewent
+	clientTempEntities = make([]Entity, 256, 256)
 	for i, _ := range staticEntity {
 		staticEntity[i].ptr = &C.cl_static_entities[i]
 	}
@@ -295,6 +297,12 @@ var clientVisibleEntities []*Entity // pointers into cl.entities, staticEntities
 func ClearVisibleEntities() {
 	C.cl_numvisedicts = 0
 	clientVisibleEntities = clientVisibleEntities[:0]
+}
+
+//export ClearTempEntities
+func ClearTempEntities() {
+	C.num_temp_entities = 0
+	clientTempEntities = clientTempEntities[:0]
 }
 
 //export AddVisibleTempEntity

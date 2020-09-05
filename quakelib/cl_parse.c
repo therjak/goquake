@@ -103,7 +103,7 @@ void CL_UpdateTEnts(void) {
   float yaw, pitch;
   float forward;
 
-  num_temp_entities = 0;
+  ClearTempEntities();
 
   srand((int)(CL_Time() * 1000));  // johnfitz -- freeze beams when paused
 
