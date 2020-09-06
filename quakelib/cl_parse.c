@@ -26,7 +26,6 @@ const char *CL_MSG_ReadString(void) {
   return string;
 }
 
-int num_temp_entities;
 entity_t cl_temp_entities[MAX_TEMP_ENTITIES];
 beam_t cl_beams[MAX_BEAMS];
 

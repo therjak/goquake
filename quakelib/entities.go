@@ -10,7 +10,6 @@ package quakelib
 //extern entity_t cl_viewent;
 //extern int cl_numvisedicts;
 //extern entity_t *cl_visedicts[4096];
-//extern int num_temp_entities;
 //extern entity_t cl_temp_entities[256];
 //typedef entity_t* entityPtr;
 //typedef qmodel_t* modelPtr;
@@ -195,14 +194,14 @@ func (e *Entity) angles() vec.Vec3 {
 func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
 	r := C.CL_RelinkEntitiesI(C.float(frac), C.float(bobjrotate), e.ptr, C.int(idx))
 	if r != 0 {
-		AddVisibleEntity(e.ptr)
+		cl.AddVisibleEntity(e)
 	}
 }
 
 // This one adds error checks to cl_entities
 //export CL_EntityNum
 func CL_EntityNum(num int) C.entityPtr {
-	return cl.EntityNum(num).ptr
+	return cl.GetOrCreateEntity(num).ptr
 }
 
 var (
@@ -227,8 +226,8 @@ func (c *Client) StaticEntityNum(num int) *Entity {
 	return &staticEntity[num]
 }
 
-// Returns cl.entities[num] and extends cl.entities if not long enough.
-func (c *Client) EntityNum(num int) *Entity {
+// GetOrCreateEntity returns cl.entities[num] and extends cl.entities if not long enough.
+func (c *Client) GetOrCreateEntity(num int) *Entity {
 	if num < 0 {
 		Error("CL_EntityNum: %d is an invalid number", num)
 	}
@@ -302,7 +301,6 @@ func ClearVisibleEntities() {
 
 //export ClearTempEntities
 func ClearTempEntities() {
-	C.num_temp_entities = 0
 	clientTempEntities = clientTempEntities[:0]
 }
 

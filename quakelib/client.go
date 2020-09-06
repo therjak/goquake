@@ -284,7 +284,7 @@ func CL_SetVelocity(i int, v float32) {
 func CL_SetMaxEdicts(num int) {
 	cl.entities = make([]*Entity, 0, num)
 	// ensure at least a world entity at the start
-	CL_EntityNum(0)
+	cl.GetOrCreateEntity(0)
 }
 
 func (c *Client) UpdateFaceAnimTime() {

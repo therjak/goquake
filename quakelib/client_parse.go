@@ -456,8 +456,8 @@ func CL_ParseServerMessage() {
 				cls.msgBadRead = true
 				continue
 			}
-			e := cl.EntityNum(int(i))
-			// must use CL_EntityNum() to force cl.num_entities up
+			// force cl.num_entities up
+			e := cl.GetOrCreateEntity(int(i))
 			CL_ParseBaseline(e, 1)
 
 		case svc.SpawnStatic:
@@ -623,8 +623,8 @@ func CL_ParseServerMessage() {
 				cls.msgBadRead = true
 				continue
 			}
-			e := cl.EntityNum(int(i))
-			// must use CL_EntityNum() to force cl.num_entities up
+			// force cl.num_entities up
+			e := cl.GetOrCreateEntity(int(i))
 			CL_ParseBaseline(e, 2)
 
 		case svc.SpawnStatic2:
