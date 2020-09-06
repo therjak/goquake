@@ -206,24 +206,27 @@ func CL_EntityNum(num int) C.entityPtr {
 
 var (
 	clientWeapon       Entity
-	staticEntity       [512]Entity
 	clientTempEntities []Entity
 )
 
 func init() {
 	clientWeapon.ptr = &C.cl_viewent
 	clientTempEntities = make([]Entity, 0, 256)
-	for i, _ := range staticEntity {
-		staticEntity[i].ptr = &C.cl_static_entities[i]
-	}
 }
 
 func (c *Client) WeaponEntity() *Entity {
 	return &clientWeapon
 }
 
-func (c *Client) StaticEntityNum(num int) *Entity {
-	return &staticEntity[num]
+func (c *Client) CreateStaticEntity() *Entity {
+	if len(c.staticEntities) == cap(c.staticEntities) {
+		Error("Too many static entities")
+	}
+	i := len(c.staticEntities)
+	c.staticEntities = append(c.staticEntities, Entity{
+		ptr: &C.cl_static_entities[i],
+	})
+	return &c.staticEntities[i]
 }
 
 // GetOrCreateEntity returns cl.entities[num] and extends cl.entities if not long enough.
@@ -291,7 +294,7 @@ func (r *qRenderer) DrawAliasModel(e *Entity) {
 	C.R_DrawAliasModel(e.ptr)
 }
 
-var clientVisibleEntities []*Entity // pointers into cl.entities, staticEntities, tempEntities
+var clientVisibleEntities []*Entity // pointers into cl.entities, cl.staticEntities, tempEntities
 
 //export ClearVisibleEntities
 func ClearVisibleEntities() {

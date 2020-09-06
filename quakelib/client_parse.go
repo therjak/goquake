@@ -490,8 +490,9 @@ func CL_ParseServerMessage() {
 			// if signonnum==2, signon packet has been fully parsed, so
 			// check for excessive static ents and efrags
 			if i == 2 {
-				if cl.numStatics > 128 {
-					conlog.DWarning("%d static entities exceeds standard limit of 128.\n", cl.numStatics)
+				if len(cl.staticEntities) > 128 {
+					conlog.DWarning("%d static entities exceeds standard limit of 128.\n",
+						len(cl.staticEntities))
 				}
 			}
 			CL_SignonReply()
@@ -811,13 +812,7 @@ func CL_ParseServerInfo() error {
 }
 
 func CL_ParseStatic(version int) {
-	i := cl.numStatics
-	if i >= 512 {
-		Error("Too many static entities")
-	}
-
-	ent := cl.StaticEntityNum(i)
-	cl.numStatics++
+	ent := cl.CreateStaticEntity()
 	CL_ParseBaseline(ent, version)
 	// copy it to the current state
 

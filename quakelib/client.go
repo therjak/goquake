@@ -188,9 +188,9 @@ type Client struct {
 	lastReceivedMessageTime float64
 
 	// don't change view angle, full screen, etc
-	intermission int
-	numStatics   int // TODO: should be some len(x)
-	entities     []*Entity
+	intermission   int
+	staticEntities []Entity
+	entities       []*Entity
 	// model_precache
 	// viewent.model
 
@@ -257,7 +257,9 @@ type ClientStats struct {
 
 var (
 	cls = ClientStatic{}
-	cl  = Client{}
+	cl  = Client{
+		staticEntities: make([]Entity, 0, 512),
+	}
 )
 
 //export CL_num_entities
@@ -349,7 +351,9 @@ func cl_setStats(s, v int) {
 //export CL_Clear
 func CL_Clear() {
 	// cl: there is a memset 0 in CL_ClearState
-	cl = Client{}
+	cl = Client{
+		staticEntities: make([]Entity, 0, 512),
+	}
 	clearLightStyles()
 }
 
