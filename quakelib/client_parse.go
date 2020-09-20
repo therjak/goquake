@@ -1,6 +1,6 @@
 package quakelib
 
-//void CL_ParseUpdate(int bits);
+//void CL_ParseUpdate(int num, int modNum);
 //void CL_ClearState(void);
 //void CLPrecacheModelClear(void);
 //void FinishCL_ParseServerInfo(void);
@@ -15,7 +15,9 @@ import (
 	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/execute"
+	"github.com/therjak/goquake/math"
 	"github.com/therjak/goquake/math/vec"
+	"github.com/therjak/goquake/model"
 	"github.com/therjak/goquake/protocol"
 	svc "github.com/therjak/goquake/protocol/server"
 	"github.com/therjak/goquake/snd"
@@ -238,7 +240,7 @@ func CL_ParseServerMessage() {
 			if cvars.ClientShowNet.String() == "2" {
 				// conlog.Printf("%3i:%s\n", CL_MSG_ReadCount() - 1, "fast update");
 			}
-			C.CL_ParseUpdate(C.int(cmd & 127))
+			cl.ParseEntityUpdate(cmd & 127)
 			continue
 		}
 
@@ -277,10 +279,10 @@ func CL_ParseServerMessage() {
 				continue
 			}
 			switch i {
-			case protocol.NetQuake, protocol.FitzQuake, protocol.RMQ:
+			case protocol.NetQuake, protocol.FitzQuake, protocol.RMQ, protocol.GoQuake:
 			default:
-				HostError("Server returned version %d, not %d or %d or %d", i,
-					protocol.NetQuake, protocol.FitzQuake, protocol.RMQ)
+				HostError("Server returned version %d, not %d or %d or %d or %d", i,
+					protocol.NetQuake, protocol.FitzQuake, protocol.RMQ, protocol.GoQuake)
 			}
 			cl.protocol = int(i)
 
@@ -461,7 +463,7 @@ func CL_ParseServerMessage() {
 			CL_ParseBaseline(e, 1)
 
 		case svc.SpawnStatic:
-			CL_ParseStatic(1)
+			cl.ParseStatic(1)
 
 		case svc.TempEntity:
 			if err := cls.parseTEnt(); err != nil {
@@ -629,7 +631,7 @@ func CL_ParseServerMessage() {
 			CL_ParseBaseline(e, 2)
 
 		case svc.SpawnStatic2:
-			CL_ParseStatic(2)
+			cl.ParseStatic(2)
 
 		case svc.SpawnStaticSound2:
 			org, err := parse3Coord()
@@ -681,11 +683,11 @@ func CL_ParseServerInfo() error {
 		return err
 	}
 	switch ptl {
-	case protocol.NetQuake, protocol.FitzQuake, protocol.RMQ:
+	case protocol.NetQuake, protocol.FitzQuake, protocol.RMQ, protocol.GoQuake:
 	default:
 		conlog.Printf("\n") // because there's no newline after serverinfo print
-		HostError("Server returned version %d, not %d or %d or %d", ptl,
-			protocol.NetQuake, protocol.FitzQuake, protocol.RMQ)
+		HostError("Server returned version %d, not %d or %d or %d or %d", ptl,
+			protocol.NetQuake, protocol.FitzQuake, protocol.RMQ, protocol.GoQuake)
 	}
 	cl.protocol = int(ptl)
 
@@ -811,12 +813,276 @@ func CL_ParseServerInfo() error {
 	return nil
 }
 
-func CL_ParseStatic(version int) {
-	ent := cl.CreateStaticEntity()
+//ParseEntityUpdate parses an entity update message from the server
+//If an entities model or origin changes from frame to frame, it must be
+//relinked. Other attributes can change without relinking.
+func (c *Client) ParseEntityUpdate(cmd byte) error {
+	if cls.signon == 3 {
+		// first update is the final signon stage
+		cls.signon = 4
+		CL_SignonReply()
+	}
+	bits := uint32(cmd)
+	if bits&svc.U_MOREBITS != 0 {
+		b, err := cls.inMessage.ReadByte()
+		if err != nil {
+			return err
+		}
+		bits |= uint32(b) << 8
+	}
+	switch c.protocol {
+	case protocol.FitzQuake, protocol.RMQ:
+		if bits&svc.U_EXTEND1 != 0 {
+			b, err := cls.inMessage.ReadByte()
+			if err != nil {
+				return err
+			}
+			bits |= uint32(b) << 16
+		}
+		if bits&svc.U_EXTEND2 != 0 {
+			b, err := cls.inMessage.ReadByte()
+			if err != nil {
+				return err
+			}
+			bits |= uint32(b) << 24
+		}
+	}
+	num, err := func() (int, error) {
+		if bits&svc.U_LONGENTITY != 0 {
+			s, err := cls.inMessage.ReadInt16()
+			return int(s), err
+		}
+		b, err := cls.inMessage.ReadByte()
+		return int(b), err
+	}()
+	if err != nil {
+		return err
+	}
+	e := c.GetOrCreateEntity(num)
+	e.SyncC()
+	forceLink := e.MsgTime != c.messageTimeOld
+
+	if e.MsgTime+0.2 < c.messageTime {
+		// most entities think every 0.1s, if we missed one we would be lerping from the wrong frame
+		e.LerpFlags |= lerpResetAnim
+	}
+	if bits&svc.U_STEP != 0 {
+		e.ForceLink = true
+		e.LerpFlags |= lerpMoveStep
+	} else {
+		e.LerpFlags &^= lerpMoveStep
+	}
+
+	e.MsgTime = c.messageTime
+	e.Frame = int(e.Baseline.Frame)
+	oldSkinNum := e.SkinNum
+	e.SkinNum = int(e.Baseline.Skin)
+	e.Effects = 0
+	// shift known values for interpolation
+	e.MsgOrigin[1] = e.MsgOrigin[0]
+	e.MsgAngles[1] = e.MsgAngles[0]
+	e.MsgOrigin[0] = e.Baseline.Origin
+	e.MsgAngles[0] = e.Baseline.Angles
+	e.Alpha = e.Baseline.Alpha
+	e.SyncBase = 0
+
+	modNum := int(e.Baseline.ModelIndex)
+	if bits&svc.U_MODEL != 0 {
+		v, err := cls.inMessage.ReadByte()
+		if err != nil {
+			return err
+		}
+		modNum = int(v)
+	}
+	if modNum >= model.MAX_MODELS {
+		Error("CL_ParseModel: mad modnum")
+	}
+	if bits&svc.U_FRAME != 0 {
+		v, err := cls.inMessage.ReadByte()
+		if err != nil {
+			return err
+		}
+		e.Frame = int(v)
+	}
+	if bits&svc.U_COLORMAP != 0 {
+		// ColorMap -- no idea what this was good for. It was not read.
+		if _, err := cls.inMessage.ReadByte(); err != nil {
+			return err
+		}
+	}
+	if bits&svc.U_SKIN != 0 {
+		v, err := cls.inMessage.ReadByte()
+		if err != nil {
+			return err
+		}
+		e.SkinNum = int(v)
+	}
+	if e.SkinNum != oldSkinNum {
+		if num > 0 && num <= cl.maxClients {
+			// C.R_TranslateNewPlaykerSkin(num - 1)
+		}
+	}
+	if bits&svc.U_EFFECTS != 0 {
+		v, err := cls.inMessage.ReadByte()
+		if err != nil {
+			return err
+		}
+		e.Effects = int(v)
+	}
+	if bits&svc.U_ORIGIN1 != 0 {
+		v, err := cls.inMessage.ReadCoord(cl.protocolFlags)
+		if err != nil {
+			return err
+		}
+		e.MsgOrigin[0][0] = v
+	}
+	if bits&svc.U_ANGLE1 != 0 {
+		v, err := cls.inMessage.ReadAngle(cl.protocolFlags)
+		if err != nil {
+			return err
+		}
+		e.MsgAngles[0][0] = v
+	}
+	if bits&svc.U_ORIGIN2 != 0 {
+		v, err := cls.inMessage.ReadCoord(cl.protocolFlags)
+		if err != nil {
+			return err
+		}
+		e.MsgOrigin[0][1] = v
+	}
+	if bits&svc.U_ANGLE2 != 0 {
+		v, err := cls.inMessage.ReadAngle(cl.protocolFlags)
+		if err != nil {
+			return err
+		}
+		e.MsgAngles[0][1] = v
+	}
+	if bits&svc.U_ORIGIN3 != 0 {
+		v, err := cls.inMessage.ReadCoord(cl.protocolFlags)
+		if err != nil {
+			return err
+		}
+		e.MsgOrigin[0][2] = v
+	}
+	if bits&svc.U_ANGLE3 != 0 {
+		v, err := cls.inMessage.ReadAngle(cl.protocolFlags)
+		if err != nil {
+			return err
+		}
+		e.MsgAngles[0][2] = v
+	}
+
+	switch cl.protocol {
+	case protocol.FitzQuake, protocol.RMQ:
+		e.LerpFlags &^= lerpFinish
+		if bits&svc.U_ALPHA != 0 {
+			v, err := cls.inMessage.ReadByte()
+			if err != nil {
+				return err
+			}
+			e.Alpha = v
+		}
+		if bits&svc.U_SCALE != 0 {
+			// RMQ, currenty ignored
+			_, err := cls.inMessage.ReadByte()
+			if err != nil {
+				return err
+			}
+		}
+		if bits&svc.U_FRAME2 != 0 {
+			v, err := cls.inMessage.ReadByte()
+			if err != nil {
+				return err
+			}
+			e.Frame |= int(v) << 8
+		}
+		if bits&svc.U_MODEL2 != 0 {
+			v, err := cls.inMessage.ReadByte()
+			if err != nil {
+				return err
+			}
+			modNum |= int(v) << 8
+		}
+		if bits&svc.U_LERPFINISH != 0 {
+			v, err := cls.inMessage.ReadByte()
+			if err != nil {
+				return err
+			}
+			e.LerpFinish = e.MsgTime + float64(v)/255
+			e.LerpFlags |= lerpFinish
+		}
+	case protocol.NetQuake:
+		if bits&svc.U_TRANS != 0 {
+			// HACK: if this bit is set, assume this is protocol NEHAHRA
+			a, err := cls.inMessage.ReadFloat32()
+			if err != nil {
+				return err
+			}
+			b, err := cls.inMessage.ReadFloat32() // alpha
+			if err != nil {
+				return err
+			}
+			if a == 2 {
+				// fullbright (not using this yet)
+				_, err := cls.inMessage.ReadFloat32()
+				if err != nil {
+					return err
+				}
+			}
+			if b == 0 {
+				e.Alpha = 0
+			} else {
+				e.Alpha = byte(math.Round(math.Clamp32(1, b*254+1, 255)))
+			}
+		}
+	}
+
+	if modNum > 0 && modNum <= len(cl.modelPrecache) {
+		model := cl.modelPrecache[modNum-1] // server sends this 1 based, modelPrecache is 0 based
+		if model != e.Model {
+			e.Model = model
+			// automatic animation (torches, etc) can be either all together or randomized
+			if model != nil {
+				// TODO(therjak):
+				//			if model.SyncType == ST_RAND {
+				//				e.SyncBase = float32(rand()&0x7fff / 0x7fff)
+				//			}
+			} else {
+				// hack to make nil model players work
+				forceLink = true
+			}
+			if num > 0 && num <= cl.maxClients {
+				// R_TranslateNewPlayreSkin(num -1)
+			}
+			// do not lerp animation across model changes
+			e.LerpFlags |= lerpResetAnim
+		}
+	} else {
+		conlog.Printf("len(modelPrecache): %v, modNum: %v", len(cl.modelPrecache), modNum)
+		e.Model = nil
+		forceLink = true
+		e.LerpFlags |= lerpResetAnim
+	}
+
+	C.CL_ParseUpdate(C.int(num), C.int(modNum))
+
+	if forceLink {
+		e.MsgOrigin[1] = e.MsgOrigin[0]
+		e.Origin = e.MsgOrigin[0]
+		e.MsgAngles[1] = e.MsgAngles[0]
+		e.Angles = e.MsgAngles[0]
+		e.ForceLink = true
+	}
+	e.Sync()
+	return nil
+}
+
+func (c *Client) ParseStatic(version int) {
+	ent := c.CreateStaticEntity()
 	CL_ParseBaseline(ent, version)
 	// copy it to the current state
 
-	ent.Model = cl.modelPrecache[ent.Baseline.ModelIndex]
+	ent.Model = c.modelPrecache[ent.Baseline.ModelIndex-1]
 	ent.LerpFlags |= lerpResetAnim // TODO(therjak): shouldn't this be an override instead of an OR?
 	ent.Frame = int(ent.Baseline.Frame)
 	ent.SkinNum = int(ent.Baseline.Skin)
@@ -824,7 +1090,8 @@ func CL_ParseStatic(version int) {
 	ent.Alpha = ent.Baseline.Alpha
 	ent.Origin = ent.Baseline.Origin
 	ent.Angles = ent.Baseline.Angles
-	ent.ParseStaticC()
+	ent.ParseStaticC(int(ent.Baseline.ModelIndex))
+	ent.Sync()
 
 	ent.R_AddEfrags()
 }

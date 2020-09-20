@@ -288,6 +288,7 @@ func executeFrame() {
 
 func hostFrame() {
 	defer func() {
+		// TODO(therjak): find a way to remove this recover
 		if r := recover(); r != nil {
 			frameCount = 0
 			// something bad happened, or the server disconnected
