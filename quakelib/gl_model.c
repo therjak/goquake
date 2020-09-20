@@ -801,7 +801,6 @@ void Mod_LoadTexinfo(lump_t *l) {
   texinfo_t *in;
   mtexinfo_t *out;
   int i, j, count, miptex;
-  float len1, len2;
   int missing = 0;  // johnfitz
 
   in = (texinfo_t *)(mod_base + l->fileofs);
@@ -818,17 +817,6 @@ void Mod_LoadTexinfo(lump_t *l) {
       out->vecs[0][j] = LittleFloat(in->vecs[0][j]);
       out->vecs[1][j] = LittleFloat(in->vecs[1][j]);
     }
-    len1 = VectorLength(out->vecs[0]);
-    len2 = VectorLength(out->vecs[1]);
-    len1 = (len1 + len2) / 2;
-    if (len1 < 0.32)
-      out->mipadjust = 4;
-    else if (len1 < 0.49)
-      out->mipadjust = 3;
-    else if (len1 < 0.99)
-      out->mipadjust = 2;
-    else
-      out->mipadjust = 1;
 
     miptex = LittleLong(in->miptex);
     out->flags = LittleLong(in->flags);
