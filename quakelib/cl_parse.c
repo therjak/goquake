@@ -9,23 +9,6 @@ const char* BOLT2 = "progs/bolt2.mdl";
 const char* BOLT3 = "progs/bolt3.mdl";
 const char* BEAM = "progs/beam.mdl";
 
-const char *CL_MSG_ReadString(void) {
-  static char string[2048];
-  int c;
-  size_t l;
-
-  l = 0;
-  do {
-    c = CL_MSG_ReadByte();
-    if (c == -1 || c == 0) break;
-    string[l] = c;
-    l++;
-  } while (l < sizeof(string) - 1);
-
-  string[l] = 0;
-  return string;
-}
-
 entity_t cl_temp_entities[MAX_TEMP_ENTITIES];
 beam_t cl_beams[MAX_BEAMS];
 
