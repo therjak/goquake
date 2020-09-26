@@ -2,14 +2,12 @@
 
 #include "quakedef.h"
 
-vec3_t modelorg, r_entorigin;
+vec3_t modelorg;
 
 int r_visframecount;  // bumped when going to a new PVS
 int r_framecount;     // used for dlight push checking
 
 int GetRFrameCount() { return r_framecount; }
-
-mplane_t frustum[4];
 
 // johnfitz -- rendering statistics
 int rs_brushpolys, rs_aliaspolys, rs_skypolys, rs_particles, rs_fogpolys;

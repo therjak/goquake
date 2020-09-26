@@ -7,8 +7,8 @@ extern cvar_t r_drawflat, gl_overbright_models, gl_fullbrights, r_lerpmodels,
 
 #define NUMVERTEXNORMALS 162
 
-extern vec3_t
-lightcolor;  // johnfitz -- replaces "float shadelight" for lit support
+// johnfitz -- replaces "float shadelight" for lit support
+extern vec3_t lightcolor;
 
 // precalculated dot products for quantized angles
 #define SHADEDOT_QUANT 16
