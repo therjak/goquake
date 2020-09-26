@@ -325,20 +325,6 @@ func (e *Entity) ParseStaticC(index int) {
 	C.CL_ParseStaticC(e.ptr, C.int(index))
 }
 
-func (e *Entity) SetBaseline(state *EntityState) {
-	e.Baseline = *state
-	e.ptr.baseline.origin[0] = C.float(state.Origin[0])
-	e.ptr.baseline.origin[1] = C.float(state.Origin[1])
-	e.ptr.baseline.origin[2] = C.float(state.Origin[2])
-	e.ptr.baseline.angles[0] = C.float(state.Angles[0])
-	e.ptr.baseline.angles[1] = C.float(state.Angles[1])
-	e.ptr.baseline.angles[2] = C.float(state.Angles[2])
-	e.ptr.baseline.modelindex = C.ushort(state.ModelIndex)
-	e.ptr.baseline.frame = C.ushort(state.Frame)
-	e.ptr.baseline.skin = C.uchar(state.Skin)
-	e.ptr.baseline.alpha = C.uchar(state.Alpha)
-}
-
 func (r *qRenderer) DrawAliasModel(e *Entity) {
 	C.R_DrawAliasModel(e.ptr)
 }

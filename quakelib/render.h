@@ -60,8 +60,6 @@ typedef struct entity_s {
 
   int update_type;
 
-  entity_state_t baseline;  // to fill in defaults in updates
-
   double msgtime;         // time of last update
   vec3_t msg_origins[2];  // last two updates (0 is newest)
   vec3_t origin;

@@ -77,7 +77,7 @@ var (
 
 func CL_ParseBaseline(e *Entity, version int) {
 	var err error
-	es := &EntityState{
+	es := EntityState{
 		Alpha: svc.EntityAlphaDefault,
 	}
 	bits := byte(0)
@@ -170,7 +170,7 @@ func CL_ParseBaseline(e *Entity, version int) {
 		}
 	}
 
-	e.SetBaseline(es)
+	e.Baseline = es
 }
 
 func parse3Coord() (vec.Vec3, error) {
