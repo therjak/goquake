@@ -127,25 +127,22 @@ func R_TranslatePlayerSkin(i int) {
 type Entity struct {
 	ptr C.entityPtr
 
-	ForceLink  bool
-	UpdateType int
-	Baseline   EntityState
-	MsgTime    float64
-	MsgOrigin  [2]vec.Vec3
-	Origin     vec.Vec3
-	MsgAngles  [2]vec.Vec3
-	Angles     vec.Vec3
-	Model      *model.QModel
+	ForceLink bool
+	Baseline  EntityState
+	MsgTime   float64
+	MsgOrigin [2]vec.Vec3
+	Origin    vec.Vec3
+	MsgAngles [2]vec.Vec3
+	Angles    vec.Vec3
+	Model     *model.QModel
 	// efrag *efrag
-	Frame         int
-	SyncBase      float32
-	Effects       int
-	SkinNum       int
-	VisFrame      int
-	DLightFrame   int
-	DLightBits    int // uint32?
-	TrivialAccept int
-	// topNode *MNode_s
+	Frame          int
+	SyncBase       float32
+	Effects        int
+	SkinNum        int
+	VisFrame       int
+	DLightFrame    int
+	DLightBits     int // uint32?
 	Alpha          byte
 	LerpFlags      byte
 	LerpStart      float32

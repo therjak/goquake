@@ -58,8 +58,6 @@ typedef struct efrag_s {
 typedef struct entity_s {
   qboolean forcelink;  // model changed
 
-  int update_type;
-
   double msgtime;         // time of last update
   vec3_t msg_origins[2];  // last two updates (0 is newest)
   vec3_t origin;
@@ -76,12 +74,6 @@ typedef struct entity_s {
 
   int dlightframe;  // dynamic lighting
   int dlightbits;
-
-  // FIXME: could turn these into a union
-  int trivial_accept;
-  struct mnode_s *topnode;  // for bmodels, first world node
-                            //  that splits bmodel, or NULL if
-                            //  not split
 
   byte alpha;          // johnfitz -- alpha
   byte lerpflags;      // johnfitz -- lerping
