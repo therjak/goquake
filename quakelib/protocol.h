@@ -98,5 +98,4 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
        : ((float)(a)-1) / (254))  // client convert to float for rendering
 // johnfitz
 
-#include "entity_state.h"
 #endif /* _QUAKE_PROTOCOL_H */
