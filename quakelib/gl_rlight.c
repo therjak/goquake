@@ -50,7 +50,6 @@ R_RenderDlights
 */
 void R_RenderDlights(void) {
   int i;
-  dlight_t *l;
 
   if (!Cvar_GetValue(&gl_flashblend)) return;
   // TODO(therjak): disabling flashblend is broken since transparent console
@@ -63,8 +62,8 @@ void R_RenderDlights(void) {
   glEnable(GL_BLEND);
   glBlendFunc(GL_ONE, GL_ONE);
 
-  l = cl_dlights;
-  for (i = 0; i < MAX_DLIGHTS; i++, l++) {
+  for (i = 0; i < MAX_DLIGHTS; i++) {
+    dlight_t *l = CL_Dlight(i);
     if (l->die < CL_Time() || !l->radius) continue;
     R_RenderDlight(l);
   }

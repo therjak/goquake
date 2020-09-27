@@ -52,8 +52,8 @@ void CL_ClearState(void) {
 
   // clear other arrays
   memset(cl_efrags, 0, sizeof(cl_efrags));
-  memset(cl_dlights, 0, sizeof(cl_dlights));
   memset(cl_beams, 0, sizeof(cl_beams));
+  CL_ClearDLights();
 
   int cl_max_edicts =
       CLAMP(MIN_EDICTS, (int)Cvar_GetValue(&max_edicts), MAX_EDICTS);

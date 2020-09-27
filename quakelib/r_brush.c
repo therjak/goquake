@@ -541,17 +541,17 @@ void R_AddDynamicLights(msurface_t *surf) {
   for (lnum = 0; lnum < MAX_DLIGHTS; lnum++) {
     if (!(surf->dlightbits[lnum >> 5] & (1U << (lnum & 31))))
       continue;  // not lit by this light
-
-    rad = cl_dlights[lnum].radius;
-    dist = DotProduct(cl_dlights[lnum].origin, surf->plane->normal) -
+    dlight_t* l = CL_Dlight(lnum);
+    rad = l->radius;
+    dist = DotProduct(l->origin, surf->plane->normal) -
            surf->plane->dist;
     rad -= fabs(dist);
-    minlight = cl_dlights[lnum].minlight;
+    minlight = l->minlight;
     if (rad < minlight) continue;
     minlight = rad - minlight;
 
     for (i = 0; i < 3; i++) {
-      impact[i] = cl_dlights[lnum].origin[i] - surf->plane->normal[i] * dist;
+      impact[i] = l->origin[i] - surf->plane->normal[i] * dist;
     }
 
     local[0] = DotProduct(impact, tex->vecs[0]) + tex->vecs[0][3];
@@ -562,9 +562,9 @@ void R_AddDynamicLights(msurface_t *surf) {
 
     // johnfitz -- lit support via lordhavoc
     bl = blocklights;
-    cred = cl_dlights[lnum].color[0] * 256.0f;
-    cgreen = cl_dlights[lnum].color[1] * 256.0f;
-    cblue = cl_dlights[lnum].color[2] * 256.0f;
+    cred = l->color[0] * 256.0f;
+    cgreen = l->color[1] * 256.0f;
+    cblue = l->color[2] * 256.0f;
     // johnfitz
     for (t = 0; t < tmax; t++) {
       td = local[1] - t * 16;

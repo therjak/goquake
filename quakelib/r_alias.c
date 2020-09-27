@@ -517,10 +517,13 @@ void R_SetupAliasLighting(entity_t *e) {
 
   // add dlights
   for (i = 0; i < MAX_DLIGHTS; i++) {
-    if (cl_dlights[i].die >= CL_Time()) {
-      VectorSubtract(e->origin, cl_dlights[i].origin, dist);
-      add = cl_dlights[i].radius - VectorLength(dist);
-      if (add > 0) VectorMA(lightcolor, add, cl_dlights[i].color, lightcolor);
+    dlight_t *l = CL_Dlight(i);
+    if (l->die >= CL_Time()) {
+      VectorSubtract(e->origin, l->origin, dist);
+      add = l->radius - VectorLength(dist);
+      if (add > 0) {
+        VectorMA(lightcolor, add, l->color, lightcolor);
+      }
     }
   }
 

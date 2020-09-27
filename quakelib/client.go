@@ -191,6 +191,7 @@ type Client struct {
 	intermission   int
 	staticEntities []Entity
 	entities       []*Entity
+	dynamicLights  []DynamicLight
 	// model_precache
 	// viewent.model
 
@@ -259,6 +260,7 @@ var (
 	cls = ClientStatic{}
 	cl  = Client{
 		staticEntities: make([]Entity, 0, 512),
+		dynamicLights:  make([]DynamicLight, 64, 64),
 	}
 )
 
@@ -353,6 +355,7 @@ func CL_Clear() {
 	// cl: there is a memset 0 in CL_ClearState
 	cl = Client{
 		staticEntities: make([]Entity, 0, 512),
+		dynamicLights:  make([]DynamicLight, 64, 64),
 	}
 	clearLightStyles()
 }
@@ -2174,13 +2177,15 @@ func (c *ClientStatic) parseTEnt() error {
 			return err
 		}
 		particlesAddExplosion(pos, float32(cl.time))
-		l := CL_AllocDlight(0) // 0 == worldEntity or 'unowned'
-		l.origin[0] = C.float(pos[0])
-		l.origin[1] = C.float(pos[1])
-		l.origin[2] = C.float(pos[2])
-		l.radius = 350
-		l.die = C.float(cl.time) + 0.5
-		l.decay = 300
+		l := cl.GetFreeDynamicLight()
+		*l = DynamicLight{
+			Origin:  pos,
+			Radius:  350,
+			DieTime: cl.time + 0.5,
+			Decay:   300,
+			Color:   vec.Vec3{1, 1, 1},
+		}
+		l.Sync()
 		snd.Start(-1, 0, clSounds[RExp3], pos, 1, 1, !loopingSound)
 	case TE_TAREXPLOSION:
 		// tarbaby explosion
@@ -2277,13 +2282,15 @@ func (c *ClientStatic) parseTEnt() error {
 			return err
 		}
 		particlesAddExplosion2(pos, int(color.start), int(color.end), float32(cl.time))
-		l := CL_AllocDlight(0) // 0 == worldEntity or 'unowned'
-		l.origin[0] = C.float(pos[0])
-		l.origin[1] = C.float(pos[1])
-		l.origin[2] = C.float(pos[2])
-		l.radius = 350
-		l.die = C.float(cl.time) + 0.5
-		l.decay = 300
+		l := cl.GetFreeDynamicLight()
+		*l = DynamicLight{
+			Origin:  pos,
+			Radius:  350,
+			DieTime: cl.time + 0.5,
+			Decay:   300,
+			Color:   vec.Vec3{1, 1, 1},
+		}
+		l.Sync()
 		snd.Start(-1, 0, clSounds[RExp3], pos, 1, 1, !loopingSound)
 	case TE_BEAM:
 		// grappling hook beam
