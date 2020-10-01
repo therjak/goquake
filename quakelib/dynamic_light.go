@@ -20,36 +20,6 @@ type DynamicLight struct {
 	Color    vec.Vec3
 }
 
-//export CL_AllocDlight
-func CL_AllocDlight(key int) *C.dlight_t {
-	clean := func(i int) {
-		cl.dynamicLights[i] = DynamicLight{
-			Key:   key, // == index in cl_entities
-			Color: vec.Vec3{1, 1, 1},
-		}
-		cl.dynamicLights[i].Sync()
-	}
-	if key != 0 {
-		// key 0 is worldEntity or 'unowned'. world can have more than one
-		for i := 0; i < C.MAX_DLIGHTS; i++ {
-			d := &C.cl_dlights[i]
-			if d.key == C.int(key) {
-				clean(i)
-				return &C.cl_dlights[i]
-			}
-		}
-	}
-	for i := 0; i < C.MAX_DLIGHTS; i++ {
-		d := &C.cl_dlights[i]
-		if d.die < C.float(cl.time) {
-			clean(i)
-			return &C.cl_dlights[i]
-		}
-	}
-	clean(0)
-	return &C.cl_dlights[0]
-}
-
 //GetDynamicLightByKey return the light with the same key or if none exists a free light
 func (c *Client) GetDynamicLightByKey(key int) *DynamicLight {
 	// key 0 is worldEntity or 'unowned'. world can have more than one
