@@ -7,7 +7,6 @@ package quakelib
 //extern const char* BOLT2;
 //extern const char* BOLT3;
 //extern const char* BEAM;
-//void CL_RelinkEntities(float frac);
 //void CL_UpdateTEnts(void);
 import "C"
 
@@ -2179,6 +2178,7 @@ func (c *ClientStatic) parseTEnt() error {
 		particlesAddExplosion(pos, float32(cl.time))
 		l := cl.GetFreeDynamicLight()
 		*l = DynamicLight{
+			ptr:     l.ptr,
 			Origin:  pos,
 			Radius:  350,
 			DieTime: cl.time + 0.5,
@@ -2284,6 +2284,7 @@ func (c *ClientStatic) parseTEnt() error {
 		particlesAddExplosion2(pos, int(color.start), int(color.end), float32(cl.time))
 		l := cl.GetFreeDynamicLight()
 		*l = DynamicLight{
+			ptr:     l.ptr,
 			Origin:  pos,
 			Radius:  350,
 			DieTime: cl.time + 0.5,

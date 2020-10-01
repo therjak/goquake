@@ -23,6 +23,41 @@ const (
 	CONTENTS_CURRENT_DOWN = -14
 )
 
+const (
+	EntityEffectBrightField = 1 << iota
+	EntityEffectMuzzleFlash // 2
+	EntityEffectBrightLight // 4
+	EntityEffectDimLight    // 8
+)
+
+const (
+	EntityEffectRocket  = 1 << iota
+	EntityEffectGrenade // 2
+	EntityEffectGib     // 4
+	EntityEffectRotate  // 8
+	EntityEffectTracer  // 16
+	EntityEffectZomGib  // 32
+	EntityEffectTracer2 // 64
+	EntityEffectTracer3 // 128
+)
+
+const (
+	SurfaceNone           = 1 << iota
+	SurfacePlaneBack      // 0x0002
+	SurfaceDrawSky        // 0x0004
+	SurfaceDrawSprite     // 0x0008
+	SurfaceDrawTurb       // 0x0010
+	SurfaceDrawTiled      // 0x0020
+	SurfaceDrawBackground // 0x0040
+	SurfaceUnderWater     // 0x0080
+	SurfaceNoTexture      // 0x0100
+	SurfaceDrawFence      // 0x0200
+	SurfaceDrawLava       // 0x0400
+	SurfaceDrawSlime      // 0x0800
+	SurfaceDrawTele       // 0x1000
+	SurfaceDrawWater      // 0x2000
+)
+
 type Plane struct {
 	Normal   vec.Vec3
 	Dist     float32

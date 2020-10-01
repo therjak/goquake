@@ -19,11 +19,11 @@ package quakelib
 //void R_AddEfrags(entity_t* e);
 //void CL_ParseStaticC(entity_t* e, int modelindex);
 //void R_DrawAliasModel(entity_t* e);
-//int CL_RelinkEntitiesI(float frac, float bobjrotate, entity_t* e, int i);
 //#endif
 import "C"
 
 import (
+	"math/rand"
 	"unsafe"
 
 	"github.com/therjak/goquake/cmd"
@@ -238,10 +238,144 @@ func (e *Entity) angles() vec.Vec3 {
 
 //TODO(therjak): remove idx and just use a pointer to Entity
 func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
-	r := C.CL_RelinkEntitiesI(C.float(frac), C.float(bobjrotate), e.ptr, C.int(idx))
-	if r != 0 {
-		cl.AddVisibleEntity(e)
+	if e.Model == nil { // empty slot
+		if e.ForceLink { // just became empty
+			C.R_RemoveEfrags(e.ptr)
+		}
+		return
 	}
+
+	// if the object wasn't included in the last packet, remove it
+	if e.MsgTime != cl.time {
+		e.Model = nil
+		e.ptr.model = nil
+		// next time this entity slot is reused, the lerp will need to be reset
+		e.LerpFlags |= lerpResetMove | lerpResetAnim
+		e.Sync()
+		return
+	}
+
+	oldOrigin := e.Origin
+
+	if e.ForceLink {
+		// the entity was not updated in the last message so move to the final spot
+		e.Origin = e.MsgOrigin[0]
+		e.Angles = e.MsgAngles[0]
+	} else {
+		var delta vec.Vec3
+		// if the delta is large, assume a teleport and don't lerp
+		f := frac
+		for j := 0; j < 3; j++ {
+			delta[j] = e.MsgOrigin[0][j] - e.MsgOrigin[1][j]
+			if delta[j] > 100 || delta[j] < -100 {
+				// assume a teleportation, not a motion
+				f = 1
+				e.LerpFlags |= lerpResetMove
+			}
+		}
+		// don't cl_lerp entities that will be r_lerped
+		if cvars.RLerpMove.Bool() && e.LerpFlags&lerpMoveStep != 0 {
+			f = 1
+		}
+		// interpolate the origin and angles
+		for j := 0; j < 3; j++ {
+			e.Origin[j] = e.MsgOrigin[1][j] + f*delta[j]
+
+			d := e.MsgAngles[0][j] - e.MsgAngles[1][j]
+			if d > 180 {
+				d -= 360
+			} else if d < -180 {
+				d += 360
+			}
+			e.Angles[j] = e.MsgAngles[1][j] + f*d
+		}
+	}
+
+	// rotate binary objects locally
+	if e.Model.Flags&model.EntityEffectRotate != 0 {
+		e.Angles[1] = bobjrotate
+	}
+
+	if e.Effects&model.EntityEffectBrightField != 0 {
+		particlesAddEntity(e.Origin, float32(cl.time))
+	}
+
+	if e.Effects&model.EntityEffectMuzzleFlash != 0 {
+		dl := cl.GetDynamicLightByKey(idx)
+		dl.Key = idx
+		dl.Color = vec.Vec3{1, 1, 1}
+		dl.Origin = e.Origin
+		dl.Origin[2] += 16
+
+		forward, _, _ := vec.AngleVectors(e.Angles)
+		dl.Origin.Add(vec.Scale(18, forward))
+
+		dl.Radius = 200 + float32(rand.Int31n(32))
+		dl.MinLight = 32
+		dl.DieTime = cl.time + 0.1
+		dl.Sync()
+
+		// assume muzzle flash accompanied by muzzle flare, which looks bad when lerped
+		if cvars.RLerpModels.Value() != 2 {
+			if e == cl.Entity() {
+				// no lerping for two frames
+				// FIXME(therjak):
+				// cl_viewent.LerpFlags |= lerpResetAnim | lerpResetAnim2
+			} else {
+				// no lerping for two frames
+				e.LerpFlags |= lerpResetAnim | lerpResetAnim2
+			}
+		}
+	}
+	if e.Effects&model.EntityEffectBrightLight != 0 {
+		dl := cl.GetDynamicLightByKey(idx)
+		dl.Key = idx
+		dl.Color = vec.Vec3{1, 1, 1}
+		dl.Origin = e.Origin
+		dl.Origin[2] += 16
+		dl.Radius = 400 + float32(rand.Int31n(32))
+		dl.DieTime = cl.time + 0.001
+		dl.Sync()
+	}
+	if e.Effects&model.EntityEffectDimLight != 0 {
+		dl := cl.GetDynamicLightByKey(idx)
+		dl.Key = idx
+		dl.Color = vec.Vec3{1, 1, 1}
+		dl.Origin = e.Origin
+		dl.Radius = 200 + float32(rand.Int31n(32))
+		dl.DieTime = cl.time + 0.001
+		dl.Sync()
+	}
+
+	switch f := e.Model.Flags; {
+	case f&model.EntityEffectGib != 0:
+		particlesAddRocketTrail(oldOrigin, e.Origin, 2, float32(cl.time))
+	case f&model.EntityEffectZomGib != 0:
+		particlesAddRocketTrail(oldOrigin, e.Origin, 4, float32(cl.time))
+	case f&model.EntityEffectTracer != 0:
+		particlesAddRocketTrail(oldOrigin, e.Origin, 3, float32(cl.time))
+	case f&model.EntityEffectTracer2 != 0:
+		particlesAddRocketTrail(oldOrigin, e.Origin, 5, float32(cl.time))
+	case f&model.EntityEffectRocket != 0:
+		particlesAddRocketTrail(oldOrigin, e.Origin, 0, float32(cl.time))
+		dl := cl.GetDynamicLightByKey(idx)
+		dl.Key = idx
+		dl.Color = vec.Vec3{1, 1, 1}
+		dl.Origin = e.Origin
+		dl.Radius = 200
+		dl.DieTime = cl.time + 0.01
+		dl.Sync()
+	case f&model.EntityEffectGrenade != 0:
+		particlesAddRocketTrail(oldOrigin, e.Origin, 1, float32(cl.time))
+	case f&model.EntityEffectTracer3 != 0:
+		particlesAddRocketTrail(oldOrigin, e.Origin, 6, float32(cl.time))
+	}
+	e.ForceLink = false
+	e.Sync()
+	if idx == cl.viewentity && !cvars.ChaseActive.Bool() {
+		return
+	}
+	cl.AddVisibleEntity(e)
 }
 
 // This one adds error checks to cl_entities
