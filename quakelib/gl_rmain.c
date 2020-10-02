@@ -2,13 +2,6 @@
 
 #include "quakedef.h"
 
-vec3_t modelorg;
-
-int r_visframecount;  // bumped when going to a new PVS
-int r_framecount;     // used for dlight push checking
-
-int GetRFrameCount() { return r_framecount; }
-
 // johnfitz -- rendering statistics
 int rs_brushpolys, rs_aliaspolys, rs_skypolys, rs_particles, rs_fogpolys;
 int rs_dynamiclightmaps, rs_brushpasses, rs_aliaspasses, rs_skypasses;
@@ -183,7 +176,7 @@ void R_Clear(void) {
 void R_SetupScene(void) {
   R_PushDlights();
   R_AnimateLight();
-  r_framecount++;
+  R_framecount_inc();
   R_SetupGL();
 }
 

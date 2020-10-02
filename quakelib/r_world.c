@@ -90,7 +90,7 @@ void R_MarkSurfaces(void) {
   }
 
   vis_changed = false;
-  r_visframecount++;
+  R_visframecount_inc();
   r_oldviewleaf = r_viewleaf;
 
   // iterate through leaves, marking surfaces
@@ -100,7 +100,7 @@ void R_MarkSurfaces(void) {
       if (Cvar_GetValue(&r_oldskyleaf) || leaf->contents != CONTENTS_SKY)
         for (j = 0, mark = leaf->firstmarksurface; j < leaf->nummarksurfaces;
              j++, mark++)
-          (*mark)->visframe = r_visframecount;
+          (*mark)->visframe = R_visframecount();
 
       // add static models
       if (leaf->efrags) R_StoreEfrags(&leaf->efrags);
@@ -114,28 +114,19 @@ void R_MarkSurfaces(void) {
 
       // rebuild chains
 
-#if 1
   // iterate through surfaces one node at a time to rebuild chains
   // need to do it this way if we want to work with tyrann's skip removal tool
   // becuase his tool doesn't actually remove the surfaces from the bsp surfaces
   // lump
   // nor does it remove references to them in each leaf's marksurfaces list
   for (i = 0, node = cl.worldmodel->nodes; i < cl.worldmodel->numnodes;
-       i++, node++)
+       i++, node++) {
     for (j = 0, surf = &cl.worldmodel->surfaces[node->firstsurface];
          j < node->numsurfaces; j++, surf++)
-      if (surf->visframe == r_visframecount) {
+      if (surf->visframe == R_visframecount()) {
         R_ChainSurface(surf, chain_world);
       }
-#else
-  // the old way
-  surf = &cl.worldmodel->surfaces[cl.worldmodel->firstmodelsurface];
-  for (i = 0; i < cl.worldmodel->nummodelsurfaces; i++, surf++) {
-    if (surf->visframe == r_visframecount) {
-      R_ChainSurface(surf, chain_world);
-    }
   }
-#endif
 }
 
 /*

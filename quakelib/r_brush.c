@@ -117,6 +117,7 @@ void R_DrawBrushModel(entity_t *e) {
   float dot;
   mplane_t *pplane;
   qmodel_t *clmodel;
+  vec3_t modelorg;
 
   if (R_CullModelForEntity(e)) return;
 
@@ -208,7 +209,7 @@ void R_RenderDynamicLightmaps(msurface_t *fa) {
     if (d_lightstylevalue[fa->styles[maps]] != fa->cached_light[maps])
       goto dynamic;
 
-  if (fa->dlightframe == r_framecount  // dynamic this frame
+  if (fa->dlightframe == R_framecount()  // dynamic this frame
       || fa->cached_dlight)            // dynamic previously
   {
   dynamic:
@@ -392,7 +393,7 @@ void GL_BuildLightmaps(void) {
   memset(allocated, 0, sizeof(allocated));
   last_lightmap_allocated = 0;
 
-  r_framecount = 1;  // no dlightcache
+  R_framecount_reset(); R_framecount_inc();  // no dlightcache
 
   // johnfitz -- null out array (the gltexture objects themselves were already
   // freed by Mod_ClearAll)
@@ -607,7 +608,7 @@ void R_BuildLightMap(msurface_t *surf, byte *dest, int stride) {
   int maps;
   unsigned *bl;
 
-  surf->cached_dlight = (surf->dlightframe == r_framecount);
+  surf->cached_dlight = (surf->dlightframe == R_framecount());
 
   smax = (surf->extents[0] >> 4) + 1;
   tmax = (surf->extents[1] >> 4) + 1;
@@ -637,7 +638,7 @@ void R_BuildLightMap(msurface_t *surf, byte *dest, int stride) {
     }
 
     // add all the dynamic lights
-    if (surf->dlightframe == r_framecount) R_AddDynamicLights(surf);
+    if (surf->dlightframe == R_framecount()) R_AddDynamicLights(surf);
   } else {
     // set to full bright if no light data
     memset(&blocklights[0], 255,

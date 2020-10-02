@@ -1,6 +1,5 @@
 package quakelib
 
-//typedef float vec3[3];
 import "C"
 import (
 	"github.com/chewxy/math32"
@@ -18,10 +17,54 @@ type fPlane struct {
 }
 
 type qRenderer struct {
-	frustum [4]fPlane
+	frustum         [4]fPlane
+	frameCount      int
+	lightFrameCount int
+	visFrameCount   int
 }
 
 var renderer qRenderer
+
+//export R_framecount
+func R_framecount() int {
+	return renderer.frameCount
+}
+
+//export R_framecount_inc
+func R_framecount_inc() {
+	renderer.frameCount++
+}
+
+//export R_framecount_reset
+func R_framecount_reset() {
+	renderer.frameCount = 0
+}
+
+//export R_visframecount
+func R_visframecount() int {
+	return renderer.visFrameCount
+}
+
+//export R_visframecount_inc
+func R_visframecount_inc() {
+	renderer.visFrameCount++
+}
+
+//export R_visframecount_reset
+func R_visframecount_reset() {
+	renderer.visFrameCount = 0
+}
+
+//export R_dlightframecount
+func R_dlightframecount() int {
+	return renderer.lightFrameCount
+}
+
+//export R_dlightframecount_up
+func R_dlightframecount_up() {
+	// gets executed before frameCount was increased
+	renderer.lightFrameCount = renderer.frameCount + 1
+}
 
 //export R_CullBox
 func R_CullBox(mins, maxs *C.float) bool {

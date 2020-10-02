@@ -1,8 +1,5 @@
 package quakelib
 
-// int GetRFrameCount();
-import "C"
-
 import (
 	"fmt"
 	"math"
@@ -37,7 +34,7 @@ func (f *fpsAccumulator) Compute() float64 {
 	t := time.Now()
 	elapsed := t.Sub(f.oldTime).Seconds()
 
-	fc := int(C.GetRFrameCount())
+	fc := renderer.frameCount
 	fd := fc - f.oldFrameCount
 
 	if elapsed < 0 || fd < 0 {

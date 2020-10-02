@@ -154,9 +154,9 @@ void R_StoreEfrags(efrag_t **ppefrag) {
   while ((pefrag = *ppefrag) != NULL) {
     pent = pefrag->entity;
 
-    if ((pent->visframe != r_framecount) && (VisibleEntitiesNum() < MAX_VISEDICTS)) {
+    if ((pent->visframe != R_framecount()) && (VisibleEntitiesNum() < MAX_VISEDICTS)) {
       AddVisibleEntity(pent);
-      pent->visframe = r_framecount;
+      pent->visframe = R_framecount();
     }
 
     ppefrag = &pefrag->leafnext;

@@ -2,8 +2,6 @@
 
 #include "quakedef.h"
 
-int r_dlightframecount;
-
 extern cvar_t r_flatlightstyles;  // johnfitz
 
 /*
@@ -22,7 +20,7 @@ void R_RenderDlight(dlight_t *light) {
 
   rad = light->radius * 0.35;
 
-  VectorSubtract(light->origin, r_origin, v);
+  VectorSubtract(light->origin, r_origin, v); // r_origin == qRefreshRect.viewOrg
   if (VectorLength(v) < rad) {  // view is inside the dlight
     AddLightBlend(1, 0.5, 0, light->radius * 0.0003);
     return;
@@ -54,8 +52,8 @@ void R_RenderDlights(void) {
   if (!Cvar_GetValue(&gl_flashblend)) return;
   // TODO(therjak): disabling flashblend is broken since transparent console
 
-  r_dlightframecount = r_framecount + 1;  // because the count hasn't
-                                          //  advanced yet for this frame
+  R_dlightframecount_up();
+
   glDepthMask(0);
   glDisable(GL_TEXTURE_2D);
   glShadeModel(GL_SMOOTH);
@@ -138,10 +136,10 @@ start:
     t = l - t;
     // compare to minimum light
     if ((s * s + t * t + dist * dist) < maxdist) {
-      if (surf->dlightframe != r_dlightframecount)  // not dynamic until now
+      if (surf->dlightframe != R_dlightframecount())  // not dynamic until now
       {
         surf->dlightbits[num >> 5] = 1U << (num & 31);
-        surf->dlightframe = r_dlightframecount;
+        surf->dlightframe = R_dlightframecount();
       } else  // already dynamic
         surf->dlightbits[num >> 5] |= 1U << (num & 31);
     }
@@ -162,8 +160,8 @@ void R_PushDlights(void) {
   if (Cvar_GetValue(&gl_flashblend)) return; 
   // TODO(therjak): disabling flashblend is broken since transparent console
 
-  r_dlightframecount = r_framecount + 1;  // because the count hasn't
-                                          //  advanced yet for this frame
+  R_dlightframecount_up();
+  
   R_MarkLights(cl.worldmodel->nodes);
 }
 

@@ -72,10 +72,6 @@ typedef struct {
 
 //====================================================
 
-extern vec3_t modelorg;
-extern int r_visframecount;  // ??? what difs?
-extern int r_framecount;
-
 //
 // view origin
 //

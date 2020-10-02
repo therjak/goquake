@@ -295,8 +295,8 @@ void R_NewMap(void) {
   // ericw -- no longer load alias models into a VBO here, it's done in
   // Mod_LoadAliasModel
 
-  r_framecount = 0;     // johnfitz -- paranoid?
-  r_visframecount = 0;  // johnfitz -- paranoid?
+  R_framecount_reset();     // johnfitz -- paranoid?
+  R_visframecount_reset();  // johnfitz -- paranoid?
 
   SkyNewMap();          // johnfitz -- skybox in worldspawn
   Fog_NewMap();         // johnfitz -- global fog in worldspawn

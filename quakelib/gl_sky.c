@@ -264,7 +264,7 @@ void Sky_ProcessEntities(void) {
   int i, j, k, mark;
   float dot;
   qboolean rotated;
-  vec3_t temp, forward, right, up;
+  vec3_t temp, forward, right, up, modelorg;
 
   if (!Cvar_GetValue(&r_drawentities)) return;
 
