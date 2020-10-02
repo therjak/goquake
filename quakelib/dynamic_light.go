@@ -57,9 +57,7 @@ func (d *DynamicLight) Sync() {
 	d.ptr.origin[2] = C.float(d.Origin[2])
 	d.ptr.radius = C.float(d.Radius)
 	d.ptr.die = C.float(d.DieTime)
-	d.ptr.decay = C.float(d.Decay)
 	d.ptr.minlight = C.float(d.MinLight)
-	d.ptr.key = C.int(d.Key)
 	d.ptr.color[0] = C.float(d.Color[0])
 	d.ptr.color[1] = C.float(d.Color[1])
 	d.ptr.color[2] = C.float(d.Color[2])
@@ -70,27 +68,28 @@ func CL_Dlight(idx int) *C.dlight_t {
 	return cl.dynamicLights[idx].ptr
 }
 
-func CL_DecayLights() {
-	t := C.float(cl.time - cl.oldTime)
-	for i := 0; i < C.MAX_DLIGHTS; i++ {
-		dl := &C.cl_dlights[i]
-		if dl.die < t || dl.radius == 0 {
+func (c *Client) DecayLights() {
+	t := cl.time - cl.oldTime
+	for i := range c.dynamicLights {
+		dl := &c.dynamicLights[i]
+		if dl.DieTime < t || dl.Radius == 0 {
 			continue
 		}
-		dl.radius -= t * dl.decay
-		if dl.radius < 0 {
-			dl.radius = 0
+		dl.Radius -= float32(t) * dl.Decay
+		if dl.Radius < 0 {
+			dl.Radius = 0
 		}
+		dl.Sync()
 	}
 }
 
 //export R_MarkLights
 func R_MarkLights(node *C.mnode_t) {
-	for i := 0; i < C.MAX_DLIGHTS; i++ {
-		dl := &C.cl_dlights[i]
-		if float64(dl.die) < cl.time || dl.radius == 0 {
+	for i := range cl.dynamicLights {
+		dl := &cl.dynamicLights[i]
+		if dl.DieTime < cl.time || dl.Radius == 0 {
 			continue
 		}
-		C.R_MarkLight(dl, C.int(i), node)
+		C.R_MarkLight(dl.ptr, C.int(i), node)
 	}
 }

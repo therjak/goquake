@@ -268,7 +268,7 @@ func executeFrame() {
 	if cls.signon == 4 {
 		listener.Origin = qRefreshRect.viewOrg
 		listener.Right = qRefreshRect.viewRight
-		CL_DecayLights()
+		cl.DecayLights()
 	}
 	snd.Update(listener)
 
