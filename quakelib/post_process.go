@@ -98,5 +98,4 @@ func postProcessGammaContrast(gamma, contrast float32, width, height int32) {
 		pprocess = newPostProcessor()
 	}
 	pprocess.Draw(gamma, contrast, width, height)
-	gl.UseProgram(0) // enable fixed function pipeline
 }

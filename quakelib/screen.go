@@ -540,6 +540,7 @@ func (scr *qScreen) Update() {
 	if contrast != 1 || gamma != 1 {
 		postProcessGammaContrast(gamma, contrast, int32(screen.Width), int32(screen.Height))
 	}
+	gl.UseProgram(0) // enable fixed function pipeline
 
 	window.EndRendering()
 }
