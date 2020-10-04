@@ -29,40 +29,6 @@ const (
 	ParticleTypeBlob2
 )
 
-const (
-	vertexSourceParticleDrawer = `
-#version 330
-layout (location = 0) in vec3 vposition;
-layout (location = 1) in vec2 vtexcoord;
-layout (location = 2) in vec3 vcolor;
-out vec2 Texcoord;
-out vec3 InColor;
-uniform mat4 projection;
-uniform mat4 modelview;
-
-void main() {
-	Texcoord = vtexcoord;
-	InColor = vcolor;
-	gl_Position = projection * modelview * vec4(vposition, 1.0);
-}
-` + "\x00"
-
-	fragmentSourceParticleDrawer = `
-#version 330
-in vec2 Texcoord;
-in vec3 InColor;
-out vec4 frag_color;
-uniform sampler2D tex;
-
-void main() {
-	float color = texture(tex, Texcoord).r;
-	frag_color.rgb = InColor;
-	frag_color.a = color; // texture has only one chan
-	frag_color = clamp(frag_color, vec4(0,0,0,0), vec4(1,1,1,1));
-}
-` + "\x00"
-)
-
 var (
 	particleDrawer *qParticleDrawer
 )

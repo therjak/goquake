@@ -30,49 +30,12 @@ const (
 	CANVAS_BOTTOMRIGHT canvas = C.CANVAS_BOTTOMRIGHT
 )
 
-const (
-	vertexSourceDrawer = `
-#version 330
-layout (location = 0) in vec3 position;
-layout (location = 1) in vec2 texcoord;
-out vec2 Texcoord;
-
-void main() {
-	Texcoord = texcoord;
-	gl_Position = vec4(position, 1.0);
-}
-` + "\x00"
-	fragmentSourceDrawer = `
-#version 330
-in vec2 Texcoord;
-out vec4 frag_color;
-uniform sampler2D tex;
-
-void main() {
-  vec4 color = texture(tex, Texcoord);
-	if (color.a < 0.666)
-	  discard;
-  frag_color = color;
-}
-` + "\x00"
-	fragmentSourceColorRecDrawer = `
-#version 330
-in vec2 Texcoord;
-out vec4 frag_color;
-uniform vec4 in_color;
-
-void main() {
-  frag_color = in_color;
-}
-` + "\x00"
-)
-
 func newRecDrawProgram() (*glh.Program, error) {
-	return glh.NewProgram(vertexSourceDrawer, fragmentSourceColorRecDrawer)
+	return glh.NewProgram(vertexPositionSource, fragmentSourceColorRecDrawer)
 }
 
 func newDrawProgram() (*glh.Program, error) {
-	return glh.NewProgram(vertexSourceDrawer, fragmentSourceDrawer)
+	return glh.NewProgram(vertexTextureSource, fragmentSourceDrawer)
 }
 
 type recDrawer struct {

@@ -6,26 +6,6 @@ import (
 	"github.com/therjak/goquake/math"
 )
 
-const (
-	postProcessFragment = `
-#version 330
-in vec2 Texcoord;
-out vec4 frag_color;
-uniform sampler2D tex;
-uniform float gamma;
-uniform float contrast;
-
-void main() {
-  vec4 color = texture(tex, Texcoord);
-	color.rgb = color.rgb * contrast;
-  frag_color = vec4(pow(color.rgb, vec3(gamma)), 1.0);
-}
-` + "\x00"
-)
-
-// use vertexSourceDrawer as vertex
-// and postProcessFragment as fragment
-
 type postProcess struct {
 	vao      *glh.VertexArray
 	vbo      *glh.Buffer
@@ -64,7 +44,7 @@ func newPostProcessor() *postProcess {
 	p.ebo.Bind(gl.ELEMENT_ARRAY_BUFFER)
 	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
 	var err error
-	p.prog, err = glh.NewProgram(vertexSourceDrawer, postProcessFragment)
+	p.prog, err = glh.NewProgram(vertexTextureSource, postProcessFragment)
 	if err != nil {
 		Error(err.Error())
 	}
