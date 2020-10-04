@@ -39,6 +39,26 @@ void main() {
 }
 ` + "\x00"
 
+	vertexCircleSource = `
+#version 330
+layout (location = 0) in vec3 position;
+layout (location = 1) in float radius;
+layout (location = 2) in vec3 innerColor;
+layout (location = 3) in vec3 outerColor;
+out float Radius;
+out vec3 InnerColor;
+out vec3 OuterColor;
+uniform mat4 projection;
+uniform mat4 modelview;
+
+void main() {
+  Radius = radius;
+	InnerColor = innercolor;
+	OuterColor = outerColor;
+	gl_Position = projection * modelview * vec4(position, 1.0);
+}
+` + "\x00"
+
 	fragmentSourceDrawer = `
 #version 330
 in vec2 Texcoord;
@@ -91,6 +111,28 @@ void main() {
 	frag_color.rgb = InColor;
 	frag_color.a = color; // texture has only one chan
 	frag_color = clamp(frag_color, vec4(0,0,0,0), vec4(1,1,1,1));
+}
+` + "\x00"
+
+	fragmentCircleSource = `
+#version 330
+in float Radius;
+in vec3 InnerColor;
+in vec3 OuterColor;
+out vec4 frag_color;
+
+float circle(vec3 position, float radius) {
+  // return 0 for radius > length(position), 1 otherwise
+  return step(radius, length(position)) 
+}
+
+void main() {
+  vec3 position = gl_FragCoord.xyz
+  vec3 color1 = vec3(0.2,0.1,0.0);
+  vec3 color2 = vec3(0,0,0);
+  float c = circle(positon, 0.3);
+  color1 = vec3(circle);
+  frag_color = vec4(color1, 1.0);
 }
 ` + "\x00"
 )

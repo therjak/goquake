@@ -5,6 +5,7 @@ import (
 	"github.com/chewxy/math32"
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/therjak/goquake/cvars"
+	"github.com/therjak/goquake/glh"
 	"github.com/therjak/goquake/math/vec"
 	"github.com/therjak/goquake/model"
 	"github.com/therjak/goquake/progs"
@@ -181,4 +182,115 @@ func (r *qRenderer) DrawWeaponModel() {
 	gl.DepthRange(0, 0.3)
 	r.DrawAliasModel(weapon)
 	gl.DepthRange(0, 1)
+}
+
+func drawVertex(v vec.Vec3) {
+	// dummy for gl.Vertex3fv
+	// probably something similar to qParticleDrawer.Draw
+}
+
+var circleDrawer *qCircleDrawer
+
+type qCircleDrawer struct {
+	vao        *glh.VertexArray
+	vbo        *glh.Buffer
+	prog       *glh.Program
+	projection int32
+	modelview  int32
+}
+
+func newCircleDrawProgram() (*glh.Program, error) {
+	return glh.NewProgram(vertexCircleSource, fragmentCircleSource)
+}
+
+func newCircleDrawer() *qCircleDrawer {
+	d := &qCircleDrawer{}
+	d.vao = glh.NewVertexArray()
+	d.vbo = glh.NewBuffer()
+	var err error
+	d.prog, err = newCircleDrawProgram()
+	if err != nil {
+		Error(err.Error())
+	}
+	d.projection = d.prog.GetUniformLocation("projection")
+	d.modelview = d.prog.GetUniformLocation("modelview")
+	return d
+}
+
+func (r *qRenderer) RenderDynamicLight(l *DynamicLight) {
+
+	rad := l.Radius * 0.35
+	d := vec.Sub(l.Origin, qRefreshRect.viewOrg)
+	if d.Length() < rad {
+		// view is inside the dynamic light
+		view.addLightBlend(1, 0.5, 0, l.Radius*0.0003)
+		return
+	}
+
+	// TODO: this should probably all get into the shader
+	// parameters inside should be rad, l.Origin, qRefreshRect
+	center := vec.Sub(l.Origin, vec.Scale(rad, qRefreshRect.viewForward))
+	drawVertex(center)
+	// sprockets
+	for i := float32(16); i >= 0; i-- {
+		a := i / 16 * math32.Pi * 2
+		s, c := math32.Sincos(a)
+		v := l.Origin
+		v.Add(vec.Scale(c*rad, qRefreshRect.viewRight))
+		v.Add(vec.Scale(s*rad, qRefreshRect.viewUp))
+		drawVertex(v)
+	}
+
+	/*
+
+	   int i, j;
+	   float a;
+	   vec3_t v;
+	   float rad;
+
+	   glBegin(GL_TRIANGLE_FAN);
+	   glColor3f(0.2, 0.1, 0.0);
+	   for (i = 0; i < 3; i++) v[i] = light->origin[i] - vpn[i] * rad;
+	   glVertex3fv(v);
+	   glColor3f(0, 0, 0);
+	   for (i = 16; i >= 0; i--) {
+	     a = i / 16.0 * M_PI * 2;
+	     for (j = 0; j < 3; j++)
+	       v[j] =
+	           light->origin[j] + vright[j] * cos(a) * rad + vup[j] * sin(a) * rad;
+	     glVertex3fv(v);
+	   }
+	   glEnd();
+
+	*/
+}
+
+func (r *qRenderer) RenderDynamicLights() {
+	if !cvars.GlFlashBlend.Bool() {
+		// TODO(therjak): disabling flashblend is broken since transparent console
+		return
+	}
+
+	r.lightFrameCount++
+
+	gl.DepthMask(false)
+	gl.Disable(gl.TEXTURE_2D)
+
+	//glShadeModel(GL_SMOOTH);
+	gl.Enable(gl.BLEND)
+	gl.BlendFunc(gl.ONE, gl.ONE)
+	for i := range cl.dynamicLights {
+		dl := &cl.dynamicLights[i]
+		if dl.DieTime < cl.time || dl.Radius == 0 {
+			continue
+		}
+		r.RenderDynamicLight(dl)
+	}
+	// glColor3f(1, 1, 1);
+
+	gl.Disable(gl.BLEND)
+	gl.Enable(gl.TEXTURE_2D)
+	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+	gl.DepthMask(true)
+
 }

@@ -46,7 +46,7 @@ void R_RenderDlight(dlight_t *light) {
 R_RenderDlights
 =============
 */
-void R_RenderDlights(void) {
+void R_RenderDlights2(void) {
   int i;
 
   if (!Cvar_GetValue(&gl_flashblend)) return;
