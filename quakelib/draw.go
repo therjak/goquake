@@ -33,8 +33,8 @@ const (
 const (
 	vertexSourceDrawer = `
 #version 330
-in vec3 position;
-in vec2 texcoord;
+layout (location = 0) in vec3 position;
+layout (location = 1) in vec2 texcoord;
 out vec2 Texcoord;
 
 void main() {
@@ -76,12 +76,11 @@ func newDrawProgram() (*glh.Program, error) {
 }
 
 type recDrawer struct {
-	vao      *glh.VertexArray
-	vbo      *glh.Buffer
-	ebo      *glh.Buffer
-	prog     *glh.Program
-	position uint32
-	color    int32
+	vao   *glh.VertexArray
+	vbo   *glh.Buffer
+	ebo   *glh.Buffer
+	prog  *glh.Program
+	color int32
 }
 
 func NewRecDrawer() *recDrawer {
@@ -100,7 +99,6 @@ func NewRecDrawer() *recDrawer {
 	if err != nil {
 		Error(err.Error())
 	}
-	d.position = d.prog.GetAttribLocation("position")
 	d.color = d.prog.GetUniformLocation("in_color")
 
 	return d
@@ -131,24 +129,22 @@ func (d *recDrawer) Draw(x, y, w, h float32, c Color) {
 	d.vbo.Bind(gl.ARRAY_BUFFER)
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 
-	gl.EnableVertexAttribArray(d.position)
-	gl.VertexAttribPointer(d.position, 3, gl.FLOAT, false, 4*3, gl.PtrOffset(0))
+	gl.EnableVertexAttribArray(0)
+	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 4*3, gl.PtrOffset(0))
 
 	gl.Uniform4f(d.color, c.R, c.G, c.B, c.A)
 
 	gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
 
-	gl.DisableVertexAttribArray(d.position)
+	gl.DisableVertexAttribArray(0)
 	gl.Disable(gl.BLEND)
 }
 
 type drawer struct {
-	vao      *glh.VertexArray
-	vbo      *glh.Buffer
-	ebo      *glh.Buffer
-	prog     *glh.Program
-	position uint32
-	texcoord uint32
+	vao  *glh.VertexArray
+	vbo  *glh.Buffer
+	ebo  *glh.Buffer
+	prog *glh.Program
 }
 
 func NewDrawer() *drawer {
@@ -167,8 +163,6 @@ func NewDrawer() *drawer {
 	if err != nil {
 		Error(err.Error())
 	}
-	d.position = d.prog.GetAttribLocation("position")
-	d.texcoord = d.prog.GetAttribLocation("texcoord")
 
 	return d
 }
@@ -195,17 +189,17 @@ func (d *drawer) Draw(x, y, w, h float32, t *texture.Texture) {
 	d.vbo.Bind(gl.ARRAY_BUFFER)
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 
-	gl.EnableVertexAttribArray(d.position)
-	gl.VertexAttribPointer(d.position, 3, gl.FLOAT, false, 4*5, gl.PtrOffset(0))
+	gl.EnableVertexAttribArray(0)
+	gl.EnableVertexAttribArray(1)
 
-	gl.EnableVertexAttribArray(d.texcoord)
-	gl.VertexAttribPointer(d.texcoord, 2, gl.FLOAT, false, 4*5, gl.PtrOffset(3*4))
+	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 4*5, gl.PtrOffset(0))
+	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 4*5, gl.PtrOffset(3*4))
 
 	textureManager.Bind(t)
 
 	gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
-	gl.DisableVertexAttribArray(d.texcoord)
-	gl.DisableVertexAttribArray(d.position)
+	gl.DisableVertexAttribArray(0)
+	gl.DisableVertexAttribArray(1)
 }
 
 func (d *drawer) DrawQuad(x, y float32, num byte) {
@@ -234,18 +228,18 @@ func (d *drawer) DrawQuad(x, y float32, num byte) {
 	d.vbo.Bind(gl.ARRAY_BUFFER)
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 
-	gl.EnableVertexAttribArray(d.position)
-	gl.VertexAttribPointer(d.position, 3, gl.FLOAT, false, 4*5, gl.PtrOffset(0))
+	gl.EnableVertexAttribArray(0)
+	gl.EnableVertexAttribArray(1)
 
-	gl.EnableVertexAttribArray(d.texcoord)
-	gl.VertexAttribPointer(d.texcoord, 2, gl.FLOAT, false, 4*5, gl.PtrOffset(3*4))
+	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 4*5, gl.PtrOffset(0))
+	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 4*5, gl.PtrOffset(3*4))
 
 	textureManager.Bind(consoleTexture)
 
 	gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
 
-	gl.DisableVertexAttribArray(d.texcoord)
-	gl.DisableVertexAttribArray(d.position)
+	gl.DisableVertexAttribArray(0)
+	gl.DisableVertexAttribArray(1)
 }
 
 var (
@@ -542,11 +536,11 @@ func (d *drawer) TileClear(x, y, w, h float32) {
 	d.vbo.Bind(gl.ARRAY_BUFFER)
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 
-	gl.EnableVertexAttribArray(d.position)
-	gl.VertexAttribPointer(d.position, 3, gl.FLOAT, false, 4*5, gl.PtrOffset(0))
+	gl.EnableVertexAttribArray(0)
+	gl.EnableVertexAttribArray(1)
 
-	gl.EnableVertexAttribArray(d.texcoord)
-	gl.VertexAttribPointer(d.texcoord, 2, gl.FLOAT, false, 4*5, gl.PtrOffset(3*4))
+	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 4*5, gl.PtrOffset(0))
+	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 4*5, gl.PtrOffset(3*4))
 
 	color := []float32{1.0, 1.0, 1.0, 1.0}
 	gl.TexParameterfv(gl.TEXTURE_2D, gl.TEXTURE_BORDER_COLOR, &(color[0]))
@@ -555,8 +549,8 @@ func (d *drawer) TileClear(x, y, w, h float32) {
 
 	gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
 
-	gl.DisableVertexAttribArray(d.texcoord)
-	gl.DisableVertexAttribArray(d.position)
+	gl.DisableVertexAttribArray(0)
+	gl.DisableVertexAttribArray(1)
 }
 
 var (

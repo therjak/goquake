@@ -31,8 +31,6 @@ type postProcess struct {
 	vbo      *glh.Buffer
 	ebo      *glh.Buffer
 	prog     *glh.Program
-	position uint32
-	texcoord uint32
 	gamma    int32
 	contrast int32
 
@@ -70,8 +68,6 @@ func newPostProcessor() *postProcess {
 	if err != nil {
 		Error(err.Error())
 	}
-	p.position = p.prog.GetAttribLocation("position")
-	p.texcoord = p.prog.GetAttribLocation("texcoord")
 	p.gamma = p.prog.GetUniformLocation("gamma")
 	p.contrast = p.prog.GetUniformLocation("contrast")
 	return p
@@ -98,10 +94,10 @@ func (p *postProcess) Draw(gamma, contrast float32, width, height int32) {
 	p.vao.Bind()
 	p.ebo.Bind(gl.ELEMENT_ARRAY_BUFFER)
 	p.vbo.Bind(gl.ARRAY_BUFFER)
-	gl.EnableVertexAttribArray(p.position)
-	gl.VertexAttribPointer(p.position, 2, gl.FLOAT, false, 4*4, gl.PtrOffset(0))
-	gl.EnableVertexAttribArray(p.texcoord)
-	gl.VertexAttribPointer(p.texcoord, 2, gl.FLOAT, false, 4*4, gl.PtrOffset(2*4))
+	gl.EnableVertexAttribArray(0)
+	gl.EnableVertexAttribArray(1)
+	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 4*4, gl.PtrOffset(0))
+	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 4*4, gl.PtrOffset(2*4))
 	gl.Uniform1f(p.gamma, gamma)
 	gl.Uniform1f(p.contrast, contrast)
 	gl.Disable(gl.DEPTH_TEST)
@@ -111,6 +107,9 @@ func (p *postProcess) Draw(gamma, contrast float32, width, height int32) {
 	// We bound a texture without the texture manager.
 	// Tell the texture manager that its cache is invalid.
 	textureManager.ClearBindings()
+
+	gl.DisableVertexAttribArray(0)
+	gl.DisableVertexAttribArray(1)
 }
 
 func postProcessGammaContrast(gamma, contrast float32, width, height int32) {
@@ -118,8 +117,6 @@ func postProcessGammaContrast(gamma, contrast float32, width, height int32) {
 	if pprocess == nil {
 		pprocess = newPostProcessor()
 	}
-	// TODO: seems we can only enable the post processing step after
-	// the fixed function pipeline is dead
-	// pprocess.Draw(gamma, contrast, width, height)
+	pprocess.Draw(gamma, contrast, width, height)
 	gl.UseProgram(0) // enable fixed function pipeline
 }

@@ -32,9 +32,9 @@ const (
 const (
 	vertexSourceParticleDrawer = `
 #version 330
-in vec3 vcolor;
-in vec3 vposition;
-in vec2 vtexcoord;
+layout (location = 0) in vec3 vposition;
+layout (location = 1) in vec2 vtexcoord;
+layout (location = 2) in vec3 vcolor;
 out vec2 Texcoord;
 out vec3 InColor;
 uniform mat4 projection;
@@ -71,9 +71,6 @@ type qParticleDrawer struct {
 	vao        *glh.VertexArray
 	vbo        *glh.Buffer
 	prog       *glh.Program
-	position   uint32
-	color      uint32
-	texcoord   uint32
 	projection int32
 	modelview  int32
 
@@ -95,9 +92,6 @@ func newParticleDrawer() *qParticleDrawer {
 	if err != nil {
 		Error(err.Error())
 	}
-	d.color = d.prog.GetAttribLocation("vcolor")
-	d.texcoord = d.prog.GetAttribLocation("vtexcoord")
-	d.position = d.prog.GetAttribLocation("vposition")
 	d.projection = d.prog.GetUniformLocation("projection")
 	d.modelview = d.prog.GetUniformLocation("modelview")
 
@@ -241,14 +235,14 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 
 	d.vbo.Bind(gl.ARRAY_BUFFER)
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
-	gl.EnableVertexAttribArray(d.position)
-	gl.VertexAttribPointer(d.position, 3, gl.FLOAT, false, 4*8, gl.PtrOffset(0))
 
-	gl.EnableVertexAttribArray(d.texcoord)
-	gl.VertexAttribPointer(d.texcoord, 2, gl.FLOAT, false, 4*8, gl.PtrOffset(3*4))
+	gl.EnableVertexAttribArray(0)
+	gl.EnableVertexAttribArray(1)
+	gl.EnableVertexAttribArray(2)
 
-	gl.EnableVertexAttribArray(d.color)
-	gl.VertexAttribPointer(d.color, 3, gl.FLOAT, false, 4*8, gl.PtrOffset(5*4))
+	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 4*8, gl.PtrOffset(0))
+	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 4*8, gl.PtrOffset(3*4))
+	gl.VertexAttribPointer(2, 3, gl.FLOAT, false, 4*8, gl.PtrOffset(5*4))
 
 	gl.UniformMatrix4fv(d.projection, 1, false, &projection[0])
 	gl.UniformMatrix4fv(d.modelview, 1, false, &modelview[0])
@@ -257,9 +251,9 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(numVert))
 
-	gl.DisableVertexAttribArray(d.color)
-	gl.DisableVertexAttribArray(d.texcoord)
-	gl.DisableVertexAttribArray(d.position)
+	gl.DisableVertexAttribArray(0)
+	gl.DisableVertexAttribArray(1)
+	gl.DisableVertexAttribArray(2)
 
 	gl.DepthMask(true)
 	gl.Disable(gl.BLEND)
