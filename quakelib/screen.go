@@ -81,9 +81,6 @@ type qScreen struct {
 
 	tileClearUpdates int
 
-	fovX float64
-	fovY float64
-
 	Width  int
 	Height int
 
@@ -464,11 +461,9 @@ func (scr *qScreen) calcViewRect() {
 		}
 	}
 	fovy := math.Atan(sh/(sw/math.Tan(fovx/360*math.Pi))) * 360 / math.Pi
-	scr.fovX = fovx
-	scr.fovY = fovy
 
-	qRefreshRect.fovX = float32(scr.fovX)
-	qRefreshRect.fovY = float32(scr.fovY)
+	qRefreshRect.fovX = float32(fovx)
+	qRefreshRect.fovY = float32(fovy)
 	qRefreshRect.viewRect = scr.vrect
 }
 
