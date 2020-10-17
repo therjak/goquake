@@ -43,6 +43,9 @@ type qParticleDrawer struct {
 	texture            *glh.Texture
 	textures           [2]*glh.Texture
 	textureScaleFactor float32
+
+	// to reduce the number of allocations
+	vertices []float32
 }
 
 func newParticleDrawProgram() (*glh.Program, error) {
@@ -89,7 +92,7 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 	fwd := qRefreshRect.viewForward
 	origin := qRefreshRect.viewOrg
 
-	vertices := []float32{}
+	d.vertices = d.vertices[0:0]
 	numVert := uint32(0)
 	for _, p := range ps {
 		if !p.used {
@@ -136,7 +139,7 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 		//		v3.Sub(qRefreshRect.viewOrg)
 
 		// x, y, z, tx, ty, r, g, b
-		vertices = append(vertices,
+		d.vertices = append(d.vertices,
 			//			v1[0], v1[1], v1[2], 0, 0, c[0], c[1], c[2],
 			//			v2[0], v2[1], v2[2], 1, 0, c[0], c[1], c[2],
 			//			v3[0], v3[1], v3[2], 0, 1, c[0], c[1], c[2])
@@ -146,7 +149,7 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 			(o[0] + u[0]), (o[1] + u[1]), (o[2] + u[2]), 1, 0, c[0], c[1], c[2],
 			(o[0] + r[0]), (o[1] + r[1]), (o[2] + r[2]), 0, 1, c[0], c[1], c[2])
 	}
-	if len(vertices) == 0 {
+	if len(d.vertices) == 0 {
 		return
 	}
 
@@ -200,7 +203,7 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 	d.vao.Bind()
 
 	d.vbo.Bind(gl.ARRAY_BUFFER)
-	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, 4*len(d.vertices), gl.Ptr(d.vertices), gl.STATIC_DRAW)
 
 	gl.EnableVertexAttribArray(0)
 	gl.EnableVertexAttribArray(1)
