@@ -53,7 +53,7 @@ uniform mat4 modelview;
 
 void main() {
   Radius = radius;
-	InnerColor = innercolor;
+	InnerColor = innerColor;
 	OuterColor = outerColor;
 	gl_Position = projection * modelview * vec4(position, 1.0);
 }
@@ -123,15 +123,15 @@ out vec4 frag_color;
 
 float circle(vec3 position, float radius) {
   // return 0 for radius > length(position), 1 otherwise
-  return step(radius, length(position)) 
+  return step(radius, length(position));
 }
 
 void main() {
-  vec3 position = gl_FragCoord.xyz
+  vec3 position = gl_FragCoord.xyz;
   vec3 color1 = vec3(0.2,0.1,0.0);
   vec3 color2 = vec3(0,0,0);
-  float c = circle(positon, 0.3);
-  color1 = vec3(circle);
+  float c = circle(position, 0.3);
+  color1 = vec3(c);
   frag_color = vec4(color1, 1.0);
 }
 ` + "\x00"
