@@ -34,6 +34,33 @@ func NewProgram(vertex, fragment string) (*Program, error) {
 	return p, nil
 }
 
+func NewProgramWithGeometry(vertex, geometry, fragment string) (*Program, error) {
+	p := &Program{
+		prog: gl.CreateProgram(),
+	}
+	vert, err := GetShader(vertex, gl.VERTEX_SHADER)
+	if err != nil {
+		return nil, err
+	}
+	geo, err := GetShader(vertex, gl.GEOMETRY_SHADER)
+	if err != nil {
+		return nil, err
+	}
+	frag, err := GetShader(fragment, gl.FRAGMENT_SHADER)
+	if err != nil {
+		return nil, err
+	}
+	gl.AttachShader(p.prog, vert)
+	gl.AttachShader(p.prog, geo)
+	gl.AttachShader(p.prog, frag)
+	gl.LinkProgram(p.prog)
+	gl.DeleteShader(vert)
+	gl.DeleteShader(geo)
+	gl.DeleteShader(frag)
+	runtime.SetFinalizer(p, (*Program).delete)
+	return p, nil
+}
+
 func (p *Program) delete() {
 	mainthread.CallNonBlock(func() {
 		gl.DeleteProgram(p.prog)
