@@ -2,6 +2,8 @@ package quakelib
 
 import "C"
 import (
+	"log"
+
 	"github.com/chewxy/math32"
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/therjak/goquake/cvars"
@@ -9,7 +11,6 @@ import (
 	"github.com/therjak/goquake/math/vec"
 	"github.com/therjak/goquake/model"
 	"github.com/therjak/goquake/progs"
-	"log"
 )
 
 type fPlane struct {
@@ -203,7 +204,7 @@ type qCircle struct {
 }
 
 func newCircleDrawProgram() (*glh.Program, error) {
-	return glh.NewProgram(vertexCircleSource, fragmentCircleSource)
+	return glh.NewProgramWithGeometry(vertexConeSource, geometryConeSource, fragmentConeSource)
 }
 
 func newCircleDrawer() *qCircleDrawer {
@@ -297,6 +298,7 @@ func (cd *qCircleDrawer) Draw(cs []qCircle, viewOrigin, viewForward, viewRight, 
 	cd.vbo.Bind(gl.ARRAY_BUFFER)
 	// TODO: remove this allocation
 	data := make([]float32, 0, len(cs)*(3+1+3+3))
+	log.Printf("Num Cones: %v", len(cs))
 	for _, c := range cs {
 		data = append(data,
 			c.origin[0], c.origin[1], c.origin[2],
@@ -318,7 +320,7 @@ func (cd *qCircleDrawer) Draw(cs []qCircle, viewOrigin, viewForward, viewRight, 
 	gl.UniformMatrix4fv(cd.projection, 1, false, &projection[0])
 	gl.UniformMatrix4fv(cd.modelview, 1, false, &modelview[0])
 
-	// gl.DrawArrays(gl.TRIANGLES, 0, int32(len(cs)))
+	gl.DrawArrays(gl.POINTS, 0, int32(len(cs)))
 
 	gl.DisableVertexAttribArray(0)
 	gl.DisableVertexAttribArray(1)
@@ -338,16 +340,10 @@ func drawVertex(v vec.Vec3) {
 
 func (r *qRenderer) RenderDynamicLight(l *DynamicLight) {
 
-	rad := l.Radius * 0.35
-	d := vec.Sub(l.Origin, qRefreshRect.viewOrg)
-	if d.Length() < rad {
-		// view is inside the dynamic light
-		view.addLightBlend(1, 0.5, 0, l.Radius*0.0003)
-		return
-	}
-
 	// TODO: this should probably all get into the shader
 	// parameters inside should be rad, l.Origin, qRefreshRect
+	rad := l.Radius * 0.35
+	// center point closer to viewer for sphere illusion
 	center := vec.Sub(l.Origin, vec.Scale(rad, qRefreshRect.viewForward))
 	drawVertex(center)
 	// sprockets
@@ -361,17 +357,9 @@ func (r *qRenderer) RenderDynamicLight(l *DynamicLight) {
 	}
 
 	/*
-
-	   int i, j;
-	   float a;
-	   vec3_t v;
-	   float rad;
-
 	   glBegin(GL_TRIANGLE_FAN);
-	   glColor3f(0.2, 0.1, 0.0);
 	   for (i = 0; i < 3; i++) v[i] = light->origin[i] - vpn[i] * rad;
 	   glVertex3fv(v);
-	   glColor3f(0, 0, 0);
 	   for (i = 16; i >= 0; i--) {
 	     a = i / 16.0 * M_PI * 2;
 	     for (j = 0; j < 3; j++)
@@ -380,7 +368,6 @@ func (r *qRenderer) RenderDynamicLight(l *DynamicLight) {
 	     glVertex3fv(v);
 	   }
 	   glEnd();
-
 	*/
 }
 

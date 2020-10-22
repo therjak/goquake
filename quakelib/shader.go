@@ -39,23 +39,84 @@ void main() {
 }
 ` + "\x00"
 
-	vertexCircleSource = `
+	vertexConeSource = `
 #version 330
 layout (location = 0) in vec3 position;
 layout (location = 1) in float radius;
 layout (location = 2) in vec3 innerColor;
 layout (location = 3) in vec3 outerColor;
-out float Radius;
-out vec3 InnerColor;
-out vec3 OuterColor;
+out VS_OUT {
+  float radius;
+  vec3 innerColor;
+  vec3 outerColor;
+} vs_out;
 uniform mat4 projection;
 uniform mat4 modelview;
 
 void main() {
-  Radius = radius;
-	InnerColor = innerColor;
-	OuterColor = outerColor;
+	vs_out.radius = 0.1; //radius;
+	vs_out.innerColor = innerColor;
+	vs_out.outerColor = vec3(1.0,1.0,1.0); //outerColor;
 	gl_Position = projection * modelview * vec4(position, 1.0);
+}
+` + "\x00"
+
+	geometryConeSource = `
+#version 330
+layout (points) in;
+layout (triangle_strip, max_verticies = 17) out;
+
+in VS_OUT {
+  float radius;
+  vec3 innerColor;
+  vec3 outerColor;
+} gs_in[];
+
+out vec3 Color;
+
+void main() {
+  Color = gs_in[0].outerColor;
+  gl_Position = gl_in[0].gl_Position;
+	gl_Position.x -= gl_in[0].radius;
+	EmitVertex();
+
+  Color = gs_in[0].outerColor;
+  gl_Position = gl_in[0].gl_Position;
+	gl_Position.y += gl_in[0].radius;
+	EmitVertex();
+
+  Color = gs_in[0].outerColor;
+  gl_Position = gl_in[0].gl_Position;
+	gl_Position.x += gl_in[0].radius;
+	EmitVertex();
+
+  Color = gs_in[0].outerColor;
+  gl_Position = gl_in[0].gl_Position;
+	gl_Position.y -= gl_in[0].radius;
+	EmitVertex();
+/*
+  Color = InnerColor;
+  gl_Position = gl_in[0].gl_Position;
+	gl_Position.z +=  gl_in[0].Radius;
+	EmitVertex();
+*/
+/*
+  Color = InnerColor;
+  gl_Position = gl_in[0].gl_Position;
+	gl_Position.z += Radius;
+	EmitVertex();
+*/
+/*
+  Color = OuterColor;
+  gl_Position = gl_in[0].gl_Position;
+	EmitVertex();
+
+  Color = OuterColor;
+  gl_Position = gl_in[0].gl_Position;
+	EmitVertex();
+*/
+
+  EndPrimitive();
 }
 ` + "\x00"
 
@@ -114,25 +175,13 @@ void main() {
 }
 ` + "\x00"
 
-	fragmentCircleSource = `
+	fragmentConeSource = `
 #version 330
-in float Radius;
-in vec3 InnerColor;
-in vec3 OuterColor;
+in vec3 Color;
 out vec4 frag_color;
 
-float circle(vec3 position, float radius) {
-  // return 0 for radius > length(position), 1 otherwise
-  return step(radius, length(position));
-}
-
 void main() {
-  vec3 position = gl_FragCoord.xyz;
-  vec3 color1 = vec3(0.2,0.1,0.0);
-  vec3 color2 = vec3(0,0,0);
-  float c = circle(position, 0.3);
-  color1 = vec3(c);
-  frag_color = vec4(color1, 1.0);
+  frag_color = vec4(Color, 1.0);
 }
 ` + "\x00"
 )
