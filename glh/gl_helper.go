@@ -42,7 +42,7 @@ func NewProgramWithGeometry(vertex, geometry, fragment string) (*Program, error)
 	if err != nil {
 		return nil, err
 	}
-	geo, err := GetShader(vertex, gl.GEOMETRY_SHADER)
+	geo, err := GetShader(geometry, gl.GEOMETRY_SHADER)
 	if err != nil {
 		return nil, err
 	}
