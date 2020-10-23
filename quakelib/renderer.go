@@ -222,8 +222,6 @@ func newCircleDrawer() *qCircleDrawer {
 }
 
 func (cd *qCircleDrawer) Draw(cs []qCircle, viewOrigin, viewForward, viewRight, viewUp vec.Vec3) {
-	// viewport(0,0,screen.width, screen.height)
-
 	gl.DepthMask(false)
 	gl.Disable(gl.TEXTURE_2D)
 
@@ -299,6 +297,7 @@ func (cd *qCircleDrawer) Draw(cs []qCircle, viewOrigin, viewForward, viewRight, 
 	// TODO: remove this allocation
 	data := make([]float32, 0, len(cs)*(3+1+3+3))
 	log.Printf("Num Cones: %v", len(cs))
+
 	for _, c := range cs {
 		data = append(data,
 			c.origin[0], c.origin[1], c.origin[2],
@@ -312,10 +311,10 @@ func (cd *qCircleDrawer) Draw(cs []qCircle, viewOrigin, viewForward, viewRight, 
 	gl.EnableVertexAttribArray(1)
 	gl.EnableVertexAttribArray(2)
 	gl.EnableVertexAttribArray(3)
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 4*8, gl.PtrOffset(0))
-	gl.VertexAttribPointer(1, 1, gl.FLOAT, false, 4*8, gl.PtrOffset(3*4))
-	gl.VertexAttribPointer(2, 3, gl.FLOAT, false, 4*8, gl.PtrOffset(4*4))
-	gl.VertexAttribPointer(3, 3, gl.FLOAT, false, 4*8, gl.PtrOffset(7*4))
+	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 4*10, gl.PtrOffset(0))
+	gl.VertexAttribPointer(1, 1, gl.FLOAT, false, 4*10, gl.PtrOffset(3*4))
+	gl.VertexAttribPointer(2, 3, gl.FLOAT, false, 4*10, gl.PtrOffset(4*4))
+	gl.VertexAttribPointer(3, 3, gl.FLOAT, false, 4*10, gl.PtrOffset(7*4))
 
 	gl.UniformMatrix4fv(cd.projection, 1, false, &projection[0])
 	gl.UniformMatrix4fv(cd.modelview, 1, false, &modelview[0])
