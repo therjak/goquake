@@ -221,11 +221,10 @@ func newCircleDrawer() *qCircleDrawer {
 	return d
 }
 
-func (cd *qCircleDrawer) Draw(cs []qCircle, viewOrigin, viewForward, viewRight, viewUp vec.Vec3) {
+func (cd *qCircleDrawer) Draw(cs []qCircle) {
 	gl.DepthMask(false)
 	gl.Disable(gl.TEXTURE_2D)
 
-	//glShadeModel(GL_SMOOTH);
 	gl.Enable(gl.BLEND)
 	gl.BlendFunc(gl.ONE, gl.ONE)
 
@@ -296,8 +295,6 @@ func (cd *qCircleDrawer) Draw(cs []qCircle, viewOrigin, viewForward, viewRight, 
 	cd.vbo.Bind(gl.ARRAY_BUFFER)
 	// TODO: remove this allocation
 	data := make([]float32, 0, len(cs)*(3+1+3+3))
-	log.Printf("Num Cones: %v", len(cs))
-
 	for _, c := range cs {
 		data = append(data,
 			c.origin[0], c.origin[1], c.origin[2],
@@ -330,44 +327,6 @@ func (cd *qCircleDrawer) Draw(cs []qCircle, viewOrigin, viewForward, viewRight, 
 	gl.Enable(gl.TEXTURE_2D)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	gl.DepthMask(true)
-}
-
-func drawVertex(v vec.Vec3) {
-	// dummy for gl.Vertex3fv
-	// probably something similar to qParticleDrawer.Draw
-}
-
-func (r *qRenderer) RenderDynamicLight(l *DynamicLight) {
-
-	// TODO: this should probably all get into the shader
-	// parameters inside should be rad, l.Origin, qRefreshRect
-	rad := l.Radius * 0.35
-	// center point closer to viewer for sphere illusion
-	center := vec.Sub(l.Origin, vec.Scale(rad, qRefreshRect.viewForward))
-	drawVertex(center)
-	// sprockets
-	for i := float32(16); i >= 0; i-- {
-		a := i / 16 * math32.Pi * 2
-		s, c := math32.Sincos(a)
-		v := l.Origin
-		v.Add(vec.Scale(c*rad, qRefreshRect.viewRight))
-		v.Add(vec.Scale(s*rad, qRefreshRect.viewUp))
-		drawVertex(v)
-	}
-
-	/*
-	   glBegin(GL_TRIANGLE_FAN);
-	   for (i = 0; i < 3; i++) v[i] = light->origin[i] - vpn[i] * rad;
-	   glVertex3fv(v);
-	   for (i = 16; i >= 0; i--) {
-	     a = i / 16.0 * M_PI * 2;
-	     for (j = 0; j < 3; j++)
-	       v[j] =
-	           light->origin[j] + vright[j] * cos(a) * rad + vup[j] * sin(a) * rad;
-	     glVertex3fv(v);
-	   }
-	   glEnd();
-	*/
 }
 
 func (r *qRenderer) RenderDynamicLights() {
@@ -403,15 +362,9 @@ func (r *qRenderer) RenderDynamicLights() {
 			innerColor: [3]float32{0.2, 0.1, 0.0},
 			outerColor: [3]float32{0, 0, 0},
 		})
-		// r.RenderDynamicLight(dl)
 	}
 	if len(cs) == 0 {
 		return
 	}
-	circleDrawer.Draw(cs,
-		qRefreshRect.viewOrg,
-		qRefreshRect.viewForward,
-		qRefreshRect.viewRight,
-		qRefreshRect.viewUp)
-	// glColor3f(1, 1, 1);
+	circleDrawer.Draw(cs)
 }
