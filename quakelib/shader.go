@@ -46,7 +46,7 @@ layout (location = 1) in float radius;
 layout (location = 2) in vec3 innerColor;
 layout (location = 3) in vec3 outerColor;
 out VS_OUT {
-  float radius;
+  vec3 radius;
   vec3 innerColor;
   vec3 outerColor;
 } vs_out;
@@ -54,10 +54,17 @@ uniform mat4 projection;
 uniform mat4 modelview;
 
 void main() {
-	vs_out.radius = radius;
+	mat4 m = projection * modelview;
 	vs_out.innerColor = innerColor;
 	vs_out.outerColor = outerColor;
-	gl_Position = projection * modelview * vec4(position, 1.0);
+	vec4 c = m * vec4(position, 1.0);
+	vec4 x = m * vec4(position + vec3(radius, 0, 0), 1);
+	vec4 y = m * vec4(position + vec3(0, radius, 0), 1);
+	vec4 z = m * vec4(position - vec3(0, 0, radius), 1);
+	vs_out.radius.x = distance(c,x);
+	vs_out.radius.y = distance(c,y);
+	vs_out.radius.z = distance(c,z);
+	gl_Position = c;
 }
 ` + "\x00"
 
@@ -67,7 +74,7 @@ layout (points) in;
 layout (triangle_strip, max_vertices = 17) out;
 
 in VS_OUT {
-  float radius;
+  vec3 radius;
   vec3 innerColor;
   vec3 outerColor;
 } gs_in[];
@@ -75,21 +82,21 @@ in VS_OUT {
 out vec3 Color;
 
 void buildCone(vec4 position) {
-  float r = gs_in[0].radius;
+  vec3 r = gs_in[0].radius;
 	Color = gs_in[0].outerColor;
-	gl_Position = position + vec4(-r, -r,0.0,0.0);
+	gl_Position = position + vec4(-r.x, -r.y,0.0,0.0);
 	EmitVertex();
 
 	Color = gs_in[0].innerColor;
-	gl_Position = position + vec4(-r, r,0.0,0.0);
+	gl_Position = position + vec4(-r.x, r.y,0.0,0.0);
 	EmitVertex();
 
 	Color = gs_in[0].innerColor;
-	gl_Position = position + vec4(r,-r,0.0,0.0);
+	gl_Position = position + vec4(r.x,-r.y,0.0,0.0);
 	EmitVertex();
 
 	Color = gs_in[0].outerColor;
-	gl_Position = position + vec4(r,r,0.0,0.0);
+	gl_Position = position + vec4(r.x,r.y,0.0,0.0);
 	EmitVertex();
 
   EndPrimitive();
