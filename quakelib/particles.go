@@ -2,7 +2,6 @@ package quakelib
 
 import (
 	"log"
-	"math"
 	"math/rand"
 
 	"github.com/therjak/goquake/cmd"
@@ -169,29 +168,6 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 	gl.GetFloatv(0x0BA6, &modelview[0])
 	// gl_viewport: 0x0x0ba2
 	// gl_texture_matrix: 0x0ba8
-
-	defer func() {
-		// To clean up again
-		gl.MatrixLoadIdentityEXT(gl.PATH_PROJECTION_NV)
-		gl.Viewport(
-			int32(qRefreshRect.viewRect.x),
-			int32(screen.Height)-int32(qRefreshRect.viewRect.y+qRefreshRect.viewRect.height),
-			int32(qRefreshRect.viewRect.width),
-			int32(qRefreshRect.viewRect.height))
-		xmax := 4 * math.Tan(float64(qRefreshRect.fovX)*math.Pi/360)
-		ymax := 4 * math.Tan(float64(qRefreshRect.fovY)*math.Pi/360)
-		gl.MatrixFrustumEXT(gl.PATH_PROJECTION_NV, -xmax, xmax, -ymax, ymax, 4, float64(cvars.GlFarClip.Value()))
-
-		gl.MatrixLoadIdentityEXT(gl.PATH_MODELVIEW_NV)
-		gl.MatrixRotatefEXT(gl.PATH_MODELVIEW_NV, -90, 1, 0, 0)
-		gl.MatrixRotatefEXT(gl.PATH_MODELVIEW_NV, 90, 0, 0, 1)
-
-		gl.MatrixRotatefEXT(gl.PATH_MODELVIEW_NV, -qRefreshRect.viewAngles[2], 1, 0, 0)
-		gl.MatrixRotatefEXT(gl.PATH_MODELVIEW_NV, -qRefreshRect.viewAngles[0], 0, 1, 0)
-		gl.MatrixRotatefEXT(gl.PATH_MODELVIEW_NV, -qRefreshRect.viewAngles[1], 0, 0, 1)
-
-		gl.MatrixTranslatefEXT(gl.PATH_MODELVIEW_NV, -qRefreshRect.viewOrg[0], -qRefreshRect.viewOrg[1], -qRefreshRect.viewOrg[2])
-	}()
 
 	gl.Enable(gl.DEPTH_TEST)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)

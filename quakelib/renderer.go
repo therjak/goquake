@@ -186,9 +186,9 @@ func (r *qRenderer) DrawWeaponModel() {
 	gl.DepthRange(0, 1)
 }
 
-var circleDrawer *qCircleDrawer
+var coneDrawer *qConeDrawer
 
-type qCircleDrawer struct {
+type qConeDrawer struct {
 	vao        *glh.VertexArray
 	vbo        *glh.Buffer
 	prog       *glh.Program
@@ -196,23 +196,23 @@ type qCircleDrawer struct {
 	modelview  int32
 }
 
-type qCircle struct {
+type qCone struct {
 	origin     vec.Vec3
 	radius     float32
 	innerColor [3]float32
 	outerColor [3]float32
 }
 
-func newCircleDrawProgram() (*glh.Program, error) {
+func newConeDrawProgram() (*glh.Program, error) {
 	return glh.NewProgramWithGeometry(vertexConeSource, geometryConeSource, fragmentConeSource)
 }
 
-func newCircleDrawer() *qCircleDrawer {
-	d := &qCircleDrawer{}
+func newConeDrawer() *qConeDrawer {
+	d := &qConeDrawer{}
 	d.vao = glh.NewVertexArray()
 	d.vbo = glh.NewBuffer()
 	var err error
-	d.prog, err = newCircleDrawProgram()
+	d.prog, err = newConeDrawProgram()
 	if err != nil {
 		Error(err.Error())
 	}
@@ -221,8 +221,8 @@ func newCircleDrawer() *qCircleDrawer {
 	return d
 }
 
-func (cd *qCircleDrawer) Draw(cs []qCircle) {
-	gl.DepthMask(false)
+func (cd *qConeDrawer) Draw(cs []qCone) {
+	gl.DepthMask(false) // to not obstruct the view to particles within the cone
 	gl.Disable(gl.TEXTURE_2D)
 
 	gl.Enable(gl.BLEND)
@@ -334,13 +334,13 @@ func (r *qRenderer) RenderDynamicLights() {
 		// TODO(therjak): disabling flashblend is broken since transparent console
 		return
 	}
-	if circleDrawer == nil {
-		circleDrawer = newCircleDrawer()
+	if coneDrawer == nil {
+		coneDrawer = newConeDrawer()
 	}
 
 	r.lightFrameCount++
 	// TODO: remove this allociation
-	cs := make([]qCircle, 0, len(cl.dynamicLights))
+	cs := make([]qCone, 0, len(cl.dynamicLights))
 	for i := range cl.dynamicLights {
 		dl := &cl.dynamicLights[i]
 		if dl.DieTime < cl.time || dl.Radius == 0 {
@@ -356,7 +356,7 @@ func (r *qRenderer) RenderDynamicLights() {
 			continue
 		}
 
-		cs = append(cs, qCircle{
+		cs = append(cs, qCone{
 			origin:     dl.Origin,
 			radius:     rad,
 			innerColor: [3]float32{0.2, 0.1, 0.0},
@@ -366,5 +366,5 @@ func (r *qRenderer) RenderDynamicLights() {
 	if len(cs) == 0 {
 		return
 	}
-	circleDrawer.Draw(cs)
+	coneDrawer.Draw(cs)
 }
