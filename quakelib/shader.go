@@ -54,17 +54,16 @@ uniform mat4 projection;
 uniform mat4 modelview;
 
 void main() {
-	mat4 m = projection * modelview;
 	vs_out.innerColor = innerColor;
 	vs_out.outerColor = outerColor;
-	vec4 c = m * vec4(position, 1.0);
-	vec4 x = m * vec4(position + vec3(radius, 0, 0), 1);
-	vec4 y = m * vec4(position + vec3(0, radius, 0), 1);
-	vec4 z = m * vec4(position - vec3(0, 0, radius), 1);
-	vs_out.radius.x = distance(c,x);
-	vs_out.radius.y = distance(c,y);
-	vs_out.radius.z = distance(c,z);
-	gl_Position = c;
+	vec4 mc = modelview * vec4(position, 1.0);
+	vec4 x = projection * (mc + vec4(radius, 0, 0, 1));
+	vec4 y = projection * (mc + vec4(0, radius, 0, 1));
+	vec4 z = projection * (mc - vec4(0, 0, radius, 1));
+	gl_Position = projection * mc;
+	vs_out.radius.x = distance(gl_Position,x);
+	vs_out.radius.y = distance(gl_Position,y);
+	vs_out.radius.z = distance(gl_Position,z);
 }
 ` + "\x00"
 
