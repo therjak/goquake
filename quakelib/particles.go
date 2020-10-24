@@ -118,32 +118,8 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 		}
 		numVert += 3
 
-		// add
-		// glRotatef(-90,1,0,0)
-		// glRotatef(90,0,0,1)
-		// aka z is up
-		//		v1 := vec.Vec3{-o[2], -o[0], o[1]}
-		//		v2 := vec.Add(v1, vec.Vec3{-u[2], -u[0], u[1]})
-		//		v3 := vec.Add(v1, vec.Vec3{-r[2], -r[0], r[1]})
-
-		// add
-		// glRotatef(-qRefreshRect.viewAngles[2], 1,0,0)
-		// glRotatef(-qRefreshRect.viewAngles[0], 0,1,0)
-		// glRotatef(-qRefreshRect.viewAngles[1], 0,0,1)
-
-		// add
-		// glTranslatef(-qRefreshRect.viewOrg[0], -qRefreshRect.viewOrg[1], -qRefreshRect.viewOrg[2])
-		//		v1.Sub(qRefreshRect.viewOrg)
-		//		v2.Sub(qRefreshRect.viewOrg)
-		//		v3.Sub(qRefreshRect.viewOrg)
-
 		// x, y, z, tx, ty, r, g, b
 		d.vertices = append(d.vertices,
-			//			v1[0], v1[1], v1[2], 0, 0, c[0], c[1], c[2],
-			//			v2[0], v2[1], v2[2], 1, 0, c[0], c[1], c[2],
-			//			v3[0], v3[1], v3[2], 0, 1, c[0], c[1], c[2])
-
-			// orig:
 			o[0], o[1], o[2], 0, 0, c[0], c[1], c[2],
 			(o[0] + u[0]), (o[1] + u[1]), (o[2] + u[2]), 1, 0, c[0], c[1], c[2],
 			(o[0] + r[0]), (o[1] + r[1]), (o[2] + r[2]), 0, 1, c[0], c[1], c[2])
