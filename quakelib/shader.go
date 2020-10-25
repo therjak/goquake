@@ -57,13 +57,13 @@ void main() {
 	vs_out.innerColor = innerColor;
 	vs_out.outerColor = outerColor;
 	vec4 mc = modelview * vec4(position, 1.0);
-	vec4 x = projection * (mc + vec4(radius, 0, 0, 0));
-	vec4 y = projection * (mc + vec4(0, radius, 0, 0));
-	vec4 z = projection * (mc - vec4(0, 0, radius, 0));
+	float x = projection[0][0] * (mc.x + radius);
+	float y = projection[1][1] * (mc.y + radius);
 	gl_Position = projection * mc;
-	vs_out.radius.x = distance(gl_Position,x);
-	vs_out.radius.y = distance(gl_Position,y);
-	vs_out.radius.z = distance(gl_Position,z);
+	vs_out.radius.x = abs(gl_Position.x-x);
+	vs_out.radius.y = abs(gl_Position.y-y);
+	// No need to consider the frustum for the z radius.
+	vs_out.radius.z = radius/gl_Position.w;
 }
 ` + "\x00"
 
