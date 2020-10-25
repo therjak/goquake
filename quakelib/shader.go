@@ -57,9 +57,9 @@ void main() {
 	vs_out.innerColor = innerColor;
 	vs_out.outerColor = outerColor;
 	vec4 mc = modelview * vec4(position, 1.0);
-	vec4 x = projection * (mc + vec4(radius, 0, 0, 1));
-	vec4 y = projection * (mc + vec4(0, radius, 0, 1));
-	vec4 z = projection * (mc - vec4(0, 0, radius, 1));
+	vec4 x = projection * (mc + vec4(radius, 0, 0, 0));
+	vec4 y = projection * (mc + vec4(0, radius, 0, 0));
+	vec4 z = projection * (mc - vec4(0, 0, radius, 0));
 	gl_Position = projection * mc;
 	vs_out.radius.x = distance(gl_Position,x);
 	vs_out.radius.y = distance(gl_Position,y);
