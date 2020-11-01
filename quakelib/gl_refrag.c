@@ -2,23 +2,9 @@
 
 #include "quakedef.h"
 
-mnode_t *r_pefragtopnode;
-
-//===========================================================================
-
-/*
-===============================================================================
-
-                                        ENTITY FRAGMENT FUNCTIONS
-
-===============================================================================
-*/
-
 efrag_t **lastlink;
 
 vec3_t r_emins, r_emaxs;
-
-entity_t *r_addent;
 
 /*
 ================
@@ -60,7 +46,7 @@ void R_RemoveEfrags(entity_t *ent) {
 R_SplitEntityOnNode
 ===================
 */
-void R_SplitEntityOnNode(mnode_t *node) {
+void R_SplitEntityOnNode(mnode_t *node, entity_t* r_addent) {
   efrag_t *ef;
   mplane_t *splitplane;
   mleaf_t *leaf;
@@ -73,8 +59,6 @@ void R_SplitEntityOnNode(mnode_t *node) {
   // add an efrag if the node is a leaf
 
   if (node->contents < 0) {
-    if (!r_pefragtopnode) r_pefragtopnode = node;
-
     leaf = (mleaf_t *)node;
 
     // grab an efrag off the free list
@@ -107,13 +91,12 @@ void R_SplitEntityOnNode(mnode_t *node) {
   if (sides == 3) {
     // split on this plane
     // if this is the first splitter of this bmodel, remember it
-    if (!r_pefragtopnode) r_pefragtopnode = node;
   }
 
   // recurse down the contacted sides
-  if (sides & 1) R_SplitEntityOnNode(node->children[0]);
+  if (sides & 1) R_SplitEntityOnNode(node->children[0], r_addent);
 
-  if (sides & 2) R_SplitEntityOnNode(node->children[1]);
+  if (sides & 2) R_SplitEntityOnNode(node->children[1], r_addent);
 }
 
 /*
@@ -127,11 +110,7 @@ void R_AddEfrags(entity_t *ent) {
 
   if (!ent->model) return;
 
-  r_addent = ent;
-
   lastlink = &ent->efrag;
-  r_pefragtopnode = NULL;
-
   entmodel = ent->model;
 
   for (i = 0; i < 3; i++) {
@@ -139,7 +118,7 @@ void R_AddEfrags(entity_t *ent) {
     r_emaxs[i] = ent->origin[i] + entmodel->maxs[i];
   }
 
-  R_SplitEntityOnNode(cl.worldmodel->nodes);
+  R_SplitEntityOnNode(cl.worldmodel->nodes, ent);
 }
 
 /*
