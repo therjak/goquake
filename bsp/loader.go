@@ -17,13 +17,6 @@ func init() {
 	qm.Register(bsp2Versionbsp2, Load)
 }
 
-var (
-	noTextureMip = qm.Texture{
-		Width:  32,
-		Height: 32,
-	}
-)
-
 const (
 	bspVersion      = 29
 	bsp2Version2psb = 'B'<<24 | 'S'<<16 | 'P'<<8 | '2'
@@ -74,12 +67,16 @@ func Load(name string, data []byte) ([]*qm.QModel, error) {
 			return nil, err
 		}
 		mod.Planes = buildPlanes(splanes)
-		// TODO: loadTextinfo(fs(h.Texinfo , data),ret)
+		texInfo, err := loadTexInfo(fs(h.Texinfo, data), mod.Textures)
+		if err != nil {
+			return nil, err
+		}
+		mod.TexInfos = texInfo
 		sfaces, err := loadFacesV0(fs(h.Faces, data))
 		if err != nil {
 			return nil, err
 		}
-		msurfaces, err := buildSurfacesV0(sfaces, mod.Planes, mod.Texinfos)
+		msurfaces, err := buildSurfacesV0(sfaces, mod.Planes, mod.TexInfos)
 		if err != nil {
 			return nil, err
 		}
@@ -223,6 +220,56 @@ func loadPlanes(data []byte) ([]*plane, error) {
 	}
 }
 
+const (
+	texSpecial = 1 << iota
+	texMissing
+)
+
+func loadTexInfo(data []byte, textures []*qm.Texture) ([]*qm.TexInfo, error) {
+	type texInfo struct {
+		V      [2][4]float32
+		MipTex uint32
+		Flags  uint32
+	}
+	const texInfoSize = 40
+	if len(data)%texInfoSize != 0 {
+		return nil, fmt.Errorf("MOD_LoadBmodel: funny lump size")
+	}
+	buf := bytes.NewReader(data)
+	count := len(data) / texInfoSize
+	t := make([]*qm.TexInfo, count)
+
+	missing := 0
+	var ti texInfo
+	for i := 0; i < count; i++ {
+		err := binary.Read(buf, binary.LittleEndian, &ti)
+		if err != nil {
+			return nil, fmt.Errorf("loadTexInfo: %v", err)
+		}
+		qti := &qm.TexInfo{
+			Vecs:  ti.V,
+			Flags: ti.Flags,
+		}
+		// We added 2 textures in texture loading to handle missing ones here
+		if int(ti.MipTex) < len(textures)-2 {
+			qti.Texture = textures[ti.MipTex]
+		} else {
+			if ti.Flags&texSpecial != 0 {
+				qti.Texture = textures[len(textures)-1]
+			} else {
+				qti.Texture = textures[len(textures)-2]
+			}
+			qti.Flags |= texMissing
+			missing++
+		}
+		t[i] = qti
+	}
+	if missing > 0 {
+		log.Printf("Mod_LoadTexinfo: %i texture(s) missing from BSP file", missing)
+	}
+	return t, nil
+}
+
 func buildMarkSurfacesV0(marks []int, surfaces []*qm.Surface) ([]*qm.Surface, error) {
 	ret := make([]*qm.Surface, 0, len(marks))
 	for _, m := range marks {
@@ -251,7 +298,7 @@ func loadFacesV0(data []byte) ([]*faceV0, error) {
 	}
 }
 
-func buildSurfacesV0(f []*faceV0, plane []*qm.Plane, texinfo []*qm.Texinfo) ([]*qm.Surface, error) {
+func buildSurfacesV0(f []*faceV0, plane []*qm.Plane, texinfo []*qm.TexInfo) ([]*qm.Surface, error) {
 	ret := make([]*qm.Surface, 0, len(f))
 	for range /*sf*/ f {
 		nsf := &qm.Surface{
@@ -520,6 +567,19 @@ func buildSubmodels(mod []*model) ([]*qm.Submodel, error) {
 	return ret, nil
 }
 
+var (
+	noTextureMip = &qm.Texture{
+		Name:   "notexture",
+		Width:  32,
+		Height: 32,
+	}
+	noTextureMip2 = &qm.Texture{
+		Name:   "notexture2",
+		Width:  32,
+		Height: 32,
+	}
+)
+
 func loadTextures(data []byte) ([]*qm.Texture, error) {
 	numTex := int32(0)
 	buf := bytes.NewReader(data)
@@ -527,14 +587,18 @@ func loadTextures(data []byte) ([]*qm.Texture, error) {
 	if err != nil || numTex == 0 {
 		return nil, nil
 	}
-	t := make([]*qm.Texture, numTex)
+	// Need 2 dummy textures to handle missing ones
+	t := make([]*qm.Texture, numTex+2)
 	for i := int32(0); i < numTex; i++ {
 		t[i] = &qm.Texture{}
-
 	}
+	t[len(t)-1] = noTextureMip  // lightmapped surfs
+	t[len(t)-2] = noTextureMip2 // SURF_DRAWTILED surfs
+
 	// Texture {
 	// Width int
 	// Height int
+	// Name string
 	// TextureChains [2]*Surface
 	// Texture
 	// Fullbright

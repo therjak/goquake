@@ -128,11 +128,16 @@ type Surface struct {
 	TextureChain *Surface
 }
 
-type Texinfo struct{}
+type TexInfo struct {
+	Vecs    [2][4]float32
+	Texture *Texture
+	Flags   uint32
+}
 
 type Texture struct {
 	Width         int
 	Height        int
+	Name          string
 	TextureChains [2]*Surface
 	Texture       *texture.Texture
 	Fullbright    *texture.Texture
@@ -192,7 +197,7 @@ type QModel struct {
 	Vertexes     []*MVertex
 	Edges        []*MEdge
 	Nodes        []*MNode
-	Texinfos     []*Texinfo
+	TexInfos     []*TexInfo // only in brush
 	Surfaces     []*Surface
 	SurfaceEdges []int
 	ClipNodes    []*ClipNode
