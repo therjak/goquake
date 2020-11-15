@@ -123,9 +123,46 @@ type MLeaf struct {
 
 type Efrag struct{}
 
+type Poly struct {
+	Next     *Poly
+	Chain    *Poly
+	NumVerts int           // TODO: why
+	Verts    [4][7]float32 // TODO: why 7?
+}
+
 type Surface struct {
-	Flags        int
+	VisFrame int // should be drawn when node is crossed
+	Culled   bool
+	Mins     [3]float32
+	Maxs     [3]float32
+
+	Plane *Plane
+	Flags int
+
+	FirstEdge int
+	NumEdges  int
+
+	TextureMins [2]int16
+	Extents     [2]int16
+	LightS      int // gl lightmap coordinates
+	LightT      int
+
+	Polys        *Poly // multiple if warped
 	TextureChain *Surface
+
+	TexInfo *TexInfo
+
+	VboFirstVert int // index of this surface's first vert in the VBO
+
+	DLightFrame int
+	// MAX_DLIGHTS == 64
+	// DLightBits [(MAX_DLIGHTS + 31)>>5]uint32
+	LightmapTextureNum int
+	// MAXLIGHTMAPS == 4
+	// Styles [MAXLIGHTMAPS]byte
+	// CachedLight[MAXLIGHTMAPS] int
+	CachedDLight bool
+	Samples      *byte
 }
 
 type TexInfo struct {
@@ -181,36 +218,46 @@ type MEdge struct {
 
 // Knows currently only what sv.models needs to know
 type QModel struct {
-	Name string
-	Type ModType
+	Name string  // alias + sprite + brush
+	Type ModType // alias + sprite + brush
 
-	Flags int
+	Flags int // alias
+	// Cache // alias + sprite
+	// vboindexofs // alias
+	// vboxyzofs // alias
+	// vbostofs // alias
+	// meshindexesvbo // alias
+	// meshvbo // alias
 
-	Mins     vec.Vec3
-	Maxs     vec.Vec3
-	ClipMins vec.Vec3
-	ClipMaxs vec.Vec3
+	Mins vec.Vec3 // sprite + alias + brush
+	Maxs vec.Vec3 // sprite + alias + brush
+	// rmins // alias + brush
+	// rmaxs // alias + brush
+	// ymins // alias + brush
+	// ymaxs // alias + brush
+	ClipMins vec.Vec3 // brush
+	ClipMaxs vec.Vec3 // brush
 
-	Submodels    []*Submodel
-	Planes       []*Plane
-	Leafs        []*MLeaf
-	Vertexes     []*MVertex
-	Edges        []*MEdge
-	Nodes        []*MNode
-	TexInfos     []*TexInfo // only in brush
-	Surfaces     []*Surface
-	SurfaceEdges []int
-	ClipNodes    []*ClipNode
-	MarkSurfaces []*Surface
-	Textures     []*Texture // only in brush
+	Submodels    []*Submodel // brush
+	Planes       []*Plane    // brush
+	Leafs        []*MLeaf    // brush
+	Vertexes     []*MVertex  // brush
+	Edges        []*MEdge    // brush
+	Nodes        []*MNode    // brush
+	TexInfos     []*TexInfo  // only in brush
+	Surfaces     []*Surface  // only in brush
+	SurfaceEdges []int       // brush
+	ClipNodes    []*ClipNode // brush
+	MarkSurfaces []*Surface  // brush
+	Textures     []*Texture  // only in brush
 
-	FrameCount int // numframes
-	SyncType   int
+	FrameCount int // numframes, alias + sprite + brush
+	SyncType   int // alias + sprite
 
-	Hulls   [MAX_MAP_HULLS]Hull
-	VisData []byte
+	Hulls   [MAX_MAP_HULLS]Hull // brush
+	VisData []byte              // brush
 
-	Entities []*Entity
+	Entities []*Entity // brush
 
-	Node Node
+	Node Node // brush
 }

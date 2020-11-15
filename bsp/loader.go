@@ -90,7 +90,7 @@ func Load(name string, data []byte) ([]*qm.QModel, error) {
 			return nil, err
 		}
 		mod.MarkSurfaces = mms
-		// VisData = loadVisibility
+
 		mod.VisData = fs(h.Visibility, data)
 		leafs, err := loadLeafsV0(fs(h.Leafs, data))
 		if err != nil {
@@ -299,6 +299,15 @@ func loadFacesV0(data []byte) ([]*faceV0, error) {
 }
 
 func buildSurfacesV0(f []*faceV0, plane []*qm.Plane, texinfo []*qm.TexInfo) ([]*qm.Surface, error) {
+	// faceV0 {
+	// PlaneID int16
+	// Side int16
+	// ListEdgeID int32
+	// ListEdgeNumber int16
+	// TexInfoID int16
+	// LightStyle [4]uint8
+	// LightMap int32
+	// }
 	ret := make([]*qm.Surface, 0, len(f))
 	for range /*sf*/ f {
 		nsf := &qm.Surface{
