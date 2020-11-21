@@ -37,7 +37,7 @@ func loadModel(name string) {
 		log.Printf("LoadModel err: %v", err)
 	}
 	for _, m := range mods {
-		models[m.Name] = m
+		models[m.Name()] = m
 	}
 }
 
@@ -54,7 +54,7 @@ func CLSetWorldModel(m *C.qmodel_t) {
 		log.Printf("CL - LoadModel err: %v", err)
 	}
 	for _, m := range mods {
-		if m.Name == name {
+		if m.Name() == name {
 			cl.worldModel = m
 		}
 	}

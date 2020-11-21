@@ -25,15 +25,10 @@ const (
 
 func Load(name string, data []byte) ([]*qm.QModel, error) {
 	var ret []*qm.QModel
-	mod := &qm.QModel{
-		Name: name,
-		Type: qm.ModBrush,
-		// Mins, Maxs, ClipMins, Clipmaxs Vec3
-		// NumSubmodels int
-		// leafs []*qm.MLeaf
-		// Node qm.Node
-		// Hulls [4]qm.Hull
-	}
+	mod := &qm.QModel{}
+	mod.SetName(name)
+	mod.SetType(qm.ModBrush)
+
 	buf := bytes.NewReader(data)
 	h := header{}
 	err := binary.Read(buf, binary.LittleEndian, &h)
@@ -146,7 +141,7 @@ func Load(name string, data []byte) ([]*qm.QModel, error) {
 		for i, sub := range mod.Submodels {
 			m := *mod
 			if i > 0 {
-				m.Name = fmt.Sprintf("*%d", i)
+				m.SetName(fmt.Sprintf("*%d", i))
 			}
 			m.Hulls[0].FirstClipNode = sub.HeadNode[0]
 			for j := 1; j < 4; j++ {
@@ -156,8 +151,8 @@ func Load(name string, data []byte) ([]*qm.QModel, error) {
 			// TODO
 			// m.FirstModelSurface = sub.FirstFace
 			// m.NumModelSurfaces = sub.FaceCount
-			m.Mins = sub.Mins
-			m.Maxs = sub.Maxs
+			m.SetMins(sub.Mins)
+			m.SetMaxs(sub.Maxs)
 			// TODO: calc rotate and yaw bounds
 			// if i > 0 || mod.Name == SV_ModelName {
 			// Why should this not be set for sv.worldmodel?

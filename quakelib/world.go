@@ -56,7 +56,7 @@ var (
 func clearWorld() {
 	edictToRing = make(map[int]*ring.Ring)
 	initBoxHull()
-	gArea = createAreaNode(0, sv.worldModel.Mins, sv.worldModel.Maxs)
+	gArea = createAreaNode(0, sv.worldModel.Mins(), sv.worldModel.Maxs())
 }
 
 func createAreaNode(depth int, mins, maxs vec.Vec3) *areaNode {
@@ -492,7 +492,7 @@ func hullForEntity(ent *progs.EntVars, mins, maxs vec.Vec3) (*model.Hull, vec.Ve
 			Error("SOLID_BSP without MOVETYPE_PUSH")
 		}
 		m := sv.models[int(ent.ModelIndex)]
-		if m == nil || m.Type != model.ModBrush {
+		if m == nil || m.Type() != model.ModBrush {
 			Error("MOVETYPE_PUSH with a non bsp model")
 		}
 		s := maxs[0] - mins[0]

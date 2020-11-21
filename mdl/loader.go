@@ -17,10 +17,9 @@ func init() {
 
 func Load(name string, data []byte) ([]*qm.QModel, error) {
 	var ret []*qm.QModel
-	mod := &qm.QModel{
-		Name: name,
-		Type: qm.ModAlias,
-	}
+	mod := &qm.QModel{}
+	mod.SetName(name)
+	mod.SetType(qm.ModAlias)
 
 	buf := bytes.NewReader(data)
 	h := header{}
@@ -116,8 +115,8 @@ func calcAliasBounds(mod *qm.QModel,
 		return a
 	}
 
-	mod.Mins = vec.Vec3{math.MaxFloat32, math.MaxFloat32, math.MaxFloat32}
-	mod.Maxs = vec.Vec3{-math.MaxFloat32, -math.MaxFloat32, -math.MaxFloat32}
+	mins := vec.Vec3{math.MaxFloat32, math.MaxFloat32, math.MaxFloat32}
+	maxs := vec.Vec3{-math.MaxFloat32, -math.MaxFloat32, -math.MaxFloat32}
 	/*
 	 radius := float32(0)
 	 yawradius := float32(0)
@@ -134,12 +133,12 @@ func calcAliasBounds(mod *qm.QModel,
 				float32(poseverts[i][j].PackedPosition[1])*pheader.Scale[1] + pheader.ScaleOrigin[1],
 				float32(poseverts[i][j].PackedPosition[2])*pheader.Scale[0] + pheader.ScaleOrigin[2],
 			}
-			mod.Mins[0] = min(mod.Mins[0], v[0])
-			mod.Mins[1] = min(mod.Mins[1], v[1])
-			mod.Mins[2] = min(mod.Mins[2], v[2])
-			mod.Maxs[0] = max(mod.Maxs[0], v[0])
-			mod.Maxs[1] = max(mod.Maxs[1], v[1])
-			mod.Maxs[2] = max(mod.Maxs[2], v[2])
+			mins[0] = min(mins[0], v[0])
+			mins[1] = min(mins[1], v[1])
+			mins[2] = min(mins[2], v[2])
+			maxs[0] = max(maxs[0], v[0])
+			maxs[1] = max(maxs[1], v[1])
+			maxs[2] = max(maxs[2], v[2])
 			/*
 				dist := v[0]*v[0] + v[1]*v[1]
 				if yawradius < dist {
@@ -152,6 +151,8 @@ func calcAliasBounds(mod *qm.QModel,
 			*/
 		}
 	}
+	mod.SetMins(mins)
+	mod.SetMaxs(maxs)
 	/*
 		radius = math32.Sqrt(radius)
 		yawradius = math32.Sqrt(yawradius)

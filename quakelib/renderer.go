@@ -175,8 +175,8 @@ func (r *qRenderer) DrawWeaponModel() {
 	if weapon.Model == nil {
 		return
 	}
-	if weapon.Model.Type != model.ModAlias {
-		// this fixes a crash
+	if weapon.Model.Type() != model.ModAlias {
+		// this fixes a crash, TODO: why can this happen?
 		return
 	}
 

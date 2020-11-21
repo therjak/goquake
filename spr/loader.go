@@ -15,10 +15,9 @@ func init() {
 
 func Load(name string, data []byte) ([]*qm.QModel, error) {
 	var ret []*qm.QModel
-	mod := &qm.QModel{
-		Name: name,
-		Type: qm.ModSprite,
-	}
+	mod := &qm.QModel{}
+	mod.SetName(name)
+	mod.SetType(qm.ModSprite)
 	buf := bytes.NewReader(data)
 	h := header{}
 	err := binary.Read(buf, binary.LittleEndian, &h)
@@ -28,16 +27,16 @@ func Load(name string, data []byte) ([]*qm.QModel, error) {
 	if h.Version != spriteVersion {
 		return nil, fmt.Errorf("%s has wrong version number (%d should be %d)", name, h.Version, spriteVersion)
 	}
-	mod.Mins = vec.Vec3{
+	mod.SetMins(vec.Vec3{
 		float32(-h.MaxWidth / 2),
 		float32(-h.MaxWidth / 2),
 		float32(-h.MaxHeight / 2),
-	}
-	mod.Maxs = vec.Vec3{
+	})
+	mod.SetMaxs(vec.Vec3{
 		float32(h.MaxWidth / 2),
 		float32(h.MaxWidth / 2),
 		float32(h.MaxHeight / 2),
-	}
+	})
 	mod.FrameCount = int(h.FrameCount)
 	if mod.FrameCount < 1 {
 		return nil, fmt.Errorf("Mod_LoadSpriteModel: Invalid # of frames: %v", mod.FrameCount)

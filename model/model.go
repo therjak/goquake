@@ -218,8 +218,8 @@ type MEdge struct {
 
 // Knows currently only what sv.models needs to know
 type QModel struct {
-	Name string  // alias + sprite + brush
-	Type ModType // alias + sprite + brush
+	name    string  // alias + sprite + brush
+	modType ModType // alias + sprite + brush
 
 	Flags int // alias
 	// Cache // alias + sprite
@@ -229,8 +229,8 @@ type QModel struct {
 	// meshindexesvbo // alias
 	// meshvbo // alias
 
-	Mins vec.Vec3 // sprite + alias + brush
-	Maxs vec.Vec3 // sprite + alias + brush
+	mins vec.Vec3 // sprite + alias + brush
+	maxs vec.Vec3 // sprite + alias + brush
 	// rmins // alias + brush
 	// rmaxs // alias + brush
 	// ymins // alias + brush
@@ -260,4 +260,30 @@ type QModel struct {
 	Entities []*Entity // brush
 
 	Node Node // brush
+}
+
+func (q *QModel) Mins() vec.Vec3 {
+	return q.mins
+}
+func (q *QModel) Maxs() vec.Vec3 {
+	return q.maxs
+}
+func (q *QModel) Type() ModType {
+	return q.modType
+}
+func (q *QModel) Name() string {
+	return q.name
+}
+
+func (q *QModel) SetMins(m vec.Vec3) {
+	q.mins = m
+}
+func (q *QModel) SetMaxs(m vec.Vec3) {
+	q.maxs = m
+}
+func (q *QModel) SetType(t ModType) {
+	q.modType = t
+}
+func (q *QModel) SetName(n string) {
+	q.name = n
 }

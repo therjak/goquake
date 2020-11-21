@@ -429,13 +429,13 @@ func (v *virtualMachine) setModel() {
 
 	mod := sv.models[idx]
 	if mod != nil {
-		if mod.Type == model.ModBrush {
+		if mod.Type() == model.ModBrush {
 			// log.Printf("ModBrush")
 			// log.Printf("mins: %v, maxs: %v", mod.ClipMins, mod.ClipMaxs)
 			setMinMaxSize(ev, mod.ClipMins, mod.ClipMaxs)
 		} else {
 			// log.Printf("!!!ModBrush")
-			setMinMaxSize(ev, mod.Mins, mod.Maxs)
+			setMinMaxSize(ev, mod.Mins(), mod.Maxs())
 		}
 	} else {
 		// log.Printf("No Mod")
