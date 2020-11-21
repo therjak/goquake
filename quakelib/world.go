@@ -495,14 +495,18 @@ func hullForEntity(ent *progs.EntVars, mins, maxs vec.Vec3) (*model.Hull, vec.Ve
 		if m == nil || m.Type() != model.ModBrush {
 			Error("MOVETYPE_PUSH with a non bsp model")
 		}
+		qm, ok := m.(*model.QModel)
+		if !ok {
+			Error("MOVETYPE_PUSH with a non bsp model")
+		}
 		s := maxs[0] - mins[0]
 		h := func() *model.Hull {
 			if s < 3 {
-				return &m.Hulls[0]
+				return &qm.Hulls[0]
 			} else if s <= 32 {
-				return &m.Hulls[1]
+				return &qm.Hulls[1]
 			}
-			return &m.Hulls[2]
+			return &qm.Hulls[2]
 		}()
 		offset := vec.Add(vec.Sub(h.ClipMins, mins), vec.VFromA(ent.Origin))
 		return h, offset

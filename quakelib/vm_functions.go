@@ -430,9 +430,10 @@ func (v *virtualMachine) setModel() {
 	mod := sv.models[idx]
 	if mod != nil {
 		if mod.Type() == model.ModBrush {
+			qm, _ := mod.(*model.QModel)
 			// log.Printf("ModBrush")
 			// log.Printf("mins: %v, maxs: %v", mod.ClipMins, mod.ClipMaxs)
-			setMinMaxSize(ev, mod.ClipMins, mod.ClipMaxs)
+			setMinMaxSize(ev, qm.ClipMins, qm.ClipMaxs)
 		} else {
 			// log.Printf("!!!ModBrush")
 			setMinMaxSize(ev, mod.Mins(), mod.Maxs())
@@ -961,9 +962,8 @@ func (v *virtualMachine) precacheModel() {
 	sv.modelPrecache = append(sv.modelPrecache, s)
 	m, ok := models[s]
 	if !ok {
-		loadModel(s)
-		m, ok = models[s]
-		if !ok {
+		m, err = loadModel(s)
+		if err != nil {
 			log.Printf("Model could not be loaded: %s", s)
 			return
 		}

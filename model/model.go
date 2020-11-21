@@ -287,3 +287,10 @@ func (q *QModel) SetType(t ModType) {
 func (q *QModel) SetName(n string) {
 	q.name = n
 }
+
+type Model interface {
+	Name() string
+	Type() ModType
+	Mins() vec.Vec3
+	Maxs() vec.Vec3
+}

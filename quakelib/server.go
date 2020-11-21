@@ -97,14 +97,14 @@ type Server struct {
 	name      string // map name
 	modelName string // maps/<name>.bsp, for model_precache[0]
 
-	models     []*model.QModel
+	models     []model.Model
 	worldModel *model.QModel
 }
 
 var (
 	svs = ServerStatic{}
 	sv  = Server{
-		models: make([]*model.QModel, 1),
+		models: make([]model.Model, 1),
 	}
 	sv_protocol int
 	sv_player   int
@@ -160,7 +160,7 @@ func SV_NumEdicts() C.int {
 //export SV_Clear
 func SV_Clear() {
 	sv = Server{
-		models: make([]*model.QModel, 1),
+		models: make([]model.Model, 1),
 	}
 }
 
@@ -1212,7 +1212,6 @@ func (s *Server) SpawnServer(name string) {
 	s.time = 1.0
 	s.modelName = fmt.Sprintf("maps/%s.bsp", name)
 
-	loadModel(s.modelName)
 	log.Printf("New world: %s", s.modelName)
 	s.worldModel = nil
 	s.modelPrecache = s.modelPrecache[:0]
@@ -1220,14 +1219,13 @@ func (s *Server) SpawnServer(name string) {
 	s.models = append(s.models, nil)
 	s.models = s.models[:1]
 	log.Printf("New world starts with %d models", len(s.models))
-	cm, ok := models[s.modelName]
-	if ok {
-		s.worldModel = cm
-	} else {
+	cm, err := loadModel(s.modelName)
+	if err != nil {
 		conlog.Printf("Couldn't spawn server %s\n", s.modelName)
 		s.active = false
 		return
 	}
+	s.worldModel = cm
 	s.modelPrecache = append(s.modelPrecache, string([]byte{0, 0, 0, 0, 0, 0, 0, 0}))
 	s.modelPrecache = append(s.modelPrecache, s.modelName)
 	s.soundPrecache = append(s.soundPrecache, string([]byte{0, 0, 0, 0, 0, 0, 0, 0}))
