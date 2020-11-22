@@ -960,13 +960,10 @@ func (v *virtualMachine) precacheModel() {
 		return
 	}
 	sv.modelPrecache = append(sv.modelPrecache, s)
-	m, ok := models[s]
-	if !ok {
-		m, err = loadModel(s)
-		if err != nil {
-			log.Printf("Model could not be loaded: %s", s)
-			return
-		}
+	m, err := loadModel(s)
+	if err != nil {
+		log.Printf("Model could not be loaded: %s", s)
+		return
 	}
 	sv.models = append(sv.models, m)
 }

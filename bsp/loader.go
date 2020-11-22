@@ -7,14 +7,15 @@ import (
 	"io"
 	"log"
 
+	"github.com/therjak/goquake/filesystem"
 	"github.com/therjak/goquake/math/vec"
 	qm "github.com/therjak/goquake/model"
 )
 
 func init() {
-	qm.Register(bspVersion, Load)
-	qm.Register(bsp2Version2psb, Load)
-	qm.Register(bsp2Versionbsp2, Load)
+	qm.Register(bspVersion, loadM)
+	qm.Register(bsp2Version2psb, loadM)
+	qm.Register(bsp2Versionbsp2, loadM)
 }
 
 const (
@@ -23,7 +24,27 @@ const (
 	bsp2Versionbsp2 = '2'<<24 | 'P'<<16 | 'S'<<8 | 'B'
 )
 
-func Load(name string, data []byte) ([]*qm.QModel, error) {
+func Load(name string) ([]*qm.QModel, error) {
+	b, err := filesystem.GetFileContents(name)
+	if err != nil {
+		return nil, err
+	}
+	return load(name, b)
+}
+
+func loadM(name string, data []byte) ([]qm.Model, error) {
+	mods, err := load(name, data)
+	if err != nil {
+		return nil, err
+	}
+	var ret []qm.Model
+	for _, m := range mods {
+		ret = append(ret, m)
+	}
+	return ret, nil
+}
+
+func load(name string, data []byte) ([]*qm.QModel, error) {
 	var ret []*qm.QModel
 	mod := &qm.QModel{}
 	mod.SetName(name)

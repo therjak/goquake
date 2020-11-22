@@ -134,7 +134,7 @@ type Entity struct {
 	Origin    vec.Vec3
 	MsgAngles [2]vec.Vec3
 	Angles    vec.Vec3
-	Model     *model.QModel
+	Model     model.Model
 	// efrag *efrag
 	Frame          int
 	SyncBase       float32
@@ -292,7 +292,7 @@ func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
 	}
 
 	// rotate binary objects locally
-	if e.Model.Flags&model.EntityEffectRotate != 0 {
+	if e.Model.Flags()&model.EntityEffectRotate != 0 {
 		e.Angles[1] = bobjrotate
 	}
 
@@ -347,7 +347,7 @@ func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
 		dl.Sync()
 	}
 
-	switch f := e.Model.Flags; {
+	switch f := e.Model.Flags(); {
 	case f&model.EntityEffectGib != 0:
 		particlesAddRocketTrail(oldOrigin, e.Origin, 2, float32(cl.time))
 	case f&model.EntityEffectZomGib != 0:

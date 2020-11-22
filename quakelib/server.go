@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/therjak/goquake/bsp"
 	"github.com/therjak/goquake/cmd"
 	cmdl "github.com/therjak/goquake/commandline"
 	"github.com/therjak/goquake/conlog"
@@ -1218,27 +1219,18 @@ func (s *Server) SpawnServer(name string) {
 	s.soundPrecache = s.soundPrecache[:0]
 	s.models = append(s.models, nil)
 	s.models = s.models[:1]
-	log.Printf("New world starts with %d models", len(s.models))
-	cm, err := loadModel(s.modelName)
-	if err != nil {
+	mods, err := bsp.Load(s.modelName)
+	if err != nil || len(mods) < 1 {
 		conlog.Printf("Couldn't spawn server %s\n", s.modelName)
 		s.active = false
 		return
 	}
-	s.worldModel = cm
+	s.worldModel = mods[0]
 	s.modelPrecache = append(s.modelPrecache, string([]byte{0, 0, 0, 0, 0, 0, 0, 0}))
-	s.modelPrecache = append(s.modelPrecache, s.modelName)
 	s.soundPrecache = append(s.soundPrecache, string([]byte{0, 0, 0, 0, 0, 0, 0, 0}))
-	s.models = append(s.models, s.worldModel)
-	for i := 1; i < len(s.worldModel.Submodels); i++ {
-		nn := fmt.Sprintf("*%d", i)
-		nm, ok := models[nn]
-		if !ok {
-			log.Printf("Missing model %d", i)
-			continue
-		}
-		s.modelPrecache = append(s.modelPrecache, nn)
-		s.models = append(s.models, nm)
+	for _, m := range mods {
+		s.modelPrecache = append(s.modelPrecache, m.Name())
+		s.models = append(s.models, m)
 	}
 
 	clearWorld()

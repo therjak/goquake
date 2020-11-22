@@ -217,7 +217,7 @@ type Client struct {
 	mapName       string
 	levelName     string
 	worldModel    *model.QModel
-	modelPrecache []*model.QModel
+	modelPrecache []model.Model
 
 	maxClients int
 	gameType   int

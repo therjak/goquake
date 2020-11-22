@@ -221,7 +221,7 @@ type QModel struct {
 	name    string  // alias + sprite + brush
 	modType ModType // alias + sprite + brush
 
-	Flags int // alias
+	flags int // alias
 	// Cache // alias + sprite
 	// vboindexofs // alias
 	// vboxyzofs // alias
@@ -274,6 +274,9 @@ func (q *QModel) Type() ModType {
 func (q *QModel) Name() string {
 	return q.name
 }
+func (q *QModel) Flags() int {
+	return q.flags
+}
 
 func (q *QModel) SetMins(m vec.Vec3) {
 	q.mins = m
@@ -287,10 +290,14 @@ func (q *QModel) SetType(t ModType) {
 func (q *QModel) SetName(n string) {
 	q.name = n
 }
+func (q *QModel) SetFlags(f int) {
+	q.flags = f
+}
 
 type Model interface {
 	Name() string
 	Type() ModType
 	Mins() vec.Vec3
 	Maxs() vec.Vec3
+	Flags() int
 }

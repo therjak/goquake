@@ -10,11 +10,11 @@ import (
 )
 
 func init() {
-	qm.Register(Magic, Load)
+	qm.Register(Magic, load)
 }
 
-func Load(name string, data []byte) ([]*qm.QModel, error) {
-	var ret []*qm.QModel
+func load(name string, data []byte) ([]qm.Model, error) {
+	var ret []qm.Model
 	mod := &qm.QModel{}
 	mod.SetName(name)
 	mod.SetType(qm.ModSprite)

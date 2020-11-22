@@ -16,7 +16,7 @@ func init() {
 	loaders = make(map[uint32]LoadFunc)
 }
 
-func Load(name string) ([]*QModel, error) {
+func Load(name string) ([]Model, error) {
 	// TODO: move the cache
 
 	b, err := filesystem.GetFileContents(name)
@@ -38,7 +38,7 @@ func Load(name string) ([]*QModel, error) {
 	return f(name, b)
 }
 
-type LoadFunc func(string, []byte) ([]*QModel, error)
+type LoadFunc func(string, []byte) ([]Model, error)
 
 func Register(magic uint32, f LoadFunc) {
 	loaders[magic] = f

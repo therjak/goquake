@@ -12,11 +12,11 @@ import (
 )
 
 func init() {
-	qm.Register(Magic, Load)
+	qm.Register(Magic, load)
 }
 
-func Load(name string, data []byte) ([]*qm.QModel, error) {
-	var ret []*qm.QModel
+func load(name string, data []byte) ([]qm.Model, error) {
+	var ret []qm.Model
 	mod := &qm.QModel{}
 	mod.SetName(name)
 	mod.SetType(qm.ModAlias)
@@ -31,7 +31,7 @@ func Load(name string, data []byte) ([]*qm.QModel, error) {
 		return nil, fmt.Errorf("%s has wrong version number (%d should be %d)", name, h.Version, aliasVersion)
 	}
 	mod.SyncType = int(h.SyncType)
-	mod.Flags = int(h.Flags)
+	mod.SetFlags(int(h.Flags))
 
 	for i := int32(0); i < h.SkinCount; i++ {
 		skinCount := int32(1)

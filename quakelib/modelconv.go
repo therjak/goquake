@@ -14,20 +14,20 @@ import (
 )
 
 var (
-	models map[string]*model.QModel
+	models map[string]model.Model
 )
 
 func init() {
 	// TODO: at some point this should get cleaned up
-	models = make(map[string]*model.QModel)
+	models = make(map[string]model.Model)
 }
 
 //export ModClearAllGo
 func ModClearAllGo() {
-	models = make(map[string]*model.QModel)
+	models = make(map[string]model.Model)
 }
 
-func loadModel(name string) (*model.QModel, error) {
+func loadModel(name string) (model.Model, error) {
 	m, ok := models[name]
 	if ok {
 		// No need, already loaded
@@ -45,25 +45,6 @@ func loadModel(name string) (*model.QModel, error) {
 		return m, nil
 	}
 	return nil, fmt.Errorf("LoadModel err: %v", err)
-}
-
-//export CLSetWorldModel
-func CLSetWorldModel(m *C.qmodel_t) {
-	name := C.GoString(&m.name[0])
-	cm, ok := models[name]
-	if ok {
-		cl.worldModel = cm
-		return
-	}
-	mods, err := model.Load(name)
-	if err != nil {
-		log.Printf("CL - LoadModel err: %v", err)
-	}
-	for _, m := range mods {
-		if m.Name() == name {
-			cl.worldModel = m
-		}
-	}
 }
 
 func CLPrecacheModel(name string, i int) {

@@ -804,7 +804,8 @@ func CL_ParseServerInfo() error {
 		CL_KeepaliveMessage()
 	}
 
-	cl.worldModel = cl.modelPrecache[0]
+	// TODO: clean this stuff up
+	cl.worldModel, _ = cl.modelPrecache[0].(*model.QModel)
 
 	C.FinishCL_ParseServerInfo()
 
