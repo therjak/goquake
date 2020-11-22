@@ -24,7 +24,7 @@ const (
 	bsp2Versionbsp2 = '2'<<24 | 'P'<<16 | 'S'<<8 | 'B'
 )
 
-func Load(name string) ([]*qm.QModel, error) {
+func Load(name string) ([]*Model, error) {
 	b, err := filesystem.GetFileContents(name)
 	if err != nil {
 		return nil, err
@@ -44,11 +44,11 @@ func loadM(name string, data []byte) ([]qm.Model, error) {
 	return ret, nil
 }
 
-func load(name string, data []byte) ([]*qm.QModel, error) {
-	var ret []*qm.QModel
-	mod := &qm.QModel{}
-	mod.SetName(name)
-	mod.SetType(qm.ModBrush)
+func load(name string, data []byte) ([]*Model, error) {
+	var ret []*Model
+	mod := &Model{
+		name: name,
+	}
 
 	buf := bytes.NewReader(data)
 	h := header{}
@@ -137,7 +137,7 @@ func load(name string, data []byte) ([]*qm.QModel, error) {
 		}
 		mod.ClipNodes = mcn
 
-		mod.Entities = qm.ParseEntities(fs(h.Entities, data))
+		mod.Entities = ParseEntities(fs(h.Entities, data))
 
 		submod, err := loadSubmodels(fs(h.Models, data))
 		if err != nil {
@@ -162,7 +162,7 @@ func load(name string, data []byte) ([]*qm.QModel, error) {
 		for i, sub := range mod.Submodels {
 			m := *mod
 			if i > 0 {
-				m.SetName(fmt.Sprintf("*%d", i))
+				m.name = fmt.Sprintf("*%d", i)
 			}
 			m.Hulls[0].FirstClipNode = sub.HeadNode[0]
 			for j := 1; j < 4; j++ {
@@ -172,8 +172,8 @@ func load(name string, data []byte) ([]*qm.QModel, error) {
 			// TODO
 			// m.FirstModelSurface = sub.FirstFace
 			// m.NumModelSurfaces = sub.FaceCount
-			m.SetMins(sub.Mins)
-			m.SetMaxs(sub.Maxs)
+			m.mins = sub.Mins
+			m.maxs = sub.Maxs
 			// TODO: calc rotate and yaw bounds
 			// if i > 0 || mod.Name == SV_ModelName {
 			// Why should this not be set for sv.worldmodel?
@@ -198,10 +198,10 @@ func load(name string, data []byte) ([]*qm.QModel, error) {
 	return ret, nil
 }
 
-func buildPlanes(pls []*plane) []*qm.Plane {
-	ret := make([]*qm.Plane, 0, len(pls))
+func buildPlanes(pls []*plane) []*Plane {
+	ret := make([]*Plane, 0, len(pls))
 	for _, pl := range pls {
-		ret = append(ret, &qm.Plane{
+		ret = append(ret, &Plane{
 			Normal: vec.Vec3{pl.Normal[0], pl.Normal[1], pl.Normal[2]},
 			Dist:   pl.Distance,
 			Type:   byte(pl.Type),
@@ -241,7 +241,7 @@ const (
 	texMissing
 )
 
-func loadTexInfo(data []byte, textures []*qm.Texture) ([]*qm.TexInfo, error) {
+func loadTexInfo(data []byte, textures []*Texture) ([]*TexInfo, error) {
 	type texInfo struct {
 		V      [2][4]float32
 		MipTex uint32
@@ -253,7 +253,7 @@ func loadTexInfo(data []byte, textures []*qm.Texture) ([]*qm.TexInfo, error) {
 	}
 	buf := bytes.NewReader(data)
 	count := len(data) / texInfoSize
-	t := make([]*qm.TexInfo, count)
+	t := make([]*TexInfo, count)
 
 	missing := 0
 	var ti texInfo
@@ -262,7 +262,7 @@ func loadTexInfo(data []byte, textures []*qm.Texture) ([]*qm.TexInfo, error) {
 		if err != nil {
 			return nil, fmt.Errorf("loadTexInfo: %v", err)
 		}
-		qti := &qm.TexInfo{
+		qti := &TexInfo{
 			Vecs:  ti.V,
 			Flags: ti.Flags,
 		}
@@ -281,13 +281,13 @@ func loadTexInfo(data []byte, textures []*qm.Texture) ([]*qm.TexInfo, error) {
 		t[i] = qti
 	}
 	if missing > 0 {
-		log.Printf("Mod_LoadTexinfo: %i texture(s) missing from BSP file", missing)
+		log.Printf("Mod_LoadTexinfo: %d texture(s) missing from BSP file", missing)
 	}
 	return t, nil
 }
 
-func buildMarkSurfacesV0(marks []int, surfaces []*qm.Surface) ([]*qm.Surface, error) {
-	ret := make([]*qm.Surface, 0, len(marks))
+func buildMarkSurfacesV0(marks []int, surfaces []*Surface) ([]*Surface, error) {
+	ret := make([]*Surface, 0, len(marks))
 	for _, m := range marks {
 		if m >= len(surfaces) {
 			return nil, fmt.Errorf("MarkSurfaces out of bounds")
@@ -314,7 +314,7 @@ func loadFacesV0(data []byte) ([]*faceV0, error) {
 	}
 }
 
-func buildSurfacesV0(f []*faceV0, plane []*qm.Plane, texinfo []*qm.TexInfo) ([]*qm.Surface, error) {
+func buildSurfacesV0(f []*faceV0, plane []*Plane, texinfo []*TexInfo) ([]*Surface, error) {
 	// faceV0 {
 	// PlaneID int16
 	// Side int16
@@ -324,9 +324,9 @@ func buildSurfacesV0(f []*faceV0, plane []*qm.Plane, texinfo []*qm.TexInfo) ([]*
 	// LightStyle [4]uint8
 	// LightMap int32
 	// }
-	ret := make([]*qm.Surface, 0, len(f))
+	ret := make([]*Surface, 0, len(f))
 	for range /*sf*/ f {
-		nsf := &qm.Surface{
+		nsf := &Surface{
 			// PlaneID int32
 			// Side int32
 			// ListEdgeID int32
@@ -371,8 +371,8 @@ func loadMarkSurfacesV0(data []byte) ([]int, error) {
 	}
 }
 
-func buildLeafsV0(ls []*leafV0, ms []*qm.Surface, vd []byte) ([]*qm.MLeaf, error) {
-	ret := make([]*qm.MLeaf, 0, len(ls))
+func buildLeafsV0(ls []*leafV0, ms []*Surface, vd []byte) ([]*MLeaf, error) {
+	ret := make([]*MLeaf, 0, len(ls))
 	for _, l := range ls {
 		nv := func() []byte {
 			if l.VisOfs == -1 {
@@ -380,8 +380,8 @@ func buildLeafsV0(ls []*leafV0, ms []*qm.Surface, vd []byte) ([]*qm.MLeaf, error
 			}
 			return vd[l.VisOfs:]
 		}()
-		nl := &qm.MLeaf{
-			NodeBase: qm.NewNodeBase(int(l.Type), 0, [6]float32{
+		nl := &MLeaf{
+			NodeBase: NewNodeBase(int(l.Type), 0, [6]float32{
 				float32(l.Box[0]), float32(l.Box[1]), float32(l.Box[2]),
 				float32(l.Box[3]), float32(l.Box[4]), float32(l.Box[5])}),
 			CompressedVis:     nv,
@@ -410,11 +410,11 @@ func loadLeafsV0(data []byte) ([]*leafV0, error) {
 	}
 }
 
-func buildNodesV0(nd []*nodeV0, leafs []*qm.MLeaf, planes []*qm.Plane) ([]*qm.MNode, error) {
-	ret := make([]*qm.MNode, 0, len(nd))
+func buildNodesV0(nd []*nodeV0, leafs []*MLeaf, planes []*Plane) ([]*MNode, error) {
+	ret := make([]*MNode, 0, len(nd))
 	for _, n := range nd {
-		nn := &qm.MNode{
-			NodeBase: qm.NewNodeBase(0, 0, [6]float32{
+		nn := &MNode{
+			NodeBase: NewNodeBase(0, 0, [6]float32{
 				float32(n.Box[0]), float32(n.Box[1]), float32(n.Box[2]),
 				float32(n.Box[3]), float32(n.Box[4]), float32(n.Box[5])}),
 			// Children:  delay untill we got all nodes
@@ -424,7 +424,7 @@ func buildNodesV0(nd []*nodeV0, leafs []*qm.MLeaf, planes []*qm.Plane) ([]*qm.MN
 		}
 		ret = append(ret, nn)
 	}
-	getChild := func(id uint16) qm.Node {
+	getChild := func(id uint16) Node {
 		if int(id) < len(ret) {
 			return ret[id]
 		}
@@ -460,13 +460,13 @@ func loadNodesV0(data []byte) ([]*nodeV0, error) {
 	}
 }
 
-func buildClipNodesV0(scns []*clipNodeV0, pls []*qm.Plane) ([]*qm.ClipNode, error) {
-	ret := make([]*qm.ClipNode, 0, len(scns))
+func buildClipNodesV0(scns []*clipNodeV0, pls []*Plane) ([]*ClipNode, error) {
+	ret := make([]*ClipNode, 0, len(scns))
 	for _, scn := range scns {
 		if scn.PlaneNumber < 0 || int(scn.PlaneNumber) >= len(pls) {
 			return nil, fmt.Errorf("buildClipNodesV0, planenum out of bounds")
 		}
-		cn := &qm.ClipNode{
+		cn := &ClipNode{
 			Plane:    pls[int(scn.PlaneNumber)],
 			Children: [2]int{int(scn.Children[0]), int(scn.Children[1])},
 		}
@@ -501,11 +501,11 @@ func loadClipNodesV0(data []byte) ([]*clipNodeV0, error) {
 // func loadEntities(fs(h.Entities , data),ret)
 // func loadModes(fs(h.Models , data),ret)
 // func makeHull0(ret) {
-func makeHulls(hs *[4]qm.Hull, cns []*qm.ClipNode, pns []*qm.Plane, ns []*qm.MNode) {
-	hs[0].ClipNodes = make([]*qm.ClipNode, 0, len(ns))
+func makeHulls(hs *[4]Hull, cns []*ClipNode, pns []*Plane, ns []*MNode) {
+	hs[0].ClipNodes = make([]*ClipNode, 0, len(ns))
 
-	getNodeNum := func(qn qm.Node) int {
-		node, ok := qn.(*qm.MNode)
+	getNodeNum := func(qn Node) int {
+		node, ok := qn.(*MNode)
 		if !ok {
 			return qn.Contents()
 		}
@@ -519,7 +519,7 @@ func makeHulls(hs *[4]qm.Hull, cns []*qm.ClipNode, pns []*qm.Plane, ns []*qm.MNo
 	}
 
 	for _, cn := range ns {
-		hs[0].ClipNodes = append(hs[0].ClipNodes, &qm.ClipNode{
+		hs[0].ClipNodes = append(hs[0].ClipNodes, &ClipNode{
 			Plane:    cn.Plane,
 			Children: [2]int{getNodeNum(cn.Children[0]), getNodeNum(cn.Children[1])},
 		})
@@ -562,7 +562,7 @@ func loadSubmodels(data []byte) ([]*model, error) {
 	}
 }
 
-func buildSubmodels(mod []*model) ([]*qm.Submodel, error) {
+func buildSubmodels(mod []*model) ([]*Submodel, error) {
 	if len(mod) == 0 {
 		return nil, fmt.Errorf("No model found")
 	}
@@ -574,9 +574,9 @@ func buildSubmodels(mod []*model) ([]*qm.Submodel, error) {
 	if mod[0].VisLeafCount > 8192 {
 		log.Printf("%d visleafs exceeds standard limit of 8192", mod[0].VisLeafCount)
 	}
-	ret := make([]*qm.Submodel, 0, len(mod))
+	ret := make([]*Submodel, 0, len(mod))
 	for _, m := range mod {
-		ret = append(ret, &qm.Submodel{
+		ret = append(ret, &Submodel{
 			// Therjak: orig reduces mins and extends max by 1, here it breaks stuff. Why?
 			Mins:   vec.Vec3{m.BoundingBox[0] - 1, m.BoundingBox[1] - 1, m.BoundingBox[2] - 1},
 			Maxs:   vec.Vec3{m.BoundingBox[3] + 1, m.BoundingBox[4] + 1, m.BoundingBox[5] + 1},
@@ -593,19 +593,19 @@ func buildSubmodels(mod []*model) ([]*qm.Submodel, error) {
 }
 
 var (
-	noTextureMip = &qm.Texture{
+	noTextureMip = &Texture{
 		Name:   "notexture",
 		Width:  32,
 		Height: 32,
 	}
-	noTextureMip2 = &qm.Texture{
+	noTextureMip2 = &Texture{
 		Name:   "notexture2",
 		Width:  32,
 		Height: 32,
 	}
 )
 
-func loadTextures(data []byte) ([]*qm.Texture, error) {
+func loadTextures(data []byte) ([]*Texture, error) {
 	numTex := int32(0)
 	buf := bytes.NewReader(data)
 	err := binary.Read(buf, binary.LittleEndian, &numTex)
@@ -613,9 +613,9 @@ func loadTextures(data []byte) ([]*qm.Texture, error) {
 		return nil, nil
 	}
 	// Need 2 dummy textures to handle missing ones
-	t := make([]*qm.Texture, numTex+2)
+	t := make([]*Texture, numTex+2)
 	for i := int32(0); i < numTex; i++ {
-		t[i] = &qm.Texture{}
+		t[i] = &Texture{}
 	}
 	t[len(t)-1] = noTextureMip  // lightmapped surfs
 	t[len(t)-2] = noTextureMip2 // SURF_DRAWTILED surfs
@@ -631,7 +631,7 @@ func loadTextures(data []byte) ([]*qm.Texture, error) {
 	return t, nil
 }
 
-func loadEdgesV0(data []byte) ([]*qm.MEdge, error) {
+func loadEdgesV0(data []byte) ([]*MEdge, error) {
 	type dsedge struct {
 		V [2]uint16
 	}
@@ -641,14 +641,14 @@ func loadEdgesV0(data []byte) ([]*qm.MEdge, error) {
 	}
 	buf := bytes.NewReader(data)
 	count := len(data) / dsedgeSize
-	t := make([]*qm.MEdge, count)
+	t := make([]*MEdge, count)
 	var dedge dsedge
 	for i := 0; i < count; i++ {
 		err := binary.Read(buf, binary.LittleEndian, &dedge)
 		if err != nil {
 			return nil, fmt.Errorf("loadEdgesV0: %v", err)
 		}
-		edge := &qm.MEdge{}
+		edge := &MEdge{}
 		edge.V[0] = int(dedge.V[0])
 		edge.V[1] = int(dedge.V[1])
 		t[i] = edge
@@ -656,7 +656,7 @@ func loadEdgesV0(data []byte) ([]*qm.MEdge, error) {
 	return t, nil
 }
 
-func loadEdgesV2(data []byte) ([]*qm.MEdge, error) {
+func loadEdgesV2(data []byte) ([]*MEdge, error) {
 	type dledge struct {
 		V [2]uint32
 	}
@@ -666,14 +666,14 @@ func loadEdgesV2(data []byte) ([]*qm.MEdge, error) {
 	}
 	buf := bytes.NewReader(data)
 	count := len(data) / dledgeSize
-	t := make([]*qm.MEdge, count)
+	t := make([]*MEdge, count)
 	var dedge dledge
 	for i := 0; i < count; i++ {
 		err := binary.Read(buf, binary.LittleEndian, &dedge)
 		if err != nil {
 			return nil, fmt.Errorf("loadEdgesV2: %v", err)
 		}
-		edge := &qm.MEdge{}
+		edge := &MEdge{}
 		edge.V[0] = int(dedge.V[0])
 		edge.V[1] = int(dedge.V[1])
 		t[i] = edge
@@ -681,7 +681,7 @@ func loadEdgesV2(data []byte) ([]*qm.MEdge, error) {
 	return t, nil
 }
 
-func loadVertexes(data []byte) ([]*qm.MVertex, error) {
+func loadVertexes(data []byte) ([]*MVertex, error) {
 	type dvertex struct {
 		Point [3]float32
 	}
@@ -691,14 +691,14 @@ func loadVertexes(data []byte) ([]*qm.MVertex, error) {
 	}
 	buf := bytes.NewReader(data)
 	count := len(data) / dvertexSize
-	t := make([]*qm.MVertex, count)
+	t := make([]*MVertex, count)
 	var dv dvertex
 	for i := 0; i < count; i++ {
 		err := binary.Read(buf, binary.LittleEndian, &dv)
 		if err != nil {
 			return nil, fmt.Errorf("loadVertexes: %v", err)
 		}
-		v := &qm.MVertex{}
+		v := &MVertex{}
 		v.Position[0] = dv.Point[0]
 		v.Position[1] = dv.Point[1]
 		v.Position[2] = dv.Point[2]

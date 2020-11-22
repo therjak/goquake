@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/therjak/goquake/bsp"
 	"github.com/therjak/goquake/cbuf"
 	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/cvars"
@@ -805,7 +806,7 @@ func CL_ParseServerInfo() error {
 	}
 
 	// TODO: clean this stuff up
-	cl.worldModel, _ = cl.modelPrecache[0].(*model.QModel)
+	cl.worldModel, _ = cl.modelPrecache[0].(*bsp.Model)
 
 	C.FinishCL_ParseServerInfo()
 

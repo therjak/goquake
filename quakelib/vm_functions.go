@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/therjak/goquake/bsp"
 	"github.com/therjak/goquake/cbuf"
 	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/cvars"
@@ -430,7 +431,7 @@ func (v *virtualMachine) setModel() {
 	mod := sv.models[idx]
 	if mod != nil {
 		if mod.Type() == model.ModBrush {
-			qm, _ := mod.(*model.QModel)
+			qm, _ := mod.(*bsp.Model)
 			// log.Printf("ModBrush")
 			// log.Printf("mins: %v, maxs: %v", mod.ClipMins, mod.ClipMaxs)
 			setMinMaxSize(ev, qm.ClipMins, qm.ClipMaxs)
@@ -656,7 +657,7 @@ var (
 )
 
 func init() {
-	checkpvs = make([]byte, model.MAX_MAP_LEAFS/8)
+	checkpvs = make([]byte, bsp.MaxMapLeafs/8)
 }
 
 func (v *virtualMachine) newcheckclient(check int) int {

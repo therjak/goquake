@@ -1,4 +1,4 @@
-package model
+package bsp
 
 import (
 	"bytes"
@@ -8,7 +8,7 @@ import (
 	"github.com/therjak/goquake/math/vec"
 )
 
-func (m *QModel) PointInLeaf(p vec.Vec3) (*MLeaf, error) {
+func (m *Model) PointInLeaf(p vec.Vec3) (*MLeaf, error) {
 	if m == nil || len(m.Nodes) == 0 {
 		return nil, fmt.Errorf("Mod_PointInLeaf: bad model")
 	}
@@ -29,7 +29,7 @@ func (m *QModel) PointInLeaf(p vec.Vec3) (*MLeaf, error) {
 	}
 }
 
-func (m *QModel) DecompressVis(in []byte) []byte {
+func (m *Model) DecompressVis(in []byte) []byte {
 	row := (len(m.Leafs) + 6) / 8 // (len(Leafs) - 'leaf[0]' + 7)/8
 
 	if len(in) == 0 {
@@ -53,7 +53,7 @@ func (m *QModel) DecompressVis(in []byte) []byte {
 		} else {
 			i++
 			if i >= len(in) {
-				log.Printf("Faulty vis data in model %s", m.Name)
+				log.Printf("Faulty vis data in model %s", m.Name())
 				break
 			}
 			for c := in[i]; c > 0; c-- {
@@ -75,12 +75,12 @@ var (
 )
 
 func init() {
-	noVis = bytes.Repeat([]byte{0xff}, MAX_MAP_LEAFS/8)
-	decompressedVis = make([]byte, MAX_MAP_LEAFS/8)
-	fatpvs = make([]byte, MAX_MAP_LEAFS/8)
+	noVis = bytes.Repeat([]byte{0xff}, MaxMapLeafs/8)
+	decompressedVis = make([]byte, MaxMapLeafs/8)
+	fatpvs = make([]byte, MaxMapLeafs/8)
 }
 
-func (m *QModel) LeafPVS(leaf *MLeaf) []byte {
+func (m *Model) LeafPVS(leaf *MLeaf) []byte {
 	if leaf == m.Leafs[0] { // Leaf 0 is a solid leaf
 		return noVis
 	}
@@ -93,7 +93,7 @@ or other small motion on the client side.  Otherwise, a bob might cause an
 entity that should be visible to not show up, especially when the bob
 crosses a waterline.
 */
-func (m *QModel) addToFatPVS(org vec.Vec3, n Node, fpvs *[]byte) {
+func (m *Model) addToFatPVS(org vec.Vec3, n Node, fpvs *[]byte) {
 	node := n
 	for {
 		if node.Contents() < 0 {
@@ -122,7 +122,7 @@ func (m *QModel) addToFatPVS(org vec.Vec3, n Node, fpvs *[]byte) {
 
 //Calculates a PVS that is the inclusive or of all leafs within 8 pixels of the
 //given point.
-func (m *QModel) FatPVS(org vec.Vec3) []byte {
+func (m *Model) FatPVS(org vec.Vec3) []byte {
 	fatbytes := (len(m.Leafs) + 6) / 8 // (len(Leafs) - 'leaf[0]' + 7)/8
 	pvs := fatpvs[:fatbytes]
 	for i := range pvs {

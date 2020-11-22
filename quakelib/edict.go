@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/therjak/goquake/bsp"
 	"github.com/therjak/goquake/cmd"
 	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/math"
 	"github.com/therjak/goquake/math/vec"
-	"github.com/therjak/goquake/model"
 	"github.com/therjak/goquake/progs"
 )
 
@@ -226,7 +226,7 @@ func UpdateEdictAlpha(ent int) {
 	edictNum(ent).Alpha = entAlphaEncode(v)
 }
 
-func parse(ed int, data *model.Entity) {
+func parse(ed int, data *bsp.Entity) {
 	if ed != 0 {
 		ClearEntVars(ed)
 	}
@@ -273,7 +273,7 @@ const (
 //
 //Used for both fresh maps and savegame loads.  A fresh map would also need
 //to call ED_CallSpawnFunctions () to let the objects initialize themselves.
-func loadEntities(data []*model.Entity) {
+func loadEntities(data []*bsp.Entity) {
 	progsdat.Globals.Time = sv.time
 	inhibit := 0
 	eNr := -1

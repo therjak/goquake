@@ -3,9 +3,9 @@ package quakelib
 import (
 	"math/rand"
 
+	"github.com/therjak/goquake/bsp"
 	"github.com/therjak/goquake/math"
 	"github.com/therjak/goquake/math/vec"
-	"github.com/therjak/goquake/model"
 	"github.com/therjak/goquake/progs"
 
 	"github.com/chewxy/math32"
@@ -41,7 +41,7 @@ func (v *virtualMachine) monsterMoveStep(ent int, move vec.Vec3, relink bool) bo
 			trace := svMove(origin, mins, maxs, neworg, MOVE_NORMAL, ent)
 			if trace.Fraction == 1 {
 				endpos := trace.EndPos
-				if flags&FL_SWIM != 0 && pointContents(endpos) == model.CONTENTS_EMPTY {
+				if flags&FL_SWIM != 0 && pointContents(endpos) == bsp.CONTENTS_EMPTY {
 					// swim monster left water
 					return false
 				}

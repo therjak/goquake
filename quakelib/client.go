@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/chewxy/math32"
+	"github.com/therjak/goquake/bsp"
 	"github.com/therjak/goquake/cbuf"
 	"github.com/therjak/goquake/cmd"
 	cmdl "github.com/therjak/goquake/commandline"
@@ -216,7 +217,7 @@ type Client struct {
 
 	mapName       string
 	levelName     string
-	worldModel    *model.QModel
+	worldModel    *bsp.Model
 	modelPrecache []model.Model
 
 	maxClients int
@@ -1288,11 +1289,11 @@ var (
 
 func (c *Client) setContentsColor(con int) {
 	switch con {
-	case model.CONTENTS_EMPTY, model.CONTENTS_SOLID, model.CONTENTS_SKY:
+	case bsp.CONTENTS_EMPTY, bsp.CONTENTS_SOLID, bsp.CONTENTS_SKY:
 		c.colorShifts[ColorShiftContents] = cshiftEmpty
-	case model.CONTENTS_LAVA:
+	case bsp.CONTENTS_LAVA:
 		c.colorShifts[ColorShiftContents] = cshiftLava
-	case model.CONTENTS_SLIME:
+	case bsp.CONTENTS_SLIME:
 		c.colorShifts[ColorShiftContents] = cshiftSlime
 	default:
 		c.colorShifts[ColorShiftContents] = cshiftWater

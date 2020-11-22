@@ -99,7 +99,7 @@ type Server struct {
 	modelName string // maps/<name>.bsp, for model_precache[0]
 
 	models     []model.Model
-	worldModel *model.QModel
+	worldModel *bsp.Model
 }
 
 var (

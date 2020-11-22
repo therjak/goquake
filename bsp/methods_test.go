@@ -1,4 +1,4 @@
-package model
+package bsp
 
 import (
 	"bytes"
@@ -6,7 +6,7 @@ import (
 )
 
 func TestVisDecompress(t *testing.T) {
-	m := QModel{
+	m := Model{
 		Leafs: make([](*MLeaf), 12*8),
 	}
 	in := []byte{0x7, 0x0, 0x5, 0x5, 0x0, 0x3, 0x1, 0x1}

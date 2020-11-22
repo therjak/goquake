@@ -5,6 +5,7 @@ import (
 	"log"
 	"runtime/debug"
 
+	"github.com/therjak/goquake/bsp"
 	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/math"
 	"github.com/therjak/goquake/math/vec"
@@ -269,8 +270,8 @@ func (v *virtualMachine) LinkEdict(e int, touchTriggers bool) {
 	}
 }
 
-func findTouchedLeafs(e int, node model.Node, world *model.QModel) {
-	if node.Contents() == model.CONTENTS_SOLID {
+func findTouchedLeafs(e int, node bsp.Node, world *bsp.Model) {
+	if node.Contents() == bsp.CONTENTS_SOLID {
 		return
 	}
 	if node.Contents() < 0 {
@@ -279,7 +280,7 @@ func findTouchedLeafs(e int, node model.Node, world *model.QModel) {
 		if ed.num_leafs == MAX_ENT_LEAFS {
 			return
 		}
-		leaf := node.(*model.MLeaf)
+		leaf := node.(*bsp.MLeaf)
 		leafNum := -2
 		for i, l := range world.Leafs {
 			if l == leaf {
@@ -295,7 +296,7 @@ func findTouchedLeafs(e int, node model.Node, world *model.QModel) {
 		ed.num_leafs++
 		return
 	}
-	n := node.(*model.MNode)
+	n := node.(*bsp.MNode)
 	splitplane := n.Plane
 	ev := EntVars(e)
 	sides := boxOnPlaneSide(vec.VFromA(ev.AbsMin), vec.VFromA(ev.AbsMax), splitplane)
@@ -307,7 +308,7 @@ func findTouchedLeafs(e int, node model.Node, world *model.QModel) {
 	}
 }
 
-func boxOnPlaneSide(mins, maxs vec.Vec3, p *model.Plane) int {
+func boxOnPlaneSide(mins, maxs vec.Vec3, p *bsp.Plane) int {
 	if p.Type < 3 {
 		if p.Dist <= mins[int(p.Type)] {
 			return 1
@@ -445,22 +446,22 @@ func clipToLinks(a *areaNode, clip *moveClip) {
 }
 
 var (
-	boxHull model.Hull
+	boxHull bsp.Hull
 )
 
 func initBoxHull() {
-	boxHull.ClipNodes = make([]*model.ClipNode, 6)
-	boxHull.Planes = make([]*model.Plane, 6)
+	boxHull.ClipNodes = make([]*bsp.ClipNode, 6)
+	boxHull.Planes = make([]*bsp.Plane, 6)
 	boxHull.FirstClipNode = 0
 	boxHull.LastClipNode = 5
 	for i := 0; i < 6; i++ {
-		boxHull.ClipNodes[i] = &model.ClipNode{}
-		boxHull.Planes[i] = &model.Plane{}
+		boxHull.ClipNodes[i] = &bsp.ClipNode{}
+		boxHull.Planes[i] = &bsp.Plane{}
 		boxHull.ClipNodes[i].Plane = boxHull.Planes[i]
 		side := i & 1
-		boxHull.ClipNodes[i].Children[side] = model.CONTENTS_EMPTY
+		boxHull.ClipNodes[i].Children[side] = bsp.CONTENTS_EMPTY
 		if i == 5 {
-			boxHull.ClipNodes[i].Children[side^1] = model.CONTENTS_SOLID
+			boxHull.ClipNodes[i].Children[side^1] = bsp.CONTENTS_SOLID
 		} else {
 			boxHull.ClipNodes[i].Children[side^1] = i + 1
 		}
@@ -476,7 +477,7 @@ func initBoxHull() {
 	}
 }
 
-func hullForBox(mins, maxs vec.Vec3) *model.Hull {
+func hullForBox(mins, maxs vec.Vec3) *bsp.Hull {
 	boxHull.Planes[0].Dist = maxs[0]
 	boxHull.Planes[1].Dist = mins[0]
 	boxHull.Planes[2].Dist = maxs[1]
@@ -486,7 +487,7 @@ func hullForBox(mins, maxs vec.Vec3) *model.Hull {
 	return &boxHull
 }
 
-func hullForEntity(ent *progs.EntVars, mins, maxs vec.Vec3) (*model.Hull, vec.Vec3) {
+func hullForEntity(ent *progs.EntVars, mins, maxs vec.Vec3) (*bsp.Hull, vec.Vec3) {
 	if ent.Solid == SOLID_BSP {
 		if ent.MoveType != progs.MoveTypePush {
 			Error("SOLID_BSP without MOVETYPE_PUSH")
@@ -495,12 +496,12 @@ func hullForEntity(ent *progs.EntVars, mins, maxs vec.Vec3) (*model.Hull, vec.Ve
 		if m == nil || m.Type() != model.ModBrush {
 			Error("MOVETYPE_PUSH with a non bsp model")
 		}
-		qm, ok := m.(*model.QModel)
+		qm, ok := m.(*bsp.Model)
 		if !ok {
 			Error("MOVETYPE_PUSH with a non bsp model")
 		}
 		s := maxs[0] - mins[0]
-		h := func() *model.Hull {
+		h := func() *bsp.Hull {
 			if s < 3 {
 				return &qm.Hulls[0]
 			} else if s <= 32 {
@@ -517,7 +518,7 @@ func hullForEntity(ent *progs.EntVars, mins, maxs vec.Vec3) (*model.Hull, vec.Ve
 	return hullForBox(hullmins, hullmaxs), origin
 }
 
-func hullPointContents(h *model.Hull, num int, p vec.Vec3) int {
+func hullPointContents(h *bsp.Hull, num int, p vec.Vec3) int {
 	for num >= 0 {
 		if num < h.FirstClipNode || num > h.LastClipNode {
 			Error("SV_HullPointContents: bad node number")
@@ -544,11 +545,11 @@ func pointContents(p vec.Vec3) int {
 	return hullPointContents(&sv.worldModel.Hulls[0], 0, p)
 }
 
-func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 vec.Vec3, trace *trace) bool {
+func recursiveHullCheck(h *bsp.Hull, num int, p1f, p2f float32, p1, p2 vec.Vec3, trace *trace) bool {
 	if num < 0 { // check for empty
-		if num != model.CONTENTS_SOLID {
+		if num != bsp.CONTENTS_SOLID {
 			trace.AllSolid = false
-			if num == model.CONTENTS_EMPTY {
+			if num == bsp.CONTENTS_EMPTY {
 				trace.InOpen = true
 			} else {
 				trace.InWater = true
@@ -601,7 +602,7 @@ func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 vec.Vec
 	if !recursiveHullCheck(h, node.Children[side], p1f, midf, p1, mid, trace) {
 		return false
 	}
-	if hullPointContents(h, node.Children[side^1], mid) != model.CONTENTS_SOLID {
+	if hullPointContents(h, node.Children[side^1], mid) != bsp.CONTENTS_SOLID {
 		return recursiveHullCheck(h, node.Children[side^1], midf, p2f, mid, p2, trace)
 	}
 	if trace.AllSolid {
@@ -615,7 +616,7 @@ func recursiveHullCheck(h *model.Hull, num int, p1f, p2f float32, p1, p2 vec.Vec
 		trace.Plane.Normal = vec.Sub(vec.Vec3{}, plane.Normal)
 		trace.Plane.Distance = -plane.Dist
 	}
-	for hullPointContents(h, h.FirstClipNode, mid) == model.CONTENTS_SOLID {
+	for hullPointContents(h, h.FirstClipNode, mid) == bsp.CONTENTS_SOLID {
 		// shouldn't really happen, but does occasionally
 		frac -= 0.1
 		if frac < 0 {
@@ -720,7 +721,7 @@ func checkBottom(ent int) bool {
 		{maxs[0], maxs[1], mins[2] - 1},
 	}
 	for _, start := range d {
-		if pointContents(start) != model.CONTENTS_SOLID {
+		if pointContents(start) != bsp.CONTENTS_SOLID {
 			return expensiveCheckBottom(ent, mins, maxs)
 		}
 	}
