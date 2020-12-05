@@ -71,7 +71,11 @@ func load(name string, data []byte) ([]*Model, error) {
 			return nil, err
 		}
 		mod.Edges = edges
-		// TODO: loadSurfaceEdges(fs(h.SurfaceEdges, data),ret)
+		surfaceEdges, err := loadSurfaceEdges(fs(h.SurfaceEdges, data))
+		if err != nil {
+			return nil, err
+		}
+		mod.SurfaceEdges = surfaceEdges
 		textures, err := loadTextures(fs(h.Textures, data))
 		if err != nil {
 			return nil, err
@@ -706,4 +710,19 @@ func loadVertexes(data []byte) ([]*MVertex, error) {
 	}
 	return t, nil
 
+}
+
+func loadSurfaceEdges(data []byte) ([]int32, error) {
+	const sizeofInt32 = 4
+	if len(data)%sizeofInt32 != 0 {
+		return nil, fmt.Errorf("MOD_LoadBmodel: funny lump size")
+	}
+	buf := bytes.NewReader(data)
+	count := len(data) / sizeofInt32
+	out := make([]int32, count)
+	err := binary.Read(buf, binary.LittleEndian, &out)
+	if err != nil {
+		return nil, fmt.Errorf("loudSurfaceEdges: %v", err)
+	}
+	return out, nil
 }

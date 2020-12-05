@@ -211,7 +211,7 @@ type Model struct {
 	Nodes        []*MNode
 	TexInfos     []*TexInfo
 	Surfaces     []*Surface
-	SurfaceEdges []int
+	SurfaceEdges []int32
 	ClipNodes    []*ClipNode
 	MarkSurfaces []*Surface
 	Textures     []*Texture
