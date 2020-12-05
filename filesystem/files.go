@@ -100,3 +100,25 @@ func GetFileContents(name string) ([]byte, error) {
 	defer file.Close()
 	return ioutil.ReadAll(file)
 }
+
+func isSep(c uint8) bool {
+	return c == '/' || c == '\\'
+}
+
+func Ext(path string) string {
+	for i := len(path) - 1; i >= 0 && !isSep(path[i]); i-- {
+		if path[i] == '.' {
+			return path[i:]
+		}
+	}
+	return ""
+}
+
+func StripExt(path string) string {
+	for i := len(path) - 1; i >= 0 && !isSep(path[i]); i-- {
+		if path[i] == '.' {
+			return path[:i]
+		}
+	}
+	return path
+}

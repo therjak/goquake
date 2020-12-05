@@ -71,3 +71,46 @@ func TestFilesystemOs(t *testing.T) {
 	}
 
 }
+
+func TestExt(t *testing.T) {
+	for _, tt := range []struct {
+		in  string
+		out string
+	}{
+		{"blub", ""},
+		{"blub.txt", ".txt"},
+		{"blah.c/blub", ""},
+		{"blah.c/blub.h", ".h"},
+		{"blah.c\\blub", ""},
+		{"blah.c\\blub.h", ".h"},
+	} {
+		t.Run(tt.in, func(t *testing.T) {
+			s := Ext(tt.in)
+			if s != tt.out {
+				t.Errorf("got %q, want %q", s, tt.out)
+			}
+		})
+	}
+}
+
+func TestStripExt(t *testing.T) {
+	for _, tt := range []struct {
+		in  string
+		out string
+	}{
+		{"blub", "blub"},
+		{"blub.txt", "blub"},
+		{"blah.c/blub", "blah.c/blub"},
+		{"blah.c/blub.h", "blah.c/blub"},
+		{"blah.c\\blub", "blah.c\\blub"},
+		{"blah.c\\blub.h", "blah.c\\blub"},
+	} {
+		t.Run(tt.in, func(t *testing.T) {
+			s := StripExt(tt.in)
+			if s != tt.out {
+				t.Errorf("got %q, want %q", s, tt.out)
+			}
+		})
+	}
+
+}
