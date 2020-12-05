@@ -22,6 +22,7 @@ const (
 	bspVersion      = 29
 	bsp2Version2psb = 'B'<<24 | 'S'<<16 | 'P'<<8 | '2'
 	bsp2Versionbsp2 = '2'<<24 | 'P'<<16 | 'S'<<8 | 'B'
+	qlit            = 'Q' | 'L'<<8 | 'I'<<16 | 'T'<<24
 )
 
 func Load(name string) ([]*Model, error) {
@@ -81,7 +82,7 @@ func load(name string, data []byte) ([]*Model, error) {
 			return nil, err
 		}
 		mod.Textures = textures
-		// TODO: loadLighting(fs(h.Lighting, data),ret)
+		mod.LightData = loadLighting(fs(h.Lighting, data), name)
 		splanes, err := loadPlanes(fs(h.Planes, data))
 		if err != nil {
 			return nil, err
@@ -725,4 +726,27 @@ func loadSurfaceEdges(data []byte) ([]int32, error) {
 		return nil, fmt.Errorf("loudSurfaceEdges: %v", err)
 	}
 	return out, nil
+}
+
+func loadLighting(data []byte, name string) []byte {
+	litName := filesystem.StripExt(name) + ".lit"
+	litData, err := filesystem.GetFileContents(litName)
+	if err != nil && len(litData) > 8 {
+		buf := bytes.NewReader(litData)
+		var magic uint32
+		var version int32
+		binary.Read(buf, binary.LittleEndian, &magic)
+		binary.Read(buf, binary.LittleEndian, &version)
+		if magic == qlit && version == 1 {
+			return litData[8:]
+		}
+	}
+	if len(data) == 0 {
+		return nil
+	}
+	out := make([]byte, 0, len(data)*3)
+	for _, d := range data {
+		out = append(out, d, d, d)
+	}
+	return out
 }

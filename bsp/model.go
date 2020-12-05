@@ -218,8 +218,9 @@ type Model struct {
 
 	FrameCount int // numframes
 
-	Hulls   [MaxMapHulls]Hull
-	VisData []byte
+	Hulls     [MaxMapHulls]Hull
+	VisData   []byte
+	LightData []byte
 
 	Entities []*Entity
 
