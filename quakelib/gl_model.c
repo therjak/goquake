@@ -327,10 +327,6 @@ qboolean Mod_CheckFullbrights(byte *pixels, int count) {
   return false;
 }
 
-void Sky_LoadTexture(texture_t *mt, const char *loadmodelname) {
-  SkyLoadTexture((byte*)mt+mt->offsets[0], mt->name, loadmodelname);
-}
-
 /*
 =================
 Mod_LoadTextures
@@ -411,10 +407,10 @@ void Mod_LoadTextures(lump_t *l) {
     // johnfitz -- lots of changes
     if (!CMLDedicated())  // no texture uploading for dedicated server
     {
-      if (!q_strncasecmp(tx->name, "sky", 3))  // sky texture //also note -- was
-                                               // Q_strncmp, changed to match
-                                               // qbsp
-        Sky_LoadTexture(tx, loadmodel->name);
+      if (!q_strncasecmp(tx->name, "sky", 3)) {
+        // sky texture //also note -- was Q_strncmp, changed to match qbsp
+        SkyLoadTexture((byte*)tx+tx->offsets[0], tx->name, loadmodel->name);
+      }
       else if (tx->name[0] == '*')  // warping texture
       {
         // external textures -- first look in "textures/mapname/" then look in
@@ -918,6 +914,7 @@ Mod_PolyForUnlitSurface -- johnfitz -- creates polys for unlightmapped surfaces
 TODO: merge this into BuildSurfaceDisplayList?
 ================
 */
+// THERJAK
 void Mod_PolyForUnlitSurface(msurface_t *fa) {
   vec3_t verts[64];
   int numverts, i, lindex;
@@ -1041,7 +1038,7 @@ void Mod_LoadFaces(lump_t *l, qboolean bsp2) {
       lofs = LittleLong(ins->lightofs);
       ins++;
     }
-
+// THERJAK: go - buildSurfacesV0
     out->flags = 0;
 
     if (side) out->flags |= SURF_PLANEBACK;
