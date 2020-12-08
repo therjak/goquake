@@ -1,8 +1,6 @@
 package quakelib
 
 import (
-	"math/rand"
-
 	"github.com/therjak/goquake/bsp"
 	"github.com/therjak/goquake/math"
 	"github.com/therjak/goquake/math/vec"
@@ -233,7 +231,7 @@ func (v *virtualMachine) monsterNewChaseDir(a, e int, dist float32) {
 		}
 	}
 	// try other directions
-	if rand.Intn(2) == 0 ||
+	if sRand.Uint32n(2) == 0 ||
 		// TODO: Abs(Trunc seems overkill
 		math32.Abs(math32.Trunc(deltay)) > math32.Abs(math32.Trunc(deltax)) {
 		tdir = d1
@@ -254,7 +252,7 @@ func (v *virtualMachine) monsterNewChaseDir(a, e int, dist float32) {
 	}
 
 	// randomly determine direction of search
-	if rand.Intn(2) == 0 {
+	if sRand.Uint32n(2) == 0 {
 		for tdir = 0; tdir <= 315; tdir += 45 {
 			if tdir != turnaround && v.monsterStepDirection(a, tdir, dist) {
 				return
@@ -313,7 +311,7 @@ func (v *virtualMachine) monsterMoveToGoal() {
 	}
 
 	// bump around...
-	if rand.Intn(3) == 0 ||
+	if sRand.Uint32n(3) == 0 ||
 		!v.monsterStepDirection(ent, ev.IdealYaw, dist) {
 		v.monsterNewChaseDir(ent, goal, dist)
 	}

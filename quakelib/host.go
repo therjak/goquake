@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"io/ioutil"
 	"log"
-	"math/rand"
 	"path/filepath"
 	"time"
 
@@ -21,11 +20,13 @@ import (
 	"github.com/therjak/goquake/math"
 	"github.com/therjak/goquake/net"
 	"github.com/therjak/goquake/qtime"
+	"github.com/therjak/goquake/rand"
 	"github.com/therjak/goquake/snd"
 )
 
 var (
-	host = Host{}
+	host  = Host{}
+	sRand = rand.New(0)
 )
 
 type Host struct {
@@ -202,7 +203,7 @@ var (
 // Runs all active servers
 func executeFrame() {
 	// keep the random time dependent
-	rand.Seed(time.Now().UnixNano())
+	sRand.NewSeed(uint32(time.Now().UnixNano()))
 
 	// decide the simulation time
 	if !host.UpdateTime() {

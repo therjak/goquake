@@ -3,7 +3,6 @@ package quakelib
 import (
 	"fmt"
 	"log"
-	"math/rand"
 	"runtime"
 	"strings"
 
@@ -503,7 +502,7 @@ func (v *virtualMachine) vecToAngles() {
 
 // Returns a number from 0 <= num < 1
 func (v *virtualMachine) random() {
-	v.prog.Globals.Returnf()[0] = rand.Float32()
+	v.prog.Globals.Returnf()[0] = sRand.Float32()
 }
 
 func (v *virtualMachine) particle() {

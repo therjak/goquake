@@ -16,7 +16,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
@@ -41,6 +40,7 @@ import (
 	clc "github.com/therjak/goquake/protocol/client"
 	svc "github.com/therjak/goquake/protocol/server"
 	"github.com/therjak/goquake/protos"
+	"github.com/therjak/goquake/rand"
 	"github.com/therjak/goquake/snd"
 	"github.com/therjak/goquake/stat"
 )
@@ -62,6 +62,10 @@ const (
 	ColorShiftDamage
 	ColorShiftBonus
 	ColorShiftPowerup
+)
+
+var (
+	cRand = rand.New(0)
 )
 
 func init() {
@@ -2131,10 +2135,10 @@ func (c *ClientStatic) parseTEnt() error {
 		}
 		particlesRunEffect(pos, vec.Vec3{}, 0, 10, float32(cl.time))
 		s := func() sfx {
-			if rand.Int()%5 != 0 {
+			if cRand.Uint32n(5) != 0 {
 				return Tink1
 			}
-			switch rand.Int() & 3 {
+			switch cRand.Uint32n(4) {
 			case 2:
 				return Ric2
 			default:
@@ -2150,10 +2154,10 @@ func (c *ClientStatic) parseTEnt() error {
 		}
 		particlesRunEffect(pos, vec.Vec3{}, 0, 20, float32(cl.time))
 		s := func() sfx {
-			if rand.Int()%5 != 0 {
+			if cRand.Uint32n(5) != 0 {
 				return Tink1
 			}
-			switch rand.Int() & 3 {
+			switch cRand.Uint32n(4) {
 			case 1:
 				return Ric1
 			case 2:

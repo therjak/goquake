@@ -2,7 +2,6 @@ package quakelib
 
 import (
 	"log"
-	"math/rand"
 
 	"github.com/therjak/goquake/cmd"
 	"github.com/therjak/goquake/commandline"
@@ -204,8 +203,8 @@ func init() {
 		angleVelocities[i] = vec.Vec3{
 			// orig has 0 - 2.55 but this gets multiplied by time and into sin/cos
 			// so there should be no point to do anything fancy
-			rand.Float32(),
-			rand.Float32(),
+			cRand.Float32(),
+			cRand.Float32(),
 			0, // not used
 		}
 	}
@@ -398,9 +397,9 @@ func init() {
 func randVec(r int) vec.Vec3 {
 	d := 2 * r
 	return vec.Vec3{
-		float32((rand.Int() % d) - r),
-		float32((rand.Int() % d) - r),
-		float32((rand.Int() % d) - r),
+		float32(cRand.Intn(d) - r),
+		float32(cRand.Intn(d) - r),
+		float32(cRand.Intn(d) - r),
 	}
 }
 
@@ -416,7 +415,7 @@ func particlesAddExplosion(origin vec.Vec3, now float32) {
 
 		p.dieTime = now + 5
 		p.color = 0x6f
-		p.ramp = float32(rand.Int31() & 3)
+		p.ramp = float32(cRand.Uint32n(4))
 		p.origin = vec.Add(origin, randVec(16))
 		p.velocity = randVec(256)
 		if i&1 == 1 {
@@ -456,17 +455,17 @@ func particlesAddBlobExplosion(origin vec.Vec3, now float32) {
 		p.used = true
 		freeParticles = freeParticles[:l-1]
 
-		p.dieTime = now + 1 + float32(rand.Int31()&8)*0.5
+		p.dieTime = now + 1 + float32(cRand.Uint32n(8))*0.5
 
-		p.ramp = float32(rand.Int31() & 3)
+		p.ramp = float32(cRand.Uint32n(4))
 		p.origin = vec.Add(origin, randVec(16))
 		p.velocity = randVec(256)
 		if i&1 == 1 {
 			p.typ = ParticleTypeBlob
-			p.color = 66 + rand.Int()%6
+			p.color = 66 + cRand.Intn(6)
 		} else {
 			p.typ = ParticleTypeBlob2
-			p.color = 150 + rand.Int()%6
+			p.color = 150 + cRand.Intn(6)
 		}
 	}
 }
@@ -484,7 +483,7 @@ func particlesRunEffect(origin, dir vec.Vec3, color, count int, now float32) {
 		if count == 1024 { // rocket explosion, dead?
 			p.dieTime = now + 5
 			p.color = ramp1[0]
-			p.ramp = float32(rand.Int() & 3)
+			p.ramp = float32(cRand.Uint32n(4))
 			p.origin = vec.Add(origin, randVec(8))
 			p.velocity = randVec(256)
 			if i&1 != 0 {
@@ -493,8 +492,8 @@ func particlesRunEffect(origin, dir vec.Vec3, color, count int, now float32) {
 				p.typ = ParticleTypeExplode2
 			}
 		} else {
-			p.dieTime = now + 0.1*float32((rand.Int()%5))
-			p.color = (color &^ 7) + (rand.Int() & 7)
+			p.dieTime = now + 0.1*float32((cRand.Uint32n(5)))
+			p.color = (color &^ 7) + cRand.Intn(8)
 			p.typ = ParticleTypeSlowGrav
 			p.origin = vec.Add(origin, randVec(8))
 			p.velocity = vec.Scale(15, dir)
@@ -513,22 +512,22 @@ func particlesAddLavaSplash(origin vec.Vec3, now float32) {
 			p.used = true
 			freeParticles = freeParticles[:l-1]
 
-			p.dieTime = now + 2 + float32(rand.Int()&31)*0.02
-			p.color = 224 + (rand.Int() & 7)
+			p.dieTime = now + 2 + float32(cRand.Uint32n(32))*0.02
+			p.color = 224 + cRand.Intn(8)
 			p.typ = ParticleTypeSlowGrav
 
 			dir := vec.Vec3{
-				float32(j*8 + rand.Int()&7),
-				float32(i*8 + rand.Int()&7),
+				float32(j*8 + cRand.Intn(8)),
+				float32(i*8 + cRand.Intn(8)),
 				256,
 			}
 
 			p.origin = vec.Vec3{
 				origin[0] + dir[0],
 				origin[1] + dir[1],
-				origin[2] + float32(rand.Int()&63),
+				origin[2] + float32(cRand.Uint32n(64)),
 			}
-			vel := float32(50 + rand.Int()&63)
+			vel := float32(50 + cRand.Uint32n(64))
 			normalDir := dir.Normalize()
 			p.velocity = *normalDir.Scale(vel)
 		}
@@ -554,8 +553,8 @@ func particlesAddTeleportSplash(origin vec.Vec3, now float32) {
 				p.used = true
 				freeParticles = freeParticles[:l-1]
 
-				p.dieTime = now + 0.2 + float32(rand.Int()&7)*0.02
-				p.color = 7 + (rand.Int() & 7)
+				p.dieTime = now + 0.2 + float32(cRand.Uint32n(8))*0.02
+				p.color = 7 + cRand.Intn(8)
 				p.typ = ParticleTypeSlowGrav
 
 				dir := vec.Vec3{
@@ -565,11 +564,11 @@ func particlesAddTeleportSplash(origin vec.Vec3, now float32) {
 				}
 
 				p.origin = vec.Vec3{
-					origin[0] + float32(i+(rand.Int()&3)),
-					origin[1] + float32(j+(rand.Int()&3)),
-					origin[2] + float32(j+(rand.Int()&3)),
+					origin[0] + float32(i+cRand.Intn(4)),
+					origin[1] + float32(j+cRand.Intn(4)),
+					origin[2] + float32(j+cRand.Intn(4)),
 				}
-				vel := float32(50 + rand.Int()&63)
+				vel := float32(50 + cRand.Uint32n(64))
 				normalDir := dir.Normalize()
 				p.velocity = vec.Scale(vel, normalDir)
 			}
@@ -608,17 +607,17 @@ func particlesAddRocketTrail(start, end vec.Vec3, typ int, now float32) {
 
 		switch typ {
 		case 0: // rocket trail
-			p.ramp = float32(rand.Int() & 3)
+			p.ramp = float32(cRand.Uint32n(4))
 			p.color = ramp3[int(p.ramp)]
 			p.typ = ParticleTypeFire
 			p.origin = vec.Add(start, randVec(3))
 		case 1: //smoke smoke
-			p.ramp = float32((rand.Int() & 3) + 2)
+			p.ramp = float32(cRand.Uint32n(4) + 2)
 			p.color = ramp3[int(p.ramp)]
 			p.typ = ParticleTypeFire
 			p.origin = vec.Add(start, randVec(3))
 		case 2: // blood
-			p.color = 67 + (rand.Int() & 3)
+			p.color = 67 + cRand.Intn(4)
 			p.typ = ParticleTypeGrav
 			p.origin = vec.Add(start, randVec(3))
 		case 3, 5: // tracer
@@ -640,18 +639,18 @@ func particlesAddRocketTrail(start, end vec.Vec3, typ int, now float32) {
 				p.velocity[1] = 30 * v[0]
 			}
 		case 4: // slight blood
-			p.color = 67 + (rand.Int() & 3)
+			p.color = 67 + (cRand.Intn(4))
 			p.typ = ParticleTypeGrav
 			p.origin = vec.Add(start, randVec(3))
 			vl -= 3 // make it 'slight'
 		case 6: // voor trail
-			p.color = 9*16 + 8 + (rand.Int() & 3)
+			p.color = 9*16 + 8 + (cRand.Intn(4))
 			p.typ = ParticleTypeStatic
 			p.dieTime = now + 0.3
 			p.origin = vec.Vec3{
-				start[0] + float32((rand.Int()&15)-8),
-				start[1] + float32((rand.Int()&15)-8),
-				start[2] + float32((rand.Int()&15)-8),
+				start[0] + float32(cRand.Intn(16)-8),
+				start[1] + float32(cRand.Intn(16)-8),
+				start[2] + float32(cRand.Intn(16)-8),
 			}
 		}
 		start.Add(v)
