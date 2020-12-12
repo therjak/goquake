@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 
+	"github.com/chewxy/math32"
 	"github.com/therjak/goquake/filesystem"
 	"github.com/therjak/goquake/math/vec"
 	qm "github.com/therjak/goquake/model"
@@ -101,6 +103,7 @@ func load(name string, data []byte) ([]*Model, error) {
 		if err != nil {
 			return nil, err
 		}
+		calcSurfaceExtras(msurfaces, mod.Vertexes, mod.Edges, mod.SurfaceEdges)
 		mod.Surfaces = msurfaces
 		msurf, err := loadMarkSurfacesV0(fs(h.MarkSurfaces, data))
 		if err != nil {
@@ -319,41 +322,73 @@ func loadFacesV0(data []byte) ([]*faceV0, error) {
 	}
 }
 
-func buildSurfacesV0(f []*faceV0, plane []*Plane, texinfo []*TexInfo) ([]*Surface, error) {
-	// faceV0 {
-	// PlaneID int16
-	// Side int16
-	// ListEdgeID int32
-	// ListEdgeNumber int16
-	// TexInfoID int16
-	// LightStyle [4]uint8
-	// LightMap int32
-	// }
-	ret := make([]*Surface, 0, len(f))
-	for range /*sf*/ f {
-		nsf := &Surface{
-			// PlaneID int32
-			// Side int32
-			// ListEdgeID int32
-			// ListEdgeNumber int32
-			// TextInfoID int32
-			// LightStyle [4]uint8
-			// LightMap  int32
-			//
-			// TODO
-			// firstedge
-			// numedge
-			// plane = plane[sf.planenum]
-			// side
-			// texinfo = textinfo[sf.textinfo]
-			// styles
-			// lightofs
-			// flags = 0
-			// if side != 0 {
-			// flags |= SURF_PLANEBACK
+func calcSurfaceExtras(ss []*Surface, vs []*MVertex, es []*MEdge, ses []int32) {
+	// merged calcsurfaceextents & calcsurfacebounds
+	for _, s := range ss {
+		tex := s.TexInfo
+		mins := [2]float32{math32.MaxFloat32, math.MaxFloat32}
+		maxs := [2]float32{-math32.MaxFloat32, -math32.MaxFloat32}
+		for i := 0; i < s.NumEdges; i++ {
+			v := func() *MVertex {
+				e := ses[s.FirstEdge+i]
+				if e >= 0 {
+					return vs[es[e].V[0]]
+				}
+				return vs[es[-e].V[1]]
+			}()
+			for j := 0; j < 3; j++ {
+				if s.Mins[j] > v.Position[j] {
+					s.Mins[j] = v.Position[j]
+				}
+				if s.Maxs[j] < v.Position[j] {
+					s.Maxs[j] = v.Position[j]
+				}
+			}
+			// This should match a computation done with 80 bit precision to prevent
+			// 'corrupt' looking lightmaps
+			for j := 0; j < 2; j++ {
+				val := float32(
+					float64(v.Position[0])*float64(tex.Vecs[j][0]) +
+						float64(v.Position[1])*float64(tex.Vecs[j][1]) +
+						float64(v.Position[2])*float64(tex.Vecs[j][2]) +
+						float64(tex.Vecs[j][3]))
+				if val < mins[j] {
+					mins[j] = val
+				}
+				if val > maxs[j] {
+					maxs[j] = val
+				}
+			}
 		}
-		// calcsurfaceExtends
-		// caldSurfaceBounds
+		// Despite the claim above the original stored only a limited number of bits
+		// like floor(mins/16)*16 into an int16
+		s.TextureMins = mins
+		s.Extents[0] = maxs[0] - mins[0]
+		s.Extents[1] = maxs[1] - mins[1]
+		// TODO: only if tex.flags TEX_SPECIAL is set Extends may exceed 2k
+	}
+}
+
+func buildSurfacesV0(f []*faceV0, plane []*Plane, texinfo []*TexInfo) ([]*Surface, error) {
+	ret := make([]*Surface, 0, len(f))
+	for _, sf := range /*sf*/ f {
+		nsf := &Surface{
+			Mins:      [3]float32{math32.MaxFloat32, math.MaxFloat32, math32.MaxFloat32},
+			Maxs:      [3]float32{-math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32},
+			FirstEdge: int(sf.ListEdgeID),
+			NumEdges:  int(sf.ListEdgeNumber),
+			Styles:    sf.LightStyle,
+		}
+		if sf.Side != 0 {
+			nsf.Flags = SurfacePlaneBack
+		}
+		nsf.Plane = plane[sf.PlaneID]
+		nsf.TexInfo = texinfo[sf.TexInfoID]
+
+		if sf.LightMap != -1 {
+			// TODO: nsf.Samples = model.lightdata[3*sf.LightMap]
+		}
+		// TODO: TexInfo.Texture.Name switch and the like
 		ret = append(ret, nsf)
 	}
 	return ret, nil

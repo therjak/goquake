@@ -125,9 +125,9 @@ type Surface struct {
 	FirstEdge int
 	NumEdges  int
 
-	TextureMins [2]int16
-	Extents     [2]int16
-	LightS      int // gl lightmap coordinates
+	TextureMins [2]float32 // int16
+	Extents     [2]float32 // int16
+	LightS      int        // gl lightmap coordinates
 	LightT      int
 
 	Polys        *Poly // multiple if warped
@@ -142,7 +142,7 @@ type Surface struct {
 	// DLightBits [(MAX_DLIGHTS + 31)>>5]uint32
 	LightmapTextureNum int
 	// MAXLIGHTMAPS == 4
-	// Styles [MAXLIGHTMAPS]byte
+	Styles [4]byte
 	// CachedLight[MAXLIGHTMAPS] int
 	CachedDLight bool
 	Samples      *byte
