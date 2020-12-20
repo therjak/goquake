@@ -7,9 +7,17 @@ package quakelib
 //extern uint32_t solidskytexture2;
 //extern uint32_t alphaskytexture2;
 //extern float skyfog;
+//extern float skymins[2][6];
+//extern float skymaxs[2][6];
+//extern int rs_brushpasses;
 //void Sky_Init(void);
-//void Sky_DrawSky(void);
 //void Sky_NewMap(void);
+//void Fog_EnableGFog(void);
+//void Fog_DisableGFog(void);
+//void Sky_DrawSkyBox(void);
+//void Sky_ProcessTextureChains(void);
+//void Sky_ProcessEntities(void);
+//void Sky_DrawFace(int axis);
 import "C"
 
 import (
@@ -18,6 +26,8 @@ import (
 	"unsafe"
 
 	"github.com/chewxy/math32"
+	"github.com/go-gl/gl/v4.6-core/gl"
+	"github.com/therjak/goquake/bsp"
 	"github.com/therjak/goquake/cmd"
 	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/cvar"
@@ -80,7 +90,7 @@ func SkyInit() {
 
 //export SkyDrawSky
 func SkyDrawSky() {
-	C.Sky_DrawSky()
+	sky.Draw()
 }
 
 //export SkyNewMap
@@ -340,6 +350,96 @@ func (s *qSky) ClipPoly(vecs []vec.Vec3, stage int) {
 	}
 	s.ClipPoly(newvf, stage+1)
 	s.ClipPoly(newvb, stage+1)
+}
+
+// DrawSkyLayers draws the old-style scrolling cloud layers
+func (s *qSky) DrawSkyLayers() {
+	if cvars.RSkyAlpha.Value() < 1 {
+		// TODO: this needs to go into the shader
+		//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
+		//defer glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE)
+	}
+	for i := 0; i < 6; i++ {
+		if s.mins[0][i] < s.maxs[0][i] && s.mins[1][i] < s.maxs[1][i] {
+			s.DrawFace(i)
+		}
+	}
+}
+
+func (s *qSky) DrawFace(axis int) {
+	C.Sky_DrawFace(C.int(axis))
+}
+
+func (s *qSky) Draw() {
+	// This is Draw called before everything else is drawn
+	s.mins = [2][6]float32{
+		{-math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32},
+		{-math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32}}
+	s.maxs = [2][6]float32{
+		{math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32},
+		{math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32}}
+	C.skymins = [2][6]C.float{
+		{-math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32},
+		{-math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32}}
+	C.skymaxs = [2][6]C.float{
+		{math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32},
+		{math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32}}
+
+	C.Fog_DisableGFog()
+	defer C.Fog_EnableGFog()
+
+	gl.Disable(gl.TEXTURE_2D)
+	// if Fog_GetDensity() > 0
+	// glColor3fv(Fog_GetColor())
+	// else
+	// glColor3fv(skyflatcolor)
+	s.processTextureChains()
+	C.Sky_ProcessEntities()
+	// glColor3fv(1,1,1)
+	gl.Enable(gl.TEXTURE_2D)
+
+	if !cvars.RFastSky.Bool() && !(Fog_GetDensity() > 0 && C.skyfog >= 1) {
+		gl.DepthFunc(gl.GEQUAL)
+		defer gl.DepthFunc(gl.LEQUAL)
+		gl.DepthMask(false)
+		defer gl.DepthMask(true)
+
+		if len(sky.boxName) != 0 {
+			C.Sky_DrawSkyBox()
+		} else {
+			s.DrawSkyLayers()
+		}
+	}
+}
+
+func (s *qSky) processTextureChains() {
+	for _, t := range cl.worldModel.Textures {
+		if t == nil {
+			continue
+		}
+		cw := t.TextureChains[0] // 0 == chain_world
+		if cw == nil || cw.Flags&bsp.SurfaceDrawSky == 0 {
+			continue
+		}
+		for tc := cw; tc != nil; tc = tc.TextureChain {
+			if !tc.Culled {
+				s.processPoly(tc.Polys)
+			}
+		}
+
+	}
+	C.Sky_ProcessTextureChains()
+}
+
+func (s *qSky) processPoly(p *bsp.Poly) {
+	// draw it
+	// DrawGLPoly(p)
+	C.rs_brushpasses++
+
+	// update sky bounds
+	if !cvars.RFastSky.Bool() {
+
+	}
 }
 
 // uses
