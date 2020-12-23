@@ -101,7 +101,7 @@ func LoadPlayerTexture(playerNum int, width, height int, data *C.byte) {
 //export TexMgrLoadImage2
 func TexMgrLoadImage2(name *C.char, width C.int,
 	height C.int, format C.enum_srcformat, data *C.byte, source_file *C.char,
-	source_offset C.src_offset_t, flags C.unsigned) uint32 {
+	flags C.unsigned) uint32 {
 
 	d, ct := func() ([]byte, texture.ColorType) {
 		switch format {

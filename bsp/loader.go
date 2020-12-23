@@ -251,7 +251,7 @@ const (
 
 func loadTexInfo(data []byte, textures []*Texture) ([]*TexInfo, error) {
 	type texInfo struct {
-		V      [2][4]float32
+		V      [2]TexInfoPos
 		MipTex uint32
 		Flags  uint32
 	}
@@ -326,6 +326,17 @@ func calcSurfaceExtras(ss []*Surface, vs []*MVertex, es []*MEdge, ses []int32) {
 	// merged calcsurfaceextents & calcsurfacebounds
 	for _, s := range ss {
 		tex := s.TexInfo
+		texScale := func() float32 {
+			if s.Flags&(SurfaceDrawTurb|SurfaceDrawSky) != 0 {
+				// warp animation
+				return 1 / 128
+			}
+			// to match noTexture mip
+			return 1 / 32
+		}()
+		s.Polys = &Poly{
+			Verts: make([]TexCoord, 0, s.NumEdges),
+		}
 		mins := [2]float32{math32.MaxFloat32, math.MaxFloat32}
 		maxs := [2]float32{-math32.MaxFloat32, -math32.MaxFloat32}
 		for i := 0; i < s.NumEdges; i++ {
@@ -336,6 +347,11 @@ func calcSurfaceExtras(ss []*Surface, vs []*MVertex, es []*MEdge, ses []int32) {
 				}
 				return vs[es[-e].V[1]]
 			}()
+			s.Polys.Verts = append(s.Polys.Verts, TexCoord{
+				Pos: v.Position,
+				S:   vec.Dot(v.Position, tex.Vecs[0].Pos) * texScale,
+				T:   vec.Dot(v.Position, tex.Vecs[1].Pos) * texScale,
+			})
 			for j := 0; j < 3; j++ {
 				if s.Mins[j] > v.Position[j] {
 					s.Mins[j] = v.Position[j]
@@ -348,10 +364,10 @@ func calcSurfaceExtras(ss []*Surface, vs []*MVertex, es []*MEdge, ses []int32) {
 			// 'corrupt' looking lightmaps
 			for j := 0; j < 2; j++ {
 				val := float32(
-					float64(v.Position[0])*float64(tex.Vecs[j][0]) +
-						float64(v.Position[1])*float64(tex.Vecs[j][1]) +
-						float64(v.Position[2])*float64(tex.Vecs[j][2]) +
-						float64(tex.Vecs[j][3]))
+					float64(v.Position[0])*float64(tex.Vecs[j].Pos[0]) +
+						float64(v.Position[1])*float64(tex.Vecs[j].Pos[1]) +
+						float64(v.Position[2])*float64(tex.Vecs[j].Pos[2]) +
+						float64(tex.Vecs[j].Offset))
 				if val < mins[j] {
 					mins[j] = val
 				}
@@ -366,6 +382,10 @@ func calcSurfaceExtras(ss []*Surface, vs []*MVertex, es []*MEdge, ses []int32) {
 		s.Extents[0] = maxs[0] - mins[0]
 		s.Extents[1] = maxs[1] - mins[1]
 		// TODO: only if tex.flags TEX_SPECIAL is set Extends may exceed 2k
+
+		// TODO: TexInfo.Texture.Name switch and the like
+		// switch msurfaces[i]->texinfo-texture-name ...
+		// polys already set, do we need remove ones not 'needed'?
 	}
 }
 
@@ -388,7 +408,6 @@ func buildSurfacesV0(f []*faceV0, plane []*Plane, texinfo []*TexInfo) ([]*Surfac
 		if sf.LightMap != -1 {
 			// TODO: nsf.Samples = model.lightdata[3*sf.LightMap]
 		}
-		// TODO: TexInfo.Texture.Name switch and the like
 		ret = append(ret, nsf)
 	}
 	return ret, nil
@@ -646,16 +665,46 @@ var (
 )
 
 func loadTextures(data []byte) ([]*Texture, error) {
-	numTex := int32(0)
+	type mipTex struct {
+		Name    [16]byte
+		Width   uint32
+		Height  uint32
+		Offsets [4]uint32
+	}
+	var numTex int32
 	buf := bytes.NewReader(data)
 	err := binary.Read(buf, binary.LittleEndian, &numTex)
 	if err != nil || numTex == 0 {
 		return nil, nil
 	}
+	offsets := make([]int32, numTex)
+	err = binary.Read(buf, binary.LittleEndian, &offsets)
+	if err != nil {
+		return nil, nil
+	}
 	// Need 2 dummy textures to handle missing ones
 	t := make([]*Texture, numTex+2)
+	var mTex mipTex
 	for i := int32(0); i < numTex; i++ {
-		t[i] = &Texture{}
+		if offsets[i] == -1 {
+			continue
+		}
+		buf.Seek(int64(offsets[i]), io.SeekStart)
+		if err := binary.Read(buf, binary.LittleEndian, &mTex); err != nil {
+			// Not checked in orig...
+			return nil, nil
+		}
+		// TODO: 16 or num chars till first 0
+		name := string(mTex.Name[:16])
+		if mTex.Width&15 != 0 || mTex.Height&15 != 0 {
+			return nil, fmt.Errorf("Texture %s not 16 aligned", name)
+		}
+		// pixels := mTex.Width * mTex.Height / 64 * 85 // WTF?
+		t[i] = &Texture{
+			Name:   name,
+			Width:  int(mTex.Width),
+			Height: int(mTex.Height),
+		}
 	}
 	t[len(t)-1] = noTextureMip  // lightmapped surfs
 	t[len(t)-2] = noTextureMip2 // SURF_DRAWTILED surfs

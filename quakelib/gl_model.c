@@ -409,6 +409,7 @@ void Mod_LoadTextures(lump_t *l) {
     {
       if (!q_strncasecmp(tx->name, "sky", 3)) {
         // sky texture //also note -- was Q_strncmp, changed to match qbsp
+        // THERJAK: afterwards a hard coded 256*128 byte get read
         SkyLoadTexture((byte*)tx+tx->offsets[0], tx->name, loadmodel->name);
       }
       else if (tx->name[0] == '*')  // warping texture
@@ -431,15 +432,16 @@ void Mod_LoadTextures(lump_t *l) {
           q_strlcpy(texturename, filename, sizeof(texturename));
           tx->gltexture =
               TexMgrLoadImage2(texturename, fwidth, fheight,
-                               SRC_RGBA, data, filename, 0, TEXPREF_NONE);
+                               SRC_RGBA, data, filename, TEXPREF_NONE);
         } else  // use the texture from the bsp file
         {
           q_snprintf(texturename, sizeof(texturename), "%s:%s", loadmodel->name,
                      tx->name);
           offset = (src_offset_t)(mt + 1) - (src_offset_t)mod_base;
+          // THERJAK: width*height bytes get read
           tx->gltexture = TexMgrLoadImage2(
               texturename, tx->width, tx->height, SRC_INDEXED,
-              (byte *)(tx + 1), loadmodel->name, offset, TEXPREF_NONE);
+              (byte *)(tx + 1), loadmodel->name, TEXPREF_NONE);
         }
 
         // now create the warpimage, using dummy data from the hunk to create
@@ -451,9 +453,10 @@ void Mod_LoadTextures(lump_t *l) {
                                                               // illegal address
         Hunk_FreeToLowMark(mark);
         q_snprintf(texturename, sizeof(texturename), "%s_warp", texturename);
+        // THERJAK: width*height*4 bytes get read -> see the hunk allow above as well
         tx->warpimage = TexMgrLoadImage2(
             texturename, GL_warpimagesize(), GL_warpimagesize(),
-            SRC_RGBA, hunk_base, "", (src_offset_t)hunk_base,
+            SRC_RGBA, hunk_base, "", 
             TEXPREF_NOPICMIP | TEXPREF_WARPIMAGE);
         tx->update_warp = true;
       } else  // regular texture
@@ -482,7 +485,7 @@ void Mod_LoadTextures(lump_t *l) {
         {
           tx->gltexture =
               TexMgrLoadImage2(filename, fwidth, fheight, SRC_RGBA,
-                               data, filename, 0, TEXPREF_MIPMAP | extraflags);
+                               data, filename, TEXPREF_MIPMAP | extraflags);
 
           // now try to load glow/luma image from the same place
           Hunk_FreeToLowMark(mark);
@@ -496,7 +499,7 @@ void Mod_LoadTextures(lump_t *l) {
           if (data)
             tx->fullbright = TexMgrLoadImage2(filename2, fwidth,
                                               fheight, SRC_RGBA, data, filename,
-                                              0, TEXPREF_MIPMAP | extraflags);
+                                              TEXPREF_MIPMAP | extraflags);
         } else  // use the texture from the bsp file
         {
           q_snprintf(texturename, sizeof(texturename), "%s:%s", loadmodel->name,
@@ -505,19 +508,19 @@ void Mod_LoadTextures(lump_t *l) {
           if (Mod_CheckFullbrights((byte *)(tx + 1), pixels)) {
             tx->gltexture = TexMgrLoadImage2(
                 texturename, tx->width, tx->height, SRC_INDEXED,
-                (byte *)(tx + 1), loadmodel->name, offset,
+                (byte *)(tx + 1), loadmodel->name, 
                 TEXPREF_MIPMAP | TEXPREF_NOBRIGHT | extraflags);
             q_snprintf(texturename, sizeof(texturename), "%s:%s_glow",
                        loadmodel->name, tx->name);
             tx->fullbright = TexMgrLoadImage2(
                 texturename, tx->width, tx->height, SRC_INDEXED,
-                (byte *)(tx + 1), loadmodel->name, offset,
+                (byte *)(tx + 1), loadmodel->name, 
                 TEXPREF_MIPMAP | TEXPREF_FULLBRIGHT | extraflags);
           } else {
             tx->gltexture =
                 TexMgrLoadImage2(texturename, tx->width, tx->height,
                                  SRC_INDEXED, (byte *)(tx + 1), loadmodel->name,
-                                 offset, TEXPREF_MIPMAP | extraflags);
+                                 TEXPREF_MIPMAP | extraflags);
           }
         }
         Hunk_FreeToLowMark(mark);
@@ -2061,18 +2064,18 @@ void *Mod_LoadAllSkins(int numskins, daliasskintype_t *pskintype, aliashdr_t *ah
       if (Mod_CheckFullbrights((byte *)(pskintype + 1), size)) {
         ahdr->gltextures[i][0] = TexMgrLoadImage2(
             name, ahdr->skinwidth, ahdr->skinheight,
-            SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset,
+            SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name,
             TEXPREF_PAD | TEXPREF_NOBRIGHT);
         q_snprintf(fbr_mask_name, sizeof(fbr_mask_name), "%s:frame%i_glow",
                    loadmodel->name, i);
         ahdr->fbtextures[i][0] = TexMgrLoadImage2(
             fbr_mask_name, ahdr->skinwidth, ahdr->skinheight,
-            SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset,
+            SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name,
             TEXPREF_PAD | TEXPREF_FULLBRIGHT);
       } else {
         ahdr->gltextures[i][0] = TexMgrLoadImage2(
             name, ahdr->skinwidth, ahdr->skinheight,
-            SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset,
+            SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name,
             TEXPREF_PAD);
         ahdr->fbtextures[i][0] = 0;
       }
@@ -2108,18 +2111,18 @@ void *Mod_LoadAllSkins(int numskins, daliasskintype_t *pskintype, aliashdr_t *ah
         if (Mod_CheckFullbrights((byte *)(pskintype), size)) {
           ahdr->gltextures[i][j & 3] = TexMgrLoadImage2(
               name, ahdr->skinwidth, ahdr->skinheight,
-              SRC_INDEXED, (byte *)(pskintype), loadmodel->name, offset,
+              SRC_INDEXED, (byte *)(pskintype), loadmodel->name,
               TEXPREF_PAD | TEXPREF_NOBRIGHT);
           q_snprintf(fbr_mask_name, sizeof(fbr_mask_name), "%s:frame%i_%i_glow",
                      loadmodel->name, i, j);
           ahdr->fbtextures[i][j & 3] = TexMgrLoadImage2(
               fbr_mask_name, ahdr->skinwidth, ahdr->skinheight,
-              SRC_INDEXED, (byte *)(pskintype), loadmodel->name, offset,
+              SRC_INDEXED, (byte *)(pskintype), loadmodel->name,
               TEXPREF_PAD | TEXPREF_FULLBRIGHT);
         } else {
           ahdr->gltextures[i][j & 3] = TexMgrLoadImage2(
               name, ahdr->skinwidth, ahdr->skinheight,
-              SRC_INDEXED, (byte *)(pskintype), loadmodel->name, offset,
+              SRC_INDEXED, (byte *)(pskintype), loadmodel->name,
               TEXPREF_PAD);
           ahdr->fbtextures[i][j & 3] = 0;
         }
@@ -2425,7 +2428,7 @@ void *Mod_LoadSpriteFrame(void *pin, mspriteframe_t **ppframe, int framenum) {
   offset = (src_offset_t)(pinframe + 1) - (src_offset_t)mod_base;  // johnfitz
   pspriteframe->gltexture = TexMgrLoadImage2(
       name, width, height, SRC_INDEXED, (byte *)(pinframe + 1),
-      loadmodel->name, offset,
+      loadmodel->name,
       TEXPREF_PAD | TEXPREF_ALPHA | TEXPREF_NOPICMIP);  // johnfitz -- TexMgr
 
   return (void *)((byte *)pinframe + sizeof(dspriteframe_t) + size);

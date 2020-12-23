@@ -8,20 +8,21 @@ import (
 
 // Would be great to type these but positive values are node numbers or so....
 const (
-	CONTENTS_EMPTY        = -1
-	CONTENTS_SOLID        = -2
-	CONTENTS_WATER        = -3
-	CONTENTS_SLIME        = -4
-	CONTENTS_LAVA         = -5
-	CONTENTS_SKY          = -6
-	CONTENTS_ORIGIN       = -7
-	CONTENTS_CLIP         = -8
-	CONTENTS_CURRENT_0    = -9
-	CONTENTS_CURRENT_90   = -10
-	CONTENTS_CURRENT_180  = -11
-	CONTENTS_CURRENT_270  = -12
-	CONTENTS_CURRENT_UP   = -13
-	CONTENTS_CURRENT_DOWN = -14
+	_ = -iota
+	CONTENTS_EMPTY
+	CONTENTS_SOLID
+	CONTENTS_WATER
+	CONTENTS_SLIME
+	CONTENTS_LAVA
+	CONTENTS_SKY
+	CONTENTS_ORIGIN
+	CONTENTS_CLIP
+	CONTENTS_CURRENT_0
+	CONTENTS_CURRENT_90
+	CONTENTS_CURRENT_180
+	CONTENTS_CURRENT_270
+	CONTENTS_CURRENT_UP
+	CONTENTS_CURRENT_DOWN
 )
 
 const (
@@ -106,11 +107,21 @@ type MLeaf struct {
 
 type Efrag struct{}
 
+type TexCoord struct {
+	Pos vec.Vec3
+	// verts[3]
+	S float32
+	// verts[4]
+	T float32
+	// verts[5]+verts[6]
+	// LightMapS float32
+	// LightMapT float32
+}
+
 type Poly struct {
-	Next     *Poly
-	Chain    *Poly
-	NumVerts int           // TODO: why
-	Verts    [4][7]float32 // TODO: why 7?
+	Next  *Poly
+	Chain *Poly
+	Verts []TexCoord
 }
 
 type Surface struct {
@@ -130,7 +141,7 @@ type Surface struct {
 	LightS      int        // gl lightmap coordinates
 	LightT      int
 
-	Polys        *Poly // multiple if warped
+	Polys        *Poly
 	TextureChain *Surface
 
 	TexInfo *TexInfo
@@ -148,20 +159,32 @@ type Surface struct {
 	Samples      *byte
 }
 
+type TexInfoPos struct {
+	Pos    vec.Vec3
+	Offset float32
+}
+
 type TexInfo struct {
-	Vecs    [2][4]float32
+	Vecs    [2]TexInfoPos
 	Texture *Texture
 	Flags   uint32
 }
 
 type Texture struct {
-	Width         int
-	Height        int
-	Name          string
+	Width      int
+	Height     int
+	Name       string
+	Texture    *texture.Texture
+	Fullbright *texture.Texture
+	Warp       *texture.Texture
+	// UpdateWarp bool
 	TextureChains [2]*Surface
-	Texture       *texture.Texture
-	Fullbright    *texture.Texture
-	Warp          *texture.Texture
+	// AnimTotal int
+	// AnimMin int
+	// AnimMax int
+	// AnimNext *Texture
+	// AlternateAnims *Texture
+	// Offsets [4]uint32
 }
 
 // GLuint == uint32

@@ -167,21 +167,21 @@ type leafV2 struct {
 }
 
 const (
-	_                   = iota
-	LeafTypeEmpty       = -iota // was CONTENTS_EMPTY...
-	LeafTypeSolid       = -iota
-	LeafTypeWater       = -iota
-	LeafTypeSlime       = -iota
-	LeafTypeLava        = -iota
-	LeafTypeSky         = -iota
-	LeafTypeOrigin      = -iota
-	LeafTypeClip        = -iota
-	LeafTypeCurrent0    = -iota
-	LeafTypeCurrent90   = -iota
-	LeafTypeCurrent180  = -iota
-	LeafTypeCurrent270  = -iota
-	LeafTypeCurrentUp   = -iota
-	LeafTypeCurrentDown = -iota
+	_             = -iota
+	LeafTypeEmpty // was CONTENTS_EMPTY...
+	LeafTypeSolid
+	LeafTypeWater
+	LeafTypeSlime
+	LeafTypeLava
+	LeafTypeSky
+	LeafTypeOrigin
+	LeafTypeClip
+	LeafTypeCurrent0
+	LeafTypeCurrent90
+	LeafTypeCurrent180
+	LeafTypeCurrent270
+	LeafTypeCurrentUp
+	LeafTypeCurrentDown
 )
 
 type plane struct {
