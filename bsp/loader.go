@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"math"
+	"strings"
 
 	"github.com/chewxy/math32"
 	"github.com/therjak/goquake/filesystem"
@@ -653,12 +654,12 @@ func buildSubmodels(mod []*model) ([]*Submodel, error) {
 
 var (
 	noTextureMip = &Texture{
-		Name:   "notexture",
+		name:   "notexture",
 		Width:  32,
 		Height: 32,
 	}
 	noTextureMip2 = &Texture{
-		Name:   "notexture2",
+		name:   "notexture2",
 		Width:  32,
 		Height: 32,
 	}
@@ -694,29 +695,36 @@ func loadTextures(data []byte) ([]*Texture, error) {
 			// Not checked in orig...
 			return nil, nil
 		}
-		// TODO: 16 or num chars till first 0
-		name := string(mTex.Name[:16])
+		// 16 or num chars till first '\0', excluding the 0
+		idxn := (bytes.IndexByte(mTex.Name[:], 0) + 17) % 17
+		name := string(mTex.Name[:idxn])
 		if mTex.Width&15 != 0 || mTex.Height&15 != 0 {
 			return nil, fmt.Errorf("Texture %s not 16 aligned", name)
 		}
-		// pixels := mTex.Width * mTex.Height / 64 * 85 // WTF?
 		t[i] = &Texture{
-			Name:   name,
+			name:   name,
 			Width:  int(mTex.Width),
 			Height: int(mTex.Height),
+		}
+		switch {
+		case strings.HasPrefix(name, "sky"):
+			td := make([]byte, 256*128)
+			if _, err := buf.Read(td); err != nil {
+				return nil, fmt.Errorf("Texture %s not enough bytes", name)
+			}
+			t[i].Data = td
+		default:
+			// just put the bsp texture data into Data
+			td := make([]byte, t[i].Width*t[i].Height)
+			if _, err := buf.Read(td); err != nil {
+				return nil, fmt.Errorf("Texture %s not enough bytes", name)
+			}
+			t[i].Data = td
 		}
 	}
 	t[len(t)-1] = noTextureMip  // lightmapped surfs
 	t[len(t)-2] = noTextureMip2 // SURF_DRAWTILED surfs
 
-	// Texture {
-	// Width int
-	// Height int
-	// Name string
-	// TextureChains [2]*Surface
-	// Texture
-	// Fullbright
-	// Warp }
 	return t, nil
 }
 

@@ -171,13 +171,13 @@ type TexInfo struct {
 }
 
 type Texture struct {
-	Width      int
-	Height     int
-	Name       string
-	Texture    *texture.Texture
-	Fullbright *texture.Texture
-	Warp       *texture.Texture
-	// UpdateWarp bool
+	Width         int
+	Height        int
+	name          string
+	Texture       *texture.Texture
+	Fullbright    *texture.Texture
+	Warp          *texture.Texture
+	UpdateWarp    bool
 	TextureChains [2]*Surface
 	// AnimTotal int
 	// AnimMin int
@@ -185,6 +185,7 @@ type Texture struct {
 	// AnimNext *Texture
 	// AlternateAnims *Texture
 	// Offsets [4]uint32
+	Data []byte // raw texture data from the bsp
 }
 
 // GLuint == uint32
