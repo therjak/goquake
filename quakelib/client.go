@@ -92,21 +92,6 @@ const (
 	ca_connected    = 2
 )
 
-//export SetCLPitch
-func SetCLPitch(v C.float) {
-	cl.pitch = float32(v)
-}
-
-//export SetCLYaw
-func SetCLYaw(v C.float) {
-	cl.yaw = float32(v)
-}
-
-//export SetCLRoll
-func SetCLRoll(v C.float) {
-	cl.roll = float32(v)
-}
-
 func (c *Client) adjustAngles() {
 	speed := func() float32 {
 		if (cvars.ClientForwardSpeed.Value() > 200) != input.Speed.Down() {
@@ -268,26 +253,6 @@ var (
 	}
 )
 
-//export CL_num_entities
-func CL_num_entities() int {
-	return len(cl.entities)
-}
-
-//export CL_MViewAngles
-func CL_MViewAngles(i, j int) float32 {
-	return cl.mViewAngles[i][j]
-}
-
-//export CL_MVelocity
-func CL_MVelocity(i, j int) float32 {
-	return cl.mVelocity[i][j]
-}
-
-//export CL_SetVelocity
-func CL_SetVelocity(i int, v float32) {
-	cl.velocity[i] = v
-}
-
 //export CL_SetMaxEdicts
 func CL_SetMaxEdicts(num int) {
 	cl.entities = make([]*Entity, 0, num)
@@ -301,11 +266,6 @@ func (c *Client) UpdateFaceAnimTime() {
 
 func (c *Client) CheckFaceAnimTime() bool {
 	return cl.time <= cl.faceAnimTime
-}
-
-//export CL_MaxClients
-func CL_MaxClients() int {
-	return cl.maxClients
 }
 
 func (c *Client) DeathMatch() bool {
@@ -369,16 +329,6 @@ func CLViewentityNum() int {
 	return cl.viewentity
 }
 
-//export CL_Protocol
-func CL_Protocol() C.uint {
-	return C.uint(cl.protocol)
-}
-
-//export CL_ProtocolFlags
-func CL_ProtocolFlags() C.uint {
-	return C.uint(cl.protocolFlags)
-}
-
 //export CL_Paused
 func CL_Paused() bool {
 	return cl.paused
@@ -389,29 +339,9 @@ func CL_Time() C.double {
 	return C.double(cl.time)
 }
 
-//export CL_MTime
-func CL_MTime() C.double {
-	return C.double(cl.messageTime)
-}
-
-//export CL_MTimeOld
-func CL_MTimeOld() C.double {
-	return C.double(cl.messageTimeOld)
-}
-
 //export CLS_GetState
 func CLS_GetState() C.int {
 	return C.int(cls.state)
-}
-
-//export CLS_IsDemoPlayback
-func CLS_IsDemoPlayback() bool {
-	return cls.demoPlayback
-}
-
-//export CLS_GetSignon
-func CLS_GetSignon() C.int {
-	return C.int(cls.signon)
 }
 
 //export CLS_SetSignon
@@ -590,56 +520,6 @@ func (c *ClientStatic) getMessage() int {
 	return r
 }
 
-//export CL_MSG_ReadByte
-func CL_MSG_ReadByte() C.int {
-	i, err := cls.inMessage.ReadByte()
-	if err != nil {
-		cls.msgBadRead = true
-		return -1
-	}
-	return C.int(i)
-}
-
-//export CL_MSG_ReadShort
-func CL_MSG_ReadShort() C.int {
-	i, err := cls.inMessage.ReadInt16()
-	if err != nil {
-		cls.msgBadRead = true
-		return -1
-	}
-	return C.int(i)
-}
-
-//export CL_MSG_ReadFloat
-func CL_MSG_ReadFloat() C.float {
-	f, err := cls.inMessage.ReadFloat32()
-	if err != nil {
-		cls.msgBadRead = true
-		return -1
-	}
-	return C.float(f)
-}
-
-//export CL_MSG_ReadCoord
-func CL_MSG_ReadCoord() C.float {
-	f, err := cls.inMessage.ReadCoord(cl.protocolFlags)
-	if err != nil {
-		cls.msgBadRead = true
-		return -1
-	}
-	return C.float(f)
-}
-
-//export CL_MSG_ReadAngle
-func CL_MSG_ReadAngle(flags C.uint) C.float {
-	f, err := cls.inMessage.ReadAngle(uint32(flags))
-	if err != nil {
-		cls.msgBadRead = true
-		return -1
-	}
-	return C.float(f)
-}
-
 //Sends a disconnect message to the server
 //This is also called on Host_Error, so it shouldn't cause any errors
 func (c *ClientStatic) Disconnect() {
@@ -729,7 +609,6 @@ func clEstablishConnection(host string) {
 }
 
 // An svc_signonnum has been received, perform a client side setup
-//export CL_SignonReply
 func CL_SignonReply() {
 	conlog.DPrintf("CL_SignonReply: %d\n", cls.signon)
 
