@@ -166,14 +166,6 @@ func (s *qSky) LoadBox(name string) {
 	}
 }
 
-// export SkyLoadTexture
-// func SkyLoadTexture(src *C.uchar, skyName *C.char, modelName *C.char) {
-//	s := C.GoString(skyName)
-// 	m := C.GoString(modelName)
-//	b := C.GoBytes(unsafe.Pointer(src), 256*128)
-//	sky.LoadTexture(b, s, m)
-// }
-
 func (s *qSky) LoadTexture(d []byte, skyName, modelName string) {
 	// d is a 256*128 texture with the left side being a masked overlay
 	// What a mess. It would be better to have the overlay at the bottom.
