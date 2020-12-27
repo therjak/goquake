@@ -188,6 +188,10 @@ type Texture struct {
 	Data []byte // raw texture data from the bsp
 }
 
+func (t *Texture) Name() string {
+	return t.name
+}
+
 // GLuint == uint32
 
 const (
