@@ -410,7 +410,7 @@ void Mod_LoadTextures(lump_t *l) {
       if (!q_strncasecmp(tx->name, "sky", 3)) {
         // sky texture //also note -- was Q_strncmp, changed to match qbsp
         // THERJAK: afterwards a hard coded 256*128 byte get read
-        SkyLoadTexture((byte*)tx+tx->offsets[0], tx->name, loadmodel->name);
+        // SkyLoadTexture((byte*)tx+tx->offsets[0], tx->name, loadmodel->name);
       }
       else if (tx->name[0] == '*')  // warping texture
       {
@@ -430,6 +430,7 @@ void Mod_LoadTextures(lump_t *l) {
         if (data)  // load external image
         {
           q_strlcpy(texturename, filename, sizeof(texturename));
+          // THERJAK: width*height*4 bytes get read
           tx->gltexture =
               TexMgrLoadImage2(texturename, fwidth, fheight,
                                SRC_RGBA, data, filename, TEXPREF_NONE);
