@@ -45,11 +45,6 @@ func (v *qView) UpdateBlend() {
 	cl.updateBlend()
 }
 
-//export AddLightBlend
-func AddLightBlend(r, g, b, a float32) {
-	view.addLightBlend(r, g, b, a)
-}
-
 func (v *qView) addLightBlend(r, g, b, a2 float32) {
 	a := v.blendColor.A + a2*(1-v.blendColor.A)
 	v.blendColor.A = a

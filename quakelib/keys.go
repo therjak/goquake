@@ -406,20 +406,6 @@ func unbindCommand(command string) {
 	}
 }
 
-//export GetKeyDest
-func GetKeyDest() C.keydest_t {
-	switch keyDestination {
-	default:
-		return C.key_game
-	case keys.Console:
-		return C.key_console
-	case keys.Message:
-		return C.key_message
-	case keys.Menu:
-		return C.key_menu
-	}
-}
-
 var (
 	updateKeyDestForced = false
 )

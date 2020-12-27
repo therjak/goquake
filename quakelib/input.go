@@ -3,8 +3,6 @@ package quakelib
 // TODO: switch to "github.com/go-gl/glfw/v3.2/glfw"
 //       or        "github.com/vulkan-go/glfw/v3.3/glfw"
 
-import "C"
-
 import (
 	cmdl "github.com/therjak/goquake/commandline"
 	"github.com/therjak/goquake/conlog"
@@ -95,7 +93,6 @@ func selectTextMode(tm bool) {
 	}
 }
 
-//export IN_Deactivate
 func IN_Deactivate() {
 	inputDeactivate(modestate == MS_WINDOWED)
 }

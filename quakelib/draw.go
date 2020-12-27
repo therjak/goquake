@@ -212,7 +212,6 @@ var (
 	backtileTexture *texture.Texture
 )
 
-//export Draw_Delete
 func Draw_Delete() {
 	qDrawer = nil
 	qRecDrawer = nil

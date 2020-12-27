@@ -34,36 +34,11 @@ func CvarGetString(id C.int) *C.char {
 	return C.CString(cv.String())
 }
 
-//export CvarGetName
-func CvarGetName(id C.int) *C.char {
-	cv, err := cvar.GetByID(int(id))
-	if err != nil {
-		log.Println(err)
-		return nil
-	}
-	return C.CString(cv.Name())
-}
-
-//export Cvar_VariableValue
-func Cvar_VariableValue(name *C.char) C.float {
-	n := C.GoString(name)
-	return C.float(CvarVariableValue(n))
-}
-
 func CvarVariableValue(n string) float32 {
 	if cv, ok := cvar.Get(n); ok {
 		return cv.Value()
 	}
 	return 0
-}
-
-//export CvarVariableString
-func CvarVariableString(name *C.char) *C.char {
-	n := C.GoString(name)
-	if cv, ok := cvar.Get(n); ok {
-		return C.CString(cv.String())
-	}
-	return nil
 }
 
 func CvarReset(n string) {
@@ -75,33 +50,6 @@ func CvarReset(n string) {
 	}
 }
 
-//export CvarSetQuick
-func CvarSetQuick(id C.int, value *C.char) {
-	cv, err := cvar.GetByID(int(id))
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	cv.SetByString(C.GoString(value))
-}
-
-//export CvarSetValueQuick
-func CvarSetValueQuick(id C.int, value C.float) {
-	cv, err := cvar.GetByID(int(id))
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	cv.SetValue(float32(value))
-}
-
-//export Cvar_Set
-func Cvar_Set(name *C.char, value *C.char) {
-	n := C.GoString(name)
-	v := C.GoString(value)
-	cvarSet(n, v)
-}
-
 func cvarSet(name, value string) {
 	if cv, ok := cvar.Get(name); ok {
 		cv.SetByString(value)
@@ -111,12 +59,6 @@ func cvarSet(name, value string) {
 	}
 }
 
-//export Cvar_SetValue
-func Cvar_SetValue(name *C.char, value C.float) {
-	n := C.GoString(name)
-	CvarSetValue(n, float32(value))
-}
-
 func CvarSetValue(name string, value float32) {
 	if cv, ok := cvar.Get(name); ok {
 		cv.SetValue(value)
@@ -124,24 +66,6 @@ func CvarSetValue(name string, value float32) {
 		log.Printf("Cvar not found %v", name)
 		conlog.Printf("Cvar_SetValue: variable %v not found\n", name)
 	}
-}
-
-//export CvarRegister
-func CvarRegister(name *C.char, value *C.char, flags C.int) C.int {
-	n := C.GoString(name)
-	/* this is a design error, why report?
-	  if cmd.Exists(n) {
-			conlog.Printf("Cvar-RegisterVariable: %s is a command\n", n)
-			return -1
-		}
-	*/
-	v := C.GoString(value)
-	cv, err := cvar.Register(n, v, int(flags))
-	if err != nil {
-		conlog.Printf("%v\n", err)
-		return -1
-	}
-	return C.int(cv.ID())
 }
 
 //export CvarGetID

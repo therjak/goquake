@@ -207,7 +207,6 @@ func parse3Angle() (vec.Vec3, error) {
 	return vec.Vec3{x, y, z}, nil
 }
 
-//export CL_ParseServerMessage
 func CL_ParseServerMessage() {
 	// if recording demos, copy the message out
 	switch cvars.ClientShowNet.String() {
