@@ -8,7 +8,6 @@ import "C"
 
 import (
 	"fmt"
-	"log"
 	"path/filepath"
 	"strings"
 
@@ -809,7 +808,6 @@ func CL_ParseServerInfo() error {
 	cl.worldModel, _ = cl.modelPrecache[0].(*bsp.Model)
 	for _, t := range cl.worldModel.Textures {
 		if strings.HasPrefix(t.Name(), "sky") {
-			log.Printf("Got sky texture %s, %s, %vx%v: %v", t.Name(), cl.mapName, t.Height, t.Width, len(t.Data))
 			sky.LoadTexture(t.Data, t.Name(), cl.mapName)
 		}
 	}
