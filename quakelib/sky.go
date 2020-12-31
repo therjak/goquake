@@ -343,6 +343,10 @@ func (s *qSky) ClipPoly(vecs []vec.Vec3, stage int) {
 	s.ClipPoly(newvb, stage+1)
 }
 
+var (
+	sqrt3 = math32.Sqrt(3)
+)
+
 // DrawSkyLayers draws the old-style scrolling cloud layers
 func (s *qSky) DrawSkyLayers() {
 	if cvars.RSkyAlpha.Value() < 1 {
@@ -350,31 +354,108 @@ func (s *qSky) DrawSkyLayers() {
 		//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
 		//defer glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE)
 	}
+	fc := cvars.GlFarClip.Value() / sqrt3
+	// TODO: why do the model/view stuff outside the shader?
 	for i := 0; i < 6; i++ {
 		if s.mins[0][i] < s.maxs[0][i] && s.mins[1][i] < s.maxs[1][i] {
-			s.DrawFace(i)
+			C.Sky_DrawFace(C.int(i))
 		}
+	}
+	if s.mins[0][0] < s.maxs[0][0] && s.mins[1][0] < s.maxs[1][0] {
+		mins := [2]float32{s.mins[0][0], s.mins[1][0]}
+		maxs := [2]float32{s.maxs[0][0], s.maxs[1][0]}
+		// 3 -1 2 -> 2, -0, 1
+		// v0 --+
+		v1 := vec.Vec3{fc, fc, fc}   // -++
+		v2 := vec.Vec3{fc, -fc, fc}  // +++
+		v3 := vec.Vec3{-fc, fc, -fc} // +-+
+		vup := vec.Sub(v2, v3)       // 2fc, -2fc, 2fc
+		vright := vec.Sub(v2, v1)    // 0, -2fc, 0
+		s.DrawFace(mins, maxs, vup, vright,
+			vec.Add(qRefreshRect.viewOrg, vec.Vec3{fc, fc, -fc}))
+	}
+	if s.mins[0][1] < s.maxs[0][1] && s.mins[1][1] < s.maxs[1][1] {
+		mins := [2]float32{s.mins[0][1], s.mins[1][1]}
+		maxs := [2]float32{s.maxs[0][1], s.maxs[1][1]}
+		//-3 1, 2 -> -2, 0, 1
+		v1 := vec.Vec3{-fc, -fc, fc} // -++
+		v2 := vec.Vec3{-fc, fc, fc}  // +++
+		v3 := vec.Vec3{-fc, fc, -fc} // +-+
+		vup := vec.Sub(v2, v3)       // 0, 0, 2fc
+		vright := vec.Sub(v2, v1)    // 0, 2fc, 0
+		s.DrawFace(mins, maxs, vup, vright,
+			vec.Add(qRefreshRect.viewOrg, vec.Vec3{-fc, -fc, -fc}))
+	}
+	if s.mins[0][2] < s.maxs[0][2] && s.mins[1][2] < s.maxs[1][2] {
+		mins := [2]float32{s.mins[0][2], s.mins[1][2]}
+		maxs := [2]float32{s.maxs[0][2], s.maxs[1][2]}
+		//1,3,2 -> 0, 2, 1
+		v1 := vec.Vec3{-fc, fc, fc} // -++
+		v2 := vec.Vec3{fc, fc, fc}  // +++
+		v3 := vec.Vec3{fc, fc, -fc} // +-+
+		vup := vec.Sub(v2, v3)      // 0, 0, 2fc
+		vright := vec.Sub(v2, v1)   // 2fc, 0, 0
+		s.DrawFace(mins, maxs, vup, vright,
+			vec.Add(qRefreshRect.viewOrg, vec.Vec3{-fc, fc, -fc}))
+	}
+	if s.mins[0][3] < s.maxs[0][3] && s.mins[1][3] < s.maxs[1][3] {
+		mins := [2]float32{s.mins[0][3], s.mins[1][3]}
+		maxs := [2]float32{s.maxs[0][3], s.maxs[1][3]}
+		//-1, -3, 2 -> -0, -2, 1
+		v1 := vec.Vec3{fc, -fc, fc}   // -++
+		v2 := vec.Vec3{-fc, -fc, fc}  // +++
+		v3 := vec.Vec3{-fc, -fc, -fc} // +-+
+		vup := vec.Sub(v2, v3)        // 0, 0, 2fc
+		vright := vec.Sub(v2, v1)     // -2fc, 0, 0
+		s.DrawFace(mins, maxs, vup, vright,
+			vec.Add(qRefreshRect.viewOrg, vec.Vec3{fc, -fc, -fc}))
+	}
+	if s.mins[0][4] < s.maxs[0][4] && s.mins[1][4] < s.maxs[1][4] {
+		mins := [2]float32{s.mins[0][4], s.mins[1][4]}
+		maxs := [2]float32{s.maxs[0][4], s.maxs[1][4]}
+		//-2, -1, 3 -> -1, -0, 2
+		v1 := vec.Vec3{-fc, fc, fc}  // -++
+		v2 := vec.Vec3{-fc, -fc, fc} // +++
+		v3 := vec.Vec3{fc, -fc, fc}  // +-+
+		vup := vec.Sub(v2, v3)       // -2fc, 0, 0
+		vright := vec.Sub(v2, v1)    // 0, -2fc, 0
+		s.DrawFace(mins, maxs, vup, vright,
+			vec.Add(qRefreshRect.viewOrg, vec.Vec3{fc, fc, fc}))
+	}
+	if s.mins[0][5] < s.maxs[0][5] && s.mins[1][5] < s.maxs[1][5] {
+		mins := [2]float32{s.mins[0][5], s.mins[1][5]}
+		maxs := [2]float32{s.maxs[0][5], s.maxs[1][5]}
+		//2, -1, -3 -> 1, -0, -2
+		v1 := vec.Vec3{fc, fc, -fc}   // -++
+		v2 := vec.Vec3{fc, -fc, -fc}  // +++
+		v3 := vec.Vec3{-fc, -fc, -fc} // +-+
+		vup := vec.Sub(v2, v3)        // 2fc, 0, 0
+		vright := vec.Sub(v2, v1)     // 0, -2fc, 0
+		s.DrawFace(mins, maxs, vup, vright,
+			vec.Add(qRefreshRect.viewOrg, vec.Vec3{-fc, fc, -fc}))
 	}
 }
 
-func (s *qSky) DrawFace(axis int) {
-	C.Sky_DrawFace(C.int(axis))
+func (s *qSky) DrawFace(mins, maxs [2]float32, vup, vright, v vec.Vec3) {
+	// di = qmax...
+	// verts[0] == v
 }
 
 func (s *qSky) Draw() {
 	// This is Draw called before everything else is drawn
+	const mf = math32.MaxFloat32
 	s.mins = [2][6]float32{
-		{-math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32},
-		{-math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32}}
+		{-mf, -mf, -mf, -mf, -mf, -mf},
+		{-mf, -mf, -mf, -mf, -mf, -mf}}
 	s.maxs = [2][6]float32{
-		{math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32},
-		{math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32}}
+		{mf, mf, mf, mf, mf, mf},
+		{mf, mf, mf, mf, mf, mf}}
 	C.skymins = [2][6]C.float{
-		{-math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32},
-		{-math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32}}
+		{-mf, -mf, -mf, -mf, -mf, -mf},
+		{-mf, -mf, -mf, -mf, -mf, -mf}}
 	C.skymaxs = [2][6]C.float{
-		{math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32},
-		{math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32, math32.MaxFloat32}}
+		{mf, mf, mf, mf, mf, mf},
+		{mf, mf, mf, mf, mf, mf}}
 
 	C.Fog_DisableGFog()
 	defer C.Fog_EnableGFog()
