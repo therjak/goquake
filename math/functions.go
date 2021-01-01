@@ -15,3 +15,13 @@ func RoundToEven(x float32) float32 {
 func Round(x float32) float32 {
 	return float32(gmath.Round(float64(x)))
 }
+
+// RSqrt return aprox 1/sqrt(x) for 0<=x
+func RSqrt(x float32) float32 {
+	x2 := x * 0.5
+	i := gmath.Float32bits(x)
+	i = 0x5f375a86 - (i >> 1)
+	y := gmath.Float32frombits(i)
+	y *= 1.5 - (x2 * y * y)
+	return y
+}

@@ -2,6 +2,7 @@ package vec
 
 import (
 	"github.com/chewxy/math32"
+	"github.com/therjak/goquake/math"
 )
 
 type Vec3 [3]float32
@@ -13,6 +14,11 @@ func VFromA(a [3]float32) Vec3 {
 // Length returns the length of the vector
 func (v Vec3) Length() float32 {
 	return math32.Sqrt(Dot(v, v))
+}
+
+// RLength returns 1/length of the vector
+func (v Vec3) RLength() float32 {
+	return math.RSqrt(Dot(v, v))
 }
 
 // Add computes a += b
@@ -68,11 +74,7 @@ func Scale(s float32, v Vec3) Vec3 {
 
 // Normalize returns the normalized vector
 func (v Vec3) Normalize() Vec3 {
-	l := v.Length()
-	if l == 0 {
-		return v
-	}
-	return Scale(1/l, v)
+	return Scale(v.RLength(), v)
 }
 
 // Dot returns a dot b
