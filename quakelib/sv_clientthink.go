@@ -133,11 +133,12 @@ func (c *SVClient) waterMove() {
 func (c *SVClient) userFriction() {
 	ev := EntVars(c.edictId)
 	velocity := vec.VFromA(ev.Velocity)
-	origin := vec.VFromA(ev.Origin)
-	speed := math32.Sqrt(velocity[0]*velocity[0] + velocity[1]*velocity[1])
-	if speed == 0 {
+	speed2 := velocity[0]*velocity[0] + velocity[1]*velocity[1]
+	if speed2 == 0 {
 		return
 	}
+	origin := vec.VFromA(ev.Origin)
+	speed := math32.Sqrt(speed2)
 
 	// if the leading edge is over a dropoff, increase friction
 	start := vec.Vec3{
