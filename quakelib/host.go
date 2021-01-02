@@ -216,7 +216,7 @@ func executeFrame() {
 	sendKeyEvents()
 
 	// process console commands
-	cbuf.Execute(sv_player)
+	cbuf.Execute(0) // TODO: this needs to be the local player, not 0
 
 	net.SetTime()
 

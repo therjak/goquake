@@ -1346,7 +1346,7 @@ func (c *Client) calcRefreshRect() {
 }
 
 // display impact point of trace along VPN
-func tracePosition(args []cmd.QArg, player int) {
+func tracePosition(args []cmd.QArg, _ int) {
 	if cls.state != ca_connected {
 		return
 	}
@@ -1650,7 +1650,7 @@ func (c *ClientStatic) writeDemoMessage(data []byte) {
 	binary.Write(c.demoWriter, binary.LittleEndian, data)
 }
 
-func clientStartDemos(args []cmd.QArg, player int) {
+func clientStartDemos(args []cmd.QArg, _ int) {
 	if cls.state == ca_dedicated {
 		return
 	}
@@ -1675,7 +1675,7 @@ func clientStartDemos(args []cmd.QArg, player int) {
 	}
 }
 
-func clientRecordDemo(args []cmd.QArg, player int) {
+func clientRecordDemo(args []cmd.QArg, playerEdictId int) {
 	if !execute.IsSrcCommand() {
 		return
 	}
@@ -1707,7 +1707,7 @@ func clientRecordDemo(args []cmd.QArg, player int) {
 		conlog.Printf("Forcing CD track to %i\n", track)
 	}
 	if len(args) > 1 {
-		execute.Execute(fmt.Sprintf("map %s", args[1].String()), execute.Command, player)
+		execute.Execute(fmt.Sprintf("map %s", args[1].String()), execute.Command, playerEdictId)
 		if cls.state != ca_connected {
 			return
 		}
@@ -1774,7 +1774,7 @@ func clientRecordDemo(args []cmd.QArg, player int) {
 	}
 }
 
-func clientStopDemoRecording(args []cmd.QArg, player int) {
+func clientStopDemoRecording(_ []cmd.QArg, _ int) {
 	if !execute.IsSrcCommand() {
 		return
 	}
@@ -1785,7 +1785,7 @@ func clientStopDemoRecording(args []cmd.QArg, player int) {
 	cls.stopDemoRecording()
 }
 
-func clientPlayDemo(args []cmd.QArg, player int) {
+func clientPlayDemo(args []cmd.QArg, _ int) {
 	if !execute.IsSrcCommand() {
 		return
 	}
@@ -1800,7 +1800,7 @@ func clientPlayDemo(args []cmd.QArg, player int) {
 	}
 }
 
-func clientTimeDemo(args []cmd.QArg, player int) {
+func clientTimeDemo(args []cmd.QArg, _ int) {
 	if !execute.IsSrcCommand() {
 		return
 	}

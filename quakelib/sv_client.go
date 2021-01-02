@@ -51,7 +51,7 @@ type SVClient struct {
 
 	// client known data for deltas
 	oldFrags int
-	id       int // Needed to communicate with the 'c' side
+	id       int // Needed to communicate with the 'client' side
 
 	badRead bool
 }
@@ -322,7 +322,7 @@ func (s *Server) ModelIndex(n string) int {
 }
 
 // Returns false if the client should be killed
-func (c *SVClient) ReadClientMessage(player int) bool {
+func (c *SVClient) ReadClientMessage() bool {
 	hasPrefix := func(s, prefix string) bool {
 		return len(s) >= len(prefix) && strings.ToLower(s[0:len(prefix)]) == prefix
 	}
@@ -378,7 +378,7 @@ func (c *SVClient) ReadClientMessage(player int) bool {
 					hasPrefix(s, "ping"),
 					hasPrefix(s, "give"),
 					hasPrefix(s, "ban"):
-					execute.Execute(s, execute.Client, player)
+					execute.Execute(s, execute.Client, c.edictId)
 				}
 			case *protos.Cmd_MoveCmd:
 				mc := cmd.GetMoveCmd()
@@ -412,13 +412,13 @@ func SV_RunClients() {
 	for i := 0; i < svs.maxClients; i++ {
 		host_client = i
 
-		hc := HostClient()
+		hc := sv_clients[i]
 		if !hc.active {
 			continue
 		}
 		sv_player = hc.edictId
 
-		if !hc.ReadClientMessage(hc.edictId) {
+		if !hc.ReadClientMessage() {
 			hc.Drop(false)
 			continue
 		}

@@ -89,7 +89,7 @@ func hostPreSpawn(args []cmd.QArg, _ int) {
 	c.sendSignon = true
 }
 
-func hostGod(args []cmd.QArg, player int) {
+func hostGod(args []cmd.QArg, playerEdictId int) {
 	if execute.IsSrcCommand() {
 		forwardToServer("god", args)
 		return
@@ -97,7 +97,7 @@ func hostGod(args []cmd.QArg, player int) {
 	if progsdat.Globals.DeathMatch != 0 {
 		return
 	}
-	ev := EntVars(player)
+	ev := EntVars(playerEdictId)
 	f := int32(ev.Flags)
 	const flag = progs.FlagGodMode
 	switch len(args) {
@@ -117,7 +117,7 @@ func hostGod(args []cmd.QArg, player int) {
 	HostClient().Printf("godmode %v\n", qFormatI(f&flag))
 }
 
-func hostNoTarget(args []cmd.QArg, player int) {
+func hostNoTarget(args []cmd.QArg, playerEdictId int) {
 	if execute.IsSrcCommand() {
 		forwardToServer("notarget", args)
 		return
@@ -125,7 +125,7 @@ func hostNoTarget(args []cmd.QArg, player int) {
 	if progsdat.Globals.DeathMatch != 0 {
 		return
 	}
-	ev := EntVars(player)
+	ev := EntVars(playerEdictId)
 	f := int32(ev.Flags)
 	const flag = progs.FlagNoTarget
 	switch len(args) {
@@ -145,7 +145,7 @@ func hostNoTarget(args []cmd.QArg, player int) {
 	HostClient().Printf("notarget %v\n", qFormatI(f&flag))
 }
 
-func hostFly(args []cmd.QArg, player int) {
+func hostFly(args []cmd.QArg, playerEdictId int) {
 	if execute.IsSrcCommand() {
 		forwardToServer("fly", args)
 		return
@@ -153,7 +153,7 @@ func hostFly(args []cmd.QArg, player int) {
 	if progsdat.Globals.DeathMatch != 0 {
 		return
 	}
-	ev := EntVars(player)
+	ev := EntVars(playerEdictId)
 	m := int32(ev.MoveType)
 	switch len(args) {
 	default:
@@ -211,16 +211,15 @@ func hostColor(args []cmd.QArg, _ int) {
 		}
 		return
 	}
-	cID := HostClientID()
 	client := HostClient()
 	client.colors = c
 	EntVars(client.edictId).Team = float32(b + 1)
 	sv.reliableDatagram.WriteByte(svc.UpdateColors)
-	sv.reliableDatagram.WriteByte(cID)
+	sv.reliableDatagram.WriteByte(client.id)
 	sv.reliableDatagram.WriteByte(c)
 }
 
-func hostPause(args []cmd.QArg, player int) {
+func hostPause(args []cmd.QArg, playerEdictId int) {
 	if cls.demoPlayback {
 		cls.demoPaused = !cls.demoPaused
 		cl.paused = cls.demoPaused
@@ -236,7 +235,7 @@ func hostPause(args []cmd.QArg, player int) {
 	}
 	sv.paused = !sv.paused
 
-	ev := EntVars(player)
+	ev := EntVars(playerEdictId)
 	playerName, _ := progsdat.String(ev.NetName)
 	SV_BroadcastPrintf("%s %s the game\n", playerName, func() string {
 		if sv.paused {
@@ -262,7 +261,7 @@ func hostBegin(args []cmd.QArg, _ int) {
 	HostClient().spawned = true
 }
 
-func hostGive(args []cmd.QArg, player int) {
+func hostGive(args []cmd.QArg, playerEdictId int) {
 	if execute.IsSrcCommand() {
 		forwardToServer("give", args)
 		return
@@ -270,7 +269,7 @@ func hostGive(args []cmd.QArg, player int) {
 	if progsdat.Globals.DeathMatch != 0 {
 		return
 	}
-	ev := EntVars(player)
+	ev := EntVars(playerEdictId)
 
 	if len(args) == 0 {
 		return
@@ -587,7 +586,7 @@ func hostPing(args []cmd.QArg, _ int) {
 	}
 }
 
-func hostSpawn(args []cmd.QArg, player int) {
+func hostSpawn(args []cmd.QArg, playerEdictId int) {
 	if execute.IsSrcCommand() {
 		conlog.Printf("spawn is not valid from the console\n")
 		return
@@ -610,7 +609,7 @@ func hostSpawn(args []cmd.QArg, player int) {
 		ev.NetName = progsdat.AddString(c.name)
 		progsdat.Globals.Parm = c.spawnParams
 		progsdat.Globals.Time = sv.time
-		progsdat.Globals.Self = int32(player)
+		progsdat.Globals.Self = int32(playerEdictId)
 		vm.ExecuteProgram(progsdat.Globals.ClientConnect)
 		if (qtime.QTime() - c.ConnectTime()).Seconds() <= float64(sv.time) {
 			log.Printf("%v entered the game\n", c.name)
@@ -669,15 +668,14 @@ func hostSpawn(args []cmd.QArg, player int) {
 	// in a state where it is expecting the client to correct the angle
 	// and it won't happen if the game was just loaded, so you wind up
 	// with a permanent head tilt
-	cid := HostClientID() + 1
 	c.msg.WriteByte(svc.SetAngle)
-	c.msg.WriteAngle(EntVars(cid).Angles[0], sv.protocolFlags)
-	c.msg.WriteAngle(EntVars(cid).Angles[1], sv.protocolFlags)
+	c.msg.WriteAngle(EntVars(c.edictId).Angles[0], sv.protocolFlags)
+	c.msg.WriteAngle(EntVars(c.edictId).Angles[1], sv.protocolFlags)
 	c.msg.WriteAngle(0, sv.protocolFlags)
 
 	msgBuf.ClearMessage()
 	msgBufMaxLen = protocol.MaxDatagram
-	sv.WriteClientdataToMessage(player)
+	sv.WriteClientdataToMessage(playerEdictId)
 	c.msg.WriteBytes(msgBuf.Bytes())
 
 	c.msg.WriteByte(svc.SignonNum)
@@ -685,7 +683,7 @@ func hostSpawn(args []cmd.QArg, player int) {
 	c.sendSignon = true
 }
 
-func hostNoClip(args []cmd.QArg, player int) {
+func hostNoClip(args []cmd.QArg, playerEdictId int) {
 	if execute.IsSrcCommand() {
 		forwardToServer("noclip", args)
 		return
@@ -694,7 +692,7 @@ func hostNoClip(args []cmd.QArg, player int) {
 	if progsdat.Globals.DeathMatch != 0 {
 		return
 	}
-	ev := EntVars(player)
+	ev := EntVars(playerEdictId)
 	m := int32(ev.MoveType)
 	switch len(args) {
 	default:
@@ -717,7 +715,7 @@ func hostNoClip(args []cmd.QArg, player int) {
 	HostClient().Printf("noclip %v\n", qFormatI(m&progs.MoveTypeNoClip))
 }
 
-func hostSetPos(args []cmd.QArg, player int) {
+func hostSetPos(args []cmd.QArg, playerEdictId int) {
 	if execute.IsSrcCommand() {
 		forwardToServer("setpos", args)
 		return
@@ -727,7 +725,7 @@ func hostSetPos(args []cmd.QArg, player int) {
 		return
 	}
 
-	ev := EntVars(player)
+	ev := EntVars(playerEdictId)
 	if len(args) != 6 && len(args) != 3 {
 		c := HostClient()
 		c.Printf("usage:\n")
@@ -764,7 +762,7 @@ func hostSetPos(args []cmd.QArg, player int) {
 		ev.FixAngle = 1
 	}
 
-	vm.LinkEdict(player, false)
+	vm.LinkEdict(playerEdictId, false)
 }
 
 func hostName(args []cmd.QArg, _ int) {
@@ -810,17 +808,17 @@ func hostName(args []cmd.QArg, _ int) {
 	// send notification to all clients
 	rd := &sv.reliableDatagram
 	rd.WriteByte(svc.UpdateName)
-	rd.WriteByte(HostClientID())
+	rd.WriteByte(c.id)
 	rd.WriteString(newName)
 }
 
-func hostKill(args []cmd.QArg, player int) {
+func hostKill(args []cmd.QArg, playerEdictId int) {
 	if execute.IsSrcCommand() {
 		forwardToServer("kill", args)
 		return
 	}
 
-	ev := EntVars(player)
+	ev := EntVars(playerEdictId)
 
 	if ev.Health <= 0 {
 		HostClient().Printf("Can't suicide -- allready dead!\n")
@@ -828,7 +826,7 @@ func hostKill(args []cmd.QArg, player int) {
 	}
 
 	progsdat.Globals.Time = sv.time
-	progsdat.Globals.Self = int32(player)
+	progsdat.Globals.Self = int32(playerEdictId)
 	vm.ExecuteProgram(progsdat.Globals.ClientKill)
 }
 
@@ -931,10 +929,11 @@ func hostShutdownServer(crash bool) {
 }
 
 // Kicks a user off of the server
-func hostKick(args []cmd.QArg, _ int) {
+func hostKick(args []cmd.QArg, playerEdictId int) {
 	if len(args) == 0 {
 		return
 	}
+	conlog.Printf("IsSrcCommand: %v", execute.IsSrcCommand())
 	if execute.IsSrcCommand() {
 		if !sv.active {
 			forwardToServer("kick", args)
@@ -978,9 +977,8 @@ func hostKick(args []cmd.QArg, _ int) {
 	if toKick == nil {
 		return
 	}
-	if host_client == toKick.id {
+	if playerEdictId == toKick.edictId {
 		// can't kick yourself!
-		// This does not prevent the server from kicking itself!
 		return
 	}
 	who := func() string {
@@ -1020,7 +1018,7 @@ func hostConnect(args []cmd.QArg, _ int) {
 // handle a
 // map <servername>
 // command from the console.  Active clients are kicked off.
-func hostMap(args []cmd.QArg, player int) {
+func hostMap(args []cmd.QArg, _ int) {
 	if len(args) == 0 {
 		// no map name given
 		if cls.state == ca_dedicated {
@@ -1078,7 +1076,7 @@ func hostMap(args []cmd.QArg, player int) {
 }
 
 // Goes to a new map, taking all clients along
-func hostChangelevel(args []cmd.QArg, player int) {
+func hostChangelevel(args []cmd.QArg, _ int) {
 	if len(args) != 1 {
 		conlog.Printf("changelevel <levelname> : continue game on a new level\n")
 		return
@@ -1107,7 +1105,7 @@ func hostChangelevel(args []cmd.QArg, player int) {
 }
 
 // Restarts the current server for a dead player
-func hostRestart(args []cmd.QArg, player int) {
+func hostRestart(args []cmd.QArg, _ int) {
 	if cls.demoPlayback || !sv.active {
 		return
 	}
