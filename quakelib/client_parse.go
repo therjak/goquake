@@ -1050,6 +1050,7 @@ func (c *Client) ParseEntityUpdate(cmd byte) error {
 			// automatic animation (torches, etc) can be either all together or randomized
 			if model != nil {
 				// TODO(therjak):
+				// synctype only set for alias and sprite models
 				//			if model.SyncType == ST_RAND {
 				//				e.SyncBase = float32(rand()&0x7fff / 0x7fff)
 				//			}
