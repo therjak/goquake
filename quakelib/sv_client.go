@@ -81,12 +81,10 @@ func SV_BroadcastPrint(m string) {
 	}
 }
 
+// TODO: HostClient/host_client should get removed. It is only used in hostcmd.go
+// and the playerEdictId should be sufficient.
 func HostClient() *SVClient {
-	return sv_clients[HostClientID()]
-}
-
-func HostClientID() int {
-	return host_client
+	return sv_clients[host_client]
 }
 
 func (c *SVClient) Printf(format string, v ...interface{}) {
