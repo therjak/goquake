@@ -218,7 +218,7 @@ func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
 	}
 
 	// if the object wasn't included in the last packet, remove it
-	if e.MsgTime != cl.time {
+	if e.MsgTime != cl.messageTime {
 		e.Model = nil
 		e.ptr.model = nil
 		// next time this entity slot is reused, the lerp will need to be reset
