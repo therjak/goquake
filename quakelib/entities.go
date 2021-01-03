@@ -434,24 +434,13 @@ func (r *qRenderer) DrawAliasModel(e *Entity) {
 
 var clientVisibleEntities []*Entity // pointers into cl.entities, cl.staticEntities, tempEntities
 
-//export ClearVisibleEntities
 func ClearVisibleEntities() {
 	C.cl_numvisedicts = 0
 	clientVisibleEntities = clientVisibleEntities[:0]
 }
 
-//export ClearTempEntities
 func ClearTempEntities() {
 	clientTempEntities = clientTempEntities[:0]
-}
-
-//export CL_NewTempEntity
-func CL_NewTempEntity() C.entityPtr {
-	e := cl.NewTempEntity()
-	if e == nil {
-		return nil
-	}
-	return e.ptr
 }
 
 func (c *Client) NewTempEntity() *Entity {
