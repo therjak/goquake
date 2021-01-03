@@ -5,8 +5,6 @@
 
 #define SIGNONS 4  // signon messages to receive before connected
 
-#include "beam.h"
-
 #define MAX_EFRAGS 4096  // ericw -- was 2048 //johnfitz -- was 640
 
 typedef enum {

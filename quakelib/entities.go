@@ -63,8 +63,8 @@ func printEntities(_ []cmd.QArg, _ int) {
 		}
 		n := C.GoString(&e.ptr.model.name[0])
 		f := int(e.ptr.frame)
-		a := e.angles()
-		o := e.origin()
+		a := e.Angles
+		o := e.Origin
 		conlog.Printf("%s:%2d  (%5.1f,%5.1f,%5.1f) [%5.1f %5.1f %5.1f]\n",
 			n, f, o[0], o[1], o[2], a[0], a[1], a[2])
 	}
@@ -173,28 +173,10 @@ func (c *Client) WorldEntity() *Entity {
 
 // Sync synces from the go side to the C side
 func (e *Entity) Sync() {
-	e.ptr.forcelink = 0
-	if e.ForceLink {
-		e.ptr.forcelink = 1
-	}
 	e.ptr.syncbase = C.float(e.SyncBase)
 	e.ptr.lerpflags = C.uchar(e.LerpFlags)
-	e.ptr.msgtime = C.double(e.MsgTime)
 	e.ptr.frame = C.int(e.Frame)
 	e.ptr.skinnum = C.int(e.SkinNum)
-	e.ptr.effects = C.int(e.Effects)
-	e.ptr.msg_origins[0][0] = C.float(e.MsgOrigin[0][0])
-	e.ptr.msg_origins[0][1] = C.float(e.MsgOrigin[0][1])
-	e.ptr.msg_origins[0][2] = C.float(e.MsgOrigin[0][2])
-	e.ptr.msg_origins[1][0] = C.float(e.MsgOrigin[1][0])
-	e.ptr.msg_origins[1][1] = C.float(e.MsgOrigin[1][1])
-	e.ptr.msg_origins[1][2] = C.float(e.MsgOrigin[1][2])
-	e.ptr.msg_angles[0][0] = C.float(e.MsgAngles[0][0])
-	e.ptr.msg_angles[0][1] = C.float(e.MsgAngles[0][1])
-	e.ptr.msg_angles[0][2] = C.float(e.MsgAngles[0][2])
-	e.ptr.msg_angles[1][0] = C.float(e.MsgAngles[1][0])
-	e.ptr.msg_angles[1][1] = C.float(e.MsgAngles[1][1])
-	e.ptr.msg_angles[1][2] = C.float(e.MsgAngles[1][2])
 	e.ptr.alpha = C.uchar(e.Alpha)
 	e.ptr.lerpfinish = C.float(e.LerpFinish)
 	e.ptr.origin[0] = C.float(e.Origin[0])
@@ -207,29 +189,18 @@ func (e *Entity) Sync() {
 
 // Sync synces from the C side to the go side
 func (e *Entity) SyncC() {
-	e.ForceLink = e.ptr.forcelink != 0
 	e.SyncBase = float32(e.ptr.syncbase)
 	e.LerpFlags = byte(e.ptr.lerpflags)
-	e.MsgTime = float64(e.ptr.msgtime)
 	e.Frame = int(e.ptr.frame)
 	e.SkinNum = int(e.ptr.skinnum)
-	e.Effects = int(e.ptr.effects)
 	e.Alpha = byte(e.ptr.alpha)
 	e.LerpFinish = float64(e.ptr.lerpfinish)
-	e.Origin = e.origin()
-	e.Angles = e.angles()
-}
-
-func (e *Entity) origin() vec.Vec3 {
-	return vec.Vec3{
+	e.Origin = vec.Vec3{
 		float32(e.ptr.origin[0]),
 		float32(e.ptr.origin[1]),
 		float32(e.ptr.origin[2]),
 	}
-}
-
-func (e *Entity) angles() vec.Vec3 {
-	return vec.Vec3{
+	e.Angles = vec.Vec3{
 		float32(e.ptr.angles[0]),
 		float32(e.ptr.angles[1]),
 		float32(e.ptr.angles[2]),
@@ -238,6 +209,7 @@ func (e *Entity) angles() vec.Vec3 {
 
 //TODO(therjak): remove idx and just use a pointer to Entity
 func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
+	e.SyncC()
 	if e.Model == nil { // empty slot
 		if e.ForceLink { // just became empty
 			C.R_RemoveEfrags(e.ptr)

@@ -36,6 +36,7 @@ func loadModel(name string) (model.Model, error) {
 	mods, err := model.Load(name)
 	if err != nil {
 		log.Printf("LoadModel err: %v", err)
+		return nil, err
 	}
 	for _, m := range mods {
 		models[m.Name()] = m

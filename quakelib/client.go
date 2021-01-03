@@ -1,13 +1,6 @@
 package quakelib
 
 //void SetCLWeaponModel(int v);
-//void CL_ParseBeam(const char *name, int ent, float s1, float s2, float s3,
-//                  float e1, float e2, float e3);
-//extern const char* BOLT1;
-//extern const char* BOLT2;
-//extern const char* BOLT3;
-//extern const char* BEAM;
-//void CL_UpdateTEnts(void);
 import "C"
 
 import (
@@ -322,6 +315,7 @@ func CL_Clear() {
 		dynamicLights:  make([]DynamicLight, 64, 64),
 	}
 	clearLightStyles()
+	clearBeams()
 }
 
 //export CLViewentityNum
@@ -364,7 +358,7 @@ func viewPositionCommand(args []cmd.QArg, _ int) {
 //export printPosition
 func printPosition() {
 	player := cl.Entities(cl.viewentity)
-	pos := player.origin()
+	pos := player.Origin
 	conlog.Printf("Viewpos: (%.f %.f %.f) %.f %.f %.f\n",
 		pos[0], pos[1], pos[2],
 		cl.pitch, cl.yaw, cl.roll)
@@ -457,7 +451,7 @@ func (c *Client) ReadFromServer() {
 	}
 
 	c.RelinkEntities(frac)
-	c.UpdateTempEntities()
+	c.updateTempEntities()
 }
 
 func (c *Client) RelinkEntities(frac float32) {
@@ -466,10 +460,6 @@ func (c *Client) RelinkEntities(frac float32) {
 	for i, e := range c.entities {
 		e.Relink(frac, bobjrotate, i)
 	}
-}
-
-func (c *Client) UpdateTempEntities() {
-	C.CL_UpdateTEnts()
 }
 
 func (c *ClientStatic) getMessage() int {
@@ -1074,9 +1064,9 @@ func (c *Client) parseDamage(armor, blood int, from vec.Vec3) {
 	}
 
 	ent := c.Entities(c.viewentity)
-	origin := ent.origin()
+	origin := ent.Origin
 	from = from.Sub(origin).Normalize()
-	angles := ent.angles()
+	angles := ent.Angles
 	forward, right, _ := vec.AngleVectors(angles)
 	c.dmgRoll = count * vec.Dot(from, right) * cvars.ViewKickRoll.Value()
 	c.dmgPitch = count * vec.Dot(from, forward) * cvars.ViewKickPitch.Value()
@@ -1085,7 +1075,7 @@ func (c *Client) parseDamage(armor, blood int, from vec.Vec3) {
 
 func (c *Client) calcViewRoll() {
 	ent := c.Entities(c.viewentity)
-	angles := ent.angles()
+	angles := ent.Angles
 	side := CalcRoll(angles, c.velocity)
 	qRefreshRect.viewAngles[ROLL] += side
 
@@ -1106,7 +1096,7 @@ func (c *Client) boundOffsets() {
 
 	// absolutely bound refresh relative to entity clipping hull
 	// so the view can never be inside a solid wall
-	o := ent.origin()
+	o := ent.Origin
 	qRefreshRect.viewOrg[0] = math.Clamp32(o[0]-14, qRefreshRect.viewOrg[0], o[0]+14)
 	qRefreshRect.viewOrg[1] = math.Clamp32(o[1]-14, qRefreshRect.viewOrg[1], o[1]+14)
 	qRefreshRect.viewOrg[2] = math.Clamp32(o[2]-22, qRefreshRect.viewOrg[2], o[2]+30)
@@ -1143,8 +1133,8 @@ func (c *Client) addIdle(idlescale float32) {
 func (c *Client) calcIntermissionRefreshRect() {
 	ent := c.Entities(c.viewentity)
 	// body
-	qRefreshRect.viewOrg = ent.origin()
-	qRefreshRect.viewAngles = ent.angles()
+	qRefreshRect.viewOrg = ent.Origin
+	qRefreshRect.viewAngles = ent.Angles
 	// weaponmodel
 	w := c.WeaponEntity()
 	w.Model = nil
@@ -1232,7 +1222,7 @@ func (c *Client) calcRefreshRect() {
 	bob := c.calcBob()
 
 	// refresh position
-	qRefreshRect.viewOrg = ent.origin()
+	qRefreshRect.viewOrg = ent.Origin
 	qRefreshRect.viewOrg[2] += c.viewHeight + bob
 
 	// never let it sit exactly on a node line, because a water plane can
@@ -1250,7 +1240,7 @@ func (c *Client) calcRefreshRect() {
 	c.addIdle(cvars.ViewIdleScale.Value())
 
 	// offsets
-	angles := ent.angles()
+	angles := ent.Angles
 	// because entity pitches are actually backward
 	angles[PITCH] *= -1
 	forward, right, up := vec.AngleVectors(angles)
@@ -1275,7 +1265,7 @@ func (c *Client) calcRefreshRect() {
 	w.ptr.angles[YAW] = C.float(w.Angles[YAW])
 
 	c.calcWeaponAngle()
-	w.Origin = ent.origin()
+	w.Origin = ent.Origin
 	w.Origin[2] += c.viewHeight
 
 	w.Origin.Add(vec.Scale(bob*0.4, forward))
@@ -1316,7 +1306,7 @@ func (c *Client) calcRefreshRect() {
 	}
 
 	// smooth out stair step ups
-	origin := ent.origin()
+	origin := ent.Origin
 	if /*!noclip_anglehack &&*/ c.onGround && origin[2]-calcRefreshRectOldZ > 0 {
 		// FIXME: noclip_anglehack is set on the server, so in a nonlocal game this
 		// won't work.
@@ -1991,11 +1981,12 @@ func (c *ClientStatic) readCoordVec() (vec.Vec3, error) {
 	return vec.Vec3{x, y, z}, nil
 }
 
-func parseBeam(name *C.char, ent int16, s, e vec.Vec3) {
-	C.CL_ParseBeam(name, C.int(ent),
-		C.float(s[0]), C.float(s[1]), C.float(s[2]),
-		C.float(e[0]), C.float(e[1]), C.float(e[2]))
-}
+const (
+	mdlBolt1 = "progs/bolt.mdl"
+	mdlBolt2 = "progs/bolt2.mdl"
+	mdlBolt3 = "progs/bolt3.mdl"
+	mdlBeam  = "progs/beam.mdl"
+)
 
 func (c *ClientStatic) parseTEnt() error {
 	if c.inMessage.Len() == 0 {
@@ -2093,7 +2084,7 @@ func (c *ClientStatic) parseTEnt() error {
 		if err != nil {
 			return err
 		}
-		parseBeam(C.BOLT1, ent, s, e)
+		parseBeam(mdlBolt1, ent, s, e)
 	case TE_LIGHTNING2:
 		// lightning bolts
 		ent, err := c.inMessage.ReadInt16()
@@ -2108,7 +2099,7 @@ func (c *ClientStatic) parseTEnt() error {
 		if err != nil {
 			return err
 		}
-		parseBeam(C.BOLT2, ent, s, e)
+		parseBeam(mdlBolt2, ent, s, e)
 	case TE_WIZSPIKE:
 		// spike hitting wall
 		pos, err := c.readCoordVec()
@@ -2139,7 +2130,7 @@ func (c *ClientStatic) parseTEnt() error {
 		if err != nil {
 			return err
 		}
-		parseBeam(C.BOLT3, ent, s, e)
+		parseBeam(mdlBolt3, ent, s, e)
 	case TE_LAVASPLASH:
 		pos, err := c.readCoordVec()
 		if err != nil {
@@ -2191,7 +2182,7 @@ func (c *ClientStatic) parseTEnt() error {
 		if err != nil {
 			return err
 		}
-		parseBeam(C.BEAM, ent, s, e)
+		parseBeam(mdlBeam, ent, s, e)
 	default:
 		Error("CL_ParseTEnt: bad type")
 	}
