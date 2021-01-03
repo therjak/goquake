@@ -25,3 +25,11 @@ func RSqrt(x float32) float32 {
 	y *= 1.5 - (x2 * y * y)
 	return y
 }
+
+// Sqrt return aprox sqrt(x) for 0<=x
+func Sqrt(x float32) float32 {
+	i := gmath.Float32bits(x)
+	i = (i >> 1) + (0x3f800000 >> 1)
+	y := gmath.Float32frombits(i)
+	return (y*y + x) / (2 * y)
+}
