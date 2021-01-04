@@ -413,8 +413,20 @@ func (s *qSky) DrawSkyLayers() {
 }
 
 func (s *qSky) DrawFace(mins, maxs [2]float32, vup, vright, v vec.Vec3) {
+	// vertexDualTextureSource, vec3 pos, solidtexcoord alphatexcoord vec2
+	// fragmentSourceDualTextureDrawer
 	// di = qmax...
 	// verts[0] == v
+	// gl.Bind(solidskytexture2)
+	// gl.EnableMultitexture()
+	// gl.Bind(alphaskytexture2)
+	// gl.TexEnvf(gl.TEXTURE_ENV, gl.TEXTURE_ENV_MODE, gl.DECAL)
+	// speed 8 for tex1 (see Sky_GetTexCoord)
+	// speed 16 for tex2
+	// gl.TexParameterI(gl.TEXTURE2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
+	// gl.TexParameterI(gl.TEXTURE2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
+	// v, v+vup, v+vup+vright, v+vright are the quads
+	// gl.DisableMultitexture()
 }
 
 func (s *qSky) Draw() {

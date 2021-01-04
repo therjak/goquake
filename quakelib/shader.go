@@ -22,6 +22,21 @@ void main() {
 }
 ` + "\x00"
 
+	vertexDualTextureSource = `
+#version 330
+layout (location = 0) in vec3 position;
+layout (location = 1) in vec2 solidtexcoord;
+layout (location = 2) in vec2 alphatexcoord;
+out vec2 SolidTexcoord;
+out vec2 AlphaTexcoord;
+
+void main() {
+	SolidTexcoord = solidtexcoord;
+	AlphaTexcoord = alphatexcoord;
+	gl_Position = vec4(position, 1.0);
+}
+` + "\x00"
+
 	vertexSourceParticleDrawer = `
 #version 330
 layout (location = 0) in vec3 vposition;
@@ -239,6 +254,21 @@ void main() {
 	if (color.a < 0.666)
 	  discard;
   frag_color = color;
+}
+` + "\x00"
+
+	fragmentSourceDualTextureDrawer = `
+#version 330
+in vec2 SolidTexcoord;
+in vec2 AlphaTexcoord;
+out vec4 frag_color;
+uniform sampler2D solid;
+uniform sampler2D alpha;
+
+void main() {
+  vec4 color1 = texture(solid, SolidTexcoord);
+	vec4 color2 = texture(alpha, AlphaTexcoord);
+	frag_color = mix(color1,color2, color2.a);
 }
 ` + "\x00"
 
