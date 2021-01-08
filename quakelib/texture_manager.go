@@ -353,14 +353,14 @@ func (tm *texMgr) DisableMultiTexture() {
 	// selects texture unit 0
 	if tm.multiTextureEnabled {
 		gl.Disable(gl.TEXTURE_2D)
-		GLSelectTexture(gl.TEXTURE0)
+		tm.SelectTextureUnit(gl.TEXTURE0)
 		tm.multiTextureEnabled = false
 	}
 }
 
 func (tm *texMgr) EnableMultiTexture() {
 	// selects texture unit 1
-	GLSelectTexture(gl.TEXTURE1)
+	tm.SelectTextureUnit(gl.TEXTURE1)
 	gl.Enable(gl.TEXTURE_2D)
 	tm.multiTextureEnabled = true
 }

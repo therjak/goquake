@@ -85,6 +85,7 @@ func (d *recDrawer) Draw(x, y, w, h float32, c Color) {
 
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	gl.Enable(gl.BLEND)
+	defer gl.Disable(gl.BLEND)
 
 	d.prog.Use()
 	d.vao.Bind()
@@ -93,14 +94,12 @@ func (d *recDrawer) Draw(x, y, w, h float32, c Color) {
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 
 	gl.EnableVertexAttribArray(0)
+	defer gl.DisableVertexAttribArray(0)
 	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 4*3, gl.PtrOffset(0))
 
 	gl.Uniform4f(d.color, c.R, c.G, c.B, c.A)
 
 	gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
-
-	gl.DisableVertexAttribArray(0)
-	gl.Disable(gl.BLEND)
 }
 
 type drawer struct {
@@ -153,7 +152,9 @@ func (d *drawer) Draw(x, y, w, h float32, t *texture.Texture) {
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 
 	gl.EnableVertexAttribArray(0)
+	defer gl.DisableVertexAttribArray(0)
 	gl.EnableVertexAttribArray(1)
+	defer gl.DisableVertexAttribArray(1)
 
 	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 4*5, gl.PtrOffset(0))
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 4*5, gl.PtrOffset(3*4))
@@ -161,8 +162,6 @@ func (d *drawer) Draw(x, y, w, h float32, t *texture.Texture) {
 	textureManager.Bind(t)
 
 	gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
-	gl.DisableVertexAttribArray(0)
-	gl.DisableVertexAttribArray(1)
 }
 
 func (d *drawer) DrawQuad(x, y float32, num byte) {
@@ -192,7 +191,9 @@ func (d *drawer) DrawQuad(x, y float32, num byte) {
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 
 	gl.EnableVertexAttribArray(0)
+	defer gl.DisableVertexAttribArray(0)
 	gl.EnableVertexAttribArray(1)
+	defer gl.DisableVertexAttribArray(1)
 
 	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 4*5, gl.PtrOffset(0))
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 4*5, gl.PtrOffset(3*4))
@@ -200,9 +201,6 @@ func (d *drawer) DrawQuad(x, y float32, num byte) {
 	textureManager.Bind(consoleTexture)
 
 	gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
-
-	gl.DisableVertexAttribArray(0)
-	gl.DisableVertexAttribArray(1)
 }
 
 var (
@@ -221,6 +219,7 @@ func Draw_Delete() {
 func Draw_Init() {
 	qDrawer = NewDrawer()
 	qRecDrawer = NewRecDrawer()
+
 	textureManager.Init()
 	consoleTexture = textureManager.LoadConsoleChars()
 	backtileTexture = textureManager.LoadBacktile()
@@ -396,14 +395,12 @@ func DrawPicture(x, y int, p *QPic) {
 func DrawPictureAlpha(x, y int, p *QPic, alpha float32) {
 	gl.BlendColor(0, 0, 0, alpha)
 	gl.BlendFunc(gl.CONSTANT_ALPHA, gl.ONE_MINUS_CONSTANT_ALPHA)
+	// TODO(therjak): why reset the blend func? who misses to set it?
+	defer gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	gl.Enable(gl.BLEND)
+	defer gl.Disable(gl.BLEND)
 
 	qDrawer.Draw(float32(x), float32(y), float32(p.Width), float32(p.Height), p.Texture)
-
-	gl.Disable(gl.BLEND)
-
-	// TODO(therjak): why reset the blend func? who misses to set it?
-	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 }
 
 var (
@@ -499,7 +496,9 @@ func (d *drawer) TileClear(x, y, w, h float32) {
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 
 	gl.EnableVertexAttribArray(0)
+	defer gl.DisableVertexAttribArray(0)
 	gl.EnableVertexAttribArray(1)
+	defer gl.DisableVertexAttribArray(1)
 
 	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 4*5, gl.PtrOffset(0))
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 4*5, gl.PtrOffset(3*4))
@@ -510,9 +509,6 @@ func (d *drawer) TileClear(x, y, w, h float32) {
 	textureManager.Bind(backtileTexture)
 
 	gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
-
-	gl.DisableVertexAttribArray(0)
-	gl.DisableVertexAttribArray(1)
 }
 
 var (

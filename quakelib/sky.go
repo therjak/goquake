@@ -17,7 +17,6 @@ package quakelib
 //void Sky_DrawSkyBox(void);
 //void Sky_ProcessTextureChains(void);
 //void Sky_ProcessEntities(void);
-//void Sky_DrawFace(int axis);
 import "C"
 
 import (
@@ -31,6 +30,7 @@ import (
 	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/cvar"
 	"github.com/therjak/goquake/cvars"
+	"github.com/therjak/goquake/glh"
 	"github.com/therjak/goquake/math/vec"
 	"github.com/therjak/goquake/texture"
 )
@@ -64,7 +64,10 @@ type qSky struct {
 	maxs         [2][6]float32
 }
 
-var sky qSky
+var (
+	sky       qSky
+	skyDrawer *qSkyDrawer
+)
 
 //export HasSkyBox
 func HasSkyBox() bool {
@@ -85,6 +88,7 @@ func ClearSkyBox() {
 //export SkyInit
 func SkyInit() {
 	C.Sky_Init()
+	skyDrawer = newSkyDrawer()
 }
 
 //export SkyDrawSky
@@ -192,8 +196,17 @@ func (s *qSky) LoadTexture(d []byte, skyName, modelName string) {
 	}
 	fn := fmt.Sprintf("%s:%s_front", modelName, skyName)
 	bn := fmt.Sprintf("%s:%s_back", modelName, skyName)
+
 	s.solidTexture = textureManager.LoadSkyTexture(bn, back[:], texture.TexPrefNone)
+	textureManager.Bind(s.solidTexture)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
+
 	s.alphaTexture = textureManager.LoadSkyTexture(fn, front[:], texture.TexPrefAlpha)
+	textureManager.Bind(s.alphaTexture)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
+
 	s.flat = Color{
 		R: float32(r) / (float32(count) * 255),
 		G: float32(g) / (float32(count) * 255),
@@ -357,17 +370,64 @@ func (s *qSky) DrawSkyLayers() {
 	fc := cvars.GlFarClip.Value() / sqrt3
 	fc2 := 2 * fc
 	// TODO: why do the model/view stuff outside the shader?
-	for i := 0; i < 6; i++ {
-		if s.mins[0][i] < s.maxs[0][i] && s.mins[1][i] < s.maxs[1][i] {
-			C.Sky_DrawFace(C.int(i))
+	// check qRefreshRect.viewOrg below
+	projection := [16]float32{}
+	gl.GetFloatv(0x0BA7, &projection[0])
+	modelview := [16]float32{}
+	gl.GetFloatv(0x0BA6, &modelview[0])
+
+	skyDrawer.prog.Use()
+	skyDrawer.vao.Bind()
+	skyDrawer.ebo.Bind(gl.ELEMENT_ARRAY_BUFFER)
+	skyDrawer.vbo.Bind(gl.ARRAY_BUFFER)
+
+	gl.EnableVertexAttribArray(0)
+	defer gl.DisableVertexAttribArray(0)
+	gl.EnableVertexAttribArray(1)
+	defer gl.DisableVertexAttribArray(1)
+	gl.EnableVertexAttribArray(2)
+	defer gl.DisableVertexAttribArray(2)
+	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 4*7, gl.PtrOffset(0))   // pos
+	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 4*7, gl.PtrOffset(3*4)) // solidTexPos
+	gl.VertexAttribPointer(2, 2, gl.FLOAT, false, 4*7, gl.PtrOffset(5*4)) // alphaTexPos
+
+	gl.UniformMatrix4fv(skyDrawer.projection, 1, false, &projection[0])
+	gl.UniformMatrix4fv(skyDrawer.modelview, 1, false, &modelview[0])
+	gl.Uniform1i(skyDrawer.solidTex, 0)
+	gl.Uniform1i(skyDrawer.alphaTex, 1)
+
+	textureManager.Bind(s.solidTexture)
+	textureManager.SelectTextureUnit(gl.TEXTURE1)
+	defer textureManager.SelectTextureUnit(gl.TEXTURE0)
+	textureManager.Bind(s.alphaTexture)
+
+	drawFace := func(mins, maxs [2]float32, vup, vright, v vec.Vec3) {
+		p1 := v
+		p2 := vec.Add(v, vup)
+		p3 := vec.Add(p2, vright)
+		p4 := vec.Add(v, vright)
+		// TODO: s&t are still wrong for both tex
+		// di = qmax...
+		// speed 8 for tex1 (see Sky_GetTexCoord)
+		// speed 16 for tex2
+		// probably take some parts of Sky_EmitSkyBoxVertex
+		vertices := []float32{
+			p1[0], p1[1], p1[2], 0, 1, 0, 1, //mins[0], maxs[0], mins[1], maxs[1],
+			p2[0], p2[1], p2[2], 0, 1, 0, 1, //mins[0], maxs[0], mins[1], maxs[1],
+			p3[0], p3[1], p3[2], 0, 1, 0, 1, //mins[0], maxs[0], mins[1], maxs[1],
+			p4[0], p4[1], p4[2], 0, 1, 0, 1, //mins[0], maxs[0], mins[1], maxs[1],
 		}
+
+		gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
+		gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
 	}
+
 	if s.mins[0][0] < s.maxs[0][0] && s.mins[1][0] < s.maxs[1][0] {
 		mins := [2]float32{s.mins[0][0], s.mins[1][0]}
 		maxs := [2]float32{s.maxs[0][0], s.maxs[1][0]}
 		vup := vec.Vec3{0, 0, fc2}
 		vright := vec.Vec3{0, -fc2, 0}
-		s.DrawFace(mins, maxs, vup, vright,
+		drawFace(mins, maxs, vup, vright,
 			vec.Add(qRefreshRect.viewOrg, vec.Vec3{fc, fc, -fc}))
 	}
 	if s.mins[0][1] < s.maxs[0][1] && s.mins[1][1] < s.maxs[1][1] {
@@ -375,7 +435,7 @@ func (s *qSky) DrawSkyLayers() {
 		maxs := [2]float32{s.maxs[0][1], s.maxs[1][1]}
 		vup := vec.Vec3{0, 0, fc2}
 		vright := vec.Vec3{0, fc2, 0}
-		s.DrawFace(mins, maxs, vup, vright,
+		drawFace(mins, maxs, vup, vright,
 			vec.Add(qRefreshRect.viewOrg, vec.Vec3{-fc, -fc, -fc}))
 	}
 	if s.mins[0][2] < s.maxs[0][2] && s.mins[1][2] < s.maxs[1][2] {
@@ -383,7 +443,7 @@ func (s *qSky) DrawSkyLayers() {
 		maxs := [2]float32{s.maxs[0][2], s.maxs[1][2]}
 		vup := vec.Vec3{0, 0, fc2}
 		vright := vec.Vec3{fc2, 0, 0}
-		s.DrawFace(mins, maxs, vup, vright,
+		drawFace(mins, maxs, vup, vright,
 			vec.Add(qRefreshRect.viewOrg, vec.Vec3{-fc, fc, -fc}))
 	}
 	if s.mins[0][3] < s.maxs[0][3] && s.mins[1][3] < s.maxs[1][3] {
@@ -391,7 +451,7 @@ func (s *qSky) DrawSkyLayers() {
 		maxs := [2]float32{s.maxs[0][3], s.maxs[1][3]}
 		vup := vec.Vec3{0, 0, fc2}
 		vright := vec.Vec3{-fc2, 0, 0}
-		s.DrawFace(mins, maxs, vup, vright,
+		drawFace(mins, maxs, vup, vright,
 			vec.Add(qRefreshRect.viewOrg, vec.Vec3{fc, -fc, -fc}))
 	}
 	if s.mins[0][4] < s.maxs[0][4] && s.mins[1][4] < s.maxs[1][4] {
@@ -399,7 +459,7 @@ func (s *qSky) DrawSkyLayers() {
 		maxs := [2]float32{s.maxs[0][4], s.maxs[1][4]}
 		vup := vec.Vec3{-fc2, 0, 0}
 		vright := vec.Vec3{0, -fc2, 0}
-		s.DrawFace(mins, maxs, vup, vright,
+		drawFace(mins, maxs, vup, vright,
 			vec.Add(qRefreshRect.viewOrg, vec.Vec3{fc, fc, fc}))
 	}
 	if s.mins[0][5] < s.maxs[0][5] && s.mins[1][5] < s.maxs[1][5] {
@@ -407,26 +467,47 @@ func (s *qSky) DrawSkyLayers() {
 		maxs := [2]float32{s.maxs[0][5], s.maxs[1][5]}
 		vup := vec.Vec3{fc2, 0, 0}
 		vright := vec.Vec3{0, -fc2, 0}
-		s.DrawFace(mins, maxs, vup, vright,
+		drawFace(mins, maxs, vup, vright,
 			vec.Add(qRefreshRect.viewOrg, vec.Vec3{-fc, fc, -fc}))
 	}
 }
 
-func (s *qSky) DrawFace(mins, maxs [2]float32, vup, vright, v vec.Vec3) {
-	// vertexDualTextureSource, vec3 pos, solidtexcoord alphatexcoord vec2
-	// fragmentSourceDualTextureDrawer
-	// di = qmax...
-	// verts[0] == v
-	// gl.Bind(solidskytexture2)
-	// gl.EnableMultitexture()
-	// gl.Bind(alphaskytexture2)
-	// gl.TexEnvf(gl.TEXTURE_ENV, gl.TEXTURE_ENV_MODE, gl.DECAL)
-	// speed 8 for tex1 (see Sky_GetTexCoord)
-	// speed 16 for tex2
-	// gl.TexParameterI(gl.TEXTURE2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
-	// gl.TexParameterI(gl.TEXTURE2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
-	// v, v+vup, v+vup+vright, v+vright are the quads
-	// gl.DisableMultitexture()
+type qSkyDrawer struct {
+	vao        *glh.VertexArray
+	vbo        *glh.Buffer
+	ebo        *glh.Buffer
+	prog       *glh.Program
+	projection int32
+	modelview  int32
+	solidTex   int32
+	alphaTex   int32
+}
+
+func newSkyDrawer() *qSkyDrawer {
+	d := &qSkyDrawer{}
+	elements := []uint32{
+		0, 1, 2,
+		2, 3, 0,
+	}
+	d.vao = glh.NewVertexArray()
+	d.vbo = glh.NewBuffer()
+	d.ebo = glh.NewBuffer()
+	d.ebo.Bind(gl.ELEMENT_ARRAY_BUFFER)
+	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
+	var err error
+	d.prog, err = newSkyProgram()
+	if err != nil {
+		Error(err.Error())
+	}
+	d.projection = d.prog.GetUniformLocation("projection")
+	d.modelview = d.prog.GetUniformLocation("modelview")
+	d.solidTex = d.prog.GetUniformLocation("solid")
+	d.alphaTex = d.prog.GetUniformLocation("alpha")
+	return d
+}
+
+func newSkyProgram() (*glh.Program, error) {
+	return glh.NewProgram(vertexDualTextureSource, fragmentSourceDualTextureDrawer)
 }
 
 func (s *qSky) Draw() {
@@ -445,10 +526,7 @@ func (s *qSky) Draw() {
 		{mf, mf, mf, mf, mf, mf},
 		{mf, mf, mf, mf, mf, mf}}
 
-	C.Fog_DisableGFog()
-	defer C.Fog_EnableGFog()
-
-	gl.Disable(gl.TEXTURE_2D)
+	gl.Disable(gl.TEXTURE_2D) // TODO: remove as OpenGL2.1
 	// if Fog_GetDensity() > 0
 	// glColor3fv(Fog_GetColor())
 	// else
@@ -456,7 +534,7 @@ func (s *qSky) Draw() {
 	s.processTextureChains()
 	C.Sky_ProcessEntities()
 	// glColor3fv(1,1,1)
-	gl.Enable(gl.TEXTURE_2D)
+	gl.Enable(gl.TEXTURE_2D) // TODO: remove
 
 	if !cvars.RFastSky.Bool() && !(Fog_GetDensity() > 0 && C.skyfog >= 1) {
 		gl.DepthFunc(gl.GEQUAL)
@@ -486,8 +564,8 @@ func (s *qSky) processTextureChains() {
 				s.processPoly(tc.Polys)
 			}
 		}
-
 	}
+	// Note: this is currently drawing the 'sky'
 	C.Sky_ProcessTextureChains()
 }
 

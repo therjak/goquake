@@ -147,8 +147,10 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 	gl.Enable(gl.DEPTH_TEST)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	gl.Enable(gl.BLEND)
+	defer gl.Disable(gl.BLEND)
 
 	gl.DepthMask(false)
+	defer gl.DepthMask(true)
 
 	d.prog.Use()
 	d.vao.Bind()
@@ -157,8 +159,11 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(d.vertices), gl.Ptr(d.vertices), gl.STATIC_DRAW)
 
 	gl.EnableVertexAttribArray(0)
+	defer gl.DisableVertexAttribArray(0)
 	gl.EnableVertexAttribArray(1)
+	defer gl.DisableVertexAttribArray(1)
 	gl.EnableVertexAttribArray(2)
+	defer gl.DisableVertexAttribArray(2)
 
 	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 4*8, gl.PtrOffset(0))
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 4*8, gl.PtrOffset(3*4))
@@ -171,12 +176,9 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(numVert))
 
-	gl.DisableVertexAttribArray(0)
-	gl.DisableVertexAttribArray(1)
-	gl.DisableVertexAttribArray(2)
-
-	gl.DepthMask(true)
-	gl.Disable(gl.BLEND)
+	// We bound a texture without the texture manager.
+	// Tell the texture manager that its cache is invalid.
+	textureManager.ClearBindings()
 }
 
 type particle struct {

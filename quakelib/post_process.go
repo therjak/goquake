@@ -75,7 +75,9 @@ func (p *postProcess) Draw(gamma, contrast float32, width, height int32) {
 	p.ebo.Bind(gl.ELEMENT_ARRAY_BUFFER)
 	p.vbo.Bind(gl.ARRAY_BUFFER)
 	gl.EnableVertexAttribArray(0)
+	defer gl.DisableVertexAttribArray(0)
 	gl.EnableVertexAttribArray(1)
+	defer gl.DisableVertexAttribArray(1)
 	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 4*4, gl.PtrOffset(0))
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 4*4, gl.PtrOffset(2*4))
 	gl.Uniform1f(p.gamma, gamma)
@@ -87,9 +89,6 @@ func (p *postProcess) Draw(gamma, contrast float32, width, height int32) {
 	// We bound a texture without the texture manager.
 	// Tell the texture manager that its cache is invalid.
 	textureManager.ClearBindings()
-
-	gl.DisableVertexAttribArray(0)
-	gl.DisableVertexAttribArray(1)
 }
 
 func postProcessGammaContrast(gamma, contrast float32, width, height int32) {

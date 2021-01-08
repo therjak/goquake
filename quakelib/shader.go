@@ -29,11 +29,13 @@ layout (location = 1) in vec2 solidtexcoord;
 layout (location = 2) in vec2 alphatexcoord;
 out vec2 SolidTexcoord;
 out vec2 AlphaTexcoord;
+uniform mat4 projection;
+uniform mat4 modelview;
 
 void main() {
 	SolidTexcoord = solidtexcoord;
 	AlphaTexcoord = alphatexcoord;
-	gl_Position = vec4(position, 1.0);
+	gl_Position = projection * modelview * vec4(position, 1.0);
 }
 ` + "\x00"
 
@@ -268,7 +270,9 @@ uniform sampler2D alpha;
 void main() {
   vec4 color1 = texture(solid, SolidTexcoord);
 	vec4 color2 = texture(alpha, AlphaTexcoord);
-	frag_color = mix(color1,color2, color2.a);
+	// TODO: add fog
+	// Blend vec4(Fog_GetColor, skyfog)
+	frag_color = mix(color1, color2, color2.a);
 }
 ` + "\x00"
 

@@ -223,10 +223,12 @@ func newConeDrawer() *qConeDrawer {
 
 func (cd *qConeDrawer) Draw(cs []qCone) {
 	gl.DepthMask(false) // to not obstruct the view to particles within the cone
-	gl.Disable(gl.TEXTURE_2D)
+	defer gl.DepthMask(true)
 
 	gl.Enable(gl.BLEND)
+	defer gl.Disable(gl.BLEND)
 	gl.BlendFunc(gl.ONE, gl.ONE)
+	defer gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
 	projection := [16]float32{
 		1, 0, 0, 0,
@@ -305,9 +307,13 @@ func (cd *qConeDrawer) Draw(cs []qCone) {
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(data), gl.Ptr(data), gl.STATIC_DRAW)
 
 	gl.EnableVertexAttribArray(0)
+	defer gl.DisableVertexAttribArray(0)
 	gl.EnableVertexAttribArray(1)
+	defer gl.DisableVertexAttribArray(1)
 	gl.EnableVertexAttribArray(2)
+	defer gl.DisableVertexAttribArray(2)
 	gl.EnableVertexAttribArray(3)
+	defer gl.DisableVertexAttribArray(3)
 	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 4*10, gl.PtrOffset(0))
 	gl.VertexAttribPointer(1, 1, gl.FLOAT, false, 4*10, gl.PtrOffset(3*4))
 	gl.VertexAttribPointer(2, 3, gl.FLOAT, false, 4*10, gl.PtrOffset(4*4))
@@ -317,16 +323,6 @@ func (cd *qConeDrawer) Draw(cs []qCone) {
 	gl.UniformMatrix4fv(cd.modelview, 1, false, &modelview[0])
 
 	gl.DrawArrays(gl.POINTS, 0, int32(len(cs)))
-
-	gl.DisableVertexAttribArray(0)
-	gl.DisableVertexAttribArray(1)
-	gl.DisableVertexAttribArray(2)
-	gl.DisableVertexAttribArray(3)
-
-	gl.Disable(gl.BLEND)
-	gl.Enable(gl.TEXTURE_2D)
-	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-	gl.DepthMask(true)
 }
 
 func (r *qRenderer) RenderDynamicLights() {

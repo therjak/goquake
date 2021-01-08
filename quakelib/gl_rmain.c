@@ -285,10 +285,10 @@ void R_DrawShadows(void) {
 
 void R_RenderScene(void) {
   R_SetupScene();
-  Fog_EnableGFog();
   SkyDrawSky();
+  // Fog_EnableGFog();
+  glUseProgram(0);
   R_DrawWorld();
-  S_ExtraUpdate();  // don't let sound get messed up if going slow
   R_DrawShadows();
   // false means this is the pass for nonalpha entities
   R_DrawEntitiesOnList(false);
@@ -297,7 +297,7 @@ void R_RenderScene(void) {
   R_DrawEntitiesOnList(true);
   R_RenderDlights();  // triangle fan dlights
   ParticlesDraw();
-  Fog_DisableGFog();
+  // Fog_DisableGFog();
   R_DrawViewModel();
 }
 

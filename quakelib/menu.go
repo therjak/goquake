@@ -206,7 +206,6 @@ func (m *qMenu) Draw() {
 
 	if console.currentHeight() != 0 {
 		DrawConsoleBackground()
-		S_ExtraUpdate()
 	}
 
 	DrawFadeScreen()
@@ -264,8 +263,6 @@ func (m *qMenu) Draw() {
 		localSound("misc/menu2.wav")
 		m.playEnterSound = false
 	}
-
-	S_ExtraUpdate()
 }
 
 func (m *qMenu) HandleKey(k kc.KeyCode) {
