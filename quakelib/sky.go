@@ -401,23 +401,33 @@ func (s *qSky) DrawSkyLayers() {
 	defer textureManager.SelectTextureUnit(gl.TEXTURE0)
 	textureManager.Bind(s.alphaTexture)
 
+	sc1 := math32.Mod(float32(cl.time)*8, 128)
+	sc2 := math32.Mod(float32(cl.time)*16, 128)
+	vertices := make([]float32, 0, 7*4)
+
 	drawFace := func(mins, maxs [2]float32, vup, vright, v vec.Vec3) {
+		// Textures are 128x128
+		v = vec.Add(qRefreshRect.viewOrg, v)
 		p1 := v
 		p2 := vec.Add(v, vup)
 		p3 := vec.Add(p2, vright)
 		p4 := vec.Add(v, vright)
 		// TODO: s&t are still wrong for both tex
-		// di = qmax...
-		// speed 8 for tex1 (see Sky_GetTexCoord)
-		// speed 16 for tex2
-		// probably take some parts of Sky_EmitSkyBoxVertex
-		vertices := []float32{
-			p1[0], p1[1], p1[2], 0, 1, 0, 1, //mins[0], maxs[0], mins[1], maxs[1],
-			p2[0], p2[1], p2[2], 0, 1, 0, 1, //mins[0], maxs[0], mins[1], maxs[1],
-			p3[0], p3[1], p3[2], 0, 1, 0, 1, //mins[0], maxs[0], mins[1], maxs[1],
-			p4[0], p4[1], p4[2], 0, 1, 0, 1, //mins[0], maxs[0], mins[1], maxs[1],
+		vertices = vertices[:0]
+		ap := func(p vec.Vec3) {
+			v := vec.Sub(p, qRefreshRect.viewOrg)
+			v[2] *= 3 // flatten the sphere
+			l := 6 * 63 * v.RLength()
+			s1 := (sc1 + v[0]*l) / 128
+			t1 := (sc1 + v[1]*l) / 128
+			s2 := (sc2 + v[0]*l) / 128
+			t2 := (sc2 + v[1]*l) / 128
+			vertices = append(vertices, p[0], p[1], p[2], s1, t1, s2, t2)
 		}
-
+		ap(p1)
+		ap(p2)
+		ap(p3)
+		ap(p4)
 		gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 		gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
 	}
@@ -427,48 +437,42 @@ func (s *qSky) DrawSkyLayers() {
 		maxs := [2]float32{s.maxs[0][0], s.maxs[1][0]}
 		vup := vec.Vec3{0, 0, fc2}
 		vright := vec.Vec3{0, -fc2, 0}
-		drawFace(mins, maxs, vup, vright,
-			vec.Add(qRefreshRect.viewOrg, vec.Vec3{fc, fc, -fc}))
+		drawFace(mins, maxs, vup, vright, vec.Vec3{fc, fc, -fc})
 	}
 	if s.mins[0][1] < s.maxs[0][1] && s.mins[1][1] < s.maxs[1][1] {
 		mins := [2]float32{s.mins[0][1], s.mins[1][1]}
 		maxs := [2]float32{s.maxs[0][1], s.maxs[1][1]}
 		vup := vec.Vec3{0, 0, fc2}
 		vright := vec.Vec3{0, fc2, 0}
-		drawFace(mins, maxs, vup, vright,
-			vec.Add(qRefreshRect.viewOrg, vec.Vec3{-fc, -fc, -fc}))
+		drawFace(mins, maxs, vup, vright, vec.Vec3{-fc, -fc, -fc})
 	}
 	if s.mins[0][2] < s.maxs[0][2] && s.mins[1][2] < s.maxs[1][2] {
 		mins := [2]float32{s.mins[0][2], s.mins[1][2]}
 		maxs := [2]float32{s.maxs[0][2], s.maxs[1][2]}
 		vup := vec.Vec3{0, 0, fc2}
 		vright := vec.Vec3{fc2, 0, 0}
-		drawFace(mins, maxs, vup, vright,
-			vec.Add(qRefreshRect.viewOrg, vec.Vec3{-fc, fc, -fc}))
+		drawFace(mins, maxs, vup, vright, vec.Vec3{-fc, fc, -fc})
 	}
 	if s.mins[0][3] < s.maxs[0][3] && s.mins[1][3] < s.maxs[1][3] {
 		mins := [2]float32{s.mins[0][3], s.mins[1][3]}
 		maxs := [2]float32{s.maxs[0][3], s.maxs[1][3]}
 		vup := vec.Vec3{0, 0, fc2}
 		vright := vec.Vec3{-fc2, 0, 0}
-		drawFace(mins, maxs, vup, vright,
-			vec.Add(qRefreshRect.viewOrg, vec.Vec3{fc, -fc, -fc}))
+		drawFace(mins, maxs, vup, vright, vec.Vec3{fc, -fc, -fc})
 	}
 	if s.mins[0][4] < s.maxs[0][4] && s.mins[1][4] < s.maxs[1][4] {
 		mins := [2]float32{s.mins[0][4], s.mins[1][4]}
 		maxs := [2]float32{s.maxs[0][4], s.maxs[1][4]}
 		vup := vec.Vec3{-fc2, 0, 0}
 		vright := vec.Vec3{0, -fc2, 0}
-		drawFace(mins, maxs, vup, vright,
-			vec.Add(qRefreshRect.viewOrg, vec.Vec3{fc, fc, fc}))
+		drawFace(mins, maxs, vup, vright, vec.Vec3{fc, fc, fc})
 	}
 	if s.mins[0][5] < s.maxs[0][5] && s.mins[1][5] < s.maxs[1][5] {
 		mins := [2]float32{s.mins[0][5], s.mins[1][5]}
 		maxs := [2]float32{s.maxs[0][5], s.maxs[1][5]}
 		vup := vec.Vec3{fc2, 0, 0}
 		vright := vec.Vec3{0, -fc2, 0}
-		drawFace(mins, maxs, vup, vright,
-			vec.Add(qRefreshRect.viewOrg, vec.Vec3{-fc, fc, -fc}))
+		drawFace(mins, maxs, vup, vright, vec.Vec3{-fc, fc, -fc})
 	}
 }
 
