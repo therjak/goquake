@@ -38,8 +38,8 @@ type qParticleDrawer struct {
 	projection int32
 	modelview  int32
 
-	texture            *glh.Texture
-	textures           [2]*glh.Texture
+	texture            glh.Texture
+	textures           [2]glh.Texture
 	textureScaleFactor float32
 
 	// to reduce the number of allocations
@@ -64,8 +64,8 @@ func newParticleDrawer() *qParticleDrawer {
 
 	gl.PixelStorei(gl.UNPACK_ALIGNMENT, 1)
 
-	d.textures[0] = glh.NewTexture()
-	d.textures[1] = glh.NewTexture()
+	d.textures[0] = glh.NewTexture2D()
+	d.textures[1] = glh.NewTexture2D()
 	d.textures[0].Bind()
 	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.R16F, 64, 64, 0, gl.RED, gl.FLOAT, gl.Ptr(p1TextureData))
 	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)

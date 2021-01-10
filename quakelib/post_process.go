@@ -18,7 +18,7 @@ type postProcess struct {
 	width  int32
 	height int32
 
-	texture *glh.Texture
+	texture glh.Texture
 }
 
 var pprocess *postProcess
@@ -55,7 +55,7 @@ func newPostProcessor() *postProcess {
 
 func (p *postProcess) Draw(gamma, contrast float32, width, height int32) {
 	if p.texture == nil || p.width != width || p.height != height {
-		p.texture = glh.NewTexture()
+		p.texture = glh.NewTexture2D()
 		p.texture.Bind()
 		p.width = width
 		p.height = height

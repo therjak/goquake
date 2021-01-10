@@ -121,33 +121,6 @@ func (va *VertexArray) Bind() {
 	gl.BindVertexArray(va.a)
 }
 
-type Texture struct {
-	id uint32
-}
-
-type TexID uint32
-
-func (t *Texture) ID() TexID {
-	return TexID(t.id)
-}
-
-func NewTexture() *Texture {
-	t := &Texture{}
-	gl.GenTextures(1, &t.id)
-	runtime.SetFinalizer(t, (*Texture).delete)
-	return t
-}
-
-func (t *Texture) delete() {
-	mainthread.CallNonBlock(func() {
-		gl.DeleteTextures(1, &t.id)
-	})
-}
-
-func (t *Texture) Bind() {
-	gl.BindTexture(gl.TEXTURE_2D, t.id)
-}
-
 func GetShader(src string, shaderType uint32) (uint32, error) {
 	shader := gl.CreateShader(shaderType)
 	csource, free := gl.Strs(src)

@@ -31,7 +31,7 @@ const (
 )
 
 type Texture struct {
-	glID   *glh.Texture
+	glID   glh.Texture
 	Width  int32 // mipmap can make it differ from source width
 	Height int32
 	flags  TexPref
@@ -42,7 +42,7 @@ type Texture struct {
 
 func NewTexture(w, h int32, flags TexPref, name string, typ ColorType, data []byte) *Texture {
 	t := &Texture{
-		glID:   glh.NewTexture(),
+		glID:   glh.NewTexture2D(),
 		Width:  w,
 		Height: h,
 		flags:  flags,
