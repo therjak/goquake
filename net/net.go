@@ -48,6 +48,7 @@ var (
 	loopServer         *Connection
 	loopConnectPending = false
 	port               = 26000
+	address            string
 )
 
 func Port() int {
@@ -58,15 +59,28 @@ func SetPort(p int) {
 	port = p
 }
 
-func Address() string {
-	ia, err := net.InterfaceAddrs()
+func localIP() string {
+	conn, err := net.Dial("udp", "8.8.8.8:9")
+	if err != nil {
+		conn, err = net.Dial("udp", "[2001:4860:4860::8844]:9")
+	}
 	if err != nil {
 		return ""
 	}
-	if len(ia) == 0 {
+	defer conn.Close()
+	return conn.LocalAddr().(*net.UDPAddr).IP.String()
+}
+
+func Address() string {
+	if len(address) > 0 {
+		return address
+	}
+	addr := localIP()
+	if len(addr) == 0 {
 		return ""
 	}
-	return ia[0].String()
+	address = addr
+	return addr
 }
 
 func ServerName() string {
@@ -84,7 +98,7 @@ func (c *Connection) ConnectTime() time.Duration {
 
 func (c *Connection) Address() string {
 	if c.con != nil {
-		return c.con.RemoteAddr().String()
+		return c.con.RemoteAddr().(*net.UDPAddr).IP.String()
 	}
 	// For the loopback variant
 	return c.addr
@@ -109,15 +123,9 @@ func Connect(host string) (*Connection, error) {
 
 func udpConnect(host string, port int) (*Connection, error) {
 	addr := net.JoinHostPort(host, fmt.Sprintf("%d", port))
-	laddr, newPort, err := handShake(addr)
+	laddr, raddr, err := handShake(addr)
 	if err != nil {
 		return nil, fmt.Errorf("Handshake failed: %v", err)
-	}
-
-	addr = net.JoinHostPort(host, fmt.Sprintf("%d", newPort))
-	raddr, err := net.ResolveUDPAddr("udp", addr)
-	if err != nil {
-		return nil, fmt.Errorf("Could not resolve address %v: %v", host, err)
 	}
 	c, err := net.DialUDP("udp", laddr, raddr)
 	if err != nil {
@@ -201,57 +209,58 @@ const (
 	connectRequest = "\x80\x00\x00\x0c\x01QUAKE\x00\x03"
 )
 
-func handShake(host string) (*net.UDPAddr, int, error) {
+func handShake(host string) (*net.UDPAddr, *net.UDPAddr, error) {
 	radd, err := net.ResolveUDPAddr("udp", host)
 	if err != nil {
-		return nil, 0, fmt.Errorf("Could not resolve address %v: %v", host, err)
+		return nil, nil, fmt.Errorf("Could not resolve address %v: %v", host, err)
 	}
 	c, err := net.DialUDP("udp", nil, radd)
 	if err != nil {
-		return nil, 0, fmt.Errorf("Could not connect to host %v: %v", host, err)
+		return nil, nil, fmt.Errorf("Could not connect to host %v: %v", host, err)
 	}
 	defer c.Close()
 
 	i, err := c.Write([]byte(connectRequest))
 	if err != nil {
-		return nil, 0, err
+		return nil, nil, err
 	}
 	if i != 0x0c {
-		return nil, 0, fmt.Errorf("Did not send full message")
+		return nil, nil, fmt.Errorf("Did not send full message")
 	}
 
 	b := make([]byte, maxMessage)
 	i, err = c.Read(b)
 	if err != nil {
-		return nil, 0, err
+		return nil, nil, err
 	}
 	if i < 9 {
-		return nil, 0, fmt.Errorf("Return to small: %v", i)
+		return nil, nil, fmt.Errorf("Return to small: %v", i)
 	}
 	msg := *bytes.NewBuffer(b[:i])
 	var control uint32
 	binary.Read(&msg, binary.BigEndian, &control)
 	if control&NETFLAG_FLAG_MASK != NETFLAG_CTL ||
 		control&NETFLAG_LENGTH_MASK != uint32(i) {
-		return nil, 0, fmt.Errorf("Error in reply")
+		return nil, nil, fmt.Errorf("Error in reply")
 	}
 	ack, err := msg.ReadByte()
 	if ack == CCREP_REJECT {
 		s, err := msg.ReadString(0x00)
 		if err != nil {
-			return nil, 0, err
+			return nil, nil, err
 		}
-		return nil, 0, fmt.Errorf("Connection request rejected: %s", s)
+		return nil, nil, fmt.Errorf("Connection request rejected: %s", s)
 	}
 	if ack != CCREP_ACCEPT {
-		return nil, 0, fmt.Errorf("Bad Response")
+		return nil, nil, fmt.Errorf("Bad Response")
 	}
 
 	var sockAddr uint32
 	binary.Read(&msg, binary.LittleEndian, &sockAddr)
-	addr := c.LocalAddr()
-	laddr, _ := net.ResolveUDPAddr(addr.Network(), addr.String())
-	return laddr, int(sockAddr), nil
+	laddr := c.LocalAddr().(*net.UDPAddr)
+	raddr := c.RemoteAddr().(*net.UDPAddr)
+	raddr.Port = int(sockAddr)
+	return laddr, raddr, nil
 }
 
 func readUDP(c net.Conn, out chan<- msg, acks chan<- uint32) {
@@ -525,8 +534,10 @@ func CheckNewConnections() *Connection {
 			if c.con != nil && c.con.RemoteAddr() == req.addr {
 				log.Printf("ListenRequest from %v already known", req.addr.IP)
 				if c.connectTime+(2*time.Second) > qtime.QTime() {
+					log.Printf("Should resend CCREP_ACCEPT")
 					// TODO: resend CCREP_ACCEPT
 				} else {
+					log.Printf("Let them retry")
 					// let them retry
 					c.Close()
 				}
@@ -545,6 +556,7 @@ func CheckNewConnections() *Connection {
 		}
 		_, port, err := net.SplitHostPort(newConn.LocalAddr().String())
 		if err != nil {
+			log.Printf("Error splitting host/port: %v", err)
 			newConn.Close()
 			return nil
 		}
@@ -755,7 +767,6 @@ const (
 )
 
 func listenToNewClients(conn *net.UDPConn, listenChan chan<- listenRequest) {
-	log.Printf("Start listening")
 	buf := make([]byte, maxMessage)
 	for {
 		n, addr, err := conn.ReadFromUDP(buf)
@@ -785,12 +796,15 @@ func listenToNewClients(conn *net.UDPConn, listenChan chan<- listenRequest) {
 		default:
 			continue
 		case CCREQ_SERVER_INFO:
+			log.Printf("CCREQ_SERVER_INFO")
 			// TODO
 			continue
 		case CCREQ_PLAYER_INFO:
+			log.Printf("CCREQ_PLAYER_INFO")
 			// TODO
 			continue
 		case CCREQ_RULE_INFO:
+			log.Printf("CCREQ_RULE_INFO")
 			// TODO
 			continue
 		case CCREQ_CONNECT:
