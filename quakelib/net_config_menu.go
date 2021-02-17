@@ -251,7 +251,8 @@ func (m *qNetConfigMenu) Update() {
 }
 
 func (m *qNetConfigMenu) TextEntry() bool {
-	return m.selectedIndex == 0 || m.selectedIndex == 2
+	// Note: if the joinGameSearch gets reintroduced this needs an update!
+	return m.selectedIndex == 0 || m.selectedIndex == 1
 }
 
 func (m *qNetConfigMenu) Draw() {
