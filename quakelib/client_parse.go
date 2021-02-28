@@ -490,7 +490,7 @@ func CL_ParseServerMessage() {
 			}
 			cls.signon = int(i)
 			// if signonnum==2, signon packet has been fully parsed, so
-			// check for excessive static ents and efrags
+			// check for excessive static entities and entity fragments
 			if i == 2 {
 				if len(cl.staticEntities) > 128 {
 					conlog.DWarning("%d static entities exceeds standard limit of 128.\n",
@@ -740,6 +740,7 @@ func CL_ParseServerInfo() error {
 
 	conlog.Printf("Using protocol %d\n", cl.protocol)
 
+	clearMapsEntityFragments() // Fragmensts are stored next to members of the map
 	cl.modelPrecache = cl.modelPrecache[:]
 	var modelNames []string
 	for {
@@ -1100,5 +1101,5 @@ func (c *Client) ParseStatic(version int) {
 	ent.ParseStaticC(int(ent.Baseline.ModelIndex))
 	ent.Sync()
 
-	ent.R_AddEfrags()
+	ent.R_AddEfrags() // clean up after removal of c-efrags
 }

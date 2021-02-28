@@ -127,6 +127,7 @@ R_StoreEfrags -- johnfitz -- pointless switch statement removed.
 ================
 */
 void R_StoreEfrags(efrag_t **ppefrag) {
+  // got the efrag from the leaf
   entity_t *pent;
   efrag_t *pefrag;
 

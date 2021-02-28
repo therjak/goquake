@@ -98,24 +98,22 @@ type MNode struct {
 type MLeaf struct {
 	NodeBase
 	CompressedVis []byte
-	Efrags        []Efrag
 	MarkSurfaces  []*Surface // FirstMarkSurface
 	// NumMarkSurfaces   int == len(MarkSurfaces)
 	Key               int
 	AmbientSoundLevel [4]byte
 }
 
-type Efrag struct{}
-
 type TexCoord struct {
+	// verts[0-2]
 	Pos vec.Vec3
 	// verts[3]
 	S float32
 	// verts[4]
 	T float32
 	// verts[5]+verts[6]
-	// LightMapS float32
-	// LightMapT float32
+	LightMapS float32
+	LightMapT float32
 }
 
 type Poly struct {

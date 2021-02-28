@@ -193,6 +193,7 @@ void R_SetupView(void) {
   UpdateVpnGo();
 
   // current viewleaf
+  UpdateViewLeafGo();
   r_oldviewleaf = r_viewleaf;
   r_viewleaf = Mod_PointInLeaf(r_origin, cl.worldmodel);
 

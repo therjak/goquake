@@ -316,6 +316,7 @@ func CL_Clear() {
 	}
 	clearLightStyles()
 	clearBeams()
+	clearEntityFragments()
 }
 
 //export CLViewentityNum

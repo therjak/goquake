@@ -127,15 +127,15 @@ func R_TranslatePlayerSkin(i int) {
 type Entity struct {
 	ptr C.entityPtr
 
-	ForceLink bool
-	Baseline  EntityState
-	MsgTime   float64
-	MsgOrigin [2]vec.Vec3
-	Origin    vec.Vec3
-	MsgAngles [2]vec.Vec3
-	Angles    vec.Vec3
-	Model     model.Model
-	// efrag *efrag
+	ForceLink      bool
+	Baseline       EntityState
+	MsgTime        float64
+	MsgOrigin      [2]vec.Vec3
+	Origin         vec.Vec3
+	MsgAngles      [2]vec.Vec3
+	Angles         vec.Vec3
+	Model          model.Model
+	Fragment       *entityFragment
 	Frame          int
 	SyncBase       float32
 	Effects        int
@@ -212,7 +212,7 @@ func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
 	e.SyncC()
 	if e.Model == nil { // empty slot
 		if e.ForceLink { // just became empty
-			C.R_RemoveEfrags(e.ptr)
+			e.R_RemoveEfrags()
 		}
 		return
 	}
@@ -420,7 +420,13 @@ func SetWorldEntityModel(m C.modelPtr) {
 	cl.WorldEntity().ptr.model = m
 }
 
+func (e *Entity) R_RemoveEfrags() {
+	C.R_RemoveEfrags(e.ptr)
+}
+
 func (e *Entity) R_AddEfrags() {
+	ef := EntityFragmentAdder{entity: e, world: cl.worldModel}
+	ef.Do()
 	C.R_AddEfrags(e.ptr)
 }
 

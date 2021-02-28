@@ -91,6 +91,7 @@ void R_MarkSurfaces(void) {
 
   vis_changed = false;
   R_visframecount_inc();
+  UpdateOldViewLeafGo();
   r_oldviewleaf = r_viewleaf;
 
   // iterate through leaves, marking surfaces
