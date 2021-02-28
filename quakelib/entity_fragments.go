@@ -18,7 +18,6 @@ type entityFragment struct {
 }
 
 var (
-	efragMap = make(map[*bsp.MLeaf]*entityFragment)
 	// assumptions for efrags are:
 	// each leaf only contains a small number of efrags
 	// slice of pointers is equally random access to linked list || this is probably false
@@ -26,10 +25,6 @@ var (
 	efrags     [4096]entityFragment
 	freeEfrags *entityFragment
 )
-
-func clearMapsEntityFragments() {
-	efragMap = make(map[*bsp.MLeaf]*entityFragment)
-}
 
 func clearEntityFragments() {
 	freeEfrags = &efrags[0]
@@ -42,9 +37,9 @@ func clearEntityFragments() {
 func RemoveEntityFragments(e *Entity) {
 	ef := e.Fragment
 	for ef != nil { // run though the entityFragments on the Entity
-		head := efragMap[ef.leaf]
+		head := ef.leaf.Temporary.(*entityFragment)
 		if head == ef {
-			efragMap[ef.leaf] = ef.leafNext
+			ef.leaf.Temporary = ef.leafNext
 		} else {
 			for { // run through the leafs of the entityFragment
 				next := head.leafNext
@@ -108,8 +103,9 @@ func (e *EntityFragmentAdder) splitOnNode(node bsp.Node) {
 
 		// add entityFragment to leaf
 		ef.leaf = n
-		ef.leafNext = efragMap[n]
-		efragMap[n] = ef
+		// *entityFragment and nil are both ok
+		ef.leafNext, _ = n.Temporary.(*entityFragment)
+		n.Temporary = ef
 
 	case *bsp.MNode:
 		sides := boxOnPlaneSide(e.mins, e.maxs, n.Plane)
@@ -123,7 +119,7 @@ func (e *EntityFragmentAdder) splitOnNode(node bsp.Node) {
 }
 
 func MakeEntitiesVisible(leaf *bsp.MLeaf) {
-	ef := efragMap[leaf]
+	ef := leaf.Temporary.(*entityFragment)
 	for ef != nil {
 		ent := ef.entity
 		if ent.VisFrame != R_framecount() && VisibleEntitiesNum() < 4096 {

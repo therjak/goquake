@@ -740,7 +740,6 @@ func CL_ParseServerInfo() error {
 
 	conlog.Printf("Using protocol %d\n", cl.protocol)
 
-	clearMapsEntityFragments() // Fragmensts are stored next to members of the map
 	cl.modelPrecache = cl.modelPrecache[:]
 	var modelNames []string
 	for {
