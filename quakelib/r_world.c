@@ -63,6 +63,7 @@ void R_MarkSurfaces(void) {
   // clear lightmap chains
   memset(lightmap_polys, 0, sizeof(lightmap_polys));
 
+  MarkSurfacesAddStaticEntities();
   // check this leaf for water portals
   // TODO: loop through all water surfs and use distance to leaf cullbox
   nearwaterportal = false;
@@ -82,10 +83,11 @@ void R_MarkSurfaces(void) {
   // if surface chains don't need regenerating, just add static entities and
   // return
   if (r_oldviewleaf == r_viewleaf && !vis_changed && !nearwaterportal) {
-    leaf = &cl.worldmodel->leafs[1];
-    for (i = 0; i < cl.worldmodel->numleafs; i++, leaf++)
-      if (vis[i >> 3] & (1 << (i & 7)))
-        if (leaf->efrags) R_StoreEfrags(&leaf->efrags);
+    // DONE IN GO
+    // leaf = &cl.worldmodel->leafs[1];
+    // for (i = 0; i < cl.worldmodel->numleafs; i++, leaf++)
+    //  if (vis[i >> 3] & (1 << (i & 7)))
+    //    if (leaf->efrags) R_StoreEfrags(&leaf->efrags);
     return;
   }
 
@@ -95,6 +97,7 @@ void R_MarkSurfaces(void) {
   r_oldviewleaf = r_viewleaf;
 
   // iterate through leaves, marking surfaces
+  MarkSurfacesAddStaticEntitiesAndMark();
   leaf = &cl.worldmodel->leafs[1];
   for (i = 0; i < cl.worldmodel->numleafs; i++, leaf++) {
     if (vis[i >> 3] & (1 << (i & 7))) {
@@ -104,7 +107,8 @@ void R_MarkSurfaces(void) {
           (*mark)->visframe = R_visframecount();
 
       // add static models
-      if (leaf->efrags) R_StoreEfrags(&leaf->efrags);
+      // DONE IN GO
+      // if (leaf->efrags) R_StoreEfrags(&leaf->efrags);
     }
   }
 

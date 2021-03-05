@@ -23,7 +23,6 @@ typedef struct {
 
   // refresh related state
   struct qmodel_s *worldmodel;  // cl_entitites[0].model
-  struct efrag_s *free_efrags;
 } client_state_t;
 
 extern client_state_t cl;

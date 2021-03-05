@@ -1,5 +1,7 @@
 package quakelib
 
+import "C"
+
 import (
 	"log"
 
@@ -34,6 +36,15 @@ func clearEntityFragments() {
 	efrags[len(efrags)-1].entNext = nil
 }
 
+//export ClearMapEntityFragments
+func ClearMapEntityFragments() {
+	for _, l := range cl.worldModel.Leafs {
+		l.Temporary = nil
+	}
+}
+
+// RemoveEntityFragments is called when removing an object from the world or
+// moving it to another position
 func RemoveEntityFragments(e *Entity) {
 	ef := e.Fragment
 	for ef != nil { // run though the entityFragments on the Entity
@@ -119,7 +130,7 @@ func (e *EntityFragmentAdder) splitOnNode(node bsp.Node) {
 }
 
 func MakeEntitiesVisible(leaf *bsp.MLeaf) {
-	ef := leaf.Temporary.(*entityFragment)
+	ef, _ := leaf.Temporary.(*entityFragment)
 	for ef != nil {
 		ent := ef.entity
 		if ent.VisFrame != R_framecount() && VisibleEntitiesNum() < 4096 {

@@ -30,13 +30,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 //=============================================================================
 
-typedef struct efrag_s {
-  struct mleaf_s *leaf;
-  struct efrag_s *leafnext;
-  struct entity_s *entity;
-  struct efrag_s *entnext;
-} efrag_t;
-
 // johnfitz -- for lerping
 #define LERP_MOVESTEP \
   (1 << 0)  // this is a MOVETYPE_STEP entity, enable movement lerp
@@ -55,7 +48,6 @@ typedef struct entity_s {
   vec3_t origin;
   vec3_t angles;
   struct qmodel_s *model;  // NULL = no model
-  struct efrag_s *efrag;   // linked list of efrags
   int frame;
   float syncbase;  // for client-side animations
   int skinnum;     // for Alias models
@@ -93,10 +85,6 @@ extern vec3_t r_origin, vpn, vright, vup;
 
 void R_Init(void);
 void R_InitTextures(void);
-void R_InitEfrags(void);
-void R_CheckEfrags(void);
-void R_AddEfrags(entity_t *ent);
-void R_RemoveEfrags(entity_t *ent);
 
 void R_NewMap(void);
 

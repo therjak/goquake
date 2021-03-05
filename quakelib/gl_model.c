@@ -1329,7 +1329,6 @@ void Mod_ProcessLeafs_S(dsleaf_t *in, int filelen) {
       out->compressed_vis = NULL;
     else
       out->compressed_vis = loadmodel->visdata + p;
-    out->efrags = NULL;
 
     for (j = 0; j < 4; j++) out->ambient_sound_level[j] = in->ambient_level[j];
 
@@ -1375,7 +1374,6 @@ void Mod_ProcessLeafs_L1(dl1leaf_t *in, int filelen) {
       out->compressed_vis = NULL;
     else
       out->compressed_vis = loadmodel->visdata + p;
-    out->efrags = NULL;
 
     for (j = 0; j < 4; j++) out->ambient_sound_level[j] = in->ambient_level[j];
 
@@ -1421,7 +1419,6 @@ void Mod_ProcessLeafs_L2(dl2leaf_t *in, int filelen) {
       out->compressed_vis = NULL;
     else
       out->compressed_vis = loadmodel->visdata + p;
-    out->efrags = NULL;
 
     for (j = 0; j < 4; j++) out->ambient_sound_level[j] = in->ambient_level[j];
 

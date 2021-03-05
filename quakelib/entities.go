@@ -16,7 +16,6 @@ package quakelib
 //inline entity_t* getCLEntity(int i) { return &cl_entities[i]; }
 //extern entity_t cl_static_entities[512];
 //inline entity_t* getStaticEntity(int i) { return &cl_static_entities[i]; }
-//void R_AddEfrags(entity_t* e);
 //void CL_ParseStaticC(entity_t* e, int modelindex);
 //void R_DrawAliasModel(entity_t* e);
 //#endif
@@ -421,13 +420,12 @@ func SetWorldEntityModel(m C.modelPtr) {
 }
 
 func (e *Entity) R_RemoveEfrags() {
-	C.R_RemoveEfrags(e.ptr)
+	RemoveEntityFragments(e)
 }
 
 func (e *Entity) R_AddEfrags() {
 	ef := EntityFragmentAdder{entity: e, world: cl.worldModel}
 	ef.Do()
-	C.R_AddEfrags(e.ptr)
 }
 
 func (e *Entity) ParseStaticC(index int) {

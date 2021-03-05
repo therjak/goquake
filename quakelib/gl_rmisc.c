@@ -283,9 +283,7 @@ void R_NewMap(void) {
   for (i = 0; i < 256; i++) d_lightstylevalue[i] = 264;  // normal light value
 
   // clear out efrags in case the level hasn't been reloaded
-  // FIXME: is this one short?
-  for (i = 0; i < cl.worldmodel->numleafs; i++)
-    cl.worldmodel->leafs[i].efrags = NULL;
+  ClearMapEntityFragments();
 
   r_viewleaf = NULL;
   ParticlesClear();

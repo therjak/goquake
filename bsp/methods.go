@@ -69,20 +69,20 @@ func (m *Model) DecompressVis(in []byte) []byte {
 }
 
 var (
-	noVis           []byte
+	NoVis           []byte
 	decompressedVis []byte
 	fatpvs          []byte
 )
 
 func init() {
-	noVis = bytes.Repeat([]byte{0xff}, MaxMapLeafs/8)
+	NoVis = bytes.Repeat([]byte{0xff}, MaxMapLeafs/8)
 	decompressedVis = make([]byte, MaxMapLeafs/8)
 	fatpvs = make([]byte, MaxMapLeafs/8)
 }
 
 func (m *Model) LeafPVS(leaf *MLeaf) []byte {
 	if leaf == m.Leafs[0] { // Leaf 0 is a solid leaf
-		return noVis
+		return NoVis
 	}
 	return m.DecompressVis(leaf.CompressedVis)
 }

@@ -10,7 +10,6 @@
 client_state_t cl;
 
 // FIXME: put these on hunk?
-efrag_t cl_efrags[MAX_EFRAGS];
 entity_t cl_static_entities[MAX_STATIC_ENTITIES];
 dlight_t cl_dlights[MAX_DLIGHTS];
 
@@ -51,7 +50,6 @@ void CL_ClearState(void) {
   CLSMessageClear();
 
   // clear other arrays
-  memset(cl_efrags, 0, sizeof(cl_efrags));
   CL_ClearDLights();
 
   int cl_max_edicts =
@@ -59,14 +57,6 @@ void CL_ClearState(void) {
   cl_entities = (entity_t *)Hunk_AllocName(cl_max_edicts * sizeof(entity_t),
                                            "cl_entities");
   CL_SetMaxEdicts(cl_max_edicts);
-
-  //
-  // allocate the efrags and chain together into a free list
-  //
-  cl.free_efrags = cl_efrags;
-  for (i = 0; i < MAX_EFRAGS - 1; i++)
-    cl.free_efrags[i].entnext = &cl.free_efrags[i + 1];
-  cl.free_efrags[i].entnext = NULL;
 }
 
 void SetCLWeaponModel(int v) {
