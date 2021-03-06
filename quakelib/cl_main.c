@@ -15,8 +15,6 @@ dlight_t cl_dlights[MAX_DLIGHTS];
 
 entity_t *cl_entities;  // johnfitz -- was a static array, now on hunk
 
-int cl_numvisedicts;
-entity_t *cl_visedicts[MAX_VISEDICTS];
 entity_t cl_viewent;  // the gun model
 
 extern cvar_t r_lerpmodels, r_lerpmove;  // johnfitz

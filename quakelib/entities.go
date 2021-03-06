@@ -8,8 +8,6 @@ package quakelib
 //#include "render.h"
 //extern entity_t *cl_entities;
 //extern entity_t cl_viewent;
-//extern int cl_numvisedicts;
-//extern entity_t *cl_visedicts[4096];
 //extern entity_t cl_temp_entities[256];
 //typedef entity_t* entityPtr;
 //typedef qmodel_t* modelPtr;
@@ -439,7 +437,6 @@ func (r *qRenderer) DrawAliasModel(e *Entity) {
 var clientVisibleEntities []*Entity // pointers into cl.entities, cl.staticEntities, tempEntities
 
 func ClearVisibleEntities() {
-	C.cl_numvisedicts = 0
 	clientVisibleEntities = clientVisibleEntities[:0]
 }
 
@@ -486,30 +483,18 @@ func AddVisibleStaticEntity(e C.entityPtr) {
 }
 
 func (c *Client) AddVisibleEntity(e *Entity) {
-	AddVisibleEntity(e.ptr)
-}
-
-//export AddVisibleEntity
-func AddVisibleEntity(e C.entityPtr) {
 	if len(clientVisibleEntities) >= 4096 {
 		return
 	}
-	if C.cl_numvisedicts < 4096 {
-		C.cl_visedicts[C.cl_numvisedicts] = e
-		C.cl_numvisedicts++
-	}
-	// clientEntities     []*Entity
-	// clientVisibleEntities = append(clientVisibleEntities,
+	clientVisibleEntities = append(clientVisibleEntities, e)
 }
 
 //export VisibleEntity
 func VisibleEntity(i int) C.entityPtr {
-	return C.cl_visedicts[i]
-	// return clientVisibleEntities[i].ptr
+	return clientVisibleEntities[i].ptr
 }
 
 //export VisibleEntitiesNum
 func VisibleEntitiesNum() int {
-	return int(C.cl_numvisedicts)
-	// return len(clientVisibleEntities)
+	return len(clientVisibleEntities)
 }
