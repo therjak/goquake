@@ -611,7 +611,7 @@ void R_DrawAliasModel(entity_t *e) {
   shading = true;
 
   // set up for alpha blending
-  entalpha = ENTALPHA_DECODE(e->alpha);
+  entalpha = ENTALPHA_DECODE(e->alpha2);
   if (entalpha == 0) goto cleanup;
   if (entalpha < 1) {
     glDepthMask(GL_FALSE);
@@ -694,7 +694,7 @@ void GL_DrawAliasShadow(entity_t *e) {
 
   if (e->model->flags & MOD_NOSHADOW) return;
 
-  entalpha = ENTALPHA_DECODE(e->alpha);
+  entalpha = ENTALPHA_DECODE(e->alpha2);
   if (entalpha == 0) return;
 
   paliashdr = (aliashdr_t *)Mod_Extradata(e->model);

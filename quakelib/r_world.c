@@ -546,10 +546,10 @@ Returns the water alpha to use for the entity and surface combination.
 */
 float GL_WaterAlphaForEntitySurface(entity_t *ent, msurface_t *s) {
   float entalpha;
-  if (ent == NULL || ent->alpha == ENTALPHA_DEFAULT)
+  if (ent == NULL || ent->alpha2 == ENTALPHA_DEFAULT)
     entalpha = GL_WaterAlphaForSurface(s);
   else
-    entalpha = ENTALPHA_DECODE(ent->alpha);
+    entalpha = ENTALPHA_DECODE(ent->alpha2);
   return entalpha;
 }
 
@@ -821,7 +821,7 @@ void R_DrawTextureChains(qmodel_t *model, entity_t *ent, texchain_t chain) {
   float entalpha;
 
   if (ent != NULL)
-    entalpha = ENTALPHA_DECODE(ent->alpha);
+    entalpha = ENTALPHA_DECODE(ent->alpha2);
   else
     entalpha = 1;
 

@@ -225,38 +225,6 @@ void R_SetupView(void) {
   R_Clear();
 }
 
-void R_DrawEntitiesOnList(qboolean alphapass)
-{
-  int i;
-  entity_t* ce;
-
-  if (!Cvar_GetValue(&r_drawentities)) return;
-
-  for (i = 0; i < VisibleEntitiesNum(); i++) {
-    ce = VisibleEntity(i);
-
-    if ((ENTALPHA_DECODE(ce->alpha) < 1 && !alphapass) ||
-        (ENTALPHA_DECODE(ce->alpha) == 1 && alphapass))
-      continue;
-
-    if (ce == CLViewEntity())
-      ce->angles[0] *= 0.3;
-
-    switch (ce->model->Type) {
-      case mod_alias:
-        R_DrawAliasModel(ce);
-        break;
-      case mod_brush:
-        R_DrawBrushModel(ce);
-        break;
-      case mod_sprite:
-        // THERJAK
-        R_DrawSpriteModel(ce);
-        break;
-    }
-  }
-}
-
 void R_DrawShadows(void) {
   int i;
   entity_t* ce;

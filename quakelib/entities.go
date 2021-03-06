@@ -16,6 +16,8 @@ package quakelib
 //inline entity_t* getStaticEntity(int i) { return &cl_static_entities[i]; }
 //void CL_ParseStaticC(entity_t* e, int modelindex);
 //void R_DrawAliasModel(entity_t* e);
+//void R_DrawBrushModel(entity_t* e);
+//void R_DrawSpriteModel(entity_t* e);
 //#endif
 import "C"
 
@@ -139,8 +141,8 @@ type Entity struct {
 	SkinNum        int
 	VisFrame       int
 	DLightFrame    int
-	DLightBits     int // uint32?
-	Alpha          byte
+	DLightBits     int  // uint32?
+	Alpha          byte // TODO(therjak): use the converted float32
 	LerpFlags      byte
 	LerpStart      float32
 	LerpTime       float64
@@ -174,7 +176,7 @@ func (e *Entity) Sync() {
 	e.ptr.lerpflags = C.uchar(e.LerpFlags)
 	e.ptr.frame = C.int(e.Frame)
 	e.ptr.skinnum = C.int(e.SkinNum)
-	e.ptr.alpha = C.uchar(e.Alpha)
+	e.ptr.alpha2 = C.uchar(e.Alpha)
 	e.ptr.lerpfinish = C.float(e.LerpFinish)
 	e.ptr.origin[0] = C.float(e.Origin[0])
 	e.ptr.origin[1] = C.float(e.Origin[1])
@@ -190,7 +192,7 @@ func (e *Entity) SyncC() {
 	e.LerpFlags = byte(e.ptr.lerpflags)
 	e.Frame = int(e.ptr.frame)
 	e.SkinNum = int(e.ptr.skinnum)
-	e.Alpha = byte(e.ptr.alpha)
+	e.Alpha = byte(e.ptr.alpha2)
 	e.LerpFinish = float64(e.ptr.lerpfinish)
 	e.Origin = vec.Vec3{
 		float32(e.ptr.origin[0]),
@@ -433,11 +435,18 @@ func (e *Entity) ParseStaticC(index int) {
 func (r *qRenderer) DrawAliasModel(e *Entity) {
 	C.R_DrawAliasModel(e.ptr)
 }
+func (r *qRenderer) DrawBrushModel(e *Entity) {
+	C.R_DrawBrushModel(e.ptr)
+}
+func (r *qRenderer) DrawSpriteModel(e *Entity) {
+	C.R_DrawSpriteModel(e.ptr)
+}
 
-var clientVisibleEntities []*Entity // pointers into cl.entities, cl.staticEntities, tempEntities
+//TODO(therjak): should this go into renderer?
+var visibleEntities []*Entity // pointers into cl.entities, cl.staticEntities, tempEntities
 
 func ClearVisibleEntities() {
-	clientVisibleEntities = clientVisibleEntities[:0]
+	visibleEntities = visibleEntities[:0]
 }
 
 func ClearTempEntities() {
@@ -466,35 +475,35 @@ func (c *Client) NewTempEntity() *Entity {
 
 //export AddVisibleTempEntity
 func AddVisibleTempEntity(e C.entityPtr) {
-	if len(clientVisibleEntities) >= 4096 {
+	if len(visibleEntities) >= 4096 {
 		return
 	}
 	// clientTempEntities [256]Entity
-	// clientVisibleEntities = append(clientVisibleEntities,
+	// visibleEntities = append(visibleEntities,
 }
 
 //export AddVisibleStaticEntity
 func AddVisibleStaticEntity(e C.entityPtr) {
-	if len(clientVisibleEntities) >= 4096 {
+	if len(visibleEntities) >= 4096 {
 		return
 	}
 	// staticEntity       [512]Entity
-	// clientVisibleEntities = append(clientVisibleEntities,
+	// visibleEntities = append(visibleEntities,
 }
 
 func (c *Client) AddVisibleEntity(e *Entity) {
-	if len(clientVisibleEntities) >= 4096 {
+	if len(visibleEntities) >= 4096 {
 		return
 	}
-	clientVisibleEntities = append(clientVisibleEntities, e)
+	visibleEntities = append(visibleEntities, e)
 }
 
 //export VisibleEntity
 func VisibleEntity(i int) C.entityPtr {
-	return clientVisibleEntities[i].ptr
+	return visibleEntities[i].ptr
 }
 
 //export VisibleEntitiesNum
 func VisibleEntitiesNum() int {
-	return len(clientVisibleEntities)
+	return len(visibleEntities)
 }

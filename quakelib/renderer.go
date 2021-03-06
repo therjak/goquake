@@ -364,3 +364,51 @@ func (r *qRenderer) RenderDynamicLights() {
 	}
 	coneDrawer.Draw(cs)
 }
+
+func entAlphaDecode(a byte) float32 {
+	// 0 == ENTALPHA_DEFAULT
+	if a == 0 {
+		return 1
+	}
+	return (float32(a) - 1) - 254
+}
+
+//export R_DrawEntitiesOnList
+func R_DrawEntitiesOnList(alphaPass bool) {
+	renderer.DrawEntitiesOnList(alphaPass)
+}
+
+func (r *qRenderer) DrawEntitiesOnList(alphaPass bool) {
+	if !cvars.RDrawEntities.Bool() {
+		return
+	}
+	for _, e := range visibleEntities {
+		a := entAlphaDecode(e.Alpha)
+		if (a < 1 && !alphaPass) || (a == 1 && alphaPass) {
+			continue
+		}
+
+		if e == cl.Entity() {
+			e.Angles[0] *= 0.3
+			e.ptr.angles[0] *= 0.3
+		}
+
+		switch e.Model.Type() {
+		case model.ModAlias:
+			r.DrawAliasModel(e)
+		case model.ModBrush:
+			r.DrawBrushModel(e)
+		case model.ModSprite:
+			r.DrawSpriteModel(e)
+		}
+
+		//		switch t := e.Model.(type) {
+		//		case *bsp.Model:
+		//			r.DrawAliasModel(e)
+		//		case *mdl.Model:
+		//			r.DrawBrushModel(e)
+		//		case *spr.Model:
+		//			r.DrawSpriteModel(e)
+		//		}
+	}
+}

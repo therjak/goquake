@@ -57,7 +57,7 @@ typedef struct entity_s {
   int dlightframe;  // dynamic lighting
   int dlightbits;
 
-  byte alpha;          // johnfitz -- alpha
+  byte alpha2;          // johnfitz -- alpha
   byte lerpflags;      // johnfitz -- lerping
   float lerpstart;     // johnfitz -- animation lerping
   float lerptime;      // johnfitz -- animation lerping

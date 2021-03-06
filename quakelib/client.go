@@ -1597,7 +1597,7 @@ func (c *Client) parseClientData() error {
 		}
 		weaponE.Alpha = a
 	}
-	weaponE.ptr.alpha = C.uchar(weaponE.Alpha)
+	weaponE.ptr.alpha2 = C.uchar(weaponE.Alpha)
 	// this was done before the upper 8 bits of cl.stats[STAT_WEAPON]
 	// were filled in, breaking on large maps like zendar.bsp
 	if weaponE.Model != c.modelPrecache[c.stats.weapon] {

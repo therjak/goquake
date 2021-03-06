@@ -278,7 +278,7 @@ void Sky_ProcessEntities(void) {
 
     if (R_CullModelForEntity(e)) continue;
 
-    if (e->alpha == ENTALPHA_ZERO) continue;
+    if (e->alpha2 == ENTALPHA_ZERO) continue;
 
     VectorSubtract(vieworg, e->origin, modelorg);
     if (e->angles[0] || e->angles[1] || e->angles[2]) {
