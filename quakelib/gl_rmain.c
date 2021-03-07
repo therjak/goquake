@@ -225,33 +225,6 @@ void R_SetupView(void) {
   R_Clear();
 }
 
-void R_DrawShadows(void) {
-  int i;
-  entity_t* ce;
-
-  if (!Cvar_GetValue(&r_shadows) || !Cvar_GetValue(&r_drawentities)) return;
-
-  // Use stencil buffer to prevent self-intersecting shadows
-  if (gl_stencilbits) {
-    glClear(GL_STENCIL_BUFFER_BIT);
-    glStencilFunc(GL_EQUAL, 0, ~0);
-    glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
-    glEnable(GL_STENCIL_TEST);
-  }
-
-  for (i = 0; i < VisibleEntitiesNum(); i++) {
-    ce = VisibleEntity(i);
-
-    if (ce->model->Type != mod_alias) continue;
-
-    GL_DrawAliasShadow(ce);
-  }
-
-  if (gl_stencilbits) {
-    glDisable(GL_STENCIL_TEST);
-  }
-}
-
 void R_RenderScene(void) {
   R_SetupScene();
   SkyDrawSky();

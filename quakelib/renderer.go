@@ -412,3 +412,30 @@ func (r *qRenderer) DrawEntitiesOnList(alphaPass bool) {
 		//		}
 	}
 }
+
+//export R_DrawShadows
+func R_DrawShadows() {
+	renderer.DrawShadows()
+}
+
+func (r *qRenderer) DrawShadows() {
+	if !cvars.RShadows.Bool() || !cvars.RDrawEntities.Bool() {
+		return
+	}
+
+	// TODO: This depends on the fbo created later
+	// Need to revisit after DrawAliasShadow no longer uses the fixed pipeline
+	gl.Clear(gl.STENCIL_BUFFER_BIT)
+	gl.StencilFunc(gl.EQUAL, 0, ^uint32(0))
+	gl.StencilOp(gl.KEEP, gl.KEEP, gl.INCR)
+	gl.Enable(gl.STENCIL_TEST)
+
+	for _, e := range visibleEntities {
+		if e.Model.Type() != model.ModAlias {
+			continue
+		}
+		r.DrawAliasShadow(e)
+	}
+
+	gl.Disable(gl.STENCIL_TEST)
+}

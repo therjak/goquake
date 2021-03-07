@@ -18,6 +18,7 @@ package quakelib
 //void R_DrawAliasModel(entity_t* e);
 //void R_DrawBrushModel(entity_t* e);
 //void R_DrawSpriteModel(entity_t* e);
+//void GL_DrawAliasShadow(entity_t* e);
 //#endif
 import "C"
 
@@ -434,6 +435,9 @@ func (e *Entity) ParseStaticC(index int) {
 
 func (r *qRenderer) DrawAliasModel(e *Entity) {
 	C.R_DrawAliasModel(e.ptr)
+}
+func (r *qRenderer) DrawAliasShadow(e *Entity) {
+	C.GL_DrawAliasShadow(e.ptr)
 }
 func (r *qRenderer) DrawBrushModel(e *Entity) {
 	C.R_DrawBrushModel(e.ptr)
