@@ -136,8 +136,6 @@ void R_Init(void) {
   Cvar_FakeRegister(&r_dynamic, "r_dynamic");
   Cvar_FakeRegister(&r_novis, "r_novis");
   Cvar_SetCallback(&r_novis, R_VisChanged);
-  Cvar_FakeRegister(&r_speeds, "r_speeds");
-  Cvar_FakeRegister(&r_pos, "r_pos");
 
   Cvar_FakeRegister(&gl_finish, "gl_finish");
   Cvar_FakeRegister(&gl_clear, "gl_clear");

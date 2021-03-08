@@ -26,8 +26,6 @@ int d_lightstylevalue[256];  // 8.8 fraction of base light value
 cvar_t r_norefresh;      // = {"r_norefresh", "0", CVAR_NONE};
 cvar_t r_drawentities;   // = {"r_drawentities", "1", CVAR_NONE};
 cvar_t r_drawviewmodel;  // = {"r_drawviewmodel", "1", CVAR_NONE};
-cvar_t r_speeds;         // = {"r_speeds", "0", CVAR_NONE};
-cvar_t r_pos;            // = {"r_pos", "0", CVAR_NONE};
 cvar_t r_fullbright;     // = {"r_fullbright", "0", CVAR_NONE};
 cvar_t r_lightmap;       // = {"r_lightmap", "0", CVAR_NONE};
 cvar_t r_shadows;        // = {"r_shadows", "0", CVAR_ARCHIVE};
@@ -224,61 +222,4 @@ void R_SetupView(void) {
   R_CullSurfaces();
   R_UpdateWarpTextures();
   R_Clear();
-}
-
-void R_RenderScene(void) {
-  R_SetupScene();
-  SkyDrawSky();
-  // Fog_EnableGFog();
-  glUseProgram(0);
-  R_DrawWorld();
-  R_DrawShadows();
-  // false means this is the pass for nonalpha entities
-  R_DrawEntitiesOnList(false);
-  R_DrawWorld_Water();  // drawn here since they might have transparency
-  // true means this is the pass for alpha entities
-  R_DrawEntitiesOnList(true);
-  R_RenderDlights();  // triangle fan dlights
-  ParticlesDraw();
-  // Fog_DisableGFog();
-  R_DrawViewModel();
-}
-
-void R_RenderView(void) {
-  double time1, time2;
-
-  if (Cvar_GetValue(&r_norefresh)) return;
-
-  if (!cl.worldmodel) Go_Error("R_RenderView: NULL worldmodel");
-
-  time1 = 0; /* avoid compiler warning */
-  if (Cvar_GetValue(&r_speeds)) {
-    glFinish();
-    time1 = Sys_DoubleTime();
-
-    // rendering statistics
-    rs_brushpolys = rs_aliaspolys = rs_skypolys = rs_particles = rs_fogpolys =
-        rs_megatexels = rs_dynamiclightmaps = rs_aliaspasses = rs_skypasses =
-            rs_brushpasses = 0;
-  } else if (Cvar_GetValue(&gl_finish)) {
-    glFinish();
-  }
-
-  R_SetupView();
-  R_RenderScene();
-
-  time2 = Sys_DoubleTime();
-  if (Cvar_GetValue(&r_pos)) {
-    printPosition();
-  } else if (Cvar_GetValue(&r_speeds) == 2) {
-    Con_Printf(
-        "%3i ms  %4i/%4i wpoly %4i/%4i epoly %3i lmap %4i/%4i sky %1.1f mtex\n",
-        (int)((time2 - time1) * 1000), rs_brushpolys, rs_brushpasses,
-        rs_aliaspolys, rs_aliaspasses, rs_dynamiclightmaps, rs_skypolys,
-        rs_skypasses, TexMgrFrameUsage());
-  } else if (Cvar_GetValue(&r_speeds)) {
-    Con_Printf("%3i ms  %4i wpoly %4i epoly %3i lmap\n",
-               (int)((time2 - time1) * 1000), rs_brushpolys, rs_aliaspolys,
-               rs_dynamiclightmaps);
-  }
 }

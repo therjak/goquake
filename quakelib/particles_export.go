@@ -12,8 +12,3 @@ func ParticlesInit() {
 func ParticlesClear() {
 	particlesClear()
 }
-
-//export ParticlesDraw
-func ParticlesDraw() {
-	particlesDraw()
-}

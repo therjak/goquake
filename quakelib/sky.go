@@ -92,11 +92,6 @@ func SkyInit() {
 	skyDrawer = newSkyDrawer()
 }
 
-//export SkyDrawSky
-func SkyDrawSky() {
-	sky.Draw()
-}
-
 //export SkyNewMap
 func SkyNewMap() {
 	sky.NewMap()

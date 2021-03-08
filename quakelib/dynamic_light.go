@@ -84,11 +84,6 @@ func (c *Client) DecayLights() {
 	}
 }
 
-//export R_RenderDlights
-func R_RenderDlights() {
-	renderer.RenderDynamicLights()
-}
-
 //export R_MarkLights
 func R_MarkLights(node *C.mnode_t) {
 	for i := range cl.dynamicLights {

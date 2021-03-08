@@ -157,11 +157,6 @@ func (r *qRenderer) SetFrustum(fovx, fovy float32) {
 	r.frustum[3].TurnVector(qRefreshRect.viewForward, qRefreshRect.viewUp, fovy/2-90)    // top
 }
 
-//export R_DrawViewModel
-func R_DrawViewModel() {
-	renderer.DrawWeaponModel()
-}
-
 func (r *qRenderer) DrawWeaponModel() {
 	if !cvars.RDrawViewModel.Bool() ||
 		!cvars.RDrawEntities.Bool() ||
@@ -374,11 +369,6 @@ func entAlphaDecode(a byte) float32 {
 	return (float32(a) - 1) - 254
 }
 
-//export R_DrawEntitiesOnList
-func R_DrawEntitiesOnList(alphaPass bool) {
-	renderer.DrawEntitiesOnList(alphaPass)
-}
-
 func (r *qRenderer) DrawEntitiesOnList(alphaPass bool) {
 	if !cvars.RDrawEntities.Bool() {
 		return
@@ -412,11 +402,6 @@ func (r *qRenderer) DrawEntitiesOnList(alphaPass bool) {
 		//			r.DrawSpriteModel(e)
 		//		}
 	}
-}
-
-//export R_DrawShadows
-func R_DrawShadows() {
-	renderer.DrawShadows()
 }
 
 func (r *qRenderer) DrawShadows() {

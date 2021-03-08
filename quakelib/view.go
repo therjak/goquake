@@ -1,14 +1,18 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 package quakelib
 
-// void R_RenderView(void);
+// void R_SetupView(void);
+// void R_SetupScene(void);
+// void R_DrawWorld(void);
+// void R_DrawWorld_Water(void);
+// void R_RenderScene(void);
 import "C"
 
 import (
+	"github.com/chewxy/math32"
+	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/math/vec"
-
-	"github.com/chewxy/math32"
 )
 
 func CalcRoll(angles, velocity vec.Vec3) float32 {
@@ -67,9 +71,38 @@ func (v *qView) Render() {
 		cl.calcRefreshRect()
 	}
 
-	C.R_RenderView()
+	if !cvars.RNoRefresh.Bool() {
+		if cl.worldModel == nil {
+			Error("R_RenderView: NULL worldmodel")
+		}
+		if cvars.GlFinish.Bool() {
+			gl.Finish()
+		}
+		C.R_SetupView()
+		v.renderScene()
+		if cvars.RPos.Bool() {
+			printPosition()
+		}
+	}
 
 	v.polyBlend()
+}
+
+func (v *qView) renderScene() {
+	const alphaPass = true
+	C.R_SetupScene()
+	sky.Draw()
+	// TODO: enable fog?
+	gl.UseProgram(0) // enable fixed pipeline
+	C.R_DrawWorld()
+	renderer.DrawShadows()
+	renderer.DrawEntitiesOnList(!alphaPass)
+	C.R_DrawWorld_Water()
+	renderer.DrawEntitiesOnList(alphaPass)
+	renderer.RenderDynamicLights()
+	particlesDraw()
+	// TODO: disable fog?
+	renderer.DrawWeaponModel()
 }
 
 func (v *qView) polyBlend() {

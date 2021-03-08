@@ -357,7 +357,6 @@ func viewPositionCommand(args []cmd.QArg, _ int) {
 	printPosition()
 }
 
-//export printPosition
 func printPosition() {
 	player := cl.Entities(cl.viewentity)
 	pos := player.Origin
