@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 // sv_main.c -- server main program
 
 #include "_cgo_export.h"

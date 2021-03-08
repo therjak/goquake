@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 #include "arch_def.h"
 //
 #include "quakedef.h"

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 // cl_main.c  -- client main loop
 
 #include "quakedef.h"

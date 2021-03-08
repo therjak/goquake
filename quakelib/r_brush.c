@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 // r_brush.c: brush model rendering. renamed from r_surf.c
 
 #include "quakedef.h"

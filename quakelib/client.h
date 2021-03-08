@@ -1,4 +1,5 @@
-#ifndef _CLIENT_H_
+// SPDX-License-Identifier: GPL-2.0-or-later
+// #ifndef _CLIENT_H_
 #define _CLIENT_H_
 
 // client_state_t should hold all pieces of the client state

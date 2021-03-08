@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 // models.c -- model loading and caching
 
 // models are the only shared resource between a client and server running

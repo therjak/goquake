@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 #ifndef __CVAR_H__
 #define __CVAR_H__
 

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 // gl_sky.c
 
 #include "quakedef.h"

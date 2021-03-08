@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 // gl_mesh.c: triangle model functions
 
 #include "quakedef.h"

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 // common.c -- misc functions used in client and server
 
 #include "common.h"

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 #ifndef _GL_TEXMAN_H
 #define _GL_TEXMAN_H
 

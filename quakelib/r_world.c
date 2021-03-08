@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 // r_world.c: world model rendering
 
 #include "quakedef.h"
