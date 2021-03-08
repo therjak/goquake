@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 package quakelib
 
 //extern int d_lightstylevalue[256];

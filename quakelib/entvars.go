@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 package quakelib
 
 // This needs test and should probably be a separate package

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 package quakelib
 
 //void CL_ParseUpdate(int num, int modNum);

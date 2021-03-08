@@ -1,14 +1,14 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 package main
 
 import (
 	"flag"
-	"github.com/therjak/goquake/quakelib"
 	"log"
 	"os"
 	"runtime/pprof"
-)
 
-import (
+	"github.com/therjak/goquake/quakelib"
+
 	// register the model loaders
 	_ "github.com/therjak/goquake/bsp"
 	_ "github.com/therjak/goquake/mdl"

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 package quakelib
 
 // TODO: switch to "github.com/go-gl/glfw/v3.2/glfw"
