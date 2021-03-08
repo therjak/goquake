@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 package math
 
 func Clamp(min, val, max float64) float64 {

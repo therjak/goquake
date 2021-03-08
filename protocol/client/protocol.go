@@ -1,7 +1,9 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 package client
 
 import (
 	"fmt"
+
 	"github.com/therjak/goquake/net"
 	ptcl "github.com/therjak/goquake/protocol"
 	"github.com/therjak/goquake/protos"

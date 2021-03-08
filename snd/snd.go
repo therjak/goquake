@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 package snd
 
 // This uses sdl2 mixer. This is not sufficient for the kind of stuff quake does.
