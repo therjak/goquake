@@ -25,7 +25,10 @@ func init() {
 
 //export ModClearAllGo
 func ModClearAllGo() {
-	models = make(map[string]model.Model)
+	// TODO: disable for now as we do not correctly use faiface/mainthread
+	// and getting the gc clean up the models would crash
+	return
+	// models = make(map[string]model.Model)
 }
 
 func loadModel(name string) (model.Model, error) {
