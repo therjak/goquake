@@ -6,13 +6,17 @@ const (
 	ST_RAND
 )
 
+type FrameType uint32
+
 const (
-	SPR_SINGLE = iota
+	SPR_SINGLE FrameType = iota
 	SPR_GROUP
 )
 
+type SpriteType int32
+
 const (
-	SPR_VP_PARALLEL_UPRIGHT = iota
+	SPR_VP_PARALLEL_UPRIGHT SpriteType = iota
 	SPR_FACING_UPRIGHT
 	SPR_VP_PARALLEL
 	SPR_ORIENTED
@@ -24,7 +28,7 @@ const (
 	Magic         = 'P'<<24 | 'S'<<16 | 'D'<<8 | 'I'
 )
 
-type header struct { // dsprite_t
+type header struct {
 	Name           [4]byte // "IDSP"
 	Version        int32   // SPRITE_VERSION
 	Typ            int32   // SPR_SINGLE or SPR_GROUP
@@ -33,7 +37,7 @@ type header struct { // dsprite_t
 	MaxHeight      int32
 	FrameCount     int32
 	BeamLength     float32
-	SyncType       int32 // ST_SYNC or ST_RAND
+	SyncType       uint32 // ST_SYNC or ST_RAND
 }
 
 type frame struct {
