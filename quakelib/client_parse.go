@@ -808,7 +808,7 @@ func CL_ParseServerInfo() error {
 	// TODO: clean this stuff up
 	cl.worldModel, _ = cl.modelPrecache[0].(*bsp.Model)
 	for _, t := range cl.worldModel.Textures {
-		if strings.HasPrefix(t.Name(), "sky") {
+		if t != nil && strings.HasPrefix(t.Name(), "sky") {
 			sky.LoadTexture(t.Data, t.Name(), cl.mapName)
 		}
 	}
