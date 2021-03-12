@@ -5,9 +5,6 @@
 
 int gl_stencilbits = 0; // TODO(therjak): fill with (SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &gl_stencilbits)
 
-cvar_t vid_gamma;
-cvar_t vid_contrast;
-
 /*
 ===============
 GL_SetupState -- johnfitz
@@ -37,9 +34,6 @@ void GL_SetupState(void) {
 }
 
 void VID_Init(void) {
-  Cvar_FakeRegister(&vid_gamma, "gamma");
-  Cvar_FakeRegister(&vid_contrast, "contrast");
-
   VID_Init_Go();
 
 	GLAlias_CreateShaders();
