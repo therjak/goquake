@@ -1,7 +1,13 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 package spr
 
-import "testing"
+import (
+	"testing"
+
+	qm "github.com/therjak/goquake/model"
+)
+
+var m qm.Model = &Model{}
 
 func TestFloorExact(t *testing.T) {
 	v := floor(5)

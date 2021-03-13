@@ -35,10 +35,6 @@ func (q *Model) Maxs() vec.Vec3 {
 	return q.maxs
 }
 
-func (q *Model) Type() qm.ModType {
-	return qm.ModSprite
-}
-
 func (q *Model) Name() string {
 	return q.name
 }

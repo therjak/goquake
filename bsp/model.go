@@ -3,7 +3,6 @@ package bsp
 
 import (
 	"github.com/therjak/goquake/math/vec"
-	qm "github.com/therjak/goquake/model"
 	"github.com/therjak/goquake/texture"
 )
 
@@ -260,9 +259,6 @@ func (q *Model) Mins() vec.Vec3 {
 }
 func (q *Model) Maxs() vec.Vec3 {
 	return q.maxs
-}
-func (q *Model) Type() qm.ModType {
-	return qm.ModBrush
 }
 func (q *Model) Name() string {
 	return q.name

@@ -5,6 +5,8 @@ import (
 	"bytes"
 	"encoding/binary"
 	"testing"
+
+	qm "github.com/therjak/goquake/model"
 )
 
 func TestQLit(t *testing.T) {
@@ -20,3 +22,5 @@ func TestQLit(t *testing.T) {
 		t.Error("qlit != litdata")
 	}
 }
+
+var m qm.Model = &Model{}

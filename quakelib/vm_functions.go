@@ -13,7 +13,6 @@ import (
 	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/math"
 	"github.com/therjak/goquake/math/vec"
-	"github.com/therjak/goquake/model"
 	"github.com/therjak/goquake/progs"
 	"github.com/therjak/goquake/protocol"
 	svc "github.com/therjak/goquake/protocol/server"
@@ -430,12 +429,12 @@ func (v *virtualMachine) setModel() {
 
 	mod := sv.models[idx]
 	if mod != nil {
-		if mod.Type() == model.ModBrush {
-			qm, _ := mod.(*bsp.Model)
+		switch qm := mod.(type) {
+		case *bsp.Model:
 			// log.Printf("ModBrush")
 			// log.Printf("mins: %v, maxs: %v", mod.ClipMins, mod.ClipMaxs)
 			setMinMaxSize(ev, qm.ClipMins, qm.ClipMaxs)
-		} else {
+		default:
 			// log.Printf("!!!ModBrush")
 			setMinMaxSize(ev, mod.Mins(), mod.Maxs())
 		}

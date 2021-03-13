@@ -7,11 +7,13 @@ import (
 
 	"github.com/chewxy/math32"
 	"github.com/go-gl/gl/v4.6-core/gl"
+	"github.com/therjak/goquake/bsp"
 	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/glh"
 	"github.com/therjak/goquake/math/vec"
-	"github.com/therjak/goquake/model"
+	"github.com/therjak/goquake/mdl"
 	"github.com/therjak/goquake/progs"
+	"github.com/therjak/goquake/spr"
 )
 
 type fPlane struct {
@@ -171,15 +173,15 @@ func (r *qRenderer) DrawWeaponModel() {
 	if weapon.Model == nil {
 		return
 	}
-	if weapon.Model.Type() != model.ModAlias {
+	switch weapon.Model.(type) {
+	default:
 		// this fixes a crash, TODO: why can this happen?
-		return
+	case *mdl.Model:
+		// hack the depth range to prevent view model from poking into walls
+		gl.DepthRange(0, 0.3)
+		r.DrawAliasModel(weapon)
+		gl.DepthRange(0, 1)
 	}
-
-	// hack the depth range to prevent view model from poking into walls
-	gl.DepthRange(0, 0.3)
-	r.DrawAliasModel(weapon)
-	gl.DepthRange(0, 1)
 }
 
 var coneDrawer *qConeDrawer
@@ -384,23 +386,14 @@ func (r *qRenderer) DrawEntitiesOnList(alphaPass bool) {
 			e.ptr.angles[0] *= 0.3
 		}
 
-		switch e.Model.Type() {
-		case model.ModAlias:
+		switch e.Model.(type) {
+		case *mdl.Model:
 			r.DrawAliasModel(e)
-		case model.ModBrush:
+		case *bsp.Model:
 			r.DrawBrushModel(e)
-		case model.ModSprite:
+		case *spr.Model:
 			r.DrawSpriteModel(e)
 		}
-
-		//		switch t := e.Model.(type) {
-		//		case *bsp.Model:
-		//			r.DrawAliasModel(e)
-		//		case *mdl.Model:
-		//			r.DrawBrushModel(e)
-		//		case *spr.Model:
-		//			r.DrawSpriteModel(e)
-		//		}
 	}
 }
 
@@ -417,10 +410,10 @@ func (r *qRenderer) DrawShadows() {
 	gl.Enable(gl.STENCIL_TEST)
 
 	for _, e := range visibleEntities {
-		if e.Model.Type() != model.ModAlias {
-			continue
+		switch e.Model.(type) {
+		case *mdl.Model:
+			r.DrawAliasShadow(e)
 		}
-		r.DrawAliasShadow(e)
 	}
 
 	gl.Disable(gl.STENCIL_TEST)

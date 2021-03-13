@@ -23,21 +23,12 @@ const (
 	EntityEffectTracer3 // 128
 )
 
-type ModType int
-
-const (
-	ModBrush ModType = iota
-	ModSprite
-	ModAlias
-)
-
 const (
 	MAX_MODELS = 2048
 )
 
 type Model interface {
 	Name() string
-	Type() ModType
 	Mins() vec.Vec3
 	Maxs() vec.Vec3
 	Flags() int

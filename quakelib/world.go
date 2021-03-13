@@ -10,7 +10,6 @@ import (
 	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/math"
 	"github.com/therjak/goquake/math/vec"
-	"github.com/therjak/goquake/model"
 	"github.com/therjak/goquake/progs"
 )
 
@@ -494,24 +493,22 @@ func hullForEntity(ent *progs.EntVars, mins, maxs vec.Vec3) (*bsp.Hull, vec.Vec3
 			Error("SOLID_BSP without MOVETYPE_PUSH")
 		}
 		m := sv.models[int(ent.ModelIndex)]
-		if m == nil || m.Type() != model.ModBrush {
+		switch qm := m.(type) {
+		default:
 			Error("MOVETYPE_PUSH with a non bsp model")
+		case *bsp.Model:
+			s := maxs[0] - mins[0]
+			h := func() *bsp.Hull {
+				if s < 3 {
+					return &qm.Hulls[0]
+				} else if s <= 32 {
+					return &qm.Hulls[1]
+				}
+				return &qm.Hulls[2]
+			}()
+			offset := vec.Add(vec.Sub(h.ClipMins, mins), vec.VFromA(ent.Origin))
+			return h, offset
 		}
-		qm, ok := m.(*bsp.Model)
-		if !ok {
-			Error("MOVETYPE_PUSH with a non bsp model")
-		}
-		s := maxs[0] - mins[0]
-		h := func() *bsp.Hull {
-			if s < 3 {
-				return &qm.Hulls[0]
-			} else if s <= 32 {
-				return &qm.Hulls[1]
-			}
-			return &qm.Hulls[2]
-		}()
-		offset := vec.Add(vec.Sub(h.ClipMins, mins), vec.VFromA(ent.Origin))
-		return h, offset
 	}
 	hullmins := vec.Sub(vec.VFromA(ent.Mins), maxs)
 	hullmaxs := vec.Sub(vec.VFromA(ent.Maxs), mins)
