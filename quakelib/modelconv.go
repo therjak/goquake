@@ -12,6 +12,7 @@ import (
 	"unsafe"
 
 	"github.com/therjak/goquake/model"
+	"github.com/therjak/goquake/spr"
 )
 
 var (
@@ -44,6 +45,7 @@ func loadModel(name string) (model.Model, error) {
 	}
 	for _, m := range mods {
 		models[m.Name()] = m
+		loadTextures(m)
 	}
 	m, ok = models[name]
 	if ok {
@@ -56,4 +58,17 @@ func CLPrecacheModel(name string, i int) {
 	cn := C.CString(name)
 	C.CLPrecacheModel(cn, C.int(i))
 	C.free(unsafe.Pointer(cn))
+}
+
+func loadTextures(m model.Model) {
+	switch mt := m.(type) {
+	case *spr.Model:
+		for _, rf := range mt.Data.Frames {
+			for _, f := range rf.Frames {
+				t := f.Texture
+				textureManager.addActiveTexture(f.Texture)
+				textureManager.loadIndexed(f.Texture, f.Texture.Data)
+			}
+		}
+	}
 }
