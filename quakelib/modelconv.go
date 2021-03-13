@@ -65,7 +65,6 @@ func loadTextures(m model.Model) {
 	case *spr.Model:
 		for _, rf := range mt.Data.Frames {
 			for _, f := range rf.Frames {
-				t := f.Texture
 				textureManager.addActiveTexture(f.Texture)
 				textureManager.loadIndexed(f.Texture, f.Texture.Data)
 			}

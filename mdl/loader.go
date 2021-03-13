@@ -13,14 +13,51 @@ import (
 )
 
 func init() {
-	qm.Register(Magic, load)
+	qm.Register(Magic, loadM)
 }
 
-func load(name string, data []byte) ([]qm.Model, error) {
-	var ret []qm.Model
-	mod := &qm.QModel{}
-	mod.SetName(name)
-	mod.SetType(qm.ModAlias)
+type Model struct {
+	name  string
+	mins  vec.Vec3
+	maxs  vec.Vec3
+	flags int
+
+	FrameCount int
+	SyncType   int
+}
+
+func (q *Model) Mins() vec.Vec3 {
+	return q.mins
+}
+
+func (q *Model) Maxs() vec.Vec3 {
+	return q.maxs
+}
+
+func (q *Model) Type() qm.ModType {
+	return qm.ModAlias
+}
+
+func (q *Model) Name() string {
+	return q.name
+}
+
+func (q *Model) Flags() int {
+	return q.flags
+}
+
+func loadM(name string, data []byte) ([]qm.Model, error) {
+	mod, err := load(name, data)
+	if err != nil {
+		return nil, err
+	}
+	return []qm.Model{mod}, nil
+}
+
+func load(name string, data []byte) (*Model, error) {
+	mod := &Model{
+		name: name,
+	}
 
 	buf := bytes.NewReader(data)
 	h := header{}
@@ -32,7 +69,7 @@ func load(name string, data []byte) ([]qm.Model, error) {
 		return nil, fmt.Errorf("%s has wrong version number (%d should be %d)", name, h.Version, aliasVersion)
 	}
 	mod.SyncType = int(h.SyncType)
-	mod.SetFlags(int(h.Flags))
+	mod.flags = (int(h.Flags))
 
 	for i := int32(0); i < h.SkinCount; i++ {
 		skinCount := int32(1)
@@ -97,11 +134,10 @@ func load(name string, data []byte) ([]qm.Model, error) {
 	pv := [][]frameVertex{} // 256 per line?
 	calcAliasBounds(mod, &h, pv)
 
-	ret = append(ret, mod)
-	return ret, nil
+	return mod, nil
 }
 
-func calcAliasBounds(mod *qm.QModel,
+func calcAliasBounds(mod *Model,
 	pheader *header, poseverts [][]frameVertex) {
 	min := func(a, b float32) float32 {
 		if a < b {
@@ -152,8 +188,8 @@ func calcAliasBounds(mod *qm.QModel,
 			*/
 		}
 	}
-	mod.SetMins(mins)
-	mod.SetMaxs(maxs)
+	mod.mins = mins
+	mod.maxs = maxs
 	/*
 		radius = math32.Sqrt(radius)
 		yawradius = math32.Sqrt(yawradius)
