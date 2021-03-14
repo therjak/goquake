@@ -386,13 +386,13 @@ func (r *qRenderer) DrawEntitiesOnList(alphaPass bool) {
 			e.ptr.angles[0] *= 0.3
 		}
 
-		switch e.Model.(type) {
+		switch m := e.Model.(type) {
 		case *mdl.Model:
 			r.DrawAliasModel(e)
 		case *bsp.Model:
 			r.DrawBrushModel(e)
 		case *spr.Model:
-			r.DrawSpriteModel(e)
+			r.DrawSpriteModel(e, m)
 		}
 	}
 }

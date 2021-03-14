@@ -144,3 +144,12 @@ func AngleVectors(angles Vec3) (forward, right, up Vec3) {
 	}
 	return
 }
+
+// FMA FusedMultiplyAdd
+func FMA(a Vec3, s float32, b Vec3) Vec3 {
+	return Vec3{
+		a[0] + s*b[0],
+		a[1] + s*b[1],
+		a[2] + s*b[2],
+	}
+}

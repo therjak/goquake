@@ -18,7 +18,6 @@ package quakelib
 //void CL_ParseStaticC(entity_t* e, int modelindex);
 //void R_DrawAliasModel(entity_t* e);
 //void R_DrawBrushModel(entity_t* e);
-//void R_DrawSpriteModel(entity_t* e);
 //void GL_DrawAliasShadow(entity_t* e);
 //#endif
 import "C"
@@ -442,9 +441,6 @@ func (r *qRenderer) DrawAliasShadow(e *Entity) {
 }
 func (r *qRenderer) DrawBrushModel(e *Entity) {
 	C.R_DrawBrushModel(e.ptr)
-}
-func (r *qRenderer) DrawSpriteModel(e *Entity) {
-	C.R_DrawSpriteModel(e.ptr)
 }
 
 //TODO(therjak): should this go into renderer?
