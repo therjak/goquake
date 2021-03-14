@@ -174,6 +174,7 @@ func readSingleFrame(buf *bytes.Reader, name string, index int) (*RawFrame, erro
 }
 
 func readFrameGroup(buf *bytes.Reader, name string, index int) (*RawFrame, error) {
+	// See: Mod_LoadSpriteGroup
 	// read int32 as numframes
 	// read [numframes]float32 as intervals
 	// check all interval > 0

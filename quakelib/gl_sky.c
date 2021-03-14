@@ -275,7 +275,7 @@ void Sky_ProcessEntities(void) {
   for (i = 0; i < VisibleEntitiesNum(); i++) {
     e = VisibleEntity(i);
 
-    if (e->model->Type != mod_brush) continue;
+    if (!e->model || e->model->Type != mod_brush) continue;
 
     if (R_CullModelForEntity(e)) continue;
 
