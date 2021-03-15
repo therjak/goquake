@@ -7,7 +7,7 @@
 entity_t cl_temp_entities[MAX_TEMP_ENTITIES];
 
 void CLPrecacheModel(const char* cn, int i) {
-  cl.model_precache[i] = Mod_ForName(cn, false);
+  cl.model_precache[i] = Mod_ForName(cn);
 }
 
 void FinishCL_ParseServerInfo(void) {

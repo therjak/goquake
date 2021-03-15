@@ -256,6 +256,11 @@ qmodel_t *Mod_LoadModel(qmodel_t *mod, qboolean crash) {
                  mod->name);  // johnfitz -- was "Mod_NumForName"
     return NULL;
   }
+  mod_type = (buf[0] | (buf[1] << 8) | (buf[2] << 16) | (buf[3] << 24));
+  if (mod_type == IDSPRITEHEADER) {
+      free(buf);
+      return NULL;
+  }
 
   //
   // allocate a new model
@@ -271,15 +276,12 @@ qmodel_t *Mod_LoadModel(qmodel_t *mod, qboolean crash) {
   // call the apropriate loader
   mod->needload = false;
 
-  mod_type = (buf[0] | (buf[1] << 8) | (buf[2] << 16) | (buf[3] << 24));
   switch (mod_type) {
     case IDPOLYHEADER:
       Mod_LoadAliasModel(mod, buf);
       break;
 
     case IDSPRITEHEADER:
-      free(buf);
-      return NULL;
       break;
 
     default:
@@ -298,12 +300,12 @@ Mod_ForName
 Loads in a model for the given name
 ==================
 */
-qmodel_t *Mod_ForName(const char *name, qboolean crash) {
+qmodel_t *Mod_ForName(const char *name) {
   qmodel_t *mod;
 
   mod = Mod_FindName(name);
 
-  return Mod_LoadModel(mod, crash);
+  return Mod_LoadModel(mod, false);
 }
 
 /*

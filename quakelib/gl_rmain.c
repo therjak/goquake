@@ -105,17 +105,6 @@ void R_RotateForEntity(vec3_t origin, vec3_t angles) {
   glRotatef(angles[2], 1, 0, 0);
 }
 
-void GL_PolygonOffset(int offset) {
-  if (offset == OFFSET_DECAL) {
-    glEnable(GL_POLYGON_OFFSET_FILL);
-    glEnable(GL_POLYGON_OFFSET_LINE);
-    glPolygonOffset(-1, offset);
-  } else { // OFFSET_NONE
-    glDisable(GL_POLYGON_OFFSET_FILL);
-    glDisable(GL_POLYGON_OFFSET_LINE);
-  }
-}
-
 #define DEG2RAD(a) ((a)*M_PI_DIV_180)
 
 // THERJAK

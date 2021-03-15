@@ -18,8 +18,6 @@ entity_t *cl_entities;  // johnfitz -- was a static array, now on hunk
 
 entity_t cl_viewent;  // the gun model
 
-extern cvar_t r_lerpmodels, r_lerpmove;  // johnfitz
-
 /*
 =====================
 CL_ClearState

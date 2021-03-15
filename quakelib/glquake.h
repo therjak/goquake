@@ -117,14 +117,6 @@ extern float load_subdivide_size;  // johnfitz -- remember what subdivide_size
 
 extern int gl_stencilbits;
 
-// johnfitz -- polygon offset
-#define OFFSET_BMODEL 1
-#define OFFSET_NONE 0
-#define OFFSET_DECAL -1
-#define OFFSET_FOG -2
-#define OFFSET_SHOWTRIS -3
-void GL_PolygonOffset(int);
-
 // johnfitz -- rendering statistics
 extern int rs_brushpolys, rs_aliaspolys, rs_skypolys, rs_particles, rs_fogpolys;
 extern int rs_dynamiclightmaps, rs_brushpasses, rs_aliaspasses, rs_skypasses;
