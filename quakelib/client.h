@@ -37,6 +37,4 @@ extern client_state_t cl;
 // cl_main
 void CL_Init(void);
 
-void Chase_Init(void);
-
 #endif /* _CLIENT_H_ */

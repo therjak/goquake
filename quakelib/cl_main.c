@@ -20,17 +20,6 @@ entity_t cl_viewent;  // the gun model
 
 extern cvar_t r_lerpmodels, r_lerpmove;  // johnfitz
 
-cvar_t chase_active;
-
-/*
-==============
-Chase_Init
-==============
-*/
-void Chase_Init(void) {
-  Cvar_FakeRegister(&chase_active, "chase_active");
-}
-
 /*
 =====================
 CL_ClearState

@@ -104,7 +104,6 @@ int minimum_memory;
   if (CLS_GetState() != ca_dedicated) {
     int length = 0;
 
-    Chase_Init();
     // ExtraMaps_Init();  // johnfitz
     // Modlist_Init();    // johnfitz
     // DemoList_Init();   // ericw
