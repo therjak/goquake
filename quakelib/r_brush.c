@@ -454,13 +454,6 @@ void GL_BuildLightmaps(void) {
 
 GLuint gl_bmodel_vbo = 0;
 
-void GL_DeleteBModelVertexBuffer(void) {
-  glDeleteBuffers(1, &gl_bmodel_vbo);
-  gl_bmodel_vbo = 0;
-
-  GL_ClearBufferBindings();
-}
-
 /*
 ==================
 GL_BuildBModelVertexBuffer
