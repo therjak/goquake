@@ -173,7 +173,6 @@ void R_DrawTextureChains_Water(qmodel_t *model, entity_t *ent,
 
 void R_RenderDlights(void);
 void GL_BuildLightmaps(void);
-void GL_DeleteBModelVertexBuffer(void);
 void GL_BuildBModelVertexBuffer(void);
 void GLMesh_LoadVertexBuffers(void);
 void GLMesh_DeleteVertexBuffers(void);
