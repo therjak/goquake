@@ -11,6 +11,7 @@ char loadname[32];  // for hunk tags
 
 void Mod_LoadBrushModel(qmodel_t *mod, void *buffer);
 void Mod_LoadAliasModel(qmodel_t *mod, void *buffer);
+void Mod_LoadSpriteModel(qmodel_t *mod, void *buffer);
 qmodel_t *Mod_LoadModel(qmodel_t *mod, qboolean crash);
 
 cvar_t external_ents;
@@ -257,10 +258,6 @@ qmodel_t *Mod_LoadModel(qmodel_t *mod, qboolean crash) {
     return NULL;
   }
   mod_type = (buf[0] | (buf[1] << 8) | (buf[2] << 16) | (buf[3] << 24));
-  if (mod_type == IDSPRITEHEADER) {
-      free(buf);
-      return NULL;
-  }
 
   //
   // allocate a new model
@@ -282,6 +279,7 @@ qmodel_t *Mod_LoadModel(qmodel_t *mod, qboolean crash) {
       break;
 
     case IDSPRITEHEADER:
+      Mod_LoadSpriteModel(mod, buf);
       break;
 
     default:
@@ -2409,3 +2407,167 @@ void Mod_Print(void) {
   }
   Con_Printf("%i models\n", mod_numknown);  // johnfitz -- print the total too
 }
+/*
+=================
+Mod_LoadSpriteFrame
+=================
+*/
+void *Mod_LoadSpriteFrame(void *pin, mspriteframe_t **ppframe, int framenum) {
+  dspriteframe_t *pinframe;
+  mspriteframe_t *pspriteframe;
+  int width, height, size, origin[2];
+  char name[64];
+  src_offset_t offset;  // johnfitz
+
+  pinframe = (dspriteframe_t *)pin;
+
+  width = LittleLong(pinframe->width);
+  height = LittleLong(pinframe->height);
+  size = width * height;
+
+  pspriteframe =
+      (mspriteframe_t *)Hunk_AllocName(sizeof(mspriteframe_t), loadname);
+  *ppframe = pspriteframe;
+
+  pspriteframe->width = width;
+  pspriteframe->height = height;
+  origin[0] = LittleLong(pinframe->origin[0]);
+  origin[1] = LittleLong(pinframe->origin[1]);
+
+  pspriteframe->up = origin[1];
+  pspriteframe->down = origin[1] - height;
+  pspriteframe->left = origin[0];
+  pspriteframe->right = width + origin[0];
+
+  q_snprintf(name, sizeof(name), "%s:frame%i", loadmodel->name, framenum);
+  offset = (src_offset_t)(pinframe + 1) - (src_offset_t)mod_base;  // johnfitz
+  pspriteframe->gltexture = TexMgrLoadImage2(
+      name, width, height, SRC_INDEXED, (byte *)(pinframe + 1),
+      loadmodel->name,
+      TEXPREF_PAD | TEXPREF_ALPHA | TEXPREF_NOPICMIP);  // johnfitz -- TexMgr
+
+  return (void *)((byte *)pinframe + sizeof(dspriteframe_t) + size);
+}
+
+/*
+=================
+Mod_LoadSpriteGroup
+=================
+*/
+void *Mod_LoadSpriteGroup(void *pin, mspriteframe_t **ppframe, int framenum) {
+  dspritegroup_t *pingroup;
+  mspritegroup_t *pspritegroup;
+  int i, numframes;
+  dspriteinterval_t *pin_intervals;
+  float *poutintervals;
+  void *ptemp;
+
+  pingroup = (dspritegroup_t *)pin;
+
+  numframes = LittleLong(pingroup->numframes);
+
+  pspritegroup = (mspritegroup_t *)Hunk_AllocName(
+      sizeof(mspritegroup_t) +
+          (numframes - 1) * sizeof(pspritegroup->frames[0]),
+      loadname);
+
+  pspritegroup->numframes = numframes;
+
+  *ppframe = (mspriteframe_t *)pspritegroup;
+
+  pin_intervals = (dspriteinterval_t *)(pingroup + 1);
+
+  poutintervals = (float *)Hunk_AllocName(numframes * sizeof(float), loadname);
+
+  pspritegroup->intervals = poutintervals;
+
+  for (i = 0; i < numframes; i++) {
+    *poutintervals = LittleFloat(pin_intervals->interval);
+    if (*poutintervals <= 0.0) Go_Error("Mod_LoadSpriteGroup: interval<=0");
+
+    poutintervals++;
+    pin_intervals++;
+  }
+
+  ptemp = (void *)pin_intervals;
+
+  for (i = 0; i < numframes; i++) {
+    ptemp = Mod_LoadSpriteFrame(ptemp, &pspritegroup->frames[i],
+                                framenum * 100 + i);
+  }
+
+  return ptemp;
+}
+
+/*
+=================
+Mod_LoadSpriteModel
+=================
+*/
+void Mod_LoadSpriteModel(qmodel_t *mod, void *buffer) {
+  int i;
+  int version;
+  dsprite_t *pin;
+  msprite_t *psprite;
+  int numframes;
+  int size;
+  dspriteframetype_t *pframetype;
+
+  pin = (dsprite_t *)buffer;
+  mod_base = (byte *)buffer;  // johnfitz
+
+  version = LittleLong(pin->version);
+  if (version != SPRITE_VERSION)
+    Sys_Error(
+        "%s has wrong version number "
+        "(%i should be %i)",
+        mod->name, version, SPRITE_VERSION);
+
+  numframes = LittleLong(pin->numframes);
+
+  size = sizeof(msprite_t) + (numframes - 1) * sizeof(psprite->frames);
+
+  psprite = (msprite_t *)Hunk_AllocName(size, loadname);
+
+  mod->cache.data = psprite;
+
+  psprite->type = LittleLong(pin->type);
+  psprite->maxwidth = LittleLong(pin->width);
+  psprite->maxheight = LittleLong(pin->height);
+  psprite->beamlength = LittleFloat(pin->beamlength);
+  mod->synctype = (synctype_t)LittleLong(pin->synctype);
+  psprite->numframes = numframes;
+
+  mod->mins[0] = mod->mins[1] = -psprite->maxwidth / 2;
+  mod->maxs[0] = mod->maxs[1] = psprite->maxwidth / 2;
+  mod->mins[2] = -psprite->maxheight / 2;
+  mod->maxs[2] = psprite->maxheight / 2;
+
+  //
+  // load the frames
+  //
+  if (numframes < 1)
+    Go_Error_I("Mod_LoadSpriteModel: Invalid # of frames: %v\n", numframes);
+
+  mod->numframes = numframes;
+
+  pframetype = (dspriteframetype_t *)(pin + 1);
+
+  for (i = 0; i < numframes; i++) {
+    spriteframetype_t frametype;
+
+    frametype = (spriteframetype_t)LittleLong(pframetype->type);
+    psprite->frames[i].type = frametype;
+
+    if (frametype == SPR_SINGLE) {
+      pframetype = (dspriteframetype_t *)Mod_LoadSpriteFrame(
+          pframetype + 1, &psprite->frames[i].frameptr, i);
+    } else {
+      pframetype = (dspriteframetype_t *)Mod_LoadSpriteGroup(
+          pframetype + 1, &psprite->frames[i].frameptr, i);
+    }
+  }
+
+  mod->Type = mod_sprite;
+}
+
