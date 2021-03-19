@@ -405,11 +405,6 @@ func (c *Client) Entity() *Entity {
 	return c.Entities(c.viewentity)
 }
 
-//export CLViewEntity
-func CLViewEntity() C.entityPtr {
-	return cl.Entity().ptr
-}
-
 //export ClientEntity
 func ClientEntity(i int) C.entityPtr {
 	return cl.ClientEntity(i).ptr
@@ -472,24 +467,6 @@ func (c *Client) NewTempEntity() *Entity {
 	ent := &clientTempEntities[i]
 	c.AddVisibleEntity(ent)
 	return ent
-}
-
-//export AddVisibleTempEntity
-func AddVisibleTempEntity(e C.entityPtr) {
-	if len(visibleEntities) >= 4096 {
-		return
-	}
-	// clientTempEntities [256]Entity
-	// visibleEntities = append(visibleEntities,
-}
-
-//export AddVisibleStaticEntity
-func AddVisibleStaticEntity(e C.entityPtr) {
-	if len(visibleEntities) >= 4096 {
-		return
-	}
-	// staticEntity       [512]Entity
-	// visibleEntities = append(visibleEntities,
 }
 
 func (c *Client) AddVisibleEntity(e *Entity) {

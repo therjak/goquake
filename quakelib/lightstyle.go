@@ -8,7 +8,6 @@ import (
 	"fmt"
 
 	"github.com/therjak/goquake/cvars"
-	"github.com/therjak/goquake/net"
 )
 
 type lightStyle struct {
@@ -21,14 +20,6 @@ type lightStyle struct {
 const (
 	maxLightStyles = 64
 )
-
-//export ReadLightStyle
-func ReadLightStyle() {
-	err := readLightStyle(cls.inMessage)
-	if err != nil {
-		Error("svc_lightstyle: %v", err)
-	}
-}
 
 var (
 	lightStyles [maxLightStyles]lightStyle
@@ -58,19 +49,11 @@ func avgPeak(d []int) (int, int) {
 	return s / len(d), m
 }
 
-func readLightStyle(msg *net.QReader) error {
-	idx, err := msg.ReadByte()
-	if err != nil {
-		return err
-	}
+func readLightStyle(idx byte, str string) error {
 	if idx >= maxLightStyles {
 		return fmt.Errorf("> MAX_LIGHTSTYLES")
 	}
 	style := &lightStyles[idx]
-	str, err := msg.ReadString()
-	if err != nil {
-		return err
-	}
 	style.unprocessed = str
 	style.lightMap = make([]int, len(str))
 	// we read content with bytes x : 'a' <= x <= 'z'

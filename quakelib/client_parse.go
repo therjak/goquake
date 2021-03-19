@@ -360,7 +360,20 @@ func CL_ParseServerMessage() {
 			cl.viewentity = int(ve)
 
 		case svc.LightStyle:
-			ReadLightStyle() // ReadByte + ReadString
+			idx, err := cls.inMessage.ReadByte()
+			if err != nil {
+				cls.msgBadRead = true
+				continue
+			}
+			str, err := cls.inMessage.ReadString()
+			if err != nil {
+				cls.msgBadRead = true
+				continue
+			}
+			err = readLightStyle(idx, str)
+			if err != nil {
+				Error("svc_lightstyle: %v", err)
+			}
 
 		case svc.Sound:
 			CL_ParseStartSoundPacket()
