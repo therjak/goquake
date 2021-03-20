@@ -679,9 +679,16 @@ func CL_ParseStartSoundPacket() {
 	if m.Entity > int32(cap(cl.entities)) {
 		HostError("CL_ParseStartSoundPacket: ent = %d", m.Entity)
 	}
-	attenuation := float32(m.Attenuation) / 64.0
+	volume := float32(1.0)
+	if v := m.Volume; v != nil {
+		volume = float32(v.Value) / 255
+	}
+	attenuation := float32(1.0)
+	if a := m.Attenuation; a != nil {
+		attenuation = float32(a.Value) / 64.0
+	}
 	origin := vec.Vec3{m.Origin.X, m.Origin.Y, m.Origin.Z}
-	snd.Start(int(m.Entity), int(m.Channel), cl.soundPrecache[m.SoundNum], origin, float32(m.Volume)/255, attenuation, !loopingSound)
+	snd.Start(int(m.Entity), int(m.Channel), cl.soundPrecache[m.SoundNum], origin, volume, attenuation, !loopingSound)
 
 }
 
@@ -692,16 +699,15 @@ func parseSoundMessage(msg *net.QReader) (*protos.Sound, error) {
 	if err != nil {
 		return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
 	}
-	message.Volume = 255
-	volume := byte(255)
-	message.Attenuation = 64
 
 	if fieldMask&svc.SoundVolume != 0 {
-		volume, err = msg.ReadByte() // byte
+		volume, err := msg.ReadByte() // byte
 		if err != nil {
 			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
 		}
-		message.Volume = int32(volume)
+		message.Volume = &protos.OptionalInt32{
+			Value: int32(volume),
+		}
 	}
 
 	if fieldMask&svc.SoundAttenuation != 0 {
@@ -709,7 +715,9 @@ func parseSoundMessage(msg *net.QReader) (*protos.Sound, error) {
 		if err != nil {
 			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
 		}
-		message.Attenuation = int32(a)
+		message.Attenuation = &protos.OptionalInt32{
+			Value: int32(a),
+		}
 	}
 
 	ent := uint16(0)

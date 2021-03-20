@@ -4,6 +4,10 @@ syntax = "proto3";
 package protos;
 option go_package = ".;protos";
 
+message OptionalInt32 {
+  int32 Value = 1;
+}
+
 message Coord {
   float x = 1;
   float y = 2;
@@ -49,8 +53,8 @@ message LightStyle {
 }
 
 message Sound {
-  int32 volume = 1; // byte - default 255
-  int32 attenuation = 2; // byte - default 64
+  OptionalInt32 volume = 1; // byte - default 255
+  OptionalInt32 attenuation = 2; // byte - default 64
   int32 entity = 3; // int16
   int32 channel = 4; // byte
   int32 sound_num = 5; // int16
