@@ -666,92 +666,106 @@ func CL_SendCmd() {
 }
 
 func CL_ParseStartSoundPacket() {
-	err := parseStartSoundPacket(cls.inMessage)
-	if err != nil {
-		HostError("%v", err)
-	}
-}
-
-func parseStartSoundPacket(msg *net.QReader) error {
 	const (
 		maxSounds = 2048
 	)
+	m, err := parseSoundMessage(cls.inMessage)
+	if err != nil {
+		HostError("%v", err)
+	}
+	if m.SoundNum > maxSounds {
+		HostError("CL_ParseStartSoundPacket: %d > MAX_SOUNDS", m.SoundNum)
+	}
+	if m.Entity > int32(cap(cl.entities)) {
+		HostError("CL_ParseStartSoundPacket: ent = %d", m.Entity)
+	}
+	attenuation := float32(m.Attenuation) / 64.0
+	origin := vec.Vec3{m.Origin.X, m.Origin.Y, m.Origin.Z}
+	snd.Start(int(m.Entity), int(m.Channel), cl.soundPrecache[m.SoundNum], origin, float32(m.Volume)/255, attenuation, !loopingSound)
+
+}
+
+func parseSoundMessage(msg *net.QReader) (*protos.Sound, error) {
+	message := &protos.Sound{}
 
 	fieldMask, err := msg.ReadByte()
 	if err != nil {
-		return fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
+		return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
 	}
+	message.Volume = 255
 	volume := byte(255)
-	attenuation := float32(1.0)
+	message.Attenuation = 64
 
 	if fieldMask&svc.SoundVolume != 0 {
-		volume, err = msg.ReadByte()
+		volume, err = msg.ReadByte() // byte
 		if err != nil {
-			return fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
+			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
 		}
+		message.Volume = int32(volume)
 	}
 
 	if fieldMask&svc.SoundAttenuation != 0 {
-		a, err := msg.ReadByte()
+		a, err := msg.ReadByte() // byte
 		if err != nil {
-			return fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
+			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
 		}
-		attenuation = float32(a) / 64.0
+		message.Attenuation = int32(a)
 	}
 
 	ent := uint16(0)
 	channel := byte(0)
 	if fieldMask&svc.SoundLargeEntity != 0 {
-		e, err := msg.ReadInt16()
+		e, err := msg.ReadInt16() // int16
 		if err != nil {
-			return fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
+			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
 		}
-		c, err := msg.ReadByte()
+		c, err := msg.ReadByte() // byte
 		if err != nil {
-			return fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
+			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
 		}
 		ent = uint16(e)
 		channel = c
 	} else {
-		s, err := msg.ReadInt16()
+		s, err := msg.ReadInt16() // int16 + byte
 		if err != nil {
-			return fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
+			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
 		}
 		ent = uint16(s >> 3)
 		channel = byte(s & 7)
 	}
+	message.Entity = int32(ent)
+	message.Channel = int32(channel)
 
 	soundNum := uint16(0)
 	if fieldMask&svc.SoundLargeSound != 0 {
-		n, err := msg.ReadInt16()
+		n, err := msg.ReadInt16() // int16
 		if err != nil {
-			return fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
+			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
 		}
 		soundNum = uint16(n - 1)
 	} else {
-		n, err := msg.ReadByte()
+		n, err := msg.ReadByte() // int16
 		if err != nil {
-			return fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
+			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
 		}
 		soundNum = uint16(n - 1)
 	}
-	if soundNum > maxSounds {
-		return fmt.Errorf("CL_ParseStartSoundPacket: %d > MAX_SOUNDS", soundNum)
-	}
-	if int(ent) > cap(cl.entities) {
-		return fmt.Errorf("CL_ParseStartSoundPacket: ent = %d", ent)
-	}
+	message.SoundNum = int32(soundNum)
 	var origin vec.Vec3
 	for i := 0; i < 3; i++ {
-		f, err := msg.ReadCoord(cl.protocolFlags)
+		f, err := msg.ReadCoord(cl.protocolFlags) // float
 		if err != nil {
-			return fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
+			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
 		}
 		origin[i] = f
 	}
+	message.Origin = &protos.Coord{
+		X: origin[0],
+		Y: origin[1],
+		Z: origin[2],
+	}
 
-	snd.Start(int(ent), int(channel), cl.soundPrecache[soundNum], origin, float32(volume)/255, attenuation, !loopingSound)
-	return nil
+	return message, nil
 }
 
 var (

@@ -43,6 +43,35 @@ message TempEntity {
   }
 }
 
+message LightStyle {
+  int32 idx = 1;
+  string new_style = 2;
+}
+
+message Sound {
+  int32 volume = 1; // byte - default 255
+  int32 attenuation = 2; // byte - default 64
+  int32 entity = 3; // int16
+  int32 channel = 4; // byte
+  int32 sound_num = 5; // int16
+  Coord origin = 6; // float,float,float
+}
+
+message UpdateName {
+  int32 player = 1;
+  string new_name = 2;
+}
+
+message UpdateFrags {
+  int32 player = 1;
+  int32 new_frags = 2;
+}
+
+message UpdateColors {
+  int32 player = 1;
+  int32 new_color = 2;
+}
+
 message SCmd {
   oneof union {
     // nop = 1 == empty
@@ -51,7 +80,7 @@ message SCmd {
     // UpdateStat update_stat = 3;
     int32 version = 4;
     int32 set_view_entity = 5; // set_view
-    //Sound sound = 6;
+    Sound sound = 6;
     
     float time = 7;
     string print = 8;
@@ -59,14 +88,16 @@ message SCmd {
     /*
     SetAngle set_angle = 10;
     ServerInfo server_info = 11;
+    */
     LightStyle light_style = 12;
     UpdateName update_name = 13;
     UpdateFrags update_frags = 14;
+    /*
     ClientData client_data = 15;
     */
     int32 stop_sound = 16;
-    /*
     UpdateColors update_colors = 17;
+    /*
     Particle particle = 18;
     Damage damage = 19;
     // baseline spawn_static = 20;
