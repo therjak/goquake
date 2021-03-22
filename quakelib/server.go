@@ -454,17 +454,17 @@ func (s *Server) WriteClientdataToMessage(player int) {
 	if (bits & (svc.SU_PUNCH1)) != 0 {
 		msgBuf.WriteChar(int(e.PunchAngle[0]))
 	}
-	if (bits & (svc.SU_PUNCH2)) != 0 {
-		msgBuf.WriteChar(int(e.PunchAngle[1]))
-	}
-	if (bits & (svc.SU_PUNCH3)) != 0 {
-		msgBuf.WriteChar(int(e.PunchAngle[2]))
-	}
 	if (bits & (svc.SU_VELOCITY1)) != 0 {
 		msgBuf.WriteChar(int(e.Velocity[0] / 16))
 	}
+	if (bits & (svc.SU_PUNCH2)) != 0 {
+		msgBuf.WriteChar(int(e.PunchAngle[1]))
+	}
 	if (bits & (svc.SU_VELOCITY2)) != 0 {
 		msgBuf.WriteChar(int(e.Velocity[1] / 16))
+	}
+	if (bits & (svc.SU_PUNCH3)) != 0 {
+		msgBuf.WriteChar(int(e.PunchAngle[2]))
 	}
 	if (bits & (svc.SU_VELOCITY3)) != 0 {
 		msgBuf.WriteChar(int(e.Velocity[2] / 16))
