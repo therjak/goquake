@@ -1558,82 +1558,35 @@ func parseClientData(msg *net.QReader) (*protos.ClientData, error) {
 
 // Server information pertaining to this client only
 func (c *Client) parseClientData() error {
-	m, err := cls.inMessage.ReadUint16()
+	cdp, err := parseClientData(cls.inMessage)
 	if err != nil {
 		return err
 	}
-	bits := int(m)
-
-	if bits&svc.SU_EXTEND1 != 0 {
-		m, err := cls.inMessage.ReadByte()
-		if err != nil {
-			return err
-		}
-		bits |= int(m) << 16
-	}
-	if bits&svc.SU_EXTEND2 != 0 {
-		m, err := cls.inMessage.ReadByte()
-		if err != nil {
-			return err
-		}
-		bits |= int(m) << 24
-	}
-
-	if bits&svc.SU_VIEWHEIGHT != 0 {
-		m, err := cls.inMessage.ReadInt8()
-		if err != nil {
-			return err
-		}
-		c.viewHeight = float32(m)
+	vh := cdp.GetViewHeight()
+	if vh != nil {
+		c.viewHeight = float32(cdp.ViewHeight.Value)
 	} else {
 		c.viewHeight = svc.DEFAULT_VIEWHEIGHT
 	}
+	c.idealPitch = float32(cdp.IdealPitch)
 
-	if bits&svc.SU_IDEALPITCH != 0 {
-		m, err := cls.inMessage.ReadInt8()
-		if err != nil {
-			return err
-		}
-		c.idealPitch = float32(m)
-	} else {
-		c.idealPitch = 0
+	punchAngle := vec.Vec3{
+		float32(cdp.PunchAngle.X),
+		float32(cdp.PunchAngle.Y),
+		float32(cdp.PunchAngle.Z),
 	}
-
-	var punchAngle vec.Vec3
-	c.mVelocity[1] = c.mVelocity[0]
-	for i := 0; i < 3; i++ {
-		if bits&(svc.SU_PUNCH1<<i) != 0 {
-			m, err := cls.inMessage.ReadInt8()
-			if err != nil {
-				return err
-			}
-			punchAngle[i] = float32(m)
-		} else {
-			punchAngle[i] = 0
-		}
-
-		if bits&(svc.SU_VELOCITY1<<i) != 0 {
-			m, err := cls.inMessage.ReadInt8()
-			if err != nil {
-				return err
-			}
-			c.mVelocity[0][i] = float32(m) * 16
-		} else {
-			c.mVelocity[0][i] = 0
-		}
-	}
-
 	if c.punchAngle[0] != punchAngle {
 		c.punchAngle[1] = c.punchAngle[0]
 		c.punchAngle[0] = punchAngle
 	}
-
-	// [always sent]	if (bits & svc.SU_ITEMS) != 0
-	items, err := cls.inMessage.ReadUint32()
-	if err != nil {
-		return err
+	c.mVelocity[1] = c.mVelocity[0]
+	c.mVelocity[0] = vec.Vec3{
+		float32(cdp.Velocity.X) * 16,
+		float32(cdp.Velocity.Y) * 16,
+		float32(cdp.Velocity.Z) * 16,
 	}
 
+	items := cdp.Items
 	if c.items != items {
 		// set flash times
 		statusbar.MarkChanged()
@@ -1647,88 +1600,30 @@ func (c *Client) parseClientData() error {
 		c.items = items
 	}
 
-	c.onGround = bits&svc.SU_ONGROUND != 0
+	c.onGround = cdp.OnGround
 
-	if bits&svc.SU_WEAPONFRAME != 0 {
-		m, err := cls.inMessage.ReadByte()
-		if err != nil {
-			return err
-		}
-		c.stats.weaponFrame = int(m)
-	} else {
-		c.stats.weaponFrame = 0
+	c.stats.weaponFrame = int(cdp.WeaponFrame)
+	statusBarFlash := int(0)
+	set := func(v *int, nv int32) {
+		// skip some branching
+		statusBarFlash |= *v ^ int(nv)
+		*v = int(nv)
 	}
-
-	armor := 0
-	if bits&svc.SU_ARMOR != 0 {
-		m, err := cls.inMessage.ReadByte()
-		if err != nil {
-			return err
-		}
-		armor = int(m)
-	}
-	if c.stats.armor != armor {
-		c.stats.armor = armor
+	set(&c.stats.armor, cdp.Armor)
+	set(&c.stats.weapon, cdp.Weapon)
+	set(&c.stats.health, cdp.Health)
+	set(&c.stats.ammo, cdp.Ammo)
+	set(&c.stats.shells, cdp.Shells)
+	set(&c.stats.nails, cdp.Nails)
+	set(&c.stats.rockets, cdp.Rockets)
+	set(&c.stats.cells, cdp.Cells)
+	if statusBarFlash != 0 {
 		statusbar.MarkChanged()
 	}
 
-	weapon := 0
-	if bits&svc.SU_WEAPON != 0 {
-		m, err := cls.inMessage.ReadByte()
-		if err != nil {
-			return err
-		}
-		weapon = int(m)
-	}
-
-	if c.stats.weapon != weapon {
-		c.stats.weapon = weapon
-		statusbar.MarkChanged()
-	}
-
-	health, err := cls.inMessage.ReadInt16()
-	if err != nil {
-		return err
-	}
-	if c.stats.health != int(health) {
-		c.stats.health = int(health)
-		statusbar.MarkChanged()
-	}
-
-	readByte := func(v *int) error {
-		nv, err := cls.inMessage.ReadByte()
-		if err != nil {
-			return err
-		}
-		if *v != int(nv) {
-			*v = int(nv)
-			statusbar.MarkChanged()
-		}
-		return nil
-	}
-
-	if err := readByte(&c.stats.ammo); err != nil {
-		return err
-	}
-	if err := readByte(&c.stats.shells); err != nil {
-		return err
-	}
-	if err := readByte(&c.stats.nails); err != nil {
-		return err
-	}
-	if err := readByte(&c.stats.rockets); err != nil {
-		return err
-	}
-	if err := readByte(&c.stats.cells); err != nil {
-		return err
-	}
-
-	activeWeapon, err := cls.inMessage.ReadByte()
-	if err != nil {
-		return err
-	}
+	activeWeapon := cdp.ActiveWeapon
 	if cmdl.Quoth() || cmdl.Rogue() || cmdl.Hipnotic() {
-		//TODO(therjak): why is the command line setting responsible for how the server
+		//TODO(therjak): why is a command line setting responsible for how the server
 		// message is interpreted?
 		if c.stats.activeWeapon != (1 << activeWeapon) {
 			c.stats.activeWeapon = (1 << activeWeapon)
@@ -1741,64 +1636,8 @@ func (c *Client) parseClientData() error {
 			statusbar.MarkChanged()
 		}
 	}
-
-	statOr := func(v *int) error {
-		s, err := cls.inMessage.ReadByte()
-		if err != nil {
-			return err
-		}
-		*v |= int(s) << 8
-		return nil
-	}
-	if bits&svc.SU_WEAPON2 != 0 {
-		if err := statOr(&c.stats.weapon); err != nil {
-			return err
-		}
-	}
-	if bits&svc.SU_ARMOR2 != 0 {
-		if err := statOr(&c.stats.armor); err != nil {
-			return err
-		}
-	}
-	if bits&svc.SU_AMMO2 != 0 {
-		if err := statOr(&c.stats.ammo); err != nil {
-			return err
-		}
-	}
-	if bits&svc.SU_SHELLS2 != 0 {
-		if err := statOr(&c.stats.shells); err != nil {
-			return err
-		}
-	}
-	if bits&svc.SU_NAILS2 != 0 {
-		if err := statOr(&c.stats.nails); err != nil {
-			return err
-		}
-	}
-	if bits&svc.SU_ROCKETS2 != 0 {
-		if err := statOr(&c.stats.rockets); err != nil {
-			return err
-		}
-	}
-	if bits&svc.SU_CELLS2 != 0 {
-		if err := statOr(&c.stats.cells); err != nil {
-			return err
-		}
-	}
-	if bits&svc.SU_WEAPONFRAME2 != 0 {
-		if err := statOr(&c.stats.weaponFrame); err != nil {
-			return err
-		}
-	}
 	weaponE := c.WeaponEntity()
-	weaponE.Alpha = 0 // ENTALPHA_DEFAULT
-	if bits&svc.SU_WEAPONALPHA != 0 {
-		a, err := cls.inMessage.ReadByte()
-		if err != nil {
-			return err
-		}
-		weaponE.Alpha = a
-	}
+	weaponE.Alpha = byte(cdp.WeaponAlpha)
 	weaponE.ptr.alpha2 = C.uchar(weaponE.Alpha)
 	// this was done before the upper 8 bits of cl.stats[STAT_WEAPON]
 	// were filled in, breaking on large maps like zendar.bsp
