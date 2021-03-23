@@ -160,12 +160,12 @@ func (s *qstatusbar) LoadPictures() {
 	}
 	s.items[progs.ItemRocketLauncher] = spic{
 		pic: getw("srlaunch"),
-		x:   4 * 24,
+		x:   5 * 24,
 		y:   8,
 	}
 	s.items[progs.ItemLightning] = spic{
 		pic: getw("lightng"),
-		x:   5 * 24,
+		x:   6 * 24,
 		y:   8,
 	}
 
