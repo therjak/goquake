@@ -304,8 +304,6 @@ void R_NewMap(void) {
   load_subdivide_size = Cvar_GetValue(&gl_subdivide_size);
 }
 
-void D_FlushCaches(void) {}
-
 static GLuint gl_programs[16];
 static int gl_num_programs;
 

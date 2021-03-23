@@ -23,11 +23,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifndef _QUAKE_RENDER_H
 #define _QUAKE_RENDER_H
 
-#define MAXCLIPPLANES 11
-
-#define TOP_RANGE 16  // soldier uniform colors
-#define BOTTOM_RANGE 96
-
 //=============================================================================
 
 // johnfitz -- for lerping
@@ -76,28 +71,10 @@ typedef struct entity_s {
   vec3_t currentangles;   // johnfitz -- transform lerping
 } entity_t;
 
-//
-// refresh
-//
-extern int reinit_surfcache;
-
 extern vec3_t r_origin, vpn, vright, vup;
 
 void R_Init(void);
-void R_InitTextures(void);
-
 void R_NewMap(void);
-
 void R_PushDlights(void);
-
-//
-// surface cache related
-//
-extern int reinit_surfcache;  // if 1, surface cache is currently empty and
-
-int D_SurfaceCacheForRes(int width, int height);
-void D_FlushCaches(void);
-void D_DeleteSurfaceCache(void);
-void D_InitCaches(void *buffer, int size);
 
 #endif /* _QUAKE_RENDER_H */

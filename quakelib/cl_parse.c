@@ -2,8 +2,6 @@
 #include "_cgo_export.h"
 #include "quakedef.h"
 
-#include "dlight.h"
-
 entity_t cl_temp_entities[MAX_TEMP_ENTITIES];
 
 void CLPrecacheModel(const char* cn, int i) {
