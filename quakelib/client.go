@@ -1376,6 +1376,186 @@ func tracePosition(args []cmd.QArg, _ int) {
 	}
 }
 
+func parseClientData(msg *net.QReader) (*protos.ClientData, error) {
+	clientData := &protos.ClientData{}
+
+	m, err := msg.ReadUint16()
+	if err != nil {
+		return nil, err
+	}
+	bits := int(m)
+
+	if bits&svc.SU_EXTEND1 != 0 {
+		m, err := msg.ReadByte()
+		if err != nil {
+			return nil, err
+		}
+		bits |= int(m) << 16
+	}
+	if bits&svc.SU_EXTEND2 != 0 {
+		m, err := msg.ReadByte()
+		if err != nil {
+			return nil, err
+		}
+		bits |= int(m) << 24
+	}
+
+	readByte := func(v *int32) error {
+		nv, err := msg.ReadByte()
+		if err != nil {
+			return err
+		}
+		*v = int32(nv)
+		return nil
+	}
+	readByteIf := func(flag int, v *int32) error {
+		if bits&flag != 0 {
+			return readByte(v)
+		}
+		return nil
+	}
+
+	readInt8 := func(v *int32) error {
+		nv, err := msg.ReadInt8()
+		if err != nil {
+			return err
+		}
+		*v = int32(nv)
+		return nil
+	}
+	readInt8If := func(flag int, v *int32) error {
+		if bits&flag != 0 {
+			return readInt8(v)
+		}
+		return nil
+	}
+
+	readUpperByte := func(v *int32) error {
+		s, err := msg.ReadByte()
+		if err != nil {
+			return err
+		}
+		*v |= int32(s) << 8
+		return nil
+	}
+	readUpperByteIf := func(flag int, v *int32) error {
+		if bits&flag != 0 {
+			return readUpperByte(v)
+		}
+		return nil
+	}
+
+	if bits&svc.SU_VIEWHEIGHT != 0 {
+		m, err := msg.ReadInt8()
+		if err != nil {
+			return nil, err
+		}
+		clientData.ViewHeight = &protos.OptionalInt32{
+			Value: int32(m),
+		}
+	}
+
+	if err := readInt8If(svc.SU_IDEALPITCH, &clientData.IdealPitch); err != nil {
+		return nil, err
+	}
+
+	clientData.PunchAngle = &protos.IntCoord{}
+	clientData.Velocity = &protos.IntCoord{}
+
+	if err := readInt8If(svc.SU_PUNCH1, &clientData.PunchAngle.X); err != nil {
+		return nil, err
+	}
+	if err := readInt8If(svc.SU_VELOCITY1, &clientData.Velocity.X); err != nil {
+		return nil, err
+	}
+	if err := readInt8If(svc.SU_PUNCH2, &clientData.PunchAngle.Y); err != nil {
+		return nil, err
+	}
+	if err := readInt8If(svc.SU_VELOCITY2, &clientData.Velocity.Y); err != nil {
+		return nil, err
+	}
+	if err := readInt8If(svc.SU_PUNCH3, &clientData.PunchAngle.Z); err != nil {
+		return nil, err
+	}
+	if err := readInt8If(svc.SU_VELOCITY3, &clientData.Velocity.Z); err != nil {
+		return nil, err
+	}
+
+	// [always sent]	if (bits & svc.SU_ITEMS) != 0
+	items, err := msg.ReadUint32()
+	if err != nil {
+		return nil, err
+	}
+	clientData.Items = items
+
+	clientData.InWater = bits&svc.SU_INWATER != 0
+	clientData.OnGround = bits&svc.SU_ONGROUND != 0
+
+	if err := readByteIf(svc.SU_WEAPONFRAME, &clientData.WeaponFrame); err != nil {
+		return nil, err
+	}
+	if err := readByteIf(svc.SU_ARMOR, &clientData.Armor); err != nil {
+		return nil, err
+	}
+	if err := readByteIf(svc.SU_WEAPON, &clientData.Weapon); err != nil {
+		return nil, err
+	}
+
+	health, err := msg.ReadInt16()
+	if err != nil {
+		return nil, err
+	}
+	clientData.Health = int32(health)
+
+	if err := readByte(&clientData.Ammo); err != nil {
+		return nil, err
+	}
+	if err := readByte(&clientData.Shells); err != nil {
+		return nil, err
+	}
+	if err := readByte(&clientData.Nails); err != nil {
+		return nil, err
+	}
+	if err := readByte(&clientData.Rockets); err != nil {
+		return nil, err
+	}
+	if err := readByte(&clientData.Cells); err != nil {
+		return nil, err
+	}
+	if err := readByte(&clientData.ActiveWeapon); err != nil {
+		return nil, err
+	}
+
+	if err := readUpperByteIf(svc.SU_WEAPON2, &clientData.Weapon); err != nil {
+		return nil, err
+	}
+	if err := readUpperByteIf(svc.SU_ARMOR2, &clientData.Armor); err != nil {
+		return nil, err
+	}
+	if err := readUpperByteIf(svc.SU_AMMO2, &clientData.Ammo); err != nil {
+		return nil, err
+	}
+	if err := readUpperByteIf(svc.SU_SHELLS2, &clientData.Shells); err != nil {
+		return nil, err
+	}
+	if err := readUpperByteIf(svc.SU_NAILS2, &clientData.Nails); err != nil {
+		return nil, err
+	}
+	if err := readUpperByteIf(svc.SU_ROCKETS2, &clientData.Rockets); err != nil {
+		return nil, err
+	}
+	if err := readUpperByteIf(svc.SU_CELLS2, &clientData.Cells); err != nil {
+		return nil, err
+	}
+	if err := readUpperByteIf(svc.SU_WEAPONFRAME2, &clientData.WeaponFrame); err != nil {
+		return nil, err
+	}
+	if err := readByteIf(svc.SU_WEAPONALPHA, &clientData.WeaponAlpha); err != nil {
+		return nil, err
+	}
+	return clientData, nil
+}
+
 // Server information pertaining to this client only
 func (c *Client) parseClientData() error {
 	m, err := cls.inMessage.ReadUint16()

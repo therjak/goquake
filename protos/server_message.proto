@@ -4,6 +4,7 @@ syntax = "proto3";
 package protos;
 option go_package = ".;protos";
 
+// Used for values with differend default
 message OptionalInt32 {
   int32 Value = 1;
 }
@@ -12,6 +13,12 @@ message Coord {
   float x = 1;
   float y = 2;
   float z = 3;
+}
+
+message IntCoord {
+  int32 x = 1;
+  int32 y = 2;
+  int32 z = 3;
 }
 
 message Line {
@@ -74,6 +81,27 @@ message UpdateFrags {
 message UpdateColors {
   int32 player = 1;
   int32 new_color = 2;
+}
+
+message ClientData {
+  OptionalInt32 view_height = 1; // byte, default 22
+  int32 ideal_pitch = 2; // byte
+  IntCoord punch_angle = 3; // byte
+  IntCoord velocity = 4; // byte
+  fixed32 items = 5; // uint32 bitfield
+  bool on_ground = 6;
+  bool in_water = 7;
+  int32 weapon_frame = 8; // byte + byte
+  int32 armor = 9; // byte + byte
+  int32 weapon = 10; // byte + byte, idx of weapon model in model cache
+  int32 health = 11; // uint16
+  int32 ammo = 12; // byte + byte
+  int32 shells = 13; // byte + byte
+  int32 nails = 14; // byte + byte
+  int32 rockets = 15; // byte + byte
+  int32 cells = 16; // byte + byte
+  int32 active_weapon = 17; // byte
+  int32 weapon_alpha = 18; // byte
 }
 
 message SCmd {
