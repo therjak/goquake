@@ -24,7 +24,44 @@ type Model struct {
 
 	FrameCount int
 	SyncType   int
+
+	Header *AliasHeader
 }
+
+type AliasHeader struct {
+	Scale         vec.Vec3
+	ScaleOrigin   vec.Vec3
+	SkinCount     int
+	SkinWidth     int
+	SkinHeight    int
+	VerticeCount  int
+	TriangleCount int
+	FrameCount    int
+	SyncType      int
+	Flags         int
+
+	// numverts_vbo
+	// meshdesc intptr_t
+	// numindexes int
+	// indexs intptr_t
+	// vertexes intptr_t
+
+	// PoseCount int
+	// PoseVerts int
+	// PoseData  int
+	// Commands  int
+
+	// GlTextures [32][4]uint32
+	// FbTextures [32][4]uint32
+	// Texels     [32]int
+	// Frames [FrameCount-1]Frame
+}
+
+const (
+	MaxAliasVerts  = 2000
+	MaxAliasFrames = 256
+	MaxAliasTris   = 2048
+)
 
 func (q *Model) Mins() vec.Vec3 {
 	return q.mins
@@ -42,6 +79,10 @@ func (q *Model) Flags() int {
 	return q.flags
 }
 
+func (q *Model) AddFlag(f int) {
+	q.flags |= f
+}
+
 func loadM(name string, data []byte) ([]qm.Model, error) {
 	mod, err := load(name, data)
 	if err != nil {
@@ -52,7 +93,8 @@ func loadM(name string, data []byte) ([]qm.Model, error) {
 
 func load(name string, data []byte) (*Model, error) {
 	mod := &Model{
-		name: name,
+		name:   name,
+		Header: &AliasHeader{},
 	}
 
 	buf := bytes.NewReader(data)
@@ -64,10 +106,34 @@ func load(name string, data []byte) (*Model, error) {
 	if h.Version != aliasVersion {
 		return nil, fmt.Errorf("%s has wrong version number (%d should be %d)", name, h.Version, aliasVersion)
 	}
+	if h.SkinHeight > 480 {
+		return nil, fmt.Errorf("model %s has a skin taller than %d", name, 480)
+	}
+	if h.VerticeCount <= 0 {
+		return nil, fmt.Errorf("model %s has no vertices", name)
+	}
+	if h.VerticeCount > MaxAliasVerts {
+		return nil, fmt.Errorf("model %s has too many vertices", name)
+	}
+	if h.TriangleCount <= 0 {
+		return nil, fmt.Errorf("model %s has no triangles", name)
+	}
+	if h.FrameCount < 1 {
+		return nil, fmt.Errorf("model %s has invalid # of frames: %d", name, h.FrameCount)
+	}
+	header := mod.Header
+	header.SkinCount = int(h.SkinCount)
+	header.SkinWidth = int(h.SkinWidth)
+	header.SkinHeight = int(h.SkinHeight)
+	header.VerticeCount = int(h.VerticeCount)
+	header.TriangleCount = int(h.TriangleCount)
+	header.FrameCount = int(h.FrameCount)
+	header.Scale = vec.Vec3{h.Scale[0], h.Scale[1], h.Scale[2]}
+	header.ScaleOrigin = vec.Vec3{h.ScaleOrigin[0], h.ScaleOrigin[1], h.ScaleOrigin[2]}
 	mod.SyncType = int(h.SyncType)
-	mod.flags = (int(h.Flags))
+	mod.flags = (int(h.Flags & 0xff))
 
-	for i := int32(0); i < h.SkinCount; i++ {
+	for i := int32(0); i < h.SkinCount; i++ { // See Mod_LoadAllSkins
 		skinCount := int32(1)
 		skinType := int32(0)
 		err := binary.Read(buf, binary.LittleEndian, &skinType)
@@ -94,20 +160,14 @@ func load(name string, data []byte) (*Model, error) {
 		}
 	}
 
-	vert := skinVertex{}
-	for i := int32(0); i < h.VerticeCount; i++ {
-		err := binary.Read(buf, binary.LittleEndian, &vert)
-		if err != nil {
-			return nil, err
-		}
+	verts := make([]skinVertex, h.VerticeCount) // read in gl_mesh.c
+	if err := binary.Read(buf, binary.LittleEndian, &verts); err != nil {
+		return nil, err
 	}
 
-	triangle := triangle{}
-	for i := int32(0); i < h.TriangleCount; i++ {
-		err := binary.Read(buf, binary.LittleEndian, &triangle)
-		if err != nil {
-			return nil, err
-		}
+	triangles := make([]triangle, h.TriangleCount) // read in gl_mesh.c
+	if err := binary.Read(buf, binary.LittleEndian, &triangles); err != nil {
+		return nil, err
 	}
 
 	// Now the h.FrameCount frames

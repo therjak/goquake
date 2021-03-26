@@ -9,8 +9,11 @@ import "C"
 import (
 	"fmt"
 	"log"
+	"strings"
 	"unsafe"
 
+	"github.com/therjak/goquake/cvars"
+	"github.com/therjak/goquake/mdl"
 	"github.com/therjak/goquake/model"
 	"github.com/therjak/goquake/spr"
 )
@@ -45,6 +48,7 @@ func loadModel(name string) (model.Model, error) {
 	}
 	for _, m := range mods {
 		models[m.Name()] = m
+		setExtraFlags(m)
 		loadTextures(m)
 	}
 	m, ok = models[name]
@@ -58,6 +62,27 @@ func CLPrecacheModel(name string, i int) {
 	cn := C.CString(name)
 	C.CLPrecacheModel(cn, C.int(i))
 	C.free(unsafe.Pointer(cn))
+}
+
+const (
+	ModNoLerp         = 256
+	ModNoShadow       = 512
+	ModFullBrightHack = 1024
+)
+
+func setExtraFlags(m model.Model) {
+	switch mt := m.(type) {
+	case *mdl.Model:
+		if strings.Contains(cvars.RNoLerpList.String(), mt.Name()) {
+			mt.AddFlag(ModNoLerp)
+		}
+		if strings.Contains(cvars.RNoShadowList.String(), mt.Name()) {
+			mt.AddFlag(ModNoShadow)
+		}
+		if strings.Contains(cvars.RFullBrightList.String(), mt.Name()) {
+			mt.AddFlag(ModFullBrightHack)
+		}
+	}
 }
 
 func loadTextures(m model.Model) {

@@ -106,6 +106,7 @@ var (
 	RNoLerpList            *cvar.Cvar
 	RNoRefresh             *cvar.Cvar
 	RNoShadowList          *cvar.Cvar
+	RFullBrightList        *cvar.Cvar
 	RNoVis                 *cvar.Cvar
 	ROldSkyLeaf            *cvar.Cvar
 	ROldWater              *cvar.Cvar
@@ -408,13 +409,20 @@ func init() {
 		"progs/flame_pyre.mdl",
 		"progs/v_saw.mdl",
 		"progs/v_xfist.mdl",
-		"progs/h2stuff/newfire.mdl"}, ","), cvar.NONE)
+		"progs/h2stuff/newfire.mdl",
+	}, ","), cvar.NONE)
 	RNoShadowList = cvar.MustRegister("r_noshadow_list", strings.Join([]string{
 		"progs/flame2.mdl",
 		"progs/flame.mdl",
 		"progs/bolt1.mdl",
 		"progs/bolt2.mdl",
 		"progs/bolt3.mdl",
-		"progs/laser.mdl"}, ","), cvar.NONE)
+		"progs/laser.mdl",
+	}, ","), cvar.NONE)
 
+	RFullBrightList = cvar.MustRegister("r_fullbright_list", strings.Join([]string{
+		"progs/flame2.mdl",
+		"progs/flame.mdl",
+		"progs/boss.mdl",
+	}, ","), cvar.NONE)
 }

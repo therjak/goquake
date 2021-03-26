@@ -2374,7 +2374,7 @@ void Mod_LoadAliasModel(qmodel_t *mod, void *buffer) {
   //
   // build the draw lists
   //
-  GL_MakeAliasModelDisplayLists(mod, pheader);
+  GL_MakeAliasModelDisplayLists(mod, pheader); // reads triangles and stverts
 
   //
   // move the complete, relocatable alias model to the cache

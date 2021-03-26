@@ -60,3 +60,15 @@ type frameVertex struct { // trivertx_t
 	PackedPosition   [3]byte // final is (Scale * PackedPosition)+SkaleOrigin
 	LightNormalIndex byte
 }
+
+type aliasFrame struct {
+	BBoxMin frameVertex
+	BBoxMax frameVertex
+	Name    [16]byte
+}
+
+type aliasGroup struct {
+	FrameCount int32
+	BBoxMin    frameVertex
+	BBoxMax    frameVertex
+}
