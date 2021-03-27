@@ -6,10 +6,12 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"log"
 	"math"
 
 	"github.com/therjak/goquake/math/vec"
 	qm "github.com/therjak/goquake/model"
+	"github.com/therjak/goquake/texture"
 )
 
 func init() {
@@ -51,8 +53,8 @@ type AliasHeader struct {
 	// PoseData  int
 	// Commands  int
 
-	// GlTextures [32][4]uint32
-	// FbTextures [32][4]uint32
+	Textures   [][]*texture.Texture
+	FBTextures [][]*texture.Texture
 	// Texels     [32]int
 	// Frames [FrameCount-1]Frame
 }
@@ -91,6 +93,15 @@ func loadM(name string, data []byte) ([]qm.Model, error) {
 	return []qm.Model{mod}, nil
 }
 
+func fullBright(data []byte) bool {
+	for _, d := range data {
+		if d > 223 {
+			return true
+		}
+	}
+	return false
+}
+
 func load(name string, data []byte) (*Model, error) {
 	mod := &Model{
 		name:   name,
@@ -121,6 +132,9 @@ func load(name string, data []byte) (*Model, error) {
 	if h.FrameCount < 1 {
 		return nil, fmt.Errorf("model %s has invalid # of frames: %d", name, h.FrameCount)
 	}
+	if h.SkinCount < 1 || h.SkinCount > 32 {
+		return nil, fmt.Errorf("model %s has invalid # of skins: %d", name, h.SkinCount)
+	}
 	header := mod.Header
 	header.SkinCount = int(h.SkinCount)
 	header.SkinWidth = int(h.SkinWidth)
@@ -133,14 +147,35 @@ func load(name string, data []byte) (*Model, error) {
 	mod.SyncType = int(h.SyncType)
 	mod.flags = (int(h.Flags & 0xff))
 
+	skinSize := int64(h.SkinWidth) * int64(h.SkinHeight)
 	for i := int32(0); i < h.SkinCount; i++ { // See Mod_LoadAllSkins
-		skinCount := int32(1)
 		skinType := int32(0)
 		err := binary.Read(buf, binary.LittleEndian, &skinType)
 		if err != nil {
 			return nil, err
 		}
-		if skinType != ALIAS_SKIN_SINGLE {
+		if skinType == ALIAS_SKIN_SINGLE {
+			// TODO: FloodFillSkin
+			tn := fmt.Sprintf("%s:frame%d", name, i)
+			data := make([]byte, skinSize)
+			buf.Read(data)
+			if fullBright(data) {
+				fbtn := fmt.Sprintf("%s:frame%d_glow", name, i)
+				fbtf := texture.TexPrefPad | texture.TexPrefFullBright
+				tf := texture.TexPrefPad | texture.TexPrefNoBright
+				t := texture.NewTexture(h.SkinWidth, h.SkinHeight, tf, tn, texture.ColorTypeIndexed, data)
+				fbt := texture.NewTexture(h.SkinWidth, h.SkinHeight, fbtf, fbtn, texture.ColorTypeIndexed, data)
+				header.Textures = append(header.Textures, []*texture.Texture{t})
+				header.FBTextures = append(header.Textures, []*texture.Texture{fbt})
+			} else {
+				tf := texture.TexPrefPad
+				t := texture.NewTexture(h.SkinWidth, h.SkinHeight, tf, tn, texture.ColorTypeIndexed, data)
+				header.Textures = append(header.Textures, []*texture.Texture{t})
+				header.FBTextures = append(header.Textures, []*texture.Texture{})
+			}
+		} else {
+			log.Printf("TODO: ALIAS_SKIN_GROUP")
+			skinCount := int32(1)
 			err = binary.Read(buf, binary.LittleEndian, &skinCount)
 			if err != nil {
 				return nil, err
@@ -153,20 +188,18 @@ func load(name string, data []byte) (*Model, error) {
 					return nil, err
 				}
 			}
-		}
-		for j := int32(0); j < skinCount; j++ {
 			// TODO: actually read the groupskins instead of just skipping them
-			buf.Seek(int64(h.SkinWidth)*int64(h.SkinHeight), io.SeekCurrent)
+			buf.Seek(skinSize, io.SeekCurrent)
 		}
 	}
 
 	verts := make([]skinVertex, h.VerticeCount) // read in gl_mesh.c
-	if err := binary.Read(buf, binary.LittleEndian, &verts); err != nil {
+	if err := binary.Read(buf, binary.LittleEndian, verts); err != nil {
 		return nil, err
 	}
 
 	triangles := make([]triangle, h.TriangleCount) // read in gl_mesh.c
-	if err := binary.Read(buf, binary.LittleEndian, &triangles); err != nil {
+	if err := binary.Read(buf, binary.LittleEndian, triangles); err != nil {
 		return nil, err
 	}
 

@@ -43,7 +43,7 @@ type header struct { // mdl_t
 	Size           float32
 }
 
-// list found at baseskin + siknsizes
+// list found at baseskin + skinsizes
 type skinVertex struct { // stvert_t, texture coordinates
 	Onseam int32 // 0 or 0x20
 	S      int32 // position horizontally, [0,SkinWidth[

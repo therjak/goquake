@@ -94,5 +94,18 @@ func loadTextures(m model.Model) {
 				textureManager.loadIndexed(f.Texture, f.Texture.Data)
 			}
 		}
+	case *mdl.Model:
+		for _, t := range mt.Header.Textures {
+			for _, st := range t {
+				textureManager.addActiveTexture(st)
+				textureManager.loadIndexed(st, st.Data)
+			}
+		}
+		for _, t := range mt.Header.FBTextures {
+			for _, st := range t {
+				textureManager.addActiveTexture(st)
+				textureManager.loadIndexed(st, st.Data)
+			}
+		}
 	}
 }
