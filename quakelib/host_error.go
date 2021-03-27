@@ -17,11 +17,6 @@ func GoHostError(msg *C.char) {
 	HostError(C.GoString(msg))
 }
 
-//export Host_EndGame
-func Host_EndGame(msg *C.char) {
-	HostEndGame(C.GoString(msg))
-}
-
 func HostEndGame(msg string) {
 	conlog.DPrintf("Host_EndGame: %s\n", msg)
 
