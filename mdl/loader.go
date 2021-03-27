@@ -180,21 +180,20 @@ func load(name string, data []byte) (*Model, error) {
 			if err != nil {
 				return nil, err
 			}
-			for j := int32(0); j < skinCount; j++ {
-				skinInterval := float32(0) // how long each skin should be shown
-				// TODO: shouldn't we do something with this data?
-				err = binary.Read(buf, binary.LittleEndian, &skinInterval)
-				if err != nil {
-					return nil, err
-				}
+			// TODO: shouldn't we do something with this data?
+			skinInterval := make([]float32, skinCount)
+			if err := binary.Read(buf, binary.LittleEndian, &skinInterval); err != nil {
+				return nil, err
 			}
 			// TODO: actually read the groupskins instead of just skipping them
-			buf.Seek(skinSize, io.SeekCurrent)
+			buf.Seek(skinSize*int64(skinCount), io.SeekCurrent)
 		}
 	}
 
-	verts := make([]skinVertex, h.VerticeCount) // read in gl_mesh.c
-	if err := binary.Read(buf, binary.LittleEndian, verts); err != nil {
+	// texture coordinates
+	// move to (0.0, 1.0) by adding 0.5 and divide by skinWidth for s and skinHeight for t
+	textureCoords := make([]skinVertex, h.VerticeCount) // read in gl_mesh.c
+	if err := binary.Read(buf, binary.LittleEndian, textureCoords); err != nil {
 		return nil, err
 	}
 
@@ -203,23 +202,43 @@ func load(name string, data []byte) (*Model, error) {
 		return nil, err
 	}
 
-	// Now the h.FrameCount frames
-
-	// read int32 to determine the pframetype
-	// frameVertex gets filled in Mod_LoadAliasFrame and/or Mod_LoadAliasGroup
-
-	/*
-		pframetype = //int32
-		for i := 0; i < h.FrameCount; i++ {
-			if pframetype.type == ALIAS_SINGLE {
-				pframetype, frame = Mod_LoadAliasFrame(pframetype + 1)
-				pheader.frames[i] = frame
-			} else {
-				pframetype, frame = Mod_LoadAliasGroup(pframetype + 1)
-				pheader.frames[i] = frame
+	for i := int32(0); i < h.FrameCount; i++ {
+		frameType := int32(0)
+		if err := binary.Read(buf, binary.LittleEndian, &frameType); err != nil {
+			log.Printf("TODO: ERR")
+			return nil, err
+		}
+		groupFrames := int32(1)
+		// interval := float32(0.1)
+		if frameType != ALIAS_SINGLE {
+			log.Printf("FrameType: %v, %s", frameType, name)
+			fg := aliasFrameGroup{}
+			if err := binary.Read(buf, binary.LittleEndian, &fg); err != nil {
+				log.Printf("TODO: ERR")
+				return nil, err
+			}
+			groupFrames = fg.FrameCount
+			intervals := make([]float32, fg.FrameCount)
+			if err := binary.Read(buf, binary.LittleEndian, intervals); err != nil {
+				log.Printf("TODO: ERR")
+				return nil, err
+			}
+			// interval = intervals[0]
+		}
+		for gf := int32(0); gf < groupFrames; gf++ {
+			f := aliasFrame{}
+			if err := binary.Read(buf, binary.LittleEndian, &f); err != nil {
+				log.Printf("TODO: ERR")
+				return nil, err
+			}
+			vertices := make([]frameVertex, h.VerticeCount)
+			if err := binary.Read(buf, binary.LittleEndian, vertices); err != nil {
+				log.Printf("TODO: ERR, %v, %v", gf, groupFrames)
+				return nil, err
 			}
 		}
-	*/
+	}
+
 	pv := [][]frameVertex{} // 256 per line?
 	calcAliasBounds(mod, &h, pv)
 

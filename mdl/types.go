@@ -67,7 +67,7 @@ type aliasFrame struct {
 	Name    [16]byte
 }
 
-type aliasGroup struct {
+type aliasFrameGroup struct {
 	FrameCount int32
 	BBoxMin    frameVertex
 	BBoxMax    frameVertex
