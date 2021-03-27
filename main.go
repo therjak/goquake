@@ -27,5 +27,7 @@ func main() {
 		pprof.StartCPUProfile(f)
 		defer pprof.StopCPUProfile()
 	}
-	quakelib.CallCMain()
+	if err := quakelib.CallCMain(); err != nil {
+		log.Fatal(err)
+	}
 }

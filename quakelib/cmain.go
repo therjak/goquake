@@ -26,12 +26,12 @@ const (
 	QUAKESPASM_VER_PATCH = 2
 )
 
-func CallCMain() {
+func CallCMain() error {
 	v := sdl.Version{}
 	sdl.GetVersion(&v)
 	log.Printf("Found SDL version %d.%d.%d\n", v.Major, v.Minor, v.Patch)
 	if err := sdl.Init(0); err != nil {
-		panic(err)
+		return err
 	}
 	defer sdl.Quit()
 
@@ -52,6 +52,7 @@ func CallCMain() {
 	} else {
 		runNormal()
 	}
+	return nil
 }
 
 var (
