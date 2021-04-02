@@ -19,6 +19,7 @@ func init() {
 }
 
 type Model struct {
+	AliasHeader
 	name  string
 	mins  vec.Vec3
 	maxs  vec.Vec3
@@ -26,8 +27,6 @@ type Model struct {
 
 	FrameCount int
 	SyncType   int
-
-	Header *AliasHeader
 }
 
 type AliasHeader struct {
@@ -58,7 +57,8 @@ type AliasHeader struct {
 	Textures   [][]*texture.Texture
 	FBTextures [][]*texture.Texture
 	// Texels     [32]int
-	Frames []Frame
+	Frames    []Frame
+	Triangles []Triangle
 }
 
 type TextureCoord struct {
@@ -121,7 +121,7 @@ type frame struct {
 }
 
 type FrameGroup struct {
-	Verticies []Vertex
+	Vertices []Vertex
 }
 
 type Vertex struct {
@@ -134,10 +134,14 @@ type frameGroup struct {
 	fv []frameVertex
 }
 
+type Triangle struct {
+	FacesFront bool
+	Indices    [3]int
+}
+
 func load(name string, data []byte) (*Model, error) {
 	mod := &Model{
-		name:   name,
-		Header: &AliasHeader{},
+		name: name,
 	}
 
 	buf := bytes.NewReader(data)
@@ -167,15 +171,14 @@ func load(name string, data []byte) (*Model, error) {
 	if h.SkinCount < 1 || h.SkinCount > 32 {
 		return nil, fmt.Errorf("model %s has invalid # of skins: %d", name, h.SkinCount)
 	}
-	header := mod.Header
-	header.SkinCount = int(h.SkinCount)
-	header.SkinWidth = int(h.SkinWidth)
-	header.SkinHeight = int(h.SkinHeight)
-	header.VerticeCount = int(h.VerticeCount)
-	header.TriangleCount = int(h.TriangleCount)
-	header.FrameCount = int(h.FrameCount)
-	header.Scale = vec.Vec3{h.Scale[0], h.Scale[1], h.Scale[2]}
-	header.Translate = vec.Vec3{h.Translate[0], h.Translate[1], h.Translate[2]}
+	mod.SkinCount = int(h.SkinCount)
+	mod.SkinWidth = int(h.SkinWidth)
+	mod.SkinHeight = int(h.SkinHeight)
+	mod.VerticeCount = int(h.VerticeCount)
+	mod.TriangleCount = int(h.TriangleCount)
+	mod.FrameCount = int(h.FrameCount)
+	mod.Scale = vec.Vec3{h.Scale[0], h.Scale[1], h.Scale[2]}
+	mod.Translate = vec.Vec3{h.Translate[0], h.Translate[1], h.Translate[2]}
 	mod.SyncType = int(h.SyncType)
 	mod.flags = (int(h.Flags & 0xff))
 
@@ -197,13 +200,13 @@ func load(name string, data []byte) (*Model, error) {
 				tf := texture.TexPrefPad | texture.TexPrefNoBright
 				t := texture.NewTexture(h.SkinWidth, h.SkinHeight, tf, tn, texture.ColorTypeIndexed, data)
 				fbt := texture.NewTexture(h.SkinWidth, h.SkinHeight, fbtf, fbtn, texture.ColorTypeIndexed, data)
-				header.Textures = append(header.Textures, []*texture.Texture{t})
-				header.FBTextures = append(header.Textures, []*texture.Texture{fbt})
+				mod.Textures = append(mod.Textures, []*texture.Texture{t})
+				mod.FBTextures = append(mod.Textures, []*texture.Texture{fbt})
 			} else {
 				tf := texture.TexPrefPad
 				t := texture.NewTexture(h.SkinWidth, h.SkinHeight, tf, tn, texture.ColorTypeIndexed, data)
-				header.Textures = append(header.Textures, []*texture.Texture{t})
-				header.FBTextures = append(header.Textures, []*texture.Texture{})
+				mod.Textures = append(mod.Textures, []*texture.Texture{t})
+				mod.FBTextures = append(mod.Textures, []*texture.Texture{})
 			}
 		} else {
 			log.Printf("TODO: ALIAS_SKIN_GROUP")
@@ -222,15 +225,13 @@ func load(name string, data []byte) (*Model, error) {
 		}
 	}
 
-	// texture coordinates
-	// move to (0.0, 1.0) by adding 0.5 and divide by skinWidth for s and skinHeight for t
 	textureCoords := make([]skinVertex, h.VerticeCount) // read in gl_mesh.c
 	if err := binary.Read(buf, binary.LittleEndian, textureCoords); err != nil {
 		return nil, err
 	}
-	header.TextureCoords = make([]TextureCoord, h.VerticeCount)
+	mod.TextureCoords = make([]TextureCoord, h.VerticeCount)
 	for i := int32(0); i < h.VerticeCount; i++ {
-		header.TextureCoords[i] = TextureCoord{
+		mod.TextureCoords[i] = TextureCoord{
 			OnSeam: textureCoords[i].OnSeam != 0,
 			S:      (float32(textureCoords[i].S) + 0.5) / float32(h.SkinWidth),
 			T:      (float32(textureCoords[i].T) + 0.5) / float32(h.SkinHeight),
@@ -240,6 +241,14 @@ func load(name string, data []byte) (*Model, error) {
 	triangles := make([]triangle, h.TriangleCount) // read in gl_mesh.c
 	if err := binary.Read(buf, binary.LittleEndian, triangles); err != nil {
 		return nil, err
+	}
+	mod.Triangles = make([]Triangle, len(triangles))
+	for i := range triangles {
+		t := &triangles[i]
+		mod.Triangles[i] = Triangle{
+			FacesFront: t.FacesFront != 0,
+			Indices:    [3]int{int(t.Vertices[0]), int(t.Vertices[1]), int(t.Vertices[2])},
+		}
 	}
 
 	fs := make([]frame, h.FrameCount)
@@ -269,7 +278,7 @@ func load(name string, data []byte) (*Model, error) {
 			fs[i].interval = intervals[0]
 		}
 		fs[i].fg = make([]frameGroup, groupFrames)
-		for fgi := range fs[i].fg { // int32(0); gf < groupFrames; gf++ {
+		for fgi := range fs[i].fg {
 			fg := &fs[i].fg[fgi]
 			if err := binary.Read(buf, binary.LittleEndian, &(fg.af)); err != nil {
 				log.Printf("TODO: ERR")
@@ -318,20 +327,20 @@ func calcFrames(mod *Model, pheader *header, frames []frame) {
 	 mod.RMaxs = mod.Maxs
 	*/
 
-	mod.Header.Frames = make([]Frame, len(frames))
+	mod.Frames = make([]Frame, len(frames))
 
 	for i := 0; i < len(frames); i++ {
 		f := &frames[i]
-		F := &mod.Header.Frames[i]
+		F := &mod.Frames[i]
 		F.Interval = f.interval
 		F.Group = make([]FrameGroup, len(f.fg))
 		for j := 0; j < len(f.fg); j++ {
 			fg := &f.fg[j]
 			FG := &F.Group[j]
-			FG.Verticies = make([]Vertex, len(fg.fv))
+			FG.Vertices = make([]Vertex, len(fg.fv))
 			for k := 0; k < len(fg.fv); k++ {
 				fv := &fg.fv[k]
-				V := &FG.Verticies[k]
+				V := &FG.Vertices[k]
 				v := vec.Vec3{
 					float32(fv.PackedPosition[0])*pheader.Scale[0] + pheader.Translate[0],
 					float32(fv.PackedPosition[1])*pheader.Scale[1] + pheader.Translate[1],
