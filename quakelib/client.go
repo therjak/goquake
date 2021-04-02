@@ -895,6 +895,9 @@ func (c *Client) calcBob() float32 {
 		return v * v
 	}
 	bobCycle := cvars.ClientBobCycle.Value()
+	if bobCycle == 0 {
+		return 0
+	}
 	bobUp := cvars.ClientBobUp.Value()
 	t := float32(c.time)
 
