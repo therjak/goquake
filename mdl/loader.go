@@ -32,7 +32,7 @@ type Model struct {
 
 type AliasHeader struct {
 	Scale         vec.Vec3
-	ScaleOrigin   vec.Vec3
+	Translate     vec.Vec3
 	SkinCount     int
 	SkinWidth     int
 	SkinHeight    int
@@ -53,10 +53,18 @@ type AliasHeader struct {
 	// PoseData  int
 	// Commands  int
 
+	TextureCoords []TextureCoord
+
 	Textures   [][]*texture.Texture
 	FBTextures [][]*texture.Texture
 	// Texels     [32]int
-	// Frames [FrameCount-1]Frame
+	Frames []Frame
+}
+
+type TextureCoord struct {
+	OnSeam bool
+	S      float32
+	T      float32
 }
 
 const (
@@ -102,6 +110,30 @@ func fullBright(data []byte) bool {
 	return false
 }
 
+type Frame struct {
+	Group    []FrameGroup
+	Interval float32
+}
+
+type frame struct {
+	fg       []frameGroup
+	interval float32
+}
+
+type FrameGroup struct {
+	Verticies []Vertex
+}
+
+type Vertex struct {
+	Point  vec.Vec3
+	Normal vec.Vec3
+}
+
+type frameGroup struct {
+	af aliasFrame
+	fv []frameVertex
+}
+
 func load(name string, data []byte) (*Model, error) {
 	mod := &Model{
 		name:   name,
@@ -143,7 +175,7 @@ func load(name string, data []byte) (*Model, error) {
 	header.TriangleCount = int(h.TriangleCount)
 	header.FrameCount = int(h.FrameCount)
 	header.Scale = vec.Vec3{h.Scale[0], h.Scale[1], h.Scale[2]}
-	header.ScaleOrigin = vec.Vec3{h.ScaleOrigin[0], h.ScaleOrigin[1], h.ScaleOrigin[2]}
+	header.Translate = vec.Vec3{h.Translate[0], h.Translate[1], h.Translate[2]}
 	mod.SyncType = int(h.SyncType)
 	mod.flags = (int(h.Flags & 0xff))
 
@@ -196,12 +228,21 @@ func load(name string, data []byte) (*Model, error) {
 	if err := binary.Read(buf, binary.LittleEndian, textureCoords); err != nil {
 		return nil, err
 	}
+	header.TextureCoords = make([]TextureCoord, h.VerticeCount)
+	for i := int32(0); i < h.VerticeCount; i++ {
+		header.TextureCoords[i] = TextureCoord{
+			OnSeam: textureCoords[i].OnSeam != 0,
+			S:      (float32(textureCoords[i].S) + 0.5) / float32(h.SkinWidth),
+			T:      (float32(textureCoords[i].T) + 0.5) / float32(h.SkinHeight),
+		}
+	}
 
 	triangles := make([]triangle, h.TriangleCount) // read in gl_mesh.c
 	if err := binary.Read(buf, binary.LittleEndian, triangles); err != nil {
 		return nil, err
 	}
 
+	fs := make([]frame, h.FrameCount)
 	for i := int32(0); i < h.FrameCount; i++ {
 		frameType := int32(0)
 		if err := binary.Read(buf, binary.LittleEndian, &frameType); err != nil {
@@ -209,7 +250,7 @@ func load(name string, data []byte) (*Model, error) {
 			return nil, err
 		}
 		groupFrames := int32(1)
-		// interval := float32(0.1)
+		fs[i].interval = 0.1
 		if frameType != ALIAS_SINGLE {
 			log.Printf("FrameType: %v, %s", frameType, name)
 			fg := aliasFrameGroup{}
@@ -223,30 +264,36 @@ func load(name string, data []byte) (*Model, error) {
 				log.Printf("TODO: ERR")
 				return nil, err
 			}
-			// interval = intervals[0]
+			// This should be able to support variable frame rates. It does not look like
+			// any engine supports it but all just read the first.
+			fs[i].interval = intervals[0]
 		}
-		for gf := int32(0); gf < groupFrames; gf++ {
-			f := aliasFrame{}
-			if err := binary.Read(buf, binary.LittleEndian, &f); err != nil {
+		fs[i].fg = make([]frameGroup, groupFrames)
+		for fgi := range fs[i].fg { // int32(0); gf < groupFrames; gf++ {
+			fg := &fs[i].fg[fgi]
+			if err := binary.Read(buf, binary.LittleEndian, &(fg.af)); err != nil {
 				log.Printf("TODO: ERR")
 				return nil, err
 			}
-			vertices := make([]frameVertex, h.VerticeCount)
-			if err := binary.Read(buf, binary.LittleEndian, vertices); err != nil {
-				log.Printf("TODO: ERR, %v, %v", gf, groupFrames)
+			fg.fv = make([]frameVertex, h.VerticeCount)
+			if err := binary.Read(buf, binary.LittleEndian, fg.fv); err != nil {
+				log.Printf("TODO: ERR, %v, %v", fgi, groupFrames)
 				return nil, err
+			}
+			for _, v := range fg.fv {
+				if int(v.LightNormalIndex) >= len(avertexNormals) {
+					return nil, fmt.Errorf("Normals out of bounds")
+				}
 			}
 		}
 	}
 
-	pv := [][]frameVertex{} // 256 per line?
-	calcAliasBounds(mod, &h, pv)
+	calcFrames(mod, &h, fs)
 
 	return mod, nil
 }
 
-func calcAliasBounds(mod *Model,
-	pheader *header, poseverts [][]frameVertex) {
+func calcFrames(mod *Model, pheader *header, frames []frame) {
 	min := func(a, b float32) float32 {
 		if a < b {
 			return a
@@ -271,29 +318,45 @@ func calcAliasBounds(mod *Model,
 	 mod.RMaxs = mod.Maxs
 	*/
 
-	for i := 0; i < len(poseverts); i++ {
-		for j := 0; j < len(poseverts[i]); j++ {
-			v := vec.Vec3{
-				float32(poseverts[i][j].PackedPosition[0])*pheader.Scale[0] + pheader.ScaleOrigin[0],
-				float32(poseverts[i][j].PackedPosition[1])*pheader.Scale[1] + pheader.ScaleOrigin[1],
-				float32(poseverts[i][j].PackedPosition[2])*pheader.Scale[0] + pheader.ScaleOrigin[2],
+	mod.Header.Frames = make([]Frame, len(frames))
+
+	for i := 0; i < len(frames); i++ {
+		f := &frames[i]
+		F := &mod.Header.Frames[i]
+		F.Interval = f.interval
+		F.Group = make([]FrameGroup, len(f.fg))
+		for j := 0; j < len(f.fg); j++ {
+			fg := &f.fg[j]
+			FG := &F.Group[j]
+			FG.Verticies = make([]Vertex, len(fg.fv))
+			for k := 0; k < len(fg.fv); k++ {
+				fv := &fg.fv[k]
+				V := &FG.Verticies[k]
+				v := vec.Vec3{
+					float32(fv.PackedPosition[0])*pheader.Scale[0] + pheader.Translate[0],
+					float32(fv.PackedPosition[1])*pheader.Scale[1] + pheader.Translate[1],
+					float32(fv.PackedPosition[2])*pheader.Scale[2] + pheader.Translate[2],
+				}
+				V.Point = v
+				V.Normal = avertexNormals[fv.LightNormalIndex]
+
+				mins[0] = min(mins[0], v[0])
+				mins[1] = min(mins[1], v[1])
+				mins[2] = min(mins[2], v[2])
+				maxs[0] = max(maxs[0], v[0])
+				maxs[1] = max(maxs[1], v[1])
+				maxs[2] = max(maxs[2], v[2])
+				/*
+					dist := v[0]*v[0] + v[1]*v[1]
+					if yawradius < dist {
+						yawradius = dist
+					}
+					dist += v[2] * v[2]
+					if radius < dist {
+						radius = dist
+					}
+				*/
 			}
-			mins[0] = min(mins[0], v[0])
-			mins[1] = min(mins[1], v[1])
-			mins[2] = min(mins[2], v[2])
-			maxs[0] = max(maxs[0], v[0])
-			maxs[1] = max(maxs[1], v[1])
-			maxs[2] = max(maxs[2], v[2])
-			/*
-				dist := v[0]*v[0] + v[1]*v[1]
-				if yawradius < dist {
-					yawradius = dist
-				}
-				dist += v[2] * v[2]
-				if radius < dist {
-					radius = dist
-				}
-			*/
 		}
 	}
 	mod.mins = mins

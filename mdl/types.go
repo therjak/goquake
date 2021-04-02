@@ -29,7 +29,7 @@ type header struct { // mdl_t
 	ID             int32
 	Version        int32
 	Scale          [3]float32
-	ScaleOrigin    [3]float32
+	Translate      [3]float32
 	BoundingRadius float32
 	EyePosition    [3]float32
 	SkinCount      int32
@@ -43,21 +43,19 @@ type header struct { // mdl_t
 	Size           float32
 }
 
-// list found at baseskin + skinsizes
-type skinVertex struct { // stvert_t, texture coordinates
-	Onseam int32 // 0 or 0x20
+type skinVertex struct { // texture coordinates
+	OnSeam int32 // 0 or 0x20
 	S      int32 // position horizontally, [0,SkinWidth[
 	T      int32 // position vertically, [0,SkinHeight[
 }
 
-// list found at baseverts + verticeCount
-type triangle struct { // dtriangle_t
+type triangle struct {
 	FacesFront int32
 	Vertices   [3]int32
 }
 
-type frameVertex struct { // trivertx_t
-	PackedPosition   [3]byte // final is (Scale * PackedPosition)+SkaleOrigin
+type frameVertex struct {
+	PackedPosition   [3]byte
 	LightNormalIndex byte
 }
 
