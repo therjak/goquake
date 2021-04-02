@@ -331,10 +331,10 @@ func calcSurfaceExtras(ss []*Surface, vs []*MVertex, es []*MEdge, ses []int32) {
 		texScale := func() float32 {
 			if s.Flags&(SurfaceDrawTurb|SurfaceDrawSky) != 0 {
 				// warp animation
-				return 1 / 128
+				return 1 / float32(128)
 			}
 			// to match noTexture mip
-			return 1 / 32
+			return 1 / float32(32)
 		}()
 		s.Polys = &Poly{
 			Verts: make([]TexCoord, 0, s.NumEdges),
