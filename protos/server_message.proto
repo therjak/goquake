@@ -42,11 +42,11 @@ message TempEntity {
     Coord gunshot = 3;
     Coord explosion = 4;
     Coord tar_explosion = 5;
-    Line lightning_1 = 6;
-    Line lightning_2 = 7;
+    Line lightning1 = 6;
+    Line lightning2 = 7;
     Coord wiz_spike = 8;
     Coord knight_spike = 9;
-    Line lightning_3 = 10;
+    Line lightning3 = 10;
     Coord lava_splash = 11;
     Coord teleport = 12;
     Explosion2 explosion2 = 13;

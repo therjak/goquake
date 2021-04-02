@@ -1379,189 +1379,9 @@ func tracePosition(args []cmd.QArg, _ int) {
 	}
 }
 
-func parseClientData(msg *net.QReader) (*protos.ClientData, error) {
-	clientData := &protos.ClientData{}
-
-	m, err := msg.ReadUint16()
-	if err != nil {
-		return nil, err
-	}
-	bits := int(m)
-
-	if bits&svc.SU_EXTEND1 != 0 {
-		m, err := msg.ReadByte()
-		if err != nil {
-			return nil, err
-		}
-		bits |= int(m) << 16
-	}
-	if bits&svc.SU_EXTEND2 != 0 {
-		m, err := msg.ReadByte()
-		if err != nil {
-			return nil, err
-		}
-		bits |= int(m) << 24
-	}
-
-	readByte := func(v *int32) error {
-		nv, err := msg.ReadByte()
-		if err != nil {
-			return err
-		}
-		*v = int32(nv)
-		return nil
-	}
-	readByteIf := func(flag int, v *int32) error {
-		if bits&flag != 0 {
-			return readByte(v)
-		}
-		return nil
-	}
-
-	readInt8 := func(v *int32) error {
-		nv, err := msg.ReadInt8()
-		if err != nil {
-			return err
-		}
-		*v = int32(nv)
-		return nil
-	}
-	readInt8If := func(flag int, v *int32) error {
-		if bits&flag != 0 {
-			return readInt8(v)
-		}
-		return nil
-	}
-
-	readUpperByte := func(v *int32) error {
-		s, err := msg.ReadByte()
-		if err != nil {
-			return err
-		}
-		*v |= int32(s) << 8
-		return nil
-	}
-	readUpperByteIf := func(flag int, v *int32) error {
-		if bits&flag != 0 {
-			return readUpperByte(v)
-		}
-		return nil
-	}
-
-	if bits&svc.SU_VIEWHEIGHT != 0 {
-		m, err := msg.ReadInt8()
-		if err != nil {
-			return nil, err
-		}
-		clientData.ViewHeight = &protos.OptionalInt32{
-			Value: int32(m),
-		}
-	}
-
-	if err := readInt8If(svc.SU_IDEALPITCH, &clientData.IdealPitch); err != nil {
-		return nil, err
-	}
-
-	clientData.PunchAngle = &protos.IntCoord{}
-	clientData.Velocity = &protos.IntCoord{}
-
-	if err := readInt8If(svc.SU_PUNCH1, &clientData.PunchAngle.X); err != nil {
-		return nil, err
-	}
-	if err := readInt8If(svc.SU_VELOCITY1, &clientData.Velocity.X); err != nil {
-		return nil, err
-	}
-	if err := readInt8If(svc.SU_PUNCH2, &clientData.PunchAngle.Y); err != nil {
-		return nil, err
-	}
-	if err := readInt8If(svc.SU_VELOCITY2, &clientData.Velocity.Y); err != nil {
-		return nil, err
-	}
-	if err := readInt8If(svc.SU_PUNCH3, &clientData.PunchAngle.Z); err != nil {
-		return nil, err
-	}
-	if err := readInt8If(svc.SU_VELOCITY3, &clientData.Velocity.Z); err != nil {
-		return nil, err
-	}
-
-	// [always sent]	if (bits & svc.SU_ITEMS) != 0
-	items, err := msg.ReadUint32()
-	if err != nil {
-		return nil, err
-	}
-	clientData.Items = items
-
-	clientData.InWater = bits&svc.SU_INWATER != 0
-	clientData.OnGround = bits&svc.SU_ONGROUND != 0
-
-	if err := readByteIf(svc.SU_WEAPONFRAME, &clientData.WeaponFrame); err != nil {
-		return nil, err
-	}
-	if err := readByteIf(svc.SU_ARMOR, &clientData.Armor); err != nil {
-		return nil, err
-	}
-	if err := readByteIf(svc.SU_WEAPON, &clientData.Weapon); err != nil {
-		return nil, err
-	}
-
-	health, err := msg.ReadInt16()
-	if err != nil {
-		return nil, err
-	}
-	clientData.Health = int32(health)
-
-	if err := readByte(&clientData.Ammo); err != nil {
-		return nil, err
-	}
-	if err := readByte(&clientData.Shells); err != nil {
-		return nil, err
-	}
-	if err := readByte(&clientData.Nails); err != nil {
-		return nil, err
-	}
-	if err := readByte(&clientData.Rockets); err != nil {
-		return nil, err
-	}
-	if err := readByte(&clientData.Cells); err != nil {
-		return nil, err
-	}
-	if err := readByte(&clientData.ActiveWeapon); err != nil {
-		return nil, err
-	}
-
-	if err := readUpperByteIf(svc.SU_WEAPON2, &clientData.Weapon); err != nil {
-		return nil, err
-	}
-	if err := readUpperByteIf(svc.SU_ARMOR2, &clientData.Armor); err != nil {
-		return nil, err
-	}
-	if err := readUpperByteIf(svc.SU_AMMO2, &clientData.Ammo); err != nil {
-		return nil, err
-	}
-	if err := readUpperByteIf(svc.SU_SHELLS2, &clientData.Shells); err != nil {
-		return nil, err
-	}
-	if err := readUpperByteIf(svc.SU_NAILS2, &clientData.Nails); err != nil {
-		return nil, err
-	}
-	if err := readUpperByteIf(svc.SU_ROCKETS2, &clientData.Rockets); err != nil {
-		return nil, err
-	}
-	if err := readUpperByteIf(svc.SU_CELLS2, &clientData.Cells); err != nil {
-		return nil, err
-	}
-	if err := readUpperByteIf(svc.SU_WEAPONFRAME2, &clientData.WeaponFrame); err != nil {
-		return nil, err
-	}
-	if err := readByteIf(svc.SU_WEAPONALPHA, &clientData.WeaponAlpha); err != nil {
-		return nil, err
-	}
-	return clientData, nil
-}
-
 // Server information pertaining to this client only
 func (c *Client) parseClientData() error {
-	cdp, err := parseClientData(cls.inMessage)
+	cdp, err := svc.ParseClientData(cls.inMessage)
 	if err != nil {
 		return err
 	}
@@ -1994,60 +1814,28 @@ func (c *ClientStatic) startTimeDemo(name string) {
 }
 
 const (
-	TE_SPIKE = iota
-	TE_SUPERSPIKE
-	TE_GUNSHOT
-	TE_EXPLOSION
-	TE_TAREXPLOSION
-	TE_LIGHTNING1
-	TE_LIGHTNING2
-	TE_WIZSPIKE
-	TE_KNIGHTSPIKE
-	TE_LIGHTNING3
-	TE_LAVASPLASH
-	TE_TELEPORT
-	TE_EXPLOSION2
-	TE_BEAM
-)
-
-func (c *ClientStatic) readCoordVec() (vec.Vec3, error) {
-	x, err := c.inMessage.ReadCoord(cl.protocolFlags)
-	if err != nil {
-		return vec.Vec3{-1, -1, -1}, err
-	}
-	y, err := c.inMessage.ReadCoord(cl.protocolFlags)
-	if err != nil {
-		return vec.Vec3{-1, -1, -1}, err
-	}
-	z, err := c.inMessage.ReadCoord(cl.protocolFlags)
-	if err != nil {
-		return vec.Vec3{-1, -1, -1}, err
-	}
-	return vec.Vec3{x, y, z}, nil
-}
-
-const (
 	mdlBolt1 = "progs/bolt.mdl"
 	mdlBolt2 = "progs/bolt2.mdl"
 	mdlBolt3 = "progs/bolt3.mdl"
 	mdlBeam  = "progs/beam.mdl"
 )
 
+func v3FC(c *protos.Coord) vec.Vec3 {
+	return vec.Vec3{c.GetX(), c.GetY(), c.GetZ()}
+}
+
 func (c *ClientStatic) parseTEnt() error {
 	if c.inMessage.Len() == 0 {
 		return nil
 	}
-	t, err := c.inMessage.ReadByte()
+	tep, err := svc.ParseTempEntity(c.inMessage, cl.protocolFlags)
 	if err != nil {
 		return err
 	}
-	switch t {
-	case TE_SPIKE:
+	switch te := tep.Union.(type) {
+	case *protos.TempEntity_Spike:
 		// spike hitting wall
-		pos, err := c.readCoordVec()
-		if err != nil {
-			return err
-		}
+		pos := v3FC(te.Spike)
 		particlesRunEffect(pos, vec.Vec3{}, 0, 10, float32(cl.time))
 		s := func() sfx {
 			if cRand.Uint32n(5) != 0 {
@@ -2061,12 +1849,9 @@ func (c *ClientStatic) parseTEnt() error {
 			}
 		}()
 		snd.Start(-1, 0, clSounds[s], pos, 1, 1, !loopingSound)
-	case TE_SUPERSPIKE:
+	case *protos.TempEntity_SuperSpike:
 		// spike hitting wall
-		pos, err := c.readCoordVec()
-		if err != nil {
-			return err
-		}
+		pos := v3FC(te.SuperSpike)
 		particlesRunEffect(pos, vec.Vec3{}, 0, 20, float32(cl.time))
 		s := func() sfx {
 			if cRand.Uint32n(5) != 0 {
@@ -2082,19 +1867,16 @@ func (c *ClientStatic) parseTEnt() error {
 			}
 		}()
 		snd.Start(-1, 0, clSounds[s], pos, 1, 1, !loopingSound)
-	case TE_GUNSHOT:
+	case *protos.TempEntity_Gunshot:
 		// bullet hitting wall
-		pos, err := c.readCoordVec()
+		pos := v3FC(te.Gunshot)
 		if err != nil {
 			return err
 		}
 		particlesRunEffect(pos, vec.Vec3{}, 0, 20, float32(cl.time))
-	case TE_EXPLOSION:
+	case *protos.TempEntity_Explosion:
 		// rocket explosion
-		pos, err := c.readCoordVec()
-		if err != nil {
-			return err
-		}
+		pos := v3FC(te.Explosion)
 		particlesAddExplosion(pos, float32(cl.time))
 		l := cl.GetFreeDynamicLight()
 		*l = DynamicLight{
@@ -2107,101 +1889,50 @@ func (c *ClientStatic) parseTEnt() error {
 		}
 		l.Sync()
 		snd.Start(-1, 0, clSounds[RExp3], pos, 1, 1, !loopingSound)
-	case TE_TAREXPLOSION:
+	case *protos.TempEntity_TarExplosion:
 		// tarbaby explosion
-		pos, err := c.readCoordVec()
-		if err != nil {
-			return err
-		}
+		pos := v3FC(te.TarExplosion)
 		particlesAddBlobExplosion(pos, float32(cl.time))
 		snd.Start(-1, 0, clSounds[RExp3], pos, 1, 1, !loopingSound)
-	case TE_LIGHTNING1:
+	case *protos.TempEntity_Lightning1:
 		// lightning bolts
-		ent, err := c.inMessage.ReadInt16()
-		if err != nil {
-			return err
-		}
-		s, err := c.readCoordVec()
-		if err != nil {
-			return err
-		}
-		e, err := c.readCoordVec()
-		if err != nil {
-			return err
-		}
-		parseBeam(mdlBolt1, ent, s, e)
-	case TE_LIGHTNING2:
+		l := te.Lightning1
+		s := v3FC(l.GetStart())
+		e := v3FC(l.GetEnd())
+		parseBeam(mdlBolt1, int16(l.GetEntity()), s, e)
+	case *protos.TempEntity_Lightning2:
 		// lightning bolts
-		ent, err := c.inMessage.ReadInt16()
-		if err != nil {
-			return err
-		}
-		s, err := c.readCoordVec()
-		if err != nil {
-			return err
-		}
-		e, err := c.readCoordVec()
-		if err != nil {
-			return err
-		}
-		parseBeam(mdlBolt2, ent, s, e)
-	case TE_WIZSPIKE:
+		l := te.Lightning2
+		s := v3FC(l.GetStart())
+		e := v3FC(l.GetEnd())
+		parseBeam(mdlBolt2, int16(l.GetEntity()), s, e)
+	case *protos.TempEntity_WizSpike:
 		// spike hitting wall
-		pos, err := c.readCoordVec()
-		if err != nil {
-			return err
-		}
+		pos := v3FC(te.WizSpike)
 		particlesRunEffect(pos, vec.Vec3{}, 20, 30, float32(cl.time))
 		snd.Start(-1, 0, clSounds[WizHit], pos, 1, 1, !loopingSound)
-	case TE_KNIGHTSPIKE:
+	case *protos.TempEntity_KnightSpike:
 		// spike hitting wall
-		pos, err := c.readCoordVec()
-		if err != nil {
-			return err
-		}
+		pos := v3FC(te.KnightSpike)
 		particlesRunEffect(pos, vec.Vec3{}, 226, 20, float32(cl.time))
 		snd.Start(-1, 0, clSounds[KnightHit], pos, 1, 1, !loopingSound)
-	case TE_LIGHTNING3:
+	case *protos.TempEntity_Lightning3:
 		// lightning bolts
-		ent, err := c.inMessage.ReadInt16()
-		if err != nil {
-			return err
-		}
-		s, err := c.readCoordVec()
-		if err != nil {
-			return err
-		}
-		e, err := c.readCoordVec()
-		if err != nil {
-			return err
-		}
-		parseBeam(mdlBolt3, ent, s, e)
-	case TE_LAVASPLASH:
-		pos, err := c.readCoordVec()
-		if err != nil {
-			return err
-		}
+		l := te.Lightning3
+		s := v3FC(l.GetStart())
+		e := v3FC(l.GetEnd())
+		parseBeam(mdlBolt3, int16(l.GetEntity()), s, e)
+	case *protos.TempEntity_LavaSplash:
+		pos := v3FC(te.LavaSplash)
 		particlesAddLavaSplash(pos, float32(cl.time))
-	case TE_TELEPORT:
-		pos, err := c.readCoordVec()
-		if err != nil {
-			return err
-		}
+	case *protos.TempEntity_Teleport:
+		pos := v3FC(te.Teleport)
 		particlesAddTeleportSplash(pos, float32(cl.time))
-	case TE_EXPLOSION2:
+	case *protos.TempEntity_Explosion2:
 		// color mapped explosion
-		pos, err := c.readCoordVec()
-		if err != nil {
-			return err
-		}
-		var color struct {
-			start byte
-			end   byte
-		}
-		if err = c.inMessage.Read(&color); err != nil {
-			return err
-		}
-		particlesAddExplosion2(pos, int(color.start), int(color.end), float32(cl.time))
+		e := te.Explosion2
+		pos := v3FC(e.GetPosition())
+		particlesAddExplosion2(pos, int(e.GetStartColor()), int(e.GetStopColor()), float32(cl.time))
 		l := cl.GetFreeDynamicLight()
 		*l = DynamicLight{
 			ptr:     l.ptr,
@@ -2213,21 +1944,12 @@ func (c *ClientStatic) parseTEnt() error {
 		}
 		l.Sync()
 		snd.Start(-1, 0, clSounds[RExp3], pos, 1, 1, !loopingSound)
-	case TE_BEAM:
+	case *protos.TempEntity_Beam:
 		// grappling hook beam
-		ent, err := c.inMessage.ReadInt16()
-		if err != nil {
-			return err
-		}
-		s, err := c.readCoordVec()
-		if err != nil {
-			return err
-		}
-		e, err := c.readCoordVec()
-		if err != nil {
-			return err
-		}
-		parseBeam(mdlBeam, ent, s, e)
+		l := te.Beam
+		s := v3FC(l.GetStart())
+		e := v3FC(l.GetEnd())
+		parseBeam(mdlBeam, int16(l.GetEntity()), s, e)
 	default:
 		Error("CL_ParseTEnt: bad type")
 	}
