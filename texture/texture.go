@@ -58,6 +58,10 @@ func (t *Texture) Bind() {
 	t.glID.Bind()
 }
 
+func (t *Texture) Name() string {
+	return t.name
+}
+
 func (t *Texture) ID() glh.TexID {
 	return t.glID.ID()
 }

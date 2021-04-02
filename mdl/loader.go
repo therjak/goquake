@@ -201,12 +201,12 @@ func load(name string, data []byte) (*Model, error) {
 				t := texture.NewTexture(h.SkinWidth, h.SkinHeight, tf, tn, texture.ColorTypeIndexed, data)
 				fbt := texture.NewTexture(h.SkinWidth, h.SkinHeight, fbtf, fbtn, texture.ColorTypeIndexed, data)
 				mod.Textures = append(mod.Textures, []*texture.Texture{t})
-				mod.FBTextures = append(mod.Textures, []*texture.Texture{fbt})
+				mod.FBTextures = append(mod.FBTextures, []*texture.Texture{fbt})
 			} else {
 				tf := texture.TexPrefPad
 				t := texture.NewTexture(h.SkinWidth, h.SkinHeight, tf, tn, texture.ColorTypeIndexed, data)
 				mod.Textures = append(mod.Textures, []*texture.Texture{t})
-				mod.FBTextures = append(mod.Textures, []*texture.Texture{})
+				mod.FBTextures = append(mod.FBTextures, []*texture.Texture{})
 			}
 		} else {
 			log.Printf("TODO: ALIAS_SKIN_GROUP")
