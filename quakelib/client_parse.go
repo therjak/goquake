@@ -491,6 +491,7 @@ func CL_ParseServerMessage() {
 			tep, err := svc.ParseTempEntity(cls.inMessage, cl.protocolFlags)
 			if err != nil {
 				cls.msgBadRead = true
+				continue
 			}
 			cls.parseTempEntity(tep)
 
