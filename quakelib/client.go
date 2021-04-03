@@ -665,19 +665,15 @@ func CL_SendCmd() {
 	cls.outProto.Reset()
 }
 
-func CL_ParseStartSoundPacket() {
+func CL_ParseStartSoundPacket(m *protos.Sound) error {
 	const (
 		maxSounds = 2048
 	)
-	m, err := parseSoundMessage(cls.inMessage)
-	if err != nil {
-		HostError("%v", err)
-	}
 	if m.SoundNum > maxSounds {
-		HostError("CL_ParseStartSoundPacket: %d > MAX_SOUNDS", m.SoundNum)
+		fmt.Errorf("CL_ParseStartSoundPacket: %d > MAX_SOUNDS", m.SoundNum)
 	}
 	if m.Entity > int32(cap(cl.entities)) {
-		HostError("CL_ParseStartSoundPacket: ent = %d", m.Entity)
+		fmt.Errorf("CL_ParseStartSoundPacket: ent = %d", m.Entity)
 	}
 	volume := float32(1.0)
 	if v := m.Volume; v != nil {
@@ -689,91 +685,7 @@ func CL_ParseStartSoundPacket() {
 	}
 	origin := vec.Vec3{m.Origin.X, m.Origin.Y, m.Origin.Z}
 	snd.Start(int(m.Entity), int(m.Channel), cl.soundPrecache[m.SoundNum], origin, volume, attenuation, !loopingSound)
-
-}
-
-func parseSoundMessage(msg *net.QReader) (*protos.Sound, error) {
-	message := &protos.Sound{}
-
-	fieldMask, err := msg.ReadByte()
-	if err != nil {
-		return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
-	}
-
-	if fieldMask&svc.SoundVolume != 0 {
-		volume, err := msg.ReadByte() // byte
-		if err != nil {
-			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
-		}
-		message.Volume = &protos.OptionalInt32{
-			Value: int32(volume),
-		}
-	}
-
-	if fieldMask&svc.SoundAttenuation != 0 {
-		a, err := msg.ReadByte() // byte
-		if err != nil {
-			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
-		}
-		message.Attenuation = &protos.OptionalInt32{
-			Value: int32(a),
-		}
-	}
-
-	ent := uint16(0)
-	channel := byte(0)
-	if fieldMask&svc.SoundLargeEntity != 0 {
-		e, err := msg.ReadInt16() // int16
-		if err != nil {
-			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
-		}
-		c, err := msg.ReadByte() // byte
-		if err != nil {
-			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
-		}
-		ent = uint16(e)
-		channel = c
-	} else {
-		s, err := msg.ReadInt16() // int16 + byte
-		if err != nil {
-			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
-		}
-		ent = uint16(s >> 3)
-		channel = byte(s & 7)
-	}
-	message.Entity = int32(ent)
-	message.Channel = int32(channel)
-
-	soundNum := uint16(0)
-	if fieldMask&svc.SoundLargeSound != 0 {
-		n, err := msg.ReadInt16() // int16
-		if err != nil {
-			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
-		}
-		soundNum = uint16(n - 1)
-	} else {
-		n, err := msg.ReadByte() // int16
-		if err != nil {
-			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
-		}
-		soundNum = uint16(n - 1)
-	}
-	message.SoundNum = int32(soundNum)
-	var origin vec.Vec3
-	for i := 0; i < 3; i++ {
-		f, err := msg.ReadCoord(cl.protocolFlags) // float
-		if err != nil {
-			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
-		}
-		origin[i] = f
-	}
-	message.Origin = &protos.Coord{
-		X: origin[0],
-		Y: origin[1],
-		Z: origin[2],
-	}
-
-	return message, nil
+	return nil
 }
 
 var (
@@ -1380,11 +1292,7 @@ func tracePosition(args []cmd.QArg, _ int) {
 }
 
 // Server information pertaining to this client only
-func (c *Client) parseClientData() error {
-	cdp, err := svc.ParseClientData(cls.inMessage)
-	if err != nil {
-		return err
-	}
+func (c *Client) parseClientData(cdp *protos.ClientData) {
 	vh := cdp.GetViewHeight()
 	if vh != nil {
 		c.viewHeight = float32(cdp.ViewHeight.Value)
@@ -1468,7 +1376,6 @@ func (c *Client) parseClientData() error {
 		// don't lerp animation across model changes
 		weaponE.LerpFlags |= lerpResetAnim
 	}
-	return nil
 }
 
 func (c *ClientStatic) stopPlayback() {
@@ -1824,14 +1731,7 @@ func v3FC(c *protos.Coord) vec.Vec3 {
 	return vec.Vec3{c.GetX(), c.GetY(), c.GetZ()}
 }
 
-func (c *ClientStatic) parseTEnt() error {
-	if c.inMessage.Len() == 0 {
-		return nil
-	}
-	tep, err := svc.ParseTempEntity(c.inMessage, cl.protocolFlags)
-	if err != nil {
-		return err
-	}
+func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) {
 	switch te := tep.Union.(type) {
 	case *protos.TempEntity_Spike:
 		// spike hitting wall
@@ -1870,9 +1770,6 @@ func (c *ClientStatic) parseTEnt() error {
 	case *protos.TempEntity_Gunshot:
 		// bullet hitting wall
 		pos := v3FC(te.Gunshot)
-		if err != nil {
-			return err
-		}
 		particlesRunEffect(pos, vec.Vec3{}, 0, 20, float32(cl.time))
 	case *protos.TempEntity_Explosion:
 		// rocket explosion
@@ -1953,5 +1850,4 @@ func (c *ClientStatic) parseTEnt() error {
 	default:
 		Error("CL_ParseTEnt: bad type")
 	}
-	return nil
 }

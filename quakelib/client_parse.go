@@ -267,11 +267,12 @@ func CL_ParseServerMessage() {
 			cl.messageTime = float64(t)
 
 		case svc.ClientData:
-			err := cl.parseClientData()
+			cdp, err := svc.ParseClientData(cls.inMessage)
 			if err != nil {
 				cls.msgBadRead = true
 				continue
 			}
+			cl.parseClientData(cdp)
 
 		case svc.Version:
 			i, err := cls.inMessage.ReadInt32()
@@ -376,7 +377,14 @@ func CL_ParseServerMessage() {
 			}
 
 		case svc.Sound:
-			CL_ParseStartSoundPacket()
+			spp, err := svc.ParseSoundMessage(cls.inMessage, cl.protocolFlags)
+			if err != nil {
+				HostError("%v", err)
+			}
+			err = CL_ParseStartSoundPacket(spp)
+			if err != nil {
+				HostError("%v", err)
+			}
 
 		case svc.StopSound:
 			i, err := cls.inMessage.ReadInt16()
@@ -480,9 +488,11 @@ func CL_ParseServerMessage() {
 			cl.ParseStatic(1)
 
 		case svc.TempEntity:
-			if err := cls.parseTEnt(); err != nil {
+			tep, err := svc.ParseTempEntity(cls.inMessage, cl.protocolFlags)
+			if err != nil {
 				cls.msgBadRead = true
 			}
+			cls.parseTempEntity(tep)
 
 		case svc.SetPause:
 			// this byte was used to pause cd audio, other pause as well?
