@@ -104,6 +104,16 @@ message ClientData {
   int32 weapon_alpha = 18; // byte
 }
 
+message Baseline {
+  int32 model_index = 1; // byte/uint16
+  int32 frame = 2; // byte/uint16
+  int32 color_map = 3; // byte, unused
+  int32 skin = 4; // byte
+  Coord origin = 5;
+  Coord angles = 6;
+  int32 alpha = 7; // byte
+}
+
 message SCmd {
   oneof union {
     // nop = 1 == empty

@@ -78,101 +78,20 @@ var (
 )
 
 func CL_ParseBaseline(e *Entity, version int) {
-	var err error
-	es := EntityState{
-		Alpha: svc.EntityAlphaDefault,
-	}
-	bits := byte(0)
-	if version == 2 {
-		bits, err = cls.inMessage.ReadByte()
-		if err != nil {
-			cls.msgBadRead = true
-			return
-		}
-	}
-	if bits&svc.EntityBaselineLargeModel != 0 {
-		i, err := cls.inMessage.ReadUint16()
-		if err != nil {
-			cls.msgBadRead = true
-			return
-		}
-		es.ModelIndex = i
-	} else {
-		i, err := cls.inMessage.ReadByte()
-		if err != nil {
-			cls.msgBadRead = true
-			return
-		}
-		es.ModelIndex = uint16(i)
-	}
-	if bits&svc.EntityBaselineLargeFrame != 0 {
-		f, err := cls.inMessage.ReadUint16()
-		if err != nil {
-			cls.msgBadRead = true
-			return
-		}
-		es.Frame = f
-	} else {
-		f, err := cls.inMessage.ReadByte()
-		if err != nil {
-			cls.msgBadRead = true
-			return
-		}
-		es.Frame = uint16(f)
-	}
-
-	// colormap: no idea what this is good for. Is not really used.
-	es.ColorMap, err = cls.inMessage.ReadByte()
+	pb, err := svc.ParseBaseline(cls.inMessage, cl.protocolFlags, version)
 	if err != nil {
 		cls.msgBadRead = true
 		return
 	}
-	es.Skin, err = cls.inMessage.ReadByte()
-	if err != nil {
-		cls.msgBadRead = true
-		return
+	e.Baseline = EntityState{
+		ModelIndex: uint16(pb.GetModelIndex()),
+		Frame:      uint16(pb.GetFrame()),
+		ColorMap:   byte(pb.GetColorMap()),
+		Skin:       byte(pb.GetSkin()),
+		Origin:     v3FC(pb.GetOrigin()),
+		Angles:     v3FC(pb.GetAngles()),
+		Alpha:      byte(pb.GetAlpha()),
 	}
-
-	es.Origin[0], err = cls.inMessage.ReadCoord(cl.protocolFlags)
-	if err != nil {
-		cls.msgBadRead = true
-		return
-	}
-	es.Angles[0], err = cls.inMessage.ReadAngle(cl.protocolFlags)
-	if err != nil {
-		cls.msgBadRead = true
-		return
-	}
-	es.Origin[1], err = cls.inMessage.ReadCoord(cl.protocolFlags)
-	if err != nil {
-		cls.msgBadRead = true
-		return
-	}
-	es.Angles[1], err = cls.inMessage.ReadAngle(cl.protocolFlags)
-	if err != nil {
-		cls.msgBadRead = true
-		return
-	}
-	es.Origin[2], err = cls.inMessage.ReadCoord(cl.protocolFlags)
-	if err != nil {
-		cls.msgBadRead = true
-		return
-	}
-	es.Angles[2], err = cls.inMessage.ReadAngle(cl.protocolFlags)
-	if err != nil {
-		cls.msgBadRead = true
-		return
-	}
-
-	if bits&svc.EntityBaselineAlpha != 0 {
-		es.Alpha, err = cls.inMessage.ReadByte()
-		if err != nil {
-			cls.msgBadRead = true
-			return
-		}
-	}
-
-	e.Baseline = es
 }
 
 func parse3Coord() (vec.Vec3, error) {

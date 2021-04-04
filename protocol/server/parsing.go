@@ -488,3 +488,86 @@ func ParseSoundMessage(msg *net.QReader, protocolFlags uint32) (*protos.Sound, e
 	message.Origin = cord
 	return message, nil
 }
+
+func ParseBaseline(msg *net.QReader, protocolFlags uint32, version int) (*protos.Baseline, error) {
+	bl := &protos.Baseline{}
+	var err error
+	bits := byte(0)
+	if version == 2 {
+		bits, err = msg.ReadByte()
+		if err != nil {
+			return nil, err
+		}
+	}
+	if bits&EntityBaselineLargeModel != 0 {
+		if i, err := msg.ReadUint16(); err != nil {
+			return nil, err
+		} else {
+			bl.ModelIndex = int32(i)
+		}
+	} else {
+		if i, err := msg.ReadByte(); err != nil {
+			return nil, err
+		} else {
+			bl.ModelIndex = int32(i)
+		}
+	}
+	if bits&EntityBaselineLargeFrame != 0 {
+		if f, err := msg.ReadUint16(); err != nil {
+			return nil, err
+		} else {
+			bl.Frame = int32(f)
+		}
+	} else {
+		if f, err := msg.ReadByte(); err != nil {
+			return nil, err
+		} else {
+			bl.Frame = int32(f)
+		}
+	}
+
+	// colormap: no idea what this is good for. It is not really used.
+	if cm, err := msg.ReadByte(); err != nil {
+		return nil, err
+	} else {
+		bl.ColorMap = int32(cm)
+	}
+	if s, err := msg.ReadByte(); err != nil {
+		return nil, err
+	} else {
+		bl.Skin = int32(s)
+	}
+
+	o := &protos.Coord{}
+	a := &protos.Coord{}
+	if o.X, err = msg.ReadCoord(protocolFlags); err != nil {
+		return nil, err
+	}
+	if a.X, err = msg.ReadAngle(protocolFlags); err != nil {
+		return nil, err
+	}
+	if o.Y, err = msg.ReadCoord(protocolFlags); err != nil {
+		return nil, err
+	}
+	if a.Y, err = msg.ReadAngle(protocolFlags); err != nil {
+		return nil, err
+	}
+	if o.Z, err = msg.ReadCoord(protocolFlags); err != nil {
+		return nil, err
+	}
+	if a.Z, err = msg.ReadAngle(protocolFlags); err != nil {
+		return nil, err
+	}
+	bl.Origin = o
+	bl.Angles = a
+
+	if bits&EntityBaselineAlpha != 0 {
+		if a, err := msg.ReadByte(); err != nil {
+			return nil, err
+		} else {
+			bl.Alpha = int32(a)
+		}
+	}
+
+	return bl, nil
+}
