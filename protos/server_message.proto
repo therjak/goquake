@@ -114,6 +114,21 @@ message Baseline {
   int32 alpha = 7; // byte
 }
 
+message EntityBaseline {
+  int32 index = 1; // uint16
+  Baseline baseline = 2;
+}
+
+message ServerInfo {
+  int32 protocol = 1; // int32
+  int32 flags = 2; // uint32
+  int32 max_clients = 3; // byte
+  int32 game_type = 4; // byte
+  string level_name = 5;
+  repeated string model_precache = 6;
+  repeated string sound_precache = 7;
+}
+
 message SCmd {
   oneof union {
     // nop = 1 == empty
@@ -127,24 +142,25 @@ message SCmd {
     float time = 7;
     string print = 8;
     string stuff_text = 9;
-    /*
-    SetAngle set_angle = 10;
+
+    //SetAngle set_angle = 10;
+
     ServerInfo server_info = 11;
-    */
+
     LightStyle light_style = 12;
     UpdateName update_name = 13;
     UpdateFrags update_frags = 14;
-    /*
-    ClientData client_data = 15;
-    */
+
+    //ClientData client_data = 15;
+
     int32 stop_sound = 16;
     UpdateColors update_colors = 17;
-    /*
-    Particle particle = 18;
-    Damage damage = 19;
-    // baseline spawn_static = 20;
-    // int32 + baseline spawn_baseline = 22;
-    */
+
+    // Particle particle = 18;
+    // Damage damage = 19;
+    Baseline spawn_static = 20;
+    EntityBaseline spawn_baseline = 22;
+
     TempEntity temp_entity = 23;
     bool set_pause = 24;
     int32 signon_num = 25;
@@ -161,8 +177,8 @@ message SCmd {
     string skybox = 37;
     Empty bf = 40;
     // Fog fog = 41;
-    // int32 + baseline spawn_baseline2 = 42;
-    // baseline spawn_static2 = 43;
+    EntityBaseline spawn_baseline2 = 42;
+    Baseline spawn_static2 = 43;
     // SpawnStaticSound2 spawn_static_sound2 = 44;
   }
 }

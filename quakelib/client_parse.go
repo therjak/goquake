@@ -83,11 +83,11 @@ func CL_ParseBaseline(e *Entity, version int) {
 		cls.msgBadRead = true
 		return
 	}
-	e.Baseline = EntityState{
-		ModelIndex: uint16(pb.GetModelIndex()),
-		Frame:      uint16(pb.GetFrame()),
-		ColorMap:   byte(pb.GetColorMap()),
-		Skin:       byte(pb.GetSkin()),
+	e.Baseline = state{
+		ModelIndex: int(pb.GetModelIndex()),
+		Frame:      int(pb.GetFrame()),
+		ColorMap:   int(pb.GetColorMap()),
+		Skin:       int(pb.GetSkin()),
 		Origin:     v3FC(pb.GetOrigin()),
 		Angles:     v3FC(pb.GetAngles()),
 		Alpha:      byte(pb.GetAlpha()),
@@ -601,16 +601,6 @@ func CL_ParseServerMessage() {
 }
 
 func CL_ParseServerInfo() error {
-	// protocol uint32
-	// if protocol RMQ protocolFlags uint32
-	// maxClients byte
-	// gameMode (coop/dethmatch) byte
-	// levelname string (EntVars(0).Message)
-	// []string modelPrecache
-	// 0 byte
-	// []string soundPrecache
-	// 0 byte
-
 	conlog.DPrintf("Serverinfo packet received.\n")
 
 	// bring up loading plaque for map changes within a demo.
@@ -621,19 +611,13 @@ func CL_ParseServerInfo() error {
 
 	C.CL_ClearState()
 
-	// parse protocol version number
-	ptl, err := cls.inMessage.ReadInt32()
+	si, err := svc.ParseServerInfo(cls.inMessage)
 	if err != nil {
+		conlog.Printf("\nParseServerInfo: %v")
 		return err
 	}
-	switch ptl {
-	case protocol.NetQuake, protocol.FitzQuake, protocol.RMQ, protocol.GoQuake:
-	default:
-		conlog.Printf("\n") // because there's no newline after serverinfo print
-		HostError("Server returned version %d, not %d or %d or %d or %d", ptl,
-			protocol.NetQuake, protocol.FitzQuake, protocol.RMQ, protocol.GoQuake)
-	}
-	cl.protocol = int(ptl)
+	cl.protocol = int(si.Protocol)
+	cl.protocolFlags = uint32(si.Flags)
 
 	if cl.protocol == protocol.RMQ {
 		const supportedflags uint32 = protocol.PRFL_SHORTANGLE |
@@ -643,40 +627,18 @@ func CL_ParseServerInfo() error {
 			protocol.PRFL_EDICTSCALE |
 			protocol.PRFL_INT32COORD
 
-		flags, err := cls.inMessage.ReadUint32()
-		if err != nil {
-			return err
-		}
-		cl.protocolFlags = flags
-
 		if cl.protocolFlags&^supportedflags != 0 {
 			conlog.Warning("PROTOCOL_RMQ protocolflags %d contains unsupported flags\n", cl.protocolFlags)
 		}
-	} else {
-		cl.protocolFlags = 0
 	}
 
-	maxClients, err := cls.inMessage.ReadByte()
-	if err != nil {
-		return err
+	if si.MaxClients < 1 || si.MaxClients > 16 {
+		HostError("Bad maxclients (%d) from server", si.MaxClients)
 	}
-	if maxClients < 1 || maxClients > 16 {
-		HostError("Bad maxclients (%d) from server", maxClients)
-	}
-	cl.maxClients = int(maxClients)
-	cl.scores = make([]score, maxClients)
-
-	gameType, err := cls.inMessage.ReadByte()
-	if err != nil {
-		return err
-	}
-	cl.gameType = int(gameType)
-
-	levelName, err := cls.inMessage.ReadString()
-	if err != nil {
-		return err
-	}
-	cl.levelName = levelName
+	cl.maxClients = int(si.MaxClients)
+	cl.scores = make([]score, cl.maxClients)
+	cl.gameType = int(si.GameType)
+	cl.levelName = si.LevelName
 
 	// seperate the printfs so the server message can have a color
 	console.printBar()
@@ -685,50 +647,27 @@ func CL_ParseServerInfo() error {
 	conlog.Printf("Using protocol %d\n", cl.protocol)
 
 	cl.modelPrecache = cl.modelPrecache[:]
-	var modelNames []string
-	for {
-		m, err := cls.inMessage.ReadString()
-		if err != nil {
-			return err
-		}
-		if m == "" {
-			break
-		}
-		if len(modelNames) == 2048 {
-			HostError("Server sent too many model precaches")
-		}
-		modelNames = append(modelNames, m)
+	if len(si.ModelPrecache) >= 2048 {
+		HostError("Server sent too many model precaches")
 	}
-
-	if len(modelNames) >= 256 {
-		conlog.DWarning("%d models exceeds standard limit of 256.\n", len(modelNames))
+	if len(si.ModelPrecache) >= 256 {
+		conlog.DWarning("%d models exceeds standard limit of 256.\n", len(si.ModelPrecache))
 	}
 
 	cl.soundPrecache = cl.soundPrecache[:0]
-	var sounds []string
-	for {
-		s, err := cls.inMessage.ReadString()
-		if err != nil {
-			return err
-		}
-		if s == "" {
-			break
-		}
-		if len(sounds) == 2048 {
-			HostError("Server sent too many sound precaches")
-		}
-		sounds = append(sounds, s)
+	if len(si.SoundPrecache) >= 2048 {
+		HostError("Server sent too many sound precaches")
+	}
+	if len(si.SoundPrecache) >= 256 {
+		conlog.DWarning("%d sounds exceeds standard limit of 256.\n", len(si.SoundPrecache))
 	}
 
-	if len(sounds) >= 256 {
-		conlog.DWarning("%d sounds exceeds standard limit of 256.\n", len(sounds))
-	}
-
+	mapName := si.ModelPrecache[0]
 	// now we try to load everything else until a cache allocation fails
-	cl.mapName = strings.TrimSuffix(filepath.Base(modelNames[0]), filepath.Ext(modelNames[0]))
+	cl.mapName = strings.TrimSuffix(filepath.Base(mapName), filepath.Ext(mapName))
 
 	C.CLPrecacheModelClear()
-	for i, mn := range modelNames {
+	for i, mn := range si.ModelPrecache {
 		m, ok := models[mn]
 		CLPrecacheModel(mn, i+1) // keep C side happy
 		if !ok {
@@ -742,7 +681,7 @@ func CL_ParseServerInfo() error {
 		CL_KeepaliveMessage()
 	}
 
-	for _, s := range sounds {
+	for _, s := range si.SoundPrecache {
 		sfx := snd.PrecacheSound(s)
 		cl.soundPrecache = append(cl.soundPrecache, sfx)
 		CL_KeepaliveMessage()
@@ -824,9 +763,9 @@ func (c *Client) ParseEntityUpdate(cmd byte) error {
 	}
 
 	e.MsgTime = c.messageTime
-	e.Frame = int(e.Baseline.Frame)
+	e.Frame = e.Baseline.Frame
 	oldSkinNum := e.SkinNum
-	e.SkinNum = int(e.Baseline.Skin)
+	e.SkinNum = e.Baseline.Skin
 	e.Effects = 0
 	// shift known values for interpolation
 	e.MsgOrigin[1] = e.MsgOrigin[0]
@@ -836,7 +775,7 @@ func (c *Client) ParseEntityUpdate(cmd byte) error {
 	e.Alpha = e.Baseline.Alpha
 	e.SyncBase = 0
 
-	modNum := int(e.Baseline.ModelIndex)
+	modNum := e.Baseline.ModelIndex
 	if bits&svc.U_MODEL != 0 {
 		v, err := cls.inMessage.ReadByte()
 		if err != nil {
@@ -1035,13 +974,13 @@ func (c *Client) ParseStatic(version int) {
 
 	ent.Model = c.modelPrecache[ent.Baseline.ModelIndex-1]
 	ent.LerpFlags |= lerpResetAnim // TODO(therjak): shouldn't this be an override instead of an OR?
-	ent.Frame = int(ent.Baseline.Frame)
-	ent.SkinNum = int(ent.Baseline.Skin)
+	ent.Frame = ent.Baseline.Frame
+	ent.SkinNum = ent.Baseline.Skin
 	ent.Effects = 0
 	ent.Alpha = ent.Baseline.Alpha
 	ent.Origin = ent.Baseline.Origin
 	ent.Angles = ent.Baseline.Angles
-	ent.ParseStaticC(int(ent.Baseline.ModelIndex))
+	ent.ParseStaticC(ent.Baseline.ModelIndex)
 	ent.Sync()
 
 	ent.R_AddEfrags() // clean up after removal of c-efrags

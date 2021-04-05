@@ -5,7 +5,7 @@ const (
 	NetQuake  = 15
 	FitzQuake = 666
 	RMQ       = 999
-	GoQuake   = 888
+	GoQuake   = 9090
 )
 
 const (

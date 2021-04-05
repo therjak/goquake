@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/therjak/goquake/net"
+	"github.com/therjak/goquake/protocol"
 	"github.com/therjak/goquake/protos"
 )
 
@@ -570,4 +571,71 @@ func ParseBaseline(msg *net.QReader, protocolFlags uint32, version int) (*protos
 	}
 
 	return bl, nil
+}
+
+func ParseServerInfo(msg *net.QReader) (*protos.ServerInfo, error) {
+	si := &protos.ServerInfo{}
+	var err error
+
+	if si.Protocol, err = msg.ReadInt32(); err != nil {
+		return nil, err
+	}
+	switch si.Protocol {
+	case protocol.NetQuake, protocol.FitzQuake, protocol.RMQ, protocol.GoQuake:
+	default:
+		return nil, fmt.Errorf("Server returned version %d, not %d or %d or %d or %d", si.Protocol,
+			protocol.NetQuake, protocol.FitzQuake, protocol.RMQ, protocol.GoQuake)
+	}
+
+	if si.Protocol == protocol.RMQ {
+		if flags, err := msg.ReadUint32(); err != nil {
+			return nil, err
+		} else {
+			si.Flags = int32(flags)
+		}
+	}
+
+	if mc, err := msg.ReadByte(); err != nil {
+		return nil, err
+	} else {
+		si.MaxClients = int32(mc)
+	}
+
+	if gt, err := msg.ReadByte(); err != nil {
+		return nil, err
+	} else {
+		si.GameType = int32(gt)
+	}
+
+	if si.LevelName, err = msg.ReadString(); err != nil {
+		return nil, err
+	}
+
+	var modelNames []string
+	for {
+		m, err := msg.ReadString()
+		if err != nil {
+			return nil, err
+		}
+		if m == "" {
+			break
+		}
+		modelNames = append(modelNames, m)
+	}
+	si.ModelPrecache = modelNames
+
+	var sounds []string
+	for {
+		s, err := msg.ReadString()
+		if err != nil {
+			return nil, err
+		}
+		if s == "" {
+			break
+		}
+		sounds = append(sounds, s)
+	}
+	si.SoundPrecache = sounds
+
+	return si, nil
 }

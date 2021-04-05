@@ -148,6 +148,8 @@ func SV_Init() {
 		log.Printf("Server using protocol %v (FitzQuake)\n", sv_protocol)
 	case protocol.RMQ:
 		log.Printf("Server using protocol %v (RMQ)\n", sv_protocol)
+	case protocol.GoQuake:
+		log.Printf("Server using protocol %v (GoQuake)\n", sv_protocol)
 	default:
 		Error("Bad protocol version request %v. Accepted values: %v, %v, %v.",
 			sv_protocol, protocol.NetQuake, protocol.FitzQuake, protocol.RMQ)

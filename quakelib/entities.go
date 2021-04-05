@@ -124,11 +124,22 @@ func R_TranslatePlayerSkin(i int) {
 	textureManager.ReloadImage(t)
 }
 
+type state struct {
+	Origin     vec.Vec3
+	Angles     vec.Vec3
+	ModelIndex int
+	Frame      int
+	ColorMap   int
+	Skin       int
+	Alpha      byte // TODO(therjak): should probably by float32
+	Effects    int
+}
+
 type Entity struct {
 	ptr C.entityPtr
 
 	ForceLink      bool
-	Baseline       EntityState
+	Baseline       state
 	MsgTime        float64
 	MsgOrigin      [2]vec.Vec3
 	Origin         vec.Vec3
@@ -145,12 +156,12 @@ type Entity struct {
 	DLightBits     int  // uint32?
 	Alpha          byte // TODO(therjak): use the converted float32
 	LerpFlags      byte
-	LerpStart      float32
+	LerpStart      float64
 	LerpTime       float64
 	LerpFinish     float64
-	PreviousPose   int16
-	CurrentPose    int16
-	MoveLerpStart  float32
+	PreviousPose   int
+	CurrentPose    int
+	MoveLerpStart  float64
 	PreviousOrigin vec.Vec3
 	CurrentOrigin  vec.Vec3
 	PreviousAngles vec.Vec3
