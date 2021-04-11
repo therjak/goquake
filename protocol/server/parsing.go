@@ -639,3 +639,197 @@ func ParseServerInfo(msg *net.QReader) (*protos.ServerInfo, error) {
 
 	return si, nil
 }
+
+func ParseEntityUpdate(msg *net.QReader, pcol int, protocolFlags uint32, cmd byte) (*protos.EntityUpdate, error) {
+	eu := &protos.EntityUpdate{}
+	bits := uint32(cmd)
+	if bits&U_MOREBITS != 0 {
+		if b, err := msg.ReadByte(); err != nil {
+			return nil, err
+		} else {
+			bits |= uint32(b) << 8
+		}
+	}
+	switch pcol {
+	case protocol.FitzQuake, protocol.RMQ:
+		if bits&U_EXTEND1 != 0 {
+			if b, err := msg.ReadByte(); err != nil {
+				return nil, err
+			} else {
+				bits |= uint32(b) << 16
+			}
+		}
+		if bits&U_EXTEND2 != 0 {
+			if b, err := msg.ReadByte(); err != nil {
+				return nil, err
+			} else {
+				bits |= uint32(b) << 24
+			}
+		}
+	}
+	num, err := func() (int32, error) {
+		if bits&U_LONGENTITY != 0 {
+			s, err := msg.ReadInt16()
+			return int32(s), err
+		}
+		b, err := msg.ReadByte()
+		return int32(b), err
+	}()
+	if err != nil {
+		return nil, err
+	}
+	eu.Entity = num
+	eu.LerpMoveStep = bits&U_STEP != 0
+
+	if bits&U_MODEL != 0 {
+		if v, err := msg.ReadByte(); err != nil {
+			return nil, err
+		} else {
+			eu.Model = &protos.OptionalInt32{Value: int32(v)}
+		}
+	}
+	if bits&U_FRAME != 0 {
+		if v, err := msg.ReadByte(); err != nil {
+			return nil, err
+		} else {
+			eu.Frame = &protos.OptionalInt32{Value: int32(v)}
+		}
+	}
+	if bits&U_COLORMAP != 0 {
+		if v, err := msg.ReadByte(); err != nil {
+			return nil, err
+		} else {
+			eu.ColorMap = &protos.OptionalInt32{Value: int32(v)}
+		}
+	}
+	if bits&U_SKIN != 0 {
+		if v, err := msg.ReadByte(); err != nil {
+			return nil, err
+		} else {
+			eu.Skin = &protos.OptionalInt32{Value: int32(v)}
+		}
+	}
+	if bits&U_EFFECTS != 0 {
+		if v, err := msg.ReadByte(); err != nil {
+			return nil, err
+		} else {
+			eu.Effects = int32(v)
+		}
+	}
+
+	// Why optional in each component? It is near impossible to have only one component changed.
+	// I guess changing to per component is a one way street :(
+	if bits&U_ORIGIN1 != 0 {
+		if v, err := msg.ReadCoord(protocolFlags); err != nil {
+			return nil, err
+		} else {
+			eu.OriginX = &protos.OptionalFloat{Value: v}
+		}
+	}
+	if bits&U_ANGLE1 != 0 {
+		if v, err := msg.ReadAngle(protocolFlags); err != nil {
+			return nil, err
+		} else {
+			eu.AngleX = &protos.OptionalFloat{Value: v}
+		}
+	}
+	if bits&U_ORIGIN2 != 0 {
+		if v, err := msg.ReadCoord(protocolFlags); err != nil {
+			return nil, err
+		} else {
+			eu.OriginY = &protos.OptionalFloat{Value: v}
+		}
+	}
+	if bits&U_ANGLE2 != 0 {
+		if v, err := msg.ReadAngle(protocolFlags); err != nil {
+			return nil, err
+		} else {
+			eu.AngleY = &protos.OptionalFloat{Value: v}
+		}
+	}
+	if bits&U_ORIGIN3 != 0 {
+		if v, err := msg.ReadCoord(protocolFlags); err != nil {
+			return nil, err
+		} else {
+			eu.OriginZ = &protos.OptionalFloat{Value: v}
+		}
+	}
+	if bits&U_ANGLE3 != 0 {
+		if v, err := msg.ReadAngle(protocolFlags); err != nil {
+			return nil, err
+		} else {
+			eu.AngleZ = &protos.OptionalFloat{Value: v}
+		}
+	}
+
+	switch pcol {
+	case protocol.FitzQuake, protocol.RMQ:
+		if bits&U_ALPHA != 0 {
+			if v, err := msg.ReadByte(); err != nil {
+				return nil, err
+			} else {
+				eu.Alpha = &protos.OptionalInt32{Value: int32(v)}
+			}
+		}
+		if bits&U_SCALE != 0 {
+			// RMQ, currenty ignored
+			if _, err := msg.ReadByte(); err != nil {
+				return nil, err
+			}
+		}
+		if bits&U_FRAME2 != 0 {
+			// Can only be set if U_FRAME is set as well
+			if v, err := msg.ReadByte(); err != nil {
+				return nil, err
+			} else {
+				eu.Frame.Value |= int32(v) << 8
+			}
+		}
+		if bits&U_MODEL2 != 0 {
+			// Can only be set if U_MODEL is set as well
+			if v, err := msg.ReadByte(); err != nil {
+				return nil, err
+			} else {
+				eu.Model.Value |= int32(v) << 8
+			}
+		}
+		if bits&U_LERPFINISH != 0 {
+			if v, err := msg.ReadByte(); err != nil {
+				return nil, err
+			} else {
+				eu.LerpFinish = &protos.OptionalFloat{Value: float32(v) / 255}
+			}
+		}
+	case protocol.NetQuake:
+		if bits&U_TRANS != 0 {
+			// HACK: if this bit is set, assume this is protocol NEHAHRA
+			a, err := msg.ReadFloat32()
+			if err != nil {
+				return nil, err
+			}
+			b, err := msg.ReadFloat32() // alpha
+			if err != nil {
+				return nil, err
+			}
+			if a == 2 {
+				// fullbright (not using this yet)
+				_, err := msg.ReadFloat32()
+				if err != nil {
+					return nil, err
+				}
+			}
+			b *= 255
+			eu.Alpha = &protos.OptionalInt32{}
+			switch {
+			case b < 0:
+				eu.Alpha.Value = 0
+			case b == 0, b >= 255:
+				eu.Alpha.Value = 255
+			default:
+				eu.Alpha.Value = int32(b)
+			}
+		}
+	}
+
+	return eu, nil
+}

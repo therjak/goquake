@@ -4,9 +4,13 @@ syntax = "proto3";
 package protos;
 option go_package = ".;protos";
 
-// Used for values with differend default
+// Used for values with different default
 message OptionalInt32 {
   int32 Value = 1;
+}
+
+message OptionalFloat {
+  float Value = 1;
 }
 
 message Coord {
@@ -129,12 +133,44 @@ message ServerInfo {
   repeated string sound_precache = 7;
 }
 
+message EntityUpdate {
+  int32 entity = 1;
+  bool lerp_move_step = 2; // -- need recheck
+  OptionalInt32 model = 3;
+  OptionalInt32 frame = 4;
+  OptionalInt32 color_map = 5;
+  OptionalInt32 skin = 6;
+  int32 effects = 7;
+  OptionalFloat origin_x = 8;
+  OptionalFloat origin_y = 9;
+  OptionalFloat origin_z = 10;
+  OptionalFloat angle_x = 11;
+  OptionalFloat angle_y = 12;
+  OptionalFloat angle_z = 13;
+  OptionalFloat lerp_finish = 14;
+  OptionalInt32 alpha = 15;
+  // OptionalInt32 scale = 16; // not used
+}
+
+message StaticSound {
+  Coord origin = 1;
+  int32 index = 2;
+  int32 volume = 3;
+  int32 attenuation = 4;
+}
+
+message Damage {
+  int32 armor = 1;
+  int32 blood = 2;
+  Coord position = 3;
+}
+
 message SCmd {
   oneof union {
     // nop = 1 == empty
     bool disconnect = 2;
     
-    // UpdateStat update_stat = 3;
+    // UpdateStat update_stat = 3; -- int32, int32 (byte + int32)
     int32 version = 4;
     int32 set_view_entity = 5; // set_view
     Sound sound = 6;
@@ -143,7 +179,7 @@ message SCmd {
     string print = 8;
     string stuff_text = 9;
 
-    //SetAngle set_angle = 10;
+    Coord set_angle = 10;
 
     ServerInfo server_info = 11;
 
@@ -151,13 +187,13 @@ message SCmd {
     UpdateName update_name = 13;
     UpdateFrags update_frags = 14;
 
-    //ClientData client_data = 15;
+    ClientData client_data = 15;
 
     int32 stop_sound = 16;
     UpdateColors update_colors = 17;
 
-    // Particle particle = 18;
-    // Damage damage = 19;
+    // Particle particle = 18; -- Coord, Coord, int32, int32 ([3]float, [3]int8, int8, int8)
+    Damage damage = 19;
     Baseline spawn_static = 20;
     EntityBaseline spawn_baseline = 22;
 
@@ -167,19 +203,19 @@ message SCmd {
     string center_print = 26;
     Empty killed_monster = 27;
     Empty found_secret = 28;
-    // SpawnStaticSound spawn_static_sound = 29;
+    StaticSound spawn_static_sound = 29;
     Empty intermission = 30;
     string finale = 31;
     
-    // CDTrack cd_track = 32;
+    // CDTrack cd_track = 32; -- int32, int32 (uint8, uint8)
     Empty sell_screen = 33;
     string cutscene = 34;
     string skybox = 37;
     Empty bf = 40;
     // Fog fog = 41;
-    EntityBaseline spawn_baseline2 = 42;
-    Baseline spawn_static2 = 43;
-    // SpawnStaticSound2 spawn_static_sound2 = 44;
+    // EntityBaseline spawn_baseline2 = 42; -- not needed, covered by spawn_baseline
+    // Baseline spawn_static2 = 43; -- not needed, covered by spawn_static
+    // SpawnStaticSound2 spawn_static_sound2 = 44; -- not needed, covered by spawn_static_sound
   }
 }
 
