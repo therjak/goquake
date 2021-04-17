@@ -17,7 +17,6 @@ import (
 	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/execute"
-	"github.com/therjak/goquake/math"
 	"github.com/therjak/goquake/math/vec"
 	"github.com/therjak/goquake/model"
 	"github.com/therjak/goquake/protocol"
@@ -706,47 +705,16 @@ func CL_ParseServerInfo() error {
 //If an entities model or origin changes from frame to frame, it must be
 //relinked. Other attributes can change without relinking.
 func (c *Client) ParseEntityUpdate(cmd byte) error {
+	eu, err := svc.ParseEntityUpdate(cls.inMessage, c.protocol, c.protocolFlags, cmd)
+	if err != nil {
+		return err
+	}
 	if cls.signon == 3 {
 		// first update is the final signon stage
 		cls.signon = 4
 		CL_SignonReply()
 	}
-	bits := uint32(cmd)
-	if bits&svc.U_MOREBITS != 0 {
-		b, err := cls.inMessage.ReadByte()
-		if err != nil {
-			return err
-		}
-		bits |= uint32(b) << 8
-	}
-	switch c.protocol {
-	case protocol.FitzQuake, protocol.RMQ:
-		if bits&svc.U_EXTEND1 != 0 {
-			b, err := cls.inMessage.ReadByte()
-			if err != nil {
-				return err
-			}
-			bits |= uint32(b) << 16
-		}
-		if bits&svc.U_EXTEND2 != 0 {
-			b, err := cls.inMessage.ReadByte()
-			if err != nil {
-				return err
-			}
-			bits |= uint32(b) << 24
-		}
-	}
-	num, err := func() (int, error) {
-		if bits&svc.U_LONGENTITY != 0 {
-			s, err := cls.inMessage.ReadInt16()
-			return int(s), err
-		}
-		b, err := cls.inMessage.ReadByte()
-		return int(b), err
-	}()
-	if err != nil {
-		return err
-	}
+	num := int(eu.Entity)
 	e := c.GetOrCreateEntity(num)
 	e.SyncC()
 	forceLink := e.MsgTime != c.messageTimeOld
@@ -755,7 +723,7 @@ func (c *Client) ParseEntityUpdate(cmd byte) error {
 		// most entities think every 0.1s, if we missed one we would be lerping from the wrong frame
 		e.LerpFlags |= lerpResetAnim
 	}
-	if bits&svc.U_STEP != 0 {
+	if eu.LerpMoveStep {
 		e.ForceLink = true
 		e.LerpFlags |= lerpMoveStep
 	} else {
@@ -766,7 +734,6 @@ func (c *Client) ParseEntityUpdate(cmd byte) error {
 	e.Frame = e.Baseline.Frame
 	oldSkinNum := e.SkinNum
 	e.SkinNum = e.Baseline.Skin
-	e.Effects = 0
 	// shift known values for interpolation
 	e.MsgOrigin[1] = e.MsgOrigin[0]
 	e.MsgAngles[1] = e.MsgAngles[0]
@@ -776,154 +743,51 @@ func (c *Client) ParseEntityUpdate(cmd byte) error {
 	e.SyncBase = 0
 
 	modNum := e.Baseline.ModelIndex
-	if bits&svc.U_MODEL != 0 {
-		v, err := cls.inMessage.ReadByte()
-		if err != nil {
-			return err
-		}
-		modNum = int(v)
+	if eu.Model != nil {
+		modNum = int(eu.Model.Value)
 	}
 	if modNum >= model.MAX_MODELS {
 		Error("CL_ParseModel: mad modnum")
 	}
-	if bits&svc.U_FRAME != 0 {
-		v, err := cls.inMessage.ReadByte()
-		if err != nil {
-			return err
-		}
-		e.Frame = int(v)
+	if eu.Frame != nil {
+		e.Frame = int(eu.Frame.Value)
 	}
-	if bits&svc.U_COLORMAP != 0 {
-		// ColorMap -- no idea what this was good for. It was not read.
-		if _, err := cls.inMessage.ReadByte(); err != nil {
-			return err
-		}
-	}
-	if bits&svc.U_SKIN != 0 {
-		v, err := cls.inMessage.ReadByte()
-		if err != nil {
-			return err
-		}
-		e.SkinNum = int(v)
+	if eu.Skin != nil {
+		e.SkinNum = int(eu.Skin.Value)
 	}
 	if e.SkinNum != oldSkinNum {
 		if num > 0 && num <= cl.maxClients {
 			// C.R_TranslateNewPlaykerSkin(num - 1)
 		}
 	}
-	if bits&svc.U_EFFECTS != 0 {
-		v, err := cls.inMessage.ReadByte()
-		if err != nil {
-			return err
-		}
-		e.Effects = int(v)
+	e.Effects = int(eu.Effects)
+	if eu.OriginX != nil {
+		e.MsgOrigin[0][0] = eu.OriginX.Value
 	}
-	if bits&svc.U_ORIGIN1 != 0 {
-		v, err := cls.inMessage.ReadCoord(cl.protocolFlags)
-		if err != nil {
-			return err
-		}
-		e.MsgOrigin[0][0] = v
+	if eu.OriginY != nil {
+		e.MsgOrigin[0][1] = eu.OriginY.Value
 	}
-	if bits&svc.U_ANGLE1 != 0 {
-		v, err := cls.inMessage.ReadAngle(cl.protocolFlags)
-		if err != nil {
-			return err
-		}
-		e.MsgAngles[0][0] = v
+	if eu.OriginZ != nil {
+		e.MsgOrigin[0][2] = eu.OriginZ.Value
 	}
-	if bits&svc.U_ORIGIN2 != 0 {
-		v, err := cls.inMessage.ReadCoord(cl.protocolFlags)
-		if err != nil {
-			return err
-		}
-		e.MsgOrigin[0][1] = v
+	if eu.AngleX != nil {
+		e.MsgAngles[0][0] = eu.AngleX.Value
 	}
-	if bits&svc.U_ANGLE2 != 0 {
-		v, err := cls.inMessage.ReadAngle(cl.protocolFlags)
-		if err != nil {
-			return err
-		}
-		e.MsgAngles[0][1] = v
+	if eu.AngleY != nil {
+		e.MsgAngles[0][1] = eu.AngleY.Value
 	}
-	if bits&svc.U_ORIGIN3 != 0 {
-		v, err := cls.inMessage.ReadCoord(cl.protocolFlags)
-		if err != nil {
-			return err
-		}
-		e.MsgOrigin[0][2] = v
-	}
-	if bits&svc.U_ANGLE3 != 0 {
-		v, err := cls.inMessage.ReadAngle(cl.protocolFlags)
-		if err != nil {
-			return err
-		}
-		e.MsgAngles[0][2] = v
+	if eu.AngleZ != nil {
+		e.MsgAngles[0][2] = eu.AngleZ.Value
 	}
 
-	switch cl.protocol {
-	case protocol.FitzQuake, protocol.RMQ:
+	if eu.Alpha != nil {
+		e.Alpha = byte(eu.Alpha.Value)
+	}
+	if eu.LerpFinish != nil {
+		e.LerpFinish = e.MsgTime + float64(eu.LerpFinish.Value)
+		e.LerpFlags |= lerpFinish
+	} else {
 		e.LerpFlags &^= lerpFinish
-		if bits&svc.U_ALPHA != 0 {
-			v, err := cls.inMessage.ReadByte()
-			if err != nil {
-				return err
-			}
-			e.Alpha = v
-		}
-		if bits&svc.U_SCALE != 0 {
-			// RMQ, currenty ignored
-			_, err := cls.inMessage.ReadByte()
-			if err != nil {
-				return err
-			}
-		}
-		if bits&svc.U_FRAME2 != 0 {
-			v, err := cls.inMessage.ReadByte()
-			if err != nil {
-				return err
-			}
-			e.Frame |= int(v) << 8
-		}
-		if bits&svc.U_MODEL2 != 0 {
-			v, err := cls.inMessage.ReadByte()
-			if err != nil {
-				return err
-			}
-			modNum |= int(v) << 8
-		}
-		if bits&svc.U_LERPFINISH != 0 {
-			v, err := cls.inMessage.ReadByte()
-			if err != nil {
-				return err
-			}
-			e.LerpFinish = e.MsgTime + float64(v)/255
-			e.LerpFlags |= lerpFinish
-		}
-	case protocol.NetQuake:
-		if bits&svc.U_TRANS != 0 {
-			// HACK: if this bit is set, assume this is protocol NEHAHRA
-			a, err := cls.inMessage.ReadFloat32()
-			if err != nil {
-				return err
-			}
-			b, err := cls.inMessage.ReadFloat32() // alpha
-			if err != nil {
-				return err
-			}
-			if a == 2 {
-				// fullbright (not using this yet)
-				_, err := cls.inMessage.ReadFloat32()
-				if err != nil {
-					return err
-				}
-			}
-			if b == 0 {
-				e.Alpha = 0
-			} else {
-				e.Alpha = byte(math.Round(math.Clamp32(1, b*254+1, 255)))
-			}
-		}
 	}
 
 	if modNum > 0 && modNum <= len(cl.modelPrecache) {
