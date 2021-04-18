@@ -18,10 +18,13 @@ import (
 	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/execute"
 	"github.com/therjak/goquake/math/vec"
+	"github.com/therjak/goquake/mdl"
 	"github.com/therjak/goquake/model"
 	"github.com/therjak/goquake/protocol"
 	svc "github.com/therjak/goquake/protocol/server"
+	"github.com/therjak/goquake/protos"
 	"github.com/therjak/goquake/snd"
+	"github.com/therjak/goquake/spr"
 )
 
 var (
@@ -76,12 +79,7 @@ var (
 	}
 )
 
-func CL_ParseBaseline(e *Entity, version int) {
-	pb, err := svc.ParseBaseline(cls.inMessage, cl.protocolFlags, version)
-	if err != nil {
-		cls.msgBadRead = true
-		return
-	}
+func CL_ParseBaseline(pb *protos.Baseline, e *Entity) {
 	e.Baseline = state{
 		ModelIndex: int(pb.GetModelIndex()),
 		Frame:      int(pb.GetFrame()),
@@ -159,7 +157,12 @@ func CL_ParseServerMessage() {
 			if cvars.ClientShowNet.String() == "2" {
 				// conlog.Printf("%3i:%s\n", CL_MSG_ReadCount() - 1, "fast update");
 			}
-			cl.ParseEntityUpdate(cmd & 127)
+			eu, err := svc.ParseEntityUpdate(cls.inMessage, cl.protocol, cl.protocolFlags, cmd&127)
+			if err != nil {
+				cls.msgBadRead = true
+				continue
+			}
+			cl.ParseEntityUpdate(eu)
 			continue
 		}
 
@@ -253,11 +256,13 @@ func CL_ParseServerMessage() {
 			cl.parseDamage(int(armor), int(blood), pos)
 
 		case svc.ServerInfo:
-			err := CL_ParseServerInfo()
+			si, err := svc.ParseServerInfo(cls.inMessage)
 			if err != nil {
 				cls.msgBadRead = true
+				conlog.Printf("\nParseServerInfo: %v")
 				continue
 			}
+			CL_ParseServerInfo(si)
 			screen.recalcViewRect = true // leave intermission full screen
 
 		case svc.SetAngle:
@@ -400,10 +405,21 @@ func CL_ParseServerMessage() {
 			}
 			// force cl.num_entities up
 			e := cl.GetOrCreateEntity(int(i))
-			CL_ParseBaseline(e, 1)
+
+			pb, err := svc.ParseBaseline(cls.inMessage, cl.protocolFlags, 1)
+			if err != nil {
+				cls.msgBadRead = true
+				continue
+			}
+			CL_ParseBaseline(pb, e)
 
 		case svc.SpawnStatic:
-			cl.ParseStatic(1)
+			pb, err := svc.ParseBaseline(cls.inMessage, cl.protocolFlags, 1)
+			if err != nil {
+				cls.msgBadRead = true
+				continue
+			}
+			cl.ParseStatic(pb)
 
 		case svc.TempEntity:
 			tep, err := svc.ParseTempEntity(cls.inMessage, cl.protocolFlags)
@@ -571,10 +587,21 @@ func CL_ParseServerMessage() {
 			}
 			// force cl.num_entities up
 			e := cl.GetOrCreateEntity(int(i))
-			CL_ParseBaseline(e, 2)
+
+			pb, err := svc.ParseBaseline(cls.inMessage, cl.protocolFlags, 2)
+			if err != nil {
+				cls.msgBadRead = true
+				continue
+			}
+			CL_ParseBaseline(pb, e)
 
 		case svc.SpawnStatic2:
-			cl.ParseStatic(2)
+			pb, err := svc.ParseBaseline(cls.inMessage, cl.protocolFlags, 2)
+			if err != nil {
+				cls.msgBadRead = true
+				continue
+			}
+			cl.ParseStatic(pb)
 
 		case svc.SpawnStaticSound2:
 			org, err := parse3Coord()
@@ -599,7 +626,8 @@ func CL_ParseServerMessage() {
 	}
 }
 
-func CL_ParseServerInfo() error {
+func CL_ParseServerInfo(si *protos.ServerInfo) {
+	// protos.ServerInfo
 	conlog.DPrintf("Serverinfo packet received.\n")
 
 	// bring up loading plaque for map changes within a demo.
@@ -610,11 +638,6 @@ func CL_ParseServerInfo() error {
 
 	C.CL_ClearState()
 
-	si, err := svc.ParseServerInfo(cls.inMessage)
-	if err != nil {
-		conlog.Printf("\nParseServerInfo: %v")
-		return err
-	}
 	cl.protocol = int(si.Protocol)
 	cl.protocolFlags = uint32(si.Flags)
 
@@ -698,17 +721,12 @@ func CL_ParseServerInfo() error {
 
 	// we don't consider identical messages to be duplicates if the map has changed in between
 	console.lastCenter = ""
-	return nil
 }
 
 //ParseEntityUpdate parses an entity update message from the server
 //If an entities model or origin changes from frame to frame, it must be
 //relinked. Other attributes can change without relinking.
-func (c *Client) ParseEntityUpdate(cmd byte) error {
-	eu, err := svc.ParseEntityUpdate(cls.inMessage, c.protocol, c.protocolFlags, cmd)
-	if err != nil {
-		return err
-	}
+func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) {
 	if cls.signon == 3 {
 		// first update is the final signon stage
 		cls.signon = 4
@@ -796,11 +814,17 @@ func (c *Client) ParseEntityUpdate(cmd byte) error {
 			e.Model = model
 			// automatic animation (torches, etc) can be either all together or randomized
 			if model != nil {
-				// TODO(therjak):
-				// synctype only set for alias and sprite models
-				//			if model.SyncType == ST_RAND {
-				//				e.SyncBase = float32(rand()&0x7fff / 0x7fff)
-				//			}
+				e.SyncBase = 0
+				switch m := model.(type) {
+				case *mdl.Model:
+					if m.SyncType != 0 {
+						e.SyncBase = float32(cRand.Uint32n(0x7fff)) / 0x7fff
+					}
+				case *spr.Model:
+					if m.SyncType != 0 {
+						e.SyncBase = float32(cRand.Uint32n(0x7fff)) / 0x7fff
+					}
+				}
 			} else {
 				// hack to make nil model players work
 				forceLink = true
@@ -828,12 +852,11 @@ func (c *Client) ParseEntityUpdate(cmd byte) error {
 		e.ForceLink = true
 	}
 	e.Sync()
-	return nil
 }
 
-func (c *Client) ParseStatic(version int) {
+func (c *Client) ParseStatic(pb *protos.Baseline) {
 	ent := c.CreateStaticEntity()
-	CL_ParseBaseline(ent, version)
+	CL_ParseBaseline(pb, ent)
 	// copy it to the current state
 
 	ent.Model = c.modelPrecache[ent.Baseline.ModelIndex-1]
