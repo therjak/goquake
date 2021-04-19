@@ -165,13 +165,38 @@ message Damage {
   Coord position = 3;
 }
 
+message CDTrack {
+  int32 track_number = 1;
+  int32 loop_track = 2;
+}
+
+message UpdateStat {
+  int32 stat = 1;
+  int32 value = 2;
+}
+
+message Particle {
+  Coord origin = 1;
+  Coord direction = 2;
+  int32 count = 3;
+  int32 color = 4;
+}
+
+message Fog {
+  float density = 1;
+  float red = 2;
+  float green = 3;
+  float blue = 4;
+  float time = 5;
+}
+
 message SCmd {
   oneof union {
     // Empty nop = 1;
     bool disconnect = 2;
     EntityUpdate entity_update = 45;
     
-    // UpdateStat update_stat = 3; -- int32, int32 (byte + int32)
+    UpdateStat update_stat = 3; // -- int32, int32 (byte + int32)
     int32 version = 4;
     int32 set_view_entity = 5; // set_view
     Sound sound = 6;
@@ -193,7 +218,7 @@ message SCmd {
     int32 stop_sound = 16;
     UpdateColors update_colors = 17;
 
-    // Particle particle = 18; -- Coord, Coord, int32, int32 ([3]float, [3]int8, int8, int8)
+    Particle particle = 18; // -- Coord, Coord, int32, int32 ([3]float, [3]int8, int8, int8)
     Damage damage = 19;
     Baseline spawn_static = 20;
     EntityBaseline spawn_baseline = 22;
@@ -208,12 +233,12 @@ message SCmd {
     Empty intermission = 30;
     string finale = 31;
     
-    // CDTrack cd_track = 32; -- int32, int32 (uint8, uint8)
+    CDTrack cd_track = 32; // -- int32, int32 (uint8, uint8)
     Empty sell_screen = 33;
     string cutscene = 34;
     string skybox = 37;
     Empty bf = 40;
-    // Fog fog = 41;
+    Fog fog = 41;
     // EntityBaseline spawn_baseline2 = 42; -- not needed, covered by spawn_baseline
     // Baseline spawn_static2 = 43; -- not needed, covered by spawn_static
     // SpawnStaticSound2 spawn_static_sound2 = 44; -- not needed, covered by spawn_static_sound

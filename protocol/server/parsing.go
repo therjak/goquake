@@ -906,14 +906,6 @@ func ParseEntityUpdate(msg *net.QReader, pcol int, protocolFlags uint32, cmd byt
 	return eu, nil
 }
 
-/*
---> readCoord
-func parse3Coord(msg *net.QReader, protocolFlags uint32) (vec.Vec3, error) {
-
---> readAngle
-func parse3Angle(msg *net.QReader, protocolFlags uint32) (vec.Vec3, error) {
-*/
-
 func CL_ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*protos.ServerMessage, error) {
 	sm := &protos.ServerMessage{}
 	lastcmd := byte(0)
@@ -994,22 +986,25 @@ func CL_ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32)
 					Union: &protos.SCmd_StuffText{s},
 				})
 			}
-			/*
-				case Damage:
-					armor, err := msg.ReadByte()
-					if err != nil {
-						return nil, err
-					}
-					blood, err := msg.ReadByte()
-					if err != nil {
-						return nil, err
-					}
-					pos, err := parse3Coord()
-					if err != nil {
-						return nil, err
-					}
-					cl.parseDamage(int(armor), int(blood), pos)
-			*/
+		case Damage:
+			var data struct {
+				Armor byte
+				Blood byte
+			}
+			if err := msg.Read(&data); err != nil {
+				return nil, err
+			}
+			if pos, err := readCoord(msg, protocolFlags); err != nil {
+				return nil, err
+			} else {
+				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+					Union: &protos.SCmd_Damage{&protos.Damage{
+						Armor:    int32(data.Armor),
+						Blood:    int32(data.Blood),
+						Position: pos,
+					}},
+				})
+			}
 		case ServerInfo:
 			if si, err := ParseServerInfo(msg); err != nil {
 				return nil, err
@@ -1110,33 +1105,36 @@ func CL_ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32)
 			sm.Cmds = append(sm.Cmds, &protos.SCmd{
 				Union: &protos.SCmd_UpdateColors{uc},
 			})
-
-			/*
-				case Particle:
-					var dir vec.Vec3
-					org, err := parse3Coord()
-					if err != nil {
-						return nil, err
-					}
-					var data struct {
-						Dir   [3]int8
-						Count uint8
-						Color uint8
-					}
-					err = msg.Read(&data)
-					if err != nil {
-						return nil, err
-					}
-					dir[0] = float32(data.Dir[0]) * (1.0 / 16)
-					dir[1] = float32(data.Dir[1]) * (1.0 / 16)
-					dir[2] = float32(data.Dir[2]) * (1.0 / 16)
-					count := int(data.Count)
-					color := int(data.Color)
-					if count == 255 {
-						count = 1024
-					}
-					particlesRunEffect(org, dir, color, count, float32(cl.time))
-			*/
+		case Particle:
+			org, err := readCoord(msg, protocolFlags)
+			if err != nil {
+				return nil, err
+			}
+			var data struct {
+				Dir   [3]int8
+				Count uint8
+				Color uint8
+			}
+			if err := msg.Read(&data); err != nil {
+				return nil, err
+			}
+			count := int32(data.Count)
+			if count == 255 {
+				// there is no size difference in protos between 255 and 1024 so just keep the logic here
+				count = 1024
+			}
+			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+				Union: &protos.SCmd_Particle{&protos.Particle{
+					Origin: org,
+					Direction: &protos.Coord{
+						X: float32(data.Dir[0]) * (1.0 / 16),
+						Y: float32(data.Dir[1]) * (1.0 / 16),
+						Z: float32(data.Dir[2]) * (1.0 / 16),
+					},
+					Count: count,
+					Color: int32(data.Color),
+				}},
+			})
 		case SpawnBaseline:
 			eb := &protos.EntityBaseline{}
 			if i, err := msg.ReadInt16(); err != nil {
@@ -1195,24 +1193,20 @@ func CL_ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32)
 			sm.Cmds = append(sm.Cmds, &protos.SCmd{
 				Union: &protos.SCmd_FoundSecret{},
 			})
-
-			/*
-				case UpdateStat: // 3
-					i, err := msg.ReadByte()
-					if err != nil {
-						return nil, err
-					}
-					v, err := msg.ReadInt32()
-					if err != nil {
-						return nil, err
-					}
-					//if i < 0 || i >= MAX_CL_STATS {
-					//	Go_Error_I("svc_updatestat: %v is invalid", i)
-					//}
-					// Only used for STAT_TOTALSECRETS, STAT_TOTALMONSTERS, STAT_SECRETS,
-					// STAT_MONSTERS
-					cl_setStats(int(i), int(v))
-			*/
+		case UpdateStat:
+			var data struct {
+				Stat byte
+				Val  int32
+			}
+			if err := msg.Read(&data); err != nil {
+				return nil, err
+			}
+			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+				Union: &protos.SCmd_UpdateStat{&protos.UpdateStat{
+					Stat:  int32(data.Stat),
+					Value: int32(data.Val),
+				}},
+			})
 		case SpawnStaticSound:
 			ss := &protos.StaticSound{}
 			if org, err := readCoord(msg, protocolFlags); err != nil {
@@ -1242,9 +1236,12 @@ func CL_ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32)
 			if err := msg.Read(&data); err != nil {
 				return nil, err
 			}
-			//	sm.Cmds = append(sm.Cmds, &protos.SCmd{
-			//		Union: &protos.SCmd_CdTrack{int32(data.TrackNumber), int32(data.Loop)},
-			//	})
+			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+				Union: &protos.SCmd_CdTrack{&protos.CDTrack{
+					TrackNumber: int32(data.TrackNumber),
+					LoopTrack:   int32(data.Loop),
+				}},
+			})
 		case Intermission:
 			sm.Cmds = append(sm.Cmds, &protos.SCmd{
 				Union: &protos.SCmd_Intermission{},
@@ -1281,31 +1278,26 @@ func CL_ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32)
 			sm.Cmds = append(sm.Cmds, &protos.SCmd{
 				Union: &protos.SCmd_Bf{},
 			})
-			/*
-				case svc.Fog:
-					{
-						var data struct {
-							Density uint8
-							Red     uint8
-							Green   uint8
-							Blue    uint8
-							Time    uint8
-						}
-						err := cls.inMessage.Read(&data)
-						if err != nil {
-						return err
-						}
-						density := float32(data.Density) / 255.0
-						red := float32(data.Red) / 255.0
-						green := float32(data.Green) / 255.0
-						blue := float32(data.Blue) / 255.0
-						time := float64(data.Time) / 100.0
-						if time < 0 {
-							time = 0
-						}
-						fog.Update(density, red, green, blue, time)
-					}
-			*/
+		case Fog:
+			var data struct {
+				Density uint8
+				Red     uint8
+				Green   uint8
+				Blue    uint8
+				Time    uint8
+			}
+			if err := msg.Read(&data); err != nil {
+				return nil, err
+			}
+			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+				Union: &protos.SCmd_Fog{&protos.Fog{
+					Density: float32(data.Density) / 255.0,
+					Red:     float32(data.Red) / 255.0,
+					Green:   float32(data.Green) / 255.0,
+					Blue:    float32(data.Blue) / 255.0,
+					Time:    float32(data.Time) / 100.0,
+				}},
+			})
 		case SpawnBaseline2:
 			sb := &protos.EntityBaseline{}
 			if i, err := msg.ReadInt16(); err != nil {
