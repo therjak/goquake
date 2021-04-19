@@ -167,8 +167,9 @@ message Damage {
 
 message SCmd {
   oneof union {
-    // nop = 1 == empty
+    // Empty nop = 1;
     bool disconnect = 2;
+    EntityUpdate entity_update = 45;
     
     // UpdateStat update_stat = 3; -- int32, int32 (byte + int32)
     int32 version = 4;

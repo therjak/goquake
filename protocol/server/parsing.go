@@ -9,6 +9,58 @@ import (
 	"github.com/therjak/goquake/protos"
 )
 
+var (
+	svc_strings = []string{
+		"svc_bad", "svc_nop", "svc_disconnect", "svc_updatestat",
+		"svc_version",   // [long] server version
+		"svc_setview",   // [short] entity number
+		"svc_sound",     // <see code>
+		"svc_time",      // [float] server time
+		"svc_print",     // [string] null terminated string
+		"svc_stufftext", // [string] stuffed into client's console buffer
+		// the string should be \n terminated
+		"svc_setangle", // [vec3] set the view angle to this absolute value
+
+		"svc_serverinfo", // [long] version
+		// [string] signon string
+		// [string]..[0]model cache [string]...[0]sounds cache
+		// [string]..[0]item cache
+		"svc_lightstyle",   // [byte] [string]
+		"svc_updatename",   // [byte] [string]
+		"svc_updatefrags",  // [byte] [short]
+		"svc_clientdata",   // <shortbits + data>
+		"svc_stopsound",    // <see code>
+		"svc_updatecolors", // [byte] [byte]
+		"svc_particle",     // [vec3] <variable>
+		"svc_damage",       // [byte] impact [byte] blood [vec3] from
+
+		"svc_spawnstatic", "OBSOLETE svc_spawnbinary", "svc_spawnbaseline",
+
+		"svc_temp_entity", // <variable>
+		"svc_setpause", "svc_signonnum", "svc_centerprint", "svc_killedmonster",
+		"svc_foundsecret", "svc_spawnstaticsound", "svc_intermission",
+		"svc_finale",  // [string] music [string] text
+		"svc_cdtrack", // [byte] track [byte] looptrack
+		"svc_sellscreen", "svc_cutscene",
+		"",                      // 35
+		"",                      // 36
+		"svc_skybox",            // 37 [string] skyname
+		"",                      // 38
+		"",                      // 39
+		"svc_bf",                // 40 no data
+		"svc_fog",               // 41 [byte] density [byte] red [byte] green [byte] blue [float] time
+		"svc_spawnbaseline2",    // 42 support for large modelindex, large framenum, alpha, using flags
+		"svc_spawnstatic2",      // 43 support for large modelindex, large framenum, alpha, using flags
+		"svc_spawnstaticsound2", //	44 [coord3] [short] samp [byte] vol [byte] aten
+		"",                      // 44
+		"",                      // 45
+		"",                      // 46
+		"",                      // 47
+		"",                      // 48
+		"",                      // 49
+	}
+)
+
 func ParseClientData(msg *net.QReader) (*protos.ClientData, error) {
 	clientData := &protos.ClientData{}
 
@@ -199,6 +251,26 @@ func readCoord(msg *net.QReader, protocolFlags uint32) (*protos.Coord, error) {
 		return nil, err
 	}
 	z, err := msg.ReadCoord(protocolFlags)
+	if err != nil {
+		return nil, err
+	}
+	return &protos.Coord{
+		X: x,
+		Y: y,
+		Z: z,
+	}, nil
+}
+
+func readAngle(msg *net.QReader, protocolFlags uint32) (*protos.Coord, error) {
+	x, err := msg.ReadAngle(protocolFlags)
+	if err != nil {
+		return nil, err
+	}
+	y, err := msg.ReadAngle(protocolFlags)
+	if err != nil {
+		return nil, err
+	}
+	z, err := msg.ReadAngle(protocolFlags)
 	if err != nil {
 		return nil, err
 	}
@@ -832,4 +904,454 @@ func ParseEntityUpdate(msg *net.QReader, pcol int, protocolFlags uint32, cmd byt
 	}
 
 	return eu, nil
+}
+
+/*
+--> readCoord
+func parse3Coord(msg *net.QReader, protocolFlags uint32) (vec.Vec3, error) {
+
+--> readAngle
+func parse3Angle(msg *net.QReader, protocolFlags uint32) (vec.Vec3, error) {
+*/
+
+func CL_ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*protos.ServerMessage, error) {
+	sm := &protos.ServerMessage{}
+	lastcmd := byte(0)
+	for {
+		if msg.Len() == 0 {
+			// end of message
+			return sm, nil
+		}
+		cmd, _ := msg.ReadByte() // we already checked for at least 1 byte
+
+		// if the high bit of the command byte is set, it is a fast update
+		if cmd&U_SIGNAL != 0 {
+			if eu, err := ParseEntityUpdate(msg, protocol, protocolFlags, cmd&127); err != nil {
+				return nil, err
+			} else {
+				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+					Union: &protos.SCmd_EntityUpdate{eu},
+				})
+			}
+			continue
+		}
+
+		switch cmd {
+		default:
+			return nil, fmt.Errorf("Illegible server message, previous was %s", svc_strings[lastcmd])
+
+		case Nop:
+			sm.Cmds = append(sm.Cmds, &protos.SCmd{})
+		case Time:
+			if t, err := msg.ReadFloat32(); err != nil {
+				return nil, err
+			} else {
+				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+					Union: &protos.SCmd_Time{t},
+				})
+			}
+		case ClientData:
+			if cdp, err := ParseClientData(msg); err != nil {
+				return nil, err
+			} else {
+				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+					Union: &protos.SCmd_ClientData{cdp},
+				})
+			}
+		case Version:
+			if i, err := msg.ReadInt32(); err != nil {
+				return nil, err
+			} else {
+				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+					Union: &protos.SCmd_Version{int32(i)},
+				})
+			}
+		case Disconnect:
+			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+				Union: &protos.SCmd_Disconnect{true},
+			})
+		case Print:
+			if s, err := msg.ReadString(); err != nil {
+				return nil, err
+			} else {
+				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+					Union: &protos.SCmd_Print{s},
+				})
+			}
+		case CenterPrint:
+			if s, err := msg.ReadString(); err != nil {
+				return nil, err
+			} else {
+				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+					Union: &protos.SCmd_CenterPrint{s},
+				})
+			}
+		case StuffText:
+			if s, err := msg.ReadString(); err != nil {
+				return nil, err
+			} else {
+				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+					Union: &protos.SCmd_StuffText{s},
+				})
+			}
+			/*
+				case Damage:
+					armor, err := msg.ReadByte()
+					if err != nil {
+						return nil, err
+					}
+					blood, err := msg.ReadByte()
+					if err != nil {
+						return nil, err
+					}
+					pos, err := parse3Coord()
+					if err != nil {
+						return nil, err
+					}
+					cl.parseDamage(int(armor), int(blood), pos)
+			*/
+		case ServerInfo:
+			if si, err := ParseServerInfo(msg); err != nil {
+				return nil, err
+			} else {
+				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+					Union: &protos.SCmd_ServerInfo{si},
+				})
+			}
+		case SetAngle:
+			if a, err := readAngle(msg, protocolFlags); err != nil {
+				return nil, err
+			} else {
+				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+					Union: &protos.SCmd_SetAngle{a},
+				})
+			}
+		case SetView:
+			if ve, err := msg.ReadUint16(); err != nil {
+				return nil, err
+			} else {
+				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+					Union: &protos.SCmd_SetViewEntity{int32(ve)},
+				})
+			}
+		case LightStyle:
+			cmd := &protos.LightStyle{}
+			if idx, err := msg.ReadByte(); err != nil {
+				return nil, err
+			} else {
+				cmd.Idx = int32(idx)
+			}
+			if str, err := msg.ReadString(); err != nil {
+				return nil, err
+			} else {
+				cmd.NewStyle = str
+			}
+			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+				Union: &protos.SCmd_LightStyle{cmd},
+			})
+		case Sound:
+			if spp, err := ParseSoundMessage(msg, protocolFlags); err != nil {
+				return nil, err
+			} else {
+				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+					Union: &protos.SCmd_Sound{spp},
+				})
+			}
+		case StopSound:
+			if i, err := msg.ReadInt16(); err != nil {
+				return nil, err
+			} else {
+				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+					Union: &protos.SCmd_StopSound{int32(i)},
+				})
+			}
+		case UpdateName:
+			un := &protos.UpdateName{}
+			if i, err := msg.ReadByte(); err != nil {
+				return nil, err
+			} else {
+				un.Player = int32(i)
+			}
+			if s, err := msg.ReadString(); err != nil {
+				return nil, err
+			} else {
+				un.NewName = s
+			}
+			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+				Union: &protos.SCmd_UpdateName{un},
+			})
+		case UpdateFrags:
+			var data struct {
+				Player   byte
+				NewFrags int16
+			}
+			if err := msg.Read(&data); err != nil {
+				return nil, err
+			}
+			uf := &protos.UpdateFrags{
+				Player:   int32(data.Player),
+				NewFrags: int32(data.NewFrags),
+			}
+			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+				Union: &protos.SCmd_UpdateFrags{uf},
+			})
+		case UpdateColors:
+			var data struct {
+				Player   byte
+				NewColor byte
+			}
+			if err := msg.Read(&data); err != nil {
+				return nil, err
+			}
+			uc := &protos.UpdateColors{
+				Player:   int32(data.Player),
+				NewColor: int32(data.NewColor),
+			}
+			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+				Union: &protos.SCmd_UpdateColors{uc},
+			})
+
+			/*
+				case Particle:
+					var dir vec.Vec3
+					org, err := parse3Coord()
+					if err != nil {
+						return nil, err
+					}
+					var data struct {
+						Dir   [3]int8
+						Count uint8
+						Color uint8
+					}
+					err = msg.Read(&data)
+					if err != nil {
+						return nil, err
+					}
+					dir[0] = float32(data.Dir[0]) * (1.0 / 16)
+					dir[1] = float32(data.Dir[1]) * (1.0 / 16)
+					dir[2] = float32(data.Dir[2]) * (1.0 / 16)
+					count := int(data.Count)
+					color := int(data.Color)
+					if count == 255 {
+						count = 1024
+					}
+					particlesRunEffect(org, dir, color, count, float32(cl.time))
+			*/
+		case SpawnBaseline:
+			eb := &protos.EntityBaseline{}
+			if i, err := msg.ReadInt16(); err != nil {
+				return nil, err
+			} else {
+				eb.Index = int32(i)
+			}
+			if pb, err := ParseBaseline(msg, protocolFlags, 1); err != nil {
+				return nil, err
+			} else {
+				eb.Baseline = pb
+			}
+			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+				Union: &protos.SCmd_SpawnBaseline{eb},
+			})
+
+		case SpawnStatic:
+			if pb, err := ParseBaseline(msg, protocolFlags, 1); err != nil {
+				return nil, err
+			} else {
+				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+					Union: &protos.SCmd_SpawnStatic{pb},
+				})
+			}
+
+		case TempEntity:
+			if tep, err := ParseTempEntity(msg, protocolFlags); err != nil {
+				return nil, err
+			} else {
+				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+					Union: &protos.SCmd_TempEntity{tep},
+				})
+			}
+		case SetPause:
+			// this byte was used to pause cd audio, other pause as well?
+			if i, err := msg.ReadByte(); err != nil {
+				return nil, err
+			} else {
+				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+					Union: &protos.SCmd_SetPause{i != 0},
+				})
+			}
+		case SignonNum:
+			if i, err := msg.ReadByte(); err != nil {
+				return nil, err
+			} else {
+				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+					Union: &protos.SCmd_SignonNum{int32(i)},
+				})
+			}
+		case KilledMonster:
+			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+				Union: &protos.SCmd_KilledMonster{},
+			})
+		case FoundSecret:
+			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+				Union: &protos.SCmd_FoundSecret{},
+			})
+
+			/*
+				case UpdateStat: // 3
+					i, err := msg.ReadByte()
+					if err != nil {
+						return nil, err
+					}
+					v, err := msg.ReadInt32()
+					if err != nil {
+						return nil, err
+					}
+					//if i < 0 || i >= MAX_CL_STATS {
+					//	Go_Error_I("svc_updatestat: %v is invalid", i)
+					//}
+					// Only used for STAT_TOTALSECRETS, STAT_TOTALMONSTERS, STAT_SECRETS,
+					// STAT_MONSTERS
+					cl_setStats(int(i), int(v))
+			*/
+		case SpawnStaticSound:
+			ss := &protos.StaticSound{}
+			if org, err := readCoord(msg, protocolFlags); err != nil {
+				return nil, err
+			} else {
+				ss.Origin = org
+			}
+			var data struct {
+				Num uint8
+				Vol uint8
+				Att uint8
+			}
+			if err := msg.Read(&data); err != nil {
+				return nil, err
+			}
+			ss.Index = int32(data.Num)
+			ss.Volume = int32(data.Vol)
+			ss.Attenuation = int32(data.Att)
+			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+				Union: &protos.SCmd_SpawnStaticSound{ss},
+			})
+		case CDTrack:
+			var data struct {
+				TrackNumber uint8
+				Loop        uint8 // was for cl.looptrack
+			}
+			if err := msg.Read(&data); err != nil {
+				return nil, err
+			}
+			//	sm.Cmds = append(sm.Cmds, &protos.SCmd{
+			//		Union: &protos.SCmd_CdTrack{int32(data.TrackNumber), int32(data.Loop)},
+			//	})
+		case Intermission:
+			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+				Union: &protos.SCmd_Intermission{},
+			})
+		case Finale:
+			if s, err := msg.ReadString(); err != nil {
+				return nil, err
+			} else {
+				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+					Union: &protos.SCmd_Finale{s},
+				})
+			}
+		case Cutscene:
+			if s, err := msg.ReadString(); err != nil {
+				return nil, err
+			} else {
+				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+					Union: &protos.SCmd_Cutscene{s},
+				})
+			}
+		case SellScreen:
+			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+				Union: &protos.SCmd_SellScreen{},
+			})
+		case Skybox:
+			if s, err := msg.ReadString(); err != nil {
+				return nil, err
+			} else {
+				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+					Union: &protos.SCmd_Skybox{s},
+				})
+			}
+		case BF:
+			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+				Union: &protos.SCmd_Bf{},
+			})
+			/*
+				case svc.Fog:
+					{
+						var data struct {
+							Density uint8
+							Red     uint8
+							Green   uint8
+							Blue    uint8
+							Time    uint8
+						}
+						err := cls.inMessage.Read(&data)
+						if err != nil {
+						return err
+						}
+						density := float32(data.Density) / 255.0
+						red := float32(data.Red) / 255.0
+						green := float32(data.Green) / 255.0
+						blue := float32(data.Blue) / 255.0
+						time := float64(data.Time) / 100.0
+						if time < 0 {
+							time = 0
+						}
+						fog.Update(density, red, green, blue, time)
+					}
+			*/
+		case SpawnBaseline2:
+			sb := &protos.EntityBaseline{}
+			if i, err := msg.ReadInt16(); err != nil {
+				return nil, err
+			} else {
+				sb.Index = int32(i)
+			}
+			if pb, err := ParseBaseline(msg, protocolFlags, 2); err != nil {
+				return nil, err
+			} else {
+				sb.Baseline = pb
+			}
+			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+				Union: &protos.SCmd_SpawnBaseline{sb},
+			})
+
+		case SpawnStatic2:
+			if pb, err := ParseBaseline(msg, protocolFlags, 2); err != nil {
+				return nil, err
+			} else {
+				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+					Union: &protos.SCmd_SpawnStatic{pb},
+				})
+			}
+		case SpawnStaticSound2:
+			ss := &protos.StaticSound{}
+			if org, err := readCoord(msg, protocolFlags); err != nil {
+				return nil, err
+			} else {
+				ss.Origin = org
+			}
+			var data struct {
+				Num uint16
+				Vol uint8
+				Att uint8
+			}
+			if err := msg.Read(&data); err != nil {
+				return nil, err
+			}
+			ss.Index = int32(data.Num)
+			ss.Volume = int32(data.Vol)
+			ss.Attenuation = int32(data.Att)
+			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+				Union: &protos.SCmd_SpawnStaticSound{ss},
+			})
+		}
+		lastcmd = cmd
+	}
 }
