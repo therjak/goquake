@@ -2,7 +2,7 @@
 syntax = "proto3";
 
 package protos;
-option go_package = ".;protos";
+option go_package = "github.com/therjak/goquake/protos";
 
 message History {
   repeated string entries = 1;

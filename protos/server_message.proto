@@ -2,7 +2,7 @@
 syntax = "proto3";
 
 package protos;
-option go_package = ".;protos";
+option go_package = "github.com/therjak/goquake/protos";
 
 // Used for values with different default
 message OptionalInt32 {
@@ -237,7 +237,7 @@ message SCmd {
     Empty sell_screen = 33;
     string cutscene = 34;
     string skybox = 37;
-    Empty bf = 40;
+    Empty background_flash = 40;
     Fog fog = 41;
     // EntityBaseline spawn_baseline2 = 42; -- not needed, covered by spawn_baseline
     // Baseline spawn_static2 = 43; -- not needed, covered by spawn_static
