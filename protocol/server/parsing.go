@@ -906,7 +906,7 @@ func ParseEntityUpdate(msg *net.QReader, pcol int, protocolFlags uint32, cmd byt
 	return eu, nil
 }
 
-func CL_ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*protos.ServerMessage, error) {
+func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*protos.ServerMessage, error) {
 	sm := &protos.ServerMessage{}
 	lastcmd := byte(0)
 	for {
@@ -1276,7 +1276,7 @@ func CL_ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32)
 			}
 		case BF:
 			sm.Cmds = append(sm.Cmds, &protos.SCmd{
-				Union: &protos.SCmd_Bf{},
+				Union: &protos.SCmd_BackgroundFlash{},
 			})
 		case Fog:
 			var data struct {

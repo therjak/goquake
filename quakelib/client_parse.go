@@ -126,328 +126,116 @@ func parse3Angle() (vec.Vec3, error) {
 func CL_ParseServerMessage() {
 	// if recording demos, copy the message out
 	switch cvars.ClientShowNet.String() {
-	case "1":
-		// This is not known
-		// conlog.Printf("%d ", CL_MSG_GetCurSize());
-	case "2":
+	case "1", "2":
 		conlog.Printf("------------------\n")
 	}
 
 	cl.onGround = false
-	// unless the server says otherwise parse the message
 
-	lastcmd := byte(0)
-	for {
-		if cls.msgBadRead {
-			fmt.Printf("Bad server message\n")
-			HostError("CL_ParseServerMessage: Bad server message")
-		}
-
-		if cls.inMessage.Len() == 0 {
-			if cvars.ClientShowNet.String() == "2" {
-				// conlog.Printf("%3d:%s\n", CL_MSG_ReadCount() - 1, "END OF MESSAGE");
-			}
-			// end of message
-			return
-		}
-		cmd, _ := cls.inMessage.ReadByte()
-
-		// if the high bit of the command byte is set, it is a fast update
-		if cmd&svc.U_SIGNAL != 0 {
-			if cvars.ClientShowNet.String() == "2" {
-				// conlog.Printf("%3i:%s\n", CL_MSG_ReadCount() - 1, "fast update");
-			}
-			eu, err := svc.ParseEntityUpdate(cls.inMessage, cl.protocol, cl.protocolFlags, cmd&127)
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			cl.ParseEntityUpdate(eu)
-			continue
-		}
-
-		if cvars.ClientShowNet.String() == "2" {
-			// conlog.Printf("%3i:%s\n", CL_MSG_ReadCount() - 1, svc_strings[cmd]);
-		}
-
-		// other commands
-		switch cmd {
+	pb, err := svc.ParseServerMessage(cls.inMessage, cl.protocol, cl.protocolFlags)
+	if err != nil {
+		fmt.Printf("Bad server message\n %v", err)
+		HostError("CL_ParseServerMessage: Bad server message")
+	}
+	for _, scmd := range pb.GetCmds() {
+		switch cmd := scmd.Union.(type) {
 		default:
-			HostError("Illegible server message, previous was %s", svc_strings[lastcmd])
-
-		case svc.Nop:
-			//	conlog.Printf("svc_nop\n");
-
-		case svc.Time:
+			// nop
+		case *protos.SCmd_EntityUpdate:
+			cl.ParseEntityUpdate(cmd.EntityUpdate)
+		case *protos.SCmd_Time:
 			cl.messageTimeOld = cl.messageTime
-			t, err := cls.inMessage.ReadFloat32()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			cl.messageTime = float64(t)
-
-		case svc.ClientData:
-			cdp, err := svc.ParseClientData(cls.inMessage)
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			cl.parseClientData(cdp)
-
-		case svc.Version:
-			i, err := cls.inMessage.ReadInt32()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			switch i {
+			cl.messageTime = float64(cmd.Time)
+		case *protos.SCmd_ClientData:
+			cl.parseClientData(cmd.ClientData)
+		case *protos.SCmd_Version:
+			switch cmd.Version {
 			case protocol.NetQuake, protocol.FitzQuake, protocol.RMQ, protocol.GoQuake:
+				cl.protocol = int(cmd.Version)
 			default:
-				HostError("Server returned version %d, not %d or %d or %d or %d", i,
+				HostError("Server returned version %d, not %d or %d or %d or %d", cmd.Version,
 					protocol.NetQuake, protocol.FitzQuake, protocol.RMQ, protocol.GoQuake)
 			}
-			cl.protocol = int(i)
-
-		case svc.Disconnect:
+		case *protos.SCmd_Disconnect:
 			HostEndGame("Server disconnected\n")
-
-		case svc.Print:
-			s, err := cls.inMessage.ReadString()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			conlog.Printf("%s", s)
-
-		case svc.CenterPrint:
-			s, err := cls.inMessage.ReadString()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			screen.CenterPrint(s)
-			console.CenterPrint(s)
-
-		case svc.StuffText:
-			s, err := cls.inMessage.ReadString()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			cbuf.AddText(s)
-
-		case svc.Damage:
-			armor, err := cls.inMessage.ReadByte()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			blood, err := cls.inMessage.ReadByte()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			pos, err := parse3Coord()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			cl.parseDamage(int(armor), int(blood), pos)
-
-		case svc.ServerInfo:
-			si, err := svc.ParseServerInfo(cls.inMessage)
-			if err != nil {
-				cls.msgBadRead = true
-				conlog.Printf("\nParseServerInfo: %v")
-				continue
-			}
-			CL_ParseServerInfo(si)
+		case *protos.SCmd_Print:
+			conlog.Printf("%s", cmd.Print)
+		case *protos.SCmd_CenterPrint:
+			screen.CenterPrint(cmd.CenterPrint)
+			console.CenterPrint(cmd.CenterPrint)
+		case *protos.SCmd_StuffText:
+			cbuf.AddText(cmd.StuffText)
+		case *protos.SCmd_Damage:
+			d := cmd.Damage
+			pos := d.Position
+			cl.parseDamage(int(d.GetArmor()), int(d.GetBlood()), vec.Vec3{
+				pos.GetX(), pos.GetY(), pos.GetZ(),
+			})
+		case *protos.SCmd_ServerInfo:
+			CL_ParseServerInfo(cmd.ServerInfo)
 			screen.recalcViewRect = true // leave intermission full screen
-
-		case svc.SetAngle:
-			a, err := parse3Angle()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			cl.pitch = a[0]
-			cl.yaw = a[1]
-			cl.roll = a[2]
-
-		case svc.SetView:
-			ve, err := cls.inMessage.ReadUint16()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			cl.viewentity = int(ve)
-
-		case svc.LightStyle:
-			idx, err := cls.inMessage.ReadByte()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			str, err := cls.inMessage.ReadString()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			err = readLightStyle(idx, str)
-			if err != nil {
+		case *protos.SCmd_SetAngle:
+			cl.pitch = cmd.SetAngle.GetX()
+			cl.yaw = cmd.SetAngle.GetY()
+			cl.roll = cmd.SetAngle.GetZ()
+		case *protos.SCmd_SetViewEntity:
+			cl.viewentity = int(cmd.SetViewEntity)
+		case *protos.SCmd_LightStyle:
+			if err := readLightStyle(cmd.LightStyle.GetIdx(), cmd.LightStyle.GetNewStyle()); err != nil {
 				Error("svc_lightstyle: %v", err)
 			}
-
-		case svc.Sound:
-			spp, err := svc.ParseSoundMessage(cls.inMessage, cl.protocolFlags)
-			if err != nil {
+		case *protos.SCmd_Sound:
+			if err := CL_ParseStartSoundPacket(cmd.Sound); err != nil {
 				HostError("%v", err)
 			}
-			err = CL_ParseStartSoundPacket(spp)
-			if err != nil {
-				HostError("%v", err)
-			}
-
-		case svc.StopSound:
-			i, err := cls.inMessage.ReadInt16()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			snd.Stop(int(i)>>3, int(i)&7)
-
-		case svc.UpdateName:
-			statusbar.MarkChanged()
-			i, err := cls.inMessage.ReadByte()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			if int(i) >= cl.maxClients {
+		case *protos.SCmd_StopSound:
+			snd.Stop(int(cmd.StopSound)>>3, int(cmd.StopSound)&7)
+		case *protos.SCmd_UpdateName:
+			player := int(cmd.UpdateName.GetPlayer())
+			if player >= cl.maxClients {
 				HostError("CL_ParseServerMessage: svc_updatename > MAX_SCOREBOARD")
 			}
-			s, err := cls.inMessage.ReadString()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			cl.scores[i].name = s
-
-		case svc.UpdateFrags:
-			statusbar.MarkChanged()
-			i, err := cls.inMessage.ReadByte()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			if int(i) >= cl.maxClients {
+			cl.scores[player].name = cmd.UpdateName.GetNewName()
+		case *protos.SCmd_UpdateFrags:
+			player := int(cmd.UpdateFrags.GetPlayer())
+			if player >= cl.maxClients {
 				HostError("CL_ParseServerMessage: svc_updatefrags > MAX_SCOREBOARD")
 			}
-			f, err := cls.inMessage.ReadInt16()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			cl.scores[i].frags = int(f)
-
-		case svc.UpdateColors:
-			statusbar.MarkChanged()
-			i, err := cls.inMessage.ReadByte()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			if int(i) >= cl.maxClients {
+			cl.scores[player].frags = int(cmd.UpdateFrags.GetNewFrags())
+		case *protos.SCmd_UpdateColors:
+			player := int(cmd.UpdateColors.GetPlayer())
+			if player >= cl.maxClients {
 				HostError("CL_ParseServerMessage: svc_updatecolors > MAX_SCOREBOARD")
 			}
-			c, err := cls.inMessage.ReadByte()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			cl.scores[i].topColor = int((c & 0xf0) >> 4)
-			cl.scores[i].bottomColor = int(c & 0x0f)
-			CL_NewTranslation(int(i))
-
-		case svc.Particle:
-			var dir vec.Vec3
-			org, err := parse3Coord()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			var data struct {
-				Dir   [3]int8
-				Count uint8
-				Color uint8
-			}
-			err = cls.inMessage.Read(&data)
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			dir[0] = float32(data.Dir[0]) * (1.0 / 16)
-			dir[1] = float32(data.Dir[1]) * (1.0 / 16)
-			dir[2] = float32(data.Dir[2]) * (1.0 / 16)
-			count := int(data.Count)
-			color := int(data.Color)
-			if count == 255 {
-				count = 1024
-			}
-			particlesRunEffect(org, dir, color, count, float32(cl.time))
-
-		case svc.SpawnBaseline:
-			i, err := cls.inMessage.ReadInt16()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
+			c := cmd.UpdateColors.GetNewColor()
+			cl.scores[player].topColor = int((c & 0xf0) >> 4)
+			cl.scores[player].bottomColor = int(c & 0x0f)
+			CL_NewTranslation(player)
+		case *protos.SCmd_Particle:
+			org := cmd.Particle.GetOrigin()
+			dir := cmd.Particle.GetDirection()
+			particlesRunEffect(
+				vec.Vec3{org.GetX(), org.GetY(), org.GetZ()},
+				vec.Vec3{dir.GetX(), dir.GetY(), dir.GetZ()},
+				int(cmd.Particle.GetColor()), int(cmd.Particle.GetCount()), float32(cl.time))
+		case *protos.SCmd_SpawnBaseline:
+			i := cmd.SpawnBaseline.GetIndex()
 			// force cl.num_entities up
 			e := cl.GetOrCreateEntity(int(i))
-
-			pb, err := svc.ParseBaseline(cls.inMessage, cl.protocolFlags, 1)
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			CL_ParseBaseline(pb, e)
-
-		case svc.SpawnStatic:
-			pb, err := svc.ParseBaseline(cls.inMessage, cl.protocolFlags, 1)
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			cl.ParseStatic(pb)
-
-		case svc.TempEntity:
-			tep, err := svc.ParseTempEntity(cls.inMessage, cl.protocolFlags)
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			cls.parseTempEntity(tep)
-
-		case svc.SetPause:
-			// this byte was used to pause cd audio, other pause as well?
-			i, err := cls.inMessage.ReadByte()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			cl.paused = (i != 0)
-
-		case svc.SignonNum:
-			i, err := cls.inMessage.ReadByte()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			if int(i) <= cls.signon {
+			CL_ParseBaseline(cmd.SpawnBaseline.GetBaseline(), e)
+		case *protos.SCmd_SpawnStatic:
+			cl.ParseStatic(cmd.SpawnStatic)
+		case *protos.SCmd_TempEntity:
+			cls.parseTempEntity(cmd.TempEntity)
+		case *protos.SCmd_SetPause:
+			// this was used to pause cd audio, other pause as well?
+			cl.paused = cmd.SetPause
+		case *protos.SCmd_SignonNum:
+			i := int(cmd.SignonNum)
+			if i <= cls.signon {
 				HostError("Received signon %d when at %d", i, cls.signon)
 			}
-			cls.signon = int(i)
+			cls.signon = i
 			// if signonnum==2, signon packet has been fully parsed, so
 			// check for excessive static entities and entity fragments
 			if i == 2 {
@@ -457,172 +245,48 @@ func CL_ParseServerMessage() {
 				}
 			}
 			CL_SignonReply()
-
-		case svc.KilledMonster:
+		case *protos.SCmd_KilledMonster:
 			cl.stats.monsters++
-
-		case svc.FoundSecret:
+		case *protos.SCmd_FoundSecret:
 			cl.stats.secrets++
-
-		case svc.UpdateStat:
-			i, err := cls.inMessage.ReadByte()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			v, err := cls.inMessage.ReadInt32()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			//if i < 0 || i >= MAX_CL_STATS {
-			//	Go_Error_I("svc_updatestat: %v is invalid", i)
-			//}
+		case *protos.SCmd_UpdateStat:
 			// Only used for STAT_TOTALSECRETS, STAT_TOTALMONSTERS, STAT_SECRETS,
 			// STAT_MONSTERS
-			cl_setStats(int(i), int(v))
-
-		case svc.SpawnStaticSound:
-			org, err := parse3Coord()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			var data struct {
-				Num uint8
-				Vol uint8
-				Att uint8
-			}
-			err = cls.inMessage.Read(&data)
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			snd.Start(0, 0, cl.soundPrecache[data.Num-1], org, float32(data.Vol)/255, float32(data.Att)/64, loopingSound)
-
-		case svc.CDTrack:
-			// nobody uses cds anyway. just ignore
-			var data struct {
-				TrackNumber uint8
-				Loop        uint8 // was for cl.looptrack
-			}
-			err := cls.inMessage.Read(&data)
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-
-		case svc.Intermission:
+			cl_setStats(int(cmd.UpdateStat.GetStat()), int(cmd.UpdateStat.GetValue()))
+		case *protos.SCmd_SpawnStaticSound:
+			s := cmd.SpawnStaticSound
+			org := s.GetOrigin()
+			snd.Start(0, 0, cl.soundPrecache[s.GetIndex()-1],
+				vec.Vec3{org.GetX(), org.GetY(), org.GetZ()},
+				float32(s.GetVolume())/255, float32(s.GetAttenuation())/64, loopingSound)
+		case *protos.SCmd_CdTrack:
+			// We do not play cds
+		case *protos.SCmd_Intermission:
 			cl.intermission = 1
 			cl.intermissionTime = int(cl.time)
 			screen.recalcViewRect = true // go to full screen
-
-		case svc.Finale:
+		case *protos.SCmd_Finale:
 			cl.intermission = 2
 			cl.intermissionTime = int(cl.time)
 			screen.recalcViewRect = true // go to full screen
-			s, err := cls.inMessage.ReadString()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			screen.CenterPrint(s)
-			console.CenterPrint(s)
-
-		case svc.Cutscene:
+			screen.CenterPrint(cmd.Finale)
+			console.CenterPrint(cmd.Finale)
+		case *protos.SCmd_Cutscene:
 			cl.intermission = 3
 			cl.intermissionTime = int(cl.time)
 			screen.recalcViewRect = true // go to full screen
-			s, err := cls.inMessage.ReadString()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			screen.CenterPrint(s)
-			console.CenterPrint(s)
-
-		case svc.SellScreen:
+			screen.CenterPrint(cmd.Cutscene)
+			console.CenterPrint(cmd.Cutscene)
+		case *protos.SCmd_SellScreen:
 			execute.Execute("help", execute.Command, sv_player)
-
-		case svc.Skybox:
-			s, err := cls.inMessage.ReadString()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			sky.LoadBox(s)
-
-		case svc.BF:
+		case *protos.SCmd_Skybox:
+			sky.LoadBox(cmd.Skybox)
+		case *protos.SCmd_BackgroundFlash:
 			execute.Execute("bf", execute.Command, sv_player)
-
-		case svc.Fog:
-			{
-				var data struct {
-					Density uint8
-					Red     uint8
-					Green   uint8
-					Blue    uint8
-					Time    uint8
-				}
-				err := cls.inMessage.Read(&data)
-				if err != nil {
-					cls.msgBadRead = true
-					continue
-				}
-				density := float32(data.Density) / 255.0
-				red := float32(data.Red) / 255.0
-				green := float32(data.Green) / 255.0
-				blue := float32(data.Blue) / 255.0
-				time := float64(data.Time) / 100.0
-				if time < 0 {
-					time = 0
-				}
-				fog.Update(density, red, green, blue, time)
-			}
-		case svc.SpawnBaseline2:
-			i, err := cls.inMessage.ReadInt16()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			// force cl.num_entities up
-			e := cl.GetOrCreateEntity(int(i))
-
-			pb, err := svc.ParseBaseline(cls.inMessage, cl.protocolFlags, 2)
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			CL_ParseBaseline(pb, e)
-
-		case svc.SpawnStatic2:
-			pb, err := svc.ParseBaseline(cls.inMessage, cl.protocolFlags, 2)
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			cl.ParseStatic(pb)
-
-		case svc.SpawnStaticSound2:
-			org, err := parse3Coord()
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			var data struct {
-				Num uint16
-				Vol uint8
-				Att uint8
-			}
-			err = cls.inMessage.Read(&data)
-			if err != nil {
-				cls.msgBadRead = true
-				continue
-			}
-			snd.Start(0, 0, cl.soundPrecache[data.Num-1], org, float32(data.Vol)/255, float32(data.Att)/64, loopingSound)
+		case *protos.SCmd_Fog:
+			f := cmd.Fog
+			fog.Update(f.GetDensity(), f.GetRed(), f.GetGreen(), f.GetBlue(), float64(f.GetTime()))
 		}
-
-		lastcmd = cmd
 	}
 }
 

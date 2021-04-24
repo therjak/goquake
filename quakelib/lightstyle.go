@@ -49,7 +49,7 @@ func avgPeak(d []int) (int, int) {
 	return s / len(d), m
 }
 
-func readLightStyle(idx byte, str string) error {
+func readLightStyle(idx int32, str string) error {
 	if idx >= maxLightStyles {
 		return fmt.Errorf("> MAX_LIGHTSTYLES")
 	}
