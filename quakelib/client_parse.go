@@ -8,7 +8,6 @@ package quakelib
 import "C"
 
 import (
-	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -21,13 +20,12 @@ import (
 	"github.com/therjak/goquake/mdl"
 	"github.com/therjak/goquake/model"
 	"github.com/therjak/goquake/protocol"
-	svc "github.com/therjak/goquake/protocol/server"
 	"github.com/therjak/goquake/protos"
 	"github.com/therjak/goquake/snd"
 	"github.com/therjak/goquake/spr"
 )
 
-func CL_ParseBaseline(pb *protos.Baseline, e *Entity) {
+func parseBaseline(pb *protos.Baseline, e *Entity) {
 	e.Baseline = state{
 		ModelIndex: int(pb.GetModelIndex()),
 		Frame:      int(pb.GetFrame()),
@@ -39,8 +37,7 @@ func CL_ParseBaseline(pb *protos.Baseline, e *Entity) {
 	}
 }
 
-func CL_ParseServerMessage() {
-	// if recording demos, copy the message out
+func CL_ParseServerMessage(pb *protos.ServerMessage) {
 	switch cvars.ClientShowNet.String() {
 	case "1", "2":
 		conlog.Printf("------------------\n")
@@ -48,11 +45,6 @@ func CL_ParseServerMessage() {
 
 	cl.onGround = false
 
-	pb, err := svc.ParseServerMessage(cls.inMessage, cl.protocol, cl.protocolFlags)
-	if err != nil {
-		fmt.Printf("Bad server message\n %v", err)
-		HostError("CL_ParseServerMessage: Bad server message")
-	}
 	for _, scmd := range pb.GetCmds() {
 		switch cmd := scmd.Union.(type) {
 		default:
@@ -138,9 +130,9 @@ func CL_ParseServerMessage() {
 			i := cmd.SpawnBaseline.GetIndex()
 			// force cl.num_entities up
 			e := cl.GetOrCreateEntity(int(i))
-			CL_ParseBaseline(cmd.SpawnBaseline.GetBaseline(), e)
+			parseBaseline(cmd.SpawnBaseline.GetBaseline(), e)
 		case *protos.SCmd_SpawnStatic:
-			cl.ParseStatic(cmd.SpawnStatic)
+			cl.parseStatic(cmd.SpawnStatic)
 		case *protos.SCmd_TempEntity:
 			cls.parseTempEntity(cmd.TempEntity)
 		case *protos.SCmd_SetPause:
@@ -433,9 +425,9 @@ func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) {
 	e.Sync()
 }
 
-func (c *Client) ParseStatic(pb *protos.Baseline) {
+func (c *Client) parseStatic(pb *protos.Baseline) {
 	ent := c.CreateStaticEntity()
-	CL_ParseBaseline(pb, ent)
+	parseBaseline(pb, ent)
 	// copy it to the current state
 
 	ent.Model = c.modelPrecache[ent.Baseline.ModelIndex-1]

@@ -419,7 +419,12 @@ func (c *Client) ReadFromServer() {
 			break
 		}
 		c.lastReceivedMessageTime = host.time
-		CL_ParseServerMessage()
+		pb, err := svc.ParseServerMessage(cls.inMessage, c.protocol, c.protocolFlags)
+		if err != nil {
+			fmt.Printf("Bad server message\n %v", err)
+			HostError("CL_ParseServerMessage: Bad server message")
+		}
+		CL_ParseServerMessage(pb)
 		if cls.state != ca_connected {
 			break
 		}
