@@ -283,11 +283,6 @@ int AllocBlock(int w, int h, int *x, int *y) {
   return 0;  // johnfitz -- shut up compiler
 }
 
-mvertex_t *r_pcurrentvertbase;
-qmodel_t *currentmodel;
-
-int nColinElim;
-
 /*
 ========================
 GL_CreateSurfaceLightmap
@@ -313,7 +308,7 @@ void GL_CreateSurfaceLightmap(msurface_t *surf) {
 BuildSurfaceDisplayList -- called at level load time
 ================
 */
-void BuildSurfaceDisplayList(msurface_t *fa) {
+void BuildSurfaceDisplayList(msurface_t *fa, qmodel_t *currentmodel) {
   int i, lindex, lnumverts;
   medge_t *pedges, *r_pedge;
   float *vec;
@@ -322,6 +317,7 @@ void BuildSurfaceDisplayList(msurface_t *fa) {
 
   // reconstruct the polygon
   pedges = currentmodel->edges;
+  mvertex_t *r_pcurrentvertbase = currentmodel->vertexes;
   lnumverts = fa->numedges;
 
   //
@@ -407,14 +403,12 @@ void GL_BuildLightmaps(void) {
     m = cl.model_precache[j];
     if (!m) break;
     if (m->name[0] == '*') continue;
-    r_pcurrentvertbase = m->vertexes;
-    currentmodel = m;
     for (i = 0; i < m->numsurfaces; i++) {
       // johnfitz -- rewritten to use SURF_DRAWTILED instead of the sky/water
       // flags
       if (m->surfaces[i].flags & SURF_DRAWTILED) continue;
       GL_CreateSurfaceLightmap(m->surfaces + i);
-      BuildSurfaceDisplayList(m->surfaces + i);
+      BuildSurfaceDisplayList(m->surfaces + i, m);
       // johnfitz
     }
   }
