@@ -45,7 +45,7 @@ func (c *Client) GetFreeDynamicLight() *DynamicLight {
 
 //export CL_ClearDLights
 func CL_ClearDLights() {
-	for i, _ := range cl.dynamicLights {
+	for i := range cl.dynamicLights {
 		cl.dynamicLights[i] = DynamicLight{}
 		cl.dynamicLights[i].ptr = &C.cl_dlights[i]
 		cl.dynamicLights[i].Sync()

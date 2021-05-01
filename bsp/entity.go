@@ -55,7 +55,7 @@ func (e *Entity) Name() (string, bool) {
 
 func (e *Entity) PropertyNames() []string {
 	n := []string{}
-	for k, _ := range e.properties {
+	for k := range e.properties {
 		n = append(n, k)
 	}
 	return n
