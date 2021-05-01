@@ -568,7 +568,7 @@ func (v *virtualMachine) ambientSound() {
 	sv.signon.WriteByte(int(attenuation))
 }
 
-// Each entity can have eight independant sound sources, like voice,
+// Each entity can have eight independent sound sources, like voice,
 // weapon, feet, etc.
 // Channel 0 is an auto-allocate channel, the others override anything
 // already running on that entity/channel pair.

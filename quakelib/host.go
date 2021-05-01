@@ -257,7 +257,7 @@ func executeFrame() {
 
 	screen.Update()
 
-	particlesRun(float32(cl.time), float32(cl.oldTime)) // seperated from rendering
+	particlesRun(float32(cl.time), float32(cl.oldTime)) // separated from rendering
 
 	if cvars.HostSpeeds.Bool() {
 		time2 = time.Now()

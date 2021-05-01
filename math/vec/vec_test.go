@@ -55,7 +55,7 @@ func TestSub(t *testing.T) {
 	v := Vec3{1, 2, 3}
 	got := Sub(v, NULL)
 	if v != got {
-		t.Errorf("Substracting a null vector changed the vector")
+		t.Errorf("Subtracting a null vector changed the vector")
 	}
 	got = Sub(v, v)
 	if got != NULL {

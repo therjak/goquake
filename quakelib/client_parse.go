@@ -233,7 +233,7 @@ func CL_ParseServerInfo(si *protos.ServerInfo) {
 	cl.gameType = int(si.GameType)
 	cl.levelName = si.LevelName
 
-	// seperate the printfs so the server message can have a color
+	// separate the printfs so the server message can have a color
 	console.printBar()
 	conlog.Printf("%c%s\n", 2, cl.levelName)
 

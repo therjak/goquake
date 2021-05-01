@@ -457,12 +457,12 @@ func hostGive(args []cmd.QArg, playerEdictId int) {
 		progs.HipnoticItemMjolnir:
 		ev.CurrentAmmo = ev.AmmoCells
 	case progs.RogueItemLavaNailgun:
-		// This is the same as ItemAxe so we need to be more carefull
+		// This is the same as ItemAxe so we need to be more careful
 		if cmdl.Rogue() {
 			ev.CurrentAmmo = ev.AmmoNails
 		}
 	case progs.RogueItemPlasmaGun:
-		// This is the same as HipnoticItemProximityGun, so be more carefull
+		// This is the same as HipnoticItemProximityGun, so be more careful
 		if cmdl.Rogue() {
 			ev.CurrentAmmo = ev.AmmoCells
 		} else if cmdl.Hipnotic() {
@@ -499,7 +499,7 @@ func hostTell(args []cmd.QArg, _ int) {
 	}
 
 	cn := HostClient().name
-	// TODO: should we realy concat or use cmd.Full?
+	// TODO: should we really concat or use cmd.Full?
 	ms := concatArgs(args[1:])
 	text := fmt.Sprintf("%s: %s", cn, ms)
 
@@ -594,12 +594,12 @@ func hostSpawn(args []cmd.QArg, playerEdictId int) {
 	}
 	c := HostClient()
 	if c.spawned {
-		conlog.Printf("Spawn not valid -- allready spawned\n")
+		conlog.Printf("Spawn not valid -- already spawned\n")
 		return
 	}
 	// run the entrance script
 	if sv.loadGame {
-		// loaded games are fully inited allready
+		// loaded games are fully inited already
 		// if this is the last client to be connected, unpause
 		sv.paused = false
 	} else {
@@ -822,7 +822,7 @@ func hostKill(args []cmd.QArg, playerEdictId int) {
 	ev := EntVars(playerEdictId)
 
 	if ev.Health <= 0 {
-		HostClient().Printf("Can't suicide -- allready dead!\n")
+		HostClient().Printf("Can't suicide -- already dead!\n")
 		return
 	}
 

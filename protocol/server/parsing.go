@@ -838,7 +838,7 @@ func ParseEntityUpdate(msg *net.QReader, pcol int, protocolFlags uint32, cmd byt
 			}
 		}
 		if bits&U_SCALE != 0 {
-			// RMQ, currenty ignored
+			// RMQ, currently ignored
 			if _, err := msg.ReadByte(); err != nil {
 				return nil, err
 			}

@@ -1169,7 +1169,7 @@ func (c *Client) calcRefreshRect() {
 	qRefreshRect.viewOrg[2] += c.viewHeight + bob
 
 	// never let it sit exactly on a node line, because a water plane can
-	// dissapear when viewed with the eye exactly on it.
+	// disappear when viewed with the eye exactly on it.
 	// the server protocol only specifies to 1/16 pixel, so add 1/32 in each axis
 	qRefreshRect.viewOrg[0] += 1.0 / 32
 	qRefreshRect.viewOrg[1] += 1.0 / 32

@@ -426,7 +426,7 @@ func (tm *texMgr) textureModeCallback(cv *cvar.Cvar) {
 			return
 		}
 	}
-	// Try to fix the cvar value and recursivly call again
+	// Try to fix the cvar value and recursively call again
 	ln := strings.ToLower(name)
 	for _, m := range glModes {
 		if strings.ToLower(m.name) == ln {

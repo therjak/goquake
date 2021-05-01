@@ -219,7 +219,7 @@ var (
 		"MWHEELUP":   MWHEELUP,
 		"MWHEELDOWN": MWHEELDOWN,
 
-		"SEMICOLON": ';', // because a raw semicolon seperates commands
+		"SEMICOLON": ';', // because a raw semicolon separates commands
 
 		"BACKQUOTE": '`', // because a raw backquote may toggle the console
 		"TILDE":     '~', // because a raw tilde may toggle the console

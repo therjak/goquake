@@ -64,13 +64,13 @@ func (c *Client) updateTempEntities() {
 		if b.model == nil || b.endTime < c.time {
 			continue
 		}
-		// if comming from the player
+		// if coming from the player
 		if int(b.entity) == c.viewentity {
 			b.start = c.Entity().Origin
 		}
 
 		yaw := float32(0)
-		pitch := float32(0)
+		var pitch float32
 		dist := vec.Sub(b.end, b.start)
 		if dist[0] == 0 && dist[1] == 0 {
 			if dist[2] > 0 {

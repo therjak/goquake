@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-// extention to cmd.go
+// extension to cmd.go
 // adds some explicit cmds
 package quakelib
 

@@ -407,6 +407,27 @@ func buildSurfacesV0(f []*faceV0, plane []*Plane, texinfo []*TexInfo) ([]*Surfac
 		nsf.Plane = plane[sf.PlaneID]
 		nsf.TexInfo = texinfo[sf.TexInfoID]
 
+		if strings.HasPrefix(nsf.TexInfo.Texture.name, "sky") {
+			nsf.Flags |= SurfaceDrawSky | SurfaceDrawTiled
+		} else if strings.HasPrefix(nsf.TexInfo.Texture.name, "*") {
+			nsf.Flags |= SurfaceDrawTurb | SurfaceDrawTiled
+			if strings.HasPrefix(nsf.TexInfo.Texture.name, "*lava") {
+				nsf.Flags |= SurfaceDrawLava
+			} else if strings.HasPrefix(nsf.TexInfo.Texture.name, "*slime") {
+				nsf.Flags |= SurfaceDrawSlime
+			} else if strings.HasPrefix(nsf.TexInfo.Texture.name, "*tele") {
+				nsf.Flags |= SurfaceDrawTele
+			} else {
+				nsf.Flags |= SurfaceDrawWater
+			}
+		} else if strings.HasPrefix(nsf.TexInfo.Texture.name, "{") {
+			nsf.Flags |= SurfaceDrawFence
+		}
+
+		if nsf.TexInfo.Flags&texMissing != 0 {
+			// TODO (gl_model.c:Mod_LoadFaces
+		}
+
 		if sf.LightMap != -1 {
 			// TODO: nsf.Samples = model.lightdata[3*sf.LightMap]
 		}
@@ -478,7 +499,7 @@ func buildNodesV0(nd []*nodeV0, leafs []*MLeaf, planes []*Plane) ([]*MNode, erro
 			NodeBase: NewNodeBase(0, 0, [6]float32{
 				float32(n.Box[0]), float32(n.Box[1]), float32(n.Box[2]),
 				float32(n.Box[3]), float32(n.Box[4]), float32(n.Box[5])}),
-			// Children:  delay untill we got all nodes
+			// Children:  delay until we got all nodes
 			Plane:        planes[int(n.PlaneID)],
 			FirstSurface: uint32(n.FirstSurface),
 			SurfaceCount: uint32(n.SurfaceCount),
