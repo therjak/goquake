@@ -515,8 +515,6 @@ func ParseSoundMessage(msg *net.QReader, protocolFlags uint32) (*protos.Sound, e
 		}
 	}
 
-	ent := uint16(0)
-	channel := byte(0)
 	if fieldMask&SoundLargeEntity != 0 {
 		e, err := msg.ReadInt16() // int16
 		if err != nil {
@@ -526,34 +524,30 @@ func ParseSoundMessage(msg *net.QReader, protocolFlags uint32) (*protos.Sound, e
 		if err != nil {
 			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
 		}
-		ent = uint16(e)
-		channel = c
+		message.Entity = int32(e)
+		message.Channel = int32(c)
 	} else {
 		s, err := msg.ReadInt16() // int16 + byte
 		if err != nil {
 			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
 		}
-		ent = uint16(s >> 3)
-		channel = byte(s & 7)
+		message.Entity = int32(s >> 3)
+		message.Channel = int32(s & 7)
 	}
-	message.Entity = int32(ent)
-	message.Channel = int32(channel)
 
-	soundNum := uint16(0)
 	if fieldMask&SoundLargeSound != 0 {
 		n, err := msg.ReadInt16() // int16
 		if err != nil {
 			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
 		}
-		soundNum = uint16(n - 1)
+		message.SoundNum = int32(n - 1)
 	} else {
 		n, err := msg.ReadByte() // int16
 		if err != nil {
 			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
 		}
-		soundNum = uint16(n - 1)
+		message.SoundNum = int32(n - 1)
 	}
-	message.SoundNum = int32(soundNum)
 	cord, err := readCoord(msg, protocolFlags)
 	if err != nil {
 		return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)

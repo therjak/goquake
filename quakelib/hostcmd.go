@@ -476,15 +476,15 @@ func concatArgs(args []cmd.QArg) string {
 	for i := 0; i < len(args); i++ {
 		n += len(args[i].String())
 	}
-
-	b := make([]byte, n)
-	bp := copy(b, args[0].String())
+	var b strings.Builder
+	b.Grow(n)
+	b.WriteString(args[0].String())
 	for _, s := range args[1:] {
-		bp += copy(b[bp:], " ")
-		bp += copy(b[bp:], s.String())
+		b.WriteString(" ")
+		b.WriteString(s.String())
 	}
-	bp += copy(b[bp:], "\n")
-	return string(b)
+	b.WriteString("\n")
+	return b.String()
 }
 
 func hostTell(args []cmd.QArg, _ int) {

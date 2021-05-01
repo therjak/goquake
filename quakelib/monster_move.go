@@ -211,10 +211,9 @@ func (v *virtualMachine) monsterNewChaseDir(a, e int, dist float32) {
 		return DI_NODIR
 	}()
 
-	tdir := float32(0)
 	// try direct route
 	if d1 != DI_NODIR && d2 != DI_NODIR {
-		tdir = func() float32 {
+		tdir := func() float32 {
 			if d1 == 0 {
 				if d2 == 90 {
 					return 45
@@ -235,7 +234,7 @@ func (v *virtualMachine) monsterNewChaseDir(a, e int, dist float32) {
 	if sRand.Uint32n(2) == 0 ||
 		// TODO: Abs(Trunc seems overkill
 		math32.Abs(math32.Trunc(deltay)) > math32.Abs(math32.Trunc(deltax)) {
-		tdir = d1
+		tdir := d1
 		d1 = d2
 		d2 = tdir
 	}
@@ -254,13 +253,13 @@ func (v *virtualMachine) monsterNewChaseDir(a, e int, dist float32) {
 
 	// randomly determine direction of search
 	if sRand.Uint32n(2) == 0 {
-		for tdir = 0; tdir <= 315; tdir += 45 {
+		for tdir := float32(0); tdir <= 315; tdir += 45 {
 			if tdir != turnaround && v.monsterStepDirection(a, tdir, dist) {
 				return
 			}
 		}
 	} else {
-		for tdir = 315; tdir >= 0; tdir -= 45 {
+		for tdir := float32(315); tdir >= 0; tdir -= 45 {
 			if tdir != turnaround && v.monsterStepDirection(a, tdir, dist) {
 				return
 			}

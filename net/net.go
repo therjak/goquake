@@ -244,7 +244,7 @@ func handShake(host string) (*net.UDPAddr, *net.UDPAddr, error) {
 		control&NETFLAG_LENGTH_MASK != uint32(i) {
 		return nil, nil, fmt.Errorf("Error in reply")
 	}
-	ack, err := msg.ReadByte()
+	ack, _ := msg.ReadByte()
 	if ack == CCREP_REJECT {
 		s, err := msg.ReadString(0x00)
 		if err != nil {
