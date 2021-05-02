@@ -16,14 +16,11 @@ package quakelib
 //extern entity_t cl_static_entities[512];
 //inline entity_t* getStaticEntity(int i) { return &cl_static_entities[i]; }
 //void CL_ParseStaticC(entity_t* e, int modelindex);
-//void R_DrawAliasModel(entity_t* e);
 //void R_DrawBrushModel(entity_t* e);
-//void GL_DrawAliasShadow(entity_t* e);
 //#endif
 import "C"
 
 import (
-	"math/rand"
 	"unsafe"
 
 	"github.com/therjak/goquake/cmd"
@@ -293,7 +290,7 @@ func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
 		forward, _, _ := vec.AngleVectors(e.Angles)
 		dl.Origin.Add(vec.Scale(18, forward))
 
-		dl.Radius = 200 + float32(rand.Int31n(32))
+		dl.Radius = 200 + float32(cRand.Uint32n(32))
 		dl.MinLight = 32
 		dl.DieTime = cl.time + 0.1
 		dl.Sync()
@@ -316,7 +313,7 @@ func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
 		dl.Color = vec.Vec3{1, 1, 1}
 		dl.Origin = e.Origin
 		dl.Origin[2] += 16
-		dl.Radius = 400 + float32(rand.Int31n(32))
+		dl.Radius = 400 + float32(cRand.Uint32n(32))
 		dl.DieTime = cl.time + 0.001
 		dl.Sync()
 	}
@@ -325,7 +322,7 @@ func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
 		dl.Key = idx
 		dl.Color = vec.Vec3{1, 1, 1}
 		dl.Origin = e.Origin
-		dl.Radius = 200 + float32(rand.Int31n(32))
+		dl.Radius = 200 + float32(cRand.Uint32n(32))
 		dl.DieTime = cl.time + 0.001
 		dl.Sync()
 	}
@@ -439,12 +436,6 @@ func (e *Entity) ParseStaticC(index int) {
 	C.CL_ParseStaticC(e.ptr, C.int(index))
 }
 
-func (r *qRenderer) DrawAliasModel(e *Entity) {
-	C.R_DrawAliasModel(e.ptr)
-}
-func (r *qRenderer) DrawAliasShadow(e *Entity) {
-	C.GL_DrawAliasShadow(e.ptr)
-}
 func (r *qRenderer) DrawBrushModel(e *Entity) {
 	C.R_DrawBrushModel(e.ptr)
 }

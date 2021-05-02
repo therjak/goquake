@@ -64,23 +64,17 @@ func CLPrecacheModel(name string, i int) {
 	C.free(unsafe.Pointer(cn))
 }
 
-const (
-	ModNoLerp         = 256
-	ModNoShadow       = 512
-	ModFullBrightHack = 1024
-)
-
 func setExtraFlags(m model.Model) {
 	switch mt := m.(type) {
 	case *mdl.Model:
 		if strings.Contains(cvars.RNoLerpList.String(), mt.Name()) {
-			mt.AddFlag(ModNoLerp)
+			mt.AddFlag(mdl.NoLerp)
 		}
 		if strings.Contains(cvars.RNoShadowList.String(), mt.Name()) {
-			mt.AddFlag(ModNoShadow)
+			mt.AddFlag(mdl.NoShadow)
 		}
 		if strings.Contains(cvars.RFullBrightList.String(), mt.Name()) {
-			mt.AddFlag(ModFullBrightHack)
+			mt.AddFlag(mdl.FullBrightHack)
 		}
 	}
 }

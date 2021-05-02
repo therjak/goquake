@@ -173,13 +173,13 @@ func (r *qRenderer) DrawWeaponModel() {
 	if weapon.Model == nil {
 		return
 	}
-	switch weapon.Model.(type) {
+	switch m := weapon.Model.(type) {
 	default:
 		// this fixes a crash, TODO: why can this happen?
 	case *mdl.Model:
 		// hack the depth range to prevent view model from poking into walls
 		gl.DepthRange(0, 0.3)
-		r.DrawAliasModel(weapon)
+		r.DrawAliasModel(weapon, m)
 		gl.DepthRange(0, 1)
 	}
 }
@@ -388,7 +388,7 @@ func (r *qRenderer) DrawEntitiesOnList(alphaPass bool) {
 
 		switch m := e.Model.(type) {
 		case *mdl.Model:
-			r.DrawAliasModel(e)
+			r.DrawAliasModel(e, m)
 		case *bsp.Model:
 			r.DrawBrushModel(e)
 		case *spr.Model:
@@ -410,9 +410,9 @@ func (r *qRenderer) DrawShadows() {
 	gl.Enable(gl.STENCIL_TEST)
 
 	for _, e := range visibleEntities {
-		switch e.Model.(type) {
+		switch m := e.Model.(type) {
 		case *mdl.Model:
-			r.DrawAliasShadow(e)
+			r.DrawAliasShadow(e, m)
 		}
 	}
 

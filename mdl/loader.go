@@ -9,9 +9,16 @@ import (
 	"log"
 	"math"
 
+	"github.com/chewxy/math32"
 	"github.com/therjak/goquake/math/vec"
 	qm "github.com/therjak/goquake/model"
 	"github.com/therjak/goquake/texture"
+)
+
+const (
+	NoLerp         = 256
+	NoShadow       = 512
+	FullBrightHack = 1024
 )
 
 func init() {
@@ -24,9 +31,6 @@ type Model struct {
 	mins  vec.Vec3
 	maxs  vec.Vec3
 	flags int
-
-	FrameCount int
-	SyncType   int
 }
 
 type AliasHeader struct {
@@ -39,7 +43,6 @@ type AliasHeader struct {
 	TriangleCount int
 	FrameCount    int
 	SyncType      int
-	Flags         int
 
 	// numverts_vbo
 	// meshdesc intptr_t
@@ -59,6 +62,8 @@ type AliasHeader struct {
 	// Texels     [32]int
 	Frames    []Frame
 	Triangles []Triangle
+	Radius    float32
+	YawRadius float32
 }
 
 type TextureCoord struct {
@@ -329,6 +334,8 @@ func calcFrames(mod *Model, pheader *header, frames []frame) {
 
 	mod.Frames = make([]Frame, len(frames))
 
+	var radius float32
+	var yawRadius float32
 	for i := 0; i < len(frames); i++ {
 		f := &frames[i]
 		F := &mod.Frames[i]
@@ -355,28 +362,20 @@ func calcFrames(mod *Model, pheader *header, frames []frame) {
 				maxs[0] = max(maxs[0], v[0])
 				maxs[1] = max(maxs[1], v[1])
 				maxs[2] = max(maxs[2], v[2])
-				/*
-					dist := v[0]*v[0] + v[1]*v[1]
-					if yawradius < dist {
-						yawradius = dist
-					}
-					dist += v[2] * v[2]
-					if radius < dist {
-						radius = dist
-					}
-				*/
+
+				dist := v[0]*v[0] + v[1]*v[1]
+				if yawRadius < dist {
+					yawRadius = dist
+				}
+				dist += v[2] * v[2]
+				if radius < dist {
+					radius = dist
+				}
 			}
 		}
 	}
 	mod.mins = mins
 	mod.maxs = maxs
-	/*
-		radius = math32.Sqrt(radius)
-		yawradius = math32.Sqrt(yawradius)
-		mod.YMins = vec.Vec3{-yawradius, -yawradius, mod.Mins[2]}
-		mod.YMaxs = vec.Vec3{yawradius, yawradius, mod.Maxs[2]}
-
-		mod.RMins = vec.Vec3{-radius, -radius, -radius}
-		mod.RMaxs = vec.Vec3{radius, radius, radius}
-	*/
+	mod.Radius = math32.Sqrt(radius)
+	mod.YawRadius = math32.Sqrt(yawRadius)
 }
