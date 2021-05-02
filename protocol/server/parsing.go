@@ -61,7 +61,7 @@ var (
 	}
 )
 
-func ParseClientData(msg *net.QReader) (*protos.ClientData, error) {
+func parseClientData(msg *net.QReader) (*protos.ClientData, error) {
 	clientData := &protos.ClientData{}
 
 	m, err := msg.ReadUint16()
@@ -281,7 +281,7 @@ func readAngle(msg *net.QReader, protocolFlags uint32) (*protos.Coord, error) {
 	}, nil
 }
 
-func ParseTempEntity(msg *net.QReader, protocolFlags uint32) (*protos.TempEntity, error) {
+func parseTempEntity(msg *net.QReader, protocolFlags uint32) (*protos.TempEntity, error) {
 	readCoordVec := func() (*protos.Coord, error) {
 		return readCoord(msg, protocolFlags)
 	}
@@ -487,7 +487,7 @@ func ParseTempEntity(msg *net.QReader, protocolFlags uint32) (*protos.TempEntity
 	return nil, fmt.Errorf("CL_ParseTEnt: bad type")
 }
 
-func ParseSoundMessage(msg *net.QReader, protocolFlags uint32) (*protos.Sound, error) {
+func parseSoundMessage(msg *net.QReader, protocolFlags uint32) (*protos.Sound, error) {
 	message := &protos.Sound{}
 
 	fieldMask, err := msg.ReadByte()
@@ -556,7 +556,7 @@ func ParseSoundMessage(msg *net.QReader, protocolFlags uint32) (*protos.Sound, e
 	return message, nil
 }
 
-func ParseBaseline(msg *net.QReader, protocolFlags uint32, version int) (*protos.Baseline, error) {
+func parseBaseline(msg *net.QReader, protocolFlags uint32, version int) (*protos.Baseline, error) {
 	bl := &protos.Baseline{}
 	var err error
 	bits := byte(0)
@@ -639,7 +639,7 @@ func ParseBaseline(msg *net.QReader, protocolFlags uint32, version int) (*protos
 	return bl, nil
 }
 
-func ParseServerInfo(msg *net.QReader) (*protos.ServerInfo, error) {
+func parseServerInfo(msg *net.QReader) (*protos.ServerInfo, error) {
 	si := &protos.ServerInfo{}
 	var err error
 
@@ -706,7 +706,7 @@ func ParseServerInfo(msg *net.QReader) (*protos.ServerInfo, error) {
 	return si, nil
 }
 
-func ParseEntityUpdate(msg *net.QReader, pcol int, protocolFlags uint32, cmd byte) (*protos.EntityUpdate, error) {
+func parseEntityUpdate(msg *net.QReader, pcol int, protocolFlags uint32, cmd byte) (*protos.EntityUpdate, error) {
 	eu := &protos.EntityUpdate{}
 	bits := uint32(cmd)
 	if bits&U_MOREBITS != 0 {
@@ -912,7 +912,7 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 
 		// if the high bit of the command byte is set, it is a fast update
 		if cmd&U_SIGNAL != 0 {
-			if eu, err := ParseEntityUpdate(msg, protocol, protocolFlags, cmd&127); err != nil {
+			if eu, err := parseEntityUpdate(msg, protocol, protocolFlags, cmd&127); err != nil {
 				return nil, err
 			} else {
 				sm.Cmds = append(sm.Cmds, &protos.SCmd{
@@ -937,7 +937,7 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 				})
 			}
 		case ClientData:
-			if cdp, err := ParseClientData(msg); err != nil {
+			if cdp, err := parseClientData(msg); err != nil {
 				return nil, err
 			} else {
 				sm.Cmds = append(sm.Cmds, &protos.SCmd{
@@ -1000,7 +1000,7 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 				})
 			}
 		case ServerInfo:
-			if si, err := ParseServerInfo(msg); err != nil {
+			if si, err := parseServerInfo(msg); err != nil {
 				return nil, err
 			} else {
 				sm.Cmds = append(sm.Cmds, &protos.SCmd{
@@ -1039,7 +1039,7 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 				Union: &protos.SCmd_LightStyle{cmd},
 			})
 		case Sound:
-			if spp, err := ParseSoundMessage(msg, protocolFlags); err != nil {
+			if spp, err := parseSoundMessage(msg, protocolFlags); err != nil {
 				return nil, err
 			} else {
 				sm.Cmds = append(sm.Cmds, &protos.SCmd{
@@ -1136,7 +1136,7 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 			} else {
 				eb.Index = int32(i)
 			}
-			if pb, err := ParseBaseline(msg, protocolFlags, 1); err != nil {
+			if pb, err := parseBaseline(msg, protocolFlags, 1); err != nil {
 				return nil, err
 			} else {
 				eb.Baseline = pb
@@ -1146,7 +1146,7 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 			})
 
 		case SpawnStatic:
-			if pb, err := ParseBaseline(msg, protocolFlags, 1); err != nil {
+			if pb, err := parseBaseline(msg, protocolFlags, 1); err != nil {
 				return nil, err
 			} else {
 				sm.Cmds = append(sm.Cmds, &protos.SCmd{
@@ -1155,7 +1155,7 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 			}
 
 		case TempEntity:
-			if tep, err := ParseTempEntity(msg, protocolFlags); err != nil {
+			if tep, err := parseTempEntity(msg, protocolFlags); err != nil {
 				return nil, err
 			} else {
 				sm.Cmds = append(sm.Cmds, &protos.SCmd{
@@ -1299,7 +1299,7 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 			} else {
 				sb.Index = int32(i)
 			}
-			if pb, err := ParseBaseline(msg, protocolFlags, 2); err != nil {
+			if pb, err := parseBaseline(msg, protocolFlags, 2); err != nil {
 				return nil, err
 			} else {
 				sb.Baseline = pb
@@ -1309,7 +1309,7 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 			})
 
 		case SpawnStatic2:
-			if pb, err := ParseBaseline(msg, protocolFlags, 2); err != nil {
+			if pb, err := parseBaseline(msg, protocolFlags, 2); err != nil {
 				return nil, err
 			} else {
 				sm.Cmds = append(sm.Cmds, &protos.SCmd{
