@@ -239,7 +239,7 @@ func CL_ParseServerInfo(si *protos.ServerInfo) {
 
 	conlog.Printf("Using protocol %d\n", cl.protocol)
 
-	cl.modelPrecache = cl.modelPrecache[:]
+	cl.modelPrecache = cl.modelPrecache[:0]
 	if len(si.ModelPrecache) >= 2048 {
 		HostError("Server sent too many model precaches")
 	}

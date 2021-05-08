@@ -1218,7 +1218,7 @@ func (c *Client) calcRefreshRect() {
 	w.ptr.origin[1] = C.float(w.Origin[1])
 	w.ptr.origin[2] = C.float(w.Origin[2])
 
-	w.Model = c.modelPrecache[c.stats.weapon]
+	w.Model = c.modelPrecache[c.stats.weapon-1]
 	C.SetCLWeaponModel(C.int(c.stats.weapon))
 	w.Frame = cl.stats.weaponFrame
 	w.ptr.frame = C.int(w.Frame)
