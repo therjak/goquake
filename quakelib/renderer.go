@@ -234,12 +234,6 @@ func (cd *qConeDrawer) Draw(cs []qCone) {
 		0, 0, 1, 0,
 		0, 0, 0, 1,
 	}
-	modelview := [16]float32{
-		1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0,
-		0, 0, 0, 1,
-	}
 	// NOTE about the matrix element order:
 	// [00][04][08][12]
 	// [01][05][09][13]
@@ -264,28 +258,6 @@ func (cd *qConeDrawer) Draw(cs []qCone) {
 	//    0, 0, -1, 0
 	gl.GetFloatv(0x0BA7, &projection[0])
 
-	// modelview should be
-	// viewright.x,viewUp.x,-viewForward.x,0
-	// viewright.y,viewUp.y,-viewForward.y,0
-	// viewright.z,viewUp.z,-viewForward.z,0
-	// ?| ?| ?| 1
-	// it get set by
-	// glRotatef(-90, 1, 0, 0)
-	// glRotatef(90, 0, 0, 1)
-	// glRotatef(-viewangles[2], 1, 0, 0)
-	// glRotatef(-viewangles[0], 0, 1, 0)
-	// glRotatef(-viewangles[1], 0, 0, 1)
-	// glTranslate(-vieworg[0], -vieworg[1], -vieworg[2])
-	gl.GetFloatv(0x0BA6, &modelview[0])
-	/*
-		log.Printf("mv: %v", modelview)
-		log.Printf("ex: %v, %v, %v, %v, %v",
-			qRefreshRect.viewOrg,
-			qRefreshRect.viewForward,
-			qRefreshRect.viewRight,
-			qRefreshRect.viewUp,
-			qRefreshRect.viewAngles)
-	*/
 	if false {
 		log.Printf("something")
 	}
@@ -318,7 +290,7 @@ func (cd *qConeDrawer) Draw(cs []qCone) {
 	gl.VertexAttribPointer(3, 3, gl.FLOAT, false, 4*10, gl.PtrOffset(7*4))
 
 	gl.UniformMatrix4fv(cd.projection, 1, false, &projection[0])
-	gl.UniformMatrix4fv(cd.modelview, 1, false, &modelview[0])
+	view.modelView.SetAsUniform(cd.modelview)
 
 	gl.DrawArrays(gl.POINTS, 0, int32(len(cs)))
 }

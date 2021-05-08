@@ -12,6 +12,7 @@ import (
 	"github.com/chewxy/math32"
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/therjak/goquake/cvars"
+	"github.com/therjak/goquake/glh"
 	"github.com/therjak/goquake/math/vec"
 )
 
@@ -40,6 +41,7 @@ func CalcRoll(angles, velocity vec.Vec3) float32 {
 
 type qView struct {
 	blendColor Color
+	modelView  *glh.Matrix
 }
 
 var (
@@ -90,6 +92,14 @@ func (v *qView) Render() {
 
 func (v *qView) renderScene() {
 	const alphaPass = true
+	v.modelView = glh.Identity()
+	v.modelView.RotateX(-90)
+	v.modelView.RotateZ(90)
+	v.modelView.RotateX(-qRefreshRect.viewAngles[2])
+	v.modelView.RotateY(-qRefreshRect.viewAngles[0])
+	v.modelView.RotateZ(-qRefreshRect.viewAngles[1])
+	v.modelView.Translate(-qRefreshRect.viewOrg[0], -qRefreshRect.viewOrg[1], -qRefreshRect.viewOrg[2])
+
 	C.R_SetupScene()
 	sky.Draw()
 	// TODO: enable fog?

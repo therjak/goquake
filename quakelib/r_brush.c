@@ -153,7 +153,12 @@ void R_DrawBrushModel(entity_t *e) {
     e->origin[1] -= DIST_EPSILON;
     e->origin[2] -= DIST_EPSILON;
   }
-  R_RotateForEntity(e->origin, e->angles);
+
+  glTranslatef(e->origin[0], e->origin[1], e->origin[2]);
+  glRotatef(e->angles[1], 0, 0, 1);
+  glRotatef(-e->angles[0], 0, 1, 0);
+  glRotatef(e->angles[2], 1, 0, 0);
+  
   if (Cvar_GetValue(&gl_zfix)) {
     e->origin[0] += DIST_EPSILON;
     e->origin[1] += DIST_EPSILON;

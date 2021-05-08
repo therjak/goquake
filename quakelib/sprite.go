@@ -123,8 +123,6 @@ func (r *qRenderer) DrawSpriteModel(e *Entity, m *spr.Model) {
 	// TODO: why do the model/view stuff outside the shader?
 	projection := [16]float32{}
 	gl.GetFloatv(0x0BA7, &projection[0])
-	modelview := [16]float32{}
-	gl.GetFloatv(0x0BA6, &modelview[0])
 
 	spriteDrawer.prog.Use()
 	spriteDrawer.vao.Bind()
@@ -140,8 +138,8 @@ func (r *qRenderer) DrawSpriteModel(e *Entity, m *spr.Model) {
 	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 4*5, gl.PtrOffset(0))
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 4*5, gl.PtrOffset(3*4))
 
-	gl.UniformMatrix4fv(skyDrawer.projection, 1, false, &projection[0])
-	gl.UniformMatrix4fv(skyDrawer.modelview, 1, false, &modelview[0])
+	gl.UniformMatrix4fv(spriteDrawer.projection, 1, false, &projection[0])
+	view.modelView.SetAsUniform(spriteDrawer.modelview)
 
 	gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
 }

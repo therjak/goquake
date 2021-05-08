@@ -98,13 +98,6 @@ qboolean R_CullModelForEntity(entity_t *e) {
   return R_CullBox(mins, maxs);
 }
 
-void R_RotateForEntity(vec3_t origin, vec3_t angles) {
-  glTranslatef(origin[0], origin[1], origin[2]);
-  glRotatef(angles[1], 0, 0, 1);
-  glRotatef(-angles[0], 0, 1, 0);
-  glRotatef(angles[2], 1, 0, 0);
-}
-
 #define DEG2RAD(a) ((a)*M_PI_DIV_180)
 
 // THERJAK

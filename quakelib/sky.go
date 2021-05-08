@@ -369,8 +369,6 @@ func (s *qSky) DrawSkyLayers() {
 	// check qRefreshRect.viewOrg below
 	projection := [16]float32{}
 	gl.GetFloatv(0x0BA7, &projection[0])
-	modelview := [16]float32{}
-	gl.GetFloatv(0x0BA6, &modelview[0])
 
 	skyDrawer.prog.Use()
 	skyDrawer.vao.Bind()
@@ -388,7 +386,7 @@ func (s *qSky) DrawSkyLayers() {
 	gl.VertexAttribPointer(2, 2, gl.FLOAT, false, 4*7, gl.PtrOffset(5*4)) // alphaTexPos
 
 	gl.UniformMatrix4fv(skyDrawer.projection, 1, false, &projection[0])
-	gl.UniformMatrix4fv(skyDrawer.modelview, 1, false, &modelview[0])
+	view.modelView.SetAsUniform(skyDrawer.modelview)
 	gl.Uniform1i(skyDrawer.solidTex, 0)
 	gl.Uniform1i(skyDrawer.alphaTex, 1)
 
