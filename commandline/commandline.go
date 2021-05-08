@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+
 package commandline
 
 import (
@@ -97,7 +98,7 @@ func init() {
 	flag.IntVar(&particles, "particles", 2048, "")
 	flag.IntVar(&port, "port", 26000, "")
 	flag.IntVar(&port, "udpport", 26000, "")
-	flag.IntVar(&protocol, "protocol", 666, "15: NetQuake, 666: FitzQuake, 999: RMQ") // 666 is FITZQUAKE
+	flag.IntVar(&protocol, "protocol", 666, "15: NetQuake, 666: FitzQuake, 999: RMQ, 9090: GoQuake") // 666 is FITZQUAKE
 	flag.IntVar(&width, "width", -1, "window width, negative is unset")
 	flag.IntVar(&zone, "zone", 4*1024*1024, "")
 

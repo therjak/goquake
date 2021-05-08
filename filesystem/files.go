@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+
 package filesystem
 
 //TODO(therjak): the pack files are never closed and ns is never cleaned. There should be an option.
