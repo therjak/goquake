@@ -93,10 +93,10 @@ func (m *Matrix) RotateY(degree float32) {
 	// 0, 0, 0, 1
 	// compute m*t
 	n := [16]float32{
-		cos*m.m[0] - sin*m.m[2], m.m[1], sin*m.m[0] + cos*m.m[2], cos * m.m[3],
-		cos*m.m[4] - sin*m.m[6], m.m[5], sin*m.m[4] + cos*m.m[6], cos * m.m[7],
-		cos*m.m[8] - sin*m.m[10], m.m[9], sin*m.m[8] + cos*m.m[10], cos * m.m[11],
-		cos*m.m[12] - sin*m.m[14], m.m[13], sin*m.m[12] + cos*m.m[14], cos * m.m[15],
+		cos*m.m[0] - sin*m.m[2], m.m[1], sin*m.m[0] + cos*m.m[2], m.m[3],
+		cos*m.m[4] - sin*m.m[6], m.m[5], sin*m.m[4] + cos*m.m[6], m.m[7],
+		cos*m.m[8] - sin*m.m[10], m.m[9], sin*m.m[8] + cos*m.m[10], m.m[11],
+		cos*m.m[12] - sin*m.m[14], m.m[13], sin*m.m[12] + cos*m.m[14], m.m[15],
 	}
 	m.m = n
 }
