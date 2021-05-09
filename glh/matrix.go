@@ -131,3 +131,24 @@ func (m *Matrix) Scale(x, y, z float32) {
 	}
 	m.m = n
 }
+
+func Frustum(fovx, fovy float64, farClip float32) *Matrix {
+	const nearClip = 4
+	xmax := float32(nearClip * math.Tan(fovx*math.Pi/360))
+	ymax := float32(nearClip * math.Tan(fovy*math.Pi/360))
+	return &Matrix{
+		m: [16]float32{
+			nearClip / xmax, 0, 0, 0,
+			0, nearClip / ymax, 0, 0,
+			0, 0, -(farClip + nearClip) / (farClip - nearClip), -2 * farClip * nearClip / (farClip - nearClip),
+			0, 0, -1, 0,
+		},
+	}
+}
+
+func (m *Matrix) Ortho(left, right, bottom, top, near, far float32) {
+	// 2/(r-l), 0, 0, -(r+l)/(r-l)
+	// 0, 2/(t-b), 0, -(t+b)/(t-b)
+	// 0, 0, -2/(f-n), -(f+n)/(f-n)
+	// 0, 0, 0, 1
+}

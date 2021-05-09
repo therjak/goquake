@@ -3,8 +3,6 @@ package quakelib
 
 import "C"
 import (
-	"log"
-
 	"github.com/chewxy/math32"
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/therjak/goquake/bsp"
@@ -228,40 +226,6 @@ func (cd *qConeDrawer) Draw(cs []qCone) {
 	gl.BlendFunc(gl.ONE, gl.ONE)
 	defer gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
-	projection := [16]float32{
-		1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0,
-		0, 0, 0, 1,
-	}
-	// NOTE about the matrix element order:
-	// [00][04][08][12]
-	// [01][05][09][13]
-	// [02][06][10][14]
-	// [03][07][11][15]
-
-	// projection is a matrix based on
-	// fov, screen.width/screen.height, nearclip, farclip
-	// fov = tan(fovx * pi / 360), checked
-	// aspect ratio is correct
-	// fov 0 0 0
-	// 0 aspect, 0,0
-	// ....
-	// all values are coming from
-	// fovy = atan(0.75/(sh/sw)*tan(fovx/360pi)) * 360/pi
-	// xmax = 4 * tan(fovx * pi / 360)
-	// ymax = 4 * tan(fovy * pi / 360)
-	// glFrustum(-xmax, xmax, -ymax, ymax, 4, cvars.gl_farclip)
-	// -> 8/-2xmax, 0, 0, 0
-	//    0, 8/-2ymax, 0, 0
-	//    0, 0, -(far+4)/(far-4), -(2*far*4)/(far-4)
-	//    0, 0, -1, 0
-	gl.GetFloatv(0x0BA7, &projection[0])
-
-	if false {
-		log.Printf("something")
-	}
-
 	cd.prog.Use()
 	cd.vao.Bind()
 	cd.vbo.Bind(gl.ARRAY_BUFFER)
@@ -289,7 +253,7 @@ func (cd *qConeDrawer) Draw(cs []qCone) {
 	gl.VertexAttribPointer(2, 3, gl.FLOAT, false, 4*10, gl.PtrOffset(4*4))
 	gl.VertexAttribPointer(3, 3, gl.FLOAT, false, 4*10, gl.PtrOffset(7*4))
 
-	gl.UniformMatrix4fv(cd.projection, 1, false, &projection[0])
+	view.projection.SetAsUniform(cd.projection)
 	view.modelView.SetAsUniform(cd.modelview)
 
 	gl.DrawArrays(gl.POINTS, 0, int32(len(cs)))

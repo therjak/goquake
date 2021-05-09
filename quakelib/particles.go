@@ -128,14 +128,6 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 		return
 	}
 
-	projection := [16]float32{
-		1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0,
-		0, 0, 0, 1,
-	}
-	gl.GetFloatv(0x0BA7, &projection[0])
-
 	gl.Enable(gl.DEPTH_TEST)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	gl.Enable(gl.BLEND)
@@ -161,7 +153,7 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 4*8, gl.PtrOffset(3*4))
 	gl.VertexAttribPointer(2, 3, gl.FLOAT, false, 4*8, gl.PtrOffset(5*4))
 
-	gl.UniformMatrix4fv(d.projection, 1, false, &projection[0])
+	view.projection.SetAsUniform(d.projection)
 	view.modelView.SetAsUniform(d.modelview)
 
 	d.texture.Bind()

@@ -41,6 +41,7 @@ func CalcRoll(angles, velocity vec.Vec3) float32 {
 
 type qView struct {
 	blendColor Color
+	projection *glh.Matrix
 	modelView  *glh.Matrix
 }
 
@@ -92,6 +93,30 @@ func (v *qView) Render() {
 
 func (v *qView) renderScene() {
 	const alphaPass = true
+
+	r_fovx := qRefreshRect.fovX
+	r_fovy := qRefreshRect.fovY
+	// TODO: water/slime/lava modification from R_SetupView
+	/*
+				if cvars.WaterWarp.Bool() {
+					contents := Mod_PointInLeaf(r_origin, cl.worldModel).contents
+					switch contents{
+					case CONTENTS_WATER,CONTENTS_SLIME,CONTENTS_LAVE:
+		      // variance is a percentage of width, where width = 2 * tan(fov / 2)
+		      // otherwise the effect is too dramatic at high FOV and too subtle at low
+		      // FOV.  what a mess!
+		      r_fovx = atan(tan(DEG2RAD(R_Refdef_fov_x()) / 2) *
+		                    (0.97 + sin(CL_Time() * 1.5) * 0.03)) *
+		               2 / M_PI_DIV_180;
+		      r_fovy = atan(tan(DEG2RAD(R_Refdef_fov_y()) / 2) *
+		                    (1.03 - sin(CL_Time() * 1.5) * 0.03)) *
+		               2 / M_PI_DIV_180;
+
+					}
+	*/
+	v.projection = glh.Frustum(r_fovx, r_fovy, cvars.GlFarClip.Value())
+	v.projection.Print()
+
 	v.modelView = glh.Identity()
 	v.modelView.RotateX(-90)
 	v.modelView.RotateZ(90)

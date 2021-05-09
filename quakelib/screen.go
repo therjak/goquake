@@ -463,8 +463,8 @@ func (scr *qScreen) calcViewRect() {
 	}
 	fovy := math.Atan(sh/(sw/math.Tan(fovx/360*math.Pi))) * 360 / math.Pi
 
-	qRefreshRect.fovX = float32(fovx)
-	qRefreshRect.fovY = float32(fovy)
+	qRefreshRect.fovX = fovx
+	qRefreshRect.fovY = fovy
 	qRefreshRect.viewRect = scr.vrect
 }
 

@@ -17,8 +17,8 @@ type refreshRect struct {
 	viewRect    Rect
 	viewOrg     vec.Vec3 //r_origin
 	viewAngles  vec.Vec3
-	fovX        float32
-	fovY        float32
+	fovX        float64
+	fovY        float64
 	viewForward vec.Vec3 // vpn
 	viewRight   vec.Vec3 // vright
 	viewUp      vec.Vec3 // vup
@@ -30,12 +30,12 @@ var (
 
 //export R_Refdef_fov_x
 func R_Refdef_fov_x() float32 {
-	return qRefreshRect.fovX
+	return float32(qRefreshRect.fovX)
 }
 
 //export R_Refdef_fov_y
 func R_Refdef_fov_y() float32 {
-	return qRefreshRect.fovY
+	return float32(qRefreshRect.fovY)
 }
 
 //export R_Refdef_vrect_x
