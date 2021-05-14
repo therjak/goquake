@@ -16,7 +16,6 @@ extern vec3_t lightcolor;
 
 extern vec3_t lightspot;
 
-int shadeDots = 0;
 vec3_t shadevector;
 
 qboolean shading = true;  // johnfitz -- if false, disable vertex shading for
@@ -278,7 +277,7 @@ void GL_DrawAliasFrame_GLSL(aliashdr_t *paliashdr, lerpdata_t lerpdata,
    entalpha, multitexture, and r_drawflat
    =============
    */
-void GL_DrawAliasFrame(aliashdr_t *paliashdr, lerpdata_t lerpdata, float entalpha) {
+void GL_DrawAliasFrame(aliashdr_t *paliashdr, lerpdata_t lerpdata, float entalpha, int shadeDots) {
   float vertcolor[4];
   trivertx_t *verts1, *verts2;
   int *commands;
@@ -569,7 +568,6 @@ void R_SetupAliasLighting(entity_t *e, qboolean overbright) {
   shadevector[2] = 1;
   VectorNormalize(shadevector);
 
-  shadeDots = quantizedangle;
   VectorScale(lightcolor, 1.0f / 200.0f, lightcolor);
 }
 
@@ -697,6 +695,10 @@ void GL_DrawAliasShadow(entity_t *e) {
   float entalpha = ENTALPHA_DECODE(e->alpha2);
   if (entalpha == 0) return;
 
+
+  int shadeDots =
+    ((int)(e->angles[1] * (SHADEDOT_QUANT / 360.0))) & (SHADEDOT_QUANT - 1);
+
   paliashdr = (aliashdr_t *)Mod_Extradata(e->model);
   R_SetupAliasFrame(paliashdr, e->frame, &lerpdata, e);
   R_SetupEntityTransform(e, &lerpdata);
@@ -723,7 +725,7 @@ void GL_DrawAliasShadow(entity_t *e) {
   glDisable(GL_TEXTURE_2D);
   shading = false;
   glColor4f(0, 0, 0, entalpha * 0.5);
-  GL_DrawAliasFrame(paliashdr, lerpdata, entalpha);
+  GL_DrawAliasFrame(paliashdr, lerpdata, entalpha, shadeDots);
   glEnable(GL_TEXTURE_2D);
   glDisable(GL_BLEND);
   glDepthMask(GL_TRUE);
