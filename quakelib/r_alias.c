@@ -19,8 +19,6 @@ extern vec3_t lightspot;
 int shadeDots = 0;
 vec3_t shadevector;
 
-float entalpha;  // johnfitz
-
 qboolean overbright;  // johnfitz
 
 qboolean shading = true;  // johnfitz -- if false, disable vertex shading for
@@ -198,7 +196,7 @@ void GLAlias_CreateShaders(void) {
    =============
    */
 void GL_DrawAliasFrame_GLSL(aliashdr_t *paliashdr, lerpdata_t lerpdata,
-    uint32_t tx, uint32_t fb, entity_t* e) {
+    uint32_t tx, uint32_t fb, entity_t* e, float entalpha) {
   float blend;
 
   if (lerpdata.pose1 != lerpdata.pose2) {
@@ -282,7 +280,7 @@ void GL_DrawAliasFrame_GLSL(aliashdr_t *paliashdr, lerpdata_t lerpdata,
    entalpha, multitexture, and r_drawflat
    =============
    */
-void GL_DrawAliasFrame(aliashdr_t *paliashdr, lerpdata_t lerpdata) {
+void GL_DrawAliasFrame(aliashdr_t *paliashdr, lerpdata_t lerpdata, float entalpha) {
   float vertcolor[4];
   trivertx_t *verts1, *verts2;
   int *commands;
@@ -615,7 +613,7 @@ void R_DrawAliasModel(entity_t *e) {
   shading = true;
 
   // set up for alpha blending
-  entalpha = ENTALPHA_DECODE(e->alpha2);
+  float entalpha = ENTALPHA_DECODE(e->alpha2);
   if (entalpha == 0) goto cleanup;
   if (entalpha < 1) {
     glDepthMask(GL_FALSE);
@@ -646,7 +644,7 @@ void R_DrawAliasModel(entity_t *e) {
   }
   if (!Cvar_GetValue(&gl_fullbrights)) fb = 0;
 
-  GL_DrawAliasFrame_GLSL(paliashdr, lerpdata, tx, fb, e);
+  GL_DrawAliasFrame_GLSL(paliashdr, lerpdata, tx, fb, e, entalpha);
 
 cleanup:
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
@@ -698,7 +696,7 @@ void GL_DrawAliasShadow(entity_t *e) {
 
   if (e->model->flags & MOD_NOSHADOW) return;
 
-  entalpha = ENTALPHA_DECODE(e->alpha2);
+  float entalpha = ENTALPHA_DECODE(e->alpha2);
   if (entalpha == 0) return;
 
   paliashdr = (aliashdr_t *)Mod_Extradata(e->model);
@@ -727,7 +725,7 @@ void GL_DrawAliasShadow(entity_t *e) {
   glDisable(GL_TEXTURE_2D);
   shading = false;
   glColor4f(0, 0, 0, entalpha * 0.5);
-  GL_DrawAliasFrame(paliashdr, lerpdata);
+  GL_DrawAliasFrame(paliashdr, lerpdata, entalpha);
   glEnable(GL_TEXTURE_2D);
   glDisable(GL_BLEND);
   glDepthMask(GL_TRUE);
