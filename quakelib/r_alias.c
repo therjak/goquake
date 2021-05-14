@@ -18,10 +18,6 @@ extern vec3_t lightspot;
 
 vec3_t shadevector;
 
-qboolean shading = true;  // johnfitz -- if false, disable vertex shading for
-// various reasons (fullbright, r_lightmap, showtris,
-// etc)
-
 // johnfitz -- struct for passing lerp information to drawing functions
 typedef struct {
   short pose1;
@@ -331,29 +327,6 @@ void GL_DrawAliasFrame(aliashdr_t *paliashdr, lerpdata_t lerpdata, float entalph
 
       commands += 2;
 
-      if (shading) {
-        if (lerping) {
-          vertcolor[0] = (R_and(shadeDots, verts1->lightnormalindex) * iblend +
-              R_and(shadeDots, verts2->lightnormalindex) * blend) *
-            lightcolor[0];
-          vertcolor[1] = (R_and(shadeDots, verts1->lightnormalindex) * iblend +
-              R_and(shadeDots, verts2->lightnormalindex) * blend) *
-            lightcolor[1];
-          vertcolor[2] = (R_and(shadeDots, verts1->lightnormalindex) * iblend +
-              R_and(shadeDots, verts2->lightnormalindex) * blend) *
-            lightcolor[2];
-          glColor4fv(vertcolor);
-        } else {
-          vertcolor[0] =
-            R_and(shadeDots, verts1->lightnormalindex) * lightcolor[0];
-          vertcolor[1] =
-            R_and(shadeDots, verts1->lightnormalindex) * lightcolor[1];
-          vertcolor[2] =
-            R_and(shadeDots, verts1->lightnormalindex) * lightcolor[2];
-          glColor4fv(vertcolor);
-        }
-      }
-
       if (lerping) {
         glVertex3f(verts1->v[0] * iblend + verts2->v[0] * blend,
             verts1->v[1] * iblend + verts2->v[1] * blend,
@@ -606,7 +579,6 @@ void R_DrawAliasModel(entity_t *e) {
   if (Cvar_GetValue(&gl_affinemodels))
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
   qboolean overbright = Cvar_GetValue(&gl_overbright_models);
-  shading = true;
 
   // set up for alpha blending
   float entalpha = ENTALPHA_DECODE(e->alpha2);
@@ -723,7 +695,6 @@ void GL_DrawAliasShadow(entity_t *e) {
   glEnable(GL_BLEND);
   GLDisableMultitexture();
   glDisable(GL_TEXTURE_2D);
-  shading = false;
   glColor4f(0, 0, 0, entalpha * 0.5);
   GL_DrawAliasFrame(paliashdr, lerpdata, entalpha, shadeDots);
   glEnable(GL_TEXTURE_2D);
