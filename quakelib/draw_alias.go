@@ -10,10 +10,14 @@ package quakelib
 import "C"
 
 import (
+	"fmt"
+
+	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/math"
 	"github.com/therjak/goquake/math/vec"
 	"github.com/therjak/goquake/mdl"
+	"github.com/therjak/goquake/texture"
 )
 
 type lerpData struct {
@@ -133,9 +137,94 @@ func (r *qRenderer) DrawAliasModel(e *Entity, model *mdl.Model) {
 	if r.cullAlias(e, model) {
 		return
 	}
+	alpha := entAlphaDecode(e.Alpha)
+	if alpha == 0 {
+		return
+	}
+	if alpha < 1 {
+		gl.DepthMask(false)
+		gl.Enable(gl.BLEND)
+		defer gl.DepthMask(true)
+		defer gl.Disable(gl.BLEND)
+	}
+
+	modelview := view.modelView.Copy()
+	modelview.Translate(ld.origin[0], ld.origin[1], ld.origin[2])
+	modelview.RotateZ(ld.angles[1])
+	modelview.RotateY(-ld.angles[0])
+	modelview.RotateX(ld.angles[2])
+	modelview.Translate(model.Translate[0], model.Translate[1], model.Translate[2])
+	modelview.Scale(model.Scale[0], model.Scale[1], model.Scale[2])
+	// view.projection
+
+	textureManager.DisableMultiTexture()
+	var tx, fb *texture.Texture
+	if e.SkinNum < model.SkinCount && e.SkinNum >= 0 {
+		anim := int(cl.time * 10)
+		t := model.Textures[e.SkinNum]
+		fbt := model.FBTextures[e.SkinNum]
+		tx = t[anim%len(t)]
+		if len(fbt) > 0 {
+			fb = fbt[anim%len(fbt)]
+		}
+	}
+	if !cvars.GlNoColors.Bool() {
+		// TODO: colored player textures
+		// if pt := PlayerTexture(e); pt != nil {
+		//   t = pt
+		// }
+	}
+	if !cvars.GlFullBrights.Bool() {
+		fb = nil
+	}
+
+	drawAliasFrame(model, ld, tx, fb, e, modelview, view.projection)
+}
+
+type qUniform interface {
+	SetAsUniform(id int32)
+}
+
+func drawAliasFrame(m *mdl.Model, ld *lerpData, tx, fb *texture.Texture, e *Entity, mv, p qUniform) {
+	// R_SetupAliasLighting(e)
+	// GL_DrawAliasFrame_GLSL
 	C.R_DrawAliasModel(e.ptr)
 }
 
 func (r *qRenderer) DrawAliasShadow(e *Entity, model *mdl.Model) {
 	C.GL_DrawAliasShadow(e.ptr)
+}
+
+//export PrintMV
+func PrintMV() {
+	m := [16]float32{
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1,
+	}
+	gl.GetFloatv(0x0BA6, &m[0])
+	fmt.Printf("ModelView:\n%v %v %v %v\n%v %v %v %v\n%v %v %v %v\n%v %v %v %v\n",
+		m[0], m[4], m[8], m[12],
+		m[1], m[5], m[9], m[13],
+		m[2], m[6], m[10], m[14],
+		m[3], m[7], m[11], m[15],
+	)
+}
+
+//export PrintP
+func PrintP() {
+	m := [16]float32{
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1,
+	}
+	gl.GetFloatv(0x0BA7, &m[0])
+	fmt.Printf("Projection:\n%v %v %v %v\n%v %v %v %v\n%v %v %v %v\n%v %v %v %v\n",
+		m[0], m[4], m[8], m[12],
+		m[1], m[5], m[9], m[13],
+		m[2], m[6], m[10], m[14],
+		m[3], m[7], m[11], m[15],
+	)
 }

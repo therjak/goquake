@@ -115,7 +115,6 @@ func (v *qView) renderScene() {
 					}
 	*/
 	v.projection = glh.Frustum(r_fovx, r_fovy, cvars.GlFarClip.Value())
-	v.projection.Print()
 
 	v.modelView = glh.Identity()
 	v.modelView.RotateX(-90)
