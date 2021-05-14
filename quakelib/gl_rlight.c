@@ -18,7 +18,7 @@ DYNAMIC LIGHTS
 R_MarkLights -- johnfitz -- rewritten to use LordHavoc's lighting speedup
 =============
 */
-void R_MarkLight(dlight_t* light, int num, mnode_t *node) {
+void R_MarkLight(dlight_t *light, int num, mnode_t *node) {
   mplane_t *splitplane;
   msurface_t *surf;
   vec3_t impact;
@@ -89,11 +89,11 @@ R_PushDlights
 =============
 */
 void R_PushDlights(void) {
-  if (Cvar_GetValue(&gl_flashblend)) return; 
+  if (Cvar_GetValue(&gl_flashblend)) return;
   // TODO(therjak): disabling flashblend is broken since transparent console
 
   R_dlightframecount_up();
-  
+
   R_MarkLights(cl.worldmodel->nodes);
 }
 
@@ -105,7 +105,6 @@ LIGHT SAMPLING
 =============================================================================
 */
 
-mplane_t *lightplane;
 vec3_t lightspot;
 vec3_t lightcolor;  // johnfitz -- lit support via lordhavoc
 
@@ -154,7 +153,6 @@ loc0:
     msurface_t *surf;
     // check for impact on this node
     VectorCopy(mid, lightspot);
-    lightplane = node->plane;
 
     surf = cl.worldmodel->surfaces + node->firstsurface;
     for (i = 0; i < node->numsurfaces; i++, surf++) {
@@ -240,12 +238,12 @@ R_LightPoint -- johnfitz -- replaced entire function for lit support via
 lordhavoc
 =============
 */
-int R_LightPoint(vec3_t p) {
+void R_LightPoint(vec3_t p) {
   vec3_t end;
 
   if (!cl.worldmodel->lightdata) {
     lightcolor[0] = lightcolor[1] = lightcolor[2] = 255;
-    return 255;
+    return;
   }
 
   end[0] = p[0];
@@ -254,5 +252,4 @@ int R_LightPoint(vec3_t p) {
 
   lightcolor[0] = lightcolor[1] = lightcolor[2] = 0;
   RecursiveLightPoint(lightcolor, cl.worldmodel->nodes, p, end);
-  return ((lightcolor[0] + lightcolor[1] + lightcolor[2]) * (1.0f / 3.0f));
 }
