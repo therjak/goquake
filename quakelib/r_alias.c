@@ -19,8 +19,6 @@ extern vec3_t lightspot;
 int shadeDots = 0;
 vec3_t shadevector;
 
-qboolean overbright;  // johnfitz
-
 qboolean shading = true;  // johnfitz -- if false, disable vertex shading for
 // various reasons (fullbright, r_lightmap, showtris,
 // etc)
@@ -196,7 +194,7 @@ void GLAlias_CreateShaders(void) {
    =============
    */
 void GL_DrawAliasFrame_GLSL(aliashdr_t *paliashdr, lerpdata_t lerpdata,
-    uint32_t tx, uint32_t fb, entity_t* e, float entalpha) {
+    uint32_t tx, uint32_t fb, entity_t* e, float entalpha, qboolean overbright) {
   float blend;
 
   if (lerpdata.pose1 != lerpdata.pose2) {
@@ -505,7 +503,7 @@ void R_SetupEntityTransform(entity_t *e, lerpdata_t *lerpdata) {
    rewritten
    =================
    */
-void R_SetupAliasLighting(entity_t *e) {
+void R_SetupAliasLighting(entity_t *e, qboolean overbright) {
   vec3_t dist;
   float add;
   int i;
@@ -553,7 +551,7 @@ void R_SetupAliasLighting(entity_t *e) {
   }
 
   // hack up the brightness when fullbrights but no overbrights (256)
-  if (Cvar_GetValue(&gl_fullbrights) && !Cvar_GetValue(&gl_overbright_models))
+  if (Cvar_GetValue(&gl_fullbrights) && !overbright)
     if (e->model->flags & MOD_FBRIGHTHACK) {
       lightcolor[0] = 256.0f;
       lightcolor[1] = 256.0f;
@@ -609,7 +607,7 @@ void R_DrawAliasModel(entity_t *e) {
   if (Cvar_GetValue(&gl_smoothmodels)) glShadeModel(GL_SMOOTH);
   if (Cvar_GetValue(&gl_affinemodels))
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
-  overbright = Cvar_GetValue(&gl_overbright_models);
+  qboolean overbright = Cvar_GetValue(&gl_overbright_models);
   shading = true;
 
   // set up for alpha blending
@@ -622,7 +620,7 @@ void R_DrawAliasModel(entity_t *e) {
 
   // set up lighting
   rs_aliaspolys += paliashdr->numtris;
-  R_SetupAliasLighting(e);
+  R_SetupAliasLighting(e, overbright);
 
   // set up textures
   GLDisableMultitexture();
@@ -644,7 +642,7 @@ void R_DrawAliasModel(entity_t *e) {
   }
   if (!Cvar_GetValue(&gl_fullbrights)) fb = 0;
 
-  GL_DrawAliasFrame_GLSL(paliashdr, lerpdata, tx, fb, e, entalpha);
+  GL_DrawAliasFrame_GLSL(paliashdr, lerpdata, tx, fb, e, entalpha, overbright);
 
 cleanup:
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
