@@ -85,11 +85,11 @@ func Dot(a Vec3, b Vec3) float32 {
 }
 
 // DoublePrecDot return a dot b calculated in double precision
-func DoublePrecDot(a Vec3, b Vec3) float32 {
+func DoublePrecDot(a Vec3, b Vec3) float64 {
 	p := func(x, y float32) float64 {
 		return float64(x) * float64(y)
 	}
-	return float32(p(a[0], b[0]) + p(a[1], b[1]) + p(a[2], b[2]))
+	return p(a[0], b[0]) + p(a[1], b[1]) + p(a[2], b[2])
 }
 
 // Cross returns a cross b

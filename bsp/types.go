@@ -168,24 +168,6 @@ type leafV2 struct {
 	Ambients         [4]byte
 }
 
-const (
-	_             = -iota
-	LeafTypeEmpty // was CONTENTS_EMPTY...
-	LeafTypeSolid
-	LeafTypeWater
-	LeafTypeSlime
-	LeafTypeLava
-	LeafTypeSky
-	LeafTypeOrigin
-	LeafTypeClip
-	LeafTypeCurrent0
-	LeafTypeCurrent90
-	LeafTypeCurrent180
-	LeafTypeCurrent270
-	LeafTypeCurrentUp
-	LeafTypeCurrentDown
-)
-
 type plane struct {
 	Normal   [3]float32
 	Distance float32

@@ -527,7 +527,7 @@ func hullPointContents(h *bsp.Hull, num int, p vec.Vec3) int {
 			if plane.Type < 3 {
 				return p[int(plane.Type)] - plane.Dist
 			}
-			return vec.DoublePrecDot(plane.Normal, p) - plane.Dist
+			return float32(vec.DoublePrecDot(plane.Normal, p)) - plane.Dist
 		}()
 		if d < 0 {
 			num = node.Children[1]
@@ -567,8 +567,8 @@ func recursiveHullCheck(h *bsp.Hull, num int, p1f, p2f float32, p1, p2 vec.Vec3,
 			return (p1[int(plane.Type)] - plane.Dist),
 				(p2[int(plane.Type)] - plane.Dist)
 		} else {
-			return vec.DoublePrecDot(plane.Normal, p1) - plane.Dist,
-				vec.DoublePrecDot(plane.Normal, p2) - plane.Dist
+			return float32(vec.DoublePrecDot(plane.Normal, p1)) - plane.Dist,
+				float32(vec.DoublePrecDot(plane.Normal, p2)) - plane.Dist
 		}
 	}()
 	if t1 >= 0 && t2 >= 0 {

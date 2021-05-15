@@ -120,7 +120,7 @@ type TexCoord struct {
 
 type Poly struct {
 	Next  *Poly
-	Chain *Poly
+	eain  *Poly
 	Verts []TexCoord
 }
 
@@ -136,10 +136,10 @@ type Surface struct {
 	FirstEdge int
 	NumEdges  int
 
-	TextureMins [2]float32 // int16
-	Extents     [2]float32 // int16
-	LightS      int        // gl lightmap coordinates
-	LightT      int
+	textureMins [2]int
+	extents     [2]int
+	lightS      int // gl lightmap coordinates
+	lightT      int
 
 	Polys        *Poly
 	TextureChain *Surface
@@ -156,7 +156,8 @@ type Surface struct {
 	Styles [4]byte
 	// CachedLight[MAXLIGHTMAPS] int
 	CachedDLight bool
-	Samples      *byte
+	LightSamples []byte
+	lightMap     int32
 }
 
 type TexInfoPos struct {
@@ -248,7 +249,7 @@ type Model struct {
 
 	Hulls     [MaxMapHulls]Hull
 	VisData   []byte
-	LightData []byte
+	lightData []byte
 
 	Entities []*Entity
 

@@ -24,10 +24,12 @@ func init() {
 }
 
 const (
-	bspVersion      = 29
-	bsp2Version2psb = 'B'<<24 | 'S'<<16 | 'P'<<8 | '2'
-	bsp2Versionbsp2 = '2'<<24 | 'P'<<16 | 'S'<<8 | 'B'
-	qlit            = 'Q' | 'L'<<8 | 'I'<<16 | 'T'<<24
+	bspVersion          = 29
+	bsp2Version2psb     = 'B'<<24 | 'S'<<16 | 'P'<<8 | '2'
+	bsp2Versionbsp2     = '2'<<24 | 'P'<<16 | 'S'<<8 | 'B'
+	qlit                = 'Q' | 'L'<<8 | 'I'<<16 | 'T'<<24
+	LightMapBlockWidth  = 256
+	LightMapBlockHeight = 256
 )
 
 func Load(name string) ([]*Model, error) {
@@ -87,7 +89,7 @@ func load(name string, data []byte) ([]*Model, error) {
 			return nil, err
 		}
 		mod.Textures = textures
-		mod.LightData = loadLighting(fs(h.Lighting, data), name)
+		mod.lightData = loadLighting(fs(h.Lighting, data), name)
 		splanes, err := loadPlanes(fs(h.Planes, data))
 		if err != nil {
 			return nil, err
@@ -106,7 +108,9 @@ func load(name string, data []byte) ([]*Model, error) {
 		if err != nil {
 			return nil, err
 		}
-		calcSurfaceExtras(msurfaces, mod.Vertexes, mod.Edges, mod.SurfaceEdges)
+		if err := calcSurfaceExtras(msurfaces, mod.Vertexes, mod.Edges, mod.SurfaceEdges, mod.lightData); err != nil {
+			return nil, err
+		}
 		mod.Surfaces = msurfaces
 		msurf, err := loadMarkSurfacesV0(fs(h.MarkSurfaces, data))
 		if err != nil {
@@ -325,7 +329,7 @@ func loadFacesV0(data []byte) ([]*faceV0, error) {
 	}
 }
 
-func calcSurfaceExtras(ss []*Surface, vs []*MVertex, es []*MEdge, ses []int32) {
+func calcSurfaceExtras(ss []*Surface, vs []*MVertex, es []*MEdge, ses []int32, lightData []byte) error {
 	// merged calcsurfaceextents & calcsurfacebounds
 	for _, s := range ss {
 		tex := s.TexInfo
@@ -352,8 +356,6 @@ func calcSurfaceExtras(ss []*Surface, vs []*MVertex, es []*MEdge, ses []int32) {
 			}()
 			s.Polys.Verts = append(s.Polys.Verts, TexCoord{
 				Pos: v.Position,
-				S:   vec.Dot(v.Position, tex.Vecs[0].Pos) * texScale,
-				T:   vec.Dot(v.Position, tex.Vecs[1].Pos) * texScale,
 			})
 			for j := 0; j < 3; j++ {
 				if s.Mins[j] > v.Position[j] {
@@ -379,28 +381,77 @@ func calcSurfaceExtras(ss []*Surface, vs []*MVertex, es []*MEdge, ses []int32) {
 				}
 			}
 		}
-		// Despite the claim above the original stored only a limited number of bits
-		// like floor(mins/16)*16 into an int16
-		s.TextureMins = mins
-		s.Extents[0] = maxs[0] - mins[0]
-		s.Extents[1] = maxs[1] - mins[1]
-		// TODO: only if tex.flags TEX_SPECIAL is set Extends may exceed 2k
+		// Despite the claim above only a limited number of bits are stored
+		mi := [2]int{
+			int(math32.Floor(mins[0] / 16)),
+			int(math32.Floor(mins[1] / 16)),
+		}
+		ma := [2]int{
+			int(math32.Ceil(maxs[0] / 16)),
+			int(math32.Ceil(maxs[1] / 16)),
+		}
+		s.textureMins = [2]int{
+			mi[0] * 16,
+			mi[1] * 16,
+		}
+		s.extents[0] = (ma[0] - mi[0]) * 16
+		s.extents[1] = (ma[1] - mi[1]) * 16
+		if tex.Flags&texSpecial == 0 && (s.extents[0] > 2000 || s.extents[1] > 2000) {
+			return fmt.Errorf("Bad surface extends")
+		}
 
-		// TODO: TexInfo.Texture.Name switch and the like
-		// switch msurfaces[i]->texinfo-texture-name ...
-		// polys already set, do we need remove ones not 'needed'?
+		if s.Flags&SurfaceDrawTurb != 0 {
+			// TODO:
+			// GL_SubdivideSurface
+		}
+
+		if s.lightMap != -1 {
+			// TODO: Is this the correct size?
+			s.LightSamples = lightData[3*s.lightMap:]
+			// size according to r_brush
+			size := 3 * ((s.extents[0] >> 4) + 1) * ((s.extents[1] >> 4) + 1)
+			s.LightSamples = s.LightSamples[:size]
+		}
+
+		if s.Flags&SurfaceDrawTiled != 0 {
+			for i := range s.Polys.Verts {
+				v := &s.Polys.Verts[i]
+				v.S = vec.Dot(v.Pos, tex.Vecs[0].Pos) * texScale
+				v.T = vec.Dot(v.Pos, tex.Vecs[1].Pos) * texScale
+			}
+		} else {
+			// TODO:
+			// GL_BuildLightmaps
+			// GL_CreateSurfaceLightmap
+			// R_BuildLightMap
+			// AllocBlock
+			// -- it should also set s.lightS, s.lightT
+			for i := range s.Polys.Verts {
+				v := &s.Polys.Verts[i]
+				// From BuildSurfaceDisplayList
+				bs := (vec.Dot(v.Pos, tex.Vecs[0].Pos) + tex.Vecs[0].Offset)
+				bt := (vec.Dot(v.Pos, tex.Vecs[1].Pos) + tex.Vecs[1].Offset)
+				v.S = bs / float32(tex.Texture.Width)
+				v.T = bt / float32(tex.Texture.Height)
+				v.LightMapS = (bs - float32(s.textureMins[0]) + 8 + float32(s.lightS)*16) / (LightMapBlockWidth * 16)
+				v.LightMapT = (bt - float32(s.textureMins[1]) + 8 + float32(s.lightT)*16) / (LightMapBlockHeight * 16)
+			}
+		}
+
 	}
+	return nil
 }
 
 func buildSurfacesV0(f []*faceV0, plane []*Plane, texinfo []*TexInfo) ([]*Surface, error) {
 	ret := make([]*Surface, 0, len(f))
-	for _, sf := range /*sf*/ f {
+	for _, sf := range f {
 		nsf := &Surface{
 			Mins:      [3]float32{math32.MaxFloat32, math.MaxFloat32, math32.MaxFloat32},
 			Maxs:      [3]float32{-math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32},
 			FirstEdge: int(sf.ListEdgeID),
 			NumEdges:  int(sf.ListEdgeNumber),
 			Styles:    sf.LightStyle,
+			lightMap:  sf.LightMap,
 		}
 		if sf.Side != 0 {
 			nsf.Flags = SurfacePlaneBack
@@ -426,12 +477,12 @@ func buildSurfacesV0(f []*faceV0, plane []*Plane, texinfo []*TexInfo) ([]*Surfac
 		}
 
 		if nsf.TexInfo.Flags&texMissing != 0 {
-			// TODO (gl_model.c:Mod_LoadFaces
+			nsf.Flags |= SurfaceNoTexture
+			if sf.LightMap == -1 {
+				nsf.Flags |= SurfaceDrawTiled
+			}
 		}
 
-		if sf.LightMap != -1 {
-			// TODO: nsf.Samples = model.lightdata[3*sf.LightMap]
-		}
 		ret = append(ret, nsf)
 	}
 	return ret, nil
