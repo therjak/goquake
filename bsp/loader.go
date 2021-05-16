@@ -28,8 +28,8 @@ const (
 	bsp2Version2psb     = 'B'<<24 | 'S'<<16 | 'P'<<8 | '2'
 	bsp2Versionbsp2     = '2'<<24 | 'P'<<16 | 'S'<<8 | 'B'
 	qlit                = 'Q' | 'L'<<8 | 'I'<<16 | 'T'<<24
-	LightMapBlockWidth  = 256
-	LightMapBlockHeight = 256
+	LightMapBlockWidth  = 128
+	LightMapBlockHeight = 128
 )
 
 func Load(name string) ([]*Model, error) {
@@ -405,12 +405,19 @@ func calcSurfaceExtras(ss []*Surface, vs []*MVertex, es []*MEdge, ses []int32, l
 			// GL_SubdivideSurface
 		}
 
-		if s.lightMap != -1 {
-			// TODO: Is this the correct size?
-			s.LightSamples = lightData[3*s.lightMap:]
-			// size according to r_brush
+		if s.lightMapOfs != -1 {
+			s.LightSamples = lightData[3*s.lightMapOfs:]
 			size := 3 * ((s.extents[0] >> 4) + 1) * ((s.extents[1] >> 4) + 1)
-			s.LightSamples = s.LightSamples[:size]
+			switch {
+			case s.Styles[0] == 255:
+				s.LightSamples = nil
+			case s.Styles[1] == 255:
+				s.LightSamples = s.LightSamples[:size]
+			case s.Styles[2] == 255:
+				s.LightSamples = s.LightSamples[:size*2]
+			case s.Styles[3] == 255:
+				s.LightSamples = s.LightSamples[:size*3]
+			}
 		}
 
 		if s.Flags&SurfaceDrawTiled != 0 {
@@ -446,12 +453,12 @@ func buildSurfacesV0(f []*faceV0, plane []*Plane, texinfo []*TexInfo) ([]*Surfac
 	ret := make([]*Surface, 0, len(f))
 	for _, sf := range f {
 		nsf := &Surface{
-			Mins:      [3]float32{math32.MaxFloat32, math.MaxFloat32, math32.MaxFloat32},
-			Maxs:      [3]float32{-math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32},
-			FirstEdge: int(sf.ListEdgeID),
-			NumEdges:  int(sf.ListEdgeNumber),
-			Styles:    sf.LightStyle,
-			lightMap:  sf.LightMap,
+			Mins:        [3]float32{math32.MaxFloat32, math.MaxFloat32, math32.MaxFloat32},
+			Maxs:        [3]float32{-math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32},
+			FirstEdge:   int(sf.ListEdgeID),
+			NumEdges:    int(sf.ListEdgeNumber),
+			Styles:      sf.LightStyle,
+			lightMapOfs: sf.LightMapOfs,
 		}
 		if sf.Side != 0 {
 			nsf.Flags = SurfacePlaneBack
@@ -478,7 +485,7 @@ func buildSurfacesV0(f []*faceV0, plane []*Plane, texinfo []*TexInfo) ([]*Surfac
 
 		if nsf.TexInfo.Flags&texMissing != 0 {
 			nsf.Flags |= SurfaceNoTexture
-			if sf.LightMap == -1 {
+			if sf.LightMapOfs == -1 {
 				nsf.Flags |= SurfaceDrawTiled
 			}
 		}

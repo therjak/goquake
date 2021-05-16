@@ -90,7 +90,7 @@ type faceV0 struct {
 	ListEdgeNumber int16
 	TexInfoID      int16
 	LightStyle     [4]uint8
-	LightMap       int32 // Pointer inside the general light map, or -1. this defines the start of the face light map
+	LightMapOfs    int32 // Pointer inside the general light map, or -1. this defines the start of the face light map
 }
 
 type faceV1 struct {
@@ -100,7 +100,7 @@ type faceV1 struct {
 	ListEdgeNumber int32
 	TexInfoID      int32
 	LightStyle     [4]uint8
-	LightMap       int32 // Pointer inside the general light map, or -1. this defines the start of the face light map
+	LightMapOfs    int32 // Pointer inside the general light map, or -1. this defines the start of the face light map
 }
 
 type mipHeader struct {

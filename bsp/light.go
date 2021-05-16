@@ -16,8 +16,6 @@ type color struct {
 }
 
 func (m *Model) recursiveLight(s *LightStyles, node Node, start, end vec.Vec3, c *vec.Vec3) bool {
-	front := float32(1)
-	back := float32(-1)
 	nextChild := func(f float32) int {
 		if f < 0 {
 			return 1
@@ -25,6 +23,7 @@ func (m *Model) recursiveLight(s *LightStyles, node Node, start, end vec.Vec3, c
 		return 0
 	}
 	var n *MNode
+	var front, back float32
 	for (back < 0) == (front < 0) {
 		if node.Contents() < 0 {
 			return false
@@ -67,32 +66,46 @@ func (m *Model) recursiveLight(s *LightStyles, node Node, start, end vec.Vec3, c
 			var c00, c01, c10, c11 color
 			dsfrac := ds & 15
 			dtfrac := dt & 15
-			line := ((surface.extents[0] >> 4) + 1) * 3
-			lightMap := surface.LightSamples[(dt>>4)*line+(ds>>4)*3:]
+			ds >>= 4
+			dt >>= 4
+			es := surface.extents[0] >> 4
+			et := surface.extents[1] >> 4
+			lineLength := (es + 1) * 3
+			rowLength := et + 1
+			// We want to interpolate and on the far right/bottom we can not read
+			// the pixel right/below. While we read the pixel dsfrac/dtfrag will be
+			// zero, so the value has no effect.
+			p1 := dt*lineLength + ds*3
+			p2 := dt*lineLength + ((ds+1)%es)*3
+			p3 := ((dt+1)%et)*lineLength + ds*3
+			p4 := ((dt+1)%et)*lineLength + ((ds+1)%es)*3
+			lightMap := surface.LightSamples
+			mapStep := 0
 			for maps := 0; maps < 4 && surface.Styles[maps] != 255; maps++ {
+				lightMap = lightMap[mapStep:]
 				scale := float32(s[surface.Styles[maps]]) / 256.0
-				c00.R += int(float32(lightMap[0]) * scale)
-				c00.G += int(float32(lightMap[1]) * scale)
-				c00.B += int(float32(lightMap[2]) * scale)
-				c01.R += int(float32(lightMap[3]) * scale)
-				c01.G += int(float32(lightMap[4]) * scale)
-				c01.B += int(float32(lightMap[5]) * scale)
-				c10.R += int(float32(lightMap[line+0]) * scale)
-				c10.G += int(float32(lightMap[line+1]) * scale)
-				c10.B += int(float32(lightMap[line+2]) * scale)
-				c11.R += int(float32(lightMap[line+3]) * scale)
-				c11.G += int(float32(lightMap[line+4]) * scale)
-				c11.B += int(float32(lightMap[line+5]) * scale)
-				lightMap = lightMap[((surface.extents[0]>>4)+1)*((surface.extents[1]>>4)+1)*3:]
+				c00.R += int(float32(lightMap[p1+0]) * scale)
+				c00.G += int(float32(lightMap[p1+1]) * scale)
+				c00.B += int(float32(lightMap[p1+2]) * scale)
+				c01.R += int(float32(lightMap[p2+0]) * scale)
+				c01.G += int(float32(lightMap[p2+1]) * scale)
+				c01.B += int(float32(lightMap[p2+2]) * scale)
+				c10.R += int(float32(lightMap[p3+0]) * scale)
+				c10.G += int(float32(lightMap[p3+1]) * scale)
+				c10.B += int(float32(lightMap[p3+2]) * scale)
+				c11.R += int(float32(lightMap[p4+0]) * scale)
+				c11.G += int(float32(lightMap[p4+1]) * scale)
+				c11.B += int(float32(lightMap[p4+2]) * scale)
+				mapStep = lineLength * rowLength
 			}
 			(*c)[0] += float32((((((((c11.R - c10.R) * dsfrac) >> 4) + c10.R) -
-				(((c01.R - c00.R) * dsfrac) >> 4) + c00.R) * dtfrac) >> 4) +
+				((((c01.R - c00.R) * dsfrac) >> 4) + c00.R)) * dtfrac) >> 4) +
 				((((c01.R - c00.R) * dsfrac) >> 4) + c00.R))
 			(*c)[1] += float32((((((((c11.G - c10.G) * dsfrac) >> 4) + c10.G) -
-				(((c01.G - c00.G) * dsfrac) >> 4) + c00.G) * dtfrac) >> 4) +
+				((((c01.G - c00.G) * dsfrac) >> 4) + c00.G)) * dtfrac) >> 4) +
 				((((c01.G - c00.G) * dsfrac) >> 4) + c00.G))
 			(*c)[2] += float32((((((((c11.B - c10.B) * dsfrac) >> 4) + c10.B) -
-				(((c01.B - c00.B) * dsfrac) >> 4) + c00.B) * dtfrac) >> 4) +
+				((((c01.B - c00.B) * dsfrac) >> 4) + c00.B)) * dtfrac) >> 4) +
 				((((c01.B - c00.B) * dsfrac) >> 4) + c00.B))
 		}
 		return true

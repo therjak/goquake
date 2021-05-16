@@ -157,7 +157,7 @@ type Surface struct {
 	// CachedLight[MAXLIGHTMAPS] int
 	CachedDLight bool
 	LightSamples []byte
-	lightMap     int32
+	lightMapOfs  int32
 }
 
 type TexInfoPos struct {
