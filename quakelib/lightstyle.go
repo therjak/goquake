@@ -7,6 +7,7 @@ import "C"
 import (
 	"fmt"
 
+	"github.com/therjak/goquake/bsp"
 	"github.com/therjak/goquake/cvars"
 )
 
@@ -17,12 +18,9 @@ type lightStyle struct {
 	lightMap    []int
 }
 
-const (
-	maxLightStyles = 64
-)
-
 var (
-	lightStyles [maxLightStyles]lightStyle
+	lightStyleValues bsp.LightStyles
+	lightStyles      [bsp.MaxLightStyles]lightStyle
 )
 
 func clearLightStyles() {
@@ -50,7 +48,7 @@ func avgPeak(d []int) (int, int) {
 }
 
 func readLightStyle(idx int32, str string) error {
-	if idx >= maxLightStyles {
+	if idx >= bsp.MaxLightStyles {
 		return fmt.Errorf("> MAX_LIGHTSTYLES")
 	}
 	style := &lightStyles[idx]
@@ -68,19 +66,21 @@ func readLightStyle(idx int32, str string) error {
 //export R_AnimateLight
 func R_AnimateLight() {
 	idx := int(cl.time * 10)
-	for i := 0; i < maxLightStyles; i++ {
+	for i := 0; i < bsp.MaxLightStyles; i++ {
 		s := &lightStyles[i]
 		if len(s.lightMap) == 0 {
+			lightStyleValues[i] = 256
 			C.d_lightstylevalue[i] = 256
 			continue
 		}
 		switch cvars.RFlatLightStyles.Value() {
 		case 1:
-			C.d_lightstylevalue[i] = C.int(s.average)
+			lightStyleValues[i] = s.average
 		case 2:
-			C.d_lightstylevalue[i] = C.int(s.peak)
+			lightStyleValues[i] = s.peak
 		default:
-			C.d_lightstylevalue[i] = C.int(s.lightMap[idx%len(lightStyles[i].lightMap)])
+			lightStyleValues[i] = s.lightMap[idx%len(lightStyles[i].lightMap)]
 		}
+		C.d_lightstylevalue[i] = C.int(lightStyleValues[i])
 	}
 }
