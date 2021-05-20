@@ -172,8 +172,6 @@ func (r *qRenderer) DrawWeaponModel() {
 		return
 	}
 	switch m := weapon.Model.(type) {
-	default:
-		// this fixes a crash, TODO: why can this happen?
 	case *mdl.Model:
 		// hack the depth range to prevent view model from poking into walls
 		gl.DepthRange(0, 0.3)

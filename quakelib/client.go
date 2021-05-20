@@ -28,6 +28,7 @@ import (
 	"github.com/therjak/goquake/keys"
 	"github.com/therjak/goquake/math"
 	"github.com/therjak/goquake/math/vec"
+	"github.com/therjak/goquake/mdl"
 	"github.com/therjak/goquake/model"
 	"github.com/therjak/goquake/net"
 	"github.com/therjak/goquake/progs"
@@ -1855,4 +1856,48 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) {
 	default:
 		Error("CL_ParseTEnt: bad type")
 	}
+}
+
+func (c *Client) ColorForEntity(e *Entity) vec.Vec3 {
+	lightColor := c.worldModel.LightAt(e.Origin, &lightStyleValues)
+	for i := range c.dynamicLights {
+		d := &c.dynamicLights[i]
+		if d.DieTime < c.time {
+			continue
+		}
+		dist := vec.Sub(e.Origin, d.Origin)
+		add := d.Radius - dist.Length()
+		if add > 0 {
+			lightColor.Add(vec.Scale(add, d.Color))
+		}
+	}
+	if e == c.WeaponEntity() {
+		add := 72.0 - (lightColor[0] + lightColor[1] + lightColor[2])
+		if add > 0 {
+			add /= 3.0
+			lightColor.Add(vec.Vec3{add, add, add})
+		}
+	}
+	for i := 0; i < c.maxClients; i++ {
+		// EntityIsPlayer
+		if c.Entities(i+1) == e {
+			add := 24.0 - (lightColor[0] + lightColor[1] + lightColor[2])
+			if add > 0 {
+				add /= 3.0
+				lightColor.Add(vec.Vec3{add, add, add})
+			}
+			break
+		}
+	}
+	if cvars.GlOverBrightModels.Bool() {
+		add := 288.0 / (lightColor[0] + lightColor[1] + lightColor[2])
+		if add < 1 {
+			lightColor.Scale(add)
+		}
+	} else if cvars.GlFullBrights.Bool() {
+		if e.Model.Flags()&mdl.FullBrightHack != 0 {
+			return vec.Vec3{256, 256, 256}
+		}
+	}
+	return lightColor
 }
