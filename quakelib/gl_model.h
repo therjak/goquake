@@ -92,9 +92,9 @@ typedef enum { chain_world = 0, chain_model = 1 } texchain_t;
 typedef struct texture_s {
   char name[16];
   unsigned width, height;
-  uint32_t gltexture;        // johnfitz -- pointer to gltexture
-  uint32_t fullbright;       // johnfitz -- fullbright mask texture
-  uint32_t warpimage;        // johnfitz -- for water animation
+  uint32_t gltexture;                   // johnfitz -- pointer to gltexture
+  uint32_t fullbright;                  // johnfitz -- fullbright mask texture
+  uint32_t warpimage;                   // johnfitz -- for water animation
   qboolean update_warp;                 // johnfitz -- update warp this frame
   struct msurface_s *texturechains[2];  // for texture chains
   int anim_total;                       // total tenths in sequence ( 0 = no)
@@ -333,7 +333,7 @@ typedef struct {
   int numframes;
   synctype_t synctype;
   int flags;
-  //float size;
+  // float size;
 
   // ericw -- used to populate vbo
   int numverts_vbo;   // number of verts with unique x,y,z,s,t
@@ -346,12 +346,12 @@ typedef struct {
 
   int numposes;
   int poseverts;
-  int posedata;  // numposes*poseverts trivert_t
-  int commands;  // gl command list with embedded s/t
+  int posedata;                       // numposes*poseverts trivert_t
+  int commands;                       // gl command list with embedded s/t
   uint32_t gltextures[MAX_SKINS][4];  // johnfitz
   uint32_t fbtextures[MAX_SKINS][4];  // johnfitz
-  int texels[MAX_SKINS];  // only for player skins
-  maliasframedesc_t frames[1];  // variable sized
+  int texels[MAX_SKINS];              // only for player skins
+  maliasframedesc_t frames[1];        // variable sized
 } aliashdr_t;
 
 #define MAXALIASVERTS 2000  // johnfitz -- was 1024
@@ -478,7 +478,6 @@ typedef struct qmodel_s {
 
 void Mod_Init(void);
 void Mod_ClearAll(void);
-void Mod_ResetAll(void);  // for gamedir changes (Host_Game_f)
 qmodel_t *Mod_ForName(const char *name);
 void *Mod_Extradata(qmodel_t *mod);  // handles caching
 void Mod_TouchModel(const char *name);

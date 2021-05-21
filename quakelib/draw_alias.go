@@ -11,10 +11,11 @@ import "C"
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/therjak/goquake/cvars"
-	"github.com/therjak/goquake/math"
+	qmath "github.com/therjak/goquake/math"
 	"github.com/therjak/goquake/math/vec"
 	"github.com/therjak/goquake/mdl"
 	"github.com/therjak/goquake/texture"
@@ -62,9 +63,9 @@ func (l *lerpData) setupAliasFrame(e *Entity, m *mdl.Model) {
 	}
 	if cvars.RLerpModels.Bool() && (cvars.RLerpModels.Value() == 2 || m.Flags() != mdl.NoLerp) {
 		if e.LerpFlags&lerpFinish != 0 && numPoses == 1 {
-			l.blend = math.Clamp(0, (cl.time-e.LerpStart)/(e.LerpFinish-e.LerpStart), 1)
+			l.blend = qmath.Clamp(0, (cl.time-e.LerpStart)/(e.LerpFinish-e.LerpStart), 1)
 		} else {
-			l.blend = math.Clamp(0, (cl.time-e.LerpStart)/e.LerpTime, 1)
+			l.blend = qmath.Clamp(0, (cl.time-e.LerpStart)/e.LerpTime, 1)
 		}
 		l.pose1 = e.PreviousPose
 		l.pose2 = e.CurrentPose
@@ -98,15 +99,15 @@ func (l *lerpData) setupEntityTransform(e *Entity) {
 		} else {
 			blend /= 0.1
 		}
-		blend = math.Clamp(0, blend, 1)
+		blend = qmath.Clamp(0, blend, 1)
 
 		d := vec.Sub(e.CurrentOrigin, e.PreviousOrigin)
 		l.origin = vec.FMA(e.PreviousOrigin, float32(blend), d)
 
 		d = vec.Sub(e.CurrentAngles, e.PreviousAngles)
-		d[0] = math.AngleMod32(d[0]) - 180
-		d[1] = math.AngleMod32(d[1]) - 180
-		d[2] = math.AngleMod32(d[2]) - 180
+		d[0] = qmath.AngleMod32(d[0]) - 180
+		d[1] = qmath.AngleMod32(d[1]) - 180
+		d[2] = qmath.AngleMod32(d[2]) - 180
 		l.angles = vec.FMA(e.PreviousAngles, float32(blend), d)
 	} else {
 		l.origin = e.Origin
@@ -185,7 +186,21 @@ type qUniform interface {
 	SetAsUniform(id int32)
 }
 
+func calcShadeVector(e *Entity) vec.Vec3 {
+	const shadeDotQuant = 16
+	quantizedAngle := float64(int(e.Angles[1]*(shadeDotQuant/360.0)) & (shadeDotQuant - 1))
+	radiansAngle := (quantizedAngle / 16.0) * 2.0 * math.Pi
+	s, c := math.Sincos(-radiansAngle)
+	r := vec.Vec3{float32(c), float32(s), 1}
+	r.Normalize()
+	return r
+}
+
 func drawAliasFrame(m *mdl.Model, ld *lerpData, tx, fb *texture.Texture, e *Entity, mv, p qUniform) {
+	lightColor := cl.ColorForEntity(e)
+	shadeVec := calcShadeVector(e)
+	// Now we should have everything needed to call GL_DrawAliasFrame_GLSL
+	fmt.Printf("LightColor: %v, %v\n", lightColor, shadeVec)
 	// R_SetupAliasLighting(e)
 	// GL_DrawAliasFrame_GLSL
 	C.R_DrawAliasModel(e.ptr)

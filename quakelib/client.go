@@ -1899,5 +1899,6 @@ func (c *Client) ColorForEntity(e *Entity) vec.Vec3 {
 			return vec.Vec3{256, 256, 256}
 		}
 	}
+	lightColor.Scale(1.0 / 200.0)
 	return lightColor
 }
