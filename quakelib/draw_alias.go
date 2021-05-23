@@ -6,7 +6,6 @@ package quakelib
 //#include "gl_model.h"
 //#include "render.h"
 //void R_DrawAliasModel(entity_t* e);
-//void GL_DrawAliasShadow(entity_t* e);
 import "C"
 
 import (
@@ -252,10 +251,6 @@ func drawAliasFrame(m *mdl.Model, ld *lerpData, tx, fb *texture.Texture, e *Enti
 	// R_SetupAliasLighting(e)
 	// GL_DrawAliasFrame_GLSL
 	C.R_DrawAliasModel(e.ptr)
-}
-
-func (r *qRenderer) DrawAliasShadow(e *Entity, model *mdl.Model) {
-	C.GL_DrawAliasShadow(e.ptr)
 }
 
 var aliasDrawer *qAliasDrawer

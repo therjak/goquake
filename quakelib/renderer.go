@@ -310,6 +310,7 @@ func (r *qRenderer) DrawEntitiesOnList(alphaPass bool) {
 	if !cvars.RDrawEntities.Bool() {
 		return
 	}
+	// r.DrawShadows()
 	for _, e := range visibleEntities {
 		a := entAlphaDecode(e.Alpha)
 		if (a < 1 && !alphaPass) || (a == 1 && alphaPass) {
@@ -332,8 +333,9 @@ func (r *qRenderer) DrawEntitiesOnList(alphaPass bool) {
 	}
 }
 
+/*
 func (r *qRenderer) DrawShadows() {
-	if !cvars.RShadows.Bool() || !cvars.RDrawEntities.Bool() {
+	if !cvars.RShadows.Bool() {
 		return
 	}
 
@@ -352,4 +354,4 @@ func (r *qRenderer) DrawShadows() {
 	}
 
 	gl.Disable(gl.STENCIL_TEST)
-}
+}*/

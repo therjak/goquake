@@ -129,7 +129,6 @@ func (v *qView) renderScene() {
 	// TODO: enable fog?
 	gl.UseProgram(0) // enable fixed pipeline
 	C.R_DrawWorld()
-	renderer.DrawShadows()
 	renderer.DrawEntitiesOnList(!alphaPass)
 	C.R_DrawWorld_Water()
 	renderer.DrawEntitiesOnList(alphaPass)
