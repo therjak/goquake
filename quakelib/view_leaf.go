@@ -70,7 +70,7 @@ func MarkSurfacesAddStaticEntities() {
 
 	if viewLeaf.old == viewLeaf.current && !markSurfacesVisChanged && !nearWaterPortal {
 		for i, leaf := range cl.worldModel.Leafs[1:] {
-			if markSurfacesVis[i>>3]&markSurfacesVis[i&7] != 0 {
+			if markSurfacesVis[i>>3]&(1<<(i&7)) != 0 {
 				MakeEntitiesVisible(leaf)
 			}
 		}
