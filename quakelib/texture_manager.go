@@ -101,8 +101,8 @@ func (tm *texMgr) LoadConsoleChars() *texture.Texture {
 	t := texture.NewTexture(128, 128,
 		texture.TexPrefAlpha|texture.TexPrefNearest|texture.TexPrefNoPicMip|texture.TexPrefConChars,
 		"gfx.wad:conchars", texture.ColorTypeIndexed, data)
-	textureManager.addActiveTexture(t)
-	textureManager.loadIndexed(t, data)
+	tm.addActiveTexture(t)
+	tm.loadIndexed(t, data)
 	return t
 }
 
@@ -149,15 +149,15 @@ func (tm *texMgr) LoadBacktile() *texture.Texture {
 		Error("Draw_LoadPics: couldn't load backtile")
 		return nil
 	}
-	return textureManager.LoadWadTex(name, p.Width, p.Height, p.Data)
+	return tm.LoadWadTex(name, p.Width, p.Height, p.Data)
 }
 
 func (tm *texMgr) loadParticleImage(name string, width, height int32, data []byte) *texture.Texture {
 	t := texture.NewTexture(width, height,
 		texture.TexPrefPersist|texture.TexPrefAlpha|texture.TexPrefLinear,
 		name, texture.ColorTypeRGBA, data)
-	textureManager.addActiveTexture(t)
-	textureManager.loadRGBA(t, data)
+	tm.addActiveTexture(t)
+	tm.loadRGBA(t, data)
 	return t
 }
 
