@@ -14,4 +14,12 @@ func VID_Init_Go() {
 		fmt.Printf("%v", err)
 		Error(fmt.Sprintf("%v", err))
 	}
+	// All our shaders:
+	CreateAliasDrawer()
+	CreateSpriteDrawer()
+	CreateSkyDrawer()
+	CreateParticleDrawer()
+	CreatePostProcess()
+	CreateConeDrawer()
+	CreateUiDrawer()
 }

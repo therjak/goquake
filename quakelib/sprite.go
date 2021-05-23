@@ -50,12 +50,12 @@ var (
 	spriteDrawer *qSpriteDrawer
 )
 
+func CreateSpriteDrawer() {
+	spriteDrawer = NewSpriteDrawer()
+}
+
 func (r *qRenderer) DrawSpriteModel(e *Entity, m *spr.Model) {
 	const piDiv180 = math32.Pi / 180
-
-	if spriteDrawer == nil {
-		spriteDrawer = NewSpriteDrawer()
-	}
 
 	t := float32(cl.time) + e.SyncBase
 	cf := e.Frame

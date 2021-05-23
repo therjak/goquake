@@ -89,6 +89,9 @@ func ClearSkyBox() {
 //export SkyInit
 func SkyInit() {
 	C.Sky_Init()
+}
+
+func CreateSkyDrawer() {
 	skyDrawer = newSkyDrawer()
 }
 

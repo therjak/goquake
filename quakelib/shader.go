@@ -341,4 +341,66 @@ void main() {
   frag_color = vec4(Color, 1.0);
 }
 ` + "\x00"
+
+	vertexSourceAliasDrawer = `
+#version 330
+uniform float Blend;
+uniform vec3 ShadeVector;
+uniform vec4 LightColor;
+uniform mat4 projection;
+uniform mat4 modelview;
+layout (location = 0) in vec4 Pose1Vert;
+layout (location = 1) in vec3 Pose1Normal;
+layout (location = 2) in vec4 Pose2Vert;
+layout (location = 3) in vec3 Pose2Normal;
+layout (location = 4) in vec4 TexCoords; // only xy are used
+out float FogFragCoord;
+out vec2 glTexCoord;
+out vec4 frontColor;
+float r_avertexnormal_dot(vec3 vertexnormal) {
+  float dot = dot(vertexnormal, ShadeVector);
+  // wtf - this reproduces anorm_dots within as reasonable a degree of tolerance as the >= 0 case
+  if (dot < 0.0)
+    return 1.0 + dot * (13.0 / 44.0);
+  else
+    return 1.0 + dot;
+}
+void main() {
+	glTexCoord = TexCoords.xy;
+  vec4 lerpedVert = mix(vec4(Pose1Vert.xyz, 1.0), vec4(Pose2Vert.xyz, 1.0), Blend);
+	gl_Position = projection * modelview * lerpedVert;
+  FogFragCoord = gl_Position.w;
+  float dot1 = r_avertexnormal_dot(Pose1Normal);
+  float dot2 = r_avertexnormal_dot(Pose2Normal);
+  frontColor = LightColor * vec4(vec3(mix(dot1, dot2, Blend)), 1.0);
+}
+` + "\x00"
+
+	fragmentSourceAliasDrawer = `
+#version 330
+uniform sampler2D Tex;
+uniform sampler2D FullbrightTex;
+uniform bool UseFullbrightTex;
+uniform bool UseOverbright;
+uniform float FogDensity;
+uniform vec4 FogColor;
+in float FogFragCoord;
+in vec2 glTexCoord;
+in vec4 frontColor;
+out vec4 frag_color;
+void main() {
+  vec4 result = texture2D(Tex, glTexCoord);
+  result *= frontColor;
+  if (UseOverbright)
+    result.rgb *= 2.0;
+  if (UseFullbrightTex)
+    result += texture2D(FullbrightTex, glTexCoord.xy);
+  result = clamp(result, 0.0, 1.0);
+  float fog = exp(-FogDensity * FogDensity * FogFragCoord * FogFragCoord);
+  fog = clamp(fog, 0.0, 1.0);
+  result = mix(FogColor, result, fog);
+  result.a = frontColor.a;
+	frag_color = result;
+}
+` + "\x00"
 )

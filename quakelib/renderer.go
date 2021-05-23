@@ -182,6 +182,10 @@ func (r *qRenderer) DrawWeaponModel() {
 
 var coneDrawer *qConeDrawer
 
+func CreateConeDrawer() {
+	coneDrawer = newConeDrawer()
+}
+
 type qConeDrawer struct {
 	vao        *glh.VertexArray
 	vbo        *glh.Buffer
@@ -261,9 +265,6 @@ func (r *qRenderer) RenderDynamicLights() {
 	if !cvars.GlFlashBlend.Bool() {
 		// TODO(therjak): disabling flashblend is broken since transparent console
 		return
-	}
-	if coneDrawer == nil {
-		coneDrawer = newConeDrawer()
 	}
 
 	r.lightFrameCount++

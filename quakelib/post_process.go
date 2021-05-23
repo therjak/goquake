@@ -24,6 +24,10 @@ type postProcess struct {
 
 var pprocess *postProcess
 
+func CreatePostProcess() {
+	pprocess = newPostProcessor()
+}
+
 func newPostProcessor() *postProcess {
 	p := &postProcess{}
 	elements := []uint32{
@@ -94,8 +98,5 @@ func (p *postProcess) Draw(gamma, contrast float32, width, height int32) {
 
 func postProcessGammaContrast(gamma, contrast float32, width, height int32) {
 	contrast = math.Clamp32(1, contrast, 2)
-	if pprocess == nil {
-		pprocess = newPostProcessor()
-	}
 	pprocess.Draw(gamma, contrast, width, height)
 }

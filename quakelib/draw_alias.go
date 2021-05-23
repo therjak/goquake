@@ -15,11 +15,59 @@ import (
 
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/therjak/goquake/cvars"
+	"github.com/therjak/goquake/glh"
 	qmath "github.com/therjak/goquake/math"
 	"github.com/therjak/goquake/math/vec"
 	"github.com/therjak/goquake/mdl"
 	"github.com/therjak/goquake/texture"
 )
+
+func newAliasDrawProgram() (*glh.Program, error) {
+	return glh.NewProgram(vertexSourceAliasDrawer, fragmentSourceAliasDrawer)
+}
+
+type qAliasDrawer struct {
+	vao *glh.VertexArray
+	vbo *glh.Buffer // this should probably be inside the model
+	// ebo *glh.Buffer
+	prog       *glh.Program
+	projection int32
+	modelview  int32
+	blend      int32
+	shadeVec   int32
+	lightColor int32
+	tex        int32
+	fullBright int32
+	overBright int32
+	fogDensity int32
+	fogColor   int32
+	// 4 pose1vert, 3 pose1normal
+	// 4 pose2vert, 3 pose2normal
+	// 4 texcoords
+}
+
+func newAliasDrawer() *qAliasDrawer {
+	d := &qAliasDrawer{}
+	d.vao = glh.NewVertexArray()
+	d.vbo = glh.NewBuffer()
+	var err error
+	d.prog, err = newAliasDrawProgram()
+	if err != nil {
+		Error(err.Error())
+	}
+	d.projection = d.prog.GetUniformLocation("projection")
+	d.modelview = d.prog.GetUniformLocation("modelview")
+	d.blend = d.prog.GetUniformLocation("Blend")
+	d.shadeVec = d.prog.GetUniformLocation("ShadeVector")
+	d.lightColor = d.prog.GetUniformLocation("LightColor")
+	d.tex = d.prog.GetUniformLocation("Tex")
+	d.fullBright = d.prog.GetUniformLocation("FullbrightTex")
+	d.overBright = d.prog.GetUniformLocation("UseFullbrightTex")
+	d.fogDensity = d.prog.GetUniformLocation("FogDensity")
+	d.fogColor = d.prog.GetUniformLocation("FogColor")
+
+	return d
+}
 
 type lerpData struct {
 	pose1  int // lerp between pose1 and pose2
@@ -208,6 +256,12 @@ func drawAliasFrame(m *mdl.Model, ld *lerpData, tx, fb *texture.Texture, e *Enti
 
 func (r *qRenderer) DrawAliasShadow(e *Entity, model *mdl.Model) {
 	C.GL_DrawAliasShadow(e.ptr)
+}
+
+var aliasDrawer *qAliasDrawer
+
+func CreateAliasDrawer() {
+	aliasDrawer = newAliasDrawer()
 }
 
 //export PrintMV

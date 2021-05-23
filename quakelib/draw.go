@@ -216,11 +216,13 @@ func Draw_Delete() {
 	qRecDrawer = nil
 }
 
-//export Draw_Init
-func Draw_Init() {
+func CreateUiDrawer() {
 	qDrawer = NewDrawer()
 	qRecDrawer = NewRecDrawer()
+}
 
+//export Draw_Init
+func Draw_Init() {
 	textureManager.Init()
 	consoleTexture = textureManager.LoadConsoleChars()
 	backtileTexture = textureManager.LoadBacktile()

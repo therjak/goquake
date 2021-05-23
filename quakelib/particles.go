@@ -254,6 +254,9 @@ func particlesInit() {
 		freeParticles = append(freeParticles, &particles[i])
 	}
 
+}
+
+func CreateParticleDrawer() {
 	particleDrawer = newParticleDrawer()
 }
 
