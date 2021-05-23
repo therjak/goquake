@@ -137,8 +137,8 @@ func deg2rad(a float32) float32 {
 
 func (p *fPlane) TurnVector(forward, side vec.Vec3, angle float32) {
 	ar := deg2rad(angle)
-	scaleForward := math32.Cos(ar)
-	scaleSide := math32.Sin(ar)
+	scaleSide, scaleForward := math32.Sincos(ar)
+
 	p.normal = vec.Add(vec.Scale(scaleForward, forward), vec.Scale(scaleSide, side))
 	p.dist = vec.Dot(qRefreshRect.viewOrg, p.normal)
 	p.UpdateSignBits()

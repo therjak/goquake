@@ -165,16 +165,16 @@ func (l *lerpData) setupEntityTransform(e *Entity) {
 func (r *qRenderer) cullAlias(e *Entity, model *mdl.Model) bool {
 	if e.Angles[0] != 0 || e.Angles[2] != 0 {
 		return r.CullBox(
-			vec.Sub(e.Origin, vec.Vec3{model.Radius, model.Radius, model.Radius}),
+			vec.Add(e.Origin, vec.Vec3{-model.Radius, -model.Radius, -model.Radius}),
 			vec.Add(e.Origin, vec.Vec3{model.Radius, model.Radius, model.Radius}))
 	}
 	if e.Angles[1] != 0 {
 		return r.CullBox(
-			vec.Sub(e.Origin, vec.Vec3{model.Radius, model.Radius, model.Mins()[2]}),
-			vec.Add(e.Origin, vec.Vec3{model.Radius, model.Radius, model.Maxs()[2]}))
+			vec.Add(e.Origin, vec.Vec3{-model.YawRadius, -model.YawRadius, model.Mins()[2]}),
+			vec.Add(e.Origin, vec.Vec3{model.YawRadius, model.YawRadius, model.Maxs()[2]}))
 	}
 	return r.CullBox(
-		vec.Sub(e.Origin, model.Mins()),
+		vec.Add(e.Origin, model.Mins()),
 		vec.Add(e.Origin, model.Maxs()))
 }
 
