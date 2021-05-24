@@ -373,8 +373,8 @@ func (s *qSky) DrawSkyLayers() {
 
 	skyDrawer.prog.Use()
 	skyDrawer.vao.Bind()
-	skyDrawer.ebo.Bind(gl.ELEMENT_ARRAY_BUFFER)
-	skyDrawer.vbo.Bind(gl.ARRAY_BUFFER)
+	skyDrawer.ebo.Bind()
+	skyDrawer.vbo.Bind()
 
 	gl.EnableVertexAttribArray(0)
 	defer gl.DisableVertexAttribArray(0)
@@ -423,10 +423,11 @@ func (s *qSky) DrawSkyLayers() {
 		ap(p2)
 		ap(p3)
 		ap(p4)
-		gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
+		skyDrawer.vbo.SetData(4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 		gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
 	}
 
+	// TODO(therjak): this can/should be done in one draw call.
 	if s.mins[0][0] < s.maxs[0][0] && s.mins[1][0] < s.maxs[1][0] {
 		mins := [2]float32{s.mins[0][0], s.mins[1][0]}
 		maxs := [2]float32{s.maxs[0][0], s.maxs[1][0]}
@@ -489,10 +490,10 @@ func newSkyDrawer() *qSkyDrawer {
 		2, 3, 0,
 	}
 	d.vao = glh.NewVertexArray()
-	d.vbo = glh.NewBuffer()
-	d.ebo = glh.NewBuffer()
-	d.ebo.Bind(gl.ELEMENT_ARRAY_BUFFER)
-	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
+	d.vbo = glh.NewBuffer(glh.ArrayBuffer)
+	d.ebo = glh.NewBuffer(glh.ElementArrayBuffer)
+	d.ebo.Bind()
+	d.ebo.SetData(4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
 	var err error
 	d.prog, err = newSkyProgram()
 	if err != nil {

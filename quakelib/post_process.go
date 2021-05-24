@@ -42,12 +42,12 @@ func newPostProcessor() *postProcess {
 		-1, 1, 0, 1,
 	}
 	p.vao = glh.NewVertexArray()
-	p.vbo = glh.NewBuffer()
-	p.vbo.Bind(gl.ARRAY_BUFFER)
-	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
-	p.ebo = glh.NewBuffer()
-	p.ebo.Bind(gl.ELEMENT_ARRAY_BUFFER)
-	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
+	p.vbo = glh.NewBuffer(glh.ArrayBuffer)
+	p.vbo.Bind()
+	p.vbo.SetData(4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
+	p.ebo = glh.NewBuffer(glh.ElementArrayBuffer)
+	p.ebo.Bind()
+	p.ebo.SetData(4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
 	var err error
 	p.prog, err = glh.NewProgram(vertexTextureSource, postProcessFragment)
 	if err != nil {
@@ -77,8 +77,8 @@ func (p *postProcess) Draw(gamma, contrast float32, width, height int32) {
 
 	p.prog.Use()
 	p.vao.Bind()
-	p.ebo.Bind(gl.ELEMENT_ARRAY_BUFFER)
-	p.vbo.Bind(gl.ARRAY_BUFFER)
+	p.ebo.Bind()
+	p.vbo.Bind()
 	gl.EnableVertexAttribArray(0)
 	defer gl.DisableVertexAttribArray(0)
 	gl.EnableVertexAttribArray(1)

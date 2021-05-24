@@ -54,7 +54,7 @@ func newParticleDrawProgram() (*glh.Program, error) {
 func newParticleDrawer() *qParticleDrawer {
 	d := &qParticleDrawer{}
 	d.vao = glh.NewVertexArray()
-	d.vbo = glh.NewBuffer()
+	d.vbo = glh.NewBuffer(glh.ArrayBuffer)
 	var err error
 	d.prog, err = newParticleDrawProgram()
 	if err != nil {
@@ -139,8 +139,8 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 	d.prog.Use()
 	d.vao.Bind()
 
-	d.vbo.Bind(gl.ARRAY_BUFFER)
-	gl.BufferData(gl.ARRAY_BUFFER, 4*len(d.vertices), gl.Ptr(d.vertices), gl.STATIC_DRAW)
+	d.vbo.Bind()
+	d.vbo.SetData(4*len(d.vertices), gl.Ptr(d.vertices), gl.STATIC_DRAW)
 
 	gl.EnableVertexAttribArray(0)
 	defer gl.DisableVertexAttribArray(0)

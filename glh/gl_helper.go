@@ -6,9 +6,15 @@ import (
 	"fmt"
 	"runtime"
 	"strings"
+	"unsafe"
 
 	"github.com/faiface/mainthread"
 	"github.com/go-gl/gl/v4.6-core/gl"
+)
+
+const (
+	ArrayBuffer        = gl.ARRAY_BUFFER
+	ElementArrayBuffer = gl.ELEMENT_ARRAY_BUFFER
 )
 
 type Program struct {
@@ -82,11 +88,14 @@ func (p *Program) GetUniformLocation(n string) int32 {
 }
 
 type Buffer struct {
-	buf uint32
+	buf    uint32
+	target uint32
 }
 
-func NewBuffer() *Buffer {
-	b := &Buffer{}
+func NewBuffer(target uint32) *Buffer {
+	b := &Buffer{
+		target: target,
+	}
 	gl.GenBuffers(1, &b.buf)
 	runtime.SetFinalizer(b, (*Buffer).delete)
 	return b
@@ -98,8 +107,19 @@ func (b *Buffer) delete() {
 	})
 }
 
-func (b *Buffer) Bind(target uint32) {
-	gl.BindBuffer(target, b.buf)
+func (b *Buffer) Bind() {
+	gl.BindBuffer(b.target, b.buf)
+}
+
+// SetData sets the data for this buffer. It needs to be bound first.
+func (b *Buffer) SetData(size int, data unsafe.Pointer, usage uint32) {
+	// It would be nice to just call b.Bind() first.
+	// But even in the effective noop case this is not free.
+	gl.BufferData(b.target, size, data, usage)
+}
+
+func (b *Buffer) ID() uint32 {
+	return b.buf
 }
 
 type VertexArray struct {

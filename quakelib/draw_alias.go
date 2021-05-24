@@ -26,9 +26,8 @@ func newAliasDrawProgram() (*glh.Program, error) {
 }
 
 type qAliasDrawer struct {
-	vao *glh.VertexArray
-	vbo *glh.Buffer // this should probably be inside the model
-	// ebo *glh.Buffer
+	// vbo and ebo are stored in mdl.Model
+	vao        *glh.VertexArray
 	prog       *glh.Program
 	projection int32
 	modelview  int32
@@ -40,15 +39,11 @@ type qAliasDrawer struct {
 	overBright int32
 	fogDensity int32
 	fogColor   int32
-	// 4 pose1vert, 3 pose1normal
-	// 4 pose2vert, 3 pose2normal
-	// 4 texcoords
 }
 
 func newAliasDrawer() *qAliasDrawer {
 	d := &qAliasDrawer{}
 	d.vao = glh.NewVertexArray()
-	d.vbo = glh.NewBuffer()
 	var err error
 	d.prog, err = newAliasDrawProgram()
 	if err != nil {

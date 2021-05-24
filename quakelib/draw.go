@@ -54,10 +54,10 @@ func NewRecDrawer() *recDrawer {
 		2, 3, 0,
 	}
 	d.vao = glh.NewVertexArray()
-	d.vbo = glh.NewBuffer()
-	d.ebo = glh.NewBuffer()
-	d.ebo.Bind(gl.ELEMENT_ARRAY_BUFFER)
-	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
+	d.vbo = glh.NewBuffer(glh.ArrayBuffer)
+	d.ebo = glh.NewBuffer(glh.ElementArrayBuffer)
+	d.ebo.Bind()
+	d.ebo.SetData(4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
 	var err error
 	d.prog, err = newRecDrawProgram()
 	if err != nil {
@@ -90,9 +90,9 @@ func (d *recDrawer) Draw(x, y, w, h float32, c Color) {
 
 	d.prog.Use()
 	d.vao.Bind()
-	d.ebo.Bind(gl.ELEMENT_ARRAY_BUFFER)
-	d.vbo.Bind(gl.ARRAY_BUFFER)
-	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
+	d.ebo.Bind()
+	d.vbo.Bind()
+	d.vbo.SetData(4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 
 	gl.EnableVertexAttribArray(0)
 	defer gl.DisableVertexAttribArray(0)
@@ -117,10 +117,10 @@ func NewDrawer() *drawer {
 		2, 3, 0,
 	}
 	d.vao = glh.NewVertexArray()
-	d.vbo = glh.NewBuffer()
-	d.ebo = glh.NewBuffer()
-	d.ebo.Bind(gl.ELEMENT_ARRAY_BUFFER)
-	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
+	d.vbo = glh.NewBuffer(glh.ArrayBuffer)
+	d.ebo = glh.NewBuffer(glh.ElementArrayBuffer)
+	d.ebo.Bind()
+	d.ebo.SetData(4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
 	var err error
 	d.prog, err = newDrawProgram()
 	if err != nil {
@@ -148,9 +148,9 @@ func (d *drawer) Draw(x, y, w, h float32, t *texture.Texture) {
 
 	d.prog.Use()
 	d.vao.Bind()
-	d.ebo.Bind(gl.ELEMENT_ARRAY_BUFFER)
-	d.vbo.Bind(gl.ARRAY_BUFFER)
-	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
+	d.ebo.Bind()
+	d.vbo.Bind()
+	d.vbo.SetData(4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 
 	gl.EnableVertexAttribArray(0)
 	defer gl.DisableVertexAttribArray(0)
@@ -187,9 +187,9 @@ func (d *drawer) DrawQuad(x, y float32, num byte) {
 
 	d.prog.Use()
 	d.vao.Bind()
-	d.ebo.Bind(gl.ELEMENT_ARRAY_BUFFER)
-	d.vbo.Bind(gl.ARRAY_BUFFER)
-	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
+	d.ebo.Bind()
+	d.vbo.Bind()
+	d.vbo.SetData(4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 
 	gl.EnableVertexAttribArray(0)
 	defer gl.DisableVertexAttribArray(0)
@@ -494,9 +494,9 @@ func (d *drawer) TileClear(x, y, w, h float32) {
 
 	d.prog.Use()
 	d.vao.Bind()
-	d.ebo.Bind(gl.ELEMENT_ARRAY_BUFFER)
-	d.vbo.Bind(gl.ARRAY_BUFFER)
-	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
+	d.ebo.Bind()
+	d.vbo.Bind()
+	d.vbo.SetData(4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 
 	gl.EnableVertexAttribArray(0)
 	defer gl.DisableVertexAttribArray(0)

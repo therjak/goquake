@@ -208,7 +208,7 @@ func newConeDrawProgram() (*glh.Program, error) {
 func newConeDrawer() *qConeDrawer {
 	d := &qConeDrawer{}
 	d.vao = glh.NewVertexArray()
-	d.vbo = glh.NewBuffer()
+	d.vbo = glh.NewBuffer(glh.ArrayBuffer)
 	var err error
 	d.prog, err = newConeDrawProgram()
 	if err != nil {
@@ -230,7 +230,7 @@ func (cd *qConeDrawer) Draw(cs []qCone) {
 
 	cd.prog.Use()
 	cd.vao.Bind()
-	cd.vbo.Bind(gl.ARRAY_BUFFER)
+	cd.vbo.Bind()
 	// TODO: remove this allocation
 	data := make([]float32, 0, len(cs)*(3+1+3+3))
 	for _, c := range cs {
@@ -240,7 +240,7 @@ func (cd *qConeDrawer) Draw(cs []qCone) {
 			c.innerColor[0], c.innerColor[1], c.innerColor[2],
 			c.outerColor[0], c.outerColor[1], c.outerColor[2])
 	}
-	gl.BufferData(gl.ARRAY_BUFFER, 4*len(data), gl.Ptr(data), gl.STATIC_DRAW)
+	cd.vbo.SetData(4*len(data), gl.Ptr(data), gl.STATIC_DRAW)
 
 	gl.EnableVertexAttribArray(0)
 	defer gl.DisableVertexAttribArray(0)
