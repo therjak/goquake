@@ -11,6 +11,7 @@ import (
 	"math"
 
 	"github.com/chewxy/math32"
+	"github.com/therjak/goquake/glh"
 	"github.com/therjak/goquake/math/vec"
 	qm "github.com/therjak/goquake/model"
 	"github.com/therjak/goquake/texture"
@@ -27,20 +28,17 @@ func init() {
 }
 
 type Model struct {
-	AliasHeader
 	name  string
 	mins  vec.Vec3
 	maxs  vec.Vec3
 	flags int
-}
 
-type AliasHeader struct {
 	Scale         vec.Vec3
 	Translate     vec.Vec3
 	SkinCount     int
 	SkinWidth     int
 	SkinHeight    int
-	VerticeCount  int
+	verticeCount  int32
 	TriangleCount int
 	FrameCount    int
 	SyncType      int
@@ -51,7 +49,7 @@ type AliasHeader struct {
 	// indexs intptr_t
 	// vertexes intptr_t
 
-	// PoseCount int
+	poseCount int32
 	// PoseVerts int
 	// PoseData  int
 	// Commands  int
@@ -65,6 +63,19 @@ type AliasHeader struct {
 	Triangles []Triangle
 	Radius    float32
 	YawRadius float32
+
+	VertexElementArrayBuffer *glh.Buffer
+	VertexArrayBuffer        *glh.Buffer
+	// 4 pose1vert, 4 pose1normal
+	// 4 pose2vert, 4 pose2normal
+	// 4 texcoords
+	// layout:
+	// ([ 4 int8 xyzw, 4 uint8 n(xyzw) ] * numverts ) * posecount
+	// (2 float32 s,t texcoord)
+	// use offset to jump to correct pose, afterwards you have numverts
+	// vertices with normals as the actual 'model'
+	// the texcoords are consecutive at the end of the vbo and match the
+	// order of the verts inside a pose
 }
 
 type TextureCoord struct {
@@ -180,13 +191,15 @@ func load(name string, data []byte) (*Model, error) {
 	mod.SkinCount = int(h.SkinCount)
 	mod.SkinWidth = int(h.SkinWidth)
 	mod.SkinHeight = int(h.SkinHeight)
-	mod.VerticeCount = int(h.VerticeCount)
+	mod.verticeCount = h.VerticeCount
 	mod.TriangleCount = int(h.TriangleCount)
 	mod.FrameCount = int(h.FrameCount)
 	mod.Scale = vec.Vec3{h.Scale[0], h.Scale[1], h.Scale[2]}
 	mod.Translate = vec.Vec3{h.Translate[0], h.Translate[1], h.Translate[2]}
 	mod.SyncType = int(h.SyncType)
 	mod.flags = (int(h.Flags & 0xff))
+	mod.VertexElementArrayBuffer = glh.NewBuffer(glh.ElementArrayBuffer)
+	mod.VertexArrayBuffer = glh.NewBuffer(glh.ArrayBuffer)
 
 	skinSize := int64(h.SkinWidth) * int64(h.SkinHeight)
 	for i := int32(0); i < h.SkinCount; i++ { // See Mod_LoadAllSkins
@@ -257,6 +270,7 @@ func load(name string, data []byte) (*Model, error) {
 		}
 	}
 
+	mod.poseCount = 0
 	fs := make([]frame, h.FrameCount)
 	for i := int32(0); i < h.FrameCount; i++ {
 		frameType := int32(0)
@@ -283,6 +297,7 @@ func load(name string, data []byte) (*Model, error) {
 			// any engine supports it but all just read the first.
 			fs[i].interval = intervals[0]
 		}
+		mod.poseCount += groupFrames
 		fs[i].fg = make([]frameGroup, groupFrames)
 		for fgi := range fs[i].fg {
 			fg := &fs[i].fg[fgi]
@@ -304,8 +319,34 @@ func load(name string, data []byte) (*Model, error) {
 	}
 
 	calcFrames(mod, &h, fs)
+	mod.setupBuffers()
 
 	return mod, nil
+}
+
+type trivertx struct {
+	v                [3]byte
+	lightNormalIndex byte
+}
+
+type aliasmesh struct {
+	st        [2]float32
+	vertindex uint16
+}
+
+func (m *Model) setupBuffers() {
+	// m.VertexElementArrayBuffer
+	// m.VertexArrayBuffer
+	// len(m.Triangles) == numtris
+	// m.verticeCount == numverts
+	// m.poseCount ==  posenum
+
+	/*
+		maxVerts := len(m.Triangles) * 3
+		indices := make([]uint16, 0, maxVerts)
+		verts := make([]trivertx, 0, m.poseCount*m.verticeCount)
+		desc := make([]aliasmesh, 0, maxVerts)
+	*/
 }
 
 func calcFrames(mod *Model, pheader *header, frames []frame) {
@@ -324,14 +365,6 @@ func calcFrames(mod *Model, pheader *header, frames []frame) {
 
 	mins := vec.Vec3{math.MaxFloat32, math.MaxFloat32, math.MaxFloat32}
 	maxs := vec.Vec3{-math.MaxFloat32, -math.MaxFloat32, -math.MaxFloat32}
-	/*
-	 radius := float32(0)
-	 yawradius := float32(0)
-	 mod.YMins = mod.Mins
-	 mod.RMins = mod.Mins
-	 mod.YMaxs = mod.Maxs
-	 mod.RMaxs = mod.Maxs
-	*/
 
 	mod.Frames = make([]Frame, len(frames))
 
