@@ -44,10 +44,10 @@ func newPostProcessor() *postProcess {
 	p.vao = glh.NewVertexArray()
 	p.vbo = glh.NewBuffer(glh.ArrayBuffer)
 	p.vbo.Bind()
-	p.vbo.SetData(4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
+	p.vbo.SetData(4*len(vertices), gl.Ptr(vertices))
 	p.ebo = glh.NewBuffer(glh.ElementArrayBuffer)
 	p.ebo.Bind()
-	p.ebo.SetData(4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
+	p.ebo.SetData(4*len(elements), gl.Ptr(elements))
 	var err error
 	p.prog, err = glh.NewProgram(vertexTextureSource, postProcessFragment)
 	if err != nil {

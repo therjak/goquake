@@ -34,7 +34,7 @@ func NewSpriteDrawer() *qSpriteDrawer {
 	d.vbo = glh.NewBuffer(glh.ArrayBuffer)
 	d.ebo = glh.NewBuffer(glh.ElementArrayBuffer)
 	d.ebo.Bind()
-	d.ebo.SetData(4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
+	d.ebo.SetData(4*len(elements), gl.Ptr(elements))
 	var err error
 	d.prog, err = newSpriteDrawProgram()
 	if err != nil {
@@ -124,7 +124,7 @@ func (r *qRenderer) DrawSpriteModel(e *Entity, m *spr.Model) {
 	spriteDrawer.vao.Bind()
 	spriteDrawer.ebo.Bind()
 	spriteDrawer.vbo.Bind()
-	spriteDrawer.vbo.SetData(4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
+	spriteDrawer.vbo.SetData(4*len(vertices), gl.Ptr(vertices))
 
 	gl.EnableVertexAttribArray(0)
 	defer gl.DisableVertexAttribArray(0)

@@ -240,7 +240,7 @@ func (cd *qConeDrawer) Draw(cs []qCone) {
 			c.innerColor[0], c.innerColor[1], c.innerColor[2],
 			c.outerColor[0], c.outerColor[1], c.outerColor[2])
 	}
-	cd.vbo.SetData(4*len(data), gl.Ptr(data), gl.STATIC_DRAW)
+	cd.vbo.SetData(4*len(data), gl.Ptr(data))
 
 	gl.EnableVertexAttribArray(0)
 	defer gl.DisableVertexAttribArray(0)

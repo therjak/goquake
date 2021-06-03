@@ -140,7 +140,7 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 	d.vao.Bind()
 
 	d.vbo.Bind()
-	d.vbo.SetData(4*len(d.vertices), gl.Ptr(d.vertices), gl.STATIC_DRAW)
+	d.vbo.SetData(4*len(d.vertices), gl.Ptr(d.vertices))
 
 	gl.EnableVertexAttribArray(0)
 	defer gl.DisableVertexAttribArray(0)

@@ -112,10 +112,14 @@ func (b *Buffer) Bind() {
 }
 
 // SetData sets the data for this buffer. It needs to be bound first.
-func (b *Buffer) SetData(size int, data unsafe.Pointer, usage uint32) {
+func (b *Buffer) SetData(size int, data unsafe.Pointer) {
 	// It would be nice to just call b.Bind() first.
 	// But even in the effective noop case this is not free.
-	gl.BufferData(b.target, size, data, usage)
+	gl.BufferData(b.target, size, data, gl.STATIC_DRAW)
+}
+
+func Ptr(data interface{}) unsafe.Pointer {
+	return gl.Ptr(data)
 }
 
 func (b *Buffer) ID() uint32 {

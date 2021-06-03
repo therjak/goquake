@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+
 package quakelib
 
 //#include <stdio.h>
@@ -9,7 +10,6 @@ package quakelib
 import "C"
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
@@ -27,18 +27,19 @@ func newAliasDrawProgram() (*glh.Program, error) {
 
 type qAliasDrawer struct {
 	// vbo and ebo are stored in mdl.Model
-	vao        *glh.VertexArray
-	prog       *glh.Program
-	projection int32
-	modelview  int32
-	blend      int32
-	shadeVec   int32
-	lightColor int32
-	tex        int32
-	fullBright int32
-	overBright int32
-	fogDensity int32
-	fogColor   int32
+	vao           *glh.VertexArray
+	prog          *glh.Program
+	projection    int32
+	modelview     int32
+	blend         int32
+	shadeVec      int32
+	lightColor    int32
+	tex           int32
+	fullBrightTex int32
+	useOverBright int32
+	useFullBright int32
+	fogDensity    int32
+	fogColor      int32
 }
 
 func newAliasDrawer() *qAliasDrawer {
@@ -55,8 +56,9 @@ func newAliasDrawer() *qAliasDrawer {
 	d.shadeVec = d.prog.GetUniformLocation("ShadeVector")
 	d.lightColor = d.prog.GetUniformLocation("LightColor")
 	d.tex = d.prog.GetUniformLocation("Tex")
-	d.fullBright = d.prog.GetUniformLocation("FullbrightTex")
-	d.overBright = d.prog.GetUniformLocation("UseFullbrightTex")
+	d.fullBrightTex = d.prog.GetUniformLocation("FullbrightTex")
+	d.useFullBright = d.prog.GetUniformLocation("UseFullbrightTex")
+	d.useOverBright = d.prog.GetUniformLocation("UseOverbright")
 	d.fogDensity = d.prog.GetUniformLocation("FogDensity")
 	d.fogColor = d.prog.GetUniformLocation("FogColor")
 
@@ -76,8 +78,11 @@ func (l *lerpData) setupAliasFrame(e *Entity, m *mdl.Model) {
 	if frame >= len(m.Frames) || frame < 0 {
 		frame = 0
 	}
-	poseNum := 0 // m.Frames[frame].FirstPose // we count within a framegroup and not over all framegroups
-	// numPoses := m.Frames[frame].NumPoses
+	poseNum := 0
+	for i := 0; i < frame; i++ {
+		f := &m.Frames[i]
+		poseNum += len(f.Group)
+	}
 	f := &m.Frames[frame]
 	fg := &f.Group
 	e.LerpTime = float64(f.Interval)
@@ -126,7 +131,7 @@ func (l *lerpData) setupEntityTransform(e *Entity) {
 		e.PreviousAngles = e.Angles
 		e.CurrentAngles = e.Angles
 		e.LerpFlags &^= lerpResetMove
-	} else if e.Origin != e.CurrentOrigin && e.Angles != e.CurrentAngles {
+	} else if e.Origin != e.CurrentOrigin || e.Angles != e.CurrentAngles {
 		e.MoveLerpStart = cl.time
 		e.PreviousOrigin = e.CurrentOrigin
 		e.CurrentOrigin = e.Origin
@@ -147,9 +152,18 @@ func (l *lerpData) setupEntityTransform(e *Entity) {
 		l.origin = vec.FMA(e.PreviousOrigin, float32(blend), d)
 
 		d = vec.Sub(e.CurrentAngles, e.PreviousAngles)
-		d[0] = qmath.AngleMod32(d[0]) - 180
-		d[1] = qmath.AngleMod32(d[1]) - 180
-		d[2] = qmath.AngleMod32(d[2]) - 180
+		am := func(a float32) float32 {
+			if a > 180 {
+				return a - 360
+			}
+			if a < -180 {
+				return a + 360
+			}
+			return a
+		}
+		d[0] = am(d[0])
+		d[1] = am(d[1])
+		d[2] = am(d[2])
 		l.angles = vec.FMA(e.PreviousAngles, float32(blend), d)
 	} else {
 		l.origin = e.Origin
@@ -174,6 +188,7 @@ func (r *qRenderer) cullAlias(e *Entity, model *mdl.Model) bool {
 }
 
 func (r *qRenderer) DrawAliasModel(e *Entity, model *mdl.Model) {
+	defer C.R_DrawAliasModel(e.ptr)
 	ld := &lerpData{}
 	ld.setupAliasFrame(e, model)
 	ld.setupEntityTransform(e)
@@ -198,7 +213,6 @@ func (r *qRenderer) DrawAliasModel(e *Entity, model *mdl.Model) {
 	modelview.RotateX(ld.angles[2])
 	modelview.Translate(model.Translate[0], model.Translate[1], model.Translate[2])
 	modelview.Scale(model.Scale[0], model.Scale[1], model.Scale[2])
-	// view.projection
 
 	textureManager.DisableMultiTexture()
 	var tx, fb *texture.Texture
@@ -221,7 +235,7 @@ func (r *qRenderer) DrawAliasModel(e *Entity, model *mdl.Model) {
 		fb = nil
 	}
 
-	drawAliasFrame(model, ld, tx, fb, e, modelview, view.projection)
+	drawAliasFrame(model, ld, tx, fb, e, alpha, modelview, view.projection)
 }
 
 type qUniform interface {
@@ -238,52 +252,76 @@ func calcShadeVector(e *Entity) vec.Vec3 {
 	return r
 }
 
-func drawAliasFrame(m *mdl.Model, ld *lerpData, tx, fb *texture.Texture, e *Entity, mv, p qUniform) {
+func drawAliasFrame(m *mdl.Model, ld *lerpData, tx, fb *texture.Texture, e *Entity, alpha float32, mv, p qUniform) {
 	lightColor := cl.ColorForEntity(e)
 	shadeVec := calcShadeVector(e)
-	// Now we should have everything needed to call GL_DrawAliasFrame_GLSL
-	fmt.Printf("LightColor: %v, %v\n", lightColor, shadeVec)
-	// R_SetupAliasLighting(e)
-	// GL_DrawAliasFrame_GLSL
-	C.R_DrawAliasModel(e.ptr)
+
+	var blend float32
+	if ld.pose1 != ld.pose2 {
+		blend = float32(ld.blend)
+	}
+	aliasDrawer.prog.Use()
+	m.VertexArrayBuffer.Bind()
+	m.VertexElementArrayBuffer.Bind()
+
+	gl.EnableVertexAttribArray(0) // pose1vert
+	defer gl.DisableVertexAttribArray(0)
+	gl.EnableVertexAttribArray(1) // pose1normal
+	defer gl.DisableVertexAttribArray(1)
+	gl.EnableVertexAttribArray(2) // pose2vert
+	defer gl.DisableVertexAttribArray(2)
+	gl.EnableVertexAttribArray(3) // pose2normal
+	defer gl.DisableVertexAttribArray(3)
+	gl.EnableVertexAttribArray(4) // texcoords
+	defer gl.DisableVertexAttribArray(4)
+
+	// layout:
+	// 4*uint8 + 4*int8, for each pose and vertex
+	// 2*float32 for each vertex
+
+	p1 := ld.pose1 * m.VerticeCount * 8
+	p2 := ld.pose2 * m.VerticeCount * 8
+	gl.VertexAttribPointer(0, 4, gl.UNSIGNED_BYTE, false, 8, gl.PtrOffset(p1))
+	gl.VertexAttribPointer(1, 4, gl.BYTE, true, 8, gl.PtrOffset(p1+4))
+	gl.VertexAttribPointer(2, 4, gl.UNSIGNED_BYTE, false, 8, gl.PtrOffset(p2))
+	gl.VertexAttribPointer(3, 4, gl.BYTE, true, 8, gl.PtrOffset(p2+4))
+	gl.VertexAttribPointer(4, 2, gl.FLOAT, false, 0, gl.PtrOffset(m.STOffset))
+
+	gl.Uniform1f(aliasDrawer.blend, blend)
+	gl.Uniform3f(aliasDrawer.shadeVec, shadeVec[0], shadeVec[1], shadeVec[2])
+	gl.Uniform4f(aliasDrawer.lightColor, lightColor[0], lightColor[1], lightColor[2], alpha)
+	gl.Uniform1i(aliasDrawer.tex, 0)
+	gl.Uniform1i(aliasDrawer.fullBrightTex, 1)
+	var useFullBright int32
+	if fb != nil {
+		useFullBright = 1
+	}
+	gl.Uniform1i(aliasDrawer.useFullBright, useFullBright)
+	var useOverBright int32
+	if cvars.GlOverBrightModels.Bool() {
+		useOverBright = 1
+	}
+	gl.Uniform1i(aliasDrawer.useOverBright, useOverBright)
+	gl.Uniform1f(aliasDrawer.fogDensity, fog.Density)
+	gl.Uniform4f(aliasDrawer.fogColor, fog.Red, fog.Green, fog.Blue, 0)
+	p.SetAsUniform(aliasDrawer.projection)
+	mv.SetAsUniform(aliasDrawer.modelview)
+
+	textureManager.SelectTextureUnit(gl.TEXTURE0)
+	textureManager.Bind(tx)
+	textureManager.SelectTextureUnit(gl.TEXTURE1)
+	textureManager.Bind(fb)
+
+	gl.DrawElements(gl.TRIANGLES, int32(m.IndiceCount), gl.UNSIGNED_SHORT, gl.PtrOffset(0))
+
+	textureManager.SelectTextureUnit(gl.TEXTURE0)
+
+	// just to set back to gl.UseProgram(0)
+	gl.UseProgram(0)
 }
 
 var aliasDrawer *qAliasDrawer
 
 func CreateAliasDrawer() {
 	aliasDrawer = newAliasDrawer()
-}
-
-//export PrintMV
-func PrintMV() {
-	m := [16]float32{
-		1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0,
-		0, 0, 0, 1,
-	}
-	gl.GetFloatv(0x0BA6, &m[0])
-	fmt.Printf("ModelView:\n%v %v %v %v\n%v %v %v %v\n%v %v %v %v\n%v %v %v %v\n",
-		m[0], m[4], m[8], m[12],
-		m[1], m[5], m[9], m[13],
-		m[2], m[6], m[10], m[14],
-		m[3], m[7], m[11], m[15],
-	)
-}
-
-//export PrintP
-func PrintP() {
-	m := [16]float32{
-		1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0,
-		0, 0, 0, 1,
-	}
-	gl.GetFloatv(0x0BA7, &m[0])
-	fmt.Printf("Projection:\n%v %v %v %v\n%v %v %v %v\n%v %v %v %v\n%v %v %v %v\n",
-		m[0], m[4], m[8], m[12],
-		m[1], m[5], m[9], m[13],
-		m[2], m[6], m[10], m[14],
-		m[3], m[7], m[11], m[15],
-	)
 }

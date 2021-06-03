@@ -423,7 +423,7 @@ func (s *qSky) DrawSkyLayers() {
 		ap(p2)
 		ap(p3)
 		ap(p4)
-		skyDrawer.vbo.SetData(4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
+		skyDrawer.vbo.SetData(4*len(vertices), gl.Ptr(vertices))
 		gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
 	}
 
@@ -493,7 +493,7 @@ func newSkyDrawer() *qSkyDrawer {
 	d.vbo = glh.NewBuffer(glh.ArrayBuffer)
 	d.ebo = glh.NewBuffer(glh.ElementArrayBuffer)
 	d.ebo.Bind()
-	d.ebo.SetData(4*len(elements), gl.Ptr(elements), gl.STATIC_DRAW)
+	d.ebo.SetData(4*len(elements), gl.Ptr(elements))
 	var err error
 	d.prog, err = newSkyProgram()
 	if err != nil {

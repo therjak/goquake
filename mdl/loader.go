@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"math"
+	"unsafe"
 
 	"github.com/chewxy/math32"
 	"github.com/therjak/goquake/glh"
@@ -33,49 +34,41 @@ type Model struct {
 	maxs  vec.Vec3
 	flags int
 
-	Scale         vec.Vec3
-	Translate     vec.Vec3
-	SkinCount     int
-	SkinWidth     int
-	SkinHeight    int
-	verticeCount  int32
-	TriangleCount int
-	FrameCount    int
+	Scale     vec.Vec3
+	Translate vec.Vec3
+	SkinCount int
+	// VerticeCount is the number of vertices in VertexArrayBuffer
+	VerticeCount int
+	verticeCount int32 // internal from header
+	// IndiceCount is the number of indices in VertexElementArrayBuffer
+	IndiceCount int
+	// STOffset is the offset inside the VertexArrayBuffer to the st values
+	STOffset      int
+	triangleCount int
+	frameCount    int
 	SyncType      int
 
-	// numverts_vbo
-	// meshdesc intptr_t
-	// numindexes int
-	// indexs intptr_t
-	// vertexes intptr_t
-
 	poseCount int32
-	// PoseVerts int
-	// PoseData  int
-	// Commands  int
 
-	TextureCoords []TextureCoord
+	textureCoords []TextureCoord
 
 	Textures   [][]*texture.Texture
 	FBTextures [][]*texture.Texture
-	// Texels     [32]int
-	Frames    []Frame
-	Triangles []Triangle
-	Radius    float32
-	YawRadius float32
+	Frames     []Frame
+	triangles  []Triangle
+	Radius     float32
+	YawRadius  float32
 
 	VertexElementArrayBuffer *glh.Buffer
-	VertexArrayBuffer        *glh.Buffer
-	// 4 pose1vert, 4 pose1normal
-	// 4 pose2vert, 4 pose2normal
-	// 4 texcoords
-	// layout:
-	// ([ 4 int8 xyzw, 4 uint8 n(xyzw) ] * numverts ) * posecount
+
+	// VertexArrayBuffer is a gl.Buffer with following data layout:
+	// ([ 4 int8 xyzw, 4 uint8 normal(xyzw) ] * numverts ) * posecount
 	// (2 float32 s,t texcoord)
-	// use offset to jump to correct pose, afterwards you have numverts
+	// use an offset to jump to correct pose, afterwards you have numverts
 	// vertices with normals as the actual 'model'
-	// the texcoords are consecutive at the end of the vbo and match the
-	// order of the verts inside a pose
+	// the texcoords are consecutive at the end of the vbo (use STOffset) and
+	// match the order of the verts inside a pose
+	VertexArrayBuffer *glh.Buffer
 }
 
 type TextureCoord struct {
@@ -189,11 +182,9 @@ func load(name string, data []byte) (*Model, error) {
 		return nil, fmt.Errorf("model %s has invalid # of skins: %d", name, h.SkinCount)
 	}
 	mod.SkinCount = int(h.SkinCount)
-	mod.SkinWidth = int(h.SkinWidth)
-	mod.SkinHeight = int(h.SkinHeight)
 	mod.verticeCount = h.VerticeCount
-	mod.TriangleCount = int(h.TriangleCount)
-	mod.FrameCount = int(h.FrameCount)
+	mod.triangleCount = int(h.TriangleCount)
+	mod.frameCount = int(h.FrameCount)
 	mod.Scale = vec.Vec3{h.Scale[0], h.Scale[1], h.Scale[2]}
 	mod.Translate = vec.Vec3{h.Translate[0], h.Translate[1], h.Translate[2]}
 	mod.SyncType = int(h.SyncType)
@@ -244,27 +235,27 @@ func load(name string, data []byte) (*Model, error) {
 		}
 	}
 
-	textureCoords := make([]skinVertex, h.VerticeCount) // read in gl_mesh.c
+	textureCoords := make([]skinVertex, h.VerticeCount)
 	if err := binary.Read(buf, binary.LittleEndian, textureCoords); err != nil {
 		return nil, err
 	}
-	mod.TextureCoords = make([]TextureCoord, h.VerticeCount)
+	mod.textureCoords = make([]TextureCoord, h.VerticeCount)
 	for i := int32(0); i < h.VerticeCount; i++ {
-		mod.TextureCoords[i] = TextureCoord{
+		mod.textureCoords[i] = TextureCoord{
 			OnSeam: textureCoords[i].OnSeam != 0,
 			S:      (float32(textureCoords[i].S) + 0.5) / float32(h.SkinWidth),
 			T:      (float32(textureCoords[i].T) + 0.5) / float32(h.SkinHeight),
 		}
 	}
 
-	triangles := make([]triangle, h.TriangleCount) // read in gl_mesh.c
+	triangles := make([]triangle, h.TriangleCount)
 	if err := binary.Read(buf, binary.LittleEndian, triangles); err != nil {
 		return nil, err
 	}
-	mod.Triangles = make([]Triangle, len(triangles))
+	mod.triangles = make([]Triangle, len(triangles))
 	for i := range triangles {
 		t := &triangles[i]
-		mod.Triangles[i] = Triangle{
+		mod.triangles[i] = Triangle{
 			FacesFront: t.FacesFront != 0,
 			Indices:    [3]int{int(t.Vertices[0]), int(t.Vertices[1]), int(t.Vertices[2])},
 		}
@@ -293,8 +284,8 @@ func load(name string, data []byte) (*Model, error) {
 				log.Printf("TODO: ERR")
 				return nil, err
 			}
-			// This should be able to support variable frame rates. It does not look like
-			// any engine supports it but all just read the first.
+			// This should be able to support variable frame rates. It does not look
+			// like any engine supports it but all just read the first.
 			fs[i].interval = intervals[0]
 		}
 		mod.poseCount += groupFrames
@@ -319,34 +310,91 @@ func load(name string, data []byte) (*Model, error) {
 	}
 
 	calcFrames(mod, &h, fs)
-	mod.setupBuffers()
+	mod.setupBuffers(fs)
 
 	return mod, nil
 }
 
-type trivertx struct {
-	v                [3]byte
-	lightNormalIndex byte
-}
-
 type aliasmesh struct {
-	st        [2]float32
+	s         float32
+	t         float32
 	vertindex uint16
 }
 
-func (m *Model) setupBuffers() {
-	// m.VertexElementArrayBuffer
-	// m.VertexArrayBuffer
-	// len(m.Triangles) == numtris
-	// m.verticeCount == numverts
-	// m.poseCount ==  posenum
+func aNormal(f float32) byte {
+	var r byte
+	*(*int8)(unsafe.Pointer(&r)) = int8(127 * f)
+	return byte(r)
+}
 
-	/*
-		maxVerts := len(m.Triangles) * 3
-		indices := make([]uint16, 0, maxVerts)
-		verts := make([]trivertx, 0, m.poseCount*m.verticeCount)
-		desc := make([]aliasmesh, 0, maxVerts)
-	*/
+func (m *Model) setupBuffers(frames []frame) {
+	maxVerts := len(m.triangles) * 3
+	indices := make([]uint16, 0, maxVerts)
+	desc := make([]aliasmesh, 0, maxVerts)
+
+	for _, t := range m.triangles {
+		for j := 0; j < 3; j++ {
+			idx := uint16(t.Indices[j])
+			tcoord := m.textureCoords[idx]
+			// Check for back side
+			if !t.FacesFront && tcoord.OnSeam {
+				tcoord.S += 0.5
+			}
+
+			var v int
+			for v = 0; v < len(desc); v++ {
+				d := &desc[v]
+				if d.vertindex == idx && d.s == tcoord.S && d.t == tcoord.T {
+					indices = append(indices, uint16(v))
+					break
+				}
+			}
+			if v == len(desc) {
+				indices = append(indices, uint16(v))
+				desc = append(desc, aliasmesh{
+					vertindex: idx,
+					s:         tcoord.S,
+					t:         tcoord.T,
+				})
+			}
+		}
+	}
+
+	m.IndiceCount = len(indices)
+	m.VertexElementArrayBuffer.Bind()
+	m.VertexElementArrayBuffer.SetData(2*len(indices), glh.Ptr(indices))
+
+	sizeofMeshPos := m.poseCount * m.verticeCount * 8 // 4 uint8 + 4 int8
+	sizeofTS := m.verticeCount * 8                    // 2 float32
+	vboBuf := bytes.NewBuffer(make([]byte, 0, sizeofMeshPos+sizeofTS))
+
+	m.VerticeCount = len(desc)
+	for fi := range frames {
+		f := &frames[fi]
+		for gi := range f.fg {
+			fg := &f.fg[gi]
+			for _, d := range desc {
+				fv := &fg.fv[d.vertindex]
+				av := avertexNormals[fv.LightNormalIndex]
+				buf := [8]byte{
+					fv.PackedPosition[0], fv.PackedPosition[1], fv.PackedPosition[2], 1,
+					aNormal(av[0]), aNormal(av[1]), aNormal(av[2]), 0}
+				vboBuf.Write(buf[:])
+			}
+		}
+	}
+
+	m.STOffset = vboBuf.Len()
+	for _, d := range desc {
+		buf := [8]byte{}
+		*(*float32)(unsafe.Pointer(&buf[0])) = d.s
+		*(*float32)(unsafe.Pointer(&buf[4])) = d.t
+		vboBuf.Write(buf[:])
+	}
+
+	m.VertexArrayBuffer.Bind()
+	bb := vboBuf.Bytes()
+	m.VertexArrayBuffer.SetData(len(bb), glh.Ptr(bb))
 }
 
 func calcFrames(mod *Model, pheader *header, frames []frame) {
