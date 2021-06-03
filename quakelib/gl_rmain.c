@@ -80,6 +80,9 @@ float map_wateralpha, map_lavaalpha, map_telealpha, map_slimealpha;
 
 qboolean R_CullModelForEntity(entity_t *e) {
   vec3_t mins, maxs;
+  if (!e->model) {
+    return true;
+  }
 
   if (e->angles[0] || e->angles[2])  // pitch or roll
   {
