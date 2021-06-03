@@ -181,12 +181,9 @@ func (c *Client) WorldEntity() *Entity {
 
 // Sync synces from the go side to the C side
 func (e *Entity) Sync() {
-	e.ptr.syncbase = C.float(e.SyncBase)
-	e.ptr.lerpflags = C.uchar(e.LerpFlags)
 	e.ptr.frame = C.int(e.Frame)
 	e.ptr.skinnum = C.int(e.SkinNum)
 	e.ptr.alpha2 = C.uchar(e.Alpha)
-	e.ptr.lerpfinish = C.float(e.LerpFinish)
 	e.ptr.origin[0] = C.float(e.Origin[0])
 	e.ptr.origin[1] = C.float(e.Origin[1])
 	e.ptr.origin[2] = C.float(e.Origin[2])
@@ -197,12 +194,8 @@ func (e *Entity) Sync() {
 
 // Sync synces from the C side to the go side
 func (e *Entity) SyncC() {
-	e.SyncBase = float32(e.ptr.syncbase)
-	e.LerpFlags = byte(e.ptr.lerpflags)
 	e.Frame = int(e.ptr.frame)
 	e.SkinNum = int(e.ptr.skinnum)
-	e.Alpha = byte(e.ptr.alpha2)
-	e.LerpFinish = float64(e.ptr.lerpfinish)
 	e.Origin = vec.Vec3{
 		float32(e.ptr.origin[0]),
 		float32(e.ptr.origin[1]),
