@@ -38,6 +38,5 @@ void GL_SetupState(void) {
 void VID_Init(void) {
   VID_Init_Go();
 
-  GL_ClearBufferBindings();
   GL_SetupState();
 }

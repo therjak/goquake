@@ -158,7 +158,7 @@ void R_DrawBrushModel(entity_t *e) {
   glRotatef(e->angles[1], 0, 0, 1);
   glRotatef(-e->angles[0], 0, 1, 0);
   glRotatef(e->angles[2], 1, 0, 0);
-  
+
   if (Cvar_GetValue(&gl_zfix)) {
     e->origin[0] += DIST_EPSILON;
     e->origin[1] += DIST_EPSILON;
@@ -216,7 +216,7 @@ void R_RenderDynamicLightmaps(msurface_t *fa) {
       goto dynamic;
 
   if (fa->dlightframe == R_framecount()  // dynamic this frame
-      || fa->cached_dlight)            // dynamic previously
+      || fa->cached_dlight)              // dynamic previously
   {
   dynamic:
     if (Cvar_GetValue(&r_dynamic)) {
@@ -395,7 +395,8 @@ void GL_BuildLightmaps(void) {
   memset(allocated, 0, sizeof(allocated));
   last_lightmap_allocated = 0;
 
-  R_framecount_reset(); R_framecount_inc();  // no dlightcache
+  R_framecount_reset();
+  R_framecount_inc();  // no dlightcache
 
   // johnfitz -- null out array (the gltexture objects themselves were already
   // freed by Mod_ClearAll)
@@ -504,9 +505,6 @@ void GL_BuildBModelVertexBuffer(void) {
   glBindBuffer(GL_ARRAY_BUFFER, gl_bmodel_vbo);
   glBufferData(GL_ARRAY_BUFFER, varray_bytes, varray, GL_STATIC_DRAW);
   free(varray);
-
-  // invalidate the cached bindings
-  GL_ClearBufferBindings();
 }
 
 /*
@@ -535,10 +533,9 @@ void R_AddDynamicLights(msurface_t *surf) {
   for (lnum = 0; lnum < MAX_DLIGHTS; lnum++) {
     if (!(surf->dlightbits[lnum >> 5] & (1U << (lnum & 31))))
       continue;  // not lit by this light
-    dlight_t* l = CL_Dlight(lnum);
+    dlight_t *l = CL_Dlight(lnum);
     rad = l->radius;
-    dist = DotProduct(l->origin, surf->plane->normal) -
-           surf->plane->dist;
+    dist = DotProduct(l->origin, surf->plane->normal) - surf->plane->dist;
     rad -= fabs(dist);
     minlight = l->minlight;
     if (rad < minlight) continue;

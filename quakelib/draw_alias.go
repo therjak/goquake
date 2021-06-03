@@ -2,13 +2,6 @@
 
 package quakelib
 
-//#include <stdio.h>
-//#include "q_stdinc.h"
-//#include "gl_model.h"
-//#include "render.h"
-//void R_DrawAliasModel(entity_t* e);
-import "C"
-
 import (
 	"math"
 
@@ -188,7 +181,6 @@ func (r *qRenderer) cullAlias(e *Entity, model *mdl.Model) bool {
 }
 
 func (r *qRenderer) DrawAliasModel(e *Entity, model *mdl.Model) {
-	defer C.R_DrawAliasModel(e.ptr)
 	ld := &lerpData{}
 	ld.setupAliasFrame(e, model)
 	ld.setupEntityTransform(e)

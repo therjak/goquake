@@ -200,7 +200,7 @@ void R_TranslateNewPlayerSkin(int playernum) {
   byte *pixels;
   aliashdr_t *paliashdr;
   int skinnum;
-  entity_t* ce;
+  entity_t *ce;
 
   // get correct texture pixels
   ce = ClientEntity(playernum);
@@ -222,7 +222,8 @@ void R_TranslateNewPlayerSkin(int playernum) {
            paliashdr->texels[skinnum];  // This is not a persistent place!
 
   // upload new image
-  LoadPlayerTexture(playernum, paliashdr->skinwidth, paliashdr->skinheight, pixels);
+  LoadPlayerTexture(playernum, paliashdr->skinwidth, paliashdr->skinheight,
+                    pixels);
 
   // now recolor it
   R_TranslatePlayerSkin(playernum);
@@ -302,176 +303,4 @@ void R_NewMap(void) {
 
   // johnfitz -- is this the right place to set this?
   load_subdivide_size = Cvar_GetValue(&gl_subdivide_size);
-}
-
-static GLuint gl_programs[16];
-static int gl_num_programs;
-
-static qboolean GL_CheckShader(GLuint shader) {
-  GLint status;
-  glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-
-  if (status != GL_TRUE) {
-    char infolog[1024];
-
-    memset(infolog, 0, sizeof(infolog));
-    glGetShaderInfoLog(shader, sizeof(infolog), NULL, infolog);
-
-    Con_Warning("GLSL program failed to compile: %s", infolog);
-
-    return false;
-  }
-  return true;
-}
-
-static qboolean GL_CheckProgram(GLuint program) {
-  GLint status;
-  glGetProgramiv(program, GL_LINK_STATUS, &status);
-
-  if (status != GL_TRUE) {
-    char infolog[1024];
-
-    memset(infolog, 0, sizeof(infolog));
-    glGetProgramInfoLog(program, sizeof(infolog), NULL, infolog);
-
-    Con_Warning("GLSL program failed to link: %s", infolog);
-
-    return false;
-  }
-  return true;
-}
-
-/*
-=============
-GL_GetUniformLocation
-=============
-*/
-GLint GL_GetUniformLocation(GLuint *programPtr, const char *name) {
-  GLint location;
-
-  if (!programPtr) return -1;
-
-  location = glGetUniformLocation(*programPtr, name);
-  if (location == -1) {
-    Con_Warning("GL_GetUniformLocationFunc %s failed\n", name);
-    *programPtr = 0;
-  }
-  return location;
-}
-
-/*
-====================
-GL_CreateProgram
-
-Compiles and returns GLSL program.
-====================
-*/
-GLuint GL_CreateProgram(const GLchar *vertSource, const GLchar *fragSource,
-                        int numbindings,
-                        const glsl_attrib_binding_t *bindings) {
-  int i;
-  GLuint program, vertShader, fragShader;
-
-  vertShader = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vertShader, 1, &vertSource, NULL);
-  glCompileShader(vertShader);
-  if (!GL_CheckShader(vertShader)) {
-    glDeleteShader(vertShader);
-    return 0;
-  }
-
-  fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fragShader, 1, &fragSource, NULL);
-  glCompileShader(fragShader);
-  if (!GL_CheckShader(fragShader)) {
-    glDeleteShader(vertShader);
-    glDeleteShader(fragShader);
-    return 0;
-  }
-
-  program = glCreateProgram();
-  glAttachShader(program, vertShader);
-  glDeleteShader(vertShader);
-  glAttachShader(program, fragShader);
-  glDeleteShader(fragShader);
-
-  for (i = 0; i < numbindings; i++) {
-    glBindAttribLocation(program, bindings[i].attrib, bindings[i].name);
-  }
-
-  glLinkProgram(program);
-
-  if (!GL_CheckProgram(program)) {
-    glDeleteProgram(program);
-    return 0;
-  } else {
-    if (gl_num_programs == (sizeof(gl_programs) / sizeof(GLuint)))
-      Host_Error("gl_programs overflow");
-
-    gl_programs[gl_num_programs] = program;
-    gl_num_programs++;
-
-    return program;
-  }
-}
-
-/*
-====================
-R_DeleteShaders
-
-Deletes any GLSL programs that have been created.
-====================
-*/
-void R_DeleteShaders(void) {
-  int i;
-
-  for (i = 0; i < gl_num_programs; i++) {
-    glDeleteProgram(gl_programs[i]);
-    gl_programs[i] = 0;
-  }
-  gl_num_programs = 0;
-}
-GLuint current_array_buffer, current_element_array_buffer;
-
-/*
-====================
-GL_BindBuffer
-
-glBindBuffer wrapper
-====================
-*/
-void GL_BindBuffer(GLenum target, GLuint buffer) {
-  GLuint *cache;
-
-  switch (target) {
-    case GL_ARRAY_BUFFER:
-      cache = &current_array_buffer;
-      break;
-    case GL_ELEMENT_ARRAY_BUFFER:
-      cache = &current_element_array_buffer;
-      break;
-    default:
-      Host_Error("GL_BindBuffer: unsupported target %d", (int)target);
-      return;
-  }
-
-  if (*cache != buffer) {
-    *cache = buffer;
-    glBindBuffer(target, *cache);
-  }
-}
-
-/*
-====================
-GL_ClearBufferBindings
-
-This must be called if you do anything that could make the cached bindings
-invalid (e.g. manually binding, destroying the context).
-====================
-*/
-void GL_ClearBufferBindings() {
-  current_array_buffer = 0;
-  current_element_array_buffer = 0;
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }

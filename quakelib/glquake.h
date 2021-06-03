@@ -175,11 +175,6 @@ void R_BuildLightMap(msurface_t *surf, byte *dest, int stride);
 void R_RenderDynamicLightmaps(msurface_t *fa);
 void R_UploadLightmaps(void);
 
-GLint GL_GetUniformLocation(GLuint *programPtr, const char *name);
-GLuint GL_CreateProgram(const GLchar *vertSource, const GLchar *fragSource,
-                        int numbindings, const glsl_attrib_binding_t *bindings);
-void R_DeleteShaders(void);
-
 void GL_DrawAliasShadow(entity_t *e);
 void DrawGLTriangleFan(glpoly_t *p);
 void DrawGLPoly(glpoly_t *p);
@@ -190,9 +185,6 @@ void R_ClearTextureChains(qmodel_t *mod, texchain_t chain);
 void R_ChainSurface(msurface_t *surf, texchain_t chain);
 void R_DrawTextureChains(qmodel_t *model, entity_t *ent, texchain_t chain);
 void R_DrawWorld_Water(void);
-
-void GL_BindBuffer(GLenum target, GLuint buffer);
-void GL_ClearBufferBindings();
 
 float GL_WaterAlphaForSurface(msurface_t *fa);
 
