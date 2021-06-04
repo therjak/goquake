@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-package quakelib
 
-import "C"
+package quakelib
 
 import (
 	"log"
@@ -10,8 +9,7 @@ import (
 	"github.com/therjak/goquake/net"
 )
 
-//export NET_Init
-func NET_Init() {
+func networkInit() {
 	net.SetPort(cmdl.Port())
 
 	clients := svs.maxClientsLimit

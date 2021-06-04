@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 package quakelib
 
-import "C"
-
 var (
 	// TODO(therjak): it's probably faster to just compute these nowadays
 	avertexNormals = [162][3]float32{

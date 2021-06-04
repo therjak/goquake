@@ -1,12 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 package quakelib
 
-// #include "q_sound.h"
-
-// typedef int sfx_t;
-// #include "cgo_help.h"
-import "C"
-
 import (
 	"log"
 
@@ -45,17 +39,12 @@ func onVolumeChange(cv *cvar.Cvar) {
 	snd.SetVolume(v)
 }
 
-//export S_Init
-func S_Init() {
+func soundInit() {
 	snd.Init(commandline.Sound() && !cvars.NoSound.Bool())
 	onVolumeChange(cvars.Volume)
 }
 
-//export S_ClearBuffer
-func S_ClearBuffer() {
-	// remove stuff already in the pipeline to be played
-}
-
+/*
 func cfloatToVec3(f *C.float) vec.Vec3 {
 	a := C.cf(0, f)
 	b := C.cf(1, f)
@@ -63,7 +52,6 @@ func cfloatToVec3(f *C.float) vec.Vec3 {
 	return vec.Vec3{float32(a), float32(b), float32(c)}
 }
 
-/*
 func S_Update(origin *C.float, _ *C.float, right *C.float, _ *C.float) {
 	// update the direction and distance to all sound sources
 	listener := snd.Listener{

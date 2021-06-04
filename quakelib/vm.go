@@ -290,7 +290,7 @@ void PR_Profile_f(void) {
   int pmax;
   dfunction_t *f, *best;
 
-  if (!SV_Active()) return;
+	if (!sv.active) return;
 
   num = 0;
   do {

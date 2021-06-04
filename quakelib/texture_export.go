@@ -14,7 +14,6 @@ import (
 
 	"github.com/therjak/goquake/glh"
 	"github.com/therjak/goquake/texture"
-	"github.com/therjak/goquake/wad"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
 )
@@ -69,14 +68,6 @@ func TexMgrLoadLightMapImage(owner *C.qmodel_t, name *C.char, width C.int,
 	textureManager.loadLightMap(t, d)
 	texmap[t.ID()] = t
 	return uint32(t.ID())
-}
-
-//export Go_LoadWad
-func Go_LoadWad() {
-	err := wad.Load()
-	if err != nil {
-		Error("Could not load wad: %v", err)
-	}
 }
 
 //export LoadPlayerTexture
@@ -146,8 +137,7 @@ func D8To24Table(i, p int) byte {
 	return palette.table[i*4+p]
 }
 
-//export TexMgrInit
-func TexMgrInit() {
+func textureManagerInit() {
 	gl.GetFloatv(gl.MAX_TEXTURE_MAX_ANISOTROPY, &textureManager.maxAnisotropy)
 	gl.GetIntegerv(gl.MAX_TEXTURE_SIZE, &textureManager.maxTextureSize)
 	palette.Init()

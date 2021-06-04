@@ -221,8 +221,7 @@ func CreateUiDrawer() {
 	qRecDrawer = NewRecDrawer()
 }
 
-//export Draw_Init
-func Draw_Init() {
+func drawInit() {
 	textureManager.Init()
 	consoleTexture = textureManager.LoadConsoleChars()
 	backtileTexture = textureManager.LoadBacktile()

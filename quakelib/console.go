@@ -84,8 +84,7 @@ func (c *qconsole) CheckResize() {
 	c.backScroll = 0
 }
 
-//export Con_Init
-func Con_Init() {
+func consoleInit() {
 	console.lineWidth = 38
 	conlog.Printf("Console initialized.\n")
 

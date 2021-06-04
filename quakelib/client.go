@@ -741,8 +741,7 @@ Outer:
 	cls.outProto.Reset()
 }
 
-//export CL_Init
-func CL_Init() {
+func clientInit() {
 	cls.outProto.Reset()
 	CL_InitSounds()
 }

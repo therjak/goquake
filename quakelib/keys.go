@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 package quakelib
 
-import "C"
-
 import (
 	"fmt"
 	"io"
@@ -103,11 +101,6 @@ func (h *qHistory) Save() {
 	if err := ioutil.WriteFile(fullname, out, 0660); err != nil {
 		conlog.Printf("ERROR: couln't write file.\n")
 	}
-}
-
-//export Key_Init
-func Key_Init() {
-	history.Load()
 }
 
 type qKeyInput struct {

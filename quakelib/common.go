@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 package quakelib
 
-import "C"
-
 import (
 	"log"
 	"os"
@@ -44,9 +42,7 @@ func CmdGame(args []cmd.QArg, _ int) {
 	// TODO
 }
 
-//export COM_InitFilesystem
-func COM_InitFilesystem() {
-
+func filesystemInit() {
 	bd := cmdl.BaseDirectory()
 	if bd != "" {
 		baseDirectory = filepath.Clean(bd)

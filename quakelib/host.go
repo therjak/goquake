@@ -73,8 +73,9 @@ func HostRealTime() C.double {
 	return C.double(Time())
 }
 
-//export Host_FindMaxClients
-func Host_FindMaxClients() {
+func hostInit() {
+	// TODO: this is some random stuff and needs cleanup
+	// Like why is cls.state here? Do we need cls.state at all?
 	svs.maxClients = 1
 	if cmdl.Dedicated() {
 		cls.state = ca_dedicated

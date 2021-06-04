@@ -20,7 +20,6 @@ quakeparms_t *host_parms;
 
 int host_hunklevel;
 
-
 cvar_t max_edicts;
 cvar_t developer;
 
@@ -71,7 +70,7 @@ Host_Init
 ====================
 */
 void Host_Init(void) {
-int minimum_memory;
+  int minimum_memory;
   if (CMLStandardQuake())
     minimum_memory = MINIMUM_MEMORY;
   else
@@ -84,57 +83,11 @@ int minimum_memory;
               host_parms->memsize / (float)0x100000);
 
   Memory_Init(host_parms->membase, host_parms->memsize);
-  COM_InitFilesystem();
   Cvar_FakeRegister(&max_edicts, "max_edicts");
   Cvar_FakeRegister(&developer, "developer");
-  Host_FindMaxClients();
-  Go_LoadWad();
-  if (CLS_GetState() != ca_dedicated) {
-    Key_Init();
-    Con_Init();
-  }
-  Mod_Init();
-  NET_Init();
-  SV_Init();
+}
 
-  Con_Printf("Exe: " __TIME__ " " __DATE__ "\n");
-  Con_Printf("%4.1f megabyte heap\n", host_parms->memsize / (1024 * 1024.0));
-
-  if (CLS_GetState() != ca_dedicated) {
-    int length = 0;
-
-    // ExtraMaps_Init();  // johnfitz
-    // Modlist_Init();    // johnfitz
-    // DemoList_Init();   // ericw
-    VID_Init();
-    TexMgrInit();  // johnfitz
-    Draw_Init();
-    SCR_Init();
-    R_Init();
-    S_Init();
-    Sbar_Init();
-    CL_Init();
-  }
-
+void HostInitAllocEnd() {
   Hunk_AllocName(0, "-HOST_HUNKLEVEL-");
   host_hunklevel = Hunk_LowMark();
-
-  HostSetInitialized();
-  Con_Printf("\n========= Quake Initialized =========\n\n");
-
-  if (CLS_GetState() != ca_dedicated) {
-    Cbuf_InsertText("exec quake.rc\n");
-    // johnfitz -- in case the vid mode was locked during vid_init, we can
-    // unlock it now.
-    // note: two leading newlines because the command buffer swallows one of
-    // them.
-    Cbuf_AddText("\n\nvid_unlock\n");
-  }
-
-  if (CLS_GetState() == ca_dedicated) {
-    Cbuf_AddText("exec autoexec.cfg\n");
-    Cbuf_AddText("stuffcmds");
-    Cbuf_Execute();
-    if (!SV_Active()) Cbuf_AddText("map start\n");
-  }
 }

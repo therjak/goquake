@@ -34,9 +34,3 @@ void GL_SetupState(void) {
   glDepthRange(0, 1);
   glDepthFunc(GL_LEQUAL);
 }
-
-void VID_Init(void) {
-  VID_Init_Go();
-
-  GL_SetupState();
-}
