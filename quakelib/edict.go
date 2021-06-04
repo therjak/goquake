@@ -62,8 +62,7 @@ func AllocEdicts() {
 	sv.edicts = make([]Edict, sv.maxEdicts)
 }
 
-//export FreeEdicts
-func FreeEdicts() {
+func freeEdicts() {
 	FreeEntvars()
 	sv.edicts = sv.edicts[:0]
 }

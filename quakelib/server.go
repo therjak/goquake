@@ -159,13 +159,6 @@ func SV_NumEdicts() C.int {
 	return C.int(sv.numEdicts)
 }
 
-//export SV_Clear
-func SV_Clear() {
-	sv = Server{
-		models: make([]model.Model, 1),
-	}
-}
-
 //export SV_Active
 func SV_Active() bool {
 	return sv.active
@@ -1182,9 +1175,17 @@ func (s *Server) SpawnServer(name string) {
 
 	// set up the new server
 	C.Host_ClearMemory()
-
-	s.name = name
-	s.protocol = sv_protocol
+	// FIXME: why does the server directly change the client state?
+	cls.signon = 0
+	freeEdicts()
+	sv = Server{
+		models:   make([]model.Model, 1),
+		name:     name,
+		protocol: sv_protocol,
+	}
+	s = &sv
+	// FIXME: why does the server directly change the client state?
+	CL_Clear()
 
 	if s.protocol == protocol.RMQ {
 		s.protocolFlags = protocol.PRFL_INT32COORD | protocol.PRFL_SHORTANGLE

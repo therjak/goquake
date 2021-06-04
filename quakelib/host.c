@@ -57,10 +57,6 @@ void Host_ClearMemory(void) {
   ModClearAllGo();
   /* host_hunklevel MUST be set at this point */
   Hunk_FreeToLowMark(host_hunklevel);
-  CLS_SetSignon(0);
-  FreeEdicts();
-  SV_Clear();
-  CL_Clear();
   memset(&cl, 0, sizeof(cl));
 }
 
