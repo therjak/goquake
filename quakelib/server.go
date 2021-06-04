@@ -109,7 +109,6 @@ var (
 		models: make([]model.Model, 1),
 	}
 	sv_protocol int
-	sv_player   int
 	host_client int
 )
 

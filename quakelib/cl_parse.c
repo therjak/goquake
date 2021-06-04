@@ -12,26 +12,23 @@ void FinishCL_ParseServerInfo(void) {
   // local state
   cl.worldmodel = cl.model_precache[1];
   SetWorldEntityModel(cl.worldmodel);
-  
+
   R_NewMap();
 
-  Hunk_Check();  // make sure nothing is hurt
+  Hunk_Check();              // make sure nothing is hurt
   noclip_anglehack = false;  // noclip is turned off at start
 }
 
 void CL_ParseUpdate(int num, int modnum) {
-  qmodel_t *model;
-  entity_t *ent;
+  qmodel_t* model;
+  entity_t* ent;
   ent = CL_EntityNum(num);
   model = cl.model_precache[modnum];
-    if (!model) {
-      Con_Warning("no model %i\n", modnum);
-    }
   if (model != ent->model) {
     ent->model = model;
   }
 }
 
-void CL_ParseStaticC(entity_t* ent, int modelindex)  {
+void CL_ParseStaticC(entity_t* ent, int modelindex) {
   ent->model = cl.model_precache[modelindex];
 }

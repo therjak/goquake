@@ -15,7 +15,6 @@ import (
 	"github.com/therjak/goquake/cbuf"
 	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/cvars"
-	"github.com/therjak/goquake/execute"
 	"github.com/therjak/goquake/math/vec"
 	"github.com/therjak/goquake/mdl"
 	"github.com/therjak/goquake/model"
@@ -186,11 +185,13 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) {
 			screen.CenterPrint(cmd.Cutscene)
 			console.CenterPrint(cmd.Cutscene)
 		case *protos.SCmd_SellScreen:
-			execute.Execute("help", execute.Command, sv_player)
+			// Origin seems to be progs.dat
+			enterMenuHelp()
 		case *protos.SCmd_Skybox:
 			sky.LoadBox(cmd.Skybox)
 		case *protos.SCmd_BackgroundFlash:
-			execute.Execute("bf", execute.Command, sv_player)
+			// Origin seems to be progs.dat
+			cl.bonusFlash()
 		case *protos.SCmd_Fog:
 			f := cmd.Fog
 			fog.Update(f.GetDensity(), f.GetRed(), f.GetGreen(), f.GetBlue(), float64(f.GetTime()))
@@ -407,10 +408,14 @@ func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) {
 			e.LerpFlags |= lerpResetAnim
 		}
 	} else {
-		conlog.Printf("len(modelPrecache): %v, modNum: %v", len(cl.modelPrecache), modNum)
+		if modNum != 0 {
+			conlog.Printf("len(modelPrecache): %v, modNum: %v", len(cl.modelPrecache), modNum)
+		}
+		if e.Model != nil {
+			forceLink = true
+			e.LerpFlags |= lerpResetAnim
+		}
 		e.Model = nil
-		forceLink = true
-		e.LerpFlags |= lerpResetAnim
 	}
 
 	C.CL_ParseUpdate(C.int(num), C.int(modNum))

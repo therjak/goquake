@@ -415,7 +415,6 @@ func SV_RunClients() {
 		if !hc.active {
 			continue
 		}
-		sv_player = hc.edictId
 
 		if !hc.ReadClientMessage() {
 			hc.Drop(false)
