@@ -25,7 +25,7 @@ func NET_Init() {
 
 	net.SetTime()
 
-	// Cmd_AddCommand("slist", NET_Slist_f);
+	// cmd.AddCommand("slist", NET_Slist_f);
 
 	//if *my_tcpip_address {
 	//	conlog.DPrintf("TCP/IP address %s\n", my_tcpip_address)

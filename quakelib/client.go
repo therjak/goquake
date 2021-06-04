@@ -74,7 +74,7 @@ func init() {
 	cmd.AddCommand("timedemo", clientTimeDemo)
 
 	cmd.AddCommand("tracepos", tracePosition)
-	//Cmd_AddCommand("mcache", Mod_Print);
+	//cmd.AddCommand("mcache", Mod_Print);
 }
 
 const (
@@ -267,11 +267,6 @@ func (c *Client) DeathMatch() bool {
 	return cl.gameType == svc.GameDeathmatch
 }
 
-//export CL_HasItem
-func CL_HasItem(item uint32) bool {
-	return cl.items&item != 0
-}
-
 func cl_setStats(s, v int) {
 	switch s {
 	case stat.Health:
@@ -319,11 +314,6 @@ func CL_Clear() {
 	clearLightStyles()
 	clearBeams()
 	clearEntityFragments()
-}
-
-//export CLViewentityNum
-func CLViewentityNum() int {
-	return cl.viewentity
 }
 
 //export CL_Paused

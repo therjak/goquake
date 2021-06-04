@@ -70,11 +70,6 @@ func updateConsoleSize() {
 	console.height = console.width * screen.Height / screen.Width
 }
 
-//export Con_ResetLastCenterString
-func Con_ResetLastCenterString() {
-	console.lastCenter = ""
-}
-
 // produce new line breaks in case of a new width
 func (c *qconsole) CheckResize() {
 	w := (c.width / 8) - 2
@@ -116,13 +111,6 @@ func (c *qconsole) Toggle() {
 
 	screen.EndLoadingPlaque()
 	c.ClearNotify()
-}
-
-//export Con_LogCenterPrint
-func Con_LogCenterPrint(str *C.char) {
-	//TODO(therjak): we will need conlog.CenterPrint
-	s := C.GoString(str)
-	console.CenterPrint(s)
 }
 
 //export Con_PrintStr
@@ -465,11 +453,6 @@ const (
 	// 40 chars, starts with 1d, ends with 1f, 1e between
 	quakeBar = "\x1d\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1f\n"
 )
-
-//export ConPrintBar
-func ConPrintBar() {
-	console.printBar()
-}
 
 func (c *qconsole) printBar() {
 	// TODO(therjak): we need a conlog.PrintBar

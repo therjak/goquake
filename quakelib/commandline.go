@@ -17,13 +17,11 @@ func CMLMinMemory() bool {
 	return cmdl.MinMemory()
 }
 
-//export CMLHipnotic
 func CMLHipnotic() bool {
 	// TODO: why isQuoth?
 	return cmdl.Hipnotic() || cmdl.Quoth()
 }
 
-//export CMLRogue
 func CMLRogue() bool {
 	return cmdl.Rogue()
 }

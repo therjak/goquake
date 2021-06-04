@@ -51,19 +51,6 @@ func S_Init() {
 	onVolumeChange(cvars.Volume)
 }
 
-//export S_StaticSound
-func S_StaticSound(sfx C.sfx_t, origin *C.float, vol C.float, attenuation C.float) {
-	// sfx is cached from S_PrecacheSound
-	// distance from origin to cl.viewentity
-	snd.Start(0, 0, int(sfx), cfloatToVec3(origin), float32(vol/255), float32(attenuation/64), loopingSound)
-}
-
-//export S_StopSound
-func S_StopSound(entnum C.int, entchannel C.int) {
-	// why does the server know which channel to stop?
-	snd.Stop(int(entnum), int(entchannel))
-}
-
 //export S_ClearBuffer
 func S_ClearBuffer() {
 	// remove stuff already in the pipeline to be played
@@ -90,18 +77,6 @@ func S_Update(origin *C.float, _ *C.float, right *C.float, _ *C.float) {
 	// ambient_sound_level per ambient channel [4]
 	snd.Update(listener)
 }*/
-
-//export S_PrecacheSound
-func S_PrecacheSound(sample *C.char) C.sfx_t {
-	n := C.GoString(sample)
-	r := snd.PrecacheSound(n)
-	return C.sfx_t(r)
-}
-
-//export S_TouchSound
-func S_TouchSound(sample *C.char) {
-	// Just ignore and let PrecacheSound handle it
-}
 
 func localSound(name string) {
 	// This is mostly for the menu sounds

@@ -25,8 +25,6 @@ void Sys_Init() {
   if (!parms.membase) Go_Error("Not enough memory free; check disk space\n");
 }
 
-void callQuakeFunc(xcommand_t f) { f(); }
-
 void setInt(int* l, int v) { *l = v; }
 
 static const char errortxt1[] = "\nERROR-OUT BEGIN\n\n";

@@ -4,12 +4,8 @@ package quakelib
 import "C"
 
 import (
-	"fmt"
 	"log"
 	"runtime/debug"
-	"time"
-
-	"github.com/therjak/goquake/qtime"
 )
 
 var (
@@ -32,11 +28,6 @@ func ScreenDisabled() C.int {
 //export SetScreenDisabled
 func SetScreenDisabled(b C.int) {
 	screen.disabled = (b != 0)
-}
-
-//export Sys_DoubleTime
-func Sys_DoubleTime() C.double {
-	return C.double(qtime.QTime().Seconds())
 }
 
 func Error(format string, v ...interface{}) {
@@ -66,11 +57,6 @@ func Sys_Quit() {
 	quitChan <- true
 }
 
-//export Sys_Sleep
-func Sys_Sleep(ms C.ulong) {
-	time.Sleep(time.Millisecond * time.Duration(ms))
-}
-
 //export Sys_Print
 func Sys_Print(c *C.char) {
 	log.Print(C.GoString(c))
@@ -89,19 +75,4 @@ func Sys_Print_I(c *C.char, i C.int) {
 //export Sys_Print_F
 func Sys_Print_F(c *C.char, f C.float) {
 	log.Printf(C.GoString(c), float32(f))
-}
-
-//export REPORT_BadCall
-func REPORT_BadCall() {
-	fmt.Printf("Go BadCall\n")
-}
-
-//export REPORT_INT
-func REPORT_INT(in C.int) {
-	fmt.Printf("Go ReportInt %v\n", in)
-}
-
-//export REPORT_STR
-func REPORT_STR(in *C.char) {
-	fmt.Printf(C.GoString(in))
 }

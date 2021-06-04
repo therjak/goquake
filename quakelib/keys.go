@@ -1,10 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 package quakelib
 
-//#ifndef KEYDEST_T
-//#define KEYDEST_T
-//typedef enum { key_game, key_console, key_message, key_menu } keydest_t;
-//#endif
 import "C"
 
 import (

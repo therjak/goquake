@@ -474,16 +474,3 @@ var (
 			1.00, 1.00, 1.00, 1.00},
 	}
 )
-
-//export R_avertexnormals
-func R_avertexnormals(n, i int) float32 {
-	return avertexNormals[n][i]
-}
-
-// R_avertexnormal_dots
-//export R_and
-func R_and(q, i int) float32 {
-	// TODO(therjak): these get used in a shader. There is no reason to store them here.
-	// just compute in the shader!
-	return avertexNormalDots[q][i]
-}
