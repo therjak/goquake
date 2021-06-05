@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+
 package quakelib
 
 import "C"
@@ -66,11 +67,6 @@ func (h *Host) UpdateTime() bool {
 		h.frameTime = math.Clamp(0.001, h.frameTime, 0.1)
 	}
 	return true
-}
-
-//export HostRealTime
-func HostRealTime() C.double {
-	return C.double(Time())
 }
 
 func hostInit() {
@@ -292,6 +288,7 @@ func executeFrame() {
 func hostFrame() {
 	defer func() {
 		// TODO(therjak): find a way to remove this recover
+		// Its only needed use case for when the case the server disconnects
 		if r := recover(); r != nil {
 			frameCount = 0
 			// something bad happened, or the server disconnected
@@ -352,11 +349,6 @@ func HostWriteConfiguration() {
 	if err != nil {
 		conlog.Printf("Couldn't write config.cfg.\n")
 	}
-}
-
-//export HostSetInitialized
-func HostSetInitialized() {
-	host.initialized = true
 }
 
 //export Host_Shutdown

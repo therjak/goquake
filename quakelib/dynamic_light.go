@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+
 package quakelib
 
 //#include <stdio.h>
@@ -43,12 +44,11 @@ func (c *Client) GetFreeDynamicLight() *DynamicLight {
 	return &c.dynamicLights[0]
 }
 
-//export CL_ClearDLights
-func CL_ClearDLights() {
-	for i := range cl.dynamicLights {
-		cl.dynamicLights[i] = DynamicLight{}
-		cl.dynamicLights[i].ptr = &C.cl_dlights[i]
-		cl.dynamicLights[i].Sync()
+func (c *Client) clearDLights() {
+	for i := range c.dynamicLights {
+		c.dynamicLights[i] = DynamicLight{}
+		c.dynamicLights[i].ptr = &C.cl_dlights[i]
+		c.dynamicLights[i].Sync()
 	}
 }
 

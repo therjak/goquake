@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+
 package quakelib
 
 //void Host_ClearMemory(void);
@@ -157,11 +158,6 @@ func serverInit() {
 
 func SV_NumEdicts() C.int {
 	return C.int(sv.numEdicts)
-}
-
-//export SV_Active
-func SV_Active() bool {
-	return sv.active
 }
 
 var (

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+
 package quakelib
 
 /*
@@ -59,7 +60,7 @@ func CallCMain() error {
 	if err := wad.Load(); err != nil {
 		return err
 	}
-	if CLS_GetState() != ca_dedicated {
+	if cls.state != ca_dedicated {
 		history.Load()
 		consoleInit()
 	}

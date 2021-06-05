@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+
 package quakelib
 
 import (
@@ -333,48 +334,48 @@ func particlesReadPointFile(_ []cmd.QArg, _ int) {
 	//
 	//
 	/*
-	  FILE *f;
-	  vec3_t org;
-	  int r;
-	  int c;
-	  particle_t *p;
-	  char name[MAX_QPATH];
+		FILE *f;
+		vec3_t org;
+		int r;
+		int c;
+		particle_t *p;
+		char name[MAX_QPATH];
 
-	  if (CLS_GetState() != ca_connected) return;  // need an active map.
+		if (cls.state != ca_connected) return;  // need an active map.
 
-	  q_snprintf(name, sizeof(name), "maps/%s.pts", cl.mapname);
+		q_snprintf(name, sizeof(name), "maps/%s.pts", cl.mapname);
 
-	  f = fopen(name, "r");
-	  if (!f) {
-	    Con_Printf("couldn't open %s\n", name);
-	    return;
-	  }
+		f = fopen(name, "r");
+		if (!f) {
+		  Con_Printf("couldn't open %s\n", name);
+		  return;
+		}
 
-	  Con_Printf("Reading %s...\n", name);
-	  c = 0;
-	  for (;;) {
-	    r = fscanf(f, "%f %f %f\n", &org[0], &org[1], &org[2]);
-	    if (r != 3) break;
-	    c++;
+		Con_Printf("Reading %s...\n", name);
+		c = 0;
+		for (;;) {
+		  r = fscanf(f, "%f %f %f\n", &org[0], &org[1], &org[2]);
+		  if (r != 3) break;
+		  c++;
 
-	    if (!free_particles) {
-	      Con_Printf("Not enough free particles\n");
-	      break;
-	    }
-	    p = free_particles;
-	    free_particles = p->next;
-	    p->next = active_particles;
-	    active_particles = p;
+		  if (!free_particles) {
+		    Con_Printf("Not enough free particles\n");
+		    break;
+		  }
+		  p = free_particles;
+		  free_particles = p->next;
+		  p->next = active_particles;
+		  active_particles = p;
 
-	    p->die = 99999;
-	    p->color = (-c) & 15;
-	    p->type = pt_static;
-	    VectorCopy(vec3_origin, p->vel);
-	    VectorCopy(org, p->org);
-	  }
+		  p->die = 99999;
+		  p->color = (-c) & 15;
+		  p->type = pt_static;
+		  VectorCopy(vec3_origin, p->vel);
+		  VectorCopy(org, p->org);
+		}
 
-	  fclose(f);
-	  Con_Printf("%i points read\n", c);
+		fclose(f);
+		Con_Printf("%i points read\n", c);
 	*/
 }
 

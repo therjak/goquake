@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+
 package quakelib
 
 import (
@@ -307,20 +308,19 @@ func (m *qGameOptionsMenu) Draw() {
 	}
 	m.items[m.selectedIndex].DrawCursor()
 	/*
-	   if (m_serverInfoMessage) {
-	     if ((HostRealTime() - m_serverInfoMessageTime) < 5.0) {
-	       x = (320 - 26 * 8) / 2;
-	       M_DrawTextBox(x, 138, 24, 4);
-	       x += 8;
-	       M_Print(x, 146, "  More than 4 players   ");
-	       M_Print(x, 154, " requires using command ");
-	       M_Print(x, 162, "line parameters; please ");
-	       M_Print(x, 170, "   see techinfo.txt.    ");
-	     } else {
-	       m_serverInfoMessage = false;
-	     }
-	   }
-
+		if (m_serverInfoMessage) {
+		  if (Time() - m_serverInfoMessageTime) < 5.0) {
+			  x = (320 - 26 * 8) / 2;
+				M_DrawTextBox(x, 138, 24, 4);
+				x += 8;
+				M_Print(x, 146, "  More than 4 players   ");
+				M_Print(x, 154, " requires using command ");
+				M_Print(x, 162, "line parameters; please ");
+				M_Print(x, 170, "   see techinfo.txt.    ");
+		  } else {
+		    m_serverInfoMessage = false;
+		  }
+		}
 	*/
 }
 

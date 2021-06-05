@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+
 package quakelib
 
 //void CL_ClearState(void);
@@ -248,8 +249,7 @@ var (
 	}
 )
 
-//export CL_SetMaxEdicts
-func CL_SetMaxEdicts(num int) {
+func (c *Client) setMaxEdicts(num int) {
 	cl.entities = make([]*Entity, 0, num)
 	// ensure at least a world entity at the start
 	cl.GetOrCreateEntity(0)
@@ -304,8 +304,7 @@ func cl_setStats(s, v int) {
 	}
 }
 
-//export CL_Clear
-func CL_Clear() {
+func clientClear() {
 	cl = Client{
 		staticEntities: make([]Entity, 0, 512),
 		dynamicLights:  make([]DynamicLight, 64, 64),
@@ -323,21 +322,6 @@ func CL_Paused() bool {
 //export CL_Time
 func CL_Time() C.double {
 	return C.double(cl.time)
-}
-
-//export CLS_GetState
-func CLS_GetState() C.int {
-	return C.int(cls.state)
-}
-
-//export CLS_SetSignon
-func CLS_SetSignon(s C.int) {
-	cls.signon = int(s)
-}
-
-//export CLSMessageClear
-func CLSMessageClear() {
-	cls.outProto.Reset()
 }
 
 func viewPositionCommand(args []cmd.QArg, _ int) {
@@ -1882,10 +1866,10 @@ func (c *Client) ColorForEntity(e *Entity) vec.Vec3 {
 func (c *Client) ClearState() {
 	C.CL_ClearState()
 	cls.signon = 0
-	CL_Clear()
-	CLSMessageClear()
-	CL_ClearDLights()
+	clientClear()
+	cls.outProto.Reset()
+	c.clearDLights()
 
 	maxEdicts := math.ClampI(MIN_EDICTS, int(cvars.MaxEdicts.Value()), MAX_EDICTS)
-	CL_SetMaxEdicts(maxEdicts)
+	c.setMaxEdicts(maxEdicts)
 }
