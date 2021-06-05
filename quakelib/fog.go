@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+
 package quakelib
 
 //extern float fogColor[4];
@@ -20,14 +21,10 @@ const (
 
 type QFog struct {
 	Density float32
-	Red     float32
-	Green   float32
-	Blue    float32
+	Color   Color
 
 	OldDensity float32
-	OldRed     float32
-	OldGreen   float32
-	OldBlue    float32
+	OldColor   Color
 
 	Time float64 // duration of fade
 	Done float64 // time when fade will be done
@@ -48,21 +45,21 @@ func (f *QFog) Update(density, red, green, blue float32, time float64) {
 		if f.Done > cl.time {
 			frac := float32((f.Done - cl.time) / f.Time)
 			f.OldDensity = math.Lerp(f.Density, f.OldDensity, frac)
-			f.OldRed = math.Lerp(f.Red, f.OldRed, frac)
-			f.OldGreen = math.Lerp(f.Green, f.OldGreen, frac)
-			f.OldBlue = math.Lerp(f.Blue, f.OldBlue, frac)
+			f.OldColor.R = math.Lerp(f.Color.R, f.OldColor.R, frac)
+			f.OldColor.G = math.Lerp(f.Color.G, f.OldColor.G, frac)
+			f.OldColor.B = math.Lerp(f.Color.B, f.OldColor.B, frac)
 		} else {
 			f.OldDensity = f.Density
-			f.OldRed = f.Red
-			f.OldGreen = f.Green
-			f.OldBlue = f.Blue
+			f.OldColor.R = f.Color.R
+			f.OldColor.G = f.Color.G
+			f.OldColor.B = f.Color.B
 		}
 	}
 
 	f.Density = density
-	f.Red = red
-	f.Green = green
-	f.Blue = blue
+	f.Color.R = red
+	f.Color.G = green
+	f.Color.B = blue
 	f.Time = time
 	f.Done = cl.time + time
 }
@@ -84,13 +81,13 @@ func (f *QFog) command(args []cmd.QArg) {
 		conlog.Printf("   fog <density> <red> <green> <blue>\n")
 		conlog.Printf("current values:\n")
 		conlog.Printf("   \"density\" is \"%f\"\n", f.Density)
-		conlog.Printf("   \"red\" is \"%f\"\n", f.Red)
-		conlog.Printf("   \"green\" is \"%f\"\n", f.Green)
-		conlog.Printf("   \"blue\" is \"%f\"\n", f.Blue)
+		conlog.Printf("   \"red\" is \"%f\"\n", f.Color.R)
+		conlog.Printf("   \"green\" is \"%f\"\n", f.Color.G)
+		conlog.Printf("   \"blue\" is \"%f\"\n", f.Color.B)
 	case 1:
-		f.Update(args[0].Float32(), f.Red, f.Green, f.Blue, 0)
+		f.Update(args[0].Float32(), f.Color.R, f.Color.G, f.Color.B, 0)
 	case 2: // TEST
-		f.Update(args[0].Float32(), f.Red, f.Green, f.Blue, args[1].Float64())
+		f.Update(args[0].Float32(), f.Color.R, f.Color.G, f.Color.B, args[1].Float64())
 	case 3:
 		f.Update(f.Density, args[0].Float32(), args[1].Float32(), args[2].Float32(), 0)
 	case 4:
@@ -102,13 +99,13 @@ func (f *QFog) command(args []cmd.QArg) {
 
 func (f *QFog) ParseWorldspawn() {
 	f.Density = FogDefaultDensity
-	f.Red = FogDefaultGray
-	f.Green = FogDefaultGray
-	f.Blue = FogDefaultGray
+	f.Color.R = FogDefaultGray
+	f.Color.G = FogDefaultGray
+	f.Color.B = FogDefaultGray
 	f.OldDensity = FogDefaultDensity
-	f.OldRed = FogDefaultGray
-	f.OldGreen = FogDefaultGray
-	f.OldBlue = FogDefaultGray
+	f.OldColor.R = FogDefaultGray
+	f.OldColor.G = FogDefaultGray
+	f.OldColor.B = FogDefaultGray
 	f.Time = 0
 	f.Done = 0
 
@@ -124,9 +121,9 @@ func (f *QFog) ParseWorldspawn() {
 			i, err := fmt.Sscanf(txt, "%f %f %f %f", &d, &r, &g, &b)
 			if err == nil && i == 4 {
 				f.Density = d
-				f.Red = r
-				f.Green = g
-				f.Blue = b
+				f.Color.R = r
+				f.Color.G = g
+				f.Color.B = b
 			} else {
 				log.Printf("Error parsing fog: %v", err)
 			}
@@ -148,13 +145,13 @@ func (f *QFog) GetColor() (float32, float32, float32, float32) {
 	var r, g, b float32
 	if f.Done > cl.time {
 		fade := (f.Done - cl.time) / f.Time
-		r = math.Lerp(f.Red, f.OldRed, float32(fade))
-		g = math.Lerp(f.Green, f.OldGreen, float32(fade))
-		b = math.Lerp(f.Blue, f.OldBlue, float32(fade))
+		r = math.Lerp(f.Color.R, f.OldColor.R, float32(fade))
+		g = math.Lerp(f.Color.G, f.OldColor.G, float32(fade))
+		b = math.Lerp(f.Color.B, f.OldColor.B, float32(fade))
 	} else {
-		r = f.Red
-		g = f.Green
-		b = f.Blue
+		r = f.Color.R
+		g = f.Color.G
+		b = f.Color.B
 	}
 
 	// find closest 24-bit RGB value, so solid-colored sky can match the fog

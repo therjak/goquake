@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+
 package quakelib
 
 //#include <stdlib.h>
 //#include <stdint.h>
 //extern float skyflatcolor[3];
 //extern uint32_t skybox_textures[6];
-//extern uint32_t solidskytexture2;
-//extern uint32_t alphaskytexture2;
 //extern float skyfog;
 //extern float skymins[2][6];
 //extern float skymaxs[2][6];
@@ -214,11 +213,6 @@ func (s *qSky) LoadTexture(d []byte, skyName, modelName string) {
 
 	texmap[s.solidTexture.ID()] = s.solidTexture
 	texmap[s.alphaTexture.ID()] = s.alphaTexture
-	C.solidskytexture2 = C.uint32_t(s.solidTexture.ID())
-	C.alphaskytexture2 = C.uint32_t(s.alphaTexture.ID())
-	C.skyflatcolor[0] = C.float(s.flat.R)
-	C.skyflatcolor[1] = C.float(s.flat.G)
-	C.skyflatcolor[2] = C.float(s.flat.B)
 }
 
 type skyVec [3]int
@@ -353,6 +347,70 @@ func (s *qSky) ClipPoly(vecs []vec.Vec3, stage int) {
 	}
 	s.ClipPoly(newvf, stage+1)
 	s.ClipPoly(newvb, stage+1)
+}
+
+func (s *qSky) processEntities(c Color) {
+	if !cvars.RDrawEntities.Bool() {
+		return
+	}
+
+	viewOrg := qRefreshRect.viewOrg
+	for _, e := range visibleEntities {
+		var model *bsp.Model
+		switch m := e.Model.(type) {
+		default:
+			continue
+		case *bsp.Model:
+			if renderer.cullBrush(e, m) {
+				continue
+			}
+			model = m
+		}
+		if e.Alpha == 1 {
+			// invisible
+			continue
+		}
+		modelOrg := vec.Sub(viewOrg, e.Origin)
+		var rotated bool
+		var fwd, r, u vec.Vec3
+		if e.Angles[0] != 0 || e.Angles[1] != 0 || e.Angles[2] != 0 {
+			rotated = true
+			fwd, r, u = vec.AngleVectors(e.Angles)
+			tmp := modelOrg
+			modelOrg[0] = vec.Dot(tmp, fwd)
+			modelOrg[1] = -vec.Dot(tmp, r)
+			modelOrg[2] = vec.Dot(tmp, u)
+		}
+		for _, su := range model.Surfaces {
+			if su.Flags&bsp.SurfaceDrawSky == 0 {
+				continue
+			}
+			dot := vec.Dot(modelOrg, su.Plane.Normal) - su.Plane.Dist
+			if (su.Flags&bsp.SurfacePlaneBack != 0 && dot < -0.01) ||
+				(su.Flags&bsp.SurfacePlaneBack == 0 && dot > 0.01) {
+				// TODO(therjak): remove/cache this alloc
+				var poly bsp.Poly
+				poly.Verts = make([]bsp.TexCoord, 0, len(su.Polys.Verts))
+				for _, v := range su.Polys.Verts {
+					if rotated {
+						pos := v.Pos
+						np := vec.Vec3{
+							e.Origin[0] + pos[0]*fwd[0] - pos[1]*r[0] + pos[2]*u[0],
+							e.Origin[1] + pos[0]*fwd[1] - pos[1]*r[1] + pos[2]*u[1],
+							e.Origin[2] + pos[0]*fwd[2] - pos[1]*r[2] + pos[2]*u[2],
+						}
+						poly.Verts = append(poly.Verts, bsp.TexCoord{
+							Pos: np,
+						})
+					} else {
+						poly.Verts = append(poly.Verts, v)
+					}
+				}
+				s.processPoly(&poly)
+			}
+		}
+	}
+	// C.Sky_ProcessEntities()
 }
 
 var (
@@ -526,17 +584,16 @@ func (s *qSky) Draw() {
 		{mf, mf, mf, mf, mf, mf},
 		{mf, mf, mf, mf, mf, mf}}
 
-	gl.Disable(gl.TEXTURE_2D) // TODO: remove as OpenGL2.1
-	// if Fog_GetDensity() > 0
-	// glColor3fv(Fog_GetColor())
-	// else
-	// glColor3fv(skyflatcolor)
-	s.processTextureChains()
-	C.Sky_ProcessEntities()
-	// glColor3fv(1,1,1)
-	gl.Enable(gl.TEXTURE_2D) // TODO: remove
+	color := s.flat
+	if fog.Density > 0 {
+		color = fog.Color
+	}
+	// Draw a simple uni color sky
+	s.processTextureChains(color)
+	s.processEntities(color)
 
 	if !cvars.RFastSky.Bool() && !(Fog_GetDensity() > 0 && C.skyfog >= 1) {
+		// Draw better quality sky
 		gl.DepthFunc(gl.GEQUAL)
 		defer gl.DepthFunc(gl.LEQUAL)
 		gl.DepthMask(false)
@@ -550,7 +607,7 @@ func (s *qSky) Draw() {
 	}
 }
 
-func (s *qSky) processTextureChains() {
+func (s *qSky) processTextureChains(c Color) {
 	for _, t := range cl.worldModel.Textures {
 		if t == nil {
 			continue
@@ -581,14 +638,10 @@ func (s *qSky) processPoly(p *bsp.Poly) {
 }
 
 // uses
-// R_CullModelForEntity
 // cl.worldmodel->numtextures
 // cl.worldmodel->textures
 // cl.worldmodel->entities
 // DrawGLPoly
-// Fog_GetDensity
-// Fog_GetColor
-
 // Fog_DisableGFog()
 // Fog_EnableGFog()
 // r_origin -> == qRefreshRect.viewOrg

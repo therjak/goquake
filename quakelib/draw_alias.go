@@ -6,6 +6,7 @@ import (
 	"math"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
+	"github.com/therjak/goquake/bsp"
 	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/glh"
 	qmath "github.com/therjak/goquake/math"
@@ -164,6 +165,17 @@ func (l *lerpData) setupEntityTransform(e *Entity) {
 	}
 }
 
+func (r *qRenderer) cullBrush(e *Entity, model *bsp.Model) bool {
+	if e.Angles[0] != 0 || e.Angles[1] != 0 || e.Angles[2] != 0 {
+		return r.CullBox(
+			vec.Add(e.Origin, vec.Vec3{-model.Radius, -model.Radius, -model.Radius}),
+			vec.Add(e.Origin, vec.Vec3{model.Radius, model.Radius, model.Radius}))
+	}
+	return r.CullBox(
+		vec.Add(e.Origin, model.Mins()),
+		vec.Add(e.Origin, model.Maxs()))
+}
+
 func (r *qRenderer) cullAlias(e *Entity, model *mdl.Model) bool {
 	if e.Angles[0] != 0 || e.Angles[2] != 0 {
 		return r.CullBox(
@@ -295,7 +307,7 @@ func drawAliasFrame(m *mdl.Model, ld *lerpData, tx, fb *texture.Texture, e *Enti
 	}
 	gl.Uniform1i(aliasDrawer.useOverBright, useOverBright)
 	gl.Uniform1f(aliasDrawer.fogDensity, fog.Density)
-	gl.Uniform4f(aliasDrawer.fogColor, fog.Red, fog.Green, fog.Blue, 0)
+	gl.Uniform4f(aliasDrawer.fogColor, fog.Color.R, fog.Color.G, fog.Color.B, 0)
 	p.SetAsUniform(aliasDrawer.projection)
 	mv.SetAsUniform(aliasDrawer.modelview)
 

@@ -16,7 +16,6 @@ float skymins[2][6], skymaxs[2][6];
 char skybox_name[32] = "";  // name of current skybox, or "" if no skybox
 
 uint32_t skybox_textures[6];
-uint32_t solidskytexture2, alphaskytexture2;
 
 extern cvar_t gl_farclip;
 cvar_t r_fastsky;
@@ -266,8 +265,6 @@ void Sky_ProcessEntities(void) {
   float dot;
   qboolean rotated;
   vec3_t temp, forward, right, up, modelorg;
-
-  if (!Cvar_GetValue(&r_drawentities)) return;
 
   vec3_t vieworg = {R_Refdef_vieworg(0), R_Refdef_vieworg(1),
                     R_Refdef_vieworg(2)};
