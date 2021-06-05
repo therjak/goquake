@@ -223,8 +223,9 @@ type MEdge struct {
 type Model struct {
 	name string
 
-	mins vec.Vec3
-	maxs vec.Vec3
+	mins   vec.Vec3
+	maxs   vec.Vec3
+	Radius float32
 	// rmins // alias + brush
 	// rmaxs // alias + brush
 	// ymins // alias + brush

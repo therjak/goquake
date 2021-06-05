@@ -184,14 +184,13 @@ func load(name string, data []byte) ([]*Model, error) {
 				m.Hulls[j].FirstClipNode = sub.HeadNode[j]
 				m.Hulls[j].LastClipNode = len(mod.ClipNodes) - 1
 			}
-			// TODO
-			// m.FirstModelSurface = sub.FirstFace
-			// m.NumModelSurfaces = sub.FaceCount
+			m.Surfaces = m.Surfaces[sub.FirstFace : sub.FirstFace+sub.FaceCount]
 			m.mins = sub.Mins
 			m.maxs = sub.Maxs
-			// TODO: calc rotate and yaw bounds
+			m.calcRadius()
 			// if i > 0 || mod.Name == SV_ModelName {
 			// Why should this not be set for sv.worldmodel?
+			// It seems impossible to match sv.worldmodel anyway.
 			m.ClipMins = sub.Mins
 			m.ClipMaxs = sub.Maxs
 			// }
@@ -232,6 +231,24 @@ func buildPlanes(pls []*plane) []*Plane {
 		})
 	}
 	return ret
+}
+
+func absmax(a, b float32) float32 {
+	aa := math32.Abs(a)
+	ab := math32.Abs(a)
+	if aa > ab {
+		return aa
+	}
+	return ab
+}
+
+func (m *Model) calcRadius() {
+	corner := vec.Vec3{
+		absmax(m.mins[0], m.maxs[0]),
+		absmax(m.mins[1], m.maxs[1]),
+		absmax(m.mins[2], m.maxs[2]),
+	}
+	m.Radius = corner.Length()
 }
 
 func loadPlanes(data []byte) ([]*plane, error) {
@@ -718,7 +735,6 @@ func buildSubmodels(mod []*model) ([]*Submodel, error) {
 	ret := make([]*Submodel, 0, len(mod))
 	for _, m := range mod {
 		ret = append(ret, &Submodel{
-			// Therjak: orig reduces mins and extends max by 1, here it breaks stuff. Why?
 			Mins:   vec.Vec3{m.BoundingBox[0] - 1, m.BoundingBox[1] - 1, m.BoundingBox[2] - 1},
 			Maxs:   vec.Vec3{m.BoundingBox[3] + 1, m.BoundingBox[4] + 1, m.BoundingBox[5] + 1},
 			Origin: vec.Vec3{m.Origin[0], m.Origin[1], m.Origin[2]},
