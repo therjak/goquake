@@ -2,7 +2,6 @@
 package quakelib
 
 //void CL_ParseUpdate(int num, int modNum);
-//void CL_ClearState(void);
 //void CLPrecacheModelClear(void);
 //void FinishCL_ParseServerInfo(void);
 import "C"
@@ -208,7 +207,7 @@ func CL_ParseServerInfo(si *protos.ServerInfo) {
 		screen.BeginLoadingPlaque()
 	}
 
-	C.CL_ClearState()
+	cl.ClearState()
 
 	cl.protocol = int(si.Protocol)
 	cl.protocolFlags = uint32(si.Flags)

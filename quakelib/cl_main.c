@@ -22,24 +22,13 @@ CL_ClearState
 =====================
 */
 void CL_ClearState(void) {
-  int i;
-
-  if (!SV_Active()) Host_ClearMemory();
-
   // wipe the entire cl structure
   memset(&cl, 0, sizeof(cl));
-  CL_Clear();  // and on the go side
-
-  CLSMessageClear();
-
-  // clear other arrays
-  CL_ClearDLights();
 
   int cl_max_edicts =
       CLAMP(MIN_EDICTS, (int)Cvar_GetValue(&max_edicts), MAX_EDICTS);
   cl_entities = (entity_t *)Hunk_AllocName(cl_max_edicts * sizeof(entity_t),
                                            "cl_entities");
-  CL_SetMaxEdicts(cl_max_edicts);
 }
 
 void CLPrecacheModelClear(void) {

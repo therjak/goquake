@@ -1175,8 +1175,6 @@ func (s *Server) SpawnServer(name string) {
 
 	// set up the new server
 	C.Host_ClearMemory()
-	// FIXME: why does the server directly change the client state?
-	cls.signon = 0
 	freeEdicts()
 	sv = Server{
 		models:   make([]model.Model, 1),
@@ -1184,8 +1182,6 @@ func (s *Server) SpawnServer(name string) {
 		protocol: sv_protocol,
 	}
 	s = &sv
-	// FIXME: why does the server directly change the client state?
-	CL_Clear()
 
 	if s.protocol == protocol.RMQ {
 		s.protocolFlags = protocol.PRFL_INT32COORD | protocol.PRFL_SHORTANGLE

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 package quakelib
 
+//void CL_ClearState(void);
 import "C"
 
 import (
@@ -305,7 +306,6 @@ func cl_setStats(s, v int) {
 
 //export CL_Clear
 func CL_Clear() {
-	// cl: there is a memset 0 in CL_ClearState
 	cl = Client{
 		staticEntities: make([]Entity, 0, 512),
 		dynamicLights:  make([]DynamicLight, 64, 64),
@@ -1877,4 +1877,15 @@ func (c *Client) ColorForEntity(e *Entity) vec.Vec3 {
 	}
 	lightColor.Scale(1.0 / 200.0)
 	return lightColor
+}
+
+func (c *Client) ClearState() {
+	C.CL_ClearState()
+	cls.signon = 0
+	CL_Clear()
+	CLSMessageClear()
+	CL_ClearDLights()
+
+	maxEdicts := math.ClampI(MIN_EDICTS, int(cvars.MaxEdicts.Value()), MAX_EDICTS)
+	CL_SetMaxEdicts(maxEdicts)
 }
