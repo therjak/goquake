@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 package quakelib
 
-//void SetCLWeaponModel(int v);
 import "C"
 
 import (
@@ -1048,10 +1047,6 @@ func (c *Client) calcWeaponAngle() {
 	w.Angles[ROLL] -= sway(cvars.ViewIRollCycle.Value(), cvars.ViewIRollLevel.Value())
 	w.Angles[PITCH] -= sway(cvars.ViewIPitchCycle.Value(), cvars.ViewIPitchLevel.Value())
 	w.Angles[YAW] -= sway(cvars.ViewIYawCycle.Value(), cvars.ViewIYawLevel.Value())
-
-	w.ptr.angles[ROLL] = C.float(w.Angles[ROLL])
-	w.ptr.angles[PITCH] = C.float(w.Angles[PITCH])
-	w.ptr.angles[YAW] = C.float(w.Angles[YAW])
 }
 
 func (c *Client) addIdle(idlescale float32) {
@@ -1071,7 +1066,6 @@ func (c *Client) calcIntermissionRefreshRect() {
 	// weaponmodel
 	w := c.WeaponEntity()
 	w.Model = nil
-	w.ptr.model = nil
 
 	c.addIdle(1)
 }
@@ -1193,9 +1187,6 @@ func (c *Client) calcRefreshRect() {
 	w.Angles[ROLL] = c.roll
 	w.Angles[PITCH] = c.pitch
 	w.Angles[YAW] = c.yaw
-	w.ptr.angles[ROLL] = C.float(w.Angles[ROLL])
-	w.ptr.angles[PITCH] = C.float(w.Angles[PITCH])
-	w.ptr.angles[YAW] = C.float(w.Angles[YAW])
 
 	c.calcWeaponAngle()
 	w.Origin = ent.Origin
@@ -1204,14 +1195,12 @@ func (c *Client) calcRefreshRect() {
 	w.Origin.Add(vec.Scale(bob*0.4, forward))
 	w.Origin[2] += bob
 
-	w.ptr.origin[0] = C.float(w.Origin[0])
-	w.ptr.origin[1] = C.float(w.Origin[1])
-	w.ptr.origin[2] = C.float(w.Origin[2])
-
-	w.Model = c.modelPrecache[c.stats.weapon-1]
-	C.SetCLWeaponModel(C.int(c.stats.weapon))
+	if c.stats.weapon != 0 {
+		w.Model = c.modelPrecache[c.stats.weapon-1]
+	} else {
+		w.Model = nil
+	}
 	w.Frame = cl.stats.weaponFrame
-	w.ptr.frame = C.int(w.Frame)
 
 	switch cvars.ViewGunKick.Value() {
 	case 1:
@@ -1258,7 +1247,6 @@ func (c *Client) calcRefreshRect() {
 		}
 		qRefreshRect.viewOrg[2] += calcRefreshRectOldZ - origin[2]
 		w.Origin[2] += calcRefreshRectOldZ - origin[2]
-		w.ptr.origin[2] = C.float(w.Origin[2])
 	} else {
 		calcRefreshRectOldZ = origin[2]
 	}
@@ -1364,7 +1352,6 @@ func (c *Client) parseClientData(cdp *protos.ClientData) {
 	}
 	weaponE := c.WeaponEntity()
 	weaponE.Alpha = byte(cdp.WeaponAlpha)
-	weaponE.ptr.alpha2 = C.uchar(weaponE.Alpha)
 	// this was done before the upper 8 bits of cl.stats[STAT_WEAPON]
 	// were filled in, breaking on large maps like zendar.bsp
 	if weaponE.Model != c.modelPrecache[c.stats.weapon] {

@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // cl_main.c  -- client main loop
 
-#include "quakedef.h"
-
 #include "dlight.h"
+#include "quakedef.h"
 
 // we need to declare some mouse variables here, because the menu system
 // references them even when on a unix system.
@@ -15,8 +14,6 @@ entity_t cl_static_entities[MAX_STATIC_ENTITIES];
 dlight_t cl_dlights[MAX_DLIGHTS];
 
 entity_t *cl_entities;  // johnfitz -- was a static array, now on hunk
-
-entity_t cl_viewent;  // the gun model
 
 /*
 =====================
@@ -43,12 +40,6 @@ void CL_ClearState(void) {
   cl_entities = (entity_t *)Hunk_AllocName(cl_max_edicts * sizeof(entity_t),
                                            "cl_entities");
   CL_SetMaxEdicts(cl_max_edicts);
-}
-
-void SetCLWeaponModel(int v) {
-  entity_t *view;
-  view = &cl_viewent;
-  view->model = cl.model_precache[v];
 }
 
 void CLPrecacheModelClear(void) {

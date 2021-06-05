@@ -8,7 +8,6 @@ package quakelib
 //#include "gl_model.h"
 //#include "render.h"
 //extern entity_t *cl_entities;
-//extern entity_t cl_viewent;
 //extern entity_t cl_temp_entities[256];
 //typedef entity_t* entityPtr;
 //typedef qmodel_t* modelPtr;
@@ -166,6 +165,9 @@ func (c *Client) WorldEntity() *Entity {
 
 // Sync synces from the go side to the C side
 func (e *Entity) Sync() {
+	if e.ptr == nil {
+		return
+	}
 	e.ptr.frame = C.int(e.Frame)
 	e.ptr.skinnum = C.int(e.SkinNum)
 	e.ptr.alpha2 = C.uchar(e.Alpha)
@@ -348,7 +350,6 @@ var (
 )
 
 func init() {
-	clientWeapon.ptr = &C.cl_viewent
 	clientTempEntities = make([]Entity, 0, 256)
 }
 
