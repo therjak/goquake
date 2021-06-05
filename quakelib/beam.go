@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+
 package quakelib
 
 import (
@@ -10,7 +11,7 @@ import (
 )
 
 type beam struct {
-	entity  int16
+	entity  int32
 	model   model.Model
 	endTime float64
 	start   vec.Vec3
@@ -25,7 +26,7 @@ func clearBeams() {
 	beams = [32]beam{}
 }
 
-func parseBeam(name string, ent int16, s, e vec.Vec3) {
+func parseBeam(name string, ent int32, s, e vec.Vec3) {
 	m, err := loadModel(name)
 	if err != nil {
 		return
@@ -69,8 +70,7 @@ func (c *Client) updateTempEntities() {
 			b.start = c.Entity().Origin
 		}
 
-		yaw := float32(0)
-		var pitch float32
+		var pitch, yaw float32
 		dist := vec.Sub(b.end, b.start)
 		if dist[0] == 0 && dist[1] == 0 {
 			if dist[2] > 0 {
@@ -92,6 +92,7 @@ func (c *Client) updateTempEntities() {
 
 		origin := b.start
 		d := dist.Length()
+		sdist := vec.Scale(30, dist)
 		for d > 0 {
 			e := c.NewTempEntity()
 			if e == nil {
@@ -100,7 +101,7 @@ func (c *Client) updateTempEntities() {
 			e.Origin = origin
 			e.Model = b.model
 			e.Angles = vec.Vec3{pitch, yaw, math32.Mod(rg.Float32(), 360)}
-			origin.Add(vec.Scale(30, dist))
+			origin.Add(sdist)
 			d -= 30
 		}
 	}

@@ -1762,13 +1762,13 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) {
 		l := te.Lightning1
 		s := v3FC(l.GetStart())
 		e := v3FC(l.GetEnd())
-		parseBeam(mdlBolt1, int16(l.GetEntity()), s, e)
+		parseBeam(mdlBolt1, l.GetEntity(), s, e)
 	case *protos.TempEntity_Lightning2:
 		// lightning bolts
 		l := te.Lightning2
 		s := v3FC(l.GetStart())
 		e := v3FC(l.GetEnd())
-		parseBeam(mdlBolt2, int16(l.GetEntity()), s, e)
+		parseBeam(mdlBolt2, l.GetEntity(), s, e)
 	case *protos.TempEntity_WizSpike:
 		// spike hitting wall
 		pos := v3FC(te.WizSpike)
@@ -1784,7 +1784,7 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) {
 		l := te.Lightning3
 		s := v3FC(l.GetStart())
 		e := v3FC(l.GetEnd())
-		parseBeam(mdlBolt3, int16(l.GetEntity()), s, e)
+		parseBeam(mdlBolt3, l.GetEntity(), s, e)
 	case *protos.TempEntity_LavaSplash:
 		pos := v3FC(te.LavaSplash)
 		particlesAddLavaSplash(pos, float32(cl.time))
@@ -1812,7 +1812,7 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) {
 		l := te.Beam
 		s := v3FC(l.GetStart())
 		e := v3FC(l.GetEnd())
-		parseBeam(mdlBeam, int16(l.GetEntity()), s, e)
+		parseBeam(mdlBeam, l.GetEntity(), s, e)
 	default:
 		Error("CL_ParseTEnt: bad type")
 	}
