@@ -400,11 +400,6 @@ func (c *Client) Entity() *Entity {
 	return c.Entities(c.viewentity)
 }
 
-//export ClientEntity
-func ClientEntity(i int) C.entityPtr {
-	return cl.ClientEntity(i).ptr
-}
-
 //export SetWorldEntityModel
 func SetWorldEntityModel(m C.modelPtr) {
 	cl.WorldEntity().ptr.model = m
