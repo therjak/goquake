@@ -187,49 +187,6 @@ void R_Init(void) {
 }
 
 /*
-===============
-R_TranslateNewPlayerSkin -- johnfitz -- split off of TranslatePlayerSkin -- this
-is called when
-the skin or model actually changes, instead of just new colors
-added bug fix from bengt jardup
-===============
-*/
-// THERJAK: this and the aliashdr_t
-void R_TranslateNewPlayerSkin(int playernum) {
-  char name[64];
-  byte *pixels;
-  aliashdr_t *paliashdr;
-  int skinnum;
-  entity_t *ce;
-
-  // get correct texture pixels
-  ce = ClientEntity(playernum);
-
-  if (!ce->model || ce->model->Type != mod_alias) return;
-
-  paliashdr = (aliashdr_t *)Mod_Extradata(ce->model);
-
-  skinnum = ce->skinnum;
-
-  // TODO: move these tests to the place where skinnum gets received from the
-  // server
-  if (skinnum < 0 || skinnum >= paliashdr->numskins) {
-    Con_DPrintf("(%d): Invalid player skin #%d\n", playernum, skinnum);
-    skinnum = 0;
-  }
-
-  pixels = (byte *)paliashdr +
-           paliashdr->texels[skinnum];  // This is not a persistent place!
-
-  // upload new image
-  LoadPlayerTexture(playernum, paliashdr->skinwidth, paliashdr->skinheight,
-                    pixels);
-
-  // now recolor it
-  R_TranslatePlayerSkin(playernum);
-}
-
-/*
 =============
 R_ParseWorldspawn
 

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+
 package quakelib
 
 //void CL_ParseUpdate(int num, int modNum);
@@ -116,7 +117,7 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) {
 			c := cmd.UpdateColors.GetNewColor()
 			cl.scores[player].topColor = int((c & 0xf0) >> 4)
 			cl.scores[player].bottomColor = int(c & 0x0f)
-			CL_NewTranslation(player)
+			updatePlayerSkin(player)
 		case *protos.SCmd_Particle:
 			org := cmd.Particle.GetOrigin()
 			dir := cmd.Particle.GetDirection()
@@ -346,7 +347,7 @@ func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) {
 	}
 	if e.SkinNum != oldSkinNum {
 		if num > 0 && num <= cl.maxClients {
-			// C.R_TranslateNewPlaykerSkin(num - 1)
+			createPlayerSkin(num, e)
 		}
 	}
 	e.Effects = int(eu.Effects)
@@ -401,7 +402,7 @@ func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) {
 				forceLink = true
 			}
 			if num > 0 && num <= cl.maxClients {
-				// R_TranslateNewPlayreSkin(num -1)
+				createPlayerSkin(num, e)
 			}
 			// do not lerp animation across model changes
 			e.LerpFlags |= lerpResetAnim

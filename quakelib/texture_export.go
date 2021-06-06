@@ -7,7 +7,6 @@ package quakelib
 import "C"
 
 import (
-	"fmt"
 	"log"
 	"runtime/debug"
 	"unsafe"
@@ -68,26 +67,6 @@ func TexMgrLoadLightMapImage(owner *C.qmodel_t, name *C.char, width C.int,
 	textureManager.loadLightMap(t, d)
 	texmap[t.ID()] = t
 	return uint32(t.ID())
-}
-
-//export LoadPlayerTexture
-func LoadPlayerTexture(playerNum int, width, height int, data *C.byte) {
-	// 1 to cl.maxClients
-	if playerNum < 0 || playerNum >= cl.maxClients {
-		log.Printf("Bad LoadPlayerTextures: %v", playerNum)
-		return
-	}
-	name := fmt.Sprintf("player_%d", playerNum)
-	flags := texture.TexPrefPad | texture.TexPrefOverwrite
-	d := C.GoBytes(unsafe.Pointer(data), C.int(width*height))
-
-	t := texture.NewTexture(int32(width), int32(height),
-		flags, name, texture.ColorTypeIndexed, d)
-	textureManager.addActiveTexture(t)
-	textureManager.loadIndexed(t, d)
-
-	e := cl.Entities(playerNum + 1)
-	playerTextures[e.ptr] = t
 }
 
 //export TexMgrLoadImage2

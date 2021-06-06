@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+
 package quakelib
 
 //#ifndef ENTITIES_H
@@ -20,12 +21,14 @@ package quakelib
 import "C"
 
 import (
+	"fmt"
 	"unsafe"
 
 	"github.com/therjak/goquake/cmd"
 	"github.com/therjak/goquake/conlog"
 	"github.com/therjak/goquake/cvars"
 	"github.com/therjak/goquake/math/vec"
+	"github.com/therjak/goquake/mdl"
 	"github.com/therjak/goquake/model"
 	"github.com/therjak/goquake/texture"
 )
@@ -39,11 +42,11 @@ const (
 )
 
 var (
-	playerTextures map[C.entityPtr]*texture.Texture
+	playerTextures map[*Entity]*texture.Texture
 )
 
 func init() {
-	playerTextures = make(map[C.entityPtr]*texture.Texture)
+	playerTextures = make(map[*Entity]*texture.Texture)
 	cmd.AddCommand("entities", printEntities)
 }
 
@@ -66,35 +69,20 @@ func printEntities(_ []cmd.QArg, _ int) {
 	}
 }
 
-//export PlayerTexture
-func PlayerTexture(ptr C.entityPtr) uint32 {
-	t, ok := playerTextures[ptr]
-	if !ok || t == nil {
-		return 0
-	}
-	texmap[t.ID()] = t
-	return uint32(t.ID())
-}
-
-//export CL_NewTranslation
-func CL_NewTranslation(i int) {
+func updatePlayerSkin(i int) {
 	if i < 0 || i >= cl.maxClients {
 		Error("CL_NewTranslation: slot > cl.maxClients: %d", i)
 	}
-	R_TranslatePlayerSkin(i)
+	e := cl.Entities(i + 1)
+	translatePlayerSkin(e)
 }
 
-//export R_TranslatePlayerSkin
-func R_TranslatePlayerSkin(i int) {
+func translatePlayerSkin(e *Entity) {
 	if cvars.GlNoColors.Bool() {
 		return
 	}
-	if i < 0 || i >= cl.maxClients {
-		return
-	}
 	// s := cl.scores[i]
-	e := cl.Entities(i + 1)
-	t, ok := playerTextures[e.ptr]
+	t, ok := playerTextures[e]
 	if !ok || t == nil {
 		// There are R_TranslatePlayerSkin calls before we even loaded
 		// the player texture. So just ignore.
@@ -103,6 +91,26 @@ func R_TranslatePlayerSkin(i int) {
 	// TODO(therjak): do the remap from s.topColor & s.bottomColor
 	// we do have indexed colors for the texture
 	textureManager.ReloadImage(t)
+}
+
+func createPlayerSkin(i int, e *Entity) {
+	m, ok := e.Model.(*mdl.Model)
+	if !ok || m == nil {
+		return
+	}
+	skinNum := e.SkinNum
+	if skinNum < 0 || skinNum >= len(m.Textures) {
+		skinNum = 0
+	}
+	name := fmt.Sprintf("player_%d", i-1) // make it 0 based
+	// copy the texture with our new name
+	ot := m.Textures[skinNum][0]
+	flags := texture.TexPrefPad | texture.TexPrefOverwrite
+	t := texture.NewTexture(ot.Width, ot.Height, flags, name, ot.Typ, ot.Data)
+	textureManager.addActiveTexture(t)
+	textureManager.loadIndexed(t, t.Data)
+	playerTextures[e] = t
+	translatePlayerSkin(e)
 }
 
 type state struct {

@@ -230,10 +230,9 @@ func (r *qRenderer) DrawAliasModel(e *Entity, model *mdl.Model) {
 		}
 	}
 	if !cvars.GlNoColors.Bool() {
-		// TODO: colored player textures
-		// if pt := PlayerTexture(e); pt != nil {
-		//   t = pt
-		// }
+		if pt := playerTextures[e]; pt != nil {
+			tx = pt
+		}
 	}
 	if !cvars.GlFullBrights.Bool() {
 		fb = nil

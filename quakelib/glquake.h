@@ -150,9 +150,6 @@ void R_CullSurfaces(void);
 qboolean R_CullModelForEntity(entity_t *e);
 void R_RotateForEntity(vec3_t origin, vec3_t angles);
 
-void R_TranslateNewPlayerSkin(int playernum);  // johnfitz -- this handles cases
-                                               // when the actual texture
-                                               // changes
 void R_UpdateWarpTextures(void);
 
 void R_DrawWorld(void);
