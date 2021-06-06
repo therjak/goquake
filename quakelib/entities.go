@@ -42,6 +42,9 @@ const (
 )
 
 var (
+	// TODO(therjak): this should probably be a two stage thing
+	// one of idx to Entity and one idx to texture.
+	// currently it is not realy possible to clean up
 	playerTextures map[*Entity]*texture.Texture
 )
 
