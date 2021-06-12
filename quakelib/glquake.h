@@ -150,8 +150,6 @@ void R_CullSurfaces(void);
 qboolean R_CullModelForEntity(entity_t *e);
 void R_RotateForEntity(vec3_t origin, vec3_t angles);
 
-void R_UpdateWarpTextures(void);
-
 void R_DrawWorld(void);
 void R_DrawAliasModel(entity_t *e);
 void R_DrawBrushModel(entity_t *e);

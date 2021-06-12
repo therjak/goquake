@@ -180,13 +180,12 @@ void DrawWaterPoly(glpoly_t *p) {
 R_UpdateWarpTextures -- johnfitz -- each frame, update warping textures
 =============
 */
-void R_UpdateWarpTextures(void) {
+void R_UpdateWarpTexturesC(void) {
   texture_t *tx;
   int i;
   float x, y, x2, warptess;
 
-  if (Cvar_GetValue(&r_oldwater) || CL_Paused())
-    return;
+  if (Cvar_GetValue(&r_oldwater) || CL_Paused()) return;
 
   warptess = 128.0 / CLAMP(3.0, floor(Cvar_GetValue(&r_waterquality)), 64.0);
 
