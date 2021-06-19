@@ -24,7 +24,7 @@ typedef struct glRect_s {
   unsigned char l, t, w, h;
 } glRect_t;
 
-glpoly_t *lightmap_polys[MAX_LIGHTMAPS];
+glpoly_t *lightmap_polys[MAX_LIGHTMAPS]; // THERJAK -- extern use
 qboolean lightmap_modified[MAX_LIGHTMAPS];
 glRect_t lightmap_rectchange[MAX_LIGHTMAPS];
 
@@ -77,23 +77,6 @@ void DrawGLPoly(glpoly_t *p) {
   v = p->verts[0];
   for (i = 0; i < p->numverts; i++, v += VERTEXSIZE) {
     glTexCoord2f(v[3], v[4]);
-    glVertex3fv(v);
-  }
-  glEnd();
-}
-
-/*
-================
-DrawGLTriangleFan -- johnfitz -- like DrawGLPoly but for r_showtris
-================
-*/
-void DrawGLTriangleFan(glpoly_t *p) {
-  float *v;
-  int i;
-
-  glBegin(GL_TRIANGLE_FAN);
-  v = p->verts[0];
-  for (i = 0; i < p->numverts; i++, v += VERTEXSIZE) {
     glVertex3fv(v);
   }
   glEnd();
@@ -158,7 +141,7 @@ void R_DrawBrushModel(entity_t *e) {
   glRotatef(e->angles[1], 0, 0, 1);
   glRotatef(-e->angles[0], 0, 1, 0);
   glRotatef(e->angles[2], 1, 0, 0);
-
+  
   if (Cvar_GetValue(&gl_zfix)) {
     e->origin[0] += DIST_EPSILON;
     e->origin[1] += DIST_EPSILON;
@@ -216,7 +199,7 @@ void R_RenderDynamicLightmaps(msurface_t *fa) {
       goto dynamic;
 
   if (fa->dlightframe == R_framecount()  // dynamic this frame
-      || fa->cached_dlight)              // dynamic previously
+      || fa->cached_dlight)            // dynamic previously
   {
   dynamic:
     if (Cvar_GetValue(&r_dynamic)) {
@@ -250,6 +233,7 @@ void R_RenderDynamicLightmaps(msurface_t *fa) {
 AllocBlock -- returns a texture number and the position inside it
 ========================
 */
+// THERJAK -- dep
 int AllocBlock(int w, int h, int *x, int *y) {
   int i, j;
   int best, best2;
@@ -293,6 +277,7 @@ int AllocBlock(int w, int h, int *x, int *y) {
 GL_CreateSurfaceLightmap
 ========================
 */
+// THERJAK -- dep
 void GL_CreateSurfaceLightmap(msurface_t *surf) {
   int smax, tmax;
   byte *base;
@@ -313,6 +298,7 @@ void GL_CreateSurfaceLightmap(msurface_t *surf) {
 BuildSurfaceDisplayList -- called at level load time
 ================
 */
+// THERJAK -- dep
 void BuildSurfaceDisplayList(msurface_t *fa, qmodel_t *currentmodel) {
   int i, lindex, lnumverts;
   medge_t *pedges, *r_pedge;
@@ -374,8 +360,6 @@ void BuildSurfaceDisplayList(msurface_t *fa, qmodel_t *currentmodel) {
   }
 
   // johnfitz -- removed gl_keeptjunctions code
-
-  poly->numverts = lnumverts;
 }
 
 /*
@@ -386,6 +370,7 @@ Builds the lightmap texture
 with all the surfaces from all brush models
 ==================
 */
+// THERJAK -- this is next
 void GL_BuildLightmaps(void) {
   char name[16];
   byte *data;
@@ -395,8 +380,7 @@ void GL_BuildLightmaps(void) {
   memset(allocated, 0, sizeof(allocated));
   last_lightmap_allocated = 0;
 
-  R_framecount_reset();
-  R_framecount_inc();  // no dlightcache
+  R_framecount_reset(); R_framecount_inc();  // no dlightcache
 
   // johnfitz -- null out array (the gltexture objects themselves were already
   // freed by Mod_ClearAll)
@@ -452,7 +436,7 @@ void GL_BuildLightmaps(void) {
 =============================================================
 */
 
-GLuint gl_bmodel_vbo = 0;
+extern GLuint gl_bmodel_vbo;
 
 /*
 ==================
@@ -462,12 +446,12 @@ Deletes gl_bmodel_vbo if it already exists, then rebuilds it with all
 surfaces from world + all brush models
 ==================
 */
-void GL_BuildBModelVertexBuffer(void) {
+void GL_BuildBModelVertexBufferOld(void) {
   unsigned int numverts, varray_bytes, varray_index;
   int i, j;
   qmodel_t *m;
   float *varray;
-
+/*
   // ask GL for a name for our VBO
   glDeleteBuffers(1, &gl_bmodel_vbo);
   glGenBuffers(1, &gl_bmodel_vbo);
@@ -482,10 +466,10 @@ void GL_BuildBModelVertexBuffer(void) {
       numverts += m->surfaces[i].numedges;
     }
   }
-
   // build vertex array
   varray_bytes = VERTEXSIZE * sizeof(float) * numverts;
   varray = (float *)malloc(varray_bytes);
+*/
   varray_index = 0;
 
   for (j = 1; j < MAX_MODELS; j++) {
@@ -495,16 +479,18 @@ void GL_BuildBModelVertexBuffer(void) {
     for (i = 0; i < m->numsurfaces; i++) {
       msurface_t *s = &m->surfaces[i];
       s->vbo_firstvert = varray_index;
-      memcpy(&varray[VERTEXSIZE * varray_index], s->polys->verts,
-             VERTEXSIZE * sizeof(float) * s->numedges);
+//      memcpy(&varray[VERTEXSIZE * varray_index], s->polys->verts,
+//             VERTEXSIZE * sizeof(float) * s->numedges);
       varray_index += s->numedges;
     }
   }
-
+/*
   // upload to GPU
   glBindBuffer(GL_ARRAY_BUFFER, gl_bmodel_vbo);
   glBufferData(GL_ARRAY_BUFFER, varray_bytes, varray, GL_STATIC_DRAW);
   free(varray);
+
+*/
 }
 
 /*
@@ -512,6 +498,7 @@ void GL_BuildBModelVertexBuffer(void) {
 R_AddDynamicLights
 ===============
 */
+// THERJAK -- dep
 void R_AddDynamicLights(msurface_t *surf) {
   int lnum;
   int sd, td;
@@ -533,9 +520,10 @@ void R_AddDynamicLights(msurface_t *surf) {
   for (lnum = 0; lnum < MAX_DLIGHTS; lnum++) {
     if (!(surf->dlightbits[lnum >> 5] & (1U << (lnum & 31))))
       continue;  // not lit by this light
-    dlight_t *l = CL_Dlight(lnum);
+    dlight_t* l = CL_Dlight(lnum);
     rad = l->radius;
-    dist = DotProduct(l->origin, surf->plane->normal) - surf->plane->dist;
+    dist = DotProduct(l->origin, surf->plane->normal) -
+           surf->plane->dist;
     rad -= fabs(dist);
     minlight = l->minlight;
     if (rad < minlight) continue;
@@ -589,6 +577,7 @@ R_BuildLightMap -- johnfitz -- revised for lit support via lordhavoc
 Combine and scale multiple lightmaps into the 8.8 format in blocklights
 ===============
 */
+// THERJAK -- dep
 void R_BuildLightMap(msurface_t *surf, byte *dest, int stride) {
   int smax, tmax;
   int r, g, b;

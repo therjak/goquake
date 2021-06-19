@@ -445,10 +445,16 @@ func calcSurfaceExtras(ss []*Surface, vs []*MVertex, es []*MEdge, ses []int32, l
 			}
 		} else {
 			// TODO:
-			// GL_BuildLightmaps
-			// GL_CreateSurfaceLightmap
-			// R_BuildLightMap
-			// AllocBlock
+			// GL_BuildLightmaps {
+			//   GL_CreateSurfaceLightmap {
+			//     AllocBlock
+			//     R_BuildLightMap
+			//   }
+			//   R_BuildLightMap {
+			//     R_framecount
+			//     R_AddDynamicLights
+			//   }
+			// }
 			// -- it should also set s.lightS, s.lightT
 			for i := range s.Polys.Verts {
 				v := &s.Polys.Verts[i]
