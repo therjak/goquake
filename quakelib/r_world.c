@@ -64,7 +64,6 @@ void R_MarkSurfaces(void) {
   // clear lightmap chains
   memset(lightmap_polys, 0, sizeof(lightmap_polys));
 
-  MarkSurfacesAddStaticEntities();
   // check this leaf for water portals
   // TODO: loop through all water surfs and use distance to leaf cullbox
   nearwaterportal = false;
@@ -94,11 +93,9 @@ void R_MarkSurfaces(void) {
 
   vis_changed = false;
   R_visframecount_inc();
-  UpdateOldViewLeafGo();
   r_oldviewleaf = r_viewleaf;
 
   // iterate through leaves, marking surfaces
-  MarkSurfacesAddStaticEntitiesAndMark();
   leaf = &cl.worldmodel->leafs[1];
   for (i = 0; i < cl.worldmodel->numleafs; i++, leaf++) {
     if (vis[i >> 3] & (1 << (i & 7))) {

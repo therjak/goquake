@@ -73,7 +73,7 @@ void DrawGLPoly(glpoly_t *p) {
   float *v;
   int i;
 
-  glBegin(GL_POLYGON);
+  glBegin(GL_TRIANGLE_FAN);
   v = p->verts[0];
   for (i = 0; i < p->numverts; i++, v += VERTEXSIZE) {
     glTexCoord2f(v[3], v[4]);

@@ -11,6 +11,17 @@ void main() {
 }
 ` + "\x00"
 
+	vertexWorldPositionSource = `
+#version 330
+layout (location = 0) in vec3 position;
+uniform mat4 projection;
+uniform mat4 modelview;
+
+void main() {
+	gl_Position = projection * modelview * vec4(position, 1.0);
+}
+` + "\x00"
+
 	vertexTextureSource = `
 #version 330
 layout (location = 0) in vec3 position;
@@ -293,7 +304,6 @@ void main() {
 
 	fragmentSourceColorRecDrawer = `
 #version 330
-in vec2 Texcoord;
 out vec4 frag_color;
 uniform vec4 in_color;
 

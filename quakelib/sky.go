@@ -15,8 +15,6 @@ package quakelib
 //void Fog_EnableGFog(void);
 //void Fog_DisableGFog(void);
 //void Sky_DrawSkyBox(void);
-//void Sky_ProcessTextureChains(void);
-//void Sky_ProcessEntities(void);
 import "C"
 
 import (
@@ -65,8 +63,9 @@ type qSky struct {
 }
 
 var (
-	sky       qSky
-	skyDrawer *qSkyDrawer
+	sky             qSky
+	skyDrawer       *qSkyDrawer
+	simpleSkyDrawer *qSimpleSkyDrawer
 )
 
 //export HasSkyBox
@@ -92,6 +91,7 @@ func SkyInit() {
 
 func CreateSkyDrawer() {
 	skyDrawer = newSkyDrawer()
+	simpleSkyDrawer = newSimpleSkyDrawer()
 }
 
 //export SkyNewMap
@@ -224,9 +224,7 @@ var (
 	skyTexOrder = [6]int{0, 2, 1, 3, 4, 5}
 )
 
-func (sky *qSky) UpdateBounds(vecs []vec.Vec3) {
-	// nump == len(vecs)
-	// Sky_ProjectPoly
+func (sky *qSky) updateBounds(vecs []vec.Vec3) {
 	// TODO: why does this computation feel stupid?
 	var sum vec.Vec3
 	for _, v := range vecs {
@@ -295,9 +293,9 @@ func (sky *qSky) UpdateBounds(vecs []vec.Vec3) {
 }
 
 // MAX_CLIP_VERTS = 64
-func (s *qSky) ClipPoly(vecs []vec.Vec3, stage int) {
+func (s *qSky) clipPoly(vecs []vec.Vec3, stage int) {
 	if stage >= 6 || stage < 0 {
-		s.UpdateBounds(vecs)
+		s.updateBounds(vecs)
 		return
 	}
 	front := false
@@ -321,7 +319,7 @@ func (s *qSky) ClipPoly(vecs []vec.Vec3, stage int) {
 	}
 	if !front || !back {
 		// not clipped
-		s.ClipPoly(vecs, stage+1)
+		s.clipPoly(vecs, stage+1)
 		return
 	}
 	// clip it
@@ -345,8 +343,8 @@ func (s *qSky) ClipPoly(vecs []vec.Vec3, stage int) {
 		newvf = append(newvf, e)
 		newvb = append(newvb, e)
 	}
-	s.ClipPoly(newvf, stage+1)
-	s.ClipPoly(newvb, stage+1)
+	s.clipPoly(newvf, stage+1)
+	s.clipPoly(newvb, stage+1)
 }
 
 func (s *qSky) processEntities(c Color) {
@@ -406,11 +404,10 @@ func (s *qSky) processEntities(c Color) {
 						poly.Verts = append(poly.Verts, v)
 					}
 				}
-				s.processPoly(&poly)
+				s.processPoly(&poly, c)
 			}
 		}
 	}
-	// C.Sky_ProcessEntities()
 }
 
 var (
@@ -530,6 +527,58 @@ func (s *qSky) DrawSkyLayers() {
 	}
 }
 
+// for drawing the single colored sky
+type qSimpleSkyDrawer struct {
+	vao        *glh.VertexArray
+	vbo        *glh.Buffer
+	prog       *glh.Program
+	projection int32
+	modelview  int32
+	color      int32
+	vertices   []float32
+}
+
+func newSimpleSkyDrawer() *qSimpleSkyDrawer {
+	d := &qSimpleSkyDrawer{}
+	d.vao = glh.NewVertexArray()
+	d.vbo = glh.NewBuffer(glh.ArrayBuffer)
+	var err error
+	d.prog, err = newSimpleSkyProgram()
+	if err != nil {
+		Error(err.Error())
+	}
+	d.projection = d.prog.GetUniformLocation("projection") // mat
+	d.modelview = d.prog.GetUniformLocation("modelview")   // mat
+	d.color = d.prog.GetUniformLocation("in_color")        // vec4
+	return d
+}
+
+func newSimpleSkyProgram() (*glh.Program, error) {
+	return glh.NewProgram(vertexWorldPositionSource, fragmentSourceColorRecDrawer)
+}
+
+func (d *qSimpleSkyDrawer) draw(p *bsp.Poly, c Color) {
+	d.prog.Use()
+	d.vao.Bind()
+	d.vbo.Bind()
+
+	gl.EnableVertexAttribArray(0)
+	defer gl.DisableVertexAttribArray(0)
+	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 4*3, gl.PtrOffset(0)) // pos
+
+	view.projection.SetAsUniform(d.projection)
+	view.modelView.SetAsUniform(d.modelview)
+	gl.Uniform4f(d.color, c.R, c.G, c.B, c.A)
+	// gl.Uniform4f(d.color, 1, 0, 0, 0)
+
+	d.vertices = d.vertices[:0]
+	for _, v := range p.Verts {
+		d.vertices = append(d.vertices, v.Pos[0], v.Pos[1], v.Pos[2])
+	}
+	d.vbo.SetData(4*len(d.vertices), gl.Ptr(d.vertices))
+	gl.DrawArrays(gl.TRIANGLE_FAN, 0, int32(len(p.Verts)))
+}
+
 type qSkyDrawer struct {
 	vao        *glh.VertexArray
 	vbo        *glh.Buffer
@@ -612,28 +661,29 @@ func (s *qSky) processTextureChains(c Color) {
 		if t == nil {
 			continue
 		}
-		cw := t.TextureChains[0] // 0 == chain_world
+		cw := t.TextureChains[chainWorld]
 		if cw == nil || cw.Flags&bsp.SurfaceDrawSky == 0 {
 			continue
 		}
 		for tc := cw; tc != nil; tc = tc.TextureChain {
 			if !tc.Culled {
-				s.processPoly(tc.Polys)
+				s.processPoly(tc.Polys, c)
 			}
 		}
 	}
-	// Note: this is currently drawing the 'sky'
-	C.Sky_ProcessTextureChains()
 }
 
-func (s *qSky) processPoly(p *bsp.Poly) {
-	// draw it
-	// DrawGLPoly(p)
+func (s *qSky) processPoly(p *bsp.Poly, c Color) {
+	simpleSkyDrawer.draw(p, c)
 	C.rs_brushpasses++
 
 	// update sky bounds
 	if !cvars.RFastSky.Bool() {
-
+		v := make([]vec.Vec3, 0, len(p.Verts))
+		for _, p := range p.Verts {
+			v = append(v, vec.Sub(p.Pos, qRefreshRect.viewOrg))
+		}
+		s.clipPoly(v, 0)
 	}
 }
 

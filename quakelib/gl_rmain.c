@@ -203,7 +203,7 @@ void R_SetupView(void) {
   }
 
   R_SetFrustum(r_fovx, r_fovy);
-  R_MarkSurfaces();  // create texture chains from PVS
+  MarkSurfaces();  // create texture chains from PVS
   R_CullSurfaces();
   R_UpdateWarpTextures();
   R_Clear();
