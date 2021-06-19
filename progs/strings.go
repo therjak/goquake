@@ -5,6 +5,7 @@ package progs
 import (
 	"fmt"
 	"log"
+	"strings"
 )
 
 func init() {
@@ -28,8 +29,7 @@ func LoadProgs() (*LoadedProg, error) {
 }
 
 func (p *LoadedProg) NewString(s string) int32 {
-	// TODO:
-	// replace \n with '\n' and all other \x with just '\'
+	s = strings.ReplaceAll(s, "\\n", "\n")
 	p.engineStrings = append(p.engineStrings, s)
 	i := int32(len(p.engineStrings))
 	return -i
