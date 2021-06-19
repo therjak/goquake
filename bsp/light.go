@@ -47,7 +47,7 @@ func (m *Model) recursiveLight(s *LightStyles, node Node, start, end vec.Vec3, c
 		return true
 	}
 
-	for _, surface := range m.Surfaces[n.FirstSurface : n.FirstSurface+n.SurfaceCount] {
+	for _, surface := range n.Surfaces {
 		if surface.Flags&SurfaceDrawTiled != 0 {
 			continue
 		}

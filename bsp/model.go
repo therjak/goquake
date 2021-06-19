@@ -91,9 +91,7 @@ type MNode struct {
 	NodeBase
 	Children [2]Node
 	Plane    *Plane
-
-	FirstSurface uint32
-	SurfaceCount uint32
+	Surfaces []*Surface
 }
 
 type MLeaf struct {
@@ -106,6 +104,7 @@ type MLeaf struct {
 	Temporary         interface{}
 }
 
+// TODO: rename Vertex
 type TexCoord struct {
 	// verts[0-2]
 	Pos vec.Vec3

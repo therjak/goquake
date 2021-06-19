@@ -136,7 +136,7 @@ func load(name string, data []byte) ([]*Model, error) {
 		if err != nil {
 			return nil, err
 		}
-		mn, err := buildNodesV0(nodes, mod.Leafs, mod.Planes)
+		mn, err := buildNodesV0(nodes, mod.Leafs, mod.Planes, mod.Surfaces)
 		if err != nil {
 			return nil, err
 		}
@@ -568,7 +568,7 @@ func loadLeafsV0(data []byte) ([]*leafV0, error) {
 	}
 }
 
-func buildNodesV0(nd []*nodeV0, leafs []*MLeaf, planes []*Plane) ([]*MNode, error) {
+func buildNodesV0(nd []*nodeV0, leafs []*MLeaf, planes []*Plane, surfaces []*Surface) ([]*MNode, error) {
 	ret := make([]*MNode, 0, len(nd))
 	for _, n := range nd {
 		nn := &MNode{
@@ -576,9 +576,8 @@ func buildNodesV0(nd []*nodeV0, leafs []*MLeaf, planes []*Plane) ([]*MNode, erro
 				float32(n.Box[0]), float32(n.Box[1]), float32(n.Box[2]),
 				float32(n.Box[3]), float32(n.Box[4]), float32(n.Box[5])}),
 			// Children:  delay until we got all nodes
-			Plane:        planes[int(n.PlaneID)],
-			FirstSurface: uint32(n.FirstSurface),
-			SurfaceCount: uint32(n.SurfaceCount),
+			Plane:    planes[int(n.PlaneID)],
+			Surfaces: surfaces[n.FirstSurface : n.FirstSurface+n.SurfaceCount],
 		}
 		ret = append(ret, nn)
 	}
