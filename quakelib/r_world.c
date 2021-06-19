@@ -118,7 +118,7 @@ void R_MarkSurfaces(void) {
     if (cl.worldmodel->textures[i])
       cl.worldmodel->textures[i]->texturechains[chain_world] = NULL;
 
-  // rebuild chains
+      // rebuild chains
 
   // iterate through surfaces one node at a time to rebuild chains
   // need to do it this way if we want to work with tyrann's skip removal tool
@@ -681,7 +681,7 @@ void R_DrawLightmapChains(void) {
   }
 }
 
-extern GLuint gl_bmodel_vbo;
+GLuint gl_bmodel_vbo = 0;
 
 /*
 ================
@@ -703,7 +703,7 @@ void R_DrawTextureChains_Multitexture_VBO(qmodel_t *model, entity_t *ent,
   // Bind the buffers
   glBindBuffer(GL_ARRAY_BUFFER, gl_bmodel_vbo);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
-               0);  // indices come from client memory!
+                0);  // indices come from client memory!
 
   // Setup vertex array pointers
   glVertexPointer(3, GL_FLOAT, VERTEXSIZE * sizeof(float), ((float *)0));
