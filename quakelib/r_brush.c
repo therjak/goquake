@@ -24,7 +24,7 @@ typedef struct glRect_s {
   unsigned char l, t, w, h;
 } glRect_t;
 
-glpoly_t *lightmap_polys[MAX_LIGHTMAPS]; // THERJAK -- extern use
+glpoly_t *lightmap_polys[MAX_LIGHTMAPS];  // THERJAK -- extern use
 qboolean lightmap_modified[MAX_LIGHTMAPS];
 glRect_t lightmap_rectchange[MAX_LIGHTMAPS];
 
@@ -130,7 +130,6 @@ void R_DrawBrushModel(entity_t *e) {
   }
 
   glPushMatrix();
-  e->angles[0] = -e->angles[0];  // stupid quake bug
   if (Cvar_GetValue(&gl_zfix)) {
     e->origin[0] -= DIST_EPSILON;
     e->origin[1] -= DIST_EPSILON;
@@ -139,15 +138,15 @@ void R_DrawBrushModel(entity_t *e) {
 
   glTranslatef(e->origin[0], e->origin[1], e->origin[2]);
   glRotatef(e->angles[1], 0, 0, 1);
-  glRotatef(-e->angles[0], 0, 1, 0);
+  // stupid quake bug, it should be -angles[0]
+  glRotatef(e->angles[0], 0, 1, 0);
   glRotatef(e->angles[2], 1, 0, 0);
-  
+
   if (Cvar_GetValue(&gl_zfix)) {
     e->origin[0] += DIST_EPSILON;
     e->origin[1] += DIST_EPSILON;
     e->origin[2] += DIST_EPSILON;
   }
-  e->angles[0] = -e->angles[0];  // stupid quake bug
 
   R_ClearTextureChains(clmodel, chain_model);
   for (i = 0; i < clmodel->nummodelsurfaces; i++, psurf++) {
@@ -199,7 +198,7 @@ void R_RenderDynamicLightmaps(msurface_t *fa) {
       goto dynamic;
 
   if (fa->dlightframe == R_framecount()  // dynamic this frame
-      || fa->cached_dlight)            // dynamic previously
+      || fa->cached_dlight)              // dynamic previously
   {
   dynamic:
     if (Cvar_GetValue(&r_dynamic)) {
@@ -380,7 +379,8 @@ void GL_BuildLightmaps(void) {
   memset(allocated, 0, sizeof(allocated));
   last_lightmap_allocated = 0;
 
-  R_framecount_reset(); R_framecount_inc();  // no dlightcache
+  R_framecount_reset();
+  R_framecount_inc();  // no dlightcache
 
   // johnfitz -- null out array (the gltexture objects themselves were already
   // freed by Mod_ClearAll)
@@ -451,25 +451,25 @@ void GL_BuildBModelVertexBufferOld(void) {
   int i, j;
   qmodel_t *m;
   float *varray;
-/*
-  // ask GL for a name for our VBO
-  glDeleteBuffers(1, &gl_bmodel_vbo);
-  glGenBuffers(1, &gl_bmodel_vbo);
+  /*
+    // ask GL for a name for our VBO
+    glDeleteBuffers(1, &gl_bmodel_vbo);
+    glGenBuffers(1, &gl_bmodel_vbo);
 
-  // count all verts in all models
-  numverts = 0;
-  for (j = 1; j < MAX_MODELS; j++) {
-    m = cl.model_precache[j];
-    if (!m || m->name[0] == '*' || m->Type != mod_brush) continue;
+    // count all verts in all models
+    numverts = 0;
+    for (j = 1; j < MAX_MODELS; j++) {
+      m = cl.model_precache[j];
+      if (!m || m->name[0] == '*' || m->Type != mod_brush) continue;
 
-    for (i = 0; i < m->numsurfaces; i++) {
-      numverts += m->surfaces[i].numedges;
+      for (i = 0; i < m->numsurfaces; i++) {
+        numverts += m->surfaces[i].numedges;
+      }
     }
-  }
-  // build vertex array
-  varray_bytes = VERTEXSIZE * sizeof(float) * numverts;
-  varray = (float *)malloc(varray_bytes);
-*/
+    // build vertex array
+    varray_bytes = VERTEXSIZE * sizeof(float) * numverts;
+    varray = (float *)malloc(varray_bytes);
+  */
   varray_index = 0;
 
   for (j = 1; j < MAX_MODELS; j++) {
@@ -479,18 +479,18 @@ void GL_BuildBModelVertexBufferOld(void) {
     for (i = 0; i < m->numsurfaces; i++) {
       msurface_t *s = &m->surfaces[i];
       s->vbo_firstvert = varray_index;
-//      memcpy(&varray[VERTEXSIZE * varray_index], s->polys->verts,
-//             VERTEXSIZE * sizeof(float) * s->numedges);
+      //      memcpy(&varray[VERTEXSIZE * varray_index], s->polys->verts,
+      //             VERTEXSIZE * sizeof(float) * s->numedges);
       varray_index += s->numedges;
     }
   }
-/*
-  // upload to GPU
-  glBindBuffer(GL_ARRAY_BUFFER, gl_bmodel_vbo);
-  glBufferData(GL_ARRAY_BUFFER, varray_bytes, varray, GL_STATIC_DRAW);
-  free(varray);
+  /*
+    // upload to GPU
+    glBindBuffer(GL_ARRAY_BUFFER, gl_bmodel_vbo);
+    glBufferData(GL_ARRAY_BUFFER, varray_bytes, varray, GL_STATIC_DRAW);
+    free(varray);
 
-*/
+  */
 }
 
 /*
@@ -520,10 +520,9 @@ void R_AddDynamicLights(msurface_t *surf) {
   for (lnum = 0; lnum < MAX_DLIGHTS; lnum++) {
     if (!(surf->dlightbits[lnum >> 5] & (1U << (lnum & 31))))
       continue;  // not lit by this light
-    dlight_t* l = CL_Dlight(lnum);
+    dlight_t *l = CL_Dlight(lnum);
     rad = l->radius;
-    dist = DotProduct(l->origin, surf->plane->normal) -
-           surf->plane->dist;
+    dist = DotProduct(l->origin, surf->plane->normal) - surf->plane->dist;
     rad -= fabs(dist);
     minlight = l->minlight;
     if (rad < minlight) continue;

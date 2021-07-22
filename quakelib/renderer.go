@@ -326,7 +326,7 @@ func (r *qRenderer) DrawEntitiesOnList(alphaPass bool) {
 		case *mdl.Model:
 			r.DrawAliasModel(e, m)
 		case *bsp.Model:
-			r.DrawBrushModel(e)
+			r.DrawBrushModel(e, m)
 		case *spr.Model:
 			r.DrawSpriteModel(e, m)
 		}

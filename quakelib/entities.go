@@ -421,7 +421,7 @@ func (e *Entity) ParseStaticC(index int) {
 	C.CL_ParseStaticC(e.ptr, C.int(index))
 }
 
-func (r *qRenderer) DrawBrushModel(e *Entity) {
+func (r *qRenderer) DrawBrushModelC(e *Entity) {
 	C.R_DrawBrushModel(e.ptr)
 }
 
