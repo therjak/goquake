@@ -5,13 +5,13 @@ import "C"
 import (
 	"github.com/chewxy/math32"
 	"github.com/go-gl/gl/v4.6-core/gl"
-	"github.com/therjak/goquake/bsp"
-	"github.com/therjak/goquake/cvars"
-	"github.com/therjak/goquake/glh"
-	"github.com/therjak/goquake/math/vec"
-	"github.com/therjak/goquake/mdl"
-	"github.com/therjak/goquake/progs"
-	"github.com/therjak/goquake/spr"
+	"goquake/bsp"
+	"goquake/cvars"
+	"goquake/glh"
+	"goquake/math/vec"
+	"goquake/mdl"
+	"goquake/progs"
+	"goquake/spr"
 )
 
 type fPlane struct {

@@ -10,9 +10,9 @@ import (
 	"io"
 	"log"
 
-	"github.com/therjak/goquake/cmd"
-	"github.com/therjak/goquake/conlog"
-	"github.com/therjak/goquake/cvar"
+	"goquake/cmd"
+	"goquake/conlog"
+	"goquake/cvar"
 )
 
 //export CvarGetValue

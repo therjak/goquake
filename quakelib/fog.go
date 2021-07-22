@@ -9,9 +9,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/therjak/goquake/cmd"
-	"github.com/therjak/goquake/conlog"
-	"github.com/therjak/goquake/math"
+	"goquake/cmd"
+	"goquake/conlog"
+	"goquake/math"
 )
 
 const (

@@ -3,7 +3,7 @@
 package mdl
 
 import (
-	qm "github.com/therjak/goquake/model"
+	qm "goquake/model"
 )
 
 var m qm.Model = &Model{}

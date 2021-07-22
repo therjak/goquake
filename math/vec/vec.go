@@ -4,7 +4,7 @@ package vec
 
 import (
 	"github.com/chewxy/math32"
-	"github.com/therjak/goquake/math"
+	"goquake/math"
 )
 
 type Vec3 [3]float32

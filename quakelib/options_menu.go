@@ -4,12 +4,12 @@ package quakelib
 import (
 	"time"
 
-	"github.com/therjak/goquake/cbuf"
-	"github.com/therjak/goquake/cvars"
-	"github.com/therjak/goquake/input"
-	kc "github.com/therjak/goquake/keycode"
-	"github.com/therjak/goquake/math"
-	"github.com/therjak/goquake/menu"
+	"goquake/cbuf"
+	"goquake/cvars"
+	"goquake/input"
+	kc "goquake/keycode"
+	"goquake/math"
+	"goquake/menu"
 )
 
 type qOptionsMenu struct {

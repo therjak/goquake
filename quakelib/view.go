@@ -11,9 +11,9 @@ import "C"
 import (
 	"github.com/chewxy/math32"
 	"github.com/go-gl/gl/v4.6-core/gl"
-	"github.com/therjak/goquake/cvars"
-	"github.com/therjak/goquake/glh"
-	"github.com/therjak/goquake/math/vec"
+	"goquake/cvars"
+	"goquake/glh"
+	"goquake/math/vec"
 )
 
 func CalcRoll(angles, velocity vec.Vec3) float32 {

@@ -7,7 +7,7 @@ import (
 	"encoding/binary"
 	"testing"
 
-	qm "github.com/therjak/goquake/model"
+	qm "goquake/model"
 )
 
 func TestQLit(t *testing.T) {

@@ -12,9 +12,9 @@ import (
 	"strings"
 
 	"github.com/chewxy/math32"
-	"github.com/therjak/goquake/filesystem"
-	"github.com/therjak/goquake/math/vec"
-	qm "github.com/therjak/goquake/model"
+	"goquake/filesystem"
+	"goquake/math/vec"
+	qm "goquake/model"
 )
 
 func init() {

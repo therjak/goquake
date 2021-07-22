@@ -6,7 +6,7 @@ import (
 	"bytes"
 	"encoding/binary"
 
-	"github.com/therjak/goquake/protocol"
+	"goquake/protocol"
 )
 
 type Message struct {

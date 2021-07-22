@@ -5,12 +5,12 @@ package quakelib
 import (
 	"log"
 
-	"github.com/therjak/goquake/cmd"
-	"github.com/therjak/goquake/commandline"
-	"github.com/therjak/goquake/cvar"
-	"github.com/therjak/goquake/cvars"
-	"github.com/therjak/goquake/glh"
-	"github.com/therjak/goquake/math/vec"
+	"goquake/cmd"
+	"goquake/commandline"
+	"goquake/cvar"
+	"goquake/cvars"
+	"goquake/glh"
+	"goquake/math/vec"
 
 	"github.com/chewxy/math32"
 	"github.com/go-gl/gl/v4.6-core/gl"

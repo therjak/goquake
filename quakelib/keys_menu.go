@@ -4,10 +4,10 @@ package quakelib
 import (
 	"fmt"
 
-	"github.com/therjak/goquake/cbuf"
-	kc "github.com/therjak/goquake/keycode"
-	"github.com/therjak/goquake/keys"
-	"github.com/therjak/goquake/menu"
+	"goquake/cbuf"
+	kc "goquake/keycode"
+	"goquake/keys"
+	"goquake/menu"
 )
 
 func enterMenuKeys() {

@@ -12,13 +12,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/therjak/goquake/cmd"
-	"github.com/therjak/goquake/conlog"
-	"github.com/therjak/goquake/cvar"
-	"github.com/therjak/goquake/cvars"
-	"github.com/therjak/goquake/keys"
-	"github.com/therjak/goquake/math"
-	svc "github.com/therjak/goquake/protocol/server"
+	"goquake/cmd"
+	"goquake/conlog"
+	"goquake/cvar"
+	"goquake/cvars"
+	"goquake/keys"
+	"goquake/math"
+	svc "goquake/protocol/server"
 )
 
 const (

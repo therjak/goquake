@@ -6,14 +6,14 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/therjak/goquake/cmd"
-	"github.com/therjak/goquake/conlog"
-	"github.com/therjak/goquake/cvar"
-	"github.com/therjak/goquake/cvars"
-	"github.com/therjak/goquake/glh"
-	"github.com/therjak/goquake/image"
-	"github.com/therjak/goquake/texture"
-	"github.com/therjak/goquake/wad"
+	"goquake/cmd"
+	"goquake/conlog"
+	"goquake/cvar"
+	"goquake/cvars"
+	"goquake/glh"
+	"goquake/image"
+	"goquake/texture"
+	"goquake/wad"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
 )

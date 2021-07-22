@@ -7,11 +7,11 @@ import (
 	"log"
 	"path/filepath"
 
-	"github.com/therjak/goquake/cbuf"
-	kc "github.com/therjak/goquake/keycode"
-	"github.com/therjak/goquake/keys"
-	"github.com/therjak/goquake/menu"
-	"github.com/therjak/goquake/protos"
+	"goquake/cbuf"
+	kc "goquake/keycode"
+	"goquake/keys"
+	"goquake/menu"
+	"goquake/protos"
 
 	"google.golang.org/protobuf/proto"
 )

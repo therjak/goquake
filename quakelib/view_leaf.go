@@ -7,9 +7,9 @@ import "C"
 import (
 	"log"
 
-	"github.com/therjak/goquake/bsp"
-	"github.com/therjak/goquake/cvar"
-	"github.com/therjak/goquake/cvars"
+	"goquake/bsp"
+	"goquake/cvar"
+	"goquake/cvars"
 )
 
 type qViewLeaf struct {

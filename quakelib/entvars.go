@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"unsafe"
 
-	"github.com/therjak/goquake/conlog"
-	"github.com/therjak/goquake/progs"
+	"goquake/conlog"
+	"goquake/progs"
 )
 
 var (

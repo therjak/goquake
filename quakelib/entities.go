@@ -24,13 +24,13 @@ import (
 	"fmt"
 	"unsafe"
 
-	"github.com/therjak/goquake/cmd"
-	"github.com/therjak/goquake/conlog"
-	"github.com/therjak/goquake/cvars"
-	"github.com/therjak/goquake/math/vec"
-	"github.com/therjak/goquake/mdl"
-	"github.com/therjak/goquake/model"
-	"github.com/therjak/goquake/texture"
+	"goquake/cmd"
+	"goquake/conlog"
+	"goquake/cvars"
+	"goquake/math/vec"
+	"goquake/mdl"
+	"goquake/model"
+	"goquake/texture"
 )
 
 const (

@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/therjak/goquake/math/vec"
+	"goquake/math/vec"
 )
 
 func (m *Model) PointInLeaf(p vec.Vec3) (*MLeaf, error) {

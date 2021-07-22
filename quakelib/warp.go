@@ -8,8 +8,8 @@ import "C"
 import (
 	"github.com/chewxy/math32"
 	"github.com/go-gl/gl/v4.6-core/gl"
-	"github.com/therjak/goquake/cvars"
-	"github.com/therjak/goquake/math"
+	"goquake/cvars"
+	"goquake/math"
 )
 
 //export R_UpdateWarpTextures

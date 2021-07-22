@@ -3,7 +3,7 @@
 package bsp
 
 import (
-	"github.com/therjak/goquake/math/vec"
+	"goquake/math/vec"
 )
 
 const MaxLightStyles = 64

@@ -8,7 +8,7 @@ package quakelib
 //void R_MarkLight(dlight_t* light, int num, mnode_t *node);
 import "C"
 import (
-	"github.com/therjak/goquake/math/vec"
+	"goquake/math/vec"
 )
 
 type DynamicLight struct {

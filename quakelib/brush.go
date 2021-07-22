@@ -9,9 +9,9 @@ import (
 
 	// "github.com/chewxy/math32"
 	"github.com/go-gl/gl/v4.6-core/gl"
-	"github.com/therjak/goquake/bsp"
-	"github.com/therjak/goquake/glh"
-	// "github.com/therjak/goquake/math/vec"
+	"goquake/bsp"
+	"goquake/glh"
+	// "goquake/math/vec"
 )
 
 type qBrushDrawer struct {

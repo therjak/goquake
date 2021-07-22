@@ -4,11 +4,11 @@ package quakelib
 import (
 	"fmt"
 
-	"github.com/therjak/goquake/cmd"
-	kc "github.com/therjak/goquake/keycode"
-	"github.com/therjak/goquake/keys"
-	"github.com/therjak/goquake/math"
-	"github.com/therjak/goquake/menu"
+	"goquake/cmd"
+	kc "goquake/keycode"
+	"goquake/keys"
+	"goquake/math"
+	"goquake/menu"
 )
 
 func nextDemo() {

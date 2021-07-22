@@ -12,10 +12,10 @@ import (
 	"unsafe"
 
 	"github.com/chewxy/math32"
-	"github.com/therjak/goquake/glh"
-	"github.com/therjak/goquake/math/vec"
-	qm "github.com/therjak/goquake/model"
-	"github.com/therjak/goquake/texture"
+	"goquake/glh"
+	"goquake/math/vec"
+	qm "goquake/model"
+	"goquake/texture"
 )
 
 const (

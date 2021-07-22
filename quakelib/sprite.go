@@ -6,9 +6,9 @@ import (
 
 	"github.com/chewxy/math32"
 	"github.com/go-gl/gl/v4.6-core/gl"
-	"github.com/therjak/goquake/glh"
-	"github.com/therjak/goquake/math/vec"
-	"github.com/therjak/goquake/spr"
+	"goquake/glh"
+	"goquake/math/vec"
+	"goquake/spr"
 )
 
 func newSpriteDrawProgram() (*glh.Program, error) {

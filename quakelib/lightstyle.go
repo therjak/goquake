@@ -7,8 +7,8 @@ import "C"
 import (
 	"fmt"
 
-	"github.com/therjak/goquake/bsp"
-	"github.com/therjak/goquake/cvars"
+	"goquake/bsp"
+	"goquake/cvars"
 )
 
 type lightStyle struct {

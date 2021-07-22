@@ -2,10 +2,10 @@
 package quakelib
 
 import (
-	"github.com/therjak/goquake/alias"
-	"github.com/therjak/goquake/cmd"
-	"github.com/therjak/goquake/cvar"
-	"github.com/therjak/goquake/execute"
+	"goquake/alias"
+	"goquake/cmd"
+	"goquake/cvar"
+	"goquake/execute"
 )
 
 func init() {

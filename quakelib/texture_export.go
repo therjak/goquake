@@ -11,8 +11,8 @@ import (
 	"runtime/debug"
 	"unsafe"
 
-	"github.com/therjak/goquake/glh"
-	"github.com/therjak/goquake/texture"
+	"goquake/glh"
+	"goquake/texture"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
 )

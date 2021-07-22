@@ -4,7 +4,7 @@
 package input
 
 import (
-	"github.com/therjak/goquake/cmd"
+	"goquake/cmd"
 )
 
 type button struct {

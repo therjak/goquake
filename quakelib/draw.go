@@ -12,11 +12,11 @@ import (
 	"fmt"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
-	"github.com/therjak/goquake/cvars"
-	"github.com/therjak/goquake/filesystem"
-	"github.com/therjak/goquake/glh"
-	"github.com/therjak/goquake/texture"
-	"github.com/therjak/goquake/wad"
+	"goquake/cvars"
+	"goquake/filesystem"
+	"goquake/glh"
+	"goquake/texture"
+	"goquake/wad"
 )
 
 type canvas int

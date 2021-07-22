@@ -7,12 +7,12 @@ import (
 	"os"
 	"runtime/pprof"
 
-	"github.com/therjak/goquake/quakelib"
+	"goquake/quakelib"
 
 	// register the model loaders
-	_ "github.com/therjak/goquake/bsp"
-	_ "github.com/therjak/goquake/mdl"
-	_ "github.com/therjak/goquake/spr"
+	_ "goquake/bsp"
+	_ "goquake/mdl"
+	_ "goquake/spr"
 )
 
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")

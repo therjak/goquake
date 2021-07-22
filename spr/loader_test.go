@@ -5,7 +5,7 @@ package spr
 import (
 	"testing"
 
-	qm "github.com/therjak/goquake/model"
+	qm "goquake/model"
 )
 
 var m qm.Model = &Model{}

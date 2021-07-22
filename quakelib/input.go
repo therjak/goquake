@@ -5,12 +5,12 @@ package quakelib
 //       or        "github.com/vulkan-go/glfw/v3.3/glfw"
 
 import (
-	cmdl "github.com/therjak/goquake/commandline"
-	"github.com/therjak/goquake/conlog"
-	"github.com/therjak/goquake/cvars"
-	kc "github.com/therjak/goquake/keycode"
-	"github.com/therjak/goquake/qtime"
-	"github.com/therjak/goquake/snd"
+	cmdl "goquake/commandline"
+	"goquake/conlog"
+	"goquake/cvars"
+	kc "goquake/keycode"
+	"goquake/qtime"
+	"goquake/snd"
 
 	"github.com/veandco/go-sdl2/sdl"
 )

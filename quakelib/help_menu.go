@@ -4,9 +4,9 @@ package quakelib
 import (
 	"fmt"
 
-	kc "github.com/therjak/goquake/keycode"
-	"github.com/therjak/goquake/keys"
-	"github.com/therjak/goquake/menu"
+	kc "goquake/keycode"
+	"goquake/keys"
+	"goquake/menu"
 )
 
 func enterMenuHelp() {

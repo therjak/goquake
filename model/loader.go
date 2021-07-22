@@ -7,7 +7,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/therjak/goquake/filesystem"
+	"goquake/filesystem"
 )
 
 var (

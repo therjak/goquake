@@ -2,7 +2,7 @@
 package quakelib
 
 import (
-	"github.com/therjak/goquake/keys"
+	"goquake/keys"
 )
 
 func enterQuitMenu() {

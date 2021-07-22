@@ -7,8 +7,8 @@ import "C"
 import (
 	"log"
 
-	"github.com/therjak/goquake/filesystem"
-	image "github.com/therjak/goquake/image"
+	"goquake/filesystem"
+	image "goquake/image"
 )
 
 //export COM_LoadFileGo

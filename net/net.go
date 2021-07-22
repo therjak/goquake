@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/therjak/goquake/qtime"
+	"goquake/qtime"
 
 	"github.com/google/uuid"
 )

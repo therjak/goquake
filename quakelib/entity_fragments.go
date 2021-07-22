@@ -6,8 +6,8 @@ import "C"
 import (
 	"log"
 
-	"github.com/therjak/goquake/bsp"
-	"github.com/therjak/goquake/math/vec"
+	"goquake/bsp"
+	"goquake/math/vec"
 )
 
 type entityFragment struct {

@@ -7,11 +7,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/therjak/goquake/cmd"
-	"github.com/therjak/goquake/conlog"
-	"github.com/therjak/goquake/cvars"
-	"github.com/therjak/goquake/execute"
-	"github.com/therjak/goquake/protos"
+	"goquake/cmd"
+	"goquake/conlog"
+	"goquake/cvars"
+	"goquake/execute"
+	"goquake/protos"
 
 	"google.golang.org/protobuf/proto"
 )

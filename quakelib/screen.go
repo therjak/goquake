@@ -9,14 +9,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/therjak/goquake/cmd"
-	"github.com/therjak/goquake/conlog"
-	"github.com/therjak/goquake/cvar"
-	"github.com/therjak/goquake/cvars"
-	"github.com/therjak/goquake/image"
-	"github.com/therjak/goquake/keys"
-	"github.com/therjak/goquake/snd"
-	"github.com/therjak/goquake/window"
+	"goquake/cmd"
+	"goquake/conlog"
+	"goquake/cvar"
+	"goquake/cvars"
+	"goquake/image"
+	"goquake/keys"
+	"goquake/snd"
+	"goquake/window"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
 )

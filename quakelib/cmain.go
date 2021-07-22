@@ -16,12 +16,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/therjak/goquake/cbuf"
-	cmdl "github.com/therjak/goquake/commandline"
-	"github.com/therjak/goquake/conlog"
-	"github.com/therjak/goquake/cvars"
-	"github.com/therjak/goquake/wad"
-	"github.com/therjak/goquake/window"
+	"goquake/cbuf"
+	cmdl "goquake/commandline"
+	"goquake/conlog"
+	"goquake/cvars"
+	"goquake/wad"
+	"goquake/window"
 
 	"github.com/veandco/go-sdl2/sdl"
 )

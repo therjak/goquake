@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/therjak/goquake/cbuf"
-	kc "github.com/therjak/goquake/keycode"
-	"github.com/therjak/goquake/keys"
-	"github.com/therjak/goquake/menu"
-	"github.com/therjak/goquake/net"
+	"goquake/cbuf"
+	kc "goquake/keycode"
+	"goquake/keys"
+	"goquake/menu"
+	"goquake/net"
 )
 
 func enterNetNewGameMenu() {

@@ -4,7 +4,7 @@ package quakelib
 import "C"
 
 import (
-	"github.com/therjak/goquake/math/vec"
+	"goquake/math/vec"
 )
 
 const (

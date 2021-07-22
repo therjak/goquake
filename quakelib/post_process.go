@@ -3,8 +3,8 @@ package quakelib
 
 import (
 	"github.com/go-gl/gl/v4.6-core/gl"
-	"github.com/therjak/goquake/glh"
-	"github.com/therjak/goquake/math"
+	"goquake/glh"
+	"goquake/math"
 )
 
 type postProcess struct {

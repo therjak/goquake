@@ -2,9 +2,9 @@
 package quakelib
 
 import (
-	"github.com/therjak/goquake/cvars"
-	"github.com/therjak/goquake/math/vec"
-	"github.com/therjak/goquake/progs"
+	"goquake/cvars"
+	"goquake/math/vec"
+	"goquake/progs"
 
 	"github.com/chewxy/math32"
 )

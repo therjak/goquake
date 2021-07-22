@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/therjak/goquake/math/vec"
+	"goquake/math/vec"
 
 	// "github.com/hajimehoshi/oto"
 

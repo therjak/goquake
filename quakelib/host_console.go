@@ -5,8 +5,8 @@ import (
 	"bufio"
 	"os"
 
-	"github.com/therjak/goquake/cbuf"
-	cmdl "github.com/therjak/goquake/commandline"
+	"goquake/cbuf"
+	cmdl "goquake/commandline"
 )
 
 var (

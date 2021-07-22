@@ -3,7 +3,7 @@
 package texture
 
 import (
-	"github.com/therjak/goquake/glh"
+	"goquake/glh"
 )
 
 type TexPref uint32

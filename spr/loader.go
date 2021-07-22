@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/therjak/goquake/math/vec"
-	qm "github.com/therjak/goquake/model"
-	"github.com/therjak/goquake/texture"
+	"goquake/math/vec"
+	qm "goquake/model"
+	"goquake/texture"
 )
 
 func init() {

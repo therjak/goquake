@@ -11,17 +11,17 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/therjak/goquake/bsp"
-	"github.com/therjak/goquake/cbuf"
-	"github.com/therjak/goquake/conlog"
-	"github.com/therjak/goquake/cvars"
-	"github.com/therjak/goquake/math/vec"
-	"github.com/therjak/goquake/mdl"
-	"github.com/therjak/goquake/model"
-	"github.com/therjak/goquake/protocol"
-	"github.com/therjak/goquake/protos"
-	"github.com/therjak/goquake/snd"
-	"github.com/therjak/goquake/spr"
+	"goquake/bsp"
+	"goquake/cbuf"
+	"goquake/conlog"
+	"goquake/cvars"
+	"goquake/math/vec"
+	"goquake/mdl"
+	"goquake/model"
+	"goquake/protocol"
+	"goquake/protos"
+	"goquake/snd"
+	"goquake/spr"
 )
 
 func parseBaseline(pb *protos.Baseline, e *Entity) {

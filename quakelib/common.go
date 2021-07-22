@@ -6,12 +6,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/therjak/goquake/cmd"
-	cmdl "github.com/therjak/goquake/commandline"
-	"github.com/therjak/goquake/conlog"
-	"github.com/therjak/goquake/cvar"
-	"github.com/therjak/goquake/cvars"
-	"github.com/therjak/goquake/filesystem"
+	"goquake/cmd"
+	cmdl "goquake/commandline"
+	"goquake/conlog"
+	"goquake/cvar"
+	"goquake/cvars"
+	"goquake/filesystem"
 )
 
 var (

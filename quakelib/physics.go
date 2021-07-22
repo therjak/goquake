@@ -2,11 +2,11 @@
 package quakelib
 
 import (
-	"github.com/therjak/goquake/bsp"
-	"github.com/therjak/goquake/conlog"
-	"github.com/therjak/goquake/cvars"
-	"github.com/therjak/goquake/math/vec"
-	"github.com/therjak/goquake/progs"
+	"goquake/bsp"
+	"goquake/conlog"
+	"goquake/cvars"
+	"goquake/math/vec"
+	"goquake/progs"
 
 	"github.com/chewxy/math32"
 )

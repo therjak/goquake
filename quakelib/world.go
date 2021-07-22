@@ -6,11 +6,11 @@ import (
 	"log"
 	"runtime/debug"
 
-	"github.com/therjak/goquake/bsp"
-	"github.com/therjak/goquake/conlog"
-	"github.com/therjak/goquake/math"
-	"github.com/therjak/goquake/math/vec"
-	"github.com/therjak/goquake/progs"
+	"goquake/bsp"
+	"goquake/conlog"
+	"goquake/math"
+	"goquake/math/vec"
+	"goquake/progs"
 )
 
 const (

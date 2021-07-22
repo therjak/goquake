@@ -10,7 +10,7 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/therjak/goquake/filesystem"
+	"goquake/filesystem"
 )
 
 const (

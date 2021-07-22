@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"math/bits"
 
-	"github.com/therjak/goquake/cmd"
-	cmdl "github.com/therjak/goquake/commandline"
-	"github.com/therjak/goquake/cvar"
-	"github.com/therjak/goquake/cvars"
-	"github.com/therjak/goquake/math"
-	"github.com/therjak/goquake/progs"
-	svc "github.com/therjak/goquake/protocol/server"
+	"goquake/cmd"
+	cmdl "goquake/commandline"
+	"goquake/cvar"
+	"goquake/cvars"
+	"goquake/math"
+	"goquake/progs"
+	svc "goquake/protocol/server"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
 )

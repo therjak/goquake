@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/therjak/goquake/pack"
+	"goquake/pack"
 )
 
 func TestPackFileSystem(t *testing.T) {

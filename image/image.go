@@ -11,7 +11,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/therjak/goquake/filesystem"
+	"goquake/filesystem"
 )
 
 // Write expects RGBA 8bit data

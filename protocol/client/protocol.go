@@ -5,10 +5,10 @@ package client
 import (
 	"fmt"
 
-	"github.com/therjak/goquake/net"
-	ptcl "github.com/therjak/goquake/protocol"
-	"github.com/therjak/goquake/protos"
-	"github.com/therjak/goquake/qmsg"
+	"goquake/net"
+	ptcl "goquake/protocol"
+	"goquake/protos"
+	"goquake/qmsg"
 )
 
 const (

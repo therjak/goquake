@@ -4,9 +4,9 @@ package quakelib
 import (
 	"strings"
 
-	"github.com/therjak/goquake/conlog"
-	"github.com/therjak/goquake/math/vec"
-	"github.com/therjak/goquake/progs"
+	"goquake/conlog"
+	"goquake/math/vec"
+	"goquake/progs"
 )
 
 const (

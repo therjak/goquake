@@ -23,14 +23,14 @@ import (
 
 	"github.com/chewxy/math32"
 	"github.com/go-gl/gl/v4.6-core/gl"
-	"github.com/therjak/goquake/bsp"
-	"github.com/therjak/goquake/cmd"
-	"github.com/therjak/goquake/conlog"
-	"github.com/therjak/goquake/cvar"
-	"github.com/therjak/goquake/cvars"
-	"github.com/therjak/goquake/glh"
-	"github.com/therjak/goquake/math/vec"
-	"github.com/therjak/goquake/texture"
+	"goquake/bsp"
+	"goquake/cmd"
+	"goquake/conlog"
+	"goquake/cvar"
+	"goquake/cvars"
+	"goquake/glh"
+	"goquake/math/vec"
+	"goquake/texture"
 )
 
 func init() {

@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/therjak/goquake/pack"
+	"goquake/pack"
 	"golang.org/x/tools/godoc/vfs"
 )
 

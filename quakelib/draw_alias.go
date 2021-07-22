@@ -6,13 +6,13 @@ import (
 	"math"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
-	"github.com/therjak/goquake/bsp"
-	"github.com/therjak/goquake/cvars"
-	"github.com/therjak/goquake/glh"
-	qmath "github.com/therjak/goquake/math"
-	"github.com/therjak/goquake/math/vec"
-	"github.com/therjak/goquake/mdl"
-	"github.com/therjak/goquake/texture"
+	"goquake/bsp"
+	"goquake/cvars"
+	"goquake/glh"
+	qmath "goquake/math"
+	"goquake/math/vec"
+	"goquake/mdl"
+	"goquake/texture"
 )
 
 func newAliasDrawProgram() (*glh.Program, error) {

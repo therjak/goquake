@@ -8,15 +8,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/therjak/goquake/conlog"
-	"github.com/therjak/goquake/cvars"
-	"github.com/therjak/goquake/execute"
-	"github.com/therjak/goquake/keys"
-	"github.com/therjak/goquake/net"
-	"github.com/therjak/goquake/protocol"
-	clc "github.com/therjak/goquake/protocol/client"
-	svc "github.com/therjak/goquake/protocol/server"
-	"github.com/therjak/goquake/protos"
+	"goquake/conlog"
+	"goquake/cvars"
+	"goquake/execute"
+	"goquake/keys"
+	"goquake/net"
+	"goquake/protocol"
+	clc "goquake/protocol/client"
+	svc "goquake/protocol/server"
+	"goquake/protos"
 )
 
 type movecmd struct {

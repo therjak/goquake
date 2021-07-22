@@ -9,7 +9,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/therjak/goquake/protocol"
+	"goquake/protocol"
 )
 
 type QReader struct {

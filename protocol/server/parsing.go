@@ -5,9 +5,9 @@ package server
 import (
 	"fmt"
 
-	"github.com/therjak/goquake/net"
-	"github.com/therjak/goquake/protocol"
-	"github.com/therjak/goquake/protos"
+	"goquake/net"
+	"goquake/protocol"
+	"goquake/protos"
 )
 
 var (

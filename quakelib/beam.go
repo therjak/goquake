@@ -4,10 +4,10 @@ package quakelib
 
 import (
 	"github.com/chewxy/math32"
-	"github.com/therjak/goquake/math"
-	"github.com/therjak/goquake/math/vec"
-	"github.com/therjak/goquake/model"
-	"github.com/therjak/goquake/rand"
+	"goquake/math"
+	"goquake/math/vec"
+	"goquake/model"
+	"goquake/rand"
 )
 
 type beam struct {

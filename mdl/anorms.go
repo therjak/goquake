@@ -3,7 +3,7 @@
 package mdl
 
 import (
-	"github.com/therjak/goquake/math/vec"
+	"goquake/math/vec"
 )
 
 var (

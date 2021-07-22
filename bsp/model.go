@@ -3,8 +3,8 @@
 package bsp
 
 import (
-	"github.com/therjak/goquake/math/vec"
-	"github.com/therjak/goquake/texture"
+	"goquake/math/vec"
+	"goquake/texture"
 )
 
 // Would be great to type these but positive values are node numbers or so....

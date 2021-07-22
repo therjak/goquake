@@ -5,8 +5,8 @@ package quakelib
 import (
 	"log"
 
-	cmdl "github.com/therjak/goquake/commandline"
-	"github.com/therjak/goquake/net"
+	cmdl "goquake/commandline"
+	"goquake/net"
 )
 
 func networkInit() {

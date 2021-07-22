@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/therjak/goquake/filesystem"
+	"goquake/filesystem"
 )
 
 const (

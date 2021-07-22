@@ -12,10 +12,10 @@ import (
 	"strings"
 	"unsafe"
 
-	"github.com/therjak/goquake/cvars"
-	"github.com/therjak/goquake/mdl"
-	"github.com/therjak/goquake/model"
-	"github.com/therjak/goquake/spr"
+	"goquake/cvars"
+	"goquake/mdl"
+	"goquake/model"
+	"goquake/spr"
 )
 
 var (

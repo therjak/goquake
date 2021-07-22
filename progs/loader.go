@@ -9,8 +9,8 @@ import (
 	"io"
 	"unsafe"
 
-	"github.com/therjak/goquake/crc"
-	"github.com/therjak/goquake/filesystem"
+	"goquake/crc"
+	"goquake/filesystem"
 )
 
 type prog struct {
