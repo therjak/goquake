@@ -159,8 +159,8 @@ type virtualMachine struct {
 }
 
 const (
-	maxStackDepth = 32
-	maxLocalStack = 2024
+	maxStackDepth = 1024
+	maxLocalStack = 16384
 )
 
 var (
@@ -169,8 +169,8 @@ var (
 
 func NewVirtualMachine() *virtualMachine {
 	v := &virtualMachine{
-		stack:      make([]stackElem, 0, 32),
-		localStack: make([]int32, 0, 2024),
+		stack:      make([]stackElem, 0, maxStackDepth),
+		localStack: make([]int32, 0, maxLocalStack),
 	}
 	v.builtins = []func(){
 		v.fixme,

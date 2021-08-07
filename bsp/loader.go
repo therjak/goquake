@@ -11,10 +11,11 @@ import (
 	"math"
 	"strings"
 
-	"github.com/chewxy/math32"
 	"goquake/filesystem"
 	"goquake/math/vec"
 	qm "goquake/model"
+
+	"github.com/chewxy/math32"
 )
 
 func init() {
@@ -413,8 +414,13 @@ func calcSurfaceExtras(ss []*Surface, vs []*MVertex, es []*MEdge, ses []int32, l
 		}
 		s.extents[0] = (ma[0] - mi[0]) * 16
 		s.extents[1] = (ma[1] - mi[1]) * 16
-		if tex.Flags&texSpecial == 0 && (s.extents[0] > 2000 || s.extents[1] > 2000) {
-			return fmt.Errorf("Bad surface extends")
+		if tex.Flags&texSpecial == 0 {
+			if s.extents[0] > 2000 {
+				s.extents[0] = 1
+			}
+			if s.extents[1] > 2000 {
+				s.extents[1] = 1
+			}
 		}
 
 		if s.Flags&SurfaceDrawTurb != 0 {

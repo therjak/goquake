@@ -4,6 +4,7 @@ package quakelib
 import (
 	"fmt"
 	"log"
+	gmath "math"
 	"runtime"
 	"strings"
 
@@ -448,13 +449,19 @@ func (v *virtualMachine) setModel() {
 
 func (v *virtualMachine) normalize() {
 	ve := vec.VFromA(*v.prog.Globals.Parm0f())
-	*v.prog.Globals.Returnf() = ve.Normalize()
+	l := 1 / gmath.Sqrt(vec.DoublePrecDot(ve, ve))
+
+	*v.prog.Globals.Returnf() = vec.Vec3{
+		float32(float64(ve[0]) * l),
+		float32(float64(ve[1]) * l),
+		float32(float64(ve[2]) * l),
+	}
 }
 
 func (v *virtualMachine) vlen() {
 	ve := vec.VFromA(*v.prog.Globals.Parm0f())
-	l := ve.Length()
-	v.prog.Globals.Returnf()[0] = l
+	l := gmath.Sqrt(vec.DoublePrecDot(ve, ve))
+	v.prog.Globals.Returnf()[0] = float32(l)
 }
 
 func (v *virtualMachine) vecToYaw() {
@@ -485,18 +492,18 @@ func (v *virtualMachine) vecToAngles() {
 			}()
 			return 0, p
 		}
-		y := (math32.Atan2(ve[1], ve[0]) * 180) / math32.Pi
-		y = math32.Trunc(y)
+		y := (gmath.Atan2(float64(ve[1]), float64(ve[0])) * 180) / gmath.Pi
+		y = gmath.Trunc(y)
 		if y < 0 {
 			y += 360
 		}
-		forward := math32.Sqrt(ve[0]*ve[0] + ve[1]*ve[1])
-		p := (math32.Atan2(ve[2], forward) * 180) / math32.Pi
-		p = math32.Trunc(p)
+		forward := gmath.Sqrt(float64(ve[0])*float64(ve[0]) + float64(ve[1])*float64(ve[1]))
+		p := (gmath.Atan2(float64(ve[2]), forward) * 180) / gmath.Pi
+		p = gmath.Trunc(p)
 		if p < 0 {
 			p += 360
 		}
-		return y, p
+		return float32(y), float32(p)
 	}()
 	*v.prog.Globals.Returnf() = [3]float32{pitch, yaw, 0}
 }

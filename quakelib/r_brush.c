@@ -21,7 +21,7 @@ unsigned blocklights[BLOCK_WIDTH * BLOCK_HEIGHT *
                           // (BLOCK_WIDTH*BLOCK_HEIGHT)
 
 typedef struct glRect_s {
-  unsigned char l, t, w, h;
+  unsigned short l, t, w, h;
 } glRect_t;
 
 glpoly_t *lightmap_polys[MAX_LIGHTMAPS];  // THERJAK -- extern use

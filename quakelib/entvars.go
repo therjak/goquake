@@ -5,6 +5,7 @@ package quakelib
 // It needs a progs.LoadedProg as input
 import (
 	"fmt"
+	"strings"
 	"unsafe"
 
 	"goquake/conlog"
@@ -149,6 +150,7 @@ func EntVarsParsePair(idx int, key progs.Def, val string) {
 		*(*[3]float32)(unsafe.Pointer(vp)) = v
 	case progs.EV_Entity:
 		var v int32
+		val = strings.TrimPrefix(val, "entity ") // fix for eto
 		_, err := fmt.Sscanf(val, "%d", &v)
 		if err != nil {
 			conlog.Printf("Can't convert to entity %s\n", val)

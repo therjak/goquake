@@ -345,9 +345,6 @@ func HostWriteConfiguration() {
 		return
 	}
 
-	// write actual current mode to config file, in case cvars were messed with
-	syncVideoCvars()
-
 	var b bytes.Buffer
 	writeKeyBindings(&b)
 	writeCvarVariables(&b)
