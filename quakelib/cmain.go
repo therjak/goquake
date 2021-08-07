@@ -90,6 +90,8 @@ func CallCMain() error {
 
 	host.initialized = true
 	conlog.Printf("\n========= Quake Initialized =========\n\n")
+	cbuf.AddText("alias startmap_sp \"map start\"\n")
+	cbuf.AddText("alias startmap_dm \"map start\"\n")
 
 	if cls.state != ca_dedicated {
 		cbuf.InsertText("exec quake.rc\n")
@@ -100,7 +102,7 @@ func CallCMain() error {
 		cbuf.AddText("stuffcmds")
 		cbuf.Execute(0)
 		if !sv.active {
-			cbuf.AddText("map start\n")
+			cbuf.AddText("startmap_dm\n")
 		}
 	}
 
@@ -169,8 +171,10 @@ func runNormal() {
 
 			timediff := time.Since(oldtime)
 			oldtime = time.Now()
-			w := time.Duration(cvars.Throttle.Value()*float32(time.Second)) - timediff
-			time.Sleep(w)
+			if !cls.timeDemo {
+				w := time.Duration(cvars.Throttle.Value()*float32(time.Second)) - timediff
+				time.Sleep(w)
+			}
 
 			hostFrame()
 		}

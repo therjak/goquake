@@ -6,6 +6,8 @@ import "C"
 
 import (
 	"bytes"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"path/filepath"
@@ -322,6 +324,17 @@ func hostFrame() {
 		}
 	}
 	conlog.Printf("serverprofile: %2d clients %v\n", clientNum, div.String())
+}
+
+func writeCvarVariables(w io.Writer) {
+	for _, c := range cvar.All() {
+		if c.Archive() {
+			if c.UserDefined() || c.SetA() {
+				w.Write([]byte("seta "))
+			}
+			w.Write([]byte(fmt.Sprintf("%s \"%s\"\n", c.Name(), c.String())))
+		}
+	}
 }
 
 // Writes key bindings and archived cvars to config.cfg

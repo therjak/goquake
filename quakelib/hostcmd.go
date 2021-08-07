@@ -22,32 +22,32 @@ import (
 )
 
 func init() {
-	cmd.AddCommand("begin", hostBegin)
-	cmd.AddCommand("color", hostColor)
-	cmd.AddCommand("fly", hostFly)
-	cmd.AddCommand("give", hostGive)
-	cmd.AddCommand("god", hostGod)
-	cmd.AddCommand("kill", hostKill)
-	cmd.AddCommand("name", hostName)
-	cmd.AddCommand("noclip", hostNoClip)
-	cmd.AddCommand("notarget", hostNoTarget)
-	cmd.AddCommand("pause", hostPause)
-	cmd.AddCommand("ping", hostPing)
-	cmd.AddCommand("status", hostStatus)
-	cmd.AddCommand("say", hostSayAll)
-	cmd.AddCommand("say_team", hostSayTeam)
-	cmd.AddCommand("setpos", hostSetPos)
-	cmd.AddCommand("spawn", hostSpawn)
-	cmd.AddCommand("tell", hostTell)
-	cmd.AddCommand("mapname", hostMapName)
-	cmd.AddCommand("map", hostMap)
-	cmd.AddCommand("prespawn", hostPreSpawn)
-	cmd.AddCommand("version", hostVersion)
-	cmd.AddCommand("kick", hostKick)
-	cmd.AddCommand("quit", func(_ []cmd.QArg, _ int) { hostQuit() })
-	cmd.AddCommand("connect", hostConnect)
-	cmd.AddCommand("restart", hostRestart)
+	cmd.AddClientCommand("begin", hostBegin)
+	cmd.AddClientCommand("color", hostColor)
+	cmd.AddClientCommand("fly", hostFly)
+	cmd.AddClientCommand("give", hostGive)
+	cmd.AddClientCommand("god", hostGod)
+	cmd.AddClientCommand("kick", hostKick)
+	cmd.AddClientCommand("kill", hostKill)
+	cmd.AddClientCommand("name", hostName)
+	cmd.AddClientCommand("noclip", hostNoClip)
+	cmd.AddClientCommand("notarget", hostNoTarget)
+	cmd.AddClientCommand("pause", hostPause)
+	cmd.AddClientCommand("ping", hostPing)
+	cmd.AddClientCommand("prespawn", hostPreSpawn)
+	cmd.AddClientCommand("say", hostSayAll)
+	cmd.AddClientCommand("say_team", hostSayTeam)
+	cmd.AddClientCommand("setpos", hostSetPos)
+	cmd.AddClientCommand("spawn", hostSpawn)
+	cmd.AddClientCommand("status", hostStatus)
+	cmd.AddClientCommand("tell", hostTell)
 	cmd.AddCommand("changelevel", hostChangelevel)
+	cmd.AddCommand("connect", hostConnect)
+	cmd.AddCommand("map", hostMap)
+	cmd.AddCommand("mapname", hostMapName)
+	cmd.AddCommand("quit", func(_ []cmd.QArg, _ int) { hostQuit() })
+	cmd.AddCommand("restart", hostRestart)
+	cmd.AddCommand("version", hostVersion)
 }
 
 func hostQuit() {
@@ -925,6 +925,8 @@ func hostShutdownServer(crash bool) {
 			c.Drop(crash)
 		}
 	}
+
+	sv.worldModel = nil
 
 	CreateSVClients()
 }

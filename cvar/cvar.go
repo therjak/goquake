@@ -16,15 +16,23 @@ var (
 	cvarByName = make(map[string]*Cvar)
 )
 
+type flag uint64
+
 const (
 	// cvar flags bitfield
-	NONE       = 0
-	ARCHIVE    = 1
-	NOTIFY     = 1 << 1
-	SERVERINFO = 1 << 2
-	ROM        = 1 << 6
-	REGISTERED = 1 << 10
-	CALLBACK   = 1 << 16
+	NONE        flag = 0
+	ARCHIVE     flag = 1
+	NOTIFY      flag = 1 << 1
+	SERVERINFO  flag = 1 << 2
+	USERINFO    flag = 1 << 3
+	CHANGED     flag = 1 << 4
+	ROM         flag = 1 << 6
+	LOCKED      flag = 1 << 8 // locked temporarily
+	REGISTERED  flag = 1 << 10
+	CALLBACK    flag = 1 << 16
+	USERDEFINED flag = 1 << 17 // cvar was created by the user/mod, and needs to be saved a bit differently.
+	AUTOCVAR    flag = 1 << 18 // cvar changes need to feed back to qc global changes.
+	SETA        flag = 1 << 19 // cvar will be saved with seta.
 )
 
 type CallbackFunc func(cv *Cvar)
@@ -34,6 +42,8 @@ type Cvar struct {
 	notify     bool
 	serverinfo bool
 	rom        bool
+	user       bool
+	seta       bool
 	callback   CallbackFunc
 	name       string
 	// stringValue is the truth, value the derived one
@@ -53,6 +63,14 @@ func (cv *Cvar) Archive() bool {
 
 func (cv *Cvar) Notify() bool {
 	return cv.notify
+}
+
+func (cv *Cvar) UserDefined() bool {
+	return cv.user
+}
+
+func (cv *Cvar) SetA() bool {
+	return cv.seta
 }
 
 func (cv *Cvar) SetCallback(cb CallbackFunc) {
@@ -125,36 +143,41 @@ func GetByID(id int) (*Cvar, error) {
 	return cvarArray[id], nil
 }
 
-func Register(name, value string, flags int) (*Cvar, error) {
+func create(name, value string) *Cvar {
+	cv := &Cvar{name: name, defaultValue: value}
+	cv.SetByString(value)
+	pos := len(cvarArray)
+	cvarArray = append(cvarArray, cv)
+	cvarByName[name] = cv
+	cv.id = pos
+	return cv
+}
+
+func Register(name, value string, flags flag) (*Cvar, error) {
 	if _, ok := cvarByName[name]; ok {
 		return nil, fmt.Errorf("Can't register variable %s, already defined\n", name)
 	}
-	cv := Cvar{name: name, defaultValue: value}
-	cv.SetByString(value)
 
-	if flags&1 != 0 {
+	cv := create(name, value)
+
+	if flags&ARCHIVE != 0 {
 		cv.archive = true
 	}
-	if flags&2 != 0 {
+	if flags&NOTIFY != 0 {
 		cv.notify = true
 	}
-	if flags&4 != 0 {
+	if flags&SERVERINFO != 0 {
 		cv.serverinfo = true
 	}
-	if flags&64 != 0 {
+	if flags&ROM != 0 {
 		cv.rom = true
 	}
 	// registered 1<<10, callback 1<<16
 
-	pos := len(cvarArray)
-	cvarArray = append(cvarArray, &cv)
-	cvarByName[name] = &cv
-	cv.id = pos
-
-	return &cv, nil
+	return cv, nil
 }
 
-func MustRegister(n, v string, flag int) *Cvar {
+func MustRegister(n, v string, flag flag) *Cvar {
 	cv, err := Register(n, v, flag)
 	if err != nil {
 		log.Panic(n)
@@ -178,4 +201,190 @@ func Execute(args []cmd.QArg, _ int) bool {
 	}
 	cv.SetByString(args[1].String())
 	return true
+}
+
+func init() {
+	cmd.AddCommand("cvarlist", list)
+	cmd.AddCommand("cycle", cycle)
+	cmd.AddCommand("inc", inc)
+	cmd.AddCommand("reset", reset)
+	cmd.AddCommand("resetall", resetAll)
+	cmd.AddCommand("resetcfg", resetCfg)
+	cmd.AddCommand("set", set)
+	cmd.AddCommand("seta", seta)
+	cmd.AddCommand("toggle", toggle)
+}
+
+func set(args []cmd.QArg, _ int) {
+	switch {
+	case len(args) >= 2:
+		if cmd.Exists(args[0].String()) {
+			conlog.Printf("conflict with command\n")
+			return
+		}
+		if cv, ok := cvarByName[args[0].String()]; ok {
+			cv.SetByString(args[1].String())
+		} else {
+			cv := create(args[0].String(), args[1].String())
+			cv.user = true
+		}
+	default:
+		conlog.Printf("set <cvar> <value>\n")
+	}
+}
+
+func seta(args []cmd.QArg, _ int) {
+	switch {
+	case len(args) >= 2:
+		if cmd.Exists(args[0].String()) {
+			conlog.Printf("conflict with command\n")
+			return
+		}
+		if cv, ok := cvarByName[args[0].String()]; ok {
+			cv.SetByString(args[1].String())
+			cv.seta = true
+		} else {
+			cv := create(args[0].String(), args[1].String())
+			cv.seta = true
+			cv.archive = true
+			cv.user = true
+		}
+	default:
+		conlog.Printf("seta <cvar> <value>\n")
+	}
+}
+
+func toggle(args []cmd.QArg, _ int) {
+	switch c := len(args); c {
+	case 1:
+		arg := args[0].String()
+		if cv, ok := Get(arg); ok {
+			cv.Toggle()
+		} else {
+			log.Printf("toggle: Cvar not found %v", arg)
+			conlog.Printf("toggle: variable %v not found\n", arg)
+		}
+		break
+	default:
+		conlog.Printf("toggle <cvar> : toggle cvar\n")
+		break
+	}
+}
+
+func incr(n string, v float32) {
+	if cv, ok := Get(n); ok {
+		cv.SetValue(cv.Value() + v)
+	} else {
+		log.Printf("Cvar not found %v", n)
+		conlog.Printf("Cvar_SetValue: variable %v not found\n", n)
+	}
+}
+
+func inc(args []cmd.QArg, _ int) {
+	switch c := len(args); c {
+	case 1:
+		arg := args[0].String()
+		incr(arg, 1)
+	case 2:
+		arg := args[0].String()
+		incr(arg, args[1].Float32())
+	default:
+		conlog.Printf("inc <cvar> [amount] : increment cvar\n")
+	}
+}
+
+func reset(args []cmd.QArg, _ int) {
+	switch c := len(args); c {
+	case 1:
+		arg := args[0].String()
+		if cv, ok := Get(arg); ok {
+			cv.Reset()
+		} else {
+			log.Printf("Cvar not found %v", arg)
+			conlog.Printf("Cvar_Reset: variable %v not found\n", arg)
+		}
+	default:
+		conlog.Printf("reset <cvar> : reset cvar to default\n")
+	}
+}
+
+func resetAll(_ []cmd.QArg, _ int) {
+	// bail if args not empty?
+	for _, cv := range All() {
+		cv.Reset()
+	}
+}
+
+func resetCfg(_ []cmd.QArg, _ int) {
+	// bail if args not empty?
+	for _, cv := range All() {
+		if cv.Archive() {
+			cv.Reset()
+		}
+	}
+}
+
+func list(args []cmd.QArg, _ int) {
+	// TODO(therjak):
+	// this should probably print the syntax of cvarlist if len(args) > 1
+	switch len(args) {
+	default:
+		partialList(args[1])
+		return
+	case 0:
+		fullList()
+	}
+}
+
+func fullList() {
+	cvars := All()
+	for _, v := range cvars {
+		conlog.SafePrintf("%s%s %s \"%s\"\n",
+			func() string {
+				if v.Archive() {
+					return "*"
+				}
+				return " "
+			}(),
+			func() string {
+				if v.Notify() {
+					return "s"
+				}
+				return " "
+			}(),
+			v.Name(),
+			v.String())
+	}
+	conlog.SafePrintf("%v cvars\n", len(cvars))
+}
+
+func partialList(p cmd.QArg) {
+	log.Printf("TODO")
+	// if beginning of name == p
+	// same as ListFull
+	// in length print add ("beginning with \"%s\"", p)
+}
+
+func cycle(args []cmd.QArg, _ int) {
+	if len(args) < 2 {
+		conlog.Printf("cycle <cvar> <value list>: cycle cvar through a list of values\n")
+		return
+	}
+	cv, ok := Get(args[0].String())
+	if !ok {
+		conlog.Printf("Cvar_Set: variable %v not found\n", args[0].String())
+		return
+	}
+	// TODO: make entries in args[1:] unique
+	oldValue := cv.String()
+	i := 0
+	for i < len(args)-1 {
+		i++
+		if oldValue == args[i].String() {
+			break
+		}
+	}
+	i %= len(args) - 1
+	i++
+	cv.SetByString(args[i].String())
 }

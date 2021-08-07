@@ -28,6 +28,14 @@ func AddCommand(name string, f QFunc) error {
 	return nil
 }
 
+func AddServerCommand(name string, f QFunc) error {
+	return AddCommand(name, f)
+}
+
+func AddClientCommand(name string, f QFunc) error {
+	return AddCommand(name, f)
+}
+
 func Exists(cmdName string) bool {
 	name := strings.ToLower(cmdName)
 	_, ok := commands[name]

@@ -10,6 +10,7 @@ import (
 	"goquake/bsp"
 	"goquake/cbuf"
 	"goquake/conlog"
+	"goquake/cvar"
 	"goquake/cvars"
 	"goquake/math"
 	"goquake/math/vec"
@@ -789,7 +790,13 @@ func (v *virtualMachine) cvar() {
 		v.runError("PF_cvar: no string")
 		return
 	}
-	v.prog.Globals.Returnf()[0] = CvarVariableValue(str)
+	f := func(n string) float32 {
+		if cv, ok := cvar.Get(n); ok {
+			return cv.Value()
+		}
+		return 0
+	}
+	v.prog.Globals.Returnf()[0] = f(str)
 }
 
 func (v *virtualMachine) cvarSet() {
@@ -803,7 +810,12 @@ func (v *virtualMachine) cvarSet() {
 		v.runError("PF_cvar_set: no val string")
 		return
 	}
-	cvarSet(name, val)
+	if cv, ok := cvar.Get(name); ok {
+		cv.SetByString(val)
+	} else {
+		log.Printf("Cvar not found %v", name)
+		conlog.Printf("Cvar_Set: variable %v not found\n", name)
+	}
 }
 
 // Returns a chain of entities that have origins within a spherical area

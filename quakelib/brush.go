@@ -13,9 +13,6 @@ import (
 	"goquake/glh"
 	"goquake/math/vec"
 
-	"goquake/bsp"
-	"goquake/glh"
-
 	"github.com/go-gl/gl/v4.6-core/gl"
 	// "goquake/math/vec"
 )

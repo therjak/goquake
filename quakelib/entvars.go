@@ -139,9 +139,12 @@ func EntVarsParsePair(idx int, key progs.Def, val string) {
 		*(*float32)(unsafe.Pointer(vp)) = v
 	case progs.EV_Vector:
 		var v [3]float32
-		_, err := fmt.Sscanf(val, "%f %f %f", &v[0], &v[1], &v[2])
+		n, err := fmt.Sscanf(val, "%f %f %f", &v[0], &v[1], &v[2])
 		if err != nil {
 			conlog.Printf("Can't convert to [3]float32 %s\n", val)
+		}
+		for ; n < 3; n++ {
+			v[n] = 0
 		}
 		*(*[3]float32)(unsafe.Pointer(vp)) = v
 	case progs.EV_Entity:

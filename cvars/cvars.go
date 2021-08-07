@@ -278,7 +278,7 @@ func init() {
 	LoadAs8Bit = cvar.MustRegister("loadas8bit", "0", cvar.NONE)
 	LookSpring = cvar.MustRegister("lookspring", "0", cvar.ARCHIVE)
 	LookStrafe = cvar.MustRegister("lookstrafe", "0", cvar.ARCHIVE)
-	MaxEdicts = cvar.MustRegister("max_edicts", "8192", cvar.NONE)
+	MaxEdicts = cvar.MustRegister("max_edicts", "15000", cvar.NONE)
 	MouseForward = cvar.MustRegister("m_forward", "1", cvar.ARCHIVE)
 	MousePitch = cvar.MustRegister("m_pitch", "0.022", cvar.ARCHIVE)
 	MouseSide = cvar.MustRegister("m_side", "0.8", cvar.ARCHIVE)

@@ -726,13 +726,6 @@ func SV_SaveSpawnparms() {
 	}
 }
 
-// Called when the player is getting totally kicked off the host
-// if (crash = true), don't bother sending signofs
-func SVDropClient(client int, crash bool) {
-	c := sv_clients[client]
-	c.Drop(crash)
-}
-
 func (s *Server) SendClientMessages() {
 	// update frags, names, etc
 	s.UpdateToReliableMessages()

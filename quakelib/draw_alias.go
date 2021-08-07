@@ -5,7 +5,6 @@ package quakelib
 import (
 	"math"
 
-	"github.com/go-gl/gl/v4.6-core/gl"
 	"goquake/bsp"
 	"goquake/cvars"
 	"goquake/glh"
@@ -13,6 +12,8 @@ import (
 	"goquake/math/vec"
 	"goquake/mdl"
 	"goquake/texture"
+
+	"github.com/go-gl/gl/v4.6-core/gl"
 )
 
 func newAliasDrawProgram() (*glh.Program, error) {
@@ -219,23 +220,23 @@ func (r *qRenderer) DrawAliasModel(e *Entity, model *mdl.Model) {
 	modelview.Scale(model.Scale[0], model.Scale[1], model.Scale[2])
 
 	textureManager.DisableMultiTexture()
-	var tx, fb *texture.Texture
-	if e.SkinNum < model.SkinCount && e.SkinNum >= 0 {
-		anim := int(cl.time * 10)
-		t := model.Textures[e.SkinNum]
-		fbt := model.FBTextures[e.SkinNum]
-		tx = t[anim%len(t)]
-		if len(fbt) > 0 {
-			fb = fbt[anim%len(fbt)]
-		}
+	skin := e.SkinNum
+	if e.SkinNum >= model.SkinCount && e.SkinNum < 0 {
+		skin = 0
 	}
+	var fb *texture.Texture
+	anim := int(cl.time * 10)
+	t := model.Textures[skin]
+	fbt := model.FBTextures[skin]
+	tx := t[anim%len(t)]
+	if len(fbt) > 0 && cvars.GlFullBrights.Bool() {
+		fb = fbt[anim%len(fbt)]
+	}
+
 	if !cvars.GlNoColors.Bool() {
 		if pt := playerTextures[e]; pt != nil {
 			tx = pt
 		}
-	}
-	if !cvars.GlFullBrights.Bool() {
-		fb = nil
 	}
 
 	drawAliasFrame(model, ld, tx, fb, e, alpha, modelview, view.projection)
