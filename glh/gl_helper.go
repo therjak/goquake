@@ -149,9 +149,10 @@ func (va *VertexArray) Bind() {
 
 func GetShader(src string, shaderType uint32) (uint32, error) {
 	shader := gl.CreateShader(shaderType)
-	csource, free := gl.Strs(src + "\x00")
+	csource, free := gl.Strs(src)
 	defer free()
-	gl.ShaderSource(shader, 1, csource, nil)
+	length := int32(len(src))
+	gl.ShaderSource(shader, 1, csource, &length)
 	gl.CompileShader(shader)
 	var status int32
 	gl.GetShaderiv(shader, gl.COMPILE_STATUS, &status)
