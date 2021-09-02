@@ -65,6 +65,7 @@ const (
 	MoveTypeNoClip
 	MoveTypeFlyMissile
 	MoveTypeBounce
+	MoveTypeGib
 )
 
 const (
