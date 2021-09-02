@@ -94,7 +94,12 @@ func execFile(args []cmd.QArg, _ int) {
 	}
 	b, err := filesystem.GetFileContents(args[0].String())
 	if err != nil {
-		conlog.Printf("couldn't exec %v\n", args[0])
+		if args[0].String() == "default.cfg" {
+			conlog.Printf("execing %v\n", args[0])
+			cbuf.InsertText(defaultCfg)
+		} else {
+			conlog.Printf("couldn't exec %v\n", args[0])
+		}
 		return
 	}
 	conlog.Printf("execing %v\n", args[0])
