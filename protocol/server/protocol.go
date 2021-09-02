@@ -69,7 +69,7 @@ const (
 	SellScreen = 33
 	Cutscene   = 34
 
-	// johnfitz -- PROTOCOL_FITZQUAKE -- new server messages
+	// PROTOCOL_FITZQUAKE
 
 	// [string] name
 	Skybox = 37
@@ -83,7 +83,10 @@ const (
 	// [coord3] [short] samp [byte] vol [byte] aten
 	SpawnStaticSound2 = 44
 
-	// johnfitz
+	// FITZQUAKE END
+
+	// Used by 2021 release
+	Achievement = 52
 )
 
 const (

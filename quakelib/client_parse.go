@@ -195,6 +195,8 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) {
 		case *protos.SCmd_Fog:
 			f := cmd.Fog
 			fog.Update(f.GetDensity(), f.GetRed(), f.GetGreen(), f.GetBlue(), float64(f.GetTime()))
+		case *protos.SCmd_Achievement:
+			conlog.DPrintf("Ignoring svc_achievement (%s)\n", cmd.Achievement)
 		}
 	}
 }

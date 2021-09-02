@@ -242,6 +242,7 @@ message SCmd {
     // EntityBaseline spawn_baseline2 = 42; -- not needed, covered by spawn_baseline
     // Baseline spawn_static2 = 43; -- not needed, covered by spawn_static
     // SpawnStaticSound2 spawn_static_sound2 = 44; -- not needed, covered by spawn_static_sound
+    string achievement = 42;
   }
 }
 

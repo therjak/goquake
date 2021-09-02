@@ -59,6 +59,9 @@ var (
 		"",                      // 47
 		"",                      // 48
 		"",                      // 49
+		"",                      // 50
+		"",                      // 51
+		"svc_achievement",       // 52
 	}
 )
 
@@ -1338,6 +1341,14 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 			sm.Cmds = append(sm.Cmds, &protos.SCmd{
 				Union: &protos.SCmd_SpawnStaticSound{ss},
 			})
+		case Achievement:
+			if s, err := msg.ReadString(); err != nil {
+				return nil, err
+			} else {
+				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+					Union: &protos.SCmd_Achievement{s},
+				})
+			}
 		}
 		lastcmd = cmd
 	}
