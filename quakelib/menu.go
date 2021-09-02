@@ -29,6 +29,7 @@ func init() {
 	cmd.AddCommand("menu_video", func(_ []cmd.QArg, _ int) { enterMenuVideo() })
 	cmd.AddCommand("help", func(_ []cmd.QArg, _ int) { enterMenuHelp() })
 	cmd.AddCommand("menu_quit", func(_ []cmd.QArg, _ int) { enterQuitMenu() })
+	cmd.AddCommand("menu_credits", func(_ []cmd.QArg, _ int) {})
 }
 
 // 0-127 are white
