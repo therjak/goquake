@@ -212,7 +212,7 @@ func init() {
 	AmbientFade = cvar.MustRegister("ambient_fade", "100", cvar.NONE)
 	AmbientLevel = cvar.MustRegister("ambient_level", "0.3", cvar.NONE)
 	BackgroundVolume = cvar.MustRegister("bgmvolume", "1", cvar.ARCHIVE) // cd music volume, therjak: this is dead, only used in menu
-	Campaign = cvar.MustRegister("campaign", 0, cvar.NONE)               // 2021 release
+	Campaign = cvar.MustRegister("campaign", "0", cvar.NONE)             // 2021 release
 	CfgUnbindAll = cvar.MustRegister("cfg_unbindall", "1", cvar.ARCHIVE)
 	ChaseActive = cvar.MustRegister("chase_active", "0", cvar.NONE)
 	ChaseBack = cvar.MustRegister("chase_back", "100", cvar.NONE)
