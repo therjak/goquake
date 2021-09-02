@@ -228,6 +228,8 @@ func NewVirtualMachine() *virtualMachine {
 		v.precacheFile,
 
 		v.setSpawnParms,
+		// 2021 release
+		v.finaleFinished, // void() finaleFinished = # 79
 	}
 	return v
 }

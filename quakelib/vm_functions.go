@@ -912,6 +912,10 @@ func (v *virtualMachine) find() {
 	progsdat.Globals.Return[0] = 0
 }
 
+func (v *virtualMachine) finaleFinished() {
+	// Used by 2021 release
+}
+
 // precache_file is only used to copy  files with qcc, it does nothing
 func (v *virtualMachine) precacheFile() {
 	progsdat.Globals.Return[0] = progsdat.Globals.Parm0[0]
