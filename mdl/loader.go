@@ -11,11 +11,13 @@ import (
 	"math"
 	"unsafe"
 
-	"github.com/chewxy/math32"
+	"goquake/conlog"
 	"goquake/glh"
 	"goquake/math/vec"
 	qm "goquake/model"
 	"goquake/texture"
+
+	"github.com/chewxy/math32"
 )
 
 const (
@@ -164,7 +166,7 @@ func load(name string, data []byte) (*Model, error) {
 		return nil, fmt.Errorf("%s has wrong version number (%d should be %d)", name, h.Version, aliasVersion)
 	}
 	if h.SkinHeight > 480 {
-		return nil, fmt.Errorf("model %s has a skin taller than %d", name, 480)
+		conlog.DWarning("model %s has a skin taller than %d", name, 480)
 	}
 	if h.VerticeCount <= 0 {
 		return nil, fmt.Errorf("model %s has no vertices", name)
