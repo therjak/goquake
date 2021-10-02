@@ -3,8 +3,6 @@ package quakelib
 
 import "C"
 import (
-	"github.com/chewxy/math32"
-	"github.com/go-gl/gl/v4.6-core/gl"
 	"goquake/bsp"
 	"goquake/cvars"
 	"goquake/glh"
@@ -12,6 +10,9 @@ import (
 	"goquake/mdl"
 	"goquake/progs"
 	"goquake/spr"
+
+	"github.com/chewxy/math32"
+	"github.com/go-gl/gl/v4.6-core/gl"
 )
 
 type fPlane struct {
@@ -272,21 +273,21 @@ func (r *qRenderer) RenderDynamicLights() {
 	cs := make([]qCone, 0, len(cl.dynamicLights))
 	for i := range cl.dynamicLights {
 		dl := &cl.dynamicLights[i]
-		if dl.DieTime < cl.time || dl.Radius == 0 {
+		if dl.dieTime < cl.time || dl.radius == 0 {
 			continue
 		}
 		// TODO: why do we need this scaling of radius. can the radius be
 		// 'right' from the start?
-		rad := dl.Radius * 0.35
-		d := vec.Sub(dl.Origin, qRefreshRect.viewOrg)
+		rad := dl.radius * 0.35
+		d := vec.Sub(dl.origin, qRefreshRect.viewOrg)
 		if d.Length() < rad {
 			// view is inside the dynamic light
-			view.addLightBlend(1, 0.5, 0, dl.Radius*0.0003)
+			view.addLightBlend(1, 0.5, 0, dl.radius*0.0003)
 			continue
 		}
 
 		cs = append(cs, qCone{
-			origin:     dl.Origin,
+			origin:     dl.origin,
 			radius:     rad,
 			innerColor: [3]float32{0.2, 0.1, 0.0},
 			outerColor: [3]float32{0, 0, 0},

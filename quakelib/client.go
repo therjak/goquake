@@ -16,7 +16,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/chewxy/math32"
 	"goquake/bsp"
 	"goquake/cbuf"
 	"goquake/cmd"
@@ -39,6 +38,8 @@ import (
 	"goquake/rand"
 	"goquake/snd"
 	"goquake/stat"
+
+	"github.com/chewxy/math32"
 )
 
 type sfx int
@@ -245,7 +246,6 @@ var (
 	cls = ClientStatic{}
 	cl  = Client{
 		staticEntities: make([]Entity, 0, 512),
-		dynamicLights:  make([]DynamicLight, 64, 64),
 	}
 )
 
@@ -307,7 +307,6 @@ func cl_setStats(s, v int) {
 func clientClear() {
 	cl = Client{
 		staticEntities: make([]Entity, 0, 512),
-		dynamicLights:  make([]DynamicLight, 64, 64),
 	}
 	clearLightStyles()
 	clearBeams()
@@ -1744,11 +1743,11 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) {
 		l := cl.GetFreeDynamicLight()
 		*l = DynamicLight{
 			ptr:     l.ptr,
-			Origin:  pos,
-			Radius:  350,
-			DieTime: cl.time + 0.5,
-			Decay:   300,
-			Color:   vec.Vec3{1, 1, 1},
+			origin:  pos,
+			radius:  350,
+			dieTime: cl.time + 0.5,
+			decay:   300,
+			color:   vec.Vec3{1, 1, 1},
 		}
 		l.Sync()
 		snd.Start(-1, 0, clSounds[RExp3], pos, 1, 1, !loopingSound)
@@ -1799,11 +1798,11 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) {
 		l := cl.GetFreeDynamicLight()
 		*l = DynamicLight{
 			ptr:     l.ptr,
-			Origin:  pos,
-			Radius:  350,
-			DieTime: cl.time + 0.5,
-			Decay:   300,
-			Color:   vec.Vec3{1, 1, 1},
+			origin:  pos,
+			radius:  350,
+			dieTime: cl.time + 0.5,
+			decay:   300,
+			color:   vec.Vec3{1, 1, 1},
 		}
 		l.Sync()
 		snd.Start(-1, 0, clSounds[RExp3], pos, 1, 1, !loopingSound)
@@ -1822,13 +1821,13 @@ func (c *Client) ColorForEntity(e *Entity) vec.Vec3 {
 	lightColor := c.worldModel.LightAt(e.Origin, &lightStyleValues)
 	for i := range c.dynamicLights {
 		d := &c.dynamicLights[i]
-		if d.DieTime < c.time {
+		if d.dieTime < c.time {
 			continue
 		}
-		dist := vec.Sub(e.Origin, d.Origin)
-		add := d.Radius - dist.Length()
+		dist := vec.Sub(e.Origin, d.origin)
+		add := d.radius - dist.Length()
 		if add > 0 {
-			lightColor.Add(vec.Scale(add, d.Color))
+			lightColor.Add(vec.Scale(add, d.color))
 		}
 	}
 	if e == c.WeaponEntity() {

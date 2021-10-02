@@ -728,7 +728,7 @@ func (q *qphysics) playerActions(ent, num int) {
 		q.checkStuck(ent)
 		q.walkMove(ent)
 
-	case progs.MoveTypeToss, progs.MoveTypeBounce:
+	case progs.MoveTypeToss, progs.MoveTypeBounce, progs.MoveTypeGib:
 		q.toss(ent)
 
 	case progs.MoveTypeFly:
@@ -797,6 +797,7 @@ func RunPhysics() {
 				q.step(i)
 			case progs.MoveTypeToss,
 				progs.MoveTypeBounce,
+				progs.MoveTypeGib,
 				progs.MoveTypeFly,
 				progs.MoveTypeFlyMissile:
 				q.toss(i)

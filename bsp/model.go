@@ -43,6 +43,15 @@ const (
 	SurfaceDrawWater      // 0x2000
 )
 
+const BackFaceEpsilon = 0.01
+
+type ST byte
+
+const (
+	S ST = iota
+	T
+)
+
 type Plane struct {
 	Normal   vec.Vec3
 	Dist     float32
@@ -119,7 +128,7 @@ type TexCoord struct {
 
 type Poly struct {
 	Next  *Poly
-	eain  *Poly
+	Chain *Poly
 	Verts []TexCoord
 }
 
@@ -137,8 +146,9 @@ type Surface struct {
 
 	textureMins [2]int
 	extents     [2]int
-	lightS      int // gl lightmap coordinates
-	lightT      int
+	// lightS and lightT are 0 as we now use separate textures
+	lightS int // gl lightmap coordinates
+	lightT int
 
 	Polys        *Poly
 	TextureChain *Surface
@@ -147,14 +157,17 @@ type Surface struct {
 
 	VboFirstVert int // index of this surface's first vert in the VBO
 
+	// old MAX_DLIGHTS == 64
 	DLightFrame int
-	// MAX_DLIGHTS == 64
-	// DLightBits [(MAX_DLIGHTS + 31)>>5]uint32
-	LightmapTextureNum int
+	DLightBits  []bool
+	// LightmapTextureNum int
+	LightmapTexture *texture.Texture // from r_brush lightmap_textures
+	LightmapData    []byte           // from r_brush lightmaps
+	lightmapName    string
 	// MAXLIGHTMAPS == 4
-	Styles [4]byte
-	// CachedLight[MAXLIGHTMAPS] int
-	CachedDLight bool
+	Styles      [4]byte
+	CachedLight [4]int
+	// CachedDLight bool
 	LightSamples []byte
 	lightMapOfs  int32
 }

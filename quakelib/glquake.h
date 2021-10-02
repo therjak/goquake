@@ -160,7 +160,6 @@ void R_DrawTextureChains_Water(qmodel_t *model, entity_t *ent,
 void R_RenderDlights(void);
 void GL_BuildLightmaps(void);
 void GL_BuildBModelVertexBuffer(void);
-void R_RebuildAllLightmaps(void);
 
 void R_LightPoint(vec3_t p);
 

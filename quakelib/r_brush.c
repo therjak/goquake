@@ -125,9 +125,9 @@ void R_DrawBrushModel(entity_t *e) {
 
   // calculate dynamic lighting for bmodel if it's not an
   // instanced model
-  if (clmodel->firstmodelsurface != 0 && !Cvar_GetValue(&gl_flashblend)) {
-    R_MarkLights(clmodel->nodes + clmodel->hulls[0].firstclipnode);
-  }
+  // if (clmodel->firstmodelsurface != 0 && !Cvar_GetValue(&gl_flashblend)) {
+  //  R_MarkLights(clmodel->nodes + clmodel->hulls[0].firstclipnode);
+  //}
 
   glPushMatrix();
   if (Cvar_GetValue(&gl_zfix)) {
@@ -691,7 +691,7 @@ void R_UploadLightmaps(void) {
 R_RebuildAllLightmaps -- johnfitz -- called when gl_overbright gets toggled
 ================
 */
-void R_RebuildAllLightmaps(void) {
+void R_RebuildAllLightmapsC(void) {
   int i, j;
   qmodel_t *mod;
   msurface_t *fa;

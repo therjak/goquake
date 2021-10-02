@@ -96,6 +96,8 @@ func SetRawEntVarsI(idx, off int32, value int32) {
 }
 
 func getUnsafe(off int32) unsafe.Pointer {
+	// go 1.17:
+	// return unsafe.Add(g_entvars, off)
 	return unsafe.Pointer(uintptr(g_entvars) + uintptr(off))
 }
 

@@ -117,6 +117,7 @@ func CallCMain() error {
 func shaderInit() {
 	// All our shaders:
 	CreateAliasDrawer()
+	CreateBrushDrawer()
 	CreateSpriteDrawer()
 	CreateSkyDrawer()
 	CreateParticleDrawer()

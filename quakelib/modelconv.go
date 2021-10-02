@@ -12,6 +12,7 @@ import (
 	"strings"
 	"unsafe"
 
+	"goquake/bsp"
 	"goquake/cvars"
 	"goquake/mdl"
 	"goquake/model"
@@ -99,6 +100,13 @@ func loadTextures(m model.Model) {
 			for _, st := range t {
 				textureManager.addActiveTexture(st)
 				textureManager.loadIndexed(st, st.Data)
+			}
+		}
+	case *bsp.Model:
+		for _, s := range mt.Surfaces {
+			if s.LightmapTexture != nil {
+				textureManager.addActiveTexture(s.LightmapTexture)
+				textureManager.loadLightMap(s.LightmapTexture)
 			}
 		}
 	}

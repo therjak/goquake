@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-gl/gl/v4.6-core/gl"
 	"goquake/cbuf"
 	"goquake/cmd"
 	cmdl "goquake/commandline"
@@ -16,6 +15,8 @@ import (
 	"goquake/keys"
 	"goquake/menu"
 	"goquake/window"
+
+	"github.com/go-gl/gl/v4.6-core/gl"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -441,9 +442,9 @@ func videoInit() error {
 	}
 	videoInitialized = true
 
-	window.InitIcon()
-
 	videoSetMode(width, height, fullscreen)
+
+	window.InitIcon()
 
 	// QuakeSpasm: current vid settings should override config file settings.
 	// so we have to lock the vid mode from now until after all config files are

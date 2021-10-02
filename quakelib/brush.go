@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+
 package quakelib
 
 //extern unsigned int gl_bmodel_vbo;
 //void GL_BuildBModelVertexBufferOld(void);
+//void R_RebuildAllLightmapsC(void);
 import "C"
 
 import (
@@ -12,43 +14,97 @@ import (
 	"goquake/cvars"
 	"goquake/glh"
 	"goquake/math/vec"
+	"goquake/texture"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
-	// "goquake/math/vec"
+)
+
+const (
+	BLOCK_WIDTH     = 128
+	BLOCK_HEIGHT    = 128
+	MAX_LIGHTMAPS   = 512
+	LIGHTMAP_BYTES  = 4
+	LIGHTMAP_FORMAT = gl.RGBA
+)
+
+type glRect struct {
+	l, t, w, h uint16
+}
+
+type lightmap struct {
+	texture    *texture.Texture
+	poly       *bsp.Poly
+	modified   bool
+	rectChange glRect
+	allocated  [BLOCK_WIDTH]int
+	data       [BLOCK_WIDTH * BLOCK_HEIGHT * LIGHTMAP_BYTES]byte
+}
+
+var (
+	lightmaps             [MAX_LIGHTMAPS]lightmap
+	lastLightmapAllocated int
+	blockLights           [BLOCK_WIDTH * BLOCK_HEIGHT * 3]uint
 )
 
 type qBrushDrawer struct {
-	vao        *glh.VertexArray
-	vbo        *glh.Buffer
-	ebo        *glh.Buffer
-	prog       *glh.Program
-	projection int32
-	modelview  int32
+	vao           *glh.VertexArray
+	vbo           *glh.Buffer
+	ebo           *glh.Buffer
+	prog          *glh.Program
+	projection    int32
+	modelview     int32
+	tex           int32
+	lmTex         int32
+	fullBrightTex int32
+	useFullBright int32
+	useOverBright int32
+	useAlphaTest  int32
+	alpha         int32
+	fogDensity    int32
+	fogColor      int32
 }
 
-func NewBrushDrawer() *qBrushDrawer {
+func newBrushDrawProgram() (*glh.Program, error) {
+	return glh.NewProgram(vertexSourceBrushDrawer, fragmentSourceBrushDrawer)
+}
+
+func newBrushDrawer() *qBrushDrawer {
 	d := &qBrushDrawer{}
-	// d.vao
+	d.vao = glh.NewVertexArray()
 	// d.ebo
 	d.vbo = glh.NewBuffer(glh.ArrayBuffer)
-	// d.prog
-	// d.projection
-	// d.modelview
+	var err error
+	d.prog, err = newBrushDrawProgram()
+	if err != nil {
+		Error(err.Error())
+	}
+	d.projection = d.prog.GetUniformLocation("projection")
+	d.modelview = d.prog.GetUniformLocation("modelview")
+	d.tex = d.prog.GetUniformLocation("Tex")
+	d.lmTex = d.prog.GetUniformLocation("LMTex")
+	d.fullBrightTex = d.prog.GetUniformLocation("FullbrightTex")
+	d.useFullBright = d.prog.GetUniformLocation("UseFullbrightTex")
+	d.useOverBright = d.prog.GetUniformLocation("UseOverbright")
+	d.useAlphaTest = d.prog.GetUniformLocation("UseAlphaTest")
+	d.alpha = d.prog.GetUniformLocation("Alpha")
+	d.fogDensity = d.prog.GetUniformLocation("FogDensity")
+	d.fogColor = d.prog.GetUniformLocation("FogColor")
 	return d
 }
 
 var (
 	// brushDrawer *qBrushDrawer
-	worldDrawer *qBrushDrawer
+	brushDrawer *qBrushDrawer
 )
+
+func CreateBrushDrawer() {
+	brushDrawer = newBrushDrawer()
+	C.gl_bmodel_vbo = C.uint(brushDrawer.vbo.ID())
+}
 
 //export GL_BuildBModelVertexBuffer
 func GL_BuildBModelVertexBuffer() {
-	if worldDrawer == nil {
-		worldDrawer = NewBrushDrawer()
-		C.gl_bmodel_vbo = C.uint(worldDrawer.vbo.ID())
-	}
-	worldDrawer.buildVertexBuffer()
+	brushDrawer.buildVertexBuffer()
 	// Provide vboFirstVert on the C side
 	C.GL_BuildBModelVertexBufferOld()
 }
@@ -77,6 +133,7 @@ func (d *qBrushDrawer) buildVertexBuffer() {
 	d.vbo.SetData(4*len(buf), gl.Ptr(buf))
 }
 
+// This are only used for 'secondary' bsp eg doors
 func (r *qRenderer) DrawBrushModel(e *Entity, model *bsp.Model) {
 	if r.cullBrush(e, model) {
 		return
@@ -90,9 +147,9 @@ func (r *qRenderer) DrawBrushModel(e *Entity, model *bsp.Model) {
 		modelOrg[2] = vec.Dot(tmp, u)
 	}
 
-	// calculate dynamic lighting for bmodel if it's not an instanced model
+	// calculate dynamic lighting for model if it's not an instanced model
 	if !cvars.GlFlashBlend.Bool() /*&& model.firstmodelsurface != 0*/ {
-		// R_MarkLights(model.Nodes + model.Hulls[0].firstClipNode)
+		markLights(model.Nodes[model.Hulls[0].FirstClipNode])
 	}
 
 	if cvars.GlZFix.Bool() {
@@ -110,23 +167,199 @@ func (r *qRenderer) DrawBrushModel(e *Entity, model *bsp.Model) {
 		e.Origin.Add(vec.Vec3{DIST_EPSILON, DIST_EPSILON, DIST_EPSILON})
 	}
 
-	for _, t := range cl.worldModel.Textures {
+	for _, t := range model.Textures {
 		if t != nil {
 			t.TextureChains[chainModel] = nil
 		}
 	}
+	// for i := range(lightmap) {
+	//  lightmap[i].polys = nil
+	// }
 	// ...
-	/*
-		for _, n := range cl.worldModel.Nodes {
-			for _, s := range n.Surfaces {
-				if s.VisFrame == renderer.visFrameCount {
-					s.TextureChain = s.TexInfo.Texture.TextureChains[chainWorld]
-					s.TexInfo.Texture.TextureChains[chainWorld] = s
-				}
-			}
-		}*/
-	// R_DrawTextureChains(model,e,chain_model)
-	// R_DrawTextureChains_Water(model,e,chain_model)
 
-	r.DrawBrushModelC(e)
+	for _, s := range model.Surfaces {
+		p := s.Plane
+		dot := vec.Dot(modelOrg, p.Normal) - p.Dist
+		if (s.Flags&bsp.SurfacePlaneBack != 0 && dot < -bsp.BackFaceEpsilon) ||
+			(s.Flags&bsp.SurfacePlaneBack == 0 && dot > bsp.BackFaceEpsilon) {
+			s.TextureChain = s.TexInfo.Texture.TextureChains[chainModel]
+			s.TexInfo.Texture.TextureChains[chainModel] = s
+		}
+	}
+	r.drawTextureChains(modelview, model, e, chainModel)
+	r.drawTextureChainsWater(modelview, model, e, chainModel)
+
+	// C variant
+	// r.DrawBrushModelC(e)
 }
+
+//export R_RebuildAllLightmaps
+func R_RebuildAllLightmaps() {
+	rebuildAllLightMaps()
+}
+
+func rebuildAllLightMaps() {
+	C.R_RebuildAllLightmapsC()
+
+	if cl.worldModel == nil {
+		// this is probably not the exact test necessary but good enough?
+		return
+	}
+
+	// 0 is worldModel
+	for i := 1; i < len(cl.modelPrecache); i++ {
+		mod, ok := cl.modelPrecache[i].(*bsp.Model)
+		if !ok {
+			continue
+		}
+		for _, s := range mod.Surfaces {
+			if s.Flags&bsp.SurfaceDrawTiled != 0 {
+				continue
+			}
+			var lights []bsp.DynamicLight
+			for i := range cl.dynamicLights {
+				lights = append(lights, &cl.dynamicLights[i])
+			}
+			s.BuildLightMap(lightStyleValues, renderer.frameCount, lights, cvars.GlOverBright.Bool())
+			textureManager.loadLightMap(s.LightmapTexture)
+		}
+	}
+	/*
+		// Should no longer be needed
+			for i := range lightmaps {
+				lm := &lightmaps[i]
+				if lm.allocated[0] == 0 {
+					break
+				}
+				textureManager.Bind(lm.texture)
+				gl.TexSubImage2D(gl.TEXTURE_2D, 0, 0, 0,
+					BLOCK_WIDTH, BLOCK_HEIGHT,
+					LIGHTMAP_FORMAT, gl.UNSIGNED_BYTE, gl.Ptr(lm.data))
+			}
+	*/
+}
+
+func (r *qRenderer) drawTextureChainsNoTexture(mv *glh.Matrix, model *bsp.Model, e *Entity, chain int) {
+	// THERJAK: Why is this even needed? shouldn't the texture one be enough?
+	entalpha := float32(1)
+	if e != nil {
+		entalpha = entAlphaDecode(e.Alpha)
+	}
+	if entalpha < 1.0 {
+		gl.DepthMask(false)
+		defer gl.DepthMask(true)
+		gl.Enable(gl.BLEND)
+		defer gl.Disable(gl.BLEND)
+		// TODO: add in the shader:
+		// gl.TexEnvf(gl.TEXTURE_ENV, gl.TEXTURE_ENV_MODE, gl.MODULATE)
+		// glColor4f(1,1,1,entalpha)
+	}
+	for _, t := range model.Textures {
+		if t == nil ||
+			t.TextureChains[chain] == nil ||
+			t.TextureChains[chain].Flags&bsp.SurfaceNoTexture == 0 {
+			continue
+		}
+		bound := false
+		for s := t.TextureChains[chain]; s != nil; s = s.TextureChain {
+			if s.Culled {
+				continue
+			}
+			if !bound {
+				t.Texture.Bind()
+				bound = true
+			}
+			// DrawGLPoly(s.polys)
+		}
+	}
+}
+
+func (d *qBrushDrawer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *Entity, chain int) {
+	entalpha := float32(1)
+	if e != nil {
+		entalpha = entAlphaDecode(e.Alpha)
+	}
+	if entalpha < 1.0 {
+		gl.DepthMask(false)
+		defer gl.DepthMask(true)
+		gl.Enable(gl.BLEND)
+		defer gl.Disable(gl.BLEND)
+	}
+	d.prog.Use()
+
+	d.vao.Bind()
+	d.vbo.Bind()
+	// d.ebo.Bind()
+	// gl.bindbuffer(gl.ARRAY_BUFFER, gl_bmodel_vbo)
+	// gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, 0)
+
+	gl.EnableVertexAttribArray(0) // Vert
+	defer gl.DisableVertexAttribArray(0)
+	gl.EnableVertexAttribArray(1) // TexCoords
+	defer gl.DisableVertexAttribArray(1)
+	gl.EnableVertexAttribArray(2) // LMCoords
+	defer gl.DisableVertexAttribArray(2)
+	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 7*4, gl.PtrOffset(0))
+	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 7*4, gl.PtrOffset(3))
+	gl.VertexAttribPointer(2, 2, gl.FLOAT, false, 7*4, gl.PtrOffset(5))
+
+	gl.Uniform1i(d.tex, 0) // Match gl.TEXTRUE0, see below
+	gl.Uniform1i(d.lmTex, 1)
+	gl.Uniform1i(d.fullBrightTex, 2)
+	gl.Uniform1i(d.useFullBright, 0)
+	var useOverBright int32
+	if cvars.GlOverBrightModels.Bool() {
+		useOverBright = 1
+	}
+	gl.Uniform1i(d.useOverBright, useOverBright)
+	gl.Uniform1i(d.useAlphaTest, 0)
+	gl.Uniform1f(d.alpha, entalpha)
+	gl.Uniform1f(d.fogDensity, fog.Density)
+	gl.Uniform4f(d.fogColor, fog.Color.R, fog.Color.G, fog.Color.B, 0)
+	view.projection.SetAsUniform(d.projection)
+	mv.SetAsUniform(d.modelview)
+
+	for _, t := range model.Textures {
+		if t == nil ||
+			t.TextureChains[chain] == nil ||
+			t.TextureChains[chain].Flags&bsp.SurfaceNoTexture == 0 {
+			continue
+
+			// TODO
+
+			bound := false
+			for s := t.TextureChains[chain]; s != nil; s = s.TextureChain {
+				if s.Culled {
+					continue
+				}
+				// TODO
+				if !bound {
+					t.Texture.Bind()
+					bound = true
+				}
+				// TODO
+				// textureManager.SelectTextureUnit(gl.TEXTURE0)
+				// textureManager.Bind(tx) // base texture
+				// textureManager.SelectTextureUnit(gl.TEXTURE1)
+				// textureManager.Bind(lmtx) // lightmap
+				// textureManager.SelectTextureUnit(gl.TEXTURE2)
+				// textureManager.Bind(fbtx) // fullbright
+			}
+		}
+	}
+	textureManager.SelectTextureUnit(gl.TEXTURE0)
+
+	// Enable the fixed function pipeline again. Remove after all draw stuff is modern
+	gl.UseProgram(0)
+}
+
+func (r *qRenderer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *Entity, chain int) {
+	// TODO: shouldn't rebuildAllLightmaps already uploaded the lightmap?
+	// R_BuildLighmapChains(model,chain)
+	// R_UploadLightmaps()
+
+	r.drawTextureChainsNoTexture(mv, model, e, chain)
+	brushDrawer.drawTextureChains(mv, model, e, chain)
+}
+
+func (r *qRenderer) drawTextureChainsWater(mv *glh.Matrix, model *bsp.Model, e *Entity, chain int) {}

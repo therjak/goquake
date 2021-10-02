@@ -105,7 +105,7 @@ func load(name string, data []byte) ([]*Model, error) {
 		if err != nil {
 			return nil, err
 		}
-		msurfaces, err := buildSurfacesV0(sfaces, mod.Planes, mod.TexInfos)
+		msurfaces, err := buildSurfacesV0(sfaces, mod.Planes, mod.TexInfos, name)
 		if err != nil {
 			return nil, err
 		}
@@ -401,25 +401,25 @@ func calcSurfaceExtras(ss []*Surface, vs []*MVertex, es []*MEdge, ses []int32, l
 		}
 		// Despite the claim above only a limited number of bits are stored
 		mi := [2]int{
-			int(math32.Floor(mins[0] / 16)),
-			int(math32.Floor(mins[1] / 16)),
+			int(math32.Floor(mins[S] / 16)),
+			int(math32.Floor(mins[T] / 16)),
 		}
 		ma := [2]int{
-			int(math32.Ceil(maxs[0] / 16)),
-			int(math32.Ceil(maxs[1] / 16)),
+			int(math32.Ceil(maxs[S] / 16)),
+			int(math32.Ceil(maxs[T] / 16)),
 		}
 		s.textureMins = [2]int{
-			mi[0] * 16,
-			mi[1] * 16,
+			mi[S] * 16,
+			mi[T] * 16,
 		}
-		s.extents[0] = (ma[0] - mi[0]) * 16
-		s.extents[1] = (ma[1] - mi[1]) * 16
+		s.extents[S] = (ma[S] - mi[S]) * 16
+		s.extents[T] = (ma[T] - mi[T]) * 16
 		if tex.Flags&texSpecial == 0 {
-			if s.extents[0] > 2000 {
-				s.extents[0] = 1
+			if s.extents[S] > 2000 {
+				s.extents[S] = 1
 			}
-			if s.extents[1] > 2000 {
-				s.extents[1] = 1
+			if s.extents[T] > 2000 {
+				s.extents[T] = 1
 			}
 		}
 
@@ -430,7 +430,7 @@ func calcSurfaceExtras(ss []*Surface, vs []*MVertex, es []*MEdge, ses []int32, l
 
 		if s.lightMapOfs != -1 {
 			s.LightSamples = lightData[3*s.lightMapOfs:]
-			size := 3 * ((s.extents[0] >> 4) + 1) * ((s.extents[1] >> 4) + 1)
+			size := 3 * ((s.extents[S] >> 4) + 1) * ((s.extents[T] >> 4) + 1)
 			switch {
 			case s.Styles[0] == 255:
 				s.LightSamples = nil
@@ -446,10 +446,11 @@ func calcSurfaceExtras(ss []*Surface, vs []*MVertex, es []*MEdge, ses []int32, l
 		if s.Flags&SurfaceDrawTiled != 0 {
 			for i := range s.Polys.Verts {
 				v := &s.Polys.Verts[i]
-				v.S = vec.Dot(v.Pos, tex.Vecs[0].Pos) * texScale
-				v.T = vec.Dot(v.Pos, tex.Vecs[1].Pos) * texScale
+				v.S = vec.Dot(v.Pos, tex.Vecs[S].Pos) * texScale
+				v.T = vec.Dot(v.Pos, tex.Vecs[T].Pos) * texScale
 			}
 		} else {
+			s.createSurfaceLightmap()
 			// TODO:
 			// GL_BuildLightmaps {
 			//   GL_CreateSurfaceLightmap {
@@ -465,12 +466,12 @@ func calcSurfaceExtras(ss []*Surface, vs []*MVertex, es []*MEdge, ses []int32, l
 			for i := range s.Polys.Verts {
 				v := &s.Polys.Verts[i]
 				// From BuildSurfaceDisplayList
-				bs := (vec.Dot(v.Pos, tex.Vecs[0].Pos) + tex.Vecs[0].Offset)
-				bt := (vec.Dot(v.Pos, tex.Vecs[1].Pos) + tex.Vecs[1].Offset)
+				bs := (vec.Dot(v.Pos, tex.Vecs[S].Pos) + tex.Vecs[S].Offset)
+				bt := (vec.Dot(v.Pos, tex.Vecs[T].Pos) + tex.Vecs[T].Offset)
 				v.S = bs / float32(tex.Texture.Width)
 				v.T = bt / float32(tex.Texture.Height)
-				v.LightMapS = (bs - float32(s.textureMins[0]) + 8 + float32(s.lightS)*16) / (LightMapBlockWidth * 16)
-				v.LightMapT = (bt - float32(s.textureMins[1]) + 8 + float32(s.lightT)*16) / (LightMapBlockHeight * 16)
+				v.LightMapS = (bs - float32(s.textureMins[S]) + 8 /*+ float32(s.lightS)*16*/) / (LightMapBlockWidth * 16)
+				v.LightMapT = (bt - float32(s.textureMins[T]) + 8 /*+ float32(s.lightT)*16*/) / (LightMapBlockHeight * 16)
 			}
 		}
 
@@ -478,16 +479,17 @@ func calcSurfaceExtras(ss []*Surface, vs []*MVertex, es []*MEdge, ses []int32, l
 	return nil
 }
 
-func buildSurfacesV0(f []*faceV0, plane []*Plane, texinfo []*TexInfo) ([]*Surface, error) {
+func buildSurfacesV0(f []*faceV0, plane []*Plane, texinfo []*TexInfo, modelName string) ([]*Surface, error) {
 	ret := make([]*Surface, 0, len(f))
-	for _, sf := range f {
+	for i, sf := range f {
 		nsf := &Surface{
-			Mins:        [3]float32{math32.MaxFloat32, math.MaxFloat32, math32.MaxFloat32},
-			Maxs:        [3]float32{-math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32},
-			FirstEdge:   int(sf.ListEdgeID),
-			NumEdges:    int(sf.ListEdgeNumber),
-			Styles:      sf.LightStyle,
-			lightMapOfs: sf.LightMapOfs,
+			Mins:         [3]float32{math32.MaxFloat32, math.MaxFloat32, math32.MaxFloat32},
+			Maxs:         [3]float32{-math32.MaxFloat32, -math32.MaxFloat32, -math32.MaxFloat32},
+			FirstEdge:    int(sf.ListEdgeID),
+			NumEdges:     int(sf.ListEdgeNumber),
+			Styles:       sf.LightStyle,
+			lightMapOfs:  sf.LightMapOfs,
+			lightmapName: fmt.Sprintf("%s_lightmap%3d", modelName, i),
 		}
 		if sf.Side != 0 {
 			nsf.Flags = SurfacePlaneBack

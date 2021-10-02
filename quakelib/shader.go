@@ -50,3 +50,9 @@ var vertexSourceAliasDrawer string
 
 //go:embed shader/alias.frag
 var fragmentSourceAliasDrawer string
+
+//go:embed shader/bsp.vert
+var vertexSourceBrushDrawer string
+
+//go:embed shader/bsp.frag
+var fragmentSourceBrushDrawer string

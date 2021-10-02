@@ -273,17 +273,17 @@ func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
 
 	if e.Effects&model.EntityEffectMuzzleFlash != 0 {
 		dl := cl.GetDynamicLightByKey(idx)
-		dl.Key = idx
-		dl.Color = vec.Vec3{1, 1, 1}
-		dl.Origin = e.Origin
-		dl.Origin[2] += 16
+		dl.key = idx
+		dl.color = vec.Vec3{1, 1, 1}
+		dl.origin = e.Origin
+		dl.origin[2] += 16
 
 		forward, _, _ := vec.AngleVectors(e.Angles)
-		dl.Origin.Add(vec.Scale(18, forward))
+		dl.origin.Add(vec.Scale(18, forward))
 
-		dl.Radius = 200 + float32(cRand.Uint32n(32))
-		dl.MinLight = 32
-		dl.DieTime = cl.time + 0.1
+		dl.radius = 200 + float32(cRand.Uint32n(32))
+		dl.minLight = 32
+		dl.dieTime = cl.time + 0.1
 		dl.Sync()
 
 		// assume muzzle flash accompanied by muzzle flare, which looks bad when lerped
@@ -300,21 +300,21 @@ func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
 	}
 	if e.Effects&model.EntityEffectBrightLight != 0 {
 		dl := cl.GetDynamicLightByKey(idx)
-		dl.Key = idx
-		dl.Color = vec.Vec3{1, 1, 1}
-		dl.Origin = e.Origin
-		dl.Origin[2] += 16
-		dl.Radius = 400 + float32(cRand.Uint32n(32))
-		dl.DieTime = cl.time + 0.001
+		dl.key = idx
+		dl.color = vec.Vec3{1, 1, 1}
+		dl.origin = e.Origin
+		dl.origin[2] += 16
+		dl.radius = 400 + float32(cRand.Uint32n(32))
+		dl.dieTime = cl.time + 0.001
 		dl.Sync()
 	}
 	if e.Effects&model.EntityEffectDimLight != 0 {
 		dl := cl.GetDynamicLightByKey(idx)
-		dl.Key = idx
-		dl.Color = vec.Vec3{1, 1, 1}
-		dl.Origin = e.Origin
-		dl.Radius = 200 + float32(cRand.Uint32n(32))
-		dl.DieTime = cl.time + 0.001
+		dl.key = idx
+		dl.color = vec.Vec3{1, 1, 1}
+		dl.origin = e.Origin
+		dl.radius = 200 + float32(cRand.Uint32n(32))
+		dl.dieTime = cl.time + 0.001
 		dl.Sync()
 	}
 
@@ -330,11 +330,11 @@ func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
 	case f&model.EntityEffectRocket != 0:
 		particlesAddRocketTrail(oldOrigin, e.Origin, 0, float32(cl.time))
 		dl := cl.GetDynamicLightByKey(idx)
-		dl.Key = idx
-		dl.Color = vec.Vec3{1, 1, 1}
-		dl.Origin = e.Origin
-		dl.Radius = 200
-		dl.DieTime = cl.time + 0.01
+		dl.key = idx
+		dl.color = vec.Vec3{1, 1, 1}
+		dl.origin = e.Origin
+		dl.radius = 200
+		dl.dieTime = cl.time + 0.01
 		dl.Sync()
 	case f&model.EntityEffectGrenade != 0:
 		particlesAddRocketTrail(oldOrigin, e.Origin, 1, float32(cl.time))

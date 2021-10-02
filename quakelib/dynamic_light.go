@@ -4,22 +4,35 @@ package quakelib
 
 //#include <stdio.h>
 //#include "dlight.h"
-//#include "gl_model.h"
-//void R_MarkLight(dlight_t* light, int num, mnode_t *node);
 import "C"
 import (
+	"goquake/bsp"
+	"goquake/cvars"
 	"goquake/math/vec"
 )
 
 type DynamicLight struct {
 	ptr      *C.dlight_t
-	Origin   vec.Vec3
-	Radius   float32
-	DieTime  float64 // stop after this time
-	Decay    float32 // drop this each second
-	MinLight float32 // don't add when contributing less
-	Key      int
-	Color    vec.Vec3
+	origin   vec.Vec3
+	radius   float32
+	dieTime  float64 // stop after this time
+	decay    float32 // drop this each second
+	minLight float32 // don't add when contributing less
+	key      int
+	color    vec.Vec3
+}
+
+func (d *DynamicLight) Color() vec.Vec3 {
+	return d.color
+}
+func (d *DynamicLight) MinLight() float32 {
+	return d.minLight
+}
+func (d *DynamicLight) Origin() vec.Vec3 {
+	return d.origin
+}
+func (d *DynamicLight) Radius() float32 {
+	return d.radius
 }
 
 //GetDynamicLightByKey return the light with the same key or if none exists a free light
@@ -27,7 +40,7 @@ func (c *Client) GetDynamicLightByKey(key int) *DynamicLight {
 	// key 0 is worldEntity or 'unowned'. world can have more than one
 	for i := range c.dynamicLights {
 		d := &c.dynamicLights[i]
-		if d.Key == key {
+		if d.key == key {
 			return d
 		}
 	}
@@ -37,11 +50,12 @@ func (c *Client) GetDynamicLightByKey(key int) *DynamicLight {
 func (c *Client) GetFreeDynamicLight() *DynamicLight {
 	for i := range c.dynamicLights {
 		d := &c.dynamicLights[i]
-		if d.DieTime < c.time {
+		if d.dieTime < c.time {
 			return d
 		}
 	}
-	return &c.dynamicLights[0]
+	c.dynamicLights = append(c.dynamicLights, DynamicLight{})
+	return &c.dynamicLights[len(c.dynamicLights)-1]
 }
 
 func (c *Client) clearDLights() {
@@ -53,15 +67,18 @@ func (c *Client) clearDLights() {
 }
 
 func (d *DynamicLight) Sync() {
-	d.ptr.origin[0] = C.float(d.Origin[0])
-	d.ptr.origin[1] = C.float(d.Origin[1])
-	d.ptr.origin[2] = C.float(d.Origin[2])
-	d.ptr.radius = C.float(d.Radius)
-	d.ptr.die = C.float(d.DieTime)
-	d.ptr.minlight = C.float(d.MinLight)
-	d.ptr.color[0] = C.float(d.Color[0])
-	d.ptr.color[1] = C.float(d.Color[1])
-	d.ptr.color[2] = C.float(d.Color[2])
+	if d.ptr == nil {
+		return
+	}
+	d.ptr.origin[0] = C.float(d.origin[0])
+	d.ptr.origin[1] = C.float(d.origin[1])
+	d.ptr.origin[2] = C.float(d.origin[2])
+	d.ptr.radius = C.float(d.radius)
+	d.ptr.die = C.float(d.dieTime)
+	d.ptr.minlight = C.float(d.minLight)
+	d.ptr.color[0] = C.float(d.color[0])
+	d.ptr.color[1] = C.float(d.color[1])
+	d.ptr.color[2] = C.float(d.color[2])
 }
 
 //export CL_Dlight
@@ -73,24 +90,77 @@ func (c *Client) DecayLights() {
 	t := cl.time - cl.oldTime
 	for i := range c.dynamicLights {
 		dl := &c.dynamicLights[i]
-		if dl.DieTime < t || dl.Radius == 0 {
+		if dl.dieTime < t || dl.radius == 0 {
 			continue
 		}
-		dl.Radius -= float32(t) * dl.Decay
-		if dl.Radius < 0 {
-			dl.Radius = 0
+		dl.radius -= float32(t) * dl.decay
+		if dl.radius < 0 {
+			dl.radius = 0
 		}
 		dl.Sync()
 	}
 }
 
-//export R_MarkLights
-func R_MarkLights(node *C.mnode_t) {
+//export R_PushDlights
+func R_PushDlights() {
+	// Is this even necessary? It feels like DrawBrushModel would do this as well.
+	if cvars.GlFlashBlend.Bool() {
+		return
+	}
+	markLights(cl.worldModel.Node)
+}
+
+func markLights(node bsp.Node) {
 	for i := range cl.dynamicLights {
 		dl := &cl.dynamicLights[i]
-		if dl.DieTime < cl.time || dl.Radius == 0 {
+		if dl.dieTime < cl.time || dl.radius == 0 {
 			continue
 		}
-		C.R_MarkLight(dl.ptr, C.int(i), node)
+		markLight(dl, i, node)
 	}
+}
+
+func markLight(dl *DynamicLight, num int, node bsp.Node) {
+	switch n := node.(type) {
+	case *bsp.MNode:
+		markLight2(dl, num, n)
+	}
+}
+
+func markLight2(dl *DynamicLight, num int, node *bsp.MNode) {
+	sp := node.Plane
+	var dist float32
+	if sp.Type < 3 {
+		dist = dl.origin[sp.Type] - sp.Dist
+	} else {
+		dist = vec.Dot(dl.origin, sp.Normal) - sp.Dist
+	}
+	if dist > dl.radius {
+		markLight(dl, num, node.Children[0])
+		return
+	}
+	if dist < -dl.radius {
+		markLight(dl, num, node.Children[1])
+		return
+	}
+	markLight3(dl, num, node, dist)
+}
+
+func markLight3(dl *DynamicLight, num int, node *bsp.MNode, dist float32) {
+	maxDist := dl.radius * dl.radius
+	for i := range node.Surfaces {
+		surf := node.Surfaces[i]
+		impact := vec.Sub(dl.origin, (vec.Scale(dist, surf.Plane.Normal)))
+		s := surf.LightImpactCenter(impact, bsp.S)
+		t := surf.LightImpactCenter(impact, bsp.T)
+		if s*s+t*t+dist*dist < maxDist {
+			for num >= len(surf.DLightBits) {
+				surf.DLightBits = append(surf.DLightBits, make([]bool, 8)...)
+			}
+			surf.DLightBits[num] = true
+			surf.DLightFrame = renderer.lightFrameCount
+		}
+	}
+	markLight(dl, num, node.Children[0])
+	markLight(dl, num, node.Children[1])
 }

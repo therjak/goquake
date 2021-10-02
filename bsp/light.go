@@ -3,6 +3,7 @@
 package bsp
 
 import (
+	"goquake/math"
 	"goquake/math/vec"
 )
 
@@ -52,14 +53,14 @@ func (m *Model) recursiveLight(s *LightStyles, node Node, start, end vec.Vec3, c
 			continue
 		}
 		ti := surface.TexInfo
-		ds := int(vec.DoublePrecDot(mid, ti.Vecs[0].Pos) + float64(ti.Vecs[0].Offset))
-		dt := int(vec.DoublePrecDot(mid, ti.Vecs[1].Pos) + float64(ti.Vecs[1].Offset))
+		ds := int(vec.DoublePrecDot(mid, ti.Vecs[S].Pos) + float64(ti.Vecs[S].Offset))
+		dt := int(vec.DoublePrecDot(mid, ti.Vecs[T].Pos) + float64(ti.Vecs[T].Offset))
 		if ds < surface.textureMins[0] || dt < surface.textureMins[1] {
 			continue
 		}
 		ds -= surface.textureMins[0]
 		dt -= surface.textureMins[1]
-		if ds > surface.extents[0] || dt > surface.extents[1] {
+		if ds > surface.extents[S] || dt > surface.extents[T] {
 			continue
 		}
 		if len(surface.LightSamples) > 0 {
@@ -68,8 +69,8 @@ func (m *Model) recursiveLight(s *LightStyles, node Node, start, end vec.Vec3, c
 			dtfrac := dt & 15
 			ds >>= 4
 			dt >>= 4
-			es := surface.extents[0] >> 4
-			et := surface.extents[1] >> 4
+			es := surface.extents[S] >> 4
+			et := surface.extents[T] >> 4
 			lineLength := (es + 1) * 3
 			rowLength := et + 1
 			// We want to interpolate and on the far right/bottom we can not read
@@ -126,4 +127,11 @@ func (m *Model) LightAt(p vec.Vec3, s *LightStyles) vec.Vec3 {
 	color := vec.Vec3{0, 0, 0}
 	m.recursiveLight(s, m.Node, p, end, &color)
 	return color
+}
+
+func (s *Surface) LightImpactCenter(impact vec.Vec3, st ST) float32 {
+	v := s.TexInfo.Vecs[st]
+	// clamp center of light to corner and check brightness
+	l := vec.Dot(impact, v.Pos) + v.Offset - float32(s.textureMins[st])
+	return l - math.Clamp32(0, l+0.5, float32(s.extents[st]))
 }

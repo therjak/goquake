@@ -64,7 +64,7 @@ func TexMgrLoadLightMapImage(owner *C.qmodel_t, name *C.char, width C.int,
 		texture.TexPref(flags), C.GoString(name), texture.ColorTypeLightmap, d)
 
 	textureManager.addActiveTexture(t)
-	textureManager.loadLightMap(t, d)
+	textureManager.loadLightMap(t)
 	texmap[t.ID()] = t
 	return uint32(t.ID())
 }

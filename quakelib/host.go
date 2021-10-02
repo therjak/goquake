@@ -291,6 +291,7 @@ func hostFrame() {
 	defer func() {
 		// TODO(therjak): find a way to remove this recover
 		// Its only needed use case for when the case the server disconnects
+		return
 		if r := recover(); r != nil {
 			frameCount = 0
 			// something bad happened, or the server disconnected

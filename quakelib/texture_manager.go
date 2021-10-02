@@ -331,7 +331,7 @@ func (tm *texMgr) ReloadImage(t *texture.Texture) {
 	case texture.ColorTypeRGBA:
 		tm.loadRGBA(t, t.Data)
 	case texture.ColorTypeLightmap:
-		tm.loadLightMap(t, t.Data)
+		tm.loadLightMap(t)
 	}
 }
 
@@ -516,10 +516,10 @@ func (tm *texMgr) loadRGBA(t *texture.Texture, data []byte) {
 	tm.SetFilterModes(t)
 }
 
-func (tm *texMgr) loadLightMap(t *texture.Texture, data []byte) {
+func (tm *texMgr) loadLightMap(t *texture.Texture) {
 	tm.Bind(t)
 	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, t.Width, t.Height,
-		0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(data))
+		0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(t.Data))
 	tm.SetFilterModes(t)
 }
 
