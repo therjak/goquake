@@ -229,7 +229,20 @@ func NewVirtualMachine() *virtualMachine {
 
 		v.setSpawnParms,
 		// 2021 release
-		v.finaleFinished, // void() finaleFinished = # 79
+		v.finaleFinished, // float() finaleFinished = # 79
+		v.fixme,          // void localsound (entity client, string sample) = #80
+		v.fixme,          // void draw_point (vector point, float colormap, float lifetime, float depthtest) = #81
+		v.fixme,          // void draw_line (vector start, vector end, float colormap, float lifetime, float depthtest) = #82
+		v.fixme,          // void draw_arrow (vector start, vector end, float colormap, float size, float lifetime, float depthtest) = #83
+		v.fixme,          // void draw_ray (vector start, vector direction, float length, float colormap, float size, float lifetime, float depthtest) = #84
+		v.fixme,          // void draw_circle (vector origin, float radius, float colormap, float lifetime, float depthtest) = #85
+		v.fixme,          // void draw_bounds (vector min, vector max, float colormap, float lifetime, float depthtest) = #86
+		v.fixme,          // void draw_worldtext (string s, vector origin, float size, float lifetime, float depthtest) = #87
+		v.fixme,          // void draw_sphere (vector origin, float radius, float colormap, float lifetime, float depthtest) = #88
+		v.fixme,          // void draw_cylinder (vector origin, float halfHeight, float radius, float colormap, float lifetime, float depthtest) = #89
+		v.centerPrint,    // #90
+		v.bprint,
+		v.sprint,
 	}
 	return v
 }
