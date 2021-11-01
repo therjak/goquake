@@ -31,7 +31,8 @@ void R_ClearTextureChains(qmodel_t *mod, texchain_t chain) {
 
   // set all chains to null
   for (i = 0; i < mod->numtextures; i++)
-    if (mod->textures[i]) mod->textures[i]->texturechains[chain] = NULL;
+    if (mod->textures[i])
+      mod->textures[i]->texturechains[chain] = NULL;
 
   // clear lightmap chains
   memset(lightmap_polys, 0, sizeof(lightmap_polys));
@@ -69,7 +70,8 @@ void R_MarkSurfaces(void) {
   nearwaterportal = false;
   for (i = 0, mark = r_viewleaf->firstmarksurface;
        i < r_viewleaf->nummarksurfaces; i++, mark++)
-    if ((*mark)->flags & SURF_DRAWTURB) nearwaterportal = true;
+    if ((*mark)->flags & SURF_DRAWTURB)
+      nearwaterportal = true;
 
   // choose vis data
   if (Cvar_GetValue(&r_novis) || r_viewleaf->contents == CONTENTS_SOLID ||
@@ -115,7 +117,7 @@ void R_MarkSurfaces(void) {
     if (cl.worldmodel->textures[i])
       cl.worldmodel->textures[i]->texturechains[chain_world] = NULL;
 
-      // rebuild chains
+  // rebuild chains
 
   // iterate through surfaces one node at a time to rebuild chains
   // need to do it this way if we want to work with tyrann's skip removal tool
@@ -158,7 +160,8 @@ qboolean R_BackFaceCull(msurface_t *surf) {
       break;
   }
 
-  if ((dot < 0) ^ !!(surf->flags & SURF_PLANEBACK)) return true;
+  if ((dot < 0) ^ !!(surf->flags & SURF_PLANEBACK))
+    return true;
 
   return false;
 }
@@ -179,7 +182,8 @@ void R_CullSurfaces(void) {
   for (i = 0; i < cl.worldmodel->numtextures; i++) {
     t = cl.worldmodel->textures[i];
 
-    if (!t || !t->texturechains[chain_world]) continue;
+    if (!t || !t->texturechains[chain_world])
+      continue;
 
     for (s = t->texturechains[chain_world]; s; s = s->texturechain) {
       if (R_CullBox(s->mins, s->maxs) || R_BackFaceCull(s))
@@ -215,10 +219,12 @@ void R_BuildLightmapChains(qmodel_t *model, texchain_t chain) {
   for (i = 0; i < model->numtextures; i++) {
     t = model->textures[i];
 
-    if (!t || !t->texturechains[chain]) continue;
+    if (!t || !t->texturechains[chain])
+      continue;
 
     for (s = t->texturechains[chain]; s; s = s->texturechain)
-      if (!s->culled) R_RenderDynamicLightmaps(s);
+      if (!s->culled)
+        R_RenderDynamicLightmaps(s);
   }
 }
 
@@ -269,7 +275,8 @@ void R_DrawTextureChains_Drawflat(qmodel_t *model, texchain_t chain) {
 
   for (i = 0; i < model->numtextures; i++) {
     t = model->textures[i];
-    if (!t) continue;
+    if (!t)
+      continue;
 
     if (Cvar_GetValue(&r_oldwater) && t->texturechains[chain] &&
         (t->texturechains[chain]->flags & SURF_DRAWTURB)) {
@@ -370,7 +377,9 @@ static unsigned int num_vbo_indices;
 R_ClearBatch
 ================
 */
-static void R_ClearBatch() { num_vbo_indices = 0; }
+static void R_ClearBatch() {
+  num_vbo_indices = 0;
+}
 
 /*
 ================
@@ -400,62 +409,11 @@ static void R_BatchSurface(msurface_t *s) {
 
   num_surf_indices = R_NumTriangleIndicesForSurf(s);
 
-  if (num_vbo_indices + num_surf_indices > MAX_BATCH_SIZE) R_FlushBatch();
+  if (num_vbo_indices + num_surf_indices > MAX_BATCH_SIZE)
+    R_FlushBatch();
 
   R_TriangleIndicesForSurf(s, &vbo_indices[num_vbo_indices]);
   num_vbo_indices += num_surf_indices;
-}
-
-/*
-================
-R_DrawTextureChains_Multitexture -- johnfitz
-================
-*/
-void R_DrawTextureChains_Multitexture(qmodel_t *model, entity_t *ent,
-                                      texchain_t chain) {
-  int i, j;
-  msurface_t *s;
-  texture_t *t;
-  float *v;
-  qboolean bound;
-
-  for (i = 0; i < model->numtextures; i++) {
-    t = model->textures[i];
-
-    if (!t || !t->texturechains[chain] ||
-        t->texturechains[chain]->flags & (SURF_DRAWTILED | SURF_NOTEXTURE))
-      continue;
-
-    bound = false;
-    for (s = t->texturechains[chain]; s; s = s->texturechain)
-      if (!s->culled) {
-        if (!bound)  // only bind once we are sure we need this texture
-        {
-          GLBind(
-              (R_TextureAnimation(t, ent != NULL ? ent->frame : 0))->gltexture);
-
-          if (t->texturechains[chain]->flags & SURF_DRAWFENCE)
-            glEnable(GL_ALPHA_TEST);  // Flip alpha test back on
-
-          GLEnableMultitexture();  // selects TEXTURE1
-          bound = true;
-        }
-        GLBind(lightmap_textures[s->lightmaptexturenum]);
-        glBegin(GL_POLYGON);
-        v = s->polys->verts[0];
-        for (j = 0; j < s->polys->numverts; j++, v += VERTEXSIZE) {
-          glMultiTexCoord2f(GL_TEXTURE0, v[3], v[4]);
-          glMultiTexCoord2f(GL_TEXTURE1, v[5], v[6]);
-          glVertex3fv(v);
-        }
-        glEnd();
-        rs_brushpasses++;
-      }
-    GLDisableMultitexture();  // selects TEXTURE0
-
-    if (bound && t->texturechains[chain]->flags & SURF_DRAWFENCE)
-      glDisable(GL_ALPHA_TEST);  // Flip alpha test back off
-  }
 }
 
 /*
@@ -490,48 +448,6 @@ void R_DrawTextureChains_NoTexture(qmodel_t *model, texchain_t chain) {
         DrawGLPoly(s->polys);
         rs_brushpasses++;
       }
-  }
-}
-
-/*
-================
-R_DrawTextureChains_TextureOnly -- johnfitz
-================
-*/
-void R_DrawTextureChains_TextureOnly(qmodel_t *model, entity_t *ent,
-                                     texchain_t chain) {
-  int i;
-  msurface_t *s;
-  texture_t *t;
-  qboolean bound;
-
-  for (i = 0; i < model->numtextures; i++) {
-    t = model->textures[i];
-
-    if (!t || !t->texturechains[chain] ||
-        t->texturechains[chain]->flags & (SURF_DRAWTURB | SURF_DRAWSKY))
-      continue;
-
-    bound = false;
-
-    for (s = t->texturechains[chain]; s; s = s->texturechain)
-      if (!s->culled) {
-        if (!bound)  // only bind once we are sure we need this texture
-        {
-          GLBind(
-              (R_TextureAnimation(t, ent != NULL ? ent->frame : 0))->gltexture);
-
-          if (t->texturechains[chain]->flags & SURF_DRAWFENCE)
-            glEnable(GL_ALPHA_TEST);  // Flip alpha test back on
-
-          bound = true;
-        }
-        DrawGLPoly(s->polys);
-        rs_brushpasses++;
-      }
-
-    if (bound && t->texturechains[chain]->flags & SURF_DRAWFENCE)
-      glDisable(GL_ALPHA_TEST);  // Flip alpha test back off
   }
 }
 
@@ -624,34 +540,6 @@ void R_DrawTextureChains_Water(qmodel_t *model, entity_t *ent,
 
 /*
 ================
-R_DrawTextureChains_White -- johnfitz -- draw sky and water as white polys when
-r_lightmap is 1
-================
-*/
-void R_DrawTextureChains_White(qmodel_t *model, texchain_t chain) {
-  int i;
-  msurface_t *s;
-  texture_t *t;
-
-  glDisable(GL_TEXTURE_2D);
-  for (i = 0; i < model->numtextures; i++) {
-    t = model->textures[i];
-
-    if (!t || !t->texturechains[chain] ||
-        !(t->texturechains[chain]->flags & SURF_DRAWTILED))
-      continue;
-
-    for (s = t->texturechains[chain]; s; s = s->texturechain)
-      if (!s->culled) {
-        DrawGLPoly(s->polys);
-        rs_brushpasses++;
-      }
-  }
-  glEnable(GL_TEXTURE_2D);
-}
-
-/*
-================
 R_DrawLightmapChains -- johnfitz -- R_BlendLightmaps stripped down to almost
 nothing
 ================
@@ -662,7 +550,8 @@ void R_DrawLightmapChains(void) {
   float *v;
 
   for (i = 0; i < MAX_LIGHTMAPS; i++) {
-    if (!lightmap_polys[i]) continue;
+    if (!lightmap_polys[i])
+      continue;
 
     GLBind(lightmap_textures[i]);
     for (p = lightmap_polys[i]; p; p = p->chain) {
@@ -700,7 +589,7 @@ void R_DrawTextureChains_Multitexture_VBO(qmodel_t *model, entity_t *ent,
   // Bind the buffers
   glBindBuffer(GL_ARRAY_BUFFER, gl_bmodel_vbo);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
-                0);  // indices come from client memory!
+               0);  // indices come from client memory!
 
   // Setup vertex array pointers
   glVertexPointer(3, GL_FLOAT, VERTEXSIZE * sizeof(float), ((float *)0));
@@ -769,7 +658,8 @@ void R_DrawTextureChains_Multitexture_VBO(qmodel_t *model, entity_t *ent,
           lastlightmap = s->lightmaptexturenum;
         }
 
-        if (s->lightmaptexturenum != lastlightmap) R_FlushBatch();
+        if (s->lightmaptexturenum != lastlightmap)
+          R_FlushBatch();
 
         GLSelectTexture(GL_TEXTURE1);
         GLBind(lightmap_textures[s->lightmaptexturenum]);
