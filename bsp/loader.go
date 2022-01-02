@@ -800,6 +800,7 @@ func loadTextures(data []byte) ([]*Texture, error) {
 		if offsets[i] == -1 {
 			continue
 		}
+		// TODO(therjak): external textures
 		buf.Seek(int64(offsets[i]), io.SeekStart)
 		if err := binary.Read(buf, binary.LittleEndian, &mTex); err != nil {
 			// Not checked in orig...
@@ -831,9 +832,12 @@ func loadTextures(data []byte) ([]*Texture, error) {
 			}
 			t[i].Data = td
 		}
+		// TODO(therjak): warpimage
 	}
 	t[len(t)-1] = noTextureMip  // lightmapped surfs
 	t[len(t)-2] = noTextureMip2 // SURF_DRAWTILED surfs
+
+	// TODO(therjak): animations
 
 	return t, nil
 }

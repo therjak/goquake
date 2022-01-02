@@ -259,6 +259,13 @@ func (tm *texMgr) Bind(t *texture.Texture) {
 	}
 }
 
+func (tm *texMgr) BindUnit(t *texture.Texture, target uint32) {
+	if t != tm.currentTexture[target-gl.TEXTURE0] {
+		tm.SelectTextureUnit(target)
+		tm.Bind(t)
+	}
+}
+
 func (tm *texMgr) DeleteTextureObjects() {
 	// This only discards all opengl objects. They get recreated
 	// in TexMgrReloadImages

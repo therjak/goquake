@@ -62,6 +62,7 @@ type qBrushDrawer struct {
 	alpha         int32
 	fogDensity    int32
 	fogColor      int32
+	vbo_indices   []uint32
 }
 
 func newBrushDrawProgram() (*glh.Program, error) {
@@ -71,7 +72,7 @@ func newBrushDrawProgram() (*glh.Program, error) {
 func newBrushDrawer() *qBrushDrawer {
 	d := &qBrushDrawer{}
 	d.vao = glh.NewVertexArray()
-	// d.ebo
+	d.ebo = glh.NewBuffer(glh.ElementArrayBuffer)
 	d.vbo = glh.NewBuffer(glh.ArrayBuffer)
 	var err error
 	d.prog, err = newBrushDrawProgram()
@@ -89,6 +90,7 @@ func newBrushDrawer() *qBrushDrawer {
 	d.alpha = d.prog.GetUniformLocation("Alpha")
 	d.fogDensity = d.prog.GetUniformLocation("FogDensity")
 	d.fogColor = d.prog.GetUniformLocation("FogColor")
+	d.vbo_indices = make([]uint32, 0, 4096)
 	return d
 }
 
@@ -275,6 +277,7 @@ func (r *qRenderer) drawTextureChainsNoTexture(mv *glh.Matrix, model *bsp.Model,
 }
 
 func (d *qBrushDrawer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *Entity, chain int) {
+	// Compare R_DrawTextureChains_GLSL, recent quakespasm
 	entalpha := float32(1)
 	if e != nil {
 		entalpha = entAlphaDecode(e.Alpha)
@@ -289,7 +292,7 @@ func (d *qBrushDrawer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *En
 
 	d.vao.Bind()
 	d.vbo.Bind()
-	// d.ebo.Bind()
+	d.ebo.Bind()
 	// gl.bindbuffer(gl.ARRAY_BUFFER, gl_bmodel_vbo)
 	// gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, 0)
 
@@ -306,7 +309,7 @@ func (d *qBrushDrawer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *En
 	gl.Uniform1i(d.tex, 0) // Match gl.TEXTRUE0, see below
 	gl.Uniform1i(d.lmTex, 1)
 	gl.Uniform1i(d.fullBrightTex, 2)
-	gl.Uniform1i(d.useFullBright, 0)
+	gl.Uniform1i(d.useFullBright, 0) // remove? gets overwritten below
 	var useOverBright int32
 	if cvars.GlOverBrightModels.Bool() {
 		useOverBright = 1
@@ -321,36 +324,73 @@ func (d *qBrushDrawer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *En
 
 	for _, t := range model.Textures {
 		if t == nil ||
-			t.TextureChains[chain] == nil ||
-			t.TextureChains[chain].Flags&bsp.SurfaceNoTexture == 0 {
+			t.TextureChains[chain] == nil || // Flags&SURF_DRAWTILED?
+			t.TextureChains[chain].Flags&bsp.SurfaceNoTexture != 0 {
 			continue
+		}
 
-			// TODO
+		frame := 0
+		if e != nil {
+			frame = e.Frame
+		}
 
-			bound := false
-			for s := t.TextureChains[chain]; s != nil; s = s.TextureChain {
-				if s.Culled {
-					continue
-				}
-				// TODO
-				if !bound {
-					t.Texture.Bind()
-					bound = true
-				}
-				// TODO
-				// textureManager.SelectTextureUnit(gl.TEXTURE0)
-				// textureManager.Bind(tx) // base texture
-				// textureManager.SelectTextureUnit(gl.TEXTURE1)
-				// textureManager.Bind(lmtx) // lightmap
-				// textureManager.SelectTextureUnit(gl.TEXTURE2)
-				// textureManager.Bind(fbtx) // fullbright
+		bound := false
+		var lastLightmap *texture.Texture
+		for s := t.TextureChains[chain]; s != nil; s = s.TextureChain {
+			if s.Culled {
+				continue
 			}
+			if !bound {
+				ani := textureAnimation(t, frame)
+				textureManager.BindUnit(ani.Texture, gl.TEXTURE0)
+				if cvars.GlFullBrights.Bool() && ani.Fullbright != nil {
+					textureManager.BindUnit(ani.Fullbright, gl.TEXTURE2)
+					gl.Uniform1i(d.useFullBright, 1)
+				} else {
+					gl.Uniform1i(d.useFullBright, 0)
+				}
+
+				bound = true
+				lastLightmap = s.LightmapTexture
+			}
+
+			if lastLightmap != s.LightmapTexture {
+				if len(d.vbo_indices) > 0 {
+					// TODO: this handling of ebo needs improvement
+					d.ebo.SetData(4*len(d.vbo_indices), gl.Ptr(d.vbo_indices))
+					gl.DrawElements(gl.TRIANGLES, int32(len(d.vbo_indices)), gl.UNSIGNED_INT, gl.PtrOffset(0))
+					d.vbo_indices = d.vbo_indices[:0]
+				}
+			}
+			textureManager.BindUnit(s.LightmapTexture, gl.TEXTURE1)
+			lastLightmap = s.LightmapTexture
+
+			for i := 2; i < s.NumEdges; i++ {
+				d.vbo_indices = append(d.vbo_indices,
+					uint32(s.VboFirstVert),
+					uint32(s.VboFirstVert+i-1),
+					uint32(s.VboFirstVert+i))
+			}
+		}
+		if len(d.vbo_indices) > 0 {
+			// TODO: this handling of ebo needs improvement
+			d.ebo.SetData(4*len(d.vbo_indices), gl.Ptr(d.vbo_indices))
+			gl.DrawElements(gl.TRIANGLES, int32(len(d.vbo_indices)), gl.UNSIGNED_INT, gl.PtrOffset(0))
+			d.vbo_indices = d.vbo_indices[:0]
 		}
 	}
 	textureManager.SelectTextureUnit(gl.TEXTURE0)
 
 	// Enable the fixed function pipeline again. Remove after all draw stuff is modern
 	gl.UseProgram(0)
+}
+
+func textureAnimation(t *bsp.Texture, frame int) *bsp.Texture {
+	// TODO: alternate_anims
+	// TODO: base anims
+	// relative = cl.time*10 % anim_total
+	// return anims[relative]
+	return t
 }
 
 func (r *qRenderer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *Entity, chain int) {

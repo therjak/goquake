@@ -155,6 +155,7 @@ type Surface struct {
 
 	TexInfo *TexInfo
 
+	// This is not actually static model data but metadata for the renderer
 	VboFirstVert int // index of this surface's first vert in the VBO
 
 	// old MAX_DLIGHTS == 64
