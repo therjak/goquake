@@ -17,6 +17,7 @@ import (
 	"goquake/mdl"
 	"goquake/model"
 	"goquake/spr"
+	"goquake/texture"
 )
 
 var (
@@ -80,6 +81,15 @@ func setExtraFlags(m model.Model) {
 	}
 }
 
+func checkFullbrights(data []byte) bool {
+	for _, d := range data {
+		if d > 223 {
+			return true
+		}
+	}
+	return false
+}
+
 func loadTextures(m model.Model) {
 	switch mt := m.(type) {
 	case *spr.Model:
@@ -103,6 +113,60 @@ func loadTextures(m model.Model) {
 			}
 		}
 	case *bsp.Model:
+		for _, t := range mt.Textures {
+			// THIS SHOULD MOSTLY MOVE INTO bsp/loader
+			// Warp is missing
+
+			// we have bsp texture data in t.Data []byte
+			// t.Texture, t.Fullbright and t.Warp are still nil
+
+			// Bad hack
+			if strings.HasPrefix(t.Name(), "sky") {
+				// it is currently handled in CL_ParseServerInfo but shouldn't
+				continue
+			}
+			if len(t.Data) == 0 {
+				continue
+			}
+
+			var extra texture.TexPref
+			if strings.HasPrefix(t.Name(), "{") {
+				extra = texture.TexPrefAlpha
+			}
+
+			if checkFullbrights(t.Data) {
+				tName := fmt.Sprintf("%s:%s", mt.Name(), t.Name())
+				t.Texture = texture.NewTexture(
+					int32(t.Width),
+					int32(t.Height),
+					texture.TexPrefMipMap|texture.TexPrefNoBright|extra,
+					tName,
+					texture.ColorTypeIndexed,
+					t.Data)
+				textureManager.addActiveTexture(t.Texture)
+				textureManager.loadIndexed(t.Texture, t.Texture.Data)
+				fbName := fmt.Sprintf("%s:%s_glow", mt.Name(), t.Name())
+				t.Fullbright = texture.NewTexture(
+					int32(t.Width),
+					int32(t.Height),
+					texture.TexPrefMipMap|texture.TexPrefFullBright|extra,
+					fbName,
+					texture.ColorTypeIndexed,
+					t.Data)
+				textureManager.addActiveTexture(t.Fullbright)
+				textureManager.loadIndexed(t.Fullbright, t.Fullbright.Data)
+			} else {
+				t.Texture = texture.NewTexture(
+					int32(t.Width),
+					int32(t.Height),
+					texture.TexPrefMipMap|extra,
+					t.Name(),
+					texture.ColorTypeIndexed,
+					t.Data)
+				textureManager.addActiveTexture(t.Texture)
+				textureManager.loadIndexed(t.Texture, t.Texture.Data)
+			}
+		}
 		for _, s := range mt.Surfaces {
 			if s.LightmapTexture != nil {
 				textureManager.addActiveTexture(s.LightmapTexture)
