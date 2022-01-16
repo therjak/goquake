@@ -11,6 +11,7 @@ import (
 	"goquake/cvars"
 	"goquake/glh"
 	"goquake/math/vec"
+	"goquake/palette"
 
 	"github.com/chewxy/math32"
 	"github.com/go-gl/gl/v4.6-core/gl"
@@ -113,9 +114,9 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 
 		ci := p.color * 4
 		c := vec.Vec3{
-			float32(palette.table[ci]) / 255,
-			float32(palette.table[ci+1]) / 255,
-			float32(palette.table[ci+2]) / 255,
+			float32(palette.Table[ci]) / 255,
+			float32(palette.Table[ci+1]) / 255,
+			float32(palette.Table[ci+2]) / 255,
 		}
 		numVert += 3
 

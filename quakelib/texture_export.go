@@ -12,6 +12,7 @@ import (
 	"unsafe"
 
 	"goquake/glh"
+	"goquake/palette"
 	"goquake/texture"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
@@ -113,13 +114,16 @@ func TexMgrFreeTexturesForOwner(owner *C.qmodel_t) {
 
 //export D8To24Table
 func D8To24Table(i, p int) byte {
-	return palette.table[i*4+p]
+	return palette.Table[i*4+p]
 }
 
 func textureManagerInit() {
 	gl.GetFloatv(gl.MAX_TEXTURE_MAX_ANISOTROPY, &textureManager.maxAnisotropy)
 	gl.GetIntegerv(gl.MAX_TEXTURE_SIZE, &textureManager.maxTextureSize)
-	palette.Init()
+	err := palette.Init()
+	if err != nil {
+		Error(err.Error())
+	}
 	textureManager.RecalcWarpImageSize(screen.Width, screen.Height)
 	nullTexture = textureManager.LoadNoTex("nulltexture", 2, 2, []byte{
 		127, 191, 255, 255, 0, 0, 0, 255,

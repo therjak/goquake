@@ -52,6 +52,13 @@ const (
 	T
 )
 
+type Color struct {
+	R float32
+	G float32
+	B float32
+	A float32
+}
+
 type Plane struct {
 	Normal   vec.Vec3
 	Dist     float32
@@ -191,6 +198,9 @@ type Texture struct {
 	Texture       *texture.Texture
 	Fullbright    *texture.Texture
 	Warp          *texture.Texture
+	SolidSky      *texture.Texture
+	AlphaSky      *texture.Texture
+	FlatSky       Color
 	UpdateWarp    bool
 	TextureChains [2]*Surface
 	// AnimTotal int

@@ -21,8 +21,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/chewxy/math32"
-	"github.com/go-gl/gl/v4.6-core/gl"
 	"goquake/bsp"
 	"goquake/cmd"
 	"goquake/conlog"
@@ -31,6 +29,9 @@ import (
 	"goquake/glh"
 	"goquake/math/vec"
 	"goquake/texture"
+
+	"github.com/chewxy/math32"
+	"github.com/go-gl/gl/v4.6-core/gl"
 )
 
 func init() {
@@ -168,47 +169,22 @@ func (s *qSky) LoadBox(name string) {
 	}
 }
 
-func (s *qSky) LoadTexture(d []byte, skyName, modelName string) {
-	// d is a 256*128 texture with the left side being a masked overlay
-	// What a mess. It would be better to have the overlay at the bottom.
-	front := [128 * 128]byte{}
-	back := [128 * 128]byte{}
-	var r, g, b, count int
-	for i := 0; i < 128; i++ {
-		for j := 0; j < 128; j++ {
-			sidx := i*256 + j
-			didx := i*128 + j
-			p := d[sidx]
-			if p == 0 {
-				front[didx] = 255
-			} else {
-				front[didx] = p
-				pixel := palette.table[p*4 : p*4+4]
-				r += int(pixel[0])
-				g += int(pixel[1])
-				b += int(pixel[2])
-				count++ // only count opaque colors
-			}
-			back[didx] = d[sidx+128]
-		}
-	}
-	fn := fmt.Sprintf("%s:%s_front", modelName, skyName)
-	bn := fmt.Sprintf("%s:%s_back", modelName, skyName)
+func (s *qSky) LoadTexture(t *bsp.Texture) {
 
-	s.solidTexture = textureManager.LoadSkyTexture(bn, back[:], texture.TexPrefNone)
+	s.solidTexture = t.SolidSky
 	textureManager.Bind(s.solidTexture)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
 
-	s.alphaTexture = textureManager.LoadSkyTexture(fn, front[:], texture.TexPrefAlpha)
+	s.alphaTexture = t.AlphaSky
 	textureManager.Bind(s.alphaTexture)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
 
 	s.flat = Color{
-		R: float32(r) / (float32(count) * 255),
-		G: float32(g) / (float32(count) * 255),
-		B: float32(b) / (float32(count) * 255),
+		R: t.FlatSky.R,
+		G: t.FlatSky.G,
+		B: t.FlatSky.B,
 	}
 
 	texmap[s.solidTexture.ID()] = s.solidTexture

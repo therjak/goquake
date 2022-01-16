@@ -85,7 +85,7 @@ func load(name string, data []byte) ([]*Model, error) {
 			return nil, err
 		}
 		mod.SurfaceEdges = surfaceEdges
-		textures, err := loadTextures(fs(h.Textures, data))
+		textures, err := loadTextures(fs(h.Textures, data), name)
 		if err != nil {
 			return nil, err
 		}
@@ -775,7 +775,7 @@ var (
 	}
 )
 
-func loadTextures(data []byte) ([]*Texture, error) {
+func loadTextures(data []byte, modelName string) ([]*Texture, error) {
 	type mipTex struct {
 		Name    [16]byte
 		Width   uint32
@@ -823,14 +823,14 @@ func loadTextures(data []byte) ([]*Texture, error) {
 			if _, err := buf.Read(td); err != nil {
 				return nil, fmt.Errorf("Texture %s not enough bytes", name)
 			}
-			t[i].Data = td
+			t[i].loadSkyTexture(td, name, modelName)
 		default:
 			// just put the bsp texture data into Data
 			td := make([]byte, t[i].Width*t[i].Height)
 			if _, err := buf.Read(td); err != nil {
 				return nil, fmt.Errorf("Texture %s not enough bytes", name)
 			}
-			t[i].Data = td
+			t[i].loadBspTexture(td, name, modelName)
 		}
 		// TODO(therjak): warpimage
 	}

@@ -12,6 +12,7 @@ import (
 	"goquake/cvars"
 	"goquake/glh"
 	"goquake/image"
+	"goquake/palette"
 	"goquake/texture"
 	"goquake/wad"
 
@@ -158,13 +159,6 @@ func (tm *texMgr) loadParticleImage(name string, width, height int32, data []byt
 		name, texture.ColorTypeRGBA, data)
 	tm.addActiveTexture(t)
 	tm.loadRGBA(t, data)
-	return t
-}
-
-func (tm *texMgr) LoadSkyTexture(n string, d []byte, flags texture.TexPref) *texture.Texture {
-	t := texture.NewTexture(128, 128, flags, n, texture.ColorTypeIndexed, d)
-	tm.addActiveTexture(t)
-	tm.loadIndexed(t, d)
 	return t
 }
 
@@ -534,17 +528,17 @@ func (tm *texMgr) loadIndexed(t *texture.Texture, data []byte) {
 	var p *[256 * 4]byte
 	switch {
 	case t.Flags(texture.TexPrefFullBright) && t.Flags(texture.TexPrefAlpha):
-		p = &palette.tableFullBrightFence
+		p = &palette.TableFullBrightFence
 	case t.Flags(texture.TexPrefFullBright):
-		p = &palette.tableFullBright
+		p = &palette.TableFullBright
 	case t.Flags(texture.TexPrefNoBright) && t.Flags(texture.TexPrefAlpha):
-		p = &palette.tableNoBrightFence
+		p = &palette.TableNoBrightFence
 	case t.Flags(texture.TexPrefNoBright):
-		p = &palette.tableNoBright
+		p = &palette.TableNoBright
 	case t.Flags(texture.TexPrefConChars):
-		p = &palette.tableConsoleChars
+		p = &palette.TableConsoleChars
 	default:
-		p = &palette.table
+		p = &palette.Table
 	}
 	nd := make([]byte, 0, len(data)*4)
 	// TODO(therjak): add workaround for 'shot1sid' texture

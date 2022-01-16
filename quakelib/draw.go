@@ -11,12 +11,14 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/go-gl/gl/v4.6-core/gl"
 	"goquake/cvars"
 	"goquake/filesystem"
 	"goquake/glh"
+	"goquake/palette"
 	"goquake/texture"
 	"goquake/wad"
+
+	"github.com/go-gl/gl/v4.6-core/gl"
 )
 
 type canvas int
@@ -462,9 +464,9 @@ func DrawFadeScreen() {
 
 func DrawFill(x, y, w, h int, c int, alpha float32) {
 	col := Color{
-		R: float32(palette.table[c*4]) / 255,
-		G: float32(palette.table[c*4+1]) / 255,
-		B: float32(palette.table[c*4+2]) / 255,
+		R: float32(palette.Table[c*4]) / 255,
+		G: float32(palette.Table[c*4+1]) / 255,
+		B: float32(palette.Table[c*4+2]) / 255,
 		A: alpha,
 	}
 	qRecDrawer.Draw(float32(x), float32(y), float32(w), float32(h), col)

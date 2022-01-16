@@ -287,7 +287,7 @@ func CL_ParseServerInfo(si *protos.ServerInfo) {
 	cl.worldModel, _ = cl.modelPrecache[0].(*bsp.Model)
 	for _, t := range cl.worldModel.Textures {
 		if t != nil && strings.HasPrefix(t.Name(), "sky") {
-			sky.LoadTexture(t.Data, t.Name(), cl.mapName)
+			sky.LoadTexture(t)
 		}
 	}
 
