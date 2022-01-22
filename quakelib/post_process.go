@@ -2,9 +2,10 @@
 package quakelib
 
 import (
-	"github.com/go-gl/gl/v4.6-core/gl"
 	"goquake/glh"
 	"goquake/math"
+
+	"github.com/go-gl/gl/v4.6-core/gl"
 )
 
 type postProcess struct {
@@ -83,8 +84,8 @@ func (p *postProcess) Draw(gamma, contrast float32, width, height int32) {
 	defer gl.DisableVertexAttribArray(0)
 	gl.EnableVertexAttribArray(1)
 	defer gl.DisableVertexAttribArray(1)
-	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 4*4, gl.PtrOffset(0))
-	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 4*4, gl.PtrOffset(2*4))
+	gl.VertexAttribPointerWithOffset(0, 2, gl.FLOAT, false, 4*4, 0)
+	gl.VertexAttribPointerWithOffset(1, 2, gl.FLOAT, false, 4*4, 2*4)
 	gl.Uniform1f(p.gamma, gamma)
 	gl.Uniform1f(p.contrast, contrast)
 	gl.Disable(gl.DEPTH_TEST)

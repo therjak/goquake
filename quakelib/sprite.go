@@ -4,11 +4,12 @@ package quakelib
 import (
 	"log"
 
-	"github.com/chewxy/math32"
-	"github.com/go-gl/gl/v4.6-core/gl"
 	"goquake/glh"
 	"goquake/math/vec"
 	"goquake/spr"
+
+	"github.com/chewxy/math32"
+	"github.com/go-gl/gl/v4.6-core/gl"
 )
 
 func newSpriteDrawProgram() (*glh.Program, error) {
@@ -131,8 +132,8 @@ func (r *qRenderer) DrawSpriteModel(e *Entity, m *spr.Model) {
 	gl.EnableVertexAttribArray(1)
 	defer gl.DisableVertexAttribArray(1)
 
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 4*5, gl.PtrOffset(0))
-	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 4*5, gl.PtrOffset(3*4))
+	gl.VertexAttribPointerWithOffset(0, 3, gl.FLOAT, false, 4*5, 0)
+	gl.VertexAttribPointerWithOffset(1, 2, gl.FLOAT, false, 4*5, 3*4)
 
 	view.projection.SetAsUniform(spriteDrawer.projection)
 	view.modelView.SetAsUniform(spriteDrawer.modelview)

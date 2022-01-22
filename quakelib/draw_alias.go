@@ -283,13 +283,13 @@ func drawAliasFrame(m *mdl.Model, ld *lerpData, tx, fb *texture.Texture, e *Enti
 	// 4*uint8 + 4*int8, for each pose and vertex
 	// 2*float32 for each vertex
 
-	p1 := ld.pose1 * m.VerticeCount * 8
-	p2 := ld.pose2 * m.VerticeCount * 8
-	gl.VertexAttribPointer(0, 4, gl.UNSIGNED_BYTE, false, 8, gl.PtrOffset(p1))
-	gl.VertexAttribPointer(1, 4, gl.BYTE, true, 8, gl.PtrOffset(p1+4))
-	gl.VertexAttribPointer(2, 4, gl.UNSIGNED_BYTE, false, 8, gl.PtrOffset(p2))
-	gl.VertexAttribPointer(3, 4, gl.BYTE, true, 8, gl.PtrOffset(p2+4))
-	gl.VertexAttribPointer(4, 2, gl.FLOAT, false, 0, gl.PtrOffset(m.STOffset))
+	p1 := uintptr(ld.pose1 * m.VerticeCount * 8)
+	p2 := uintptr(ld.pose2 * m.VerticeCount * 8)
+	gl.VertexAttribPointerWithOffset(0, 4, gl.UNSIGNED_BYTE, false, 8, p1)
+	gl.VertexAttribPointerWithOffset(1, 4, gl.BYTE, true, 8, p1+4)
+	gl.VertexAttribPointerWithOffset(2, 4, gl.UNSIGNED_BYTE, false, 8, p2)
+	gl.VertexAttribPointerWithOffset(3, 4, gl.BYTE, true, 8, p2+4)
+	gl.VertexAttribPointerWithOffset(4, 2, gl.FLOAT, false, 0, uintptr(m.STOffset))
 
 	gl.Uniform1f(aliasDrawer.blend, blend)
 	gl.Uniform3f(aliasDrawer.shadeVec, shadeVec[0], shadeVec[1], shadeVec[2])

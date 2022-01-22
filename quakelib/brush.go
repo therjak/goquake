@@ -302,9 +302,9 @@ func (d *qBrushDrawer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *En
 	defer gl.DisableVertexAttribArray(1)
 	gl.EnableVertexAttribArray(2) // LMCoords
 	defer gl.DisableVertexAttribArray(2)
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 7*4, gl.PtrOffset(0))
-	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 7*4, gl.PtrOffset(3))
-	gl.VertexAttribPointer(2, 2, gl.FLOAT, false, 7*4, gl.PtrOffset(5))
+	gl.VertexAttribPointerWithOffset(0, 3, gl.FLOAT, false, 7*4, 0)
+	gl.VertexAttribPointerWithOffset(1, 2, gl.FLOAT, false, 7*4, 3)
+	gl.VertexAttribPointerWithOffset(2, 2, gl.FLOAT, false, 7*4, 5)
 
 	gl.Uniform1i(d.tex, 0) // Match gl.TEXTRUE0, see below
 	gl.Uniform1i(d.lmTex, 1)

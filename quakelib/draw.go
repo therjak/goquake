@@ -98,7 +98,7 @@ func (d *recDrawer) Draw(x, y, w, h float32, c Color) {
 
 	gl.EnableVertexAttribArray(0)
 	defer gl.DisableVertexAttribArray(0)
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 4*3, gl.PtrOffset(0))
+	gl.VertexAttribPointerWithOffset(0, 3, gl.FLOAT, false, 4*3, 0)
 
 	gl.Uniform4f(d.color, c.R, c.G, c.B, c.A)
 
@@ -159,8 +159,8 @@ func (d *drawer) Draw(x, y, w, h float32, t *texture.Texture) {
 	gl.EnableVertexAttribArray(1)
 	defer gl.DisableVertexAttribArray(1)
 
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 4*5, gl.PtrOffset(0))
-	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 4*5, gl.PtrOffset(3*4))
+	gl.VertexAttribPointerWithOffset(0, 3, gl.FLOAT, false, 4*5, 0)
+	gl.VertexAttribPointerWithOffset(1, 2, gl.FLOAT, false, 4*5, 3*4)
 
 	textureManager.Bind(t)
 
@@ -198,8 +198,8 @@ func (d *drawer) DrawQuad(x, y float32, num byte) {
 	gl.EnableVertexAttribArray(1)
 	defer gl.DisableVertexAttribArray(1)
 
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 4*5, gl.PtrOffset(0))
-	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 4*5, gl.PtrOffset(3*4))
+	gl.VertexAttribPointerWithOffset(0, 3, gl.FLOAT, false, 4*5, 0)
+	gl.VertexAttribPointerWithOffset(1, 2, gl.FLOAT, false, 4*5, 3*4)
 
 	textureManager.Bind(consoleTexture)
 
@@ -504,8 +504,8 @@ func (d *drawer) TileClear(x, y, w, h float32) {
 	gl.EnableVertexAttribArray(1)
 	defer gl.DisableVertexAttribArray(1)
 
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 4*5, gl.PtrOffset(0))
-	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 4*5, gl.PtrOffset(3*4))
+	gl.VertexAttribPointerWithOffset(0, 3, gl.FLOAT, false, 4*5, 0)
+	gl.VertexAttribPointerWithOffset(1, 2, gl.FLOAT, false, 4*5, 3*4)
 
 	color := []float32{1.0, 1.0, 1.0, 1.0}
 	gl.TexParameterfv(gl.TEXTURE_2D, gl.TEXTURE_BORDER_COLOR, &(color[0]))

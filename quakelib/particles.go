@@ -151,9 +151,9 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 	gl.EnableVertexAttribArray(2)
 	defer gl.DisableVertexAttribArray(2)
 
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 4*8, gl.PtrOffset(0))
-	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 4*8, gl.PtrOffset(3*4))
-	gl.VertexAttribPointer(2, 3, gl.FLOAT, false, 4*8, gl.PtrOffset(5*4))
+	gl.VertexAttribPointerWithOffset(0, 3, gl.FLOAT, false, 4*8, 0)
+	gl.VertexAttribPointerWithOffset(1, 2, gl.FLOAT, false, 4*8, 3*4)
+	gl.VertexAttribPointerWithOffset(2, 3, gl.FLOAT, false, 4*8, 5*4)
 
 	view.projection.SetAsUniform(d.projection)
 	view.modelView.SetAsUniform(d.modelview)

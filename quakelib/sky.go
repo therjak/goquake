@@ -413,9 +413,9 @@ func (s *qSky) DrawSkyLayers() {
 	defer gl.DisableVertexAttribArray(1)
 	gl.EnableVertexAttribArray(2)
 	defer gl.DisableVertexAttribArray(2)
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 4*7, gl.PtrOffset(0))   // pos
-	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 4*7, gl.PtrOffset(3*4)) // solidTexPos
-	gl.VertexAttribPointer(2, 2, gl.FLOAT, false, 4*7, gl.PtrOffset(5*4)) // alphaTexPos
+	gl.VertexAttribPointerWithOffset(0, 3, gl.FLOAT, false, 4*7, 0)   // pos
+	gl.VertexAttribPointerWithOffset(1, 2, gl.FLOAT, false, 4*7, 3*4) // solidTexPos
+	gl.VertexAttribPointerWithOffset(2, 2, gl.FLOAT, false, 4*7, 5*4) // alphaTexPos
 
 	view.projection.SetAsUniform(skyDrawer.projection)
 	view.modelView.SetAsUniform(skyDrawer.modelview)
@@ -540,7 +540,7 @@ func (d *qSimpleSkyDrawer) draw(p *bsp.Poly, c Color) {
 
 	gl.EnableVertexAttribArray(0)
 	defer gl.DisableVertexAttribArray(0)
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 4*3, gl.PtrOffset(0)) // pos
+	gl.VertexAttribPointerWithOffset(0, 3, gl.FLOAT, false, 4*3, 0) // pos
 
 	view.projection.SetAsUniform(d.projection)
 	view.modelView.SetAsUniform(d.modelview)
