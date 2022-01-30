@@ -19,6 +19,7 @@ import (
 	"goquake/cbuf"
 	cmdl "goquake/commandline"
 	"goquake/conlog"
+	"goquake/cvar"
 	"goquake/cvars"
 	"goquake/wad"
 	"goquake/window"
@@ -106,11 +107,8 @@ func CallCMain() error {
 		}
 	}
 
-	if cmdl.Dedicated() {
-		runDedicated()
-	} else {
-		runNormal()
-	}
+	r := newRunner(cmdl.Dedicated())
+	r.run()
 	return nil
 }
 
@@ -134,50 +132,124 @@ func init() {
 	quitChan = make(chan bool, 2)
 }
 
-func runDedicated() {
-	oldtime := time.Now()
-	for {
-		select {
-		case <-quitChan:
-			return
-		default:
-			timediff := time.Since(oldtime)
-			oldtime = time.Now()
-			w := time.Duration(cvars.TicRate.Value()*float32(time.Second)) - timediff
-			time.Sleep(w)
+func runWindow() {
+	// If we have no input focus at all, sleep a bit
+	if !window.InputFocus() || cl.paused {
+		time.Sleep(16 * time.Millisecond)
+	}
+	// If we're minimised, sleep a bit more
+	if window.Minimized() {
+		window.SetSkipUpdates(true)
+		time.Sleep(32 * time.Millisecond)
+	} else {
+		window.SetSkipUpdates(false)
+	}
+}
 
-			hostFrame()
+type runner struct {
+	handleWindow func()
+	m            *measure
+}
+
+func newRunner(dedicated bool) *runner {
+	switch dedicated {
+	case true:
+		return &runner{
+			handleWindow: func() {},
+			m:            newMeasure(),
+		}
+	default:
+		return &runner{
+			handleWindow: runWindow,
+			m:            newMeasure(),
 		}
 	}
 }
 
-func runNormal() {
+func (r *runner) run() {
 	oldtime := time.Now()
 	for {
 		select {
 		case <-quitChan:
 			return
 		default:
-			// If we have no input focus at all, sleep a bit
-			if !window.InputFocus() || cl.paused {
-				time.Sleep(16 * time.Millisecond)
-			}
-			// If we're minimised, sleep a bit more
-			if window.Minimized() {
-				window.SetSkipUpdates(true)
-				time.Sleep(32 * time.Millisecond)
-			} else {
-				window.SetSkipUpdates(false)
-			}
-
+			r.handleWindow()
 			timediff := time.Since(oldtime)
 			oldtime = time.Now()
 			if !cls.timeDemo {
 				w := time.Duration(cvars.Throttle.Value()*float32(time.Second)) - timediff
 				time.Sleep(w)
 			}
-
-			hostFrame()
+			r.frame()
 		}
 	}
+}
+
+func (r *runner) frame() {
+	defer func() {
+		// TODO(therjak): find a way to remove this recover
+		// Its only needed use case for when the server disconnects
+		return
+		if rec := recover(); rec != nil {
+			r.m.frameCount = 0
+			// something bad happened, or the server disconnected
+			conlog.Printf("%v\n", rec)
+			return
+		}
+	}()
+	r.m.startMeasure()
+	executeFrame()
+	r.m.endMeasure()
+}
+
+type measure struct {
+	startMeasure        func()
+	endMeasure          func()
+	frameCount          int
+	frameCountStartTime time.Time
+}
+
+func newMeasure() *measure {
+	m := &measure{
+		frameCount: 0,
+	}
+	f := func(profile bool) {
+		if profile {
+			m.startMeasure = m.startMeasureFunc
+			m.endMeasure = m.endMeasureFunc
+		} else {
+			m.startMeasure = func() {}
+			m.endMeasure = func() {}
+		}
+	}
+	f(cvars.ServerProfile.Bool())
+	cvars.ServerProfile.SetCallback(func(cv *cvar.Cvar) {
+		f(cv.Bool())
+	})
+	return m
+}
+
+func (m *measure) startMeasureFunc() {
+	if m.frameCount == 0 {
+		m.frameCountStartTime = time.Now()
+	}
+}
+
+func (m *measure) endMeasureFunc() {
+	m.frameCount++
+	if m.frameCount < 1000 {
+		return
+	}
+
+	end := time.Now()
+	div := end.Sub(m.frameCountStartTime)
+	m.frameCount = 0
+
+	clientNum := 0
+	for i := 0; i < svs.maxClients; i++ {
+		if sv_clients[i].active {
+			clientNum++
+		}
+	}
+	conlog.Printf("serverprofile: %2d clients %v\n", clientNum, div.String())
 }

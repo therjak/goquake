@@ -194,9 +194,6 @@ func init() {
 }
 
 var (
-	frameCount          = 0
-	frameCountStartTime time.Time
-
 	executeFrameTime time.Time
 )
 
@@ -285,46 +282,6 @@ func executeFrame() {
 
 	// this is for demo syncing
 	host.frameCount++
-}
-
-func hostFrame() {
-	defer func() {
-		// TODO(therjak): find a way to remove this recover
-		// Its only needed use case for when the case the server disconnects
-		return
-		if r := recover(); r != nil {
-			frameCount = 0
-			// something bad happened, or the server disconnected
-			conlog.Printf("%v\n", r)
-			return
-		}
-	}()
-	if !cvars.ServerProfile.Bool() {
-		executeFrame()
-		return
-	}
-	if frameCount == 0 {
-		frameCountStartTime = time.Now()
-	}
-
-	executeFrame()
-
-	frameCount++
-	if frameCount < 1000 {
-		return
-	}
-
-	end := time.Now()
-	div := end.Sub(frameCountStartTime)
-	frameCount = 0
-
-	clientNum := 0
-	for i := 0; i < svs.maxClients; i++ {
-		if sv_clients[i].active {
-			clientNum++
-		}
-	}
-	conlog.Printf("serverprofile: %2d clients %v\n", clientNum, div.String())
 }
 
 func writeCvarVariables(w io.Writer) {
