@@ -133,10 +133,6 @@ func (q *qphysics) pushMove(pusher int, movetime float32) {
 	}
 }
 
-var (
-	physics qphysics
-)
-
 func (q *qphysics) addGravity(ent int) {
 	val, err := EntVarsFieldValue(ent, "gravity")
 	if err != nil || val == 0 {
@@ -354,7 +350,7 @@ func (q *qphysics) noClip(ent int) {
 	vm.LinkEdict(ent, false)
 }
 
-func (q *qphysics) checkWaterTransition(ent int) {
+func (q *qphysics) checkWaterTransition(ent int) error {
 	ev := EntVars(ent)
 
 	cont := pointContents(ev.Origin)
@@ -363,36 +359,41 @@ func (q *qphysics) checkWaterTransition(ent int) {
 		// just spawned here
 		ev.WaterType = float32(cont)
 		ev.WaterLevel = 1
-		return
+		return nil
 	}
 
 	if cont <= bsp.CONTENTS_WATER {
 		if ev.WaterType == bsp.CONTENTS_EMPTY {
 			// just crossed into water
-			sv.StartSound(ent, 0, 255, "misc/h2ohit1.wav", 1)
+			if err := sv.StartSound(ent, 0, 255, "misc/h2ohit1.wav", 1); err != nil {
+				return err
+			}
 		}
 		ev.WaterType = float32(cont)
 		ev.WaterLevel = 1
-		return
+		return nil
 	}
 
 	if ev.WaterType != bsp.CONTENTS_EMPTY {
 		// just crossed into water
-		sv.StartSound(ent, 0, 255, "misc/h2ohit1.wav", 1)
+		if err := sv.StartSound(ent, 0, 255, "misc/h2ohit1.wav", 1); err != nil {
+			return err
+		}
 	}
 	ev.WaterType = bsp.CONTENTS_EMPTY
 	ev.WaterLevel = float32(cont) // TODO: why?
+	return nil
 }
 
 // Toss, bounce, and fly movement.  When onground, do nothing.
-func (q *qphysics) toss(ent int) {
+func (q *qphysics) toss(ent int) error {
 	if !runThink(ent) {
-		return
+		return nil
 	}
 
 	ev := EntVars(ent)
 	if int(ev.Flags)&FL_ONGROUND != 0 {
-		return
+		return nil
 	}
 	CheckVelocity(ev)
 
@@ -411,10 +412,10 @@ func (q *qphysics) toss(ent int) {
 	t := pushEntity(ent, move)
 
 	if t.Fraction == 1 {
-		return
+		return nil
 	}
 	if edictNum(ent).Free {
-		return
+		return nil
 	}
 
 	backOff := func() float32 {
@@ -438,7 +439,10 @@ func (q *qphysics) toss(ent int) {
 		}
 	}
 
-	q.checkWaterTransition(ent)
+	if err := q.checkWaterTransition(ent); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Monsters freefall when they don't have a ground entity, otherwise
@@ -446,7 +450,7 @@ func (q *qphysics) toss(ent int) {
 
 // This is also used for objects that have become still on the ground, but
 // will fall if the floor is pulled out from under them.
-func (q *qphysics) step(ent int) {
+func (q *qphysics) step(ent int) error {
 	ev := EntVars(ent)
 
 	// freefall if not onground
@@ -462,16 +466,21 @@ func (q *qphysics) step(ent int) {
 		if int(ev.Flags)&FL_ONGROUND != 0 {
 			// just hit ground
 			if hitSound {
-				sv.StartSound(ent, 0, 255, "demon/dland2.wav", 1)
+				if err := sv.StartSound(ent, 0, 255, "demon/dland2.wav", 1); err != nil {
+					return err
+				}
 			}
 		}
 	}
 
 	if !runThink(ent) {
-		return
+		return nil
 	}
 
-	q.checkWaterTransition(ent)
+	if err := q.checkWaterTransition(ent); err != nil {
+		return err
+	}
+	return nil
 }
 
 // This is a big hack to try and fix the rare case of getting stuck in the world
@@ -699,10 +708,10 @@ func (q *qphysics) clipVelocity(in, normal vec.Vec3, overbounce float32) (int, v
 }
 
 // Player character actions
-func (q *qphysics) playerActions(ent, num int) {
+func (q *qphysics) playerActions(ent, num int) error {
 	if !sv_clients[num-1].active {
 		// unconnected slot
-		return
+		return nil
 	}
 
 	progsdat.Globals.Time = sv.time
@@ -715,12 +724,12 @@ func (q *qphysics) playerActions(ent, num int) {
 	switch int(ev.MoveType) {
 	case progs.MoveTypeNone:
 		if !runThink(ent) {
-			return
+			return nil
 		}
 
 	case progs.MoveTypeWalk:
 		if !runThink(ent) {
-			return
+			return nil
 		}
 		if !q.checkWater(ent) && int(ev.Flags)&FL_WATERJUMP == 0 {
 			q.addGravity(ent)
@@ -729,18 +738,20 @@ func (q *qphysics) playerActions(ent, num int) {
 		q.walkMove(ent)
 
 	case progs.MoveTypeToss, progs.MoveTypeBounce, progs.MoveTypeGib:
-		q.toss(ent)
+		if err := q.toss(ent); err != nil {
+			return err
+		}
 
 	case progs.MoveTypeFly:
 		if !runThink(ent) {
-			return
+			return nil
 		}
 		time := float32(host.frameTime)
 		q.flyMove(ent, time, nil)
 
 	case progs.MoveTypeNoClip:
 		if !runThink(ent) {
-			return
+			return nil
 		}
 		time := float32(host.frameTime)
 		v := vec.Scale(time, ev.Velocity)
@@ -755,9 +766,10 @@ func (q *qphysics) playerActions(ent, num int) {
 	progsdat.Globals.Time = sv.time
 	progsdat.Globals.Self = int32(ent)
 	vm.ExecuteProgram(progsdat.Globals.PlayerPostThink)
+	return nil
 }
 
-func RunPhysics() {
+func RunPhysics() error {
 	// let the progs know that a new frame has started
 	progsdat.Globals.Time = sv.time
 	progsdat.Globals.Self = 0
@@ -783,7 +795,9 @@ func RunPhysics() {
 		}
 		q := qphysics{}
 		if i > 0 && i <= svs.maxClients {
-			q.playerActions(i, i)
+			if err := q.playerActions(i, i); err != nil {
+				return err
+			}
 		} else {
 			mt := EntVars(i).MoveType
 			switch mt {
@@ -794,13 +808,17 @@ func RunPhysics() {
 			case progs.MoveTypeNoClip:
 				q.noClip(i)
 			case progs.MoveTypeStep:
-				q.step(i)
+				if err := q.step(i); err != nil {
+					return err
+				}
 			case progs.MoveTypeToss,
 				progs.MoveTypeBounce,
 				progs.MoveTypeGib,
 				progs.MoveTypeFly,
 				progs.MoveTypeFlyMissile:
-				q.toss(i)
+				if err := q.toss(i); err != nil {
+					return err
+				}
 			default:
 				Error("SV_Physics: bad movetype %v", mt)
 			}
@@ -814,4 +832,5 @@ func RunPhysics() {
 	if !freezeNonClients {
 		sv.time += float32(host.frameTime)
 	}
+	return nil
 }

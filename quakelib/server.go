@@ -230,26 +230,27 @@ already running on that entity/channel pair.
 An attenuation of 0 will play full volume everywhere in the level.
 Larger attenuations will drop off.  (max 4 attenuation)
 */
-func (s *Server) StartSound(entity, channel, volume int, sample string, attenuation float32) {
+func (s *Server) StartSound(entity, channel, volume int, sample string, attenuation float32) error {
 	if volume < 0 || volume > 255 {
-		HostError(fmt.Errorf("SV_StartSound: volume = %d", volume))
+		return fmt.Errorf("SV_StartSound: volume = %d", volume)
 	}
 	if attenuation < 0 || attenuation > 4 {
-		HostError(fmt.Errorf("SV_StartSound: attenuation = %f", attenuation))
+		return fmt.Errorf("SV_StartSound: attenuation = %f", attenuation)
 	}
 	if channel < 0 || channel > 7 {
-		HostError(fmt.Errorf("SV_StartSound: channel = %d", channel))
+		return fmt.Errorf("SV_StartSound: channel = %d", channel)
 	}
 	if s.datagram.Len() > net.MAX_DATAGRAM-16 {
-		return
+		return nil
 	}
 	for soundnum, m := range s.soundPrecache {
 		if m == sample {
 			s.sendStartSound(entity, channel, volume, soundnum, attenuation)
-			return
+			return nil
 		}
 	}
 	conlog.Printf("SV_StartSound: %s not precacheed\n", sample)
+	return nil
 }
 
 func (s *Server) sendStartSound(entity, channel, volume, soundnum int, attenuation float32) {
@@ -1250,8 +1251,12 @@ func (s *Server) SpawnServer(name string) {
 
 	// run two frames to allow everything to settle
 	host.frameTime = 0.1
-	RunPhysics()
-	RunPhysics()
+	if err := RunPhysics(); err != nil {
+		HostError(err)
+	}
+	if err := RunPhysics(); err != nil {
+		HostError(err)
+	}
 
 	// create a baseline for more efficient communications
 	s.CreateBaseline()

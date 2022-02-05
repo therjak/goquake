@@ -156,7 +156,7 @@ type virtualMachine struct {
 	trace      bool
 	prog       *progs.LoadedProg
 	argc       int
-	builtins   []func()
+	builtins   []func() error
 }
 
 const (
@@ -173,7 +173,7 @@ func NewVirtualMachine() *virtualMachine {
 		stack:      make([]stackElem, 0, maxStackDepth),
 		localStack: make([]int32, 0, maxLocalStack),
 	}
-	v.builtins = []func(){
+	v.builtins = []func() error{
 		v.fixme,
 		v.makeVectors,   // void(entity e) makevectors		= #1
 		v.setOrigin,     // void(entity e, vector o) setorigin	= #2
@@ -691,7 +691,9 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 				if i >= len(v.builtins) {
 					v.runError("Bad builtin call number %d", i)
 				}
-				v.builtins[i]()
+				if err := v.builtins[i](); err != nil {
+					HostError(err)
+				}
 			} else {
 				// Normal function
 				currentStatement = v.enterFunction(newf) - 1

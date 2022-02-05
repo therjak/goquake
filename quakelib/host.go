@@ -154,7 +154,9 @@ func serverFrame() {
 	// move things around and think
 	// always pause in single player if in console or menus
 	if !sv.paused && (svs.maxClients > 1 || keyDestination == keys.Game) {
-		RunPhysics()
+		if err := RunPhysics(); err != nil {
+			HostError(err)
+		}
 	}
 	// send all messages to the clients
 	sv.SendClientMessages()

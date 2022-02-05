@@ -652,10 +652,10 @@ func CL_ParseStartSoundPacket(m *protos.Sound) error {
 		maxSounds = 2048
 	)
 	if m.SoundNum > maxSounds {
-		fmt.Errorf("CL_ParseStartSoundPacket: %d > MAX_SOUNDS", m.SoundNum)
+		return fmt.Errorf("CL_ParseStartSoundPacket: %d > MAX_SOUNDS", m.SoundNum)
 	}
 	if m.Entity > int32(cap(cl.entities)) {
-		fmt.Errorf("CL_ParseStartSoundPacket: ent = %d", m.Entity)
+		return fmt.Errorf("CL_ParseStartSoundPacket: ent = %d", m.Entity)
 	}
 	volume := float32(1.0)
 	if v := m.Volume; v != nil {

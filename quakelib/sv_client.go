@@ -245,8 +245,9 @@ TimeoutLoop:
 	}
 }
 
-func (cl *SVClient) GetMessage() {
-	cl.netConnection.GetMessage()
+func (cl *SVClient) GetMessage() error {
+	_, err := cl.netConnection.GetMessage()
+	return err
 }
 
 func (c *SVClient) SendServerinfo() {
