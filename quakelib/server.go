@@ -1242,7 +1242,9 @@ func (s *Server) SpawnServer(name string) {
 	// serverflags are for cross level information (sigils)
 	progsdat.Globals.ServerFlags = float32(svs.serverFlags)
 
-	loadEntities(sv.worldModel.Entities)
+	if err := loadEntities(sv.worldModel.Entities); err != nil {
+		HostError(err)
+	}
 
 	s.active = true
 

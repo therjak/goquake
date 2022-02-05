@@ -38,7 +38,7 @@ func parseBaseline(pb *protos.Baseline, e *Entity) {
 	}
 }
 
-func CL_ParseServerMessage(pb *protos.ServerMessage) serverState {
+func CL_ParseServerMessage(pb *protos.ServerMessage) (serverState, error) {
 	switch cvars.ClientShowNet.String() {
 	case "1", "2":
 		conlog.Printf("------------------\n")
@@ -62,12 +62,12 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) serverState {
 			case protocol.NetQuake, protocol.FitzQuake, protocol.RMQ, protocol.GoQuake:
 				cl.protocol = int(cmd.Version)
 			default:
-				HostError(fmt.Errorf("Server returned version %d, not %d or %d or %d or %d", cmd.Version,
-					protocol.NetQuake, protocol.FitzQuake, protocol.RMQ, protocol.GoQuake))
+				return serverRunning, fmt.Errorf("Server returned version %d, not %d or %d or %d or %d", cmd.Version,
+					protocol.NetQuake, protocol.FitzQuake, protocol.RMQ, protocol.GoQuake)
 			}
 		case *protos.SCmd_Disconnect:
 			handleServerDisconnected("Server disconnected\n")
-			return serverDisconnected
+			return serverDisconnected, nil
 		case *protos.SCmd_Print:
 			conlog.Printf("%s", cmd.Print)
 		case *protos.SCmd_CenterPrint:
@@ -82,7 +82,9 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) serverState {
 				pos.GetX(), pos.GetY(), pos.GetZ(),
 			})
 		case *protos.SCmd_ServerInfo:
-			CL_ParseServerInfo(cmd.ServerInfo)
+			if err := CL_ParseServerInfo(cmd.ServerInfo); err != nil {
+				return serverRunning, err
+			}
 			screen.recalcViewRect = true // leave intermission full screen
 		case *protos.SCmd_SetAngle:
 			cl.pitch = cmd.SetAngle.GetX()
@@ -96,26 +98,26 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) serverState {
 			}
 		case *protos.SCmd_Sound:
 			if err := CL_ParseStartSoundPacket(cmd.Sound); err != nil {
-				HostError(err)
+				return serverRunning, err
 			}
 		case *protos.SCmd_StopSound:
 			snd.Stop(int(cmd.StopSound)>>3, int(cmd.StopSound)&7)
 		case *protos.SCmd_UpdateName:
 			player := int(cmd.UpdateName.GetPlayer())
 			if player >= cl.maxClients {
-				HostError(fmt.Errorf("CL_ParseServerMessage: svc_updatename > MAX_SCOREBOARD"))
+				return serverRunning, fmt.Errorf("CL_ParseServerMessage: svc_updatename > MAX_SCOREBOARD")
 			}
 			cl.scores[player].name = cmd.UpdateName.GetNewName()
 		case *protos.SCmd_UpdateFrags:
 			player := int(cmd.UpdateFrags.GetPlayer())
 			if player >= cl.maxClients {
-				HostError(fmt.Errorf("CL_ParseServerMessage: svc_updatefrags > MAX_SCOREBOARD"))
+				return serverRunning, fmt.Errorf("CL_ParseServerMessage: svc_updatefrags > MAX_SCOREBOARD")
 			}
 			cl.scores[player].frags = int(cmd.UpdateFrags.GetNewFrags())
 		case *protos.SCmd_UpdateColors:
 			player := int(cmd.UpdateColors.GetPlayer())
 			if player >= cl.maxClients {
-				HostError(fmt.Errorf("CL_ParseServerMessage: svc_updatecolors > MAX_SCOREBOARD"))
+				return serverRunning, fmt.Errorf("CL_ParseServerMessage: svc_updatecolors > MAX_SCOREBOARD")
 			}
 			c := cmd.UpdateColors.GetNewColor()
 			cl.scores[player].topColor = int((c & 0xf0) >> 4)
@@ -143,7 +145,7 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) serverState {
 		case *protos.SCmd_SignonNum:
 			i := int(cmd.SignonNum)
 			if i <= cls.signon {
-				HostError(fmt.Errorf("Received signon %d when at %d", i, cls.signon))
+				return serverRunning, fmt.Errorf("Received signon %d when at %d", i, cls.signon)
 			}
 			cls.signon = i
 			// if signonnum==2, signon packet has been fully parsed, so
@@ -202,10 +204,10 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) serverState {
 			conlog.DPrintf("Ignoring svc_achievement (%s)\n", cmd.Achievement)
 		}
 	}
-	return serverRunning
+	return serverRunning, nil
 }
 
-func CL_ParseServerInfo(si *protos.ServerInfo) {
+func CL_ParseServerInfo(si *protos.ServerInfo) error {
 	conlog.DPrintf("Serverinfo packet received.\n")
 
 	// bring up loading plaque for map changes within a demo.
@@ -233,7 +235,7 @@ func CL_ParseServerInfo(si *protos.ServerInfo) {
 	}
 
 	if si.MaxClients < 1 || si.MaxClients > 16 {
-		HostError(fmt.Errorf("Bad maxclients (%d) from server", si.MaxClients))
+		return fmt.Errorf("Bad maxclients (%d) from server", si.MaxClients)
 	}
 	cl.maxClients = int(si.MaxClients)
 	cl.scores = make([]score, cl.maxClients)
@@ -248,7 +250,7 @@ func CL_ParseServerInfo(si *protos.ServerInfo) {
 
 	cl.modelPrecache = cl.modelPrecache[:0]
 	if len(si.ModelPrecache) >= 2048 {
-		HostError(fmt.Errorf("Server sent too many model precaches"))
+		return fmt.Errorf("Server sent too many model precaches")
 	}
 	if len(si.ModelPrecache) >= 256 {
 		conlog.DWarning("%d models exceeds standard limit of 256.\n", len(si.ModelPrecache))
@@ -256,7 +258,7 @@ func CL_ParseServerInfo(si *protos.ServerInfo) {
 
 	cl.soundPrecache = cl.soundPrecache[:0]
 	if len(si.SoundPrecache) >= 2048 {
-		HostError(fmt.Errorf("Server sent too many sound precaches"))
+		return fmt.Errorf("Server sent too many sound precaches")
 	}
 	if len(si.SoundPrecache) >= 256 {
 		conlog.DWarning("%d sounds exceeds standard limit of 256.\n", len(si.SoundPrecache))
@@ -274,7 +276,7 @@ func CL_ParseServerInfo(si *protos.ServerInfo) {
 			loadModel(mn)
 			m, ok = models[mn]
 			if !ok {
-				HostError(fmt.Errorf("Model %s not found", mn))
+				return fmt.Errorf("Model %s not found", mn)
 			}
 		}
 		cl.modelPrecache = append(cl.modelPrecache, m)
@@ -299,6 +301,7 @@ func CL_ParseServerInfo(si *protos.ServerInfo) {
 
 	// we don't consider identical messages to be duplicates if the map has changed in between
 	console.lastCenter = ""
+	return nil
 }
 
 //ParseEntityUpdate parses an entity update message from the server

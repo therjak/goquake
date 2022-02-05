@@ -101,7 +101,7 @@ func ClearEdict(e int) {
 // can cause the client to think the entity morphed into something else
 // instead of being removed and recreated, which can cause interpolated
 // angles and bad trails.
-func edictAlloc() int {
+func edictAlloc() (int, error) {
 	i := svs.maxClients + 1
 	for ; i < sv.numEdicts; i++ {
 		e := edictNum(i)
@@ -110,18 +110,18 @@ func edictAlloc() int {
 		if e.Free && (e.FreeTime < 2 || sv.time-e.FreeTime > 0.5) {
 			ClearEntVars(i)
 			edictNum(i).Free = false
-			return i
+			return i, nil
 		}
 	}
 
 	if i == sv.maxEdicts {
-		HostError(fmt.Errorf("ED_Alloc: no free edicts (max_edicts is %d)", sv.maxEdicts))
+		return 0, fmt.Errorf("ED_Alloc: no free edicts (max_edicts is %d)", sv.maxEdicts)
 	}
 
 	sv.numEdicts++
 	ClearEdict(i)
 
-	return i
+	return i, nil
 }
 
 // For debugging
@@ -272,7 +272,7 @@ const (
 //
 //Used for both fresh maps and savegame loads.  A fresh map would also need
 //to call ED_CallSpawnFunctions () to let the objects initialize themselves.
-func loadEntities(data []*bsp.Entity) {
+func loadEntities(data []*bsp.Entity) error {
 	progsdat.Globals.Time = sv.time
 	inhibit := 0
 	eNr := -1
@@ -283,7 +283,11 @@ func loadEntities(data []*bsp.Entity) {
 		if eNr < 0 {
 			eNr = 0
 		} else {
-			eNr = edictAlloc()
+			n, err := edictAlloc()
+			if err != nil {
+				return err
+			}
+			eNr = n
 		}
 		parse(eNr, j)
 
@@ -326,4 +330,5 @@ func loadEntities(data []*bsp.Entity) {
 	}
 
 	conlog.DPrintf("%d entities inhibited\n", inhibit)
+	return nil
 }

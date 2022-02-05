@@ -398,7 +398,9 @@ func (c *Client) ReadFromServer() serverState {
 			fmt.Printf("Bad server message\n %v", err)
 			HostError(fmt.Errorf("CL_ParseServerMessage: Bad server message"))
 		}
-		if CL_ParseServerMessage(pb) == serverDisconnected {
+		if serverState, err := CL_ParseServerMessage(pb); err != nil {
+			HostError(err)
+		} else if serverState == serverDisconnected {
 			return serverDisconnected
 		}
 		if cls.state != ca_connected {

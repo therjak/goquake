@@ -907,7 +907,10 @@ func (v *virtualMachine) vtos() error {
 }
 
 func (v *virtualMachine) spawn() error {
-	ed := edictAlloc()
+	ed, err := edictAlloc()
+	if err != nil {
+		return err
+	}
 	progsdat.Globals.Return[0] = int32(ed)
 	return nil
 }
