@@ -1091,7 +1091,7 @@ func hostChangelevel(args []cmd.QArg, _ int) {
 	}
 	level := args[0].String()
 	if _, err := filesystem.GetFile(fmt.Sprintf("maps/%s.bsp", level)); err != nil {
-		HostError("cannot find map %s", level)
+		HostError(fmt.Errorf("cannot find map %s", level))
 	}
 	if !cmdl.Dedicated() {
 		inputActivate()
@@ -1103,7 +1103,7 @@ func hostChangelevel(args []cmd.QArg, _ int) {
 	sv.SpawnServer(level)
 	// also issue an error if spawn failed -- O.S.
 	if !sv.active {
-		HostError("cannot run map %s", level)
+		HostError(fmt.Errorf("cannot run map %s", level))
 	}
 }
 
@@ -1119,6 +1119,6 @@ func hostRestart(args []cmd.QArg, _ int) {
 	sv.SpawnServer(mapname)
 
 	if !sv.active {
-		HostError("cannot restart map %s", mapname)
+		HostError(fmt.Errorf("cannot restart map %s", mapname))
 	}
 }

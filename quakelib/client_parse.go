@@ -8,11 +8,13 @@ package quakelib
 import "C"
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 
 	"goquake/bsp"
 	"goquake/cbuf"
+	cmdl "goquake/commandline"
 	"goquake/conlog"
 	"goquake/cvars"
 	"goquake/math/vec"
@@ -36,7 +38,7 @@ func parseBaseline(pb *protos.Baseline, e *Entity) {
 	}
 }
 
-func CL_ParseServerMessage(pb *protos.ServerMessage) {
+func CL_ParseServerMessage(pb *protos.ServerMessage) serverState {
 	switch cvars.ClientShowNet.String() {
 	case "1", "2":
 		conlog.Printf("------------------\n")
@@ -60,11 +62,12 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) {
 			case protocol.NetQuake, protocol.FitzQuake, protocol.RMQ, protocol.GoQuake:
 				cl.protocol = int(cmd.Version)
 			default:
-				HostError("Server returned version %d, not %d or %d or %d or %d", cmd.Version,
-					protocol.NetQuake, protocol.FitzQuake, protocol.RMQ, protocol.GoQuake)
+				HostError(fmt.Errorf("Server returned version %d, not %d or %d or %d or %d", cmd.Version,
+					protocol.NetQuake, protocol.FitzQuake, protocol.RMQ, protocol.GoQuake))
 			}
 		case *protos.SCmd_Disconnect:
-			HostEndGame("Server disconnected\n")
+			handleServerDisconnected("Server disconnected\n")
+			return serverDisconnected
 		case *protos.SCmd_Print:
 			conlog.Printf("%s", cmd.Print)
 		case *protos.SCmd_CenterPrint:
@@ -93,26 +96,26 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) {
 			}
 		case *protos.SCmd_Sound:
 			if err := CL_ParseStartSoundPacket(cmd.Sound); err != nil {
-				HostError("%v", err)
+				HostError(err)
 			}
 		case *protos.SCmd_StopSound:
 			snd.Stop(int(cmd.StopSound)>>3, int(cmd.StopSound)&7)
 		case *protos.SCmd_UpdateName:
 			player := int(cmd.UpdateName.GetPlayer())
 			if player >= cl.maxClients {
-				HostError("CL_ParseServerMessage: svc_updatename > MAX_SCOREBOARD")
+				HostError(fmt.Errorf("CL_ParseServerMessage: svc_updatename > MAX_SCOREBOARD"))
 			}
 			cl.scores[player].name = cmd.UpdateName.GetNewName()
 		case *protos.SCmd_UpdateFrags:
 			player := int(cmd.UpdateFrags.GetPlayer())
 			if player >= cl.maxClients {
-				HostError("CL_ParseServerMessage: svc_updatefrags > MAX_SCOREBOARD")
+				HostError(fmt.Errorf("CL_ParseServerMessage: svc_updatefrags > MAX_SCOREBOARD"))
 			}
 			cl.scores[player].frags = int(cmd.UpdateFrags.GetNewFrags())
 		case *protos.SCmd_UpdateColors:
 			player := int(cmd.UpdateColors.GetPlayer())
 			if player >= cl.maxClients {
-				HostError("CL_ParseServerMessage: svc_updatecolors > MAX_SCOREBOARD")
+				HostError(fmt.Errorf("CL_ParseServerMessage: svc_updatecolors > MAX_SCOREBOARD"))
 			}
 			c := cmd.UpdateColors.GetNewColor()
 			cl.scores[player].topColor = int((c & 0xf0) >> 4)
@@ -140,7 +143,7 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) {
 		case *protos.SCmd_SignonNum:
 			i := int(cmd.SignonNum)
 			if i <= cls.signon {
-				HostError("Received signon %d when at %d", i, cls.signon)
+				HostError(fmt.Errorf("Received signon %d when at %d", i, cls.signon))
 			}
 			cls.signon = i
 			// if signonnum==2, signon packet has been fully parsed, so
@@ -199,6 +202,7 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) {
 			conlog.DPrintf("Ignoring svc_achievement (%s)\n", cmd.Achievement)
 		}
 	}
+	return serverRunning
 }
 
 func CL_ParseServerInfo(si *protos.ServerInfo) {
@@ -229,7 +233,7 @@ func CL_ParseServerInfo(si *protos.ServerInfo) {
 	}
 
 	if si.MaxClients < 1 || si.MaxClients > 16 {
-		HostError("Bad maxclients (%d) from server", si.MaxClients)
+		HostError(fmt.Errorf("Bad maxclients (%d) from server", si.MaxClients))
 	}
 	cl.maxClients = int(si.MaxClients)
 	cl.scores = make([]score, cl.maxClients)
@@ -244,7 +248,7 @@ func CL_ParseServerInfo(si *protos.ServerInfo) {
 
 	cl.modelPrecache = cl.modelPrecache[:0]
 	if len(si.ModelPrecache) >= 2048 {
-		HostError("Server sent too many model precaches")
+		HostError(fmt.Errorf("Server sent too many model precaches"))
 	}
 	if len(si.ModelPrecache) >= 256 {
 		conlog.DWarning("%d models exceeds standard limit of 256.\n", len(si.ModelPrecache))
@@ -252,7 +256,7 @@ func CL_ParseServerInfo(si *protos.ServerInfo) {
 
 	cl.soundPrecache = cl.soundPrecache[:0]
 	if len(si.SoundPrecache) >= 2048 {
-		HostError("Server sent too many sound precaches")
+		HostError(fmt.Errorf("Server sent too many sound precaches"))
 	}
 	if len(si.SoundPrecache) >= 256 {
 		conlog.DWarning("%d sounds exceeds standard limit of 256.\n", len(si.SoundPrecache))
@@ -270,7 +274,7 @@ func CL_ParseServerInfo(si *protos.ServerInfo) {
 			loadModel(mn)
 			m, ok = models[mn]
 			if !ok {
-				HostError("Model %s not found", mn)
+				HostError(fmt.Errorf("Model %s not found", mn))
 			}
 		}
 		cl.modelPrecache = append(cl.modelPrecache, m)
@@ -430,6 +434,25 @@ func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) {
 		e.ForceLink = true
 	}
 	e.Sync()
+}
+
+func handleServerDisconnected(msg string) {
+	conlog.DPrintf("Host_EndGame: %s\n", msg)
+
+	if sv.active {
+		hostShutdownServer(false)
+	}
+
+	if cmdl.Dedicated() {
+		// dedicated servers exit
+		Error("Host_EndGame: %s\n", msg)
+	}
+
+	if cls.demoNum != -1 {
+		CL_NextDemo()
+	} else {
+		cls.Disconnect()
+	}
 }
 
 func (c *Client) parseStatic(pb *protos.Baseline) {

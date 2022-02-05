@@ -380,14 +380,14 @@ func init() {
 }
 
 // Read all incoming data from the server
-func (c *Client) ReadFromServer() {
+func (c *Client) ReadFromServer() serverState {
 	c.oldTime = cl.time
 	c.time += host.frameTime
 	for {
 		// TODO: code needs major cleanup (getMessage + CL_ParseServerMessage)
 		ret := cls.getMessage()
 		if ret == -1 {
-			HostError("CL_ReadFromServer: lost server connection")
+			HostError(fmt.Errorf("CL_ReadFromServer: lost server connection"))
 		}
 		if ret == 0 {
 			break
@@ -396,9 +396,11 @@ func (c *Client) ReadFromServer() {
 		pb, err := svc.ParseServerMessage(cls.inMessage, c.protocol, c.protocolFlags)
 		if err != nil {
 			fmt.Printf("Bad server message\n %v", err)
-			HostError("CL_ParseServerMessage: Bad server message")
+			HostError(fmt.Errorf("CL_ParseServerMessage: Bad server message"))
 		}
-		CL_ParseServerMessage(pb)
+		if CL_ParseServerMessage(pb) == serverDisconnected {
+			return serverDisconnected
+		}
 		if cls.state != ca_connected {
 			break
 		}
@@ -432,6 +434,7 @@ func (c *Client) ReadFromServer() {
 
 	c.RelinkEntities(frac)
 	c.updateTempEntities()
+	return serverRunning
 }
 
 func (c *Client) RelinkEntities(frac float32) {
@@ -565,7 +568,7 @@ func clEstablishConnection(host string) {
 		// TODO: this is bad, looks like orig just quits this call without returning
 		// and waits for the next sdl input.
 		cls.connection = nil
-		HostError("CLS_Connect: connect failed\n")
+		HostError(fmt.Errorf("CLS_Connect: connect failed\n"))
 	}
 	cls.connection = c
 	conlog.DPrintf("CL_EstablishConnection: connected to %s\n", host)
@@ -639,7 +642,7 @@ func CL_SendCmd() {
 	b := clc.ToBytes(&cls.outProto, cl.protocol, cl.protocolFlags)
 	i := cls.connection.SendMessage(b)
 	if i == -1 {
-		HostError("CL_SendCmd: lost server connection")
+		HostError(fmt.Errorf("CL_SendCmd: lost server connection"))
 	}
 	cls.outProto.Reset()
 }
@@ -689,16 +692,16 @@ Outer:
 	for {
 		switch ret := cls.getMessage(); ret {
 		default:
-			HostError("CL_KeepaliveMessage: CL_GetMessage failed")
+			HostError(fmt.Errorf("CL_KeepaliveMessage: CL_GetMessage failed"))
 		case 0:
 			break Outer
 		case 1:
-			HostError("CL_KeepaliveMessage: received a message")
+			HostError(fmt.Errorf("CL_KeepaliveMessage: received a message"))
 		case 2:
 			conlog.Printf("WTF? This should never happen")
 			i, err := cls.inMessage.ReadByte()
 			if err != nil || i != svc.Nop {
-				HostError("CL_KeepaliveMessage: datagram wasn't a nop")
+				HostError(fmt.Errorf("CL_KeepaliveMessage: datagram wasn't a nop"))
 			}
 		}
 	}

@@ -37,6 +37,13 @@ const (
 	QUAKESPASM_VER_PATCH = 2
 )
 
+type serverState int
+
+const (
+	serverRunning      serverState = 0
+	serverDisconnected serverState = 1
+)
+
 func CallCMain() error {
 	v := sdl.Version{}
 	sdl.GetVersion(&v)
@@ -188,17 +195,6 @@ func (r *runner) run() {
 }
 
 func (r *runner) frame() {
-	defer func() {
-		// TODO(therjak): find a way to remove this recover
-		// Its only needed use case for when the server disconnects
-		return
-		if rec := recover(); rec != nil {
-			r.m.frameCount = 0
-			// something bad happened, or the server disconnected
-			conlog.Printf("%v\n", rec)
-			return
-		}
-	}()
 	r.m.startMeasure()
 	executeFrame()
 	r.m.endMeasure()
@@ -252,7 +248,9 @@ func executeFrame() {
 
 	// fetch results from server
 	if cls.state == ca_connected {
-		cl.ReadFromServer()
+		if cl.ReadFromServer() == serverDisconnected {
+			return
+		}
 	}
 
 	var time1, time2, time3 time.Time

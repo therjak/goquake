@@ -115,7 +115,7 @@ func edictAlloc() int {
 	}
 
 	if i == sv.maxEdicts {
-		HostError("ED_Alloc: no free edicts (max_edicts is %d)", sv.maxEdicts)
+		HostError(fmt.Errorf("ED_Alloc: no free edicts (max_edicts is %d)", sv.maxEdicts))
 	}
 
 	sv.numEdicts++

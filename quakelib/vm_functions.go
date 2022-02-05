@@ -329,7 +329,7 @@ func (v *virtualMachine) terminalError() {
 	fs := v.funcName()
 	conlog.Printf("======SERVER ERROR in %s:\n%s\n", fs, s)
 	edictPrint(int(v.prog.Globals.Self))
-	HostError("Program error")
+	HostError(fmt.Errorf("Program error"))
 }
 
 func (v *virtualMachine) dprint() {
@@ -594,15 +594,15 @@ func (v *virtualMachine) sound() {
 	attenuation := v.prog.RawGlobalsF[progs.OffsetParm4]
 
 	if volume < 0 || volume > 255 {
-		HostError("SV_StartSound: volume = %v", volume)
+		HostError(fmt.Errorf("SV_StartSound: volume = %v", volume))
 	}
 
 	if attenuation < 0 || attenuation > 4 {
-		HostError("SV_StartSound: attenuation = %v", attenuation)
+		HostError(fmt.Errorf("SV_StartSound: attenuation = %v", attenuation))
 	}
 
 	if channel < 0 || channel > 7 {
-		HostError("SV_StartSound: channel = %v", channel)
+		HostError(fmt.Errorf("SV_StartSound: channel = %v", channel))
 	}
 	sv.StartSound(int(entity), int(channel), int(volume), sample, attenuation)
 }

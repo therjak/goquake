@@ -4,7 +4,6 @@ package quakelib
 import "C"
 import (
 	"fmt"
-
 	cmdl "goquake/commandline"
 	"goquake/conlog"
 )
@@ -15,32 +14,11 @@ var (
 
 //export GoHostError
 func GoHostError(msg *C.char) {
-	HostError(C.GoString(msg))
+	HostError(fmt.Errorf(C.GoString(msg)))
 }
 
-func HostEndGame(msg string) {
-	conlog.DPrintf("Host_EndGame: %s\n", msg)
-
-	if sv.active {
-		hostShutdownServer(false)
-	}
-
-	if cmdl.Dedicated() {
-		// dedicated servers exit
-		Error("Host_EndGame: %s\n", msg)
-	}
-
-	if cls.demoNum != -1 {
-		CL_NextDemo()
-	} else {
-		cls.Disconnect()
-	}
-	// TODO: There must be a better way than to panic
-	panic(msg)
-}
-
-func HostError(format string, v ...interface{}) {
-	s := fmt.Sprintf(format, v...)
+func HostError(e error) {
+	s := e.Error()
 
 	if hostRecursionCheck {
 		Error("Host_Error: recursively entered")

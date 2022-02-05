@@ -232,13 +232,13 @@ Larger attenuations will drop off.  (max 4 attenuation)
 */
 func (s *Server) StartSound(entity, channel, volume int, sample string, attenuation float32) {
 	if volume < 0 || volume > 255 {
-		HostError("SV_StartSound: volume = %d", volume)
+		HostError(fmt.Errorf("SV_StartSound: volume = %d", volume))
 	}
 	if attenuation < 0 || attenuation > 4 {
-		HostError("SV_StartSound: attenuation = %f", attenuation)
+		HostError(fmt.Errorf("SV_StartSound: attenuation = %f", attenuation))
 	}
 	if channel < 0 || channel > 7 {
-		HostError("SV_StartSound: channel = %d", channel)
+		HostError(fmt.Errorf("SV_StartSound: channel = %d", channel))
 	}
 	if s.datagram.Len() > net.MAX_DATAGRAM-16 {
 		return

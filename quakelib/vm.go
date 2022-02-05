@@ -2,6 +2,7 @@
 package quakelib
 
 import (
+	"fmt"
 	"strings"
 
 	"goquake/conlog"
@@ -338,7 +339,7 @@ func (v *virtualMachine) runError(format string, a ...interface{}) {
 	// dump the stack so host_error can shutdown functions
 	v.stack = v.stack[:0]
 
-	HostError("Program error")
+	HostError(fmt.Errorf("Program error"))
 }
 
 //Returns the new program statement counter
@@ -375,7 +376,7 @@ func (v *virtualMachine) enterFunction(f *progs.Function) int32 {
 
 func (v *virtualMachine) leaveFunction() int32 {
 	if len(v.stack) == 0 {
-		HostError("prog stack underflow")
+		HostError(fmt.Errorf("prog stack underflow"))
 	}
 
 	// Restore locals from the stack
@@ -403,7 +404,7 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 		if v.prog.Globals.Self != 0 {
 			edictPrint(int(v.prog.Globals.Self))
 		}
-		HostError("PR_ExecuteProgram: NULL function, %d", fnum)
+		HostError(fmt.Errorf("PR_ExecuteProgram: NULL function, %d", fnum))
 	}
 
 	f := &v.prog.Functions[fnum]
