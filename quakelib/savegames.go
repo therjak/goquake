@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"goquake/cmd"
+	cmdl "goquake/commandline"
 	"goquake/conlog"
 	"goquake/cvars"
 	"goquake/execute"
@@ -165,7 +166,7 @@ func loadGame(args []cmd.QArg, _ int) {
 
 	copy(sv_clients[0].spawnParams[:], data.GetSpawnParams())
 
-	if cls.state != ca_dedicated {
+	if !cmdl.Dedicated() {
 		clEstablishConnection("local")
 		clientReconnect()
 	}

@@ -51,7 +51,7 @@ func init() {
 }
 
 func hostQuit() {
-	if keyDestination != keys.Console && cls.state != ca_dedicated {
+	if keyDestination != keys.Console && !cmdl.Dedicated() {
 		enterQuitMenu()
 		return
 	}
@@ -540,7 +540,7 @@ func hostSay(team bool, args []cmd.QArg) {
 		}
 		c.Printf(text)
 	}
-	if cls.state == ca_dedicated {
+	if cmdl.Dedicated() {
 		log.Printf(text)
 	}
 }
@@ -551,7 +551,7 @@ func hostSayAll(args []cmd.QArg, _ int) {
 		return
 	}
 	if execute.IsSrcCommand() {
-		if cls.state != ca_dedicated {
+		if !cmdl.Dedicated() {
 			forwardToServer("say", args)
 			return
 		}
@@ -565,7 +565,7 @@ func hostSayTeam(args []cmd.QArg, _ int) {
 		return
 	}
 	if execute.IsSrcCommand() {
-		if cls.state != ca_dedicated {
+		if !cmdl.Dedicated() {
 			forwardToServer("say_team", args)
 			return
 		}
@@ -986,7 +986,7 @@ func hostKick(args []cmd.QArg, playerEdictId int) {
 	}
 	who := func() string {
 		if execute.IsSrcCommand() {
-			if cls.state == ca_dedicated {
+			if cmdl.Dedicated() {
 				return "Console"
 			} else {
 				return cvars.ClientName.String()
@@ -1024,7 +1024,7 @@ func hostConnect(args []cmd.QArg, _ int) {
 func hostMap(args []cmd.QArg, _ int) {
 	if len(args) == 0 {
 		// no map name given
-		if cls.state == ca_dedicated {
+		if cmdl.Dedicated() {
 			if sv.active {
 				conlog.Printf("Current map: %s\n", sv.name)
 			} else {
@@ -1048,7 +1048,7 @@ func hostMap(args []cmd.QArg, _ int) {
 	cls.Disconnect()
 	hostShutdownServer(false)
 
-	if cls.state != ca_dedicated {
+	if !cmdl.Dedicated() {
 		inputActivate()
 	}
 
@@ -1065,7 +1065,7 @@ func hostMap(args []cmd.QArg, _ int) {
 		return
 	}
 
-	if cls.state != ca_dedicated {
+	if !cmdl.Dedicated() {
 		var b strings.Builder
 		for _, a := range args[1:] {
 			b.WriteString(a.String())
@@ -1093,7 +1093,7 @@ func hostChangelevel(args []cmd.QArg, _ int) {
 	if _, err := filesystem.GetFile(fmt.Sprintf("maps/%s.bsp", level)); err != nil {
 		HostError("cannot find map %s", level)
 	}
-	if cls.state != ca_dedicated {
+	if !cmdl.Dedicated() {
 		inputActivate()
 	}
 

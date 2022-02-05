@@ -13,6 +13,7 @@ import (
 
 	"goquake/cbuf"
 	"goquake/cmd"
+	cmdl "goquake/commandline"
 	"goquake/conlog"
 	"goquake/cvars"
 	kc "goquake/keycode"
@@ -401,7 +402,7 @@ var (
 )
 
 func updateKeyDest() {
-	if cls.state == ca_dedicated {
+	if cmdl.Dedicated() {
 		return
 	}
 

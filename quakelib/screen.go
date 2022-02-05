@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"goquake/cmd"
+	cmdl "goquake/commandline"
 	"goquake/conlog"
 	"goquake/cvar"
 	"goquake/cvars"
@@ -220,7 +221,7 @@ func (scr *qScreen) drawNotifyString() {
 }
 
 func (scr *qScreen) ModalMessage(msg string, timeout time.Duration) bool {
-	if cls.state == ca_dedicated {
+	if cmdl.Dedicated() {
 		return true
 	}
 	scr.modalMsg = strings.Split(msg, "\n")

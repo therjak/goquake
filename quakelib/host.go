@@ -11,9 +11,7 @@ import (
 	"io/ioutil"
 	"log"
 	"path/filepath"
-	"time"
 
-	"goquake/cbuf"
 	"goquake/cmd"
 	cmdl "goquake/commandline"
 	"goquake/conlog"
@@ -76,13 +74,11 @@ func hostInit() {
 	// Like why is cls.state here? Do we need cls.state at all?
 	svs.maxClients = 1
 	if cmdl.Dedicated() {
-		cls.state = ca_dedicated
 		svs.maxClients = cmdl.DedicatedNum()
-	} else {
-		cls.state = ca_disconnected
 	}
+	cls.state = ca_disconnected
 	if cmdl.Listen() {
-		if cls.state == ca_dedicated {
+		if cmdl.Dedicated() {
 			Error("Only one of -dedicated or -listen can be specified")
 		}
 		svs.maxClients = cmdl.ListenNum()
@@ -166,7 +162,7 @@ func serverFrame() {
 
 // Return to looping demos
 func hostStopDemo(_ []cmd.QArg, _ int) {
-	if cls.state == ca_dedicated {
+	if cmdl.Dedicated() {
 		return
 	}
 	if !cls.demoPlayback {
@@ -178,7 +174,7 @@ func hostStopDemo(_ []cmd.QArg, _ int) {
 
 // Return to looping demos
 func hostDemos(_ []cmd.QArg, _ int) {
-	if cls.state == ca_dedicated {
+	if cmdl.Dedicated() {
 		return
 	}
 	if cls.demoNum == -1 {
@@ -191,97 +187,6 @@ func hostDemos(_ []cmd.QArg, _ int) {
 func init() {
 	cmd.AddCommand("stopdemo", hostStopDemo)
 	cmd.AddCommand("demos", hostDemos)
-}
-
-var (
-	executeFrameTime time.Time
-)
-
-// Runs all active servers
-func executeFrame() {
-	// keep the random time dependent
-	sRand.NewSeed(uint32(time.Now().UnixNano()))
-
-	// decide the simulation time
-	if !host.UpdateTime() {
-		return // don't run too fast, or packets will flood out
-	}
-
-	// get new key events
-	updateKeyDest()
-	updateInputMode()
-	sendKeyEvents()
-
-	// process console commands
-	cbuf.Execute(0) // TODO: this needs to be the local player, not 0
-
-	net.SetTime()
-
-	// if running the server locally, make intentions now
-	if sv.active {
-		CL_SendCmd()
-	}
-
-	// server operations
-
-	// check for commands typed to the host
-	hostGetConsoleCommands()
-
-	if sv.active {
-		serverFrame()
-	}
-
-	// client operations
-
-	// if running the server remotely, send intentions now after
-	// the incoming messages have been read
-	if !sv.active {
-		CL_SendCmd()
-	}
-
-	// fetch results from server
-	if cls.state == ca_connected {
-		cl.ReadFromServer()
-	}
-
-	var time1, time2, time3 time.Time
-
-	// update video
-	if cvars.HostSpeeds.Bool() {
-		time1 = time.Now()
-	}
-
-	screen.Update()
-
-	particlesRun(float32(cl.time), float32(cl.oldTime)) // separated from rendering
-
-	if cvars.HostSpeeds.Bool() {
-		time2 = time.Now()
-	}
-
-	// update audio
-	listener := snd.Listener{
-		ID: cl.viewentity,
-	}
-	if cls.signon == 4 {
-		listener.Origin = qRefreshRect.viewOrg
-		listener.Right = qRefreshRect.viewRight
-		cl.DecayLights()
-	}
-	snd.Update(listener)
-
-	if cvars.HostSpeeds.Bool() {
-		pass1 := time1.Sub(executeFrameTime)
-		executeFrameTime = time.Now()
-		pass2 := time2.Sub(time1)
-		pass3 := time3.Sub(time2)
-		conlog.Printf("%3d tot %3d server %3d gfx %3d snd\n",
-			(pass1 + pass2 + pass3).Milliseconds(),
-			pass1.Milliseconds(), pass2.Milliseconds(), pass3.Milliseconds())
-	}
-
-	// this is for demo syncing
-	host.frameCount++
 }
 
 func writeCvarVariables(w io.Writer) {
@@ -335,7 +240,7 @@ func (h *Host) Shutdown() {
 		HostWriteConfiguration()
 	}
 	net.Shutdown()
-	if cls.state != ca_dedicated {
+	if !cmdl.Dedicated() {
 		if console.initialized {
 			history.Save()
 		}

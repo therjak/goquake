@@ -5,6 +5,7 @@ import "C"
 import (
 	"fmt"
 
+	cmdl "goquake/commandline"
 	"goquake/conlog"
 )
 
@@ -24,7 +25,7 @@ func HostEndGame(msg string) {
 		hostShutdownServer(false)
 	}
 
-	if cls.state == ca_dedicated {
+	if cmdl.Dedicated() {
 		// dedicated servers exit
 		Error("Host_EndGame: %s\n", msg)
 	}
@@ -54,7 +55,7 @@ func HostError(format string, v ...interface{}) {
 		hostShutdownServer(false)
 	}
 
-	if cls.state == ca_dedicated {
+	if cmdl.Dedicated() {
 		// dedicated servers exit
 		Error("Host_Error: %s\n", s)
 	}

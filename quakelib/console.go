@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"goquake/cmd"
+	cmdl "goquake/commandline"
 	"goquake/conlog"
 	"goquake/cvar"
 	"goquake/cvars"
@@ -271,7 +272,7 @@ func (c *qconsole) Print(txt string) {
 	if !c.initialized {
 		return
 	}
-	if cls.state == ca_dedicated {
+	if cmdl.Dedicated() {
 		// no graphics mode
 		return
 	}

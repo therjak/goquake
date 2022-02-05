@@ -83,10 +83,11 @@ const (
 	numSignonMessagesBeforeConn = 4 // signon messages to receive before connected
 )
 
+type clientConnected bool
+
 const (
-	ca_dedicated    = 0
-	ca_disconnected = 1
-	ca_connected    = 2
+	ca_disconnected clientConnected = false
+	ca_connected    clientConnected = true
 )
 
 func (c *Client) adjustAngles() {
@@ -124,7 +125,7 @@ func (c *Client) adjustAngles() {
 // this is persistent through an arbitrary number of server connections
 // TODO(therjak): merge with Client
 type ClientStatic struct {
-	state              int // enum dedicated = 0, disconnected, connected
+	state              clientConnected
 	demoNum            int
 	demoPlayback       bool
 	demoPaused         bool
@@ -549,7 +550,7 @@ func clientReconnect() {
 
 // Host should be either "local" or a net address to be passed on
 func clEstablishConnection(host string) {
-	if cls.state == ca_dedicated {
+	if cmdl.Dedicated() {
 		return
 	}
 
@@ -1378,7 +1379,7 @@ func (c *ClientStatic) writeDemoMessage(data []byte) {
 }
 
 func clientStartDemos(args []cmd.QArg, _ int) {
-	if cls.state == ca_dedicated {
+	if cmdl.Dedicated() {
 		return
 	}
 

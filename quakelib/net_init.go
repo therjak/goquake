@@ -13,10 +13,10 @@ func networkInit() {
 	net.SetPort(cmdl.Port())
 
 	clients := svs.maxClientsLimit
-	if cls.state != ca_dedicated {
+	if !cmdl.Dedicated() {
 		clients++
 	}
-	if cmdl.Listen() || cls.state == ca_dedicated {
+	if cmdl.Listen() || cmdl.Dedicated() {
 		log.Printf("Listening to network")
 		net.Listen(clients)
 	}
