@@ -23,9 +23,9 @@ const (
 )
 
 func init() {
-	cmd.AddCommand("edict", edictPrintEdictFunc)
-	cmd.AddCommand("edicts", func(_ []cmd.QArg, _ int) { edictPrintEdicts() })
-	cmd.AddCommand("edictcount", edictCount)
+	Must(cmd.AddCommand("edict", edictPrintEdictFunc))
+	Must(cmd.AddCommand("edicts", func(_ []cmd.QArg, _ int) { edictPrintEdicts() }))
+	Must(cmd.AddCommand("edictcount", edictCount))
 }
 
 type EntityState struct {
@@ -326,7 +326,9 @@ func loadEntities(data []*bsp.Entity) error {
 		}
 
 		progsdat.Globals.Self = int32(eNr)
-		vm.ExecuteProgram(int32(fidx))
+		if err := vm.ExecuteProgram(int32(fidx)); err != nil {
+			return err
+		}
 	}
 
 	conlog.DPrintf("%d entities inhibited\n", inhibit)

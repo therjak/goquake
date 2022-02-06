@@ -120,7 +120,9 @@ func (q *qphysics) pushMove(pusher int, movetime float32) {
 			if pev.Blocked != 0 {
 				progsdat.Globals.Self = int32(pusher)
 				progsdat.Globals.Other = int32(c)
-				vm.ExecuteProgram(pev.Blocked)
+				if err := vm.ExecuteProgram(pev.Blocked); err != nil {
+					HostError(err)
+				}
 			}
 
 			// move back any entities we already moved
@@ -167,7 +169,9 @@ func (q *qphysics) pusher(ent int) {
 		progsdat.Globals.Time = sv.time
 		progsdat.Globals.Self = int32(ent)
 		progsdat.Globals.Other = 0
-		vm.ExecuteProgram(ev.Think)
+		if err := vm.ExecuteProgram(ev.Think); err != nil {
+			HostError(err)
+		}
 	}
 }
 
@@ -716,7 +720,9 @@ func (q *qphysics) playerActions(ent, num int) error {
 
 	progsdat.Globals.Time = sv.time
 	progsdat.Globals.Self = int32(ent)
-	vm.ExecuteProgram(progsdat.Globals.PlayerPreThink)
+	if err := vm.ExecuteProgram(progsdat.Globals.PlayerPreThink); err != nil {
+		return err
+	}
 
 	ev := EntVars(ent)
 	CheckVelocity(ev)
@@ -765,8 +771,7 @@ func (q *qphysics) playerActions(ent, num int) error {
 
 	progsdat.Globals.Time = sv.time
 	progsdat.Globals.Self = int32(ent)
-	vm.ExecuteProgram(progsdat.Globals.PlayerPostThink)
-	return nil
+	return vm.ExecuteProgram(progsdat.Globals.PlayerPostThink)
 }
 
 func RunPhysics() error {
@@ -774,7 +779,9 @@ func RunPhysics() error {
 	progsdat.Globals.Time = sv.time
 	progsdat.Globals.Self = 0
 	progsdat.Globals.Other = 0
-	vm.ExecuteProgram(progsdat.Globals.PlayerPostThink)
+	if err := vm.ExecuteProgram(progsdat.Globals.PlayerPostThink); err != nil {
+		return err
+	}
 
 	freezeNonClients := cvars.ServerFreezeNonClients.Bool()
 	entityCap := func() int {

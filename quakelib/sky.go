@@ -35,7 +35,7 @@ import (
 )
 
 func init() {
-	cmd.AddCommand("sky", skyCommand)
+	Must(cmd.AddCommand("sky", skyCommand))
 	cvars.RSkyFog.SetCallback(func(cv *cvar.Cvar) {
 		C.skyfog = C.float(cv.Value())
 	})

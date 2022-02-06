@@ -15,9 +15,9 @@ var (
 )
 
 func init() {
-	cmd.AddCommand("listen", listenCmd)
-	cmd.AddCommand("port", portCmd)
-	cmd.AddCommand("maxplayers", maxPlayersCmd)
+	Must(cmd.AddCommand("listen", listenCmd))
+	Must(cmd.AddCommand("port", portCmd))
+	Must(cmd.AddCommand("maxplayers", maxPlayersCmd))
 }
 
 func listenCmd(args []cmd.QArg, _ int) {

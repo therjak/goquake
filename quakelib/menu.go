@@ -16,20 +16,19 @@ func nextDemo() {
 }
 
 func init() {
-	cmd.AddCommand("togglemenu", func(_ []cmd.QArg, _ int) { toggleMenu() })
-
-	cmd.AddCommand("menu_main", func(_ []cmd.QArg, _ int) { enterMenuMain() })
-	cmd.AddCommand("menu_singleplayer", func(_ []cmd.QArg, _ int) { enterSinglePlayerMenu() })
-	cmd.AddCommand("menu_load", func(_ []cmd.QArg, _ int) { enterLoadMenu() })
-	cmd.AddCommand("menu_save", func(_ []cmd.QArg, _ int) { enterSaveMenu() })
-	cmd.AddCommand("menu_multiplayer", func(_ []cmd.QArg, _ int) { enterMultiPlayerMenu() })
-	cmd.AddCommand("menu_setup", func(_ []cmd.QArg, _ int) { enterNetSetupMenu() })
-	cmd.AddCommand("menu_options", func(_ []cmd.QArg, _ int) { enterMenuOptions() })
-	cmd.AddCommand("menu_keys", func(_ []cmd.QArg, _ int) { enterMenuKeys() })
-	cmd.AddCommand("menu_video", func(_ []cmd.QArg, _ int) { enterMenuVideo() })
-	cmd.AddCommand("help", func(_ []cmd.QArg, _ int) { enterMenuHelp() })
-	cmd.AddCommand("menu_quit", func(_ []cmd.QArg, _ int) { enterQuitMenu() })
-	cmd.AddCommand("menu_credits", func(_ []cmd.QArg, _ int) {})
+	Must(cmd.AddCommand("togglemenu", func(_ []cmd.QArg, _ int) { toggleMenu() }))
+	Must(cmd.AddCommand("menu_main", func(_ []cmd.QArg, _ int) { enterMenuMain() }))
+	Must(cmd.AddCommand("menu_singleplayer", func(_ []cmd.QArg, _ int) { enterSinglePlayerMenu() }))
+	Must(cmd.AddCommand("menu_load", func(_ []cmd.QArg, _ int) { enterLoadMenu() }))
+	Must(cmd.AddCommand("menu_save", func(_ []cmd.QArg, _ int) { enterSaveMenu() }))
+	Must(cmd.AddCommand("menu_multiplayer", func(_ []cmd.QArg, _ int) { enterMultiPlayerMenu() }))
+	Must(cmd.AddCommand("menu_setup", func(_ []cmd.QArg, _ int) { enterNetSetupMenu() }))
+	Must(cmd.AddCommand("menu_options", func(_ []cmd.QArg, _ int) { enterMenuOptions() }))
+	Must(cmd.AddCommand("menu_keys", func(_ []cmd.QArg, _ int) { enterMenuKeys() }))
+	Must(cmd.AddCommand("menu_video", func(_ []cmd.QArg, _ int) { enterMenuVideo() }))
+	Must(cmd.AddCommand("help", func(_ []cmd.QArg, _ int) { enterMenuHelp() }))
+	Must(cmd.AddCommand("menu_quit", func(_ []cmd.QArg, _ int) { enterQuitMenu() }))
+	Must(cmd.AddCommand("menu_credits", func(_ []cmd.QArg, _ int) {}))
 }
 
 // 0-127 are white

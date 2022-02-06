@@ -18,8 +18,8 @@ import (
 )
 
 func init() {
-	cmd.AddCommand("save", saveGame)
-	cmd.AddCommand("load", loadGame)
+	Must(cmd.AddCommand("save", saveGame))
+	Must(cmd.AddCommand("load", loadGame))
 }
 
 func saveGameComment() string {
@@ -147,7 +147,9 @@ func loadGame(args []cmd.QArg, _ int) {
 
 	clientDisconnect()
 
-	sv.SpawnServer(data.GetMapName())
+	if err := sv.SpawnServer(data.GetMapName()); err != nil {
+		HostError(err)
+	}
 	if !sv.active {
 		conlog.Printf("Couldn't load map\n")
 		return

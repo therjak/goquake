@@ -26,8 +26,8 @@ type qPath struct {
 }
 
 func init() {
-	cmd.AddCommand("path", CmdPath)
-	cmd.AddCommand("game", CmdGame)
+	Must(cmd.AddCommand("path", CmdPath))
+	Must(cmd.AddCommand("game", CmdGame))
 
 	cvars.Developer.SetCallback(func(cv *cvar.Cvar) {
 		conlog.SetDeveloper(cv.Value())

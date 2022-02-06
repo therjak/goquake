@@ -135,7 +135,7 @@ func svProtocol(args []cmd.QArg, _ int) {
 }
 
 func init() {
-	cmd.AddCommand("sv_protocol", svProtocol)
+	Must(cmd.AddCommand("sv_protocol", svProtocol))
 }
 
 func serverInit() {
@@ -533,7 +533,9 @@ func ConnectClient(n int) {
 	if sv.loadGame {
 		new.spawnParams = old.spawnParams
 	} else {
-		vm.ExecuteProgram(progsdat.Globals.SetNewParms)
+		if err := vm.ExecuteProgram(progsdat.Globals.SetNewParms); err != nil {
+			HostError(err)
+		}
 		new.spawnParams = progsdat.Globals.Parm
 	}
 	sv_clients[n] = new
@@ -586,13 +588,17 @@ func (s *Server) Impact(e1, e2 int) {
 	if ent1.Touch != 0 && ent1.Solid != SOLID_NOT {
 		progsdat.Globals.Self = int32(e1)
 		progsdat.Globals.Other = int32(e2)
-		vm.ExecuteProgram(ent1.Touch)
+		if err := vm.ExecuteProgram(ent1.Touch); err != nil {
+			HostError(err)
+		}
 	}
 
 	if ent2.Touch != 0 && ent2.Solid != SOLID_NOT {
 		progsdat.Globals.Self = int32(e2)
 		progsdat.Globals.Other = int32(e1)
-		vm.ExecuteProgram(ent2.Touch)
+		if err := vm.ExecuteProgram(ent2.Touch); err != nil {
+			HostError(err)
+		}
 	}
 
 	progsdat.Globals.Self = oldSelf
@@ -722,7 +728,9 @@ func SV_SaveSpawnparms() {
 		}
 		// call the progs to get default spawn parms for the new client
 		progsdat.Globals.Self = int32(c.edictId)
-		vm.ExecuteProgram(progsdat.Globals.SetChangeParms)
+		if err := vm.ExecuteProgram(progsdat.Globals.SetChangeParms); err != nil {
+			HostError(err)
+		}
 		c.spawnParams = progsdat.Globals.Parm
 	}
 }
@@ -808,7 +816,9 @@ func runThink(e int) bool {
 	progsdat.Globals.Time = thinktime
 	progsdat.Globals.Self = int32(e)
 	progsdat.Globals.Other = 0
-	vm.ExecuteProgram(ev.Think)
+	if err := vm.ExecuteProgram(ev.Think); err != nil {
+		HostError(err)
+	}
 
 	// capture interval to nextthink here and send it to client for better
 	// lerp timing, but only if interval is not 0.1 (which client assumes)
@@ -1148,7 +1158,7 @@ func init() {
 }
 
 //This is called at the start of each level
-func (s *Server) SpawnServer(name string) {
+func (s *Server) SpawnServer(name string) error {
 	// let's not have any servers with no name
 	if len(cvars.HostName.String()) == 0 {
 		cvars.HostName.SetByString("UNNAMED")
@@ -1211,7 +1221,7 @@ func (s *Server) SpawnServer(name string) {
 	if err != nil || len(mods) < 1 {
 		conlog.Printf("Couldn't spawn server %s\n", s.modelName)
 		s.active = false
-		return
+		return nil
 	}
 	s.worldModel = mods[0]
 	s.modelPrecache = append(s.modelPrecache, string([]byte{0, 0, 0, 0, 0, 0, 0, 0}))
@@ -1243,7 +1253,7 @@ func (s *Server) SpawnServer(name string) {
 	progsdat.Globals.ServerFlags = float32(svs.serverFlags)
 
 	if err := loadEntities(sv.worldModel.Entities); err != nil {
-		HostError(err)
+		return err
 	}
 
 	s.active = true
@@ -1254,10 +1264,10 @@ func (s *Server) SpawnServer(name string) {
 	// run two frames to allow everything to settle
 	host.frameTime = 0.1
 	if err := RunPhysics(); err != nil {
-		HostError(err)
+		return err
 	}
 	if err := RunPhysics(); err != nil {
-		HostError(err)
+		return err
 	}
 
 	// create a baseline for more efficient communications
@@ -1278,6 +1288,7 @@ func (s *Server) SpawnServer(name string) {
 	}
 
 	conlog.DPrintf("Server spawned.\n")
+	return nil
 }
 
 func (s *Server) saveGameEdicts() []*protos.Edict {

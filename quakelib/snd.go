@@ -73,11 +73,11 @@ func localSound(name string) {
 }
 
 func init() {
-	cmd.AddCommand("play", playCmd)
-	cmd.AddCommand("playvol", playVolCmd)
-	cmd.AddCommand("stopsound", stopSoundCmd)
-	cmd.AddCommand("soundlist", soundListCmd)
-	cmd.AddCommand("soundinfo", soundInfoCmd)
+	Must(cmd.AddCommand("play", playCmd))
+	Must(cmd.AddCommand("playvol", playVolCmd))
+	Must(cmd.AddCommand("stopsound", stopSoundCmd))
+	Must(cmd.AddCommand("soundlist", soundListCmd))
+	Must(cmd.AddCommand("soundinfo", soundInfoCmd))
 }
 
 func playCmd(args []cmd.QArg, _ int) {

@@ -300,10 +300,10 @@ func init() {
 		menuBound[k] = true
 	}
 
-	cmd.AddCommand("bindlist", keyBindlist)
-	cmd.AddCommand("bind", keyBind)
-	cmd.AddCommand("unbind", keyUnbind)
-	cmd.AddCommand("unbindall", keyUnbindAll)
+	Must(cmd.AddCommand("bindlist", keyBindlist))
+	Must(cmd.AddCommand("bind", keyBind))
+	Must(cmd.AddCommand("unbind", keyUnbind))
+	Must(cmd.AddCommand("unbindall", keyUnbindAll))
 }
 
 func keyBindlist(args []cmd.QArg, _ int) {
@@ -357,9 +357,11 @@ func keyBind(args []cmd.QArg, _ int) {
 	keyBindings[k] = args[1].String()
 }
 
-func writeKeyBindings(w io.Writer) {
+func writeKeyBindings(w io.Writer) error {
 	if cvars.CfgUnbindAll.Bool() {
-		w.Write([]byte("unbindall\n"))
+		if _, err := w.Write([]byte("unbindall\n")); err != nil {
+			return err
+		}
 	}
 	b := []string{}
 	for k, c := range keyBindings {
@@ -370,8 +372,11 @@ func writeKeyBindings(w io.Writer) {
 	}
 	sort.Strings(b)
 	for _, s := range b {
-		w.Write([]byte(s))
+		if _, err := w.Write([]byte(s)); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 func getKeysForCommand(command string) (kc.KeyCode, kc.KeyCode, kc.KeyCode) {

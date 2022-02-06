@@ -381,7 +381,7 @@ func particlesReadPointFile(_ []cmd.QArg, _ int) {
 }
 
 func init() {
-	cmd.AddCommand("pointfile", particlesReadPointFile)
+	Must(cmd.AddCommand("pointfile", particlesReadPointFile))
 }
 
 // randVec returns a randomized vector with radius at most r

@@ -107,8 +107,8 @@ func execFile(args []cmd.QArg, _ int) {
 }
 
 func init() {
-	cmd.AddCommand("echo", echo)
-	cmd.AddCommand("cmdlist", printCmdList)
-	cmd.AddCommand("stuffcmds", executeCommandLineScripts)
-	cmd.AddCommand("exec", execFile)
+	Must(cmd.AddCommand("echo", echo))
+	Must(cmd.AddCommand("cmdlist", printCmdList))
+	Must(cmd.AddCommand("stuffcmds", executeCommandLineScripts))
+	Must(cmd.AddCommand("exec", execFile))
 }

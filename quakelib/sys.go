@@ -17,6 +17,12 @@ var (
 */
 )
 
+func Must(err error) {
+	if err != nil {
+		panic(err.Error())
+	}
+}
+
 //export ScreenDisabled
 func ScreenDisabled() C.int {
 	if screen.disabled {

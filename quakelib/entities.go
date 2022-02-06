@@ -50,7 +50,7 @@ var (
 
 func init() {
 	playerTextures = make(map[*Entity]*texture.Texture)
-	cmd.AddCommand("entities", printEntities)
+	Must(cmd.AddCommand("entities", printEntities))
 }
 
 func printEntities(_ []cmd.QArg, _ int) {

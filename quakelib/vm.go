@@ -330,7 +330,7 @@ void PR_Profile_f(void) {
 
 */
 // Aborts the currently executing function
-func (v *virtualMachine) runError(format string, a ...interface{}) {
+func (v *virtualMachine) runError(format string, a ...interface{}) error {
 	v.printStatement(v.prog.Statements[v.statement])
 	v.stackTrace()
 
@@ -339,13 +339,13 @@ func (v *virtualMachine) runError(format string, a ...interface{}) {
 	// dump the stack so host_error can shutdown functions
 	v.stack = v.stack[:0]
 
-	HostError(fmt.Errorf("Program error"))
+	return fmt.Errorf("Program error")
 }
 
 //Returns the new program statement counter
-func (v *virtualMachine) enterFunction(f *progs.Function) int32 {
+func (v *virtualMachine) enterFunction(f *progs.Function) (int32, error) {
 	if len(v.stack) == cap(v.stack) {
-		v.runError("stack overflow")
+		return 0, v.runError("stack overflow")
 	}
 	v.stack = append(v.stack, stackElem{
 		statement: v.statement,
@@ -355,7 +355,7 @@ func (v *virtualMachine) enterFunction(f *progs.Function) int32 {
 	// save off any locals that the new function steps on
 	c := f.Locals
 	if len(v.localStack)+int(c) > cap(v.localStack) {
-		v.runError("PR_ExecuteProgram: locals stack overflow\n")
+		return 0, v.runError("PR_ExecuteProgram: locals stack overflow\n")
 	}
 	for i := int32(0); i < c; i++ {
 		v.localStack = append(v.localStack, v.prog.RawGlobalsI[f.ParmStart+i])
@@ -371,18 +371,18 @@ func (v *virtualMachine) enterFunction(f *progs.Function) int32 {
 	}
 
 	v.xfunction = f
-	return f.FirstStatement
+	return f.FirstStatement, nil
 }
 
-func (v *virtualMachine) leaveFunction() int32 {
+func (v *virtualMachine) leaveFunction() (int32, error) {
 	if len(v.stack) == 0 {
-		HostError(fmt.Errorf("prog stack underflow"))
+		return 0, fmt.Errorf("prog stack underflow")
 	}
 
 	// Restore locals from the stack
 	c := int(v.xfunction.Locals)
 	if len(v.localStack) < c {
-		v.runError("PR_ExecuteProgram: locals stack underflow")
+		return 0, v.runError("PR_ExecuteProgram: locals stack underflow")
 	}
 
 	nl := len(v.localStack) - c
@@ -395,16 +395,16 @@ func (v *virtualMachine) leaveFunction() int32 {
 	top := v.stack[len(v.stack)-1]
 	v.stack = v.stack[:len(v.stack)-1]
 	v.xfunction = top.function
-	return top.statement
+	return top.statement, nil
 }
 
 //  The interpretation main loop
-func (v *virtualMachine) ExecuteProgram(fnum int32) {
+func (v *virtualMachine) ExecuteProgram(fnum int32) error {
 	if fnum == 0 || int(fnum) >= len(v.prog.Functions) {
 		if v.prog.Globals.Self != 0 {
 			edictPrint(int(v.prog.Globals.Self))
 		}
-		HostError(fmt.Errorf("PR_ExecuteProgram: NULL function, %d", fnum))
+		return fmt.Errorf("PR_ExecuteProgram: NULL function, %d", fnum)
 	}
 
 	f := &v.prog.Functions[fnum]
@@ -414,7 +414,10 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 	// make a stack frame
 	exitdepth := len(v.stack)
 
-	currentStatement := v.enterFunction(f)
+	currentStatement, err := v.enterFunction(f)
+	if err != nil {
+		return err
+	}
 
 	st := func() *progs.Statement {
 		return &v.prog.Statements[currentStatement]
@@ -625,7 +628,7 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 			ed := OPAI()
 			if ed == 0 && sv.state == ServerStateActive {
 				v.statement = currentStatement
-				v.runError("assignment to world entity")
+				return v.runError("assignment to world entity")
 			}
 			setOPCI(OPAI()*int32(entityFields)*4 + OPBI()*4)
 			//SOPCI((byte *)((int *)EVars(OPAI) + OPBI) - (byte *)EVars(0));
@@ -682,21 +685,25 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 			v.statement = currentStatement
 			v.argc = int(st().Operator) - operatorCALL0
 			if OPAI() == 0 {
-				v.runError("NULL function")
+				return v.runError("NULL function")
 			}
 			newf := &v.prog.Functions[OPAI()]
 			if newf.FirstStatement < 0 {
 				// Built-in function
 				i := int(-newf.FirstStatement)
 				if i >= len(v.builtins) {
-					v.runError("Bad builtin call number %d", i)
+					return v.runError("Bad builtin call number %d", i)
 				}
 				if err := v.builtins[i](); err != nil {
-					HostError(err)
+					return err
 				}
 			} else {
 				// Normal function
-				currentStatement = v.enterFunction(newf) - 1
+				if s, err := v.enterFunction(newf); err != nil {
+					return err
+				} else {
+					currentStatement = s - 1
+				}
 			}
 
 		case operatorDONE, operatorRETURN:
@@ -704,9 +711,13 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 			// startprofile = profile
 			v.statement = currentStatement
 			*(v.prog.Globals.Returnf()) = OPAV()
-			currentStatement = v.leaveFunction()
+			if s, err := v.leaveFunction(); err != nil {
+				return err
+			} else {
+				currentStatement = s
+			}
 			if len(v.stack) == exitdepth { // Done
-				return
+				return nil
 			}
 
 		case operatorSTATE:
@@ -717,7 +728,8 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) {
 
 		default:
 			v.statement = currentStatement
-			v.runError("Bad opcode %d", v.prog.Statements[currentStatement].Operator)
+			return v.runError("Bad opcode %d", v.prog.Statements[currentStatement].Operator)
 		}
 	}
+	return nil
 }

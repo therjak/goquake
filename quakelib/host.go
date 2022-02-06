@@ -187,8 +187,8 @@ func hostDemos(_ []cmd.QArg, _ int) {
 }
 
 func init() {
-	cmd.AddCommand("stopdemo", hostStopDemo)
-	cmd.AddCommand("demos", hostDemos)
+	Must(cmd.AddCommand("stopdemo", hostStopDemo))
+	Must(cmd.AddCommand("demos", hostDemos))
 }
 
 func writeCvarVariables(w io.Writer) {

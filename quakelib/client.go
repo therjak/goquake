@@ -66,16 +66,16 @@ var (
 )
 
 func init() {
-	cmd.AddCommand("disconnect", func(args []cmd.QArg, _ int) { clientDisconnect() })
-	cmd.AddCommand("reconnect", func(args []cmd.QArg, _ int) { clientReconnect() })
+	Must(cmd.AddCommand("disconnect", func(args []cmd.QArg, _ int) { clientDisconnect() }))
+	Must(cmd.AddCommand("reconnect", func(args []cmd.QArg, _ int) { clientReconnect() }))
 
-	cmd.AddCommand("startdemos", clientStartDemos)
-	cmd.AddCommand("record", clientRecordDemo)
-	cmd.AddCommand("stop", clientStopDemoRecording)
-	cmd.AddCommand("playdemo", clientPlayDemo)
-	cmd.AddCommand("timedemo", clientTimeDemo)
+	Must(cmd.AddCommand("startdemos", clientStartDemos))
+	Must(cmd.AddCommand("record", clientRecordDemo))
+	Must(cmd.AddCommand("stop", clientStopDemoRecording))
+	Must(cmd.AddCommand("playdemo", clientPlayDemo))
+	Must(cmd.AddCommand("timedemo", clientTimeDemo))
 
-	cmd.AddCommand("tracepos", tracePosition)
+	Must(cmd.AddCommand("tracepos", tracePosition))
 	//cmd.AddCommand("mcache", Mod_Print);
 }
 
@@ -375,8 +375,8 @@ func forwardToServer(c string, args []cmd.QArg) {
 }
 
 func init() {
-	cmd.AddCommand("cmd", executeOnServer)
-	cmd.AddCommand("viewpos", viewPositionCommand)
+	Must(cmd.AddCommand("cmd", executeOnServer))
+	Must(cmd.AddCommand("viewpos", viewPositionCommand))
 }
 
 // Read all incoming data from the server
@@ -1094,7 +1094,7 @@ func (c *Client) bonusFlash() {
 }
 
 func init() {
-	cmd.AddCommand("v_cshift", func(a []cmd.QArg, _ int) {
+	Must(cmd.AddCommand("v_cshift", func(a []cmd.QArg, _ int) {
 		cshiftEmpty = Color{0, 0, 0, 0}
 		switch l := len(a); {
 		case l >= 4:
@@ -1109,9 +1109,9 @@ func init() {
 		case l == 1:
 			cshiftEmpty.R = a[0].Float32() / 255
 		}
-	})
-	cmd.AddCommand("bf", func(_ []cmd.QArg, _ int) { cl.bonusFlash() })
-	cmd.AddCommand("centerview", func(_ []cmd.QArg, _ int) { cl.startPitchDrift() })
+	}))
+	Must(cmd.AddCommand("bf", func(_ []cmd.QArg, _ int) { cl.bonusFlash() }))
+	Must(cmd.AddCommand("centerview", func(_ []cmd.QArg, _ int) { cl.startPitchDrift() }))
 }
 
 var (
@@ -1375,12 +1375,23 @@ func (c *ClientStatic) finishTimeDemo() {
 	conlog.Printf("%d frames %5.1f seconds %5.1f fps\n", frames, time, float64(frames)/time)
 }
 
-func (c *ClientStatic) writeDemoMessage(data []byte) {
-	binary.Write(c.demoWriter, binary.LittleEndian, int32(len(data)))
-	binary.Write(c.demoWriter, binary.LittleEndian, cl.pitch)
-	binary.Write(c.demoWriter, binary.LittleEndian, cl.yaw)
-	binary.Write(c.demoWriter, binary.LittleEndian, cl.roll)
-	binary.Write(c.demoWriter, binary.LittleEndian, data)
+func (c *ClientStatic) writeDemoMessage(data []byte) error {
+	if err := binary.Write(c.demoWriter, binary.LittleEndian, int32(len(data))); err != nil {
+		return err
+	}
+	if err := binary.Write(c.demoWriter, binary.LittleEndian, cl.pitch); err != nil {
+		return err
+	}
+	if err := binary.Write(c.demoWriter, binary.LittleEndian, cl.yaw); err != nil {
+		return err
+	}
+	if err := binary.Write(c.demoWriter, binary.LittleEndian, cl.roll); err != nil {
+		return err
+	}
+	if err := binary.Write(c.demoWriter, binary.LittleEndian, data); err != nil {
+		return err
+	}
+	return nil
 }
 
 func clientStartDemos(args []cmd.QArg, _ int) {

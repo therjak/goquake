@@ -65,7 +65,7 @@ func (f *QFog) Update(density, red, green, blue float32, time float64) {
 }
 
 func init() {
-	cmd.AddCommand("fog", fogCommand)
+	Must(cmd.AddCommand("fog", fogCommand))
 }
 
 func fogCommand(args []cmd.QArg, _ int) {

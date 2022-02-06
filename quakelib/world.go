@@ -186,7 +186,9 @@ func (v *virtualMachine) touchLinks(e int, a *areaNode) {
 		progsdat.Globals.Self = int32(touch)
 		progsdat.Globals.Other = int32(e)
 		progsdat.Globals.Time = sv.time
-		v.ExecuteProgram(tv.Touch)
+		if err := v.ExecuteProgram(tv.Touch); err != nil {
+			HostError(err)
+		}
 
 		progsdat.Globals.Self = oldSelf
 		progsdat.Globals.Other = oldOther

@@ -416,8 +416,7 @@ func (v *virtualMachine) setModel() error {
 	mi := v.prog.Globals.Parm1[0]
 	m, err := v.prog.String(mi)
 	if err != nil {
-		v.runError("no precache: %d", mi)
-		return nil
+		return v.runError("no precache: %d", mi)
 	}
 
 	idx := -1
@@ -428,8 +427,7 @@ func (v *virtualMachine) setModel() error {
 		}
 	}
 	if idx == -1 {
-		v.runError("no precache: %s", m)
-		return nil
+		return v.runError("no precache: %s", m)
 	}
 
 	ev := EntVars(e)
@@ -602,8 +600,7 @@ func (v *virtualMachine) sound() error {
 	channel := v.prog.RawGlobalsF[progs.OffsetParm1]
 	sample, err := v.prog.String(v.prog.Globals.Parm2[0])
 	if err != nil {
-		v.runError("PF_sound: no sample")
-		return nil
+		return v.runError("PF_sound: no sample")
 	}
 	volume := v.prog.RawGlobalsF[progs.OffsetParm3] * 255
 	attenuation := v.prog.RawGlobalsF[progs.OffsetParm4]
@@ -788,13 +785,11 @@ func (v *virtualMachine) checkClient() error {
 func (v *virtualMachine) stuffCmd() error {
 	entnum := int(v.prog.Globals.Parm0[0])
 	if entnum < 1 || entnum > svs.maxClients {
-		v.runError("Parm 0 not a client")
-		return nil
+		return v.runError("Parm 0 not a client")
 	}
 	str, err := v.prog.String(v.prog.Globals.Parm1[0])
 	if err != nil {
-		v.runError("stuffcmd: no string")
-		return nil
+		return v.runError("stuffcmd: no string")
 	}
 
 	c := sv_clients[entnum-1]
@@ -807,8 +802,7 @@ func (v *virtualMachine) stuffCmd() error {
 func (v *virtualMachine) localCmd() error {
 	str, err := v.prog.String(v.prog.Globals.Parm0[0])
 	if err != nil {
-		v.runError("localcmd: no string")
-		return nil
+		return v.runError("localcmd: no string")
 	}
 	cbuf.AddText(str)
 	return nil
@@ -817,8 +811,7 @@ func (v *virtualMachine) localCmd() error {
 func (v *virtualMachine) cvar() error {
 	str, err := v.prog.String(v.prog.Globals.Parm0[0])
 	if err != nil {
-		v.runError("PF_cvar: no string")
-		return nil
+		return v.runError("PF_cvar: no string")
 	}
 	f := func(n string) float32 {
 		if cv, ok := cvar.Get(n); ok {
@@ -833,13 +826,11 @@ func (v *virtualMachine) cvar() error {
 func (v *virtualMachine) cvarSet() error {
 	name, err := v.prog.String(v.prog.Globals.Parm0[0])
 	if err != nil {
-		v.runError("PF_cvar_set: no name string")
-		return nil
+		return v.runError("PF_cvar_set: no name string")
 	}
 	val, err := v.prog.String(v.prog.Globals.Parm1[0])
 	if err != nil {
-		v.runError("PF_cvar_set: no val string")
-		return nil
+		return v.runError("PF_cvar_set: no val string")
 	}
 	if cv, ok := cvar.Get(name); ok {
 		cv.SetByString(val)
@@ -926,8 +917,7 @@ func (v *virtualMachine) find() error {
 	f := progsdat.Globals.Parm1[0]
 	s, err := progsdat.String(progsdat.Globals.Parm2[0])
 	if err != nil {
-		v.runError("PF_Find: bad search string")
-		return nil
+		return v.runError("PF_Find: bad search string")
 	}
 	for e++; int(e) < sv.numEdicts; e++ {
 		if edictNum(int(e)).Free {
@@ -962,16 +952,14 @@ func (v *virtualMachine) precacheFile() error {
 
 func (v *virtualMachine) precacheSound() error {
 	if sv.state != ServerStateLoading {
-		v.runError("PF_Precache_*: Precache can only be done in spawn functions")
-		return nil
+		return v.runError("PF_Precache_*: Precache can only be done in spawn functions")
 	}
 
 	si := progsdat.Globals.Parm0[0]
 	progsdat.Globals.Return[0] = si
 	s, err := progsdat.String(si)
 	if err != nil {
-		v.runError("precacheSound: Bad string, %v", err)
-		return nil
+		return v.runError("precacheSound: Bad string, %v", err)
 	}
 
 	exist := func(s string) bool {
@@ -986,8 +974,7 @@ func (v *virtualMachine) precacheSound() error {
 		return nil
 	}
 	if len(sv.soundPrecache) >= 2048 {
-		v.runError("PF_precache_sound: overflow")
-		return nil
+		return v.runError("PF_precache_sound: overflow")
 	}
 	sv.soundPrecache = append(sv.soundPrecache, s)
 	return nil
@@ -995,16 +982,14 @@ func (v *virtualMachine) precacheSound() error {
 
 func (v *virtualMachine) precacheModel() error {
 	if sv.state != ServerStateLoading {
-		v.runError("PF_Precache_*: Precache can only be done in spawn functions")
-		return nil
+		return v.runError("PF_Precache_*: Precache can only be done in spawn functions")
 	}
 
 	si := progsdat.Globals.Parm0[0]
 	progsdat.Globals.Return[0] = si
 	s, err := progsdat.String(si)
 	if err != nil {
-		v.runError("precacheModel: Bad string, %v", err)
-		return nil
+		return v.runError("precacheModel: Bad string, %v", err)
 	}
 
 	exist := func(s string) bool {
@@ -1019,8 +1004,7 @@ func (v *virtualMachine) precacheModel() error {
 		return nil
 	}
 	if len(sv.modelPrecache) >= 2048 {
-		v.runError("PF_precache_sound: overflow")
-		return nil
+		return v.runError("PF_precache_sound: overflow")
 	}
 	sv.modelPrecache = append(sv.modelPrecache, s)
 	m, err := loadModel(s)
@@ -1287,12 +1271,12 @@ const (
 	MSG_INIT             // write to the init string
 )
 
-func (v *virtualMachine) writeClient() int {
+func (v *virtualMachine) writeClient() (int, error) {
 	entnum := int(progsdat.Globals.MsgEntity)
 	if entnum < 1 || entnum > svs.maxClients {
-		v.runError("WriteDest: not a client")
+		return 0, v.runError("WriteDest: not a client")
 	}
-	return entnum - 1
+	return entnum - 1, nil
 }
 
 func (v *virtualMachine) writeByte() error {
@@ -1300,7 +1284,11 @@ func (v *virtualMachine) writeByte() error {
 	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
 	switch dest {
 	case MSG_ONE:
-		sv_clients[v.writeClient()].msg.WriteByte(int(msg))
+		if c, err := v.writeClient(); err != nil {
+			return err
+		} else {
+			sv_clients[c].msg.WriteByte(int(msg))
+		}
 	case MSG_INIT:
 		sv.signon.WriteByte(int(msg))
 	case MSG_BROADCAST:
@@ -1308,7 +1296,7 @@ func (v *virtualMachine) writeByte() error {
 	case MSG_ALL:
 		sv.reliableDatagram.WriteByte(int(msg))
 	default:
-		v.runError("WriteDest: bad destination")
+		return v.runError("WriteDest: bad destination")
 	}
 	return nil
 }
@@ -1318,7 +1306,11 @@ func (v *virtualMachine) writeChar() error {
 	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
 	switch dest {
 	case MSG_ONE:
-		sv_clients[v.writeClient()].msg.WriteChar(int(msg))
+		if c, err := v.writeClient(); err != nil {
+			return err
+		} else {
+			sv_clients[c].msg.WriteChar(int(msg))
+		}
 	case MSG_INIT:
 		sv.signon.WriteChar(int(msg))
 	case MSG_BROADCAST:
@@ -1326,7 +1318,7 @@ func (v *virtualMachine) writeChar() error {
 	case MSG_ALL:
 		sv.reliableDatagram.WriteChar(int(msg))
 	default:
-		v.runError("WriteDest: bad destination")
+		return v.runError("WriteDest: bad destination")
 	}
 	return nil
 }
@@ -1336,7 +1328,11 @@ func (v *virtualMachine) writeShort() error {
 	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
 	switch dest {
 	case MSG_ONE:
-		sv_clients[v.writeClient()].msg.WriteShort(int(msg))
+		if c, err := v.writeClient(); err != nil {
+			return err
+		} else {
+			sv_clients[c].msg.WriteShort(int(msg))
+		}
 	case MSG_INIT:
 		sv.signon.WriteShort(int(msg))
 	case MSG_BROADCAST:
@@ -1344,7 +1340,7 @@ func (v *virtualMachine) writeShort() error {
 	case MSG_ALL:
 		sv.reliableDatagram.WriteShort(int(msg))
 	default:
-		v.runError("WriteDest: bad destination")
+		return v.runError("WriteDest: bad destination")
 	}
 	return nil
 }
@@ -1354,7 +1350,11 @@ func (v *virtualMachine) writeLong() error {
 	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
 	switch dest {
 	case MSG_ONE:
-		sv_clients[v.writeClient()].msg.WriteLong(int(msg))
+		if c, err := v.writeClient(); err != nil {
+			return err
+		} else {
+			sv_clients[c].msg.WriteLong(int(msg))
+		}
 	case MSG_INIT:
 		sv.signon.WriteLong(int(msg))
 	case MSG_BROADCAST:
@@ -1362,7 +1362,7 @@ func (v *virtualMachine) writeLong() error {
 	case MSG_ALL:
 		sv.reliableDatagram.WriteLong(int(msg))
 	default:
-		v.runError("WriteDest: bad destination")
+		return v.runError("WriteDest: bad destination")
 	}
 	return nil
 }
@@ -1372,7 +1372,11 @@ func (v *virtualMachine) writeAngle() error {
 	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
 	switch dest {
 	case MSG_ONE:
-		sv_clients[v.writeClient()].msg.WriteAngle(msg, sv.protocolFlags)
+		if c, err := v.writeClient(); err != nil {
+			return err
+		} else {
+			sv_clients[c].msg.WriteAngle(msg, sv.protocolFlags)
+		}
 	case MSG_INIT:
 		sv.signon.WriteAngle(msg, sv.protocolFlags)
 	case MSG_BROADCAST:
@@ -1380,7 +1384,7 @@ func (v *virtualMachine) writeAngle() error {
 	case MSG_ALL:
 		sv.reliableDatagram.WriteAngle(msg, sv.protocolFlags)
 	default:
-		v.runError("WriteDest: bad destination")
+		return v.runError("WriteDest: bad destination")
 	}
 	return nil
 }
@@ -1390,7 +1394,11 @@ func (v *virtualMachine) writeCoord() error {
 	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
 	switch dest {
 	case MSG_ONE:
-		sv_clients[v.writeClient()].msg.WriteCoord(msg, sv.protocolFlags)
+		if c, err := v.writeClient(); err != nil {
+			return err
+		} else {
+			sv_clients[c].msg.WriteCoord(msg, sv.protocolFlags)
+		}
 	case MSG_INIT:
 		sv.signon.WriteCoord(msg, sv.protocolFlags)
 	case MSG_BROADCAST:
@@ -1398,7 +1406,7 @@ func (v *virtualMachine) writeCoord() error {
 	case MSG_ALL:
 		sv.reliableDatagram.WriteCoord(msg, sv.protocolFlags)
 	default:
-		v.runError("WriteDest: bad destination")
+		return v.runError("WriteDest: bad destination")
 	}
 	return nil
 }
@@ -1408,12 +1416,15 @@ func (v *virtualMachine) writeString() error {
 	i := progsdat.Globals.Parm1[0]
 	msg, err := progsdat.String(i)
 	if err != nil {
-		v.runError("PF_WriteString: bad string")
-		return nil
+		return v.runError("PF_WriteString: bad string")
 	}
 	switch dest {
 	case MSG_ONE:
-		sv_clients[v.writeClient()].msg.WriteString(msg)
+		if c, err := v.writeClient(); err != nil {
+			return err
+		} else {
+			sv_clients[c].msg.WriteString(msg)
+		}
 	case MSG_INIT:
 		sv.signon.WriteString(msg)
 	case MSG_BROADCAST:
@@ -1421,7 +1432,7 @@ func (v *virtualMachine) writeString() error {
 	case MSG_ALL:
 		sv.reliableDatagram.WriteString(msg)
 	default:
-		v.runError("WriteDest: bad destination")
+		return v.runError("WriteDest: bad destination")
 	}
 	return nil
 }
@@ -1431,7 +1442,11 @@ func (v *virtualMachine) writeEntity() error {
 	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
 	switch dest {
 	case MSG_ONE:
-		sv_clients[v.writeClient()].msg.WriteShort(int(msg))
+		if c, err := v.writeClient(); err != nil {
+			return err
+		} else {
+			sv_clients[c].msg.WriteShort(int(msg))
+		}
 	case MSG_INIT:
 		sv.signon.WriteShort(int(msg))
 	case MSG_BROADCAST:
@@ -1439,7 +1454,7 @@ func (v *virtualMachine) writeEntity() error {
 	case MSG_ALL:
 		sv.reliableDatagram.WriteShort(int(msg))
 	default:
-		v.runError("WriteDest: bad destination")
+		return v.runError("WriteDest: bad destination")
 	}
 	return nil
 }
@@ -1521,8 +1536,7 @@ func (v *virtualMachine) makeStatic() error {
 func (v *virtualMachine) setSpawnParms() error {
 	i := int(progsdat.Globals.Parm0[0])
 	if i < 1 || i > svs.maxClients {
-		v.runError("Entity is not a client")
-		return nil
+		return v.runError("Entity is not a client")
 	}
 
 	// copy spawn parms out of the client_t
@@ -1535,8 +1549,7 @@ func (v *virtualMachine) setSpawnParms() error {
 }
 
 func (v *virtualMachine) fixme() error {
-	v.runError("unimplemented builtin")
-	return nil
+	return v.runError("unimplemented builtin")
 }
 
 func (v *virtualMachine) changeLevel() error {
@@ -1549,8 +1562,7 @@ func (v *virtualMachine) changeLevel() error {
 	i := progsdat.Globals.Parm0[0]
 	s, err := progsdat.String(i)
 	if err != nil {
-		v.runError("PF_changelevel: bad level name")
-		return nil
+		return v.runError("PF_changelevel: bad level name")
 	}
 	cbuf.AddText(fmt.Sprintf("changelevel %s\n", s))
 	return nil

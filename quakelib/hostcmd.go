@@ -22,32 +22,32 @@ import (
 )
 
 func init() {
-	cmd.AddClientCommand("begin", hostBegin)
-	cmd.AddClientCommand("color", hostColor)
-	cmd.AddClientCommand("fly", hostFly)
-	cmd.AddClientCommand("give", hostGive)
-	cmd.AddClientCommand("god", hostGod)
-	cmd.AddClientCommand("kick", hostKick)
-	cmd.AddClientCommand("kill", hostKill)
-	cmd.AddClientCommand("name", hostName)
-	cmd.AddClientCommand("noclip", hostNoClip)
-	cmd.AddClientCommand("notarget", hostNoTarget)
-	cmd.AddClientCommand("pause", hostPause)
-	cmd.AddClientCommand("ping", hostPing)
-	cmd.AddClientCommand("prespawn", hostPreSpawn)
-	cmd.AddClientCommand("say", hostSayAll)
-	cmd.AddClientCommand("say_team", hostSayTeam)
-	cmd.AddClientCommand("setpos", hostSetPos)
-	cmd.AddClientCommand("spawn", hostSpawn)
-	cmd.AddClientCommand("status", hostStatus)
-	cmd.AddClientCommand("tell", hostTell)
-	cmd.AddCommand("changelevel", hostChangelevel)
-	cmd.AddCommand("connect", hostConnect)
-	cmd.AddCommand("map", hostMap)
-	cmd.AddCommand("mapname", hostMapName)
-	cmd.AddCommand("quit", func(_ []cmd.QArg, _ int) { hostQuit() })
-	cmd.AddCommand("restart", hostRestart)
-	cmd.AddCommand("version", hostVersion)
+	Must(cmd.AddClientCommand("begin", hostBegin))
+	Must(cmd.AddClientCommand("color", hostColor))
+	Must(cmd.AddClientCommand("fly", hostFly))
+	Must(cmd.AddClientCommand("give", hostGive))
+	Must(cmd.AddClientCommand("god", hostGod))
+	Must(cmd.AddClientCommand("kick", hostKick))
+	Must(cmd.AddClientCommand("kill", hostKill))
+	Must(cmd.AddClientCommand("name", hostName))
+	Must(cmd.AddClientCommand("noclip", hostNoClip))
+	Must(cmd.AddClientCommand("notarget", hostNoTarget))
+	Must(cmd.AddClientCommand("pause", hostPause))
+	Must(cmd.AddClientCommand("ping", hostPing))
+	Must(cmd.AddClientCommand("prespawn", hostPreSpawn))
+	Must(cmd.AddClientCommand("say", hostSayAll))
+	Must(cmd.AddClientCommand("say_team", hostSayTeam))
+	Must(cmd.AddClientCommand("setpos", hostSetPos))
+	Must(cmd.AddClientCommand("spawn", hostSpawn))
+	Must(cmd.AddClientCommand("status", hostStatus))
+	Must(cmd.AddClientCommand("tell", hostTell))
+	Must(cmd.AddCommand("changelevel", hostChangelevel))
+	Must(cmd.AddCommand("connect", hostConnect))
+	Must(cmd.AddCommand("map", hostMap))
+	Must(cmd.AddCommand("mapname", hostMapName))
+	Must(cmd.AddCommand("quit", func(_ []cmd.QArg, _ int) { hostQuit() }))
+	Must(cmd.AddCommand("restart", hostRestart))
+	Must(cmd.AddCommand("version", hostVersion))
 }
 
 func hostQuit() {
@@ -611,11 +611,15 @@ func hostSpawn(args []cmd.QArg, playerEdictId int) {
 		progsdat.Globals.Parm = c.spawnParams
 		progsdat.Globals.Time = sv.time
 		progsdat.Globals.Self = int32(playerEdictId)
-		vm.ExecuteProgram(progsdat.Globals.ClientConnect)
+		if err := vm.ExecuteProgram(progsdat.Globals.ClientConnect); err != nil {
+			HostError(err)
+		}
 		if (qtime.QTime() - c.ConnectTime()).Seconds() <= float64(sv.time) {
 			log.Printf("%v entered the game\n", c.name)
 		}
-		vm.ExecuteProgram(progsdat.Globals.PutClientInServer)
+		if err := vm.ExecuteProgram(progsdat.Globals.PutClientInServer); err != nil {
+			HostError(err)
+		}
 	}
 
 	// send all current names, colors, and frag counts
@@ -828,7 +832,9 @@ func hostKill(args []cmd.QArg, playerEdictId int) {
 
 	progsdat.Globals.Time = sv.time
 	progsdat.Globals.Self = int32(playerEdictId)
-	vm.ExecuteProgram(progsdat.Globals.ClientKill)
+	if err := vm.ExecuteProgram(progsdat.Globals.ClientKill); err != nil {
+		HostError(err)
+	}
 }
 
 func hostStatus(args []cmd.QArg, _ int) {
@@ -1060,7 +1066,9 @@ func hostMap(args []cmd.QArg, _ int) {
 	mapName := args[0].String()
 	mapName = strings.TrimSuffix(mapName, ".bsp")
 
-	sv.SpawnServer(mapName)
+	if err := sv.SpawnServer(mapName); err != nil {
+		HostError(err)
+	}
 	if !sv.active {
 		return
 	}
@@ -1100,7 +1108,9 @@ func hostChangelevel(args []cmd.QArg, _ int) {
 	// remove console or menu
 	keyDestination = keys.Game
 	SV_SaveSpawnparms()
-	sv.SpawnServer(level)
+	if err := sv.SpawnServer(level); err != nil {
+		HostError(err)
+	}
 	// also issue an error if spawn failed -- O.S.
 	if !sv.active {
 		HostError(fmt.Errorf("cannot run map %s", level))
@@ -1116,7 +1126,9 @@ func hostRestart(args []cmd.QArg, _ int) {
 		return
 	}
 	mapname := sv.name // sv.name gets cleared in spawnserver
-	sv.SpawnServer(mapname)
+	if err := sv.SpawnServer(mapname); err != nil {
+		HostError(err)
+	}
 
 	if !sv.active {
 		HostError(fmt.Errorf("cannot restart map %s", mapname))

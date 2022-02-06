@@ -543,9 +543,9 @@ func (scr *qScreen) Update() {
 }
 
 func init() {
-	cmd.AddCommand("screenshot", screenShot)
-	cmd.AddCommand("sizeup", screenSizeup)
-	cmd.AddCommand("sizedown", screenSizedown)
+	Must(cmd.AddCommand("screenshot", screenShot))
+	Must(cmd.AddCommand("sizeup", screenSizeup))
+	Must(cmd.AddCommand("sizedown", screenSizedown))
 }
 
 func screenSizeup(_ []cmd.QArg, _ int) {

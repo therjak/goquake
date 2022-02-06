@@ -251,11 +251,11 @@ func describeModes(_ []cmd.QArg, _ int) {
 }
 
 func init() {
-	cmd.AddCommand("vid_describecurrentmode", describeCurrentMode)
-	cmd.AddCommand("vid_describemodes", describeModes)
-	cmd.AddCommand("vid_unlock", vidUnlock)
-	cmd.AddCommand("vid_restart", vidRestart)
-	cmd.AddCommand("vid_test", vidTest)
+	Must(cmd.AddCommand("vid_describecurrentmode", describeCurrentMode))
+	Must(cmd.AddCommand("vid_describemodes", describeModes))
+	Must(cmd.AddCommand("vid_unlock", vidUnlock))
+	Must(cmd.AddCommand("vid_restart", vidRestart))
+	Must(cmd.AddCommand("vid_test", vidTest))
 }
 
 func vidRestart(_ []cmd.QArg, _ int) {

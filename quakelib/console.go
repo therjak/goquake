@@ -167,12 +167,12 @@ func (c *qconsole) currentHeight() int {
 }
 
 func init() {
-	cmd.AddCommand("toggleconsole", func([]cmd.QArg, int) { console.Toggle() })
-	cmd.AddCommand("clear", func([]cmd.QArg, int) { console.Clear() })
-	cmd.AddCommand("messagemode", func([]cmd.QArg, int) { console.messageMode(false) })
-	cmd.AddCommand("messagemode2", func([]cmd.QArg, int) { console.messageMode(true) })
+	Must(cmd.AddCommand("toggleconsole", func([]cmd.QArg, int) { console.Toggle() }))
+	Must(cmd.AddCommand("clear", func([]cmd.QArg, int) { console.Clear() }))
+	Must(cmd.AddCommand("messagemode", func([]cmd.QArg, int) { console.messageMode(false) }))
+	Must(cmd.AddCommand("messagemode2", func([]cmd.QArg, int) { console.messageMode(true) }))
 
-	cmd.AddCommand("condump", func([]cmd.QArg, int) { console.dump() })
+	Must(cmd.AddCommand("condump", func([]cmd.QArg, int) { console.dump() }))
 }
 
 func (c *qconsole) dump() {

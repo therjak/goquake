@@ -44,10 +44,10 @@ func describeTextureModes(_ []cmd.QArg, _ int) {
 }
 
 func init() {
-	cmd.AddCommand("gl_describetexturemodes", describeTextureModes)
-	cmd.AddCommand("imagelist", func(_ []cmd.QArg, _ int) {
+	Must(cmd.AddCommand("gl_describetexturemodes", describeTextureModes))
+	Must(cmd.AddCommand("imagelist", func(_ []cmd.QArg, _ int) {
 		textureManager.logTextures()
-	})
+	}))
 }
 
 type texMgr struct {
