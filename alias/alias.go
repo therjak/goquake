@@ -14,7 +14,7 @@ var (
 	aliases = make(map[string]string)
 )
 
-func alias(args []cmd.QArg, _ int) {
+func alias(args []cmd.QArg, _ int) error {
 	switch c := len(args); c {
 	case 0:
 		listAliases()
@@ -26,6 +26,7 @@ func alias(args []cmd.QArg, _ int) {
 		setAlias(args)
 		break
 	}
+	return nil
 }
 
 func listAliases() {
@@ -76,7 +77,7 @@ func setAlias(args []cmd.QArg) {
 	aliases[name.String()] = strings.TrimSpace(command) + "\n"
 }
 
-func unalias(args []cmd.QArg, _ int) {
+func unalias(args []cmd.QArg, _ int) error {
 	switch c := len(args); c {
 	case 1:
 		name := args[0].String()
@@ -90,10 +91,12 @@ func unalias(args []cmd.QArg, _ int) {
 		conlog.Printf("unalias <name> : delete alias\n")
 		break
 	}
+	return nil
 }
 
-func unaliasAll(_ []cmd.QArg, _ int) {
+func unaliasAll(_ []cmd.QArg, _ int) error {
 	aliases = make(map[string]string)
+	return nil
 }
 
 func Get(name string) (string, bool) {
@@ -101,20 +104,20 @@ func Get(name string) (string, bool) {
 	return a, ok
 }
 
-func Execute(args []cmd.QArg, _ int) bool {
+func Execute(args []cmd.QArg, _ int) (bool, error) {
 	if len(args) == 0 {
-		return false
+		return false, nil
 	}
 	name := args[0].String()
 	if v, ok := Get(name); ok {
 		cbuf.InsertText(v)
-		return true
+		return true, nil
 	}
-	return false
+	return false, nil
 }
 
 func init() {
-	cmd.AddCommand("alias", alias)
-	cmd.AddCommand("unalias", unalias)
-	cmd.AddCommand("unaliasall", unaliasAll)
+	cmd.Must(cmd.AddCommand("alias", alias))
+	cmd.Must(cmd.AddCommand("unalias", unalias))
+	cmd.Must(cmd.AddCommand("unaliasall", unaliasAll))
 }

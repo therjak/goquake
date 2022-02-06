@@ -73,25 +73,30 @@ func localSound(name string) {
 }
 
 func init() {
-	Must(cmd.AddCommand("play", playCmd))
-	Must(cmd.AddCommand("playvol", playVolCmd))
-	Must(cmd.AddCommand("stopsound", stopSoundCmd))
-	Must(cmd.AddCommand("soundlist", soundListCmd))
-	Must(cmd.AddCommand("soundinfo", soundInfoCmd))
+	addCommand("play", playCmd)
+	addCommand("playvol", playVolCmd)
+	addCommand("stopsound", stopSoundCmd)
+	addCommand("soundlist", soundListCmd)
+	addCommand("soundinfo", soundInfoCmd)
 }
 
-func playCmd(args []cmd.QArg, _ int) {
+func playCmd(args []cmd.QArg, _ int) error {
 	log.Println("play CMD from snd")
+	return nil
 }
-func playVolCmd(args []cmd.QArg, _ int) {
+func playVolCmd(args []cmd.QArg, _ int) error {
 	log.Println("play vol CMD from snd")
+	return nil
 }
-func stopSoundCmd(args []cmd.QArg, _ int) {
+func stopSoundCmd(args []cmd.QArg, _ int) error {
 	log.Println("stop sound CMD from snd")
+	return nil
 }
-func soundListCmd(args []cmd.QArg, _ int) {
+func soundListCmd(args []cmd.QArg, _ int) error {
 	log.Println("sound list CMD from snd")
+	return nil
 }
-func soundInfoCmd(args []cmd.QArg, _ int) {
+func soundInfoCmd(args []cmd.QArg, _ int) error {
 	log.Println("sound info CMD from snd")
+	return nil
 }

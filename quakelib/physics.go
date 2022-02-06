@@ -31,11 +31,11 @@ flying/floating monsters are SOLID_SLIDEBOX and MOVETYPE_FLY
 
 solid_edge items only clip against bsp models.
 */
-func (q *qphysics) pushMove(pusher int, movetime float32) {
+func (q *qphysics) pushMove(pusher int, movetime float32) error {
 	pev := EntVars(pusher)
 	if pev.Velocity == [3]float32{} {
 		pev.LTime += movetime
-		return
+		return nil
 	}
 
 	move := vec.Scale(movetime, pev.Velocity)
@@ -121,7 +121,7 @@ func (q *qphysics) pushMove(pusher int, movetime float32) {
 				progsdat.Globals.Self = int32(pusher)
 				progsdat.Globals.Other = int32(c)
 				if err := vm.ExecuteProgram(pev.Blocked); err != nil {
-					HostError(err)
+					return err
 				}
 			}
 
@@ -130,9 +130,10 @@ func (q *qphysics) pushMove(pusher int, movetime float32) {
 				EntVars(m.ent).Origin = m.origin
 				vm.LinkEdict(m.ent, false)
 			}
-			return
+			return nil
 		}
 	}
+	return nil
 }
 
 func (q *qphysics) addGravity(ent int) {
@@ -143,7 +144,7 @@ func (q *qphysics) addGravity(ent int) {
 	EntVars(ent).Velocity[2] -= val * cvars.ServerGravity.Value() * float32(host.frameTime)
 }
 
-func (q *qphysics) pusher(ent int) {
+func (q *qphysics) pusher(ent int) error {
 	ev := EntVars(ent)
 	oldltime := float64(ev.LTime)
 	thinktime := float64(ev.NextThink)
@@ -161,7 +162,9 @@ func (q *qphysics) pusher(ent int) {
 
 	if movetime != 0 {
 		// advances ent->v.ltime if not blocked
-		q.pushMove(ent, movetime)
+		if err := q.pushMove(ent, movetime); err != nil {
+			return err
+		}
 	}
 
 	if thinktime > oldltime && thinktime <= float64(ev.LTime) {
@@ -170,9 +173,10 @@ func (q *qphysics) pusher(ent int) {
 		progsdat.Globals.Self = int32(ent)
 		progsdat.Globals.Other = 0
 		if err := vm.ExecuteProgram(ev.Think); err != nil {
-			HostError(err)
+			return err
 		}
 	}
+	return nil
 }
 
 // Player has come to a dead stop, possibly due to the problem with limited
@@ -809,7 +813,9 @@ func RunPhysics() error {
 			mt := EntVars(i).MoveType
 			switch mt {
 			case progs.MoveTypePush:
-				q.pusher(i)
+				if err := q.pusher(i); err != nil {
+					return err
+				}
 			case progs.MoveTypeNone:
 				q.none(i)
 			case progs.MoveTypeNoClip:

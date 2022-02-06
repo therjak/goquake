@@ -107,7 +107,7 @@ func (u *userMove) mouseMove() {
 }
 
 // Send unreliable message (CL_SendMove)
-func send(v userView, m userMove) {
+func send(v userView, m userMove) error {
 	cmd := &protos.UsrCmd{
 		MessageTime: float32(cl.messageTime),
 		Pitch:       v.pitch,
@@ -130,18 +130,21 @@ func send(v userView, m userMove) {
 	in_impulse = 0
 
 	if cls.demoPlayback {
-		return
+		return nil
 	}
 	// allways dump the first two message, because it may contain leftover inputs from the last level
 	cl.movemessages++
 	if 2 >= cl.movemessages {
-		return
+		return nil
 	}
 
 	if cls.connection.SendUnreliableMessage(clc.ToBytes(pb, cl.protocol, cl.protocolFlags)) == -1 {
 		conlog.Printf("CL_SendMove: lost server connection\n")
-		cls.Disconnect()
+		if err := cls.Disconnect(); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 type userView struct {
@@ -165,7 +168,7 @@ func (v *userView) mouseMove() {
 	}
 }
 
-func HandleMove() {
+func HandleMove() error {
 	v := userView{
 		pitch: cl.pitch,
 		yaw:   cl.yaw,
@@ -177,15 +180,21 @@ func HandleMove() {
 	m.keyboardMove()
 	m.mouseMove()
 
-	send(v, m)
+	if err := send(v, m); err != nil {
+		return err
+	}
 
 	resetInput()
 
 	cl.pitch = v.pitch
 	cl.yaw = v.yaw
 	cl.roll = v.roll
+	return nil
 }
 
 func init() {
-	Must(cmd.AddCommand("impulse", func(args []cmd.QArg, _ int) { in_impulse = args[0].Int() }))
+	addCommand("impulse", func(args []cmd.QArg, _ int) error {
+		in_impulse = args[0].Int()
+		return nil
+	})
 }

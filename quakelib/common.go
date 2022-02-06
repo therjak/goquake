@@ -26,20 +26,22 @@ type qPath struct {
 }
 
 func init() {
-	Must(cmd.AddCommand("path", CmdPath))
-	Must(cmd.AddCommand("game", CmdGame))
+	addCommand("path", CmdPath)
+	addCommand("game", CmdGame)
 
 	cvars.Developer.SetCallback(func(cv *cvar.Cvar) {
 		conlog.SetDeveloper(cv.Value())
 	})
 }
 
-func CmdPath(args []cmd.QArg, _ int) {
+func CmdPath(args []cmd.QArg, _ int) error {
 	// TODO
 	log.Printf("path called")
+	return nil
 }
-func CmdGame(args []cmd.QArg, _ int) {
+func CmdGame(args []cmd.QArg, _ int) error {
 	// TODO
+	return nil
 }
 
 func filesystemInit() {

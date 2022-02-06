@@ -16,11 +16,12 @@ var (
 )
 
 func init() {
-	cmd.AddCommand("wait", waitCmd)
+	cmd.Must(cmd.AddCommand("wait", waitCmd))
 }
 
-func waitCmd(_ []cmd.QArg, _ int) {
+func waitCmd(_ []cmd.QArg, _ int) error {
 	wait = true
+	return nil
 }
 
 func Execute(player int) {

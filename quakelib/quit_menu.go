@@ -7,5 +7,7 @@ import (
 
 func enterQuitMenu() {
 	keyDestination = keys.Console
-	hostQuit()
+	if err := hostQuit(); err != nil {
+		HostError(err)
+	}
 }

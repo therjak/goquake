@@ -22,44 +22,49 @@ import (
 )
 
 func init() {
-	Must(cmd.AddClientCommand("begin", hostBegin))
-	Must(cmd.AddClientCommand("color", hostColor))
-	Must(cmd.AddClientCommand("fly", hostFly))
-	Must(cmd.AddClientCommand("give", hostGive))
-	Must(cmd.AddClientCommand("god", hostGod))
-	Must(cmd.AddClientCommand("kick", hostKick))
-	Must(cmd.AddClientCommand("kill", hostKill))
-	Must(cmd.AddClientCommand("name", hostName))
-	Must(cmd.AddClientCommand("noclip", hostNoClip))
-	Must(cmd.AddClientCommand("notarget", hostNoTarget))
-	Must(cmd.AddClientCommand("pause", hostPause))
-	Must(cmd.AddClientCommand("ping", hostPing))
-	Must(cmd.AddClientCommand("prespawn", hostPreSpawn))
-	Must(cmd.AddClientCommand("say", hostSayAll))
-	Must(cmd.AddClientCommand("say_team", hostSayTeam))
-	Must(cmd.AddClientCommand("setpos", hostSetPos))
-	Must(cmd.AddClientCommand("spawn", hostSpawn))
-	Must(cmd.AddClientCommand("status", hostStatus))
-	Must(cmd.AddClientCommand("tell", hostTell))
-	Must(cmd.AddCommand("changelevel", hostChangelevel))
-	Must(cmd.AddCommand("connect", hostConnect))
-	Must(cmd.AddCommand("map", hostMap))
-	Must(cmd.AddCommand("mapname", hostMapName))
-	Must(cmd.AddCommand("quit", func(_ []cmd.QArg, _ int) { hostQuit() }))
-	Must(cmd.AddCommand("restart", hostRestart))
-	Must(cmd.AddCommand("version", hostVersion))
+	addClientCommand("begin", hostBegin)
+	addClientCommand("color", hostColor)
+	addClientCommand("fly", hostFly)
+	addClientCommand("give", hostGive)
+	addClientCommand("god", hostGod)
+	addClientCommand("kick", hostKick)
+	addClientCommand("kill", hostKill)
+	addClientCommand("name", hostName)
+	addClientCommand("noclip", hostNoClip)
+	addClientCommand("notarget", hostNoTarget)
+	addClientCommand("pause", hostPause)
+	addClientCommand("ping", hostPing)
+	addClientCommand("prespawn", hostPreSpawn)
+	addClientCommand("say", hostSayAll)
+	addClientCommand("say_team", hostSayTeam)
+	addClientCommand("setpos", hostSetPos)
+	addClientCommand("spawn", hostSpawn)
+	addClientCommand("status", hostStatus)
+	addClientCommand("tell", hostTell)
+	addCommand("changelevel", hostChangelevel)
+	addCommand("connect", hostConnect)
+	addCommand("map", hostMap)
+	addCommand("mapname", hostMapName)
+	addCommand("quit", func(_ []cmd.QArg, _ int) error { return hostQuit() })
+	addCommand("restart", hostRestart)
+	addCommand("version", hostVersion)
 }
 
-func hostQuit() {
+func hostQuit() error {
 	if keyDestination != keys.Console && !cmdl.Dedicated() {
 		enterQuitMenu()
-		return
+		return nil
 	}
-	cls.Disconnect()
+	if err := cls.Disconnect(); err != nil {
+		return err
+	}
 
-	hostShutdownServer(false)
+	if err := hostShutdownServer(false); err != nil {
+		return err
+	}
 
 	Sys_Quit()
+	return nil
 }
 
 func qFormatI(b int32) string {
@@ -69,34 +74,36 @@ func qFormatI(b int32) string {
 	return "ON"
 }
 
-func hostVersion(args []cmd.QArg, _ int) {
+func hostVersion(args []cmd.QArg, _ int) error {
 	conlog.Printf("Quake Version %1.2f\n", VERSION)
 	conlog.Printf("QuakeSpasm Version %1.2f.%d\n", QUAKESPASM_VERSION, QUAKESPASM_VER_PATCH)
+	return nil
 }
 
-func hostPreSpawn(args []cmd.QArg, _ int) {
+func hostPreSpawn(args []cmd.QArg, _ int) error {
 	if execute.IsSrcCommand() {
 		conlog.Printf("prespawn is not valid from the console\n")
-		return
+		return nil
 	}
 	c := HostClient()
 	if c.spawned {
 		conlog.Printf("prespawn not valid -- already spawned\n")
-		return
+		return nil
 	}
 	c.msg.WriteBytes(sv.signon.Bytes())
 	c.msg.WriteByte(svc.SignonNum)
 	c.msg.WriteByte(2)
 	c.sendSignon = true
+	return nil
 }
 
-func hostGod(args []cmd.QArg, playerEdictId int) {
+func hostGod(args []cmd.QArg, playerEdictId int) error {
 	if execute.IsSrcCommand() {
 		forwardToServer("god", args)
-		return
+		return nil
 	}
 	if progsdat.Globals.DeathMatch != 0 {
-		return
+		return nil
 	}
 	ev := EntVars(playerEdictId)
 	f := int32(ev.Flags)
@@ -104,7 +111,7 @@ func hostGod(args []cmd.QArg, playerEdictId int) {
 	switch len(args) {
 	default:
 		conlog.Printf("god [value] : toggle god mode. values: 0 = off, 1 = on\n")
-		return
+		return nil
 	case 0:
 		f = f ^ flag
 	case 1:
@@ -116,15 +123,16 @@ func hostGod(args []cmd.QArg, playerEdictId int) {
 	}
 	ev.Flags = float32(f)
 	HostClient().Printf("godmode %v\n", qFormatI(f&flag))
+	return nil
 }
 
-func hostNoTarget(args []cmd.QArg, playerEdictId int) {
+func hostNoTarget(args []cmd.QArg, playerEdictId int) error {
 	if execute.IsSrcCommand() {
 		forwardToServer("notarget", args)
-		return
+		return nil
 	}
 	if progsdat.Globals.DeathMatch != 0 {
-		return
+		return nil
 	}
 	ev := EntVars(playerEdictId)
 	f := int32(ev.Flags)
@@ -132,7 +140,7 @@ func hostNoTarget(args []cmd.QArg, playerEdictId int) {
 	switch len(args) {
 	default:
 		conlog.Printf("notarget [value] : toggle notarget mode. values: 0 = off, 1 = on\n")
-		return
+		return nil
 	case 0:
 		f = f ^ flag
 	case 1:
@@ -144,22 +152,23 @@ func hostNoTarget(args []cmd.QArg, playerEdictId int) {
 	}
 	ev.Flags = float32(f)
 	HostClient().Printf("notarget %v\n", qFormatI(f&flag))
+	return nil
 }
 
-func hostFly(args []cmd.QArg, playerEdictId int) {
+func hostFly(args []cmd.QArg, playerEdictId int) error {
 	if execute.IsSrcCommand() {
 		forwardToServer("fly", args)
-		return
+		return nil
 	}
 	if progsdat.Globals.DeathMatch != 0 {
-		return
+		return nil
 	}
 	ev := EntVars(playerEdictId)
 	m := int32(ev.MoveType)
 	switch len(args) {
 	default:
 		conlog.Printf("fly [value] : toggle fly mode. values: 0 = off, 1 = on\n")
-		return
+		return nil
 	case 0:
 		if m != progs.MoveTypeFly {
 			m = progs.MoveTypeFly
@@ -179,16 +188,17 @@ func hostFly(args []cmd.QArg, playerEdictId int) {
 	} else {
 		HostClient().Printf("flymode %v\n", qFormatI(0))
 	}
+	return nil
 }
 
-func hostColor(args []cmd.QArg, _ int) {
+func hostColor(args []cmd.QArg, _ int) error {
 	c := int(cvars.ClientColor.Value())
 	t := c >> 4
 	b := c & 0x0f
 	if len(args) == 0 {
 		conlog.Printf("\"color\" is \"%d %d\"\n", t, b)
 		conlog.Printf("color <0-13> [0-13]\n")
-		return
+		return nil
 	}
 	t = args[0].Int()
 	b = t
@@ -210,7 +220,7 @@ func hostColor(args []cmd.QArg, _ int) {
 		if cls.state == ca_connected {
 			forwardToServer("color", args)
 		}
-		return
+		return nil
 	}
 	client := HostClient()
 	client.colors = c
@@ -218,21 +228,22 @@ func hostColor(args []cmd.QArg, _ int) {
 	sv.reliableDatagram.WriteByte(svc.UpdateColors)
 	sv.reliableDatagram.WriteByte(client.id)
 	sv.reliableDatagram.WriteByte(c)
+	return nil
 }
 
-func hostPause(args []cmd.QArg, playerEdictId int) {
+func hostPause(args []cmd.QArg, playerEdictId int) error {
 	if cls.demoPlayback {
 		cls.demoPaused = !cls.demoPaused
 		cl.paused = cls.demoPaused
-		return
+		return nil
 	}
 	if execute.IsSrcCommand() {
 		forwardToServer("pause", args)
-		return
+		return nil
 	}
 	if cvars.Pausable.String() != "1" {
 		HostClient().Printf("Pause not allowed.\n")
-		return
+		return nil
 	}
 	sv.paused = !sv.paused
 
@@ -252,28 +263,30 @@ func hostPause(args []cmd.QArg, playerEdictId int) {
 		}
 		return 0
 	}())
+	return nil
 }
 
-func hostBegin(args []cmd.QArg, _ int) {
+func hostBegin(args []cmd.QArg, _ int) error {
 	if execute.IsSrcCommand() {
 		conlog.Printf("begin is not valid from the console\n")
-		return
+		return nil
 	}
 	HostClient().spawned = true
+	return nil
 }
 
-func hostGive(args []cmd.QArg, playerEdictId int) {
+func hostGive(args []cmd.QArg, playerEdictId int) error {
 	if execute.IsSrcCommand() {
 		forwardToServer("give", args)
-		return
+		return nil
 	}
 	if progsdat.Globals.DeathMatch != 0 {
-		return
+		return nil
 	}
 	ev := EntVars(playerEdictId)
 
 	if len(args) == 0 {
-		return
+		return nil
 	}
 
 	t := args[0].String()
@@ -469,6 +482,7 @@ func hostGive(args []cmd.QArg, playerEdictId int) {
 			ev.CurrentAmmo = ev.AmmoRockets
 		}
 	}
+	return nil
 }
 
 func concatArgs(args []cmd.QArg) string {
@@ -487,15 +501,15 @@ func concatArgs(args []cmd.QArg) string {
 	return b.String()
 }
 
-func hostTell(args []cmd.QArg, _ int) {
+func hostTell(args []cmd.QArg, _ int) error {
 	if execute.IsSrcCommand() {
 		forwardToServer("tell", args)
-		return
+		return nil
 	}
 
 	if len(args) < 2 {
 		// need at least destination and message
-		return
+		return nil
 	}
 
 	cn := HostClient().name
@@ -513,6 +527,7 @@ func hostTell(args []cmd.QArg, _ int) {
 		// TODO: We check without case check. Are names unique ignoring the case?
 		c.Printf(text)
 	}
+	return nil
 }
 
 func hostSay(team bool, args []cmd.QArg) {
@@ -545,38 +560,40 @@ func hostSay(team bool, args []cmd.QArg) {
 	}
 }
 
-func hostSayAll(args []cmd.QArg, _ int) {
+func hostSayAll(args []cmd.QArg, _ int) error {
 	// say
 	if len(args) < 1 {
-		return
+		return nil
 	}
 	if execute.IsSrcCommand() {
 		if !cmdl.Dedicated() {
 			forwardToServer("say", args)
-			return
+			return nil
 		}
 	}
 	hostSay(false, args)
+	return nil
 }
 
-func hostSayTeam(args []cmd.QArg, _ int) {
+func hostSayTeam(args []cmd.QArg, _ int) error {
 	// say_team
 	if len(args) < 1 {
-		return
+		return nil
 	}
 	if execute.IsSrcCommand() {
 		if !cmdl.Dedicated() {
 			forwardToServer("say_team", args)
-			return
+			return nil
 		}
 	}
 	hostSay(true, args)
+	return nil
 }
 
-func hostPing(args []cmd.QArg, _ int) {
+func hostPing(args []cmd.QArg, _ int) error {
 	if execute.IsSrcCommand() {
 		forwardToServer("ping", args)
-		return
+		return nil
 	}
 	HostClient().Printf("Client ping times:\n")
 	for _, c := range sv_clients {
@@ -585,17 +602,18 @@ func hostPing(args []cmd.QArg, _ int) {
 		}
 		HostClient().Printf("%4d %s\n", int(c.PingTime()*1000), c.name)
 	}
+	return nil
 }
 
-func hostSpawn(args []cmd.QArg, playerEdictId int) {
+func hostSpawn(args []cmd.QArg, playerEdictId int) error {
 	if execute.IsSrcCommand() {
 		conlog.Printf("spawn is not valid from the console\n")
-		return
+		return nil
 	}
 	c := HostClient()
 	if c.spawned {
 		conlog.Printf("Spawn not valid -- already spawned\n")
-		return
+		return nil
 	}
 	// run the entrance script
 	if sv.loadGame {
@@ -612,13 +630,13 @@ func hostSpawn(args []cmd.QArg, playerEdictId int) {
 		progsdat.Globals.Time = sv.time
 		progsdat.Globals.Self = int32(playerEdictId)
 		if err := vm.ExecuteProgram(progsdat.Globals.ClientConnect); err != nil {
-			HostError(err)
+			return err
 		}
 		if (qtime.QTime() - c.ConnectTime()).Seconds() <= float64(sv.time) {
 			log.Printf("%v entered the game\n", c.name)
 		}
 		if err := vm.ExecuteProgram(progsdat.Globals.PutClientInServer); err != nil {
-			HostError(err)
+			return err
 		}
 	}
 
@@ -686,23 +704,24 @@ func hostSpawn(args []cmd.QArg, playerEdictId int) {
 	c.msg.WriteByte(svc.SignonNum)
 	c.msg.WriteByte(3)
 	c.sendSignon = true
+	return nil
 }
 
-func hostNoClip(args []cmd.QArg, playerEdictId int) {
+func hostNoClip(args []cmd.QArg, playerEdictId int) error {
 	if execute.IsSrcCommand() {
 		forwardToServer("noclip", args)
-		return
+		return nil
 	}
 
 	if progsdat.Globals.DeathMatch != 0 {
-		return
+		return nil
 	}
 	ev := EntVars(playerEdictId)
 	m := int32(ev.MoveType)
 	switch len(args) {
 	default:
 		conlog.Printf("noclip [value] : toggle noclip mode. values: 0 = off, 1 = on\n")
-		return
+		return nil
 	case 0:
 		if m != progs.MoveTypeNoClip {
 			m = progs.MoveTypeNoClip
@@ -718,16 +737,17 @@ func hostNoClip(args []cmd.QArg, playerEdictId int) {
 	}
 	ev.MoveType = float32(m)
 	HostClient().Printf("noclip %v\n", qFormatI(m&progs.MoveTypeNoClip))
+	return nil
 }
 
-func hostSetPos(args []cmd.QArg, playerEdictId int) {
+func hostSetPos(args []cmd.QArg, playerEdictId int) error {
 	if execute.IsSrcCommand() {
 		forwardToServer("setpos", args)
-		return
+		return nil
 	}
 
 	if progsdat.Globals.DeathMatch != 0 {
-		return
+		return nil
 	}
 
 	ev := EntVars(playerEdictId)
@@ -741,7 +761,7 @@ func hostSetPos(args []cmd.QArg, playerEdictId int) {
 			int(ev.Origin[0]), int(ev.Origin[1]),
 			int(ev.Origin[2]), int(ev.VAngle[0]),
 			int(ev.VAngle[1]), int(ev.VAngle[2]))
-		return
+		return nil
 	}
 
 	m := int32(ev.MoveType)
@@ -768,12 +788,13 @@ func hostSetPos(args []cmd.QArg, playerEdictId int) {
 	}
 
 	vm.LinkEdict(playerEdictId, false)
+	return nil
 }
 
-func hostName(args []cmd.QArg, _ int) {
+func hostName(args []cmd.QArg, _ int) error {
 	if len(args) == 0 {
 		conlog.Printf("\"name\" is %q\n", cvars.ClientName.String())
-		return
+		return nil
 	}
 	newName := func() string {
 		if len(args) == 1 {
@@ -794,13 +815,13 @@ func hostName(args []cmd.QArg, _ int) {
 
 	if execute.IsSrcCommand() {
 		if cvars.ClientName.String() == newName {
-			return
+			return nil
 		}
 		cvars.ClientName.SetByString(newName)
 		if cls.state == ca_connected {
 			forwardToServer("name", args)
 		}
-		return
+		return nil
 	}
 
 	c := HostClient()
@@ -815,33 +836,35 @@ func hostName(args []cmd.QArg, _ int) {
 	rd.WriteByte(svc.UpdateName)
 	rd.WriteByte(c.id)
 	rd.WriteString(newName)
+	return nil
 }
 
-func hostKill(args []cmd.QArg, playerEdictId int) {
+func hostKill(args []cmd.QArg, playerEdictId int) error {
 	if execute.IsSrcCommand() {
 		forwardToServer("kill", args)
-		return
+		return nil
 	}
 
 	ev := EntVars(playerEdictId)
 
 	if ev.Health <= 0 {
 		HostClient().Printf("Can't suicide -- already dead!\n")
-		return
+		return nil
 	}
 
 	progsdat.Globals.Time = sv.time
 	progsdat.Globals.Self = int32(playerEdictId)
 	if err := vm.ExecuteProgram(progsdat.Globals.ClientKill); err != nil {
-		HostError(err)
+		return err
 	}
+	return nil
 }
 
-func hostStatus(args []cmd.QArg, _ int) {
+func hostStatus(args []cmd.QArg, _ int) error {
 	if execute.IsSrcCommand() {
 		if !sv.active {
 			forwardToServer("status", args)
-			return
+			return nil
 		}
 
 	}
@@ -874,32 +897,36 @@ func hostStatus(args []cmd.QArg, _ int) {
 		printf("#%-2d %-16.16s  %3d  %9s\n", i+1, c.name, int(ev.Frags), d.String())
 		printf("   %s\n", c.Address())
 	}
+	return nil
 }
 
-func hostMapName(args []cmd.QArg, _ int) {
+func hostMapName(args []cmd.QArg, _ int) error {
 	if sv.active {
 		conlog.Printf("%q is %q\n", "mapname", sv.name)
-		return
+		return nil
 	}
 	if cls.state == ca_connected {
 		// TODO
 		// conlog.Printf("%q is %q\n", "mapname", cl.mapname)
-		return
+		return nil
 	}
 	conlog.Printf("no map loaded\n")
+	return nil
 }
 
 // This only happens at the end of a game, not between levels
-func hostShutdownServer(crash bool) {
+func hostShutdownServer(crash bool) error {
 	if !sv.active {
-		return
+		return nil
 	}
 
 	sv.active = false
 
 	// stop all client sounds immediately
 	if cls.state == ca_connected {
-		cls.Disconnect()
+		if err := cls.Disconnect(); err != nil {
+			return err
+		}
 	}
 
 	// flush any pending messages - like the score!!!
@@ -913,7 +940,9 @@ func hostShutdownServer(crash bool) {
 					c.SendMessage()
 					c.msg.ClearMessage()
 				} else {
-					c.GetMessage()
+					if err := c.GetMessage(); err != nil {
+						return err
+					}
 					count++
 				}
 			}
@@ -928,28 +957,31 @@ func hostShutdownServer(crash bool) {
 
 	for _, c := range sv_clients {
 		if c.active {
-			c.Drop(crash)
+			if err := c.Drop(crash); err != nil {
+				return nil
+			}
 		}
 	}
 
 	sv.worldModel = nil
 
 	CreateSVClients()
+	return nil
 }
 
 // Kicks a user off of the server
-func hostKick(args []cmd.QArg, playerEdictId int) {
+func hostKick(args []cmd.QArg, playerEdictId int) error {
 	if len(args) == 0 {
-		return
+		return nil
 	}
 	conlog.Printf("IsSrcCommand: %v", execute.IsSrcCommand())
 	if execute.IsSrcCommand() {
 		if !sv.active {
 			forwardToServer("kick", args)
-			return
+			return nil
 		}
 	} else if progsdat.Globals.DeathMatch != 0 {
-		return
+		return nil
 	}
 
 	var toKick *SVClient
@@ -958,11 +990,11 @@ func hostKick(args []cmd.QArg, playerEdictId int) {
 	if len(args) > 1 && args[0].String() == "#" {
 		i := args[1].Int() - 1
 		if i < 0 || i >= svs.maxClients {
-			return
+			return nil
 		}
 		toKick = sv_clients[i]
 		if !toKick.active {
-			return
+			return nil
 		}
 		if len(args) > 2 {
 			// skip # and number
@@ -984,11 +1016,11 @@ func hostKick(args []cmd.QArg, playerEdictId int) {
 		}
 	}
 	if toKick == nil {
-		return
+		return nil
 	}
 	if playerEdictId == toKick.edictId {
 		// can't kick yourself!
-		return
+		return nil
 	}
 	who := func() string {
 		if execute.IsSrcCommand() {
@@ -1006,28 +1038,34 @@ func hostKick(args []cmd.QArg, playerEdictId int) {
 	} else {
 		toKick.Printf("Kicked by %s\n", who)
 	}
-	toKick.Drop(false)
+	if err := toKick.Drop(false); err != nil {
+		return err
+	}
+	return nil
 }
 
 // User command to connect to server
-func hostConnect(args []cmd.QArg, _ int) {
+func hostConnect(args []cmd.QArg, _ int) error {
 	if len(args) == 0 {
-		return
+		return nil
 	}
 	// stop demo loop in case this fails
 	cls.demoNum = -1
 	if cls.demoPlayback {
 		cls.demoPlayback = false
-		cls.Disconnect()
+		if err := cls.Disconnect(); err != nil {
+			return err
+		}
 	}
 	clEstablishConnection(args[0].String())
 	clientReconnect()
+	return nil
 }
 
 // handle a
 // map <servername>
 // command from the console.  Active clients are kicked off.
-func hostMap(args []cmd.QArg, _ int) {
+func hostMap(args []cmd.QArg, _ int) error {
 	if len(args) == 0 {
 		// no map name given
 		if cmdl.Dedicated() {
@@ -1041,18 +1079,22 @@ func hostMap(args []cmd.QArg, _ int) {
 		} else {
 			conlog.Printf("map <levelname>: start a new server\n")
 		}
-		return
+		return nil
 	}
 
 	if !execute.IsSrcCommand() {
-		return
+		return nil
 	}
 
 	// stop demo loop in case this fails
 	cls.demoNum = -1
 
-	cls.Disconnect()
-	hostShutdownServer(false)
+	if err := cls.Disconnect(); err != nil {
+		return err
+	}
+	if err := hostShutdownServer(false); err != nil {
+		return err
+	}
 
 	if !cmdl.Dedicated() {
 		inputActivate()
@@ -1067,10 +1109,10 @@ func hostMap(args []cmd.QArg, _ int) {
 	mapName = strings.TrimSuffix(mapName, ".bsp")
 
 	if err := sv.SpawnServer(mapName); err != nil {
-		HostError(err)
+		return err
 	}
 	if !sv.active {
-		return
+		return nil
 	}
 
 	if !cmdl.Dedicated() {
@@ -1084,22 +1126,23 @@ func hostMap(args []cmd.QArg, _ int) {
 		clEstablishConnection("local")
 		clientReconnect()
 	}
+	return nil
 }
 
 // Goes to a new map, taking all clients along
-func hostChangelevel(args []cmd.QArg, _ int) {
+func hostChangelevel(args []cmd.QArg, _ int) error {
 	if len(args) != 1 {
 		conlog.Printf("changelevel <levelname> : continue game on a new level\n")
-		return
+		return nil
 	}
 
 	if cls.demoPlayback || !sv.active {
 		conlog.Printf("Only the server may changelevel\n")
-		return
+		return nil
 	}
 	level := args[0].String()
 	if _, err := filesystem.GetFile(fmt.Sprintf("maps/%s.bsp", level)); err != nil {
-		HostError(fmt.Errorf("cannot find map %s", level))
+		return fmt.Errorf("cannot find map %s", level)
 	}
 	if !cmdl.Dedicated() {
 		inputActivate()
@@ -1109,28 +1152,30 @@ func hostChangelevel(args []cmd.QArg, _ int) {
 	keyDestination = keys.Game
 	SV_SaveSpawnparms()
 	if err := sv.SpawnServer(level); err != nil {
-		HostError(err)
+		return err
 	}
 	// also issue an error if spawn failed -- O.S.
 	if !sv.active {
-		HostError(fmt.Errorf("cannot run map %s", level))
+		return fmt.Errorf("cannot run map %s", level)
 	}
+	return nil
 }
 
 // Restarts the current server for a dead player
-func hostRestart(args []cmd.QArg, _ int) {
+func hostRestart(args []cmd.QArg, _ int) error {
 	if cls.demoPlayback || !sv.active {
-		return
+		return nil
 	}
 	if !execute.IsSrcCommand() {
-		return
+		return nil
 	}
 	mapname := sv.name // sv.name gets cleared in spawnserver
 	if err := sv.SpawnServer(mapname); err != nil {
-		HostError(err)
+		return err
 	}
 
 	if !sv.active {
-		HostError(fmt.Errorf("cannot restart map %s", mapname))
+		return fmt.Errorf("cannot restart map %s", mapname)
 	}
+	return nil
 }

@@ -35,14 +35,14 @@ import (
 )
 
 func init() {
-	Must(cmd.AddCommand("sky", skyCommand))
+	addCommand("sky", skyCommand)
 	cvars.RSkyFog.SetCallback(func(cv *cvar.Cvar) {
 		C.skyfog = C.float(cv.Value())
 	})
 
 }
 
-func skyCommand(args []cmd.QArg, _ int) {
+func skyCommand(args []cmd.QArg, _ int) error {
 	switch len(args) {
 	case 0:
 		conlog.Printf("\"sky\" is \"%s\"\n", sky.boxName)
@@ -51,6 +51,7 @@ func skyCommand(args []cmd.QArg, _ int) {
 	default:
 		conlog.Printf("usage: sky <skyname>\n")
 	}
+	return nil
 }
 
 type qSky struct {

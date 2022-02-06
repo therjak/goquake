@@ -16,19 +16,57 @@ func nextDemo() {
 }
 
 func init() {
-	Must(cmd.AddCommand("togglemenu", func(_ []cmd.QArg, _ int) { toggleMenu() }))
-	Must(cmd.AddCommand("menu_main", func(_ []cmd.QArg, _ int) { enterMenuMain() }))
-	Must(cmd.AddCommand("menu_singleplayer", func(_ []cmd.QArg, _ int) { enterSinglePlayerMenu() }))
-	Must(cmd.AddCommand("menu_load", func(_ []cmd.QArg, _ int) { enterLoadMenu() }))
-	Must(cmd.AddCommand("menu_save", func(_ []cmd.QArg, _ int) { enterSaveMenu() }))
-	Must(cmd.AddCommand("menu_multiplayer", func(_ []cmd.QArg, _ int) { enterMultiPlayerMenu() }))
-	Must(cmd.AddCommand("menu_setup", func(_ []cmd.QArg, _ int) { enterNetSetupMenu() }))
-	Must(cmd.AddCommand("menu_options", func(_ []cmd.QArg, _ int) { enterMenuOptions() }))
-	Must(cmd.AddCommand("menu_keys", func(_ []cmd.QArg, _ int) { enterMenuKeys() }))
-	Must(cmd.AddCommand("menu_video", func(_ []cmd.QArg, _ int) { enterMenuVideo() }))
-	Must(cmd.AddCommand("help", func(_ []cmd.QArg, _ int) { enterMenuHelp() }))
-	Must(cmd.AddCommand("menu_quit", func(_ []cmd.QArg, _ int) { enterQuitMenu() }))
-	Must(cmd.AddCommand("menu_credits", func(_ []cmd.QArg, _ int) {}))
+	addCommand("togglemenu", func(_ []cmd.QArg, _ int) error {
+		toggleMenu()
+		return nil
+	})
+	addCommand("menu_main", func(_ []cmd.QArg, _ int) error {
+		enterMenuMain()
+		return nil
+	})
+	addCommand("menu_singleplayer", func(_ []cmd.QArg, _ int) error {
+		enterSinglePlayerMenu()
+		return nil
+	})
+	addCommand("menu_load", func(_ []cmd.QArg, _ int) error {
+		enterLoadMenu()
+		return nil
+	})
+	addCommand("menu_save", func(_ []cmd.QArg, _ int) error {
+		enterSaveMenu()
+		return nil
+	})
+	addCommand("menu_multiplayer", func(_ []cmd.QArg, _ int) error {
+		enterMultiPlayerMenu()
+		return nil
+	})
+	addCommand("menu_setup", func(_ []cmd.QArg, _ int) error {
+		enterNetSetupMenu()
+		return nil
+	})
+	addCommand("menu_options", func(_ []cmd.QArg, _ int) error {
+		enterMenuOptions()
+		return nil
+	})
+	addCommand("menu_keys", func(_ []cmd.QArg, _ int) error {
+		enterMenuKeys()
+		return nil
+	})
+	addCommand("menu_video", func(_ []cmd.QArg, _ int) error {
+		enterMenuVideo()
+		return nil
+	})
+	addCommand("help", func(_ []cmd.QArg, _ int) error {
+		enterMenuHelp()
+		return nil
+	})
+	addCommand("menu_quit", func(_ []cmd.QArg, _ int) error {
+		enterQuitMenu()
+		return nil
+	})
+	addCommand("menu_credits", func(_ []cmd.QArg, _ int) error {
+		return nil
+	})
 }
 
 // 0-127 are white

@@ -543,17 +543,19 @@ func (scr *qScreen) Update() {
 }
 
 func init() {
-	Must(cmd.AddCommand("screenshot", screenShot))
-	Must(cmd.AddCommand("sizeup", screenSizeup))
-	Must(cmd.AddCommand("sizedown", screenSizedown))
+	addCommand("screenshot", screenShot)
+	addCommand("sizeup", screenSizeup)
+	addCommand("sizedown", screenSizedown)
 }
 
-func screenSizeup(_ []cmd.QArg, _ int) {
+func screenSizeup(_ []cmd.QArg, _ int) error {
 	cvars.ViewSize.SetValue(cvars.ViewSize.Value() + 10)
+	return nil
 }
 
-func screenSizedown(_ []cmd.QArg, _ int) {
+func screenSizedown(_ []cmd.QArg, _ int) error {
 	cvars.ViewSize.SetValue(cvars.ViewSize.Value() - 10)
+	return nil
 }
 
 func fileExists(filename string) bool {
@@ -564,7 +566,7 @@ func fileExists(filename string) bool {
 	return !info.IsDir()
 }
 
-func screenShot(_ []cmd.QArg, _ int) {
+func screenShot(_ []cmd.QArg, _ int) error {
 	var pngName string
 	var fileName string
 	for i := 0; i < 10000; i++ {
@@ -575,7 +577,7 @@ func screenShot(_ []cmd.QArg, _ int) {
 		}
 		if i == 9999 {
 			conlog.Printf("Coun't find an unused filename\n")
-			return
+			return nil
 		}
 	}
 	buffer := make([]byte, screen.Width*screen.Height*4)
@@ -588,4 +590,5 @@ func screenShot(_ []cmd.QArg, _ int) {
 	} else {
 		conlog.Printf("Wrote %s\n", pngName)
 	}
+	return nil
 }

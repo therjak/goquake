@@ -235,7 +235,9 @@ func executeFrame() {
 	hostGetConsoleCommands()
 
 	if sv.active {
-		serverFrame()
+		if err := serverFrame(); err != nil {
+			HostError(err)
+		}
 	}
 
 	// client operations

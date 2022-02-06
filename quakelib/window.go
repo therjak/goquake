@@ -228,7 +228,7 @@ func syncVideoCvars() {
 	videoChanged = false
 }
 
-func describeCurrentMode(_ []cmd.QArg, _ int) {
+func describeCurrentMode(_ []cmd.QArg, _ int) error {
 	if window.Get() != nil {
 		w, h := window.Size()
 		fs := func() string {
@@ -239,28 +239,30 @@ func describeCurrentMode(_ []cmd.QArg, _ int) {
 		}()
 		conlog.Printf("%dx%dx%d %s\n", w, h, window.BPP(), fs)
 	}
+	return nil
 }
 
-func describeModes(_ []cmd.QArg, _ int) {
+func describeModes(_ []cmd.QArg, _ int) error {
 	count := 0
 	for _, m := range availableDisplayModes {
 		conlog.Printf("  %4d x %4d\n", m.Width, m.Height)
 		count++
 	}
 	conlog.Printf("%d modes\n", count)
+	return nil
 }
 
 func init() {
-	Must(cmd.AddCommand("vid_describecurrentmode", describeCurrentMode))
-	Must(cmd.AddCommand("vid_describemodes", describeModes))
-	Must(cmd.AddCommand("vid_unlock", vidUnlock))
-	Must(cmd.AddCommand("vid_restart", vidRestart))
-	Must(cmd.AddCommand("vid_test", vidTest))
+	addCommand("vid_describecurrentmode", describeCurrentMode)
+	addCommand("vid_describemodes", describeModes)
+	addCommand("vid_unlock", vidUnlock)
+	addCommand("vid_restart", vidRestart)
+	addCommand("vid_test", vidTest)
 }
 
-func vidRestart(_ []cmd.QArg, _ int) {
+func vidRestart(_ []cmd.QArg, _ int) error {
 	if videoLocked || !videoChanged {
-		return
+		return nil
 	}
 
 	width := int32(cvars.VideoWidth.Value())
@@ -273,7 +275,7 @@ func vidRestart(_ []cmd.QArg, _ int) {
 			mode = "windowed"
 		}
 		conlog.Printf("%dx%d %s is not a valid mode\n", width, height, mode)
-		return
+		return nil
 	}
 
 	videoSetMode(width, height, fullscreen)
@@ -297,16 +299,19 @@ func vidRestart(_ []cmd.QArg, _ int) {
 			inputActivate()
 		}
 	}
+	return nil
 }
 
-func vidTest(_ []cmd.QArg, _ int) {
+func vidTest(_ []cmd.QArg, _ int) error {
 	if videoLocked || !videoChanged {
-		return
+		return nil
 	}
 	oldWidth, oldHeight := window.Size()
 	oldFullscreen := window.Fullscreen()
 
-	vidRestart(nil, 0)
+	if err := vidRestart(nil, 0); err != nil {
+		return err
+	}
 
 	if !screen.ModalMessage("Would you like to keep this\nvideo mode? (y/n)\n", time.Second*5) {
 		cvars.VideoWidth.SetValue(float32(oldWidth))
@@ -316,13 +321,17 @@ func vidTest(_ []cmd.QArg, _ int) {
 		} else {
 			cvars.VideoFullscreen.SetByString("0")
 		}
-		vidRestart(nil, 0)
+		if err := vidRestart(nil, 0); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
-func vidUnlock(_ []cmd.QArg, _ int) {
+func vidUnlock(_ []cmd.QArg, _ int) error {
 	videoLocked = false
 	syncVideoCvars()
+	return nil
 }
 
 func videoShutdown() {

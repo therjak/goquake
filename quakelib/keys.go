@@ -300,13 +300,13 @@ func init() {
 		menuBound[k] = true
 	}
 
-	Must(cmd.AddCommand("bindlist", keyBindlist))
-	Must(cmd.AddCommand("bind", keyBind))
-	Must(cmd.AddCommand("unbind", keyUnbind))
-	Must(cmd.AddCommand("unbindall", keyUnbindAll))
+	addCommand("bindlist", keyBindlist)
+	addCommand("bind", keyBind)
+	addCommand("unbind", keyUnbind)
+	addCommand("unbindall", keyUnbindAll)
 }
 
-func keyBindlist(args []cmd.QArg, _ int) {
+func keyBindlist(args []cmd.QArg, _ int) error {
 	count := 0
 	for k, v := range keyBindings {
 		if v != "" {
@@ -315,28 +315,31 @@ func keyBindlist(args []cmd.QArg, _ int) {
 		}
 	}
 	conlog.SafePrintf("%d bindings\n", count)
+	return nil
 }
 
-func keyUnbind(args []cmd.QArg, _ int) {
+func keyUnbind(args []cmd.QArg, _ int) error {
 	if len(args) != 1 {
 		conlog.Printf("unbind <key> : remove commands from a key\n")
-		return
+		return nil
 	}
 
 	b := kc.StringToKey(args[0].String())
 	if b == -1 {
 		conlog.Printf("\"%s\" isn't a valid key\n", args[0].String())
-		return
+		return nil
 	}
 
 	delete(keyBindings, b)
+	return nil
 }
 
-func keyUnbindAll(_ []cmd.QArg, _ int) {
+func keyUnbindAll(_ []cmd.QArg, _ int) error {
 	keyBindings = make(map[kc.KeyCode]string)
+	return nil
 }
 
-func keyBind(args []cmd.QArg, _ int) {
+func keyBind(args []cmd.QArg, _ int) error {
 	c := len(args)
 	if c != 1 && c != 2 {
 		conlog.Printf("bind <key> [command] : attach a command to a key\n")
@@ -344,7 +347,7 @@ func keyBind(args []cmd.QArg, _ int) {
 	k := kc.StringToKey(args[0].String())
 	if k == -1 {
 		conlog.Printf("\"%s\" isn't a valid key\n", args[0].String())
-		return
+		return nil
 	}
 	if c == 1 {
 		if b, ok := keyBindings[k]; ok && b != "" {
@@ -352,9 +355,10 @@ func keyBind(args []cmd.QArg, _ int) {
 		} else {
 			conlog.Printf("\"%s\" is not bound\n", args[0].String())
 		}
-		return
+		return nil
 	}
 	keyBindings[k] = args[1].String()
+	return nil
 }
 
 func writeKeyBindings(w io.Writer) error {

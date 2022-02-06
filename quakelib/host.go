@@ -138,7 +138,7 @@ func init() {
 	})
 }
 
-func serverFrame() {
+func serverFrame() error {
 	// run the world state
 	progsdat.Globals.FrameTime = float32(host.frameTime)
 
@@ -149,70 +149,90 @@ func serverFrame() {
 	CheckForNewClients()
 
 	// read client messages
-	SV_RunClients()
+	if err := SV_RunClients(); err != nil {
+		return err
+	}
 
 	// move things around and think
 	// always pause in single player if in console or menus
 	if !sv.paused && (svs.maxClients > 1 || keyDestination == keys.Game) {
 		if err := RunPhysics(); err != nil {
-			HostError(err)
+			return err
 		}
 	}
 	// send all messages to the clients
-	sv.SendClientMessages()
+	if err := sv.SendClientMessages(); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Return to looping demos
-func hostStopDemo(_ []cmd.QArg, _ int) {
+func hostStopDemo(_ []cmd.QArg, _ int) error {
 	if cmdl.Dedicated() {
-		return
+		return nil
 	}
 	if !cls.demoPlayback {
-		return
+		return nil
 	}
 	cls.stopPlayback()
-	cls.Disconnect()
+	if err := cls.Disconnect(); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Return to looping demos
-func hostDemos(_ []cmd.QArg, _ int) {
+func hostDemos(_ []cmd.QArg, _ int) error {
 	if cmdl.Dedicated() {
-		return
+		return nil
 	}
 	if cls.demoNum == -1 {
 		cls.demoNum = 1
 	}
-	clientDisconnect()
+	if err := clientDisconnect(); err != nil {
+		return err
+	}
 	CL_NextDemo()
+	return nil
 }
 
 func init() {
-	Must(cmd.AddCommand("stopdemo", hostStopDemo))
-	Must(cmd.AddCommand("demos", hostDemos))
+	addCommand("stopdemo", hostStopDemo)
+	addCommand("demos", hostDemos)
 }
 
-func writeCvarVariables(w io.Writer) {
+func writeCvarVariables(w io.Writer) error {
 	for _, c := range cvar.All() {
 		if c.Archive() {
 			if c.UserDefined() || c.SetA() {
-				w.Write([]byte("seta "))
+				if _, err := w.Write([]byte("seta ")); err != nil {
+					return err
+				}
 			}
-			w.Write([]byte(fmt.Sprintf("%s \"%s\"\n", c.Name(), c.String())))
+			if _, err := w.Write([]byte(fmt.Sprintf("%s \"%s\"\n", c.Name(), c.String()))); err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
 // Writes key bindings and archived cvars to config.cfg
-func HostWriteConfiguration() {
+func HostWriteConfiguration() error {
 	// dedicated servers initialize the host but don't parse and set the
 	// config.cfg cvars
 	if cmdl.Dedicated() {
-		return
+		return nil
 	}
 
 	var b bytes.Buffer
-	writeKeyBindings(&b)
-	writeCvarVariables(&b)
+	if err := writeKeyBindings(&b); err != nil {
+		return fmt.Errorf("Couldn't write config.cfg: %w\n", err)
+	}
+	if err := writeCvarVariables(&b); err != nil {
+		return fmt.Errorf("Couldn't write config.cfg: %w\n", err)
+	}
 
 	b.WriteString("vid_restart\n")
 	if input.MLook.Down() {
@@ -222,8 +242,9 @@ func HostWriteConfiguration() {
 	filename := filepath.Join(gameDirectory, "config.cfg")
 	err := ioutil.WriteFile(filename, b.Bytes(), 0644)
 	if err != nil {
-		conlog.Printf("Couldn't write config.cfg.\n")
+		return fmt.Errorf("Couldn't write config.cfg: %w\n", err)
 	}
+	return nil
 }
 
 //export Host_Shutdown
@@ -239,7 +260,9 @@ func (h *Host) Shutdown() {
 	h.isDown = true
 	screen.disabled = true
 	if host.initialized {
-		HostWriteConfiguration()
+		if err := HostWriteConfiguration(); err != nil {
+			log.Printf(err.Error())
+		}
 	}
 	net.Shutdown()
 	if !cmdl.Dedicated() {

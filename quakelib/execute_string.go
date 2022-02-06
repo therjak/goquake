@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	execute.SetExecutors([](func([]cmd.QArg, int) bool){
+	execute.SetExecutors([]execute.Efunc{
 		cmd.Execute,
 		alias.Execute,
 		cvar.Execute,

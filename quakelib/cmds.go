@@ -13,24 +13,33 @@ import (
 	"goquake/filesystem"
 )
 
-func echo(args []cmd.QArg, _ int) {
+func addCommand(name string, f cmd.QFunc) {
+	cmd.Must(cmd.AddCommand(name, f))
+}
+func addClientCommand(name string, f cmd.QFunc) {
+	cmd.Must(cmd.AddClientCommand(name, f))
+}
+
+func echo(args []cmd.QArg, _ int) error {
 	for _, a := range args {
 		conlog.Printf("%s ", a)
 	}
 	conlog.Printf("\n")
+	return nil
 }
 
-func printCmdList(args []cmd.QArg, _ int) {
+func printCmdList(args []cmd.QArg, _ int) error {
 	//TODO(therjak):
 	// this should probably print the syntax of cmdlist if len(args) > 1
 	switch len(args) {
 	default:
 		printPartialCmdList(args[0].String())
-		return
+		return nil
 	case 0:
 		printFullCmdList()
 		break
 	}
+	return nil
 }
 
 func printFullCmdList() {
@@ -57,7 +66,7 @@ func printPartialCmdList(part string) {
 // Commands lead with a +, and continue until a - or another +
 // quake +prog jctest.qp +cmd amlev1
 // quake -nosound +cmd amlev1
-func executeCommandLineScripts(_ []cmd.QArg, _ int) {
+func executeCommandLineScripts(_ []cmd.QArg, _ int) error {
 	plus := false
 	cmd := ""
 	// args[0] is command name
@@ -85,12 +94,13 @@ func executeCommandLineScripts(_ []cmd.QArg, _ int) {
 	if len(cmd) > 0 {
 		cbuf.InsertText(cmd)
 	}
+	return nil
 }
 
-func execFile(args []cmd.QArg, _ int) {
+func execFile(args []cmd.QArg, _ int) error {
 	if len(args) != 1 {
 		conlog.Printf("exec <filename> : execute a script file\n")
-		return
+		return nil
 	}
 	b, err := filesystem.GetFileContents(args[0].String())
 	if err != nil {
@@ -100,15 +110,16 @@ func execFile(args []cmd.QArg, _ int) {
 		} else {
 			conlog.Printf("couldn't exec %v\n", args[0])
 		}
-		return
+		return nil
 	}
 	conlog.Printf("execing %v\n", args[0])
 	cbuf.InsertText(string(b))
+	return nil
 }
 
 func init() {
-	Must(cmd.AddCommand("echo", echo))
-	Must(cmd.AddCommand("cmdlist", printCmdList))
-	Must(cmd.AddCommand("stuffcmds", executeCommandLineScripts))
-	Must(cmd.AddCommand("exec", execFile))
+	addCommand("echo", echo)
+	addCommand("cmdlist", printCmdList)
+	addCommand("stuffcmds", executeCommandLineScripts)
+	addCommand("exec", execFile)
 }

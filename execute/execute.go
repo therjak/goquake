@@ -14,32 +14,37 @@ const (
 	Command = 1
 )
 
+type Efunc func([]cmd.QArg, int) (bool, error)
+
 var (
 	cmdSource = Client
-	executors []func([]cmd.QArg, int) bool
+	executors []Efunc
 )
 
-func SetExecutors(e []func([]cmd.QArg, int) bool) {
+func SetExecutors(e []Efunc) {
 	executors = e
 }
 
-func Execute(s string, source int, player int) {
+func Execute(s string, source int, player int) error {
 	cmdSource = source
 	cmd.Parse(s)
 
 	args := cmd.Args()
 	if len(args) == 0 {
-		return // no tokens
+		return nil // no tokens
 	}
 	name := args[0].String()
 	for _, e := range executors {
-		if e(args, player) {
-			return
+		if ok, err := e(args, player); err != nil {
+			return err
+		} else if ok {
+			return nil
 		}
 	}
 
 	log.Printf("Unknown command \"%s\"", name)
 	conlog.Printf("Unknown command \"%s\"\n", name)
+	return nil
 }
 
 func IsSrcCommand() bool {

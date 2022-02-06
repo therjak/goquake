@@ -18,8 +18,8 @@ import (
 )
 
 func init() {
-	Must(cmd.AddCommand("save", saveGame))
-	Must(cmd.AddCommand("load", loadGame))
+	addCommand("save", saveGame)
+	addCommand("load", loadGame)
 }
 
 func saveGameComment() string {
@@ -31,33 +31,33 @@ func saveGameComment() string {
 	return fmt.Sprintf("%-22s kills:%3d/%3d", ln, km, tm)
 }
 
-func saveGame(args []cmd.QArg, _ int) {
+func saveGame(args []cmd.QArg, _ int) error {
 	if !execute.IsSrcCommand() {
-		return
+		return nil
 	}
 	if !sv.active {
 		conlog.Printf("Not playing a local game.\n")
-		return
+		return nil
 	}
 
 	if cl.intermission != 0 {
 		conlog.Printf("Can't save in intermission.\n")
-		return
+		return nil
 	}
 
 	if svs.maxClients != 1 {
 		conlog.Printf("Can't save multiplayer games.\n")
-		return
+		return nil
 	}
 
 	if len(args) != 1 {
 		conlog.Printf("save <savename> : save a game\n")
-		return
+		return nil
 	}
 
 	if EntVars(sv_clients[0].edictId).Health <= 0 {
 		conlog.Printf("Can't savegame with a dead player\n")
-		return
+		return nil
 	}
 
 	filename := args[0].String()
@@ -65,7 +65,7 @@ func saveGame(args []cmd.QArg, _ int) {
 	if strings.Contains(filename, "..") {
 		// We will add filename to the gamedir so we with this we are always inside the gamedir
 		conlog.Printf("Relative pathnames are not allowed.\n")
-		return
+		return nil
 	}
 
 	fullname := filepath.Join(GameDirectory(), filename)
@@ -89,24 +89,25 @@ func saveGame(args []cmd.QArg, _ int) {
 	out, err := proto.Marshal(data)
 	if err != nil {
 		conlog.Printf("failed to encode savegame.\n")
-		return
+		return nil
 	}
 
 	if err := ioutil.WriteFile(fullname, out, 0660); err != nil {
 		conlog.Printf("ERROR: couldn't write file.\n")
-		return
+		return nil
 	}
 	conlog.Printf("done.\n")
+	return nil
 }
 
-func loadGame(args []cmd.QArg, _ int) {
+func loadGame(args []cmd.QArg, _ int) error {
 	if !execute.IsSrcCommand() {
-		return
+		return nil
 	}
 
 	if len(args) != 1 {
 		conlog.Printf("load <savename> : load a game\n")
-		return
+		return nil
 	}
 
 	filename := args[0].String()
@@ -114,7 +115,7 @@ func loadGame(args []cmd.QArg, _ int) {
 	if strings.Contains(filename, "..") {
 		// We will add filename to the gamedir so we with this we are always inside the gamedir
 		conlog.Printf("Relative pathnames are not allowed.\n")
-		return
+		return nil
 	}
 
 	// stop demo loop in case this fails
@@ -134,25 +135,27 @@ func loadGame(args []cmd.QArg, _ int) {
 	in, err := ioutil.ReadFile(fullname)
 	if err != nil {
 		conlog.Printf("ERROR: couldn't read file.\n")
-		return
+		return nil
 	}
 
 	data := &protos.SaveGame{}
 	if err := proto.Unmarshal(in, data); err != nil {
 		conlog.Printf("failed to decode savegame.\n")
-		return
+		return nil
 	}
 
 	cvars.Skill.SetValue(float32(data.GetCurrentSkill()))
 
-	clientDisconnect()
+	if err := clientDisconnect(); err != nil {
+		return err
+	}
 
 	if err := sv.SpawnServer(data.GetMapName()); err != nil {
-		HostError(err)
+		return err
 	}
 	if !sv.active {
 		conlog.Printf("Couldn't load map\n")
-		return
+		return nil
 	}
 	// pause until all clients connect
 	sv.paused = true
@@ -172,4 +175,5 @@ func loadGame(args []cmd.QArg, _ int) {
 		clEstablishConnection("local")
 		clientReconnect()
 	}
+	return nil
 }

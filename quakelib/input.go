@@ -420,7 +420,9 @@ func sendKeyEvents() {
 		case *sdl.MouseMotionEvent:
 			handleMouseMotionEvent(t)
 		case *sdl.QuitEvent:
-			cls.Disconnect()
+			if err := cls.Disconnect(); err != nil {
+				HostError(err)
+			}
 			Sys_Quit()
 		default:
 			break

@@ -156,14 +156,17 @@ func (cl *SVClient) SendMessage() int {
 	return cl.netConnection.SendMessage(cl.msg.Bytes())
 }
 
-func (cl *SVClient) SendNop() {
+func (cl *SVClient) SendNop() error {
 	if cl.netConnection.SendUnreliableMessage([]byte{svc.Nop}) == -1 {
-		cl.Drop(true)
+		if err := cl.Drop(true); err != nil {
+			return err
+		}
 	}
 	cl.lastMessage = host.time
+	return nil
 }
 
-func (cl *SVClient) Drop(crash bool) {
+func (cl *SVClient) Drop(crash bool) error {
 	if !crash {
 		// send any final messages (don't check for errors)
 		if cl.CanSendMessage() {
@@ -177,7 +180,7 @@ func (cl *SVClient) Drop(crash bool) {
 			saveSelf := progsdat.Globals.Self
 			progsdat.Globals.Self = int32(cl.edictId)
 			if err := vm.ExecuteProgram(progsdat.Globals.ClientDisconnect); err != nil {
-				HostError(err)
+				return err
 			}
 			progsdat.Globals.Self = saveSelf
 		}
@@ -202,6 +205,7 @@ func (cl *SVClient) Drop(crash bool) {
 		c.msg.WriteByte(cl.id)
 		c.msg.WriteByte(0)
 	}
+	return nil
 }
 
 func SendReconnectToAll() {
@@ -380,7 +384,9 @@ func (c *SVClient) ReadClientMessage() bool {
 					hasPrefix(s, "ping"),
 					hasPrefix(s, "give"),
 					hasPrefix(s, "ban"):
-					execute.Execute(s, execute.Client, c.edictId)
+					if err := execute.Execute(s, execute.Client, c.edictId); err != nil {
+						HostError(err)
+					}
 				}
 			case *protos.Cmd_MoveCmd:
 				mc := cmd.GetMoveCmd()
@@ -410,7 +416,7 @@ func (c *SVClient) ReadClientMessage() bool {
 	}
 }
 
-func SV_RunClients() {
+func SV_RunClients() error {
 	for i := 0; i < svs.maxClients; i++ {
 		host_client = i
 
@@ -420,7 +426,9 @@ func SV_RunClients() {
 		}
 
 		if !hc.ReadClientMessage() {
-			hc.Drop(false)
+			if err := hc.Drop(false); err != nil {
+				return err
+			}
 			continue
 		}
 
@@ -435,4 +443,5 @@ func SV_RunClients() {
 			hc.Think()
 		}
 	}
+	return nil
 }

@@ -147,43 +147,143 @@ func (b *button) downCmd(a []cmd.QArg) {
 func init() {
 	// Key events issue these commands and pass the key number as argument,
 	// if no number expect console/cfg input
-	cmd.AddCommand("+moveup", func(a []cmd.QArg, p int) { Up.downCmd(a) })
-	cmd.AddCommand("-moveup", func(a []cmd.QArg, p int) { Up.upCmd(a) })
-	cmd.AddCommand("+movedown", func(a []cmd.QArg, p int) { Down.downCmd(a) })
-	cmd.AddCommand("-movedown", func(a []cmd.QArg, p int) { Down.upCmd(a) })
-	cmd.AddCommand("+left", func(a []cmd.QArg, p int) { Left.downCmd(a) })
-	cmd.AddCommand("-left", func(a []cmd.QArg, p int) { Left.upCmd(a) })
-	cmd.AddCommand("+right", func(a []cmd.QArg, p int) { Right.downCmd(a) })
-	cmd.AddCommand("-right", func(a []cmd.QArg, p int) { Right.upCmd(a) })
-	cmd.AddCommand("+forward", func(a []cmd.QArg, p int) { Forward.downCmd(a) })
-	cmd.AddCommand("-forward", func(a []cmd.QArg, p int) { Forward.upCmd(a) })
-	cmd.AddCommand("+back", func(a []cmd.QArg, p int) { Back.downCmd(a) })
-	cmd.AddCommand("-back", func(a []cmd.QArg, p int) { Back.upCmd(a) })
-	cmd.AddCommand("+lookup", func(a []cmd.QArg, p int) { LookUp.downCmd(a) })
-	cmd.AddCommand("-lookup", func(a []cmd.QArg, p int) { LookUp.upCmd(a) })
-	cmd.AddCommand("+lookdown", func(a []cmd.QArg, p int) { LookDown.downCmd(a) })
-	cmd.AddCommand("-lookdown", func(a []cmd.QArg, p int) { LookDown.upCmd(a) })
-	cmd.AddCommand("+strafe", func(a []cmd.QArg, p int) { Strafe.downCmd(a) })
-	cmd.AddCommand("-strafe", func(a []cmd.QArg, p int) { Strafe.upCmd(a) })
-	cmd.AddCommand("+moveleft", func(a []cmd.QArg, p int) { MoveLeft.downCmd(a) })
-	cmd.AddCommand("-moveleft", func(a []cmd.QArg, p int) { MoveLeft.upCmd(a) })
-	cmd.AddCommand("+moveright", func(a []cmd.QArg, p int) { MoveRight.downCmd(a) })
-	cmd.AddCommand("-moveright", func(a []cmd.QArg, p int) { MoveRight.upCmd(a) })
-	cmd.AddCommand("+speed", func(a []cmd.QArg, p int) { Speed.downCmd(a) })
-	cmd.AddCommand("-speed", func(a []cmd.QArg, p int) { Speed.upCmd(a) })
-	cmd.AddCommand("+attack", func(a []cmd.QArg, p int) { Attack.downCmd(a) })
-	cmd.AddCommand("-attack", func(a []cmd.QArg, p int) { Attack.upCmd(a) })
-	cmd.AddCommand("+use", func(a []cmd.QArg, p int) { Use.downCmd(a) })
-	cmd.AddCommand("-use", func(a []cmd.QArg, p int) { Use.upCmd(a) })
-	cmd.AddCommand("+jump", func(a []cmd.QArg, p int) { Jump.downCmd(a) })
-	cmd.AddCommand("-jump", func(a []cmd.QArg, p int) { Jump.upCmd(a) })
-	cmd.AddCommand("+klook", func(a []cmd.QArg, p int) { KLook.downCmd(a) })
-	cmd.AddCommand("-klook", func(a []cmd.QArg, p int) { KLook.upCmd(a) })
-	cmd.AddCommand("+mlook", func(a []cmd.QArg, p int) { MLook.downCmd(a) })
-	cmd.AddCommand("-mlook", func(a []cmd.QArg, p int) {
+	cmd.Must(cmd.AddCommand("+moveup", func(a []cmd.QArg, p int) error {
+		Up.downCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("-moveup", func(a []cmd.QArg, p int) error {
+		Up.upCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("+movedown", func(a []cmd.QArg, p int) error {
+		Down.downCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("-movedown", func(a []cmd.QArg, p int) error {
+		Down.upCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("+left", func(a []cmd.QArg, p int) error {
+		Left.downCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("-left", func(a []cmd.QArg, p int) error {
+		Left.upCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("+right", func(a []cmd.QArg, p int) error {
+		Right.downCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("-right", func(a []cmd.QArg, p int) error {
+		Right.upCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("+forward", func(a []cmd.QArg, p int) error {
+		Forward.downCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("-forward", func(a []cmd.QArg, p int) error {
+		Forward.upCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("+back", func(a []cmd.QArg, p int) error {
+		Back.downCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("-back", func(a []cmd.QArg, p int) error {
+		Back.upCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("+lookup", func(a []cmd.QArg, p int) error {
+		LookUp.downCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("-lookup", func(a []cmd.QArg, p int) error {
+		LookUp.upCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("+lookdown", func(a []cmd.QArg, p int) error {
+		LookDown.downCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("-lookdown", func(a []cmd.QArg, p int) error {
+		LookDown.upCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("+strafe", func(a []cmd.QArg, p int) error {
+		Strafe.downCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("-strafe", func(a []cmd.QArg, p int) error {
+		Strafe.upCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("+moveleft", func(a []cmd.QArg, p int) error {
+		MoveLeft.downCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("-moveleft", func(a []cmd.QArg, p int) error {
+		MoveLeft.upCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("+moveright", func(a []cmd.QArg, p int) error {
+		MoveRight.downCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("-moveright", func(a []cmd.QArg, p int) error {
+		MoveRight.upCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("+speed", func(a []cmd.QArg, p int) error {
+		Speed.downCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("-speed", func(a []cmd.QArg, p int) error {
+		Speed.upCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("+attack", func(a []cmd.QArg, p int) error {
+		Attack.downCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("-attack", func(a []cmd.QArg, p int) error {
+		Attack.upCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("+use", func(a []cmd.QArg, p int) error {
+		Use.downCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("-use", func(a []cmd.QArg, p int) error {
+		Use.upCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("+jump", func(a []cmd.QArg, p int) error {
+		Jump.downCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("-jump", func(a []cmd.QArg, p int) error {
+		Jump.upCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("+klook", func(a []cmd.QArg, p int) error {
+		KLook.downCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("-klook", func(a []cmd.QArg, p int) error {
+		KLook.upCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("+mlook", func(a []cmd.QArg, p int) error {
+		MLook.downCmd(a)
+		return nil
+	}))
+	cmd.Must(cmd.AddCommand("-mlook", func(a []cmd.QArg, p int) error {
 		MLook.upCmd(a)
 		// if !MLook.down && Cvar_GetValue(&lookspring) {
 		// V_StartPitchDrift()
 		// }
-	})
+		return nil
+	}))
 }

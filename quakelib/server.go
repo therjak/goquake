@@ -113,7 +113,7 @@ var (
 	host_client int
 )
 
-func svProtocol(args []cmd.QArg, _ int) {
+func svProtocol(args []cmd.QArg, _ int) error {
 	switch len(args) {
 	default:
 		conlog.SafePrintf("usage: sv_protocol <protocol>\n")
@@ -132,10 +132,11 @@ func svProtocol(args []cmd.QArg, _ int) {
 				protocol.NetQuake, protocol.FitzQuake, protocol.RMQ)
 		}
 	}
+	return nil
 }
 
 func init() {
-	Must(cmd.AddCommand("sv_protocol", svProtocol))
+	addCommand("sv_protocol", svProtocol)
 }
 
 func serverInit() {
@@ -190,17 +191,19 @@ func (s *Server) StartParticle(org, dir vec.Vec3, color, count int) {
 	s.datagram.WriteByte(color)
 }
 
-func (s *Server) SendDatagram(c *SVClient) bool {
+func (s *Server) SendDatagram(c *SVClient) (bool, error) {
 	b := msgBuf.Bytes()
 	// If there is space add the server datagram
 	if len(b)+s.datagram.Len() < protocol.MaxDatagram {
 		b = append(b, s.datagram.Bytes()...)
 	}
 	if c.netConnection.SendUnreliableMessage(b) == -1 {
-		c.Drop(true)
-		return false
+		if err := c.Drop(true); err != nil {
+			return false, err
+		}
+		return false, nil
 	}
-	return true
+	return true, nil
 }
 
 func (s *Server) SendReliableDatagram() {
@@ -542,7 +545,7 @@ func ConnectClient(n int) {
 	new.SendServerinfo()
 }
 
-func (s *Server) SendClientDatagram(c *SVClient) bool {
+func (s *Server) SendClientDatagram(c *SVClient) (bool, error) {
 	msgBuf.ClearMessage()
 	msgBufMaxLen = net.MAX_DATAGRAM
 	if c.Address() != "LOCAL" {
@@ -735,7 +738,7 @@ func SV_SaveSpawnparms() {
 	}
 }
 
-func (s *Server) SendClientMessages() {
+func (s *Server) SendClientMessages() error {
 	// update frags, names, etc
 	s.UpdateToReliableMessages()
 
@@ -746,7 +749,9 @@ func (s *Server) SendClientMessages() {
 		}
 
 		if c.spawned {
-			if !s.SendClientDatagram(c) {
+			if s, err := s.SendClientDatagram(c); err != nil {
+				return err
+			} else if !s {
 				continue
 			}
 		} else {
@@ -757,7 +762,9 @@ func (s *Server) SendClientMessages() {
 			// between signon stages
 			if !c.sendSignon {
 				if host.time-c.lastMessage > 5 {
-					c.SendNop()
+					if err := c.SendNop(); err != nil {
+						return err
+					}
 				}
 				// don't send out non-signon messages
 				continue
@@ -768,7 +775,9 @@ func (s *Server) SendClientMessages() {
 		// on a very fucked up connection that backs up a lot, then
 		// changes level
 		if false { // GetClientOverflowed(i) {
-			c.Drop(true)
+			if err := c.Drop(true); err != nil {
+				return err
+			}
 			// SetClientOverflowed(i, false)
 			continue
 		}
@@ -780,7 +789,9 @@ func (s *Server) SendClientMessages() {
 
 			if c.SendMessage() == -1 {
 				// if the message couldn't send, kick off
-				c.Drop(true)
+				if err := c.Drop(true); err != nil {
+					return err
+				}
 			}
 			c.msg.ClearMessage()
 			c.lastMessage = host.time
@@ -790,6 +801,7 @@ func (s *Server) SendClientMessages() {
 
 	// clear muzzle flashes
 	s.CleanupEntvarEffects()
+	return nil
 }
 
 // Runs thinking code if time.  There is some play in the exact time the think

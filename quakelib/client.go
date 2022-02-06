@@ -66,16 +66,21 @@ var (
 )
 
 func init() {
-	Must(cmd.AddCommand("disconnect", func(args []cmd.QArg, _ int) { clientDisconnect() }))
-	Must(cmd.AddCommand("reconnect", func(args []cmd.QArg, _ int) { clientReconnect() }))
+	addCommand("disconnect", func(args []cmd.QArg, _ int) error {
+		return clientDisconnect()
+	})
+	addCommand("reconnect", func(args []cmd.QArg, _ int) error {
+		clientReconnect()
+		return nil
+	})
 
-	Must(cmd.AddCommand("startdemos", clientStartDemos))
-	Must(cmd.AddCommand("record", clientRecordDemo))
-	Must(cmd.AddCommand("stop", clientStopDemoRecording))
-	Must(cmd.AddCommand("playdemo", clientPlayDemo))
-	Must(cmd.AddCommand("timedemo", clientTimeDemo))
+	addCommand("startdemos", clientStartDemos)
+	addCommand("record", clientRecordDemo)
+	addCommand("stop", clientStopDemoRecording)
+	addCommand("playdemo", clientPlayDemo)
+	addCommand("timedemo", clientTimeDemo)
 
-	Must(cmd.AddCommand("tracepos", tracePosition))
+	addCommand("tracepos", tracePosition)
 	//cmd.AddCommand("mcache", Mod_Print);
 }
 
@@ -324,11 +329,12 @@ func CL_Time() C.double {
 	return C.double(cl.time)
 }
 
-func viewPositionCommand(args []cmd.QArg, _ int) {
+func viewPositionCommand(args []cmd.QArg, _ int) error {
 	if cls.state != ca_connected {
-		return
+		return nil
 	}
 	printPosition()
+	return nil
 }
 
 func printPosition() {
@@ -339,19 +345,20 @@ func printPosition() {
 		cl.pitch, cl.yaw, cl.roll)
 }
 
-func executeOnServer(args []cmd.QArg, _ int) {
+func executeOnServer(args []cmd.QArg, _ int) error {
 	if cls.state != ca_connected {
 		conlog.Printf("Can't \"cmd\", not connected\n")
-		return
+		return nil
 	}
 	if cls.demoPlayback {
-		return
+		return nil
 	}
 	if len(args) > 0 {
 		cls.outProto.Cmds = append(cls.outProto.Cmds, &protos.Cmd{
 			Union: &protos.Cmd_StringCmd{cmd.Full()},
 		})
 	}
+	return nil
 }
 
 func forwardToServer(c string, args []cmd.QArg) {
@@ -375,8 +382,8 @@ func forwardToServer(c string, args []cmd.QArg) {
 }
 
 func init() {
-	Must(cmd.AddCommand("cmd", executeOnServer))
-	Must(cmd.AddCommand("viewpos", viewPositionCommand))
+	addCommand("cmd", executeOnServer)
+	addCommand("viewpos", viewPositionCommand)
 }
 
 // Read all incoming data from the server
@@ -497,7 +504,7 @@ func (c *ClientStatic) getMessage() int {
 
 //Sends a disconnect message to the server
 //This is also called on Host_Error, so it shouldn't cause any errors
-func (c *ClientStatic) Disconnect() {
+func (c *ClientStatic) Disconnect() error {
 	if keyDestination == keys.Message {
 		// don't get stuck in chat mode
 		chatEnd()
@@ -524,7 +531,9 @@ func (c *ClientStatic) Disconnect() {
 
 		c.state = ca_disconnected
 		if sv.active {
-			hostShutdownServer(false)
+			if err := hostShutdownServer(false); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -533,13 +542,19 @@ func (c *ClientStatic) Disconnect() {
 	c.demoPaused = false
 	c.signon = 0
 	cl.intermission = 0
+	return nil
 }
 
-func clientDisconnect() {
-	cls.Disconnect()
-	if sv.active {
-		hostShutdownServer(false)
+func clientDisconnect() error {
+	if err := cls.Disconnect(); err != nil {
+		return err
 	}
+	if sv.active {
+		if err := hostShutdownServer(false); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // This command causes the client to wait for the signon messages again.
@@ -563,7 +578,9 @@ func clEstablishConnection(host string) {
 		return
 	}
 
-	cls.Disconnect()
+	if err := cls.Disconnect(); err != nil {
+		HostError(err)
+	}
 
 	c, err := net.Connect(host)
 	if err != nil {
@@ -624,7 +641,9 @@ func CL_SendCmd() {
 
 	if cls.signon == numSignonMessagesBeforeConn {
 		cl.adjustAngles()
-		HandleMove()
+		if err := HandleMove(); err != nil {
+			HostError(err)
+		}
 	}
 
 	if cls.demoPlayback {
@@ -1094,7 +1113,7 @@ func (c *Client) bonusFlash() {
 }
 
 func init() {
-	Must(cmd.AddCommand("v_cshift", func(a []cmd.QArg, _ int) {
+	addCommand("v_cshift", func(a []cmd.QArg, _ int) error {
 		cshiftEmpty = Color{0, 0, 0, 0}
 		switch l := len(a); {
 		case l >= 4:
@@ -1109,9 +1128,16 @@ func init() {
 		case l == 1:
 			cshiftEmpty.R = a[0].Float32() / 255
 		}
-	}))
-	Must(cmd.AddCommand("bf", func(_ []cmd.QArg, _ int) { cl.bonusFlash() }))
-	Must(cmd.AddCommand("centerview", func(_ []cmd.QArg, _ int) { cl.startPitchDrift() }))
+		return nil
+	})
+	addCommand("bf", func(_ []cmd.QArg, _ int) error {
+		cl.bonusFlash()
+		return nil
+	})
+	addCommand("centerview", func(_ []cmd.QArg, _ int) error {
+		cl.startPitchDrift()
+		return nil
+	})
 }
 
 var (
@@ -1246,9 +1272,9 @@ func (c *Client) calcRefreshRect() {
 }
 
 // display impact point of trace along VPN
-func tracePosition(args []cmd.QArg, _ int) {
+func tracePosition(args []cmd.QArg, _ int) error {
 	if cls.state != ca_connected {
-		return
+		return nil
 	}
 	org := qRefreshRect.viewOrg
 	vpn := qRefreshRect.viewForward
@@ -1261,6 +1287,7 @@ func tracePosition(args []cmd.QArg, _ int) {
 	} else {
 		conlog.Printf("Tracepos: (%d %d %d)\n", w.EndPos[0], w.EndPos[1], w.EndPos[2])
 	}
+	return nil
 }
 
 // Server information pertaining to this client only
@@ -1394,9 +1421,9 @@ func (c *ClientStatic) writeDemoMessage(data []byte) error {
 	return nil
 }
 
-func clientStartDemos(args []cmd.QArg, _ int) {
+func clientStartDemos(args []cmd.QArg, _ int) error {
 	if cmdl.Dedicated() {
-		return
+		return nil
 	}
 
 	cls.demos = cls.demos[:0]
@@ -1411,21 +1438,22 @@ func clientStartDemos(args []cmd.QArg, _ int) {
 			// go straight to menu, no CL_NextDemo
 			cls.demoNum = -1
 			cbuf.InsertText("menu_main\n")
-			return
+			return nil
 		}
 		CL_NextDemo()
 	} else {
 		cls.demoNum = -1
 	}
+	return nil
 }
 
-func clientRecordDemo(args []cmd.QArg, playerEdictId int) {
+func clientRecordDemo(args []cmd.QArg, playerEdictId int) error {
 	if !execute.IsSrcCommand() {
-		return
+		return nil
 	}
 	if cls.demoPlayback {
 		conlog.Printf("Can''t record during demo playback\n")
-		return
+		return nil
 	}
 
 	cls.stopDemoRecording()
@@ -1435,15 +1463,15 @@ func clientRecordDemo(args []cmd.QArg, playerEdictId int) {
 		break
 	default:
 		conlog.Printf("record <demoname> [<map> [cd track]]\n")
-		return
+		return nil
 	}
 	if strings.Contains(args[0].String(), "..") {
 		conlog.Printf("Relavite pathnames are not allowed.\n")
-		return
+		return nil
 	}
 	if len(args) == 1 && cls.state == ca_connected && cls.signon < 2 {
 		conlog.Printf("Can't record - try again when connected\n")
-		return
+		return nil
 	}
 	track := -1
 	if len(args) == 3 {
@@ -1451,15 +1479,20 @@ func clientRecordDemo(args []cmd.QArg, playerEdictId int) {
 		conlog.Printf("Forcing CD track to %i\n", track)
 	}
 	if len(args) > 1 {
-		execute.Execute(fmt.Sprintf("map %s", args[1].String()), execute.Command, playerEdictId)
+		if err := execute.Execute(
+			fmt.Sprintf("map %s", args[1].String()),
+			execute.Command,
+			playerEdictId); err != nil {
+			return err
+		}
 		if cls.state != ca_connected {
-			return
+			return nil
 		}
 	}
 	err := cls.createDemoFile(args[0].String(), track)
 	if err != nil {
 		conlog.Printf(err.Error())
-		return
+		return nil
 	}
 	if len(args) == 1 && cls.state == ca_connected {
 		// initialize the demo file with a start connection dummy
@@ -1516,45 +1549,49 @@ func clientRecordDemo(args []cmd.QArg, playerEdictId int) {
 		cls.writeDemoMessage(cls.demoSignon[1].Bytes())
 		cls.writeDemoMessage(buf.Bytes())
 	}
+	return nil
 }
 
-func clientStopDemoRecording(_ []cmd.QArg, _ int) {
+func clientStopDemoRecording(_ []cmd.QArg, _ int) error {
 	if !execute.IsSrcCommand() {
-		return
+		return nil
 	}
 	if cls.demoWriter == nil {
 		conlog.Printf("Not recording a demo.\n")
-		return
+		return nil
 	}
 	cls.stopDemoRecording()
+	return nil
 }
 
-func clientPlayDemo(args []cmd.QArg, _ int) {
+func clientPlayDemo(args []cmd.QArg, _ int) error {
 	if !execute.IsSrcCommand() {
-		return
+		return nil
 	}
 
 	if len(args) != 1 {
 		conlog.Printf("playdemo <demoname> : plays a demo\n")
-		return
+		return nil
 	}
 
 	if err := cls.playDemo(args[0].String()); err != nil {
 		conlog.Printf("Error: %v", err)
 	}
+	return nil
 }
 
-func clientTimeDemo(args []cmd.QArg, _ int) {
+func clientTimeDemo(args []cmd.QArg, _ int) error {
 	if !execute.IsSrcCommand() {
-		return
+		return nil
 	}
 
 	if len(args) != 1 {
 		conlog.Printf("timedemo <demoname> : gets demo speeds\n")
-		return
+		return nil
 	}
 
 	cls.startTimeDemo(args[0].String())
+	return nil
 }
 
 // Called to play the next demo in the demo loop
@@ -1567,7 +1604,9 @@ func CL_NextDemo() {
 	if len(cls.demos) == 0 {
 		conlog.Printf("No demos listed with startdemos\n")
 		cls.demoNum = -1
-		cls.Disconnect()
+		if err := cls.Disconnect(); err != nil {
+			HostError(err)
+		}
 		return
 	}
 
@@ -1667,7 +1706,9 @@ func (c *ClientStatic) getDemoMessage() int {
 }
 
 func (c *ClientStatic) playDemo(name string) error {
-	c.Disconnect()
+	if err := c.Disconnect(); err != nil {
+		return err
+	}
 	if !strings.HasSuffix(name, ".dem") {
 		name += ".dem"
 	}

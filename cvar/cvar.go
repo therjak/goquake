@@ -185,42 +185,42 @@ func MustRegister(n, v string, flag flag) *Cvar {
 	return cv
 }
 
-func Execute(args []cmd.QArg, _ int) bool {
+func Execute(args []cmd.QArg, _ int) (bool, error) {
 	if len(args) == 0 {
-		return false
+		return false, nil
 	}
 	n := args[0].String()
 	cv, ok := Get(n)
 	if !ok {
-		return false
+		return false, nil
 	}
 	if len(args) == 1 {
 		conlog.Printf("\"%s\" is \"%s\"\n", cv.Name(), cv.String())
 		log.Printf("shown cvar")
-		return true
+		return true, nil
 	}
 	cv.SetByString(args[1].String())
-	return true
+	return true, nil
 }
 
 func init() {
-	cmd.AddCommand("cvarlist", list)
-	cmd.AddCommand("cycle", cycle)
-	cmd.AddCommand("inc", inc)
-	cmd.AddCommand("reset", reset)
-	cmd.AddCommand("resetall", resetAll)
-	cmd.AddCommand("resetcfg", resetCfg)
-	cmd.AddCommand("set", set)
-	cmd.AddCommand("seta", seta)
-	cmd.AddCommand("toggle", toggle)
+	cmd.Must(cmd.AddCommand("cvarlist", list))
+	cmd.Must(cmd.AddCommand("cycle", cycle))
+	cmd.Must(cmd.AddCommand("inc", inc))
+	cmd.Must(cmd.AddCommand("reset", reset))
+	cmd.Must(cmd.AddCommand("resetall", resetAll))
+	cmd.Must(cmd.AddCommand("resetcfg", resetCfg))
+	cmd.Must(cmd.AddCommand("set", set))
+	cmd.Must(cmd.AddCommand("seta", seta))
+	cmd.Must(cmd.AddCommand("toggle", toggle))
 }
 
-func set(args []cmd.QArg, _ int) {
+func set(args []cmd.QArg, _ int) error {
 	switch {
 	case len(args) >= 2:
 		if cmd.Exists(args[0].String()) {
 			conlog.Printf("conflict with command\n")
-			return
+			return nil
 		}
 		if cv, ok := cvarByName[args[0].String()]; ok {
 			cv.SetByString(args[1].String())
@@ -231,14 +231,15 @@ func set(args []cmd.QArg, _ int) {
 	default:
 		conlog.Printf("set <cvar> <value>\n")
 	}
+	return nil
 }
 
-func seta(args []cmd.QArg, _ int) {
+func seta(args []cmd.QArg, _ int) error {
 	switch {
 	case len(args) >= 2:
 		if cmd.Exists(args[0].String()) {
 			conlog.Printf("conflict with command\n")
-			return
+			return nil
 		}
 		if cv, ok := cvarByName[args[0].String()]; ok {
 			cv.SetByString(args[1].String())
@@ -252,9 +253,10 @@ func seta(args []cmd.QArg, _ int) {
 	default:
 		conlog.Printf("seta <cvar> <value>\n")
 	}
+	return nil
 }
 
-func toggle(args []cmd.QArg, _ int) {
+func toggle(args []cmd.QArg, _ int) error {
 	switch c := len(args); c {
 	case 1:
 		arg := args[0].String()
@@ -269,6 +271,7 @@ func toggle(args []cmd.QArg, _ int) {
 		conlog.Printf("toggle <cvar> : toggle cvar\n")
 		break
 	}
+	return nil
 }
 
 func incr(n string, v float32) {
@@ -280,7 +283,7 @@ func incr(n string, v float32) {
 	}
 }
 
-func inc(args []cmd.QArg, _ int) {
+func inc(args []cmd.QArg, _ int) error {
 	switch c := len(args); c {
 	case 1:
 		arg := args[0].String()
@@ -291,9 +294,10 @@ func inc(args []cmd.QArg, _ int) {
 	default:
 		conlog.Printf("inc <cvar> [amount] : increment cvar\n")
 	}
+	return nil
 }
 
-func reset(args []cmd.QArg, _ int) {
+func reset(args []cmd.QArg, _ int) error {
 	switch c := len(args); c {
 	case 1:
 		arg := args[0].String()
@@ -306,34 +310,38 @@ func reset(args []cmd.QArg, _ int) {
 	default:
 		conlog.Printf("reset <cvar> : reset cvar to default\n")
 	}
+	return nil
 }
 
-func resetAll(_ []cmd.QArg, _ int) {
+func resetAll(_ []cmd.QArg, _ int) error {
 	// bail if args not empty?
 	for _, cv := range All() {
 		cv.Reset()
 	}
+	return nil
 }
 
-func resetCfg(_ []cmd.QArg, _ int) {
+func resetCfg(_ []cmd.QArg, _ int) error {
 	// bail if args not empty?
 	for _, cv := range All() {
 		if cv.Archive() {
 			cv.Reset()
 		}
 	}
+	return nil
 }
 
-func list(args []cmd.QArg, _ int) {
+func list(args []cmd.QArg, _ int) error {
 	// TODO(therjak):
 	// this should probably print the syntax of cvarlist if len(args) > 1
 	switch len(args) {
 	default:
 		partialList(args[1])
-		return
+		return nil
 	case 0:
 		fullList()
 	}
+	return nil
 }
 
 func fullList() {
@@ -365,15 +373,15 @@ func partialList(p cmd.QArg) {
 	// in length print add ("beginning with \"%s\"", p)
 }
 
-func cycle(args []cmd.QArg, _ int) {
+func cycle(args []cmd.QArg, _ int) error {
 	if len(args) < 2 {
 		conlog.Printf("cycle <cvar> <value list>: cycle cvar through a list of values\n")
-		return
+		return nil
 	}
 	cv, ok := Get(args[0].String())
 	if !ok {
 		conlog.Printf("Cvar_Set: variable %v not found\n", args[0].String())
-		return
+		return nil
 	}
 	// TODO: make entries in args[1:] unique
 	oldValue := cv.String()
@@ -387,4 +395,5 @@ func cycle(args []cmd.QArg, _ int) {
 	i %= len(args) - 1
 	i++
 	cv.SetByString(args[i].String())
+	return nil
 }

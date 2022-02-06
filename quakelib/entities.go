@@ -50,12 +50,12 @@ var (
 
 func init() {
 	playerTextures = make(map[*Entity]*texture.Texture)
-	Must(cmd.AddCommand("entities", printEntities))
+	addCommand("entities", printEntities)
 }
 
-func printEntities(_ []cmd.QArg, _ int) {
+func printEntities(_ []cmd.QArg, _ int) error {
 	if cls.state != ca_connected {
-		return
+		return nil
 	}
 	for i, e := range cl.entities {
 		conlog.Printf("%3d:", i)
@@ -70,6 +70,7 @@ func printEntities(_ []cmd.QArg, _ int) {
 		conlog.Printf("%s:%2d  (%5.1f,%5.1f,%5.1f) [%5.1f %5.1f %5.1f]\n",
 			n, f, o[0], o[1], o[2], a[0], a[1], a[2])
 	}
+	return nil
 }
 
 func updatePlayerSkin(i int) {

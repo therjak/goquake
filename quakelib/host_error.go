@@ -30,7 +30,10 @@ func HostError(e error) {
 	conlog.Printf("Host_Error: %s\n", s)
 
 	if sv.active {
-		hostShutdownServer(false)
+		if err := hostShutdownServer(false); err != nil {
+			// FIXME: this is recursion
+			HostError(err)
+		}
 	}
 
 	if cmdl.Dedicated() {
@@ -38,7 +41,10 @@ func HostError(e error) {
 		Error("Host_Error: %s\n", s)
 	}
 
-	cls.Disconnect()
+	if err := cls.Disconnect(); err != nil {
+		// FIXME: this is recursion
+		HostError(err)
+	}
 	cls.demoNum = -1
 
 	// for errors during intermissions

@@ -66,7 +66,9 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) (serverState, error) {
 					protocol.NetQuake, protocol.FitzQuake, protocol.RMQ, protocol.GoQuake)
 			}
 		case *protos.SCmd_Disconnect:
-			handleServerDisconnected("Server disconnected\n")
+			if err := handleServerDisconnected("Server disconnected\n"); err != nil {
+				return serverDisconnected, err
+			}
 			return serverDisconnected, nil
 		case *protos.SCmd_Print:
 			conlog.Printf("%s", cmd.Print)
@@ -439,11 +441,13 @@ func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) {
 	e.Sync()
 }
 
-func handleServerDisconnected(msg string) {
+func handleServerDisconnected(msg string) error {
 	conlog.DPrintf("Host_EndGame: %s\n", msg)
 
 	if sv.active {
-		hostShutdownServer(false)
+		if err := hostShutdownServer(false); err != nil {
+			return err
+		}
 	}
 
 	if cmdl.Dedicated() {
@@ -454,8 +458,11 @@ func handleServerDisconnected(msg string) {
 	if cls.demoNum != -1 {
 		CL_NextDemo()
 	} else {
-		cls.Disconnect()
+		if err := cls.Disconnect(); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 func (c *Client) parseStatic(pb *protos.Baseline) {

@@ -36,18 +36,20 @@ var (
 	}
 )
 
-func describeTextureModes(_ []cmd.QArg, _ int) {
+func describeTextureModes(_ []cmd.QArg, _ int) error {
 	for i, m := range glModes {
 		conlog.SafePrintf("   %2d: %s", i+1, m.name)
 	}
 	conlog.Printf("%d modes\n", len(glModes))
+	return nil
 }
 
 func init() {
-	Must(cmd.AddCommand("gl_describetexturemodes", describeTextureModes))
-	Must(cmd.AddCommand("imagelist", func(_ []cmd.QArg, _ int) {
+	addCommand("gl_describetexturemodes", describeTextureModes)
+	addCommand("imagelist", func(_ []cmd.QArg, _ int) error {
 		textureManager.logTextures()
-	}))
+		return nil
+	})
 }
 
 type texMgr struct {

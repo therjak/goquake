@@ -15,12 +15,12 @@ var (
 )
 
 func init() {
-	Must(cmd.AddCommand("listen", listenCmd))
-	Must(cmd.AddCommand("port", portCmd))
-	Must(cmd.AddCommand("maxplayers", maxPlayersCmd))
+	addCommand("listen", listenCmd)
+	addCommand("port", portCmd)
+	addCommand("maxplayers", maxPlayersCmd)
 }
 
-func listenCmd(args []cmd.QArg, _ int) {
+func listenCmd(args []cmd.QArg, _ int) error {
 	switch c := len(args); c {
 	case 1:
 		arg := args[0].Bool()
@@ -32,6 +32,7 @@ func listenCmd(args []cmd.QArg, _ int) {
 	default:
 		conlog.Printf("listen is %t", listening)
 	}
+	return nil
 }
 
 func listen() {
@@ -41,7 +42,7 @@ func unlisten() {
 	net.StopListen()
 }
 
-func portCmd(args []cmd.QArg, _ int) {
+func portCmd(args []cmd.QArg, _ int) error {
 	switch c := len(args); c {
 	default:
 		conlog.Printf("port is %d", net.Port())
@@ -49,7 +50,7 @@ func portCmd(args []cmd.QArg, _ int) {
 		arg := args[0].Int()
 		if arg < 1 || 65534 < arg {
 			conlog.Printf("Bad value, must be between 1 and 65534")
-			return
+			return nil
 		}
 		net.SetPort(arg)
 		if listening {
@@ -58,16 +59,17 @@ func portCmd(args []cmd.QArg, _ int) {
 			cbuf.AddText("listen true\n")
 		}
 	}
+	return nil
 }
 
-func maxPlayersCmd(args []cmd.QArg, _ int) {
+func maxPlayersCmd(args []cmd.QArg, _ int) error {
 	switch c := len(args); c {
 	default:
 		conlog.Printf("maxplayers is %d", svs.maxClients)
 	case 1:
 		if sv.active {
 			conlog.Printf("maxplayers can not be changed while a server is running")
-			return
+			return nil
 		}
 		arg := args[0].Int()
 		if arg < 1 {
@@ -90,4 +92,5 @@ func maxPlayersCmd(args []cmd.QArg, _ int) {
 			cvars.DeathMatch.SetByString("1")
 		}
 	}
+	return nil
 }

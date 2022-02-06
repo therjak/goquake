@@ -324,7 +324,7 @@ func particlesClear() {
 }
 
 // on cmd "pointfile"
-func particlesReadPointFile(_ []cmd.QArg, _ int) {
+func particlesReadPointFile(_ []cmd.QArg, _ int) error {
 	// This is a file to debug maps. They should not be part of a pak.
 	// It's to show ingame where the map has holes.
 	log.Printf("pointfile")
@@ -378,10 +378,11 @@ func particlesReadPointFile(_ []cmd.QArg, _ int) {
 		fclose(f);
 		Con_Printf("%i points read\n", c);
 	*/
+	return nil
 }
 
 func init() {
-	Must(cmd.AddCommand("pointfile", particlesReadPointFile))
+	addCommand("pointfile", particlesReadPointFile)
 }
 
 // randVec returns a randomized vector with radius at most r

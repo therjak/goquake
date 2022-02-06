@@ -23,9 +23,12 @@ const (
 )
 
 func init() {
-	Must(cmd.AddCommand("edict", edictPrintEdictFunc))
-	Must(cmd.AddCommand("edicts", func(_ []cmd.QArg, _ int) { edictPrintEdicts() }))
-	Must(cmd.AddCommand("edictcount", edictCount))
+	addCommand("edict", edictPrintEdictFunc)
+	addCommand("edicts", func(_ []cmd.QArg, _ int) error {
+		edictPrintEdicts()
+		return nil
+	})
+	addCommand("edictcount", edictCount)
 }
 
 type EntityState struct {
@@ -164,23 +167,24 @@ func edictPrintEdicts() {
 }
 
 // For debugging, prints a single edict
-func edictPrintEdictFunc(args []cmd.QArg, _ int) {
+func edictPrintEdictFunc(args []cmd.QArg, _ int) error {
 	if !sv.active || len(args) == 0 {
-		return
+		return nil
 	}
 
 	i := args[0].Int()
 	if i < 0 || i >= sv.numEdicts {
 		conlog.Printf("Bad edict number\n")
-		return
+		return nil
 	}
 	edictPrint(i)
+	return nil
 }
 
 // For debugging
-func edictCount(_ []cmd.QArg, _ int) {
+func edictCount(_ []cmd.QArg, _ int) error {
 	if !sv.active {
-		return
+		return nil
 	}
 
 	active := 0
@@ -208,6 +212,7 @@ func edictCount(_ []cmd.QArg, _ int) {
 	conlog.Printf("view      :%3d\n", models)
 	conlog.Printf("touch     :%3d\n", solid)
 	conlog.Printf("step      :%3d\n", step)
+	return nil
 }
 
 func entAlphaEncode(a float32) byte {

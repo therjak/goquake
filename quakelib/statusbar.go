@@ -21,8 +21,14 @@ var (
 )
 
 func init() {
-	Must(cmd.AddCommand("+showscores", func(_ []cmd.QArg, _ int) { statusbar.ShowScores() }))
-	Must(cmd.AddCommand("-showscores", func(_ []cmd.QArg, _ int) { statusbar.HideScores() }))
+	addCommand("+showscores", func(_ []cmd.QArg, _ int) error {
+		statusbar.ShowScores()
+		return nil
+	})
+	addCommand("-showscores", func(_ []cmd.QArg, _ int) error {
+		statusbar.HideScores()
+		return nil
+	})
 }
 
 type spic struct {
