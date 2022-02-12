@@ -14,7 +14,7 @@ import (
 //The move will be adjusted for slopes and stairs, but if the move isn't
 //possible, no move is done, false is returned, and
 //pr_global_struct->trace_normal is set to the normal of the blocking wall
-func (v *virtualMachine) monsterMoveStep(ent int, move vec.Vec3, relink bool) bool {
+func (v *virtualMachine) monsterMoveStep(ent int, move vec.Vec3, relink bool) (bool, error) {
 	const STEPSIZE = 18
 	ev := EntVars(ent)
 	mins := vec.VFromA(ev.Mins)
@@ -42,21 +42,23 @@ func (v *virtualMachine) monsterMoveStep(ent int, move vec.Vec3, relink bool) bo
 				endpos := trace.EndPos
 				if flags&FL_SWIM != 0 && pointContents(endpos) == bsp.CONTENTS_EMPTY {
 					// swim monster left water
-					return false
+					return false, nil
 				}
 
 				ev.Origin = endpos
 				if relink {
-					v.LinkEdict(ent, true)
+					if err := v.LinkEdict(ent, true); err != nil {
+						return false, err
+					}
 				}
-				return true
+				return true, nil
 			}
 
 			if enemy == 0 {
 				break
 			}
 		}
-		return false
+		return false, nil
 	}
 
 	oldorg := ev.Origin
@@ -68,13 +70,13 @@ func (v *virtualMachine) monsterMoveStep(ent int, move vec.Vec3, relink bool) bo
 	end[2] -= STEPSIZE * 2
 	trace := svMove(neworg, mins, maxs, end, MOVE_NORMAL, ent)
 	if trace.AllSolid {
-		return false
+		return false, nil
 	}
 	if trace.StartSolid {
 		neworg[2] -= STEPSIZE
 		trace = svMove(neworg, mins, maxs, end, MOVE_NORMAL, ent)
 		if trace.AllSolid || trace.StartSolid {
-			return false
+			return false, nil
 		}
 	}
 
@@ -84,13 +86,15 @@ func (v *virtualMachine) monsterMoveStep(ent int, move vec.Vec3, relink bool) bo
 			neworg = vec.Add(oldorg, move)
 			ev.Origin = neworg
 			if relink {
-				v.LinkEdict(ent, true)
+				if err := v.LinkEdict(ent, true); err != nil {
+					return false, err
+				}
 			}
 			ev.Flags = float32(flags &^ FL_ONGROUND)
-			return true
+			return true, nil
 		}
 		// walked off an edge
-		return false
+		return false, nil
 	}
 	// check point traces down for dangling corners
 	ev.Origin = trace.EndPos
@@ -100,12 +104,14 @@ func (v *virtualMachine) monsterMoveStep(ent int, move vec.Vec3, relink bool) bo
 			// entity had floor mostly pulled out from underneath it
 			// and is trying to correct
 			if relink {
-				v.LinkEdict(ent, true)
+				if err := v.LinkEdict(ent, true); err != nil {
+					return false, err
+				}
 			}
-			return true
+			return true, nil
 		}
 		ev.Origin = oldorg
-		return false
+		return false, nil
 	}
 
 	if flags&FL_PARTIALGROUND != 0 {
@@ -115,9 +121,11 @@ func (v *virtualMachine) monsterMoveStep(ent int, move vec.Vec3, relink bool) bo
 	ev.GroundEntity = int32(trace.EntNumber)
 	// the move is ok
 	if relink {
-		v.LinkEdict(ent, true)
+		if err := v.LinkEdict(ent, true); err != nil {
+			return false, err
+		}
 	}
-	return true
+	return true, nil
 }
 
 // This was a major timewaster in progs
@@ -154,7 +162,7 @@ func changeYaw(ent int) {
 
 // Turns to the movement direction, and walks the current distance if
 // facing it.
-func (v *virtualMachine) monsterStepDirection(ent int, yaw, dist float32) bool {
+func (v *virtualMachine) monsterStepDirection(ent int, yaw, dist float32) (bool, error) {
 	ev := EntVars(ent)
 	ev.IdealYaw = yaw
 
@@ -169,21 +177,27 @@ func (v *virtualMachine) monsterStepDirection(ent int, yaw, dist float32) bool {
 	}
 
 	oldorigin := ev.Origin
-	if v.monsterMoveStep(ent, move, false) {
+	if ok, err := v.monsterMoveStep(ent, move, false); err != nil {
+		return false, err
+	} else if ok {
 		delta := ev.Angles[1] - ev.IdealYaw
 		if delta > 45 && delta < 315 {
 			// not turned far enough, so don't take the step
 			ev.Origin = oldorigin
 		}
-		v.LinkEdict(ent, true)
-		return true
+		if err := v.LinkEdict(ent, true); err != nil {
+			return false, err
+		}
+		return true, nil
 	}
 
-	v.LinkEdict(ent, true)
-	return false
+	if err := v.LinkEdict(ent, true); err != nil {
+		return false, err
+	}
+	return false, nil
 }
 
-func (v *virtualMachine) monsterNewChaseDir(a, e int, dist float32) {
+func (v *virtualMachine) monsterNewChaseDir(a, e int, dist float32) error {
 	const DI_NODIR = -1
 	actor := EntVars(a)
 	enemy := EntVars(e)
@@ -226,8 +240,12 @@ func (v *virtualMachine) monsterNewChaseDir(a, e int, dist float32) {
 			return 215
 		}()
 
-		if tdir != turnaround && v.monsterStepDirection(a, tdir, dist) {
-			return
+		if tdir != turnaround {
+			if ok, err := v.monsterStepDirection(a, tdir, dist); err != nil {
+				return err
+			} else if ok {
+				return nil
+			}
 		}
 	}
 	// try other directions
@@ -238,36 +256,58 @@ func (v *virtualMachine) monsterNewChaseDir(a, e int, dist float32) {
 		d1 = d2
 		d2 = tdir
 	}
-	if d1 != DI_NODIR && d1 != turnaround &&
-		v.monsterStepDirection(a, d1, dist) {
-		return
+	if d1 != DI_NODIR && d1 != turnaround {
+		if ok, err := v.monsterStepDirection(a, d1, dist); err != nil {
+			return err
+		} else if ok {
+			return nil
+		}
 	}
-	if d2 != DI_NODIR && d2 != turnaround &&
-		v.monsterStepDirection(a, d2, dist) {
-		return
+	if d2 != DI_NODIR && d2 != turnaround {
+		if ok, err := v.monsterStepDirection(a, d2, dist); err != nil {
+			return err
+		} else if ok {
+			return nil
+		}
 	}
 	// there is no direct path to the player, so pick another direction
-	if olddir != DI_NODIR && v.monsterStepDirection(a, olddir, dist) {
-		return
+	if olddir != DI_NODIR {
+		if ok, err := v.monsterStepDirection(a, olddir, dist); err != nil {
+			return err
+		} else if ok {
+			return nil
+		}
 	}
 
 	// randomly determine direction of search
 	if sRand.Uint32n(2) == 0 {
 		for tdir := float32(0); tdir <= 315; tdir += 45 {
-			if tdir != turnaround && v.monsterStepDirection(a, tdir, dist) {
-				return
+			if tdir != turnaround {
+				if ok, err := v.monsterStepDirection(a, tdir, dist); err != nil {
+					return err
+				} else if ok {
+					return nil
+				}
 			}
 		}
 	} else {
 		for tdir := float32(315); tdir >= 0; tdir -= 45 {
-			if tdir != turnaround && v.monsterStepDirection(a, tdir, dist) {
-				return
+			if tdir != turnaround {
+				if ok, err := v.monsterStepDirection(a, tdir, dist); err != nil {
+					return err
+				} else if ok {
+					return nil
+				}
 			}
 		}
 	}
 
-	if turnaround != DI_NODIR && v.monsterStepDirection(a, turnaround, dist) {
-		return
+	if turnaround != DI_NODIR {
+		if ok, err := v.monsterStepDirection(a, turnaround, dist); err != nil {
+			return err
+		} else if ok {
+			return nil
+		}
 	}
 
 	// can't move
@@ -278,6 +318,7 @@ func (v *virtualMachine) monsterNewChaseDir(a, e int, dist float32) {
 	if !checkBottom(a) {
 		actor.Flags = float32(int(actor.Flags) | FL_PARTIALGROUND)
 	}
+	return nil
 }
 
 func monsterCloseEnough(e, g int, dist float32) bool {
@@ -294,25 +335,36 @@ func monsterCloseEnough(e, g int, dist float32) bool {
 }
 
 // this is part of vm_functions
-func (v *virtualMachine) monsterMoveToGoal() {
+func (v *virtualMachine) monsterMoveToGoal() error {
 	ent := int(progsdat.Globals.Self)
 	ev := EntVars(ent)
 
 	if int(ev.Flags)&(FL_ONGROUND|FL_FLY|FL_SWIM) == 0 {
 		progsdat.Globals.Returnf()[0] = 0
-		return
+		return nil
 	}
 	goal := int(ev.GoalEntity)
 	dist := progsdat.RawGlobalsF[progs.OffsetParm0]
 
 	// if the next step hits the enemy, return immediately
 	if ev.Enemy != 0 && monsterCloseEnough(ent, goal, dist) {
-		return
+		return nil
 	}
 
 	// bump around...
-	if sRand.Uint32n(3) == 0 ||
-		!v.monsterStepDirection(ent, ev.IdealYaw, dist) {
-		v.monsterNewChaseDir(ent, goal, dist)
+	if sRand.Uint32n(3) == 0 {
+		if err := v.monsterNewChaseDir(ent, goal, dist); err != nil {
+			return err
+		}
+		return nil
 	}
+
+	if ok, err := v.monsterStepDirection(ent, ev.IdealYaw, dist); err != nil {
+		return err
+	} else if !ok {
+		if err := v.monsterNewChaseDir(ent, goal, dist); err != nil {
+			return err
+		}
+	}
+	return nil
 }

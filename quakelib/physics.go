@@ -46,7 +46,9 @@ func (q *qphysics) pushMove(pusher int, movetime float32) error {
 	// move the pusher to it's final position
 	pev.Origin = vec.Add(pev.Origin, move)
 	pev.LTime += movetime
-	vm.LinkEdict(pusher, false)
+	if err := vm.LinkEdict(pusher, false); err != nil {
+		return err
+	}
 
 	type moved struct {
 		ent    int
@@ -91,7 +93,9 @@ func (q *qphysics) pushMove(pusher int, movetime float32) error {
 
 		// try moving the contacted entity
 		pev.Solid = SOLID_NOT
-		pushEntity(c, move)
+		if _, err := pushEntity(c, move); err != nil {
+			return err
+		}
 		pev.Solid = SOLID_BSP
 
 		// if it is still inside the pusher, block
@@ -109,10 +113,14 @@ func (q *qphysics) pushMove(pusher int, movetime float32) error {
 				continue
 			}
 			cev.Origin = entOrigin
-			vm.LinkEdict(c, true)
+			if err := vm.LinkEdict(c, true); err != nil {
+				return err
+			}
 
 			pev.Origin = pushOrigin
-			vm.LinkEdict(pusher, false)
+			if err := vm.LinkEdict(pusher, false); err != nil {
+				return err
+			}
 			pev.LTime -= movetime
 
 			// if the pusher has a "blocked" function, call it
@@ -128,7 +136,9 @@ func (q *qphysics) pushMove(pusher int, movetime float32) error {
 			// move back any entities we already moved
 			for _, m := range movedEnts {
 				EntVars(m.ent).Origin = m.origin
-				vm.LinkEdict(m.ent, false)
+				if err := vm.LinkEdict(m.ent, false); err != nil {
+					return err
+				}
 			}
 			return nil
 		}
@@ -185,7 +195,7 @@ func (q *qphysics) pusher(ent int) error {
 // Try fixing by pushing one pixel in each direction.
 //
 // This is a hack, but in the interest of good gameplay...
-func (q *qphysics) tryUnstick(ent int, oldvel vec.Vec3) int {
+func (q *qphysics) tryUnstick(ent int, oldvel vec.Vec3) (int, error) {
 	ev := EntVars(ent)
 	oldorg := ev.Origin
 
@@ -200,7 +210,9 @@ func (q *qphysics) tryUnstick(ent int, oldvel vec.Vec3) int {
 		{2, -2, 0},
 		{-2, -2, 0},
 	} {
-		pushEntity(ent, dir)
+		if _, err := pushEntity(ent, dir); err != nil {
+			return 0, err
+		}
 		// retry the original move
 		ev.Velocity = oldvel
 		ev.Velocity[2] = 0 // TODO: why?
@@ -209,14 +221,14 @@ func (q *qphysics) tryUnstick(ent int, oldvel vec.Vec3) int {
 		if math32.Abs(oldorg[1]-ev.Origin[1]) > 4 ||
 			math32.Abs(oldorg[0]-ev.Origin[0]) > 4 {
 			conlog.DPrintf("unstuck!\n")
-			return clip
+			return clip, nil
 		}
 		// go back to the original pos and try again
 		ev.Origin = oldorg
 	}
 	ev.Velocity = [3]float32{0, 0, 0}
 	// still not moving
-	return 7
+	return 7, nil
 }
 
 func (q *qphysics) wallFriction(ent int, planeNormal vec.Vec3) {
@@ -243,7 +255,7 @@ func (q *qphysics) wallFriction(ent int, planeNormal vec.Vec3) {
 }
 
 // Only used by players
-func (q *qphysics) walkMove(ent int) {
+func (q *qphysics) walkMove(ent int) error {
 	const STEPSIZE = 18
 	ev := EntVars(ent)
 
@@ -260,25 +272,25 @@ func (q *qphysics) walkMove(ent int) {
 
 	if (clip & 2) == 0 {
 		// move didn't block on a step
-		return
+		return nil
 	}
 
 	if !oldOnGround && ev.WaterLevel == 0 {
 		// don't stair up while jumping
-		return
+		return nil
 	}
 
 	if ev.MoveType != progs.MoveTypeWalk {
 		// gibbed by a trigger
-		return
+		return nil
 	}
 
 	if cvars.ServerNoStep.Bool() {
-		return
+		return nil
 	}
 
 	if int(ev.Flags)&FL_WATERJUMP != 0 {
-		return
+		return nil
 	}
 
 	noStepOrigin := ev.Origin
@@ -292,7 +304,9 @@ func (q *qphysics) walkMove(ent int) {
 	downMove := vec.Vec3{0, 0, -STEPSIZE + oldVelocity[2]*time}
 
 	// move up
-	pushEntity(ent, upMove) // FIXME: don't link?
+	if _, err := pushEntity(ent, upMove); err != nil { // FIXME: don't link?
+		return err
+	}
 
 	// move forward
 	ev.Velocity = oldVelocity
@@ -305,7 +319,11 @@ func (q *qphysics) walkMove(ent int) {
 		if math32.Abs(oldOrigin[1]-ev.Origin[1]) < 0.03125 &&
 			math32.Abs(oldOrigin[0]-ev.Origin[0]) < 0.03125 {
 			// stepping up didn't make any progress
-			clip = q.tryUnstick(ent, oldVelocity)
+			var err error
+			clip, err = q.tryUnstick(ent, oldVelocity)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -316,14 +334,17 @@ func (q *qphysics) walkMove(ent int) {
 	}
 
 	// move down
-	downTrace := pushEntity(ent, downMove) // FIXME: don't link?
+	downTrace, err := pushEntity(ent, downMove) // FIXME: don't link?
+	if err != nil {
+		return err
+	}
 
 	if downTrace.Plane.Normal[2] > 0.7 {
 		if ev.Solid == SOLID_BSP {
 			ev.Flags = float32(int(ev.Flags) | FL_ONGROUND)
 			ev.GroundEntity = int32(downTrace.EntNumber)
 		}
-		return
+		return nil
 	}
 
 	// if the push down didn't end up on good ground, use the move without
@@ -331,6 +352,7 @@ func (q *qphysics) walkMove(ent int) {
 	// cause the player to hop up higher on a slope too steep to climb
 	ev.Origin = noStepOrigin
 	ev.Velocity = noStepVelocity
+	return nil
 }
 
 // Non moving objects can only think
@@ -339,9 +361,9 @@ func (q *qphysics) none(ent int) {
 }
 
 //A moving object that doesn't obey physics
-func (q *qphysics) noClip(ent int) {
+func (q *qphysics) noClip(ent int) error {
 	if !runThink(ent) {
-		return
+		return nil
 	}
 	time := float32(host.frameTime)
 
@@ -355,7 +377,10 @@ func (q *qphysics) noClip(ent int) {
 	origin := ev.Origin
 	ev.Origin = vec.Add(origin, v)
 
-	vm.LinkEdict(ent, false)
+	if err := vm.LinkEdict(ent, false); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (q *qphysics) checkWaterTransition(ent int) error {
@@ -417,7 +442,10 @@ func (q *qphysics) toss(ent int) error {
 
 	velocity := ev.Velocity
 	move := vec.Scale(time, velocity)
-	t := pushEntity(ent, move)
+	t, err := pushEntity(ent, move)
+	if err != nil {
+		return err
+	}
 
 	if t.Fraction == 1 {
 		return nil
@@ -469,7 +497,9 @@ func (q *qphysics) step(ent int) error {
 		q.addGravity(ent)
 		CheckVelocity(ev)
 		q.flyMove(ent, time, nil)
-		vm.LinkEdict(ent, true)
+		if err := vm.LinkEdict(ent, true); err != nil {
+			return err
+		}
 
 		if int(ev.Flags)&FL_ONGROUND != 0 {
 			// just hit ground
@@ -493,19 +523,21 @@ func (q *qphysics) step(ent int) error {
 
 // This is a big hack to try and fix the rare case of getting stuck in the world
 // clipping hull.
-func (q *qphysics) checkStuck(ent int) {
+func (q *qphysics) checkStuck(ent int) error {
 	ev := EntVars(ent)
 	if !testEntityPosition(ent) {
 		ev.OldOrigin = ev.Origin
-		return
+		return nil
 	}
 
 	org := ev.Origin
 	ev.Origin = ev.OldOrigin
 	if !testEntityPosition(ent) {
 		conlog.Printf("Unstuck.\n") // debug
-		vm.LinkEdict(ent, true)
-		return
+		if err := vm.LinkEdict(ent, true); err != nil {
+			return err
+		}
+		return nil
 	}
 
 	for z := float32(0); z < 18; z++ {
@@ -516,8 +548,10 @@ func (q *qphysics) checkStuck(ent int) {
 				ev.Origin[2] = org[2] + z
 				if !testEntityPosition(ent) {
 					conlog.Printf("Unstuck.\n")
-					vm.LinkEdict(ent, true)
-					return
+					if err := vm.LinkEdict(ent, true); err != nil {
+						return err
+					}
+					return nil
 				}
 			}
 		}
@@ -525,6 +559,7 @@ func (q *qphysics) checkStuck(ent int) {
 
 	ev.Origin = org
 	conlog.Printf("player is stuck.\n")
+	return nil
 }
 
 //The basic solid body movement clip that slides along multiple planes
@@ -744,8 +779,12 @@ func (q *qphysics) playerActions(ent, num int) error {
 		if !q.checkWater(ent) && int(ev.Flags)&FL_WATERJUMP == 0 {
 			q.addGravity(ent)
 		}
-		q.checkStuck(ent)
-		q.walkMove(ent)
+		if err := q.checkStuck(ent); err != nil {
+			return err
+		}
+		if err := q.walkMove(ent); err != nil {
+			return err
+		}
 
 	case progs.MoveTypeToss, progs.MoveTypeBounce, progs.MoveTypeGib:
 		if err := q.toss(ent); err != nil {
@@ -771,7 +810,9 @@ func (q *qphysics) playerActions(ent, num int) error {
 		Error("SV_Physics_client: bad movetype %v", ev.MoveType)
 	}
 
-	vm.LinkEdict(ent, true)
+	if err := vm.LinkEdict(ent, true); err != nil {
+		return err
+	}
 
 	progsdat.Globals.Time = sv.time
 	progsdat.Globals.Self = int32(ent)
@@ -802,7 +843,9 @@ func RunPhysics() error {
 		}
 		if progsdat.Globals.ForceRetouch != 0 {
 			// force retouch even for stationary
-			vm.LinkEdict(i, true)
+			if err := vm.LinkEdict(i, true); err != nil {
+				return err
+			}
 		}
 		q := qphysics{}
 		if i > 0 && i <= svs.maxClients {
@@ -819,7 +862,9 @@ func RunPhysics() error {
 			case progs.MoveTypeNone:
 				q.none(i)
 			case progs.MoveTypeNoClip:
-				q.noClip(i)
+				if err := q.noClip(i); err != nil {
+					return err
+				}
 			case progs.MoveTypeStep:
 				if err := q.step(i); err != nil {
 					return err

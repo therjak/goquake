@@ -849,7 +849,7 @@ func runThink(e int) bool {
 }
 
 //Does not change the entities velocity at all
-func pushEntity(e int, push vec.Vec3) trace {
+func pushEntity(e int, push vec.Vec3) (trace, error) {
 	// trace_t trace;
 	// vec3_t end;
 	ev := EntVars(e)
@@ -871,13 +871,15 @@ func pushEntity(e int, push vec.Vec3) trace {
 	}()
 
 	ev.Origin = tr.EndPos
-	vm.LinkEdict(e, true)
+	if err := vm.LinkEdict(e, true); err != nil {
+		return trace{}, err
+	}
 
 	if tr.EntPointer {
 		sv.Impact(e, tr.EntNumber)
 	}
 
-	return tr
+	return tr, nil
 }
 
 func SV_SetIdealPitch(player int) {
@@ -1326,7 +1328,7 @@ func (s *Server) saveGameEdicts() []*protos.Edict {
 	return eds
 }
 
-func (s *Server) loadGameEdicts(es []*protos.Edict) {
+func (s *Server) loadGameEdicts(es []*protos.Edict) error {
 	for i, e := range es {
 		if proto.Equal(e, &protos.Edict{}) {
 			s.edicts[i] = Edict{
@@ -1346,7 +1348,10 @@ func (s *Server) loadGameEdicts(es []*protos.Edict) {
 		}
 
 		vm.loadGameEntVars(i, e)
-		vm.LinkEdict(i, false)
+		if err := vm.LinkEdict(i, false); err != nil {
+			return err
+		}
 	}
 	s.numEdicts = len(es)
+	return nil
 }

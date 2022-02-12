@@ -389,7 +389,9 @@ func (v *virtualMachine) setOrigin() error {
 	ev := EntVars(e)
 	ev.Origin = *v.prog.Globals.Parm1f()
 
-	v.LinkEdict(e, false)
+	if err := v.LinkEdict(e, false); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -407,7 +409,9 @@ func (v *virtualMachine) setSize() error {
 	min := *v.prog.Globals.Parm1f()
 	max := *v.prog.Globals.Parm2f()
 	setMinMaxSize(EntVars(e), min, max)
-	v.LinkEdict(e, false)
+	if err := v.LinkEdict(e, false); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -449,7 +453,9 @@ func (v *virtualMachine) setModel() error {
 		// log.Printf("No Mod")
 		setMinMaxSize(ev, vec.Vec3{}, vec.Vec3{})
 	}
-	v.LinkEdict(e, false)
+	if err := v.LinkEdict(e, false); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -1056,7 +1062,10 @@ func (v *virtualMachine) walkMove() error {
 	oldf := v.xfunction
 	oldself := v.prog.Globals.Self
 
-	r := v.monsterMoveStep(ent, move, true)
+	r, err := v.monsterMoveStep(ent, move, true)
+	if err != nil {
+		return err
+	}
 	if r {
 		(*(v.prog.Globals.Returnf()))[0] = 1
 	} else {
@@ -1084,7 +1093,9 @@ func (v *virtualMachine) dropToFloor() error {
 		progsdat.Globals.Returnf()[0] = 0
 	} else {
 		ev.Origin = t.EndPos
-		v.LinkEdict(ent, false)
+		if err := v.LinkEdict(ent, false); err != nil {
+			return err
+		}
 		ev.Flags = float32(int(ev.Flags) | FL_ONGROUND)
 		ev.GroundEntity = int32(t.EntNumber)
 		progsdat.Globals.Returnf()[0] = 1
@@ -1569,6 +1580,8 @@ func (v *virtualMachine) changeLevel() error {
 }
 
 func (v *virtualMachine) moveToGoal() error {
-	v.monsterMoveToGoal()
+	if err := v.monsterMoveToGoal(); err != nil {
+		return err
+	}
 	return nil
 }

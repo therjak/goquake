@@ -787,7 +787,9 @@ func hostSetPos(args []cmd.QArg, playerEdictId int) error {
 		ev.FixAngle = 1
 	}
 
-	vm.LinkEdict(playerEdictId, false)
+	if err := vm.LinkEdict(playerEdictId, false); err != nil {
+		return err
+	}
 	return nil
 }
 

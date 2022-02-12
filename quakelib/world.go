@@ -159,7 +159,7 @@ func triggerEdicts(e int, a *areaNode) []int {
 	return ret
 }
 
-func (v *virtualMachine) touchLinks(e int, a *areaNode) {
+func (v *virtualMachine) touchLinks(e int, a *areaNode) error {
 	te := triggerEdicts(e, a)
 	ev := EntVars(e)
 
@@ -187,26 +187,27 @@ func (v *virtualMachine) touchLinks(e int, a *areaNode) {
 		progsdat.Globals.Other = int32(e)
 		progsdat.Globals.Time = sv.time
 		if err := v.ExecuteProgram(tv.Touch); err != nil {
-			HostError(err)
+			return err
 		}
 
 		progsdat.Globals.Self = oldSelf
 		progsdat.Globals.Other = oldOther
 	}
+	return nil
 }
 
 // Needs to be called any time an entity changes origin, mins, max,
 // or solid flags ent.v.modified
 // sets the related entvar.absmin and entvar.absmax
 // if touchTriggers calls prog functions for the intersected triggers
-func (v *virtualMachine) LinkEdict(e int, touchTriggers bool) {
+func (v *virtualMachine) LinkEdict(e int, touchTriggers bool) error {
 	v.UnlinkEdict(e)
 	if e == 0 {
-		return // don't add the world
+		return nil // don't add the world
 	}
 	ed := edictNum(e)
 	if ed.Free {
-		return
+		return nil
 	}
 	ev := EntVars(e)
 
@@ -242,7 +243,7 @@ func (v *virtualMachine) LinkEdict(e int, touchTriggers bool) {
 	}
 
 	if ev.Solid == SOLID_NOT {
-		return
+		return nil
 	}
 
 	node := gArea
@@ -268,8 +269,11 @@ func (v *virtualMachine) LinkEdict(e int, touchTriggers bool) {
 	}
 
 	if touchTriggers {
-		v.touchLinks(e, gArea)
+		if err := v.touchLinks(e, gArea); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 func findTouchedLeafs(e int, node bsp.Node, world *bsp.Model) {

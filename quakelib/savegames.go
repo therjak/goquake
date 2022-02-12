@@ -165,7 +165,9 @@ func loadGame(args []cmd.QArg, _ int) error {
 	copy(sv.lightStyles[:], data.GetLightStyles())
 
 	vm.LoadGameGlobals(data.GetGlobals())
-	sv.loadGameEdicts(data.GetEdicts())
+	if err := sv.loadGameEdicts(data.GetEdicts()); err != nil {
+		return err
+	}
 
 	sv.time = data.GetMapTime()
 
