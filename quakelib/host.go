@@ -146,7 +146,9 @@ func serverFrame() error {
 	sv.datagram.ClearMessage()
 
 	// check for new clients
-	CheckForNewClients()
+	if err := CheckForNewClients(); err != nil {
+		return err
+	}
 
 	// read client messages
 	if err := SV_RunClients(); err != nil {

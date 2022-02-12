@@ -217,7 +217,10 @@ func (q *qphysics) tryUnstick(ent int, oldvel vec.Vec3) (int, error) {
 		ev.Velocity = oldvel
 		ev.Velocity[2] = 0 // TODO: why?
 		steptrace := trace{}
-		clip := q.flyMove(ent, 0.1, &steptrace)
+		clip, err := q.flyMove(ent, 0.1, &steptrace)
+		if err != nil {
+			return 0, err
+		}
 		if math32.Abs(oldorg[1]-ev.Origin[1]) > 4 ||
 			math32.Abs(oldorg[0]-ev.Origin[0]) > 4 {
 			conlog.DPrintf("unstuck!\n")
@@ -268,7 +271,10 @@ func (q *qphysics) walkMove(ent int) error {
 
 	time := float32(host.frameTime)
 	steptrace := trace{}
-	clip := q.flyMove(ent, time, &steptrace)
+	clip, err := q.flyMove(ent, time, &steptrace)
+	if err != nil {
+		return err
+	}
 
 	if (clip & 2) == 0 {
 		// move didn't block on a step
@@ -311,7 +317,10 @@ func (q *qphysics) walkMove(ent int) error {
 	// move forward
 	ev.Velocity = oldVelocity
 	ev.Velocity[2] = 0
-	clip = q.flyMove(ent, time, &steptrace)
+	clip, err = q.flyMove(ent, time, &steptrace)
+	if err != nil {
+		return err
+	}
 
 	// check for stuckness, possibly due to the limited precision of floats
 	// in the clipping hulls
@@ -356,13 +365,18 @@ func (q *qphysics) walkMove(ent int) error {
 }
 
 // Non moving objects can only think
-func (q *qphysics) none(ent int) {
-	runThink(ent)
+func (q *qphysics) none(ent int) error {
+	if _, err := runThink(ent); err != nil {
+		return err
+	}
+	return nil
 }
 
 //A moving object that doesn't obey physics
 func (q *qphysics) noClip(ent int) error {
-	if !runThink(ent) {
+	if ok, err := runThink(ent); err != nil {
+		return err
+	} else if !ok {
 		return nil
 	}
 	time := float32(host.frameTime)
@@ -420,7 +434,9 @@ func (q *qphysics) checkWaterTransition(ent int) error {
 
 // Toss, bounce, and fly movement.  When onground, do nothing.
 func (q *qphysics) toss(ent int) error {
-	if !runThink(ent) {
+	if ok, err := runThink(ent); err != nil {
+		return err
+	} else if !ok {
 		return nil
 	}
 
@@ -496,7 +512,9 @@ func (q *qphysics) step(ent int) error {
 		time := float32(host.frameTime)
 		q.addGravity(ent)
 		CheckVelocity(ev)
-		q.flyMove(ent, time, nil)
+		if _, err := q.flyMove(ent, time, nil); err != nil {
+			return err
+		}
 		if err := vm.LinkEdict(ent, true); err != nil {
 			return err
 		}
@@ -511,7 +529,9 @@ func (q *qphysics) step(ent int) error {
 		}
 	}
 
-	if !runThink(ent) {
+	if ok, err := runThink(ent); err != nil {
+		return err
+	} else if !ok {
 		return nil
 	}
 
@@ -568,7 +588,7 @@ func (q *qphysics) checkStuck(ent int) error {
 //2 = wall / step
 //4 = dead stop
 //If steptrace is not NULL, the trace of any vertical wall hit will be stored
-func (q *qphysics) flyMove(ent int, time float32, steptrace *trace) int {
+func (q *qphysics) flyMove(ent int, time float32, steptrace *trace) (int, error) {
 	const MAX_CLIP_PLANES = 5
 	planes := [MAX_CLIP_PLANES]vec.Vec3{}
 
@@ -600,7 +620,7 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *trace) int {
 		if t.AllSolid {
 			// entity is trapped in another solid
 			ev.Velocity = [3]float32{0, 0, 0}
-			return 3
+			return 3, nil
 		}
 
 		if t.Fraction > 0 {
@@ -629,7 +649,9 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *trace) int {
 				*steptrace = t // save for player extrafriction
 			}
 		}
-		sv.Impact(ent, t.EntNumber)
+		if err := sv.Impact(ent, t.EntNumber); err != nil {
+			return 0, err
+		}
 		if edictNum(ent).Free {
 			// removed by the impact function
 			break
@@ -640,7 +662,7 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *trace) int {
 		if numplanes >= MAX_CLIP_PLANES {
 			// this shouldn't really happen
 			ev.Velocity = [3]float32{0, 0, 0}
-			return 3
+			return 3, nil
 		}
 
 		planes[numplanes] = t.Plane.Normal
@@ -670,7 +692,7 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *trace) int {
 			if numplanes != 2 {
 				//	conlog.Printf ("clip velocity, numplanes == %i\n",numplanes)
 				ev.Velocity = [3]float32{0, 0, 0}
-				return 7
+				return 7, nil
 			}
 			dir := vec.Cross(planes[0], planes[1])
 			d := vec.Dot(dir, ev.Velocity)
@@ -681,10 +703,10 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *trace) int {
 		// to avoid tiny occilations in sloping corners
 		if vec.Dot(ev.Velocity, primal_velocity) <= 0 {
 			ev.Velocity = [3]float32{0, 0, 0}
-			return blocked
+			return blocked, nil
 		}
 	}
-	return blocked
+	return blocked, nil
 }
 
 func (q *qphysics) checkWater(ent int) bool {
@@ -768,12 +790,16 @@ func (q *qphysics) playerActions(ent, num int) error {
 
 	switch int(ev.MoveType) {
 	case progs.MoveTypeNone:
-		if !runThink(ent) {
+		if ok, err := runThink(ent); err != nil {
+			return err
+		} else if !ok {
 			return nil
 		}
 
 	case progs.MoveTypeWalk:
-		if !runThink(ent) {
+		if ok, err := runThink(ent); err != nil {
+			return err
+		} else if !ok {
 			return nil
 		}
 		if !q.checkWater(ent) && int(ev.Flags)&FL_WATERJUMP == 0 {
@@ -792,14 +818,20 @@ func (q *qphysics) playerActions(ent, num int) error {
 		}
 
 	case progs.MoveTypeFly:
-		if !runThink(ent) {
+		if ok, err := runThink(ent); err != nil {
+			return err
+		} else if !ok {
 			return nil
 		}
 		time := float32(host.frameTime)
-		q.flyMove(ent, time, nil)
+		if _, err := q.flyMove(ent, time, nil); err != nil {
+			return err
+		}
 
 	case progs.MoveTypeNoClip:
-		if !runThink(ent) {
+		if ok, err := runThink(ent); err != nil {
+			return err
+		} else if !ok {
 			return nil
 		}
 		time := float32(host.frameTime)
@@ -860,7 +892,9 @@ func RunPhysics() error {
 					return err
 				}
 			case progs.MoveTypeNone:
-				q.none(i)
+				if err := q.none(i); err != nil {
+					return err
+				}
 			case progs.MoveTypeNoClip:
 				if err := q.noClip(i); err != nil {
 					return err

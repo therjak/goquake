@@ -1152,7 +1152,9 @@ func hostChangelevel(args []cmd.QArg, _ int) error {
 
 	// remove console or menu
 	keyDestination = keys.Game
-	SV_SaveSpawnparms()
+	if err := SV_SaveSpawnparms(); err != nil {
+		return err
+	}
 	if err := sv.SpawnServer(level); err != nil {
 		return err
 	}

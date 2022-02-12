@@ -110,11 +110,11 @@ func (c *SVClient) PingTime() float32 {
 	return r / float32(len(c.pingTimes))
 }
 
-func CheckForNewClients() {
+func CheckForNewClients() error {
 	for {
 		con := net.CheckNewConnections()
 		if con == nil {
-			return
+			return nil
 		}
 		foundFree := false
 		for _, c := range sv_clients {
@@ -123,7 +123,9 @@ func CheckForNewClients() {
 			}
 			foundFree = true
 			c.netConnection = con
-			ConnectClient(c.id)
+			if err := ConnectClient(c.id); err != nil {
+				return err
+			}
 			break
 		}
 		if !foundFree {

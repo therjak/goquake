@@ -523,7 +523,7 @@ func (s *Server) WriteClientdataToMessage(player int) {
 
 // Initializes a client_t for a new net connection.  This will only be called
 //once for a player each game, not once for each level change.
-func ConnectClient(n int) {
+func ConnectClient(n int) error {
 	old := sv_clients[n]
 	new := &SVClient{
 		netConnection: old.netConnection,
@@ -537,12 +537,13 @@ func ConnectClient(n int) {
 		new.spawnParams = old.spawnParams
 	} else {
 		if err := vm.ExecuteProgram(progsdat.Globals.SetNewParms); err != nil {
-			HostError(err)
+			return err
 		}
 		new.spawnParams = progsdat.Globals.Parm
 	}
 	sv_clients[n] = new
 	new.SendServerinfo()
+	return nil
 }
 
 func (s *Server) SendClientDatagram(c *SVClient) (bool, error) {
@@ -580,7 +581,7 @@ func (s *Server) UpdateToReliableMessages() {
 	s.reliableDatagram.ClearMessage()
 }
 
-func (s *Server) Impact(e1, e2 int) {
+func (s *Server) Impact(e1, e2 int) error {
 	oldSelf := progsdat.Globals.Self
 	oldOther := progsdat.Globals.Other
 
@@ -592,7 +593,7 @@ func (s *Server) Impact(e1, e2 int) {
 		progsdat.Globals.Self = int32(e1)
 		progsdat.Globals.Other = int32(e2)
 		if err := vm.ExecuteProgram(ent1.Touch); err != nil {
-			HostError(err)
+			return err
 		}
 	}
 
@@ -600,12 +601,13 @@ func (s *Server) Impact(e1, e2 int) {
 		progsdat.Globals.Self = int32(e2)
 		progsdat.Globals.Other = int32(e1)
 		if err := vm.ExecuteProgram(ent2.Touch); err != nil {
-			HostError(err)
+			return err
 		}
 	}
 
 	progsdat.Globals.Self = oldSelf
 	progsdat.Globals.Other = oldOther
+	return nil
 }
 
 func CheckVelocity(ent *progs.EntVars) {
@@ -722,7 +724,7 @@ func (s *Server) CreateBaseline() {
 
 //Grabs the current state of each client for saving across the
 //transition to another level
-func SV_SaveSpawnparms() {
+func SV_SaveSpawnparms() error {
 	svs.serverFlags = int(progsdat.Globals.ServerFlags)
 
 	for _, c := range sv_clients {
@@ -732,10 +734,11 @@ func SV_SaveSpawnparms() {
 		// call the progs to get default spawn parms for the new client
 		progsdat.Globals.Self = int32(c.edictId)
 		if err := vm.ExecuteProgram(progsdat.Globals.SetChangeParms); err != nil {
-			HostError(err)
+			return err
 		}
 		c.spawnParams = progsdat.Globals.Parm
 	}
+	return nil
 }
 
 func (s *Server) SendClientMessages() error {
@@ -808,10 +811,10 @@ func (s *Server) SendClientMessages() error {
 // function will be called, because it is called before any movement is done
 // in a frame.  Not used for pushmove objects, because they must be exact.
 // Returns false if the entity removed itself.
-func runThink(e int) bool {
+func runThink(e int) (bool, error) {
 	thinktime := EntVars(e).NextThink
 	if thinktime <= 0 || thinktime > sv.time+float32(host.frameTime) {
-		return true
+		return true, nil
 	}
 
 	if thinktime < sv.time {
@@ -829,7 +832,7 @@ func runThink(e int) bool {
 	progsdat.Globals.Self = int32(e)
 	progsdat.Globals.Other = 0
 	if err := vm.ExecuteProgram(ev.Think); err != nil {
-		HostError(err)
+		return false, err
 	}
 
 	// capture interval to nextthink here and send it to client for better
@@ -845,7 +848,7 @@ func runThink(e int) bool {
 		}
 	}
 
-	return !ed.Free
+	return !ed.Free, nil
 }
 
 //Does not change the entities velocity at all
@@ -876,7 +879,9 @@ func pushEntity(e int, push vec.Vec3) (trace, error) {
 	}
 
 	if tr.EntPointer {
-		sv.Impact(e, tr.EntNumber)
+		if err := sv.Impact(e, tr.EntNumber); err != nil {
+			return trace{}, err
+		}
 	}
 
 	return tr, nil
