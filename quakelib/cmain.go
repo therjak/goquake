@@ -226,7 +226,9 @@ func executeFrame() {
 
 	// if running the server locally, make intentions now
 	if sv.active {
-		CL_SendCmd()
+		if err := CL_SendCmd(); err != nil {
+			HostError(err)
+		}
 	}
 
 	// server operations
@@ -245,12 +247,16 @@ func executeFrame() {
 	// if running the server remotely, send intentions now after
 	// the incoming messages have been read
 	if !sv.active {
-		CL_SendCmd()
+		if err := CL_SendCmd(); err != nil {
+			HostError(err)
+		}
 	}
 
 	// fetch results from server
 	if cls.state == ca_connected {
-		if cl.ReadFromServer() == serverDisconnected {
+		if s, err := cl.ReadFromServer(); err != nil {
+			HostError(err)
+		} else if s == serverDisconnected {
 			return
 		}
 	}

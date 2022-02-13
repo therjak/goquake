@@ -1059,7 +1059,9 @@ func hostConnect(args []cmd.QArg, _ int) error {
 			return err
 		}
 	}
-	clEstablishConnection(args[0].String())
+	if err := clEstablishConnection(args[0].String()); err != nil {
+		return err
+	}
 	clientReconnect()
 	return nil
 }
@@ -1125,7 +1127,9 @@ func hostMap(args []cmd.QArg, _ int) error {
 		}
 		cls.spawnParms = b.String()
 
-		clEstablishConnection("local")
+		if err := clEstablishConnection("local"); err != nil {
+			return err
+		}
 		clientReconnect()
 	}
 	return nil

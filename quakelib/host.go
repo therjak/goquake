@@ -195,7 +195,9 @@ func hostDemos(_ []cmd.QArg, _ int) error {
 	if err := clientDisconnect(); err != nil {
 		return err
 	}
-	CL_NextDemo()
+	if err := CL_NextDemo(); err != nil {
+		return err
+	}
 	return nil
 }
 

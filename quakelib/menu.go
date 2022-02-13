@@ -12,7 +12,9 @@ import (
 )
 
 func nextDemo() {
-	CL_NextDemo()
+	if err := CL_NextDemo(); err != nil {
+		HostError(err)
+	}
 }
 
 func init() {

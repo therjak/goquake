@@ -282,13 +282,17 @@ func CL_ParseServerInfo(si *protos.ServerInfo) error {
 			}
 		}
 		cl.modelPrecache = append(cl.modelPrecache, m)
-		CL_KeepaliveMessage()
+		if err := CL_KeepaliveMessage(); err != nil {
+			return err
+		}
 	}
 
 	for _, s := range si.SoundPrecache {
 		sfx := snd.PrecacheSound(s)
 		cl.soundPrecache = append(cl.soundPrecache, sfx)
-		CL_KeepaliveMessage()
+		if err := CL_KeepaliveMessage(); err != nil {
+			return err
+		}
 	}
 
 	// TODO: clean this stuff up
@@ -456,7 +460,9 @@ func handleServerDisconnected(msg string) error {
 	}
 
 	if cls.demoNum != -1 {
-		CL_NextDemo()
+		if err := CL_NextDemo(); err != nil {
+			return err
+		}
 	} else {
 		if err := cls.Disconnect(); err != nil {
 			return err

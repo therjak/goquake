@@ -387,14 +387,14 @@ func init() {
 }
 
 // Read all incoming data from the server
-func (c *Client) ReadFromServer() serverState {
+func (c *Client) ReadFromServer() (serverState, error) {
 	c.oldTime = cl.time
 	c.time += host.frameTime
 	for {
 		// TODO: code needs major cleanup (getMessage + CL_ParseServerMessage)
 		ret := cls.getMessage()
 		if ret == -1 {
-			HostError(fmt.Errorf("CL_ReadFromServer: lost server connection"))
+			return serverDisconnected, fmt.Errorf("CL_ReadFromServer: lost server connection")
 		}
 		if ret == 0 {
 			break
@@ -403,12 +403,12 @@ func (c *Client) ReadFromServer() serverState {
 		pb, err := svc.ParseServerMessage(cls.inMessage, c.protocol, c.protocolFlags)
 		if err != nil {
 			fmt.Printf("Bad server message\n %v", err)
-			HostError(fmt.Errorf("CL_ParseServerMessage: Bad server message"))
+			return serverDisconnected, fmt.Errorf("CL_ParseServerMessage: Bad server message")
 		}
 		if serverState, err := CL_ParseServerMessage(pb); err != nil {
-			HostError(err)
+			return serverDisconnected, err
 		} else if serverState == serverDisconnected {
-			return serverDisconnected
+			return serverDisconnected, nil
 		}
 		if cls.state != ca_connected {
 			break
@@ -443,7 +443,7 @@ func (c *Client) ReadFromServer() serverState {
 
 	c.RelinkEntities(frac)
 	c.updateTempEntities()
-	return serverRunning
+	return serverRunning, nil
 }
 
 func (c *Client) RelinkEntities(frac float32) {
@@ -569,17 +569,17 @@ func clientReconnect() {
 }
 
 // Host should be either "local" or a net address to be passed on
-func clEstablishConnection(host string) {
+func clEstablishConnection(host string) error {
 	if cmdl.Dedicated() {
-		return
+		return nil
 	}
 
 	if cls.demoPlayback {
-		return
+		return nil
 	}
 
 	if err := cls.Disconnect(); err != nil {
-		HostError(err)
+		return err
 	}
 
 	c, err := net.Connect(host)
@@ -587,7 +587,7 @@ func clEstablishConnection(host string) {
 		// TODO: this is bad, looks like orig just quits this call without returning
 		// and waits for the next sdl input.
 		cls.connection = nil
-		HostError(fmt.Errorf("CLS_Connect: connect failed\n"))
+		return fmt.Errorf("CLS_Connect: connect failed\n")
 	}
 	cls.connection = c
 	conlog.DPrintf("CL_EstablishConnection: connected to %s\n", host)
@@ -598,6 +598,7 @@ func clEstablishConnection(host string) {
 	// need all the signon messages before playing
 	cls.signon = 0
 	cls.outProto.Cmds = append(cls.outProto.Cmds, &protos.Cmd{})
+	return nil
 }
 
 // An svc_signonnum has been received, perform a client side setup
@@ -634,38 +635,39 @@ func CL_SignonReply() {
 	}
 }
 
-func CL_SendCmd() {
+func CL_SendCmd() error {
 	if cls.state != ca_connected {
-		return
+		return nil
 	}
 
 	if cls.signon == numSignonMessagesBeforeConn {
 		cl.adjustAngles()
 		if err := HandleMove(); err != nil {
-			HostError(err)
+			return err
 		}
 	}
 
 	if cls.demoPlayback {
 		cls.outProto.Reset()
-		return
+		return nil
 	}
 
 	if len(cls.outProto.Cmds) == 0 {
-		return // no message at all
+		return nil // no message at all
 	}
 
 	if !cls.connection.CanSendMessage() {
 		conlog.DPrintf("CL_SendCmd: can't send\n")
-		return
+		return nil
 	}
 
 	b := clc.ToBytes(&cls.outProto, cl.protocol, cl.protocolFlags)
 	i := cls.connection.SendMessage(b)
 	if i == -1 {
-		HostError(fmt.Errorf("CL_SendCmd: lost server connection"))
+		return fmt.Errorf("CL_SendCmd: lost server connection")
 	}
 	cls.outProto.Reset()
+	return nil
 }
 
 func CL_ParseStartSoundPacket(m *protos.Sound) error {
@@ -697,13 +699,13 @@ var (
 
 // When the client is taking a long time to load stuff, send keepalive messages
 // so the server doesn't disconnect.
-func CL_KeepaliveMessage() {
+func CL_KeepaliveMessage() error {
 	if sv.active {
 		// no need if server is local
-		return
+		return nil
 	}
 	if cls.demoPlayback {
-		return
+		return nil
 	}
 
 	msgBackup := cls.inMessage
@@ -713,16 +715,16 @@ Outer:
 	for {
 		switch ret := cls.getMessage(); ret {
 		default:
-			HostError(fmt.Errorf("CL_KeepaliveMessage: CL_GetMessage failed"))
+			return fmt.Errorf("CL_KeepaliveMessage: CL_GetMessage failed")
 		case 0:
 			break Outer
 		case 1:
-			HostError(fmt.Errorf("CL_KeepaliveMessage: received a message"))
+			return fmt.Errorf("CL_KeepaliveMessage: received a message")
 		case 2:
 			conlog.Printf("WTF? This should never happen")
 			i, err := cls.inMessage.ReadByte()
 			if err != nil || i != svc.Nop {
-				HostError(fmt.Errorf("CL_KeepaliveMessage: datagram wasn't a nop"))
+				return fmt.Errorf("CL_KeepaliveMessage: datagram wasn't a nop")
 			}
 		}
 	}
@@ -732,10 +734,10 @@ Outer:
 	// check time
 	curTime := time.Now()
 	if curTime.Sub(clientKeepAliveTime) < time.Second*5 {
-		return
+		return nil
 	}
 	if !cls.connection.CanSendMessage() {
-		return
+		return nil
 	}
 	clientKeepAliveTime = curTime
 
@@ -746,6 +748,7 @@ Outer:
 	b := clc.ToBytes(&cls.outProto, cl.protocol, cl.protocolFlags)
 	cls.connection.SendMessage(b)
 	cls.outProto.Reset()
+	return nil
 }
 
 func clientInit() {
@@ -1613,19 +1616,19 @@ func clientTimeDemo(args []cmd.QArg, _ int) error {
 }
 
 // Called to play the next demo in the demo loop
-func CL_NextDemo() {
+func CL_NextDemo() error {
 	if cls.demoNum == -1 {
 		// don't play demos
-		return
+		return nil
 	}
 
 	if len(cls.demos) == 0 {
 		conlog.Printf("No demos listed with startdemos\n")
 		cls.demoNum = -1
 		if err := cls.Disconnect(); err != nil {
-			HostError(err)
+			return err
 		}
-		return
+		return nil
 	}
 
 	// TODO(therjak): Can this be integrated into CLS_NextDemoInCycle?
@@ -1637,6 +1640,7 @@ func CL_NextDemo() {
 
 	cbuf.InsertText(fmt.Sprintf("playdemo %s\n", cls.demos[cls.demoNum]))
 	cls.demoNum++
+	return nil
 }
 
 func (c *ClientStatic) stopDemoRecording() {

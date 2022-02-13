@@ -174,7 +174,9 @@ func loadGame(args []cmd.QArg, _ int) error {
 	copy(sv_clients[0].spawnParams[:], data.GetSpawnParams())
 
 	if !cmdl.Dedicated() {
-		clEstablishConnection("local")
+		if err := clEstablishConnection("local"); err != nil {
+			return err
+		}
 		clientReconnect()
 	}
 	return nil
