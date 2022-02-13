@@ -1508,7 +1508,9 @@ func clientRecordDemo(args []cmd.QArg, playerEdictId int) error {
 
 			buf.WriteByte(svc.UpdateFrags)
 			buf.WriteByte(byte(i))
-			binary.Write(&buf, binary.LittleEndian, uint16(s.frags))
+			if err := binary.Write(&buf, binary.LittleEndian, uint16(s.frags)); err != nil {
+				return fmt.Errorf("Could not write demo: %w", err)
+			}
 
 			buf.WriteByte(svc.UpdateColors)
 			buf.WriteByte(byte(i))
@@ -1525,29 +1527,45 @@ func clientRecordDemo(args []cmd.QArg, playerEdictId int) error {
 
 		buf.WriteByte(svc.UpdateStat)
 		buf.WriteByte(stat.TotalSecrets)
-		binary.Write(&buf, binary.LittleEndian, uint32(cl.stats.totalSecrets))
+		if err := binary.Write(&buf, binary.LittleEndian, uint32(cl.stats.totalSecrets)); err != nil {
+			return fmt.Errorf("Could not write demo: %w", err)
+		}
 
 		buf.WriteByte(svc.UpdateStat)
 		buf.WriteByte(stat.TotalMonsters)
-		binary.Write(&buf, binary.LittleEndian, uint32(cl.stats.totalMonsters))
+		if err := binary.Write(&buf, binary.LittleEndian, uint32(cl.stats.totalMonsters)); err != nil {
+			return fmt.Errorf("Could not write demo: %w", err)
+		}
 
 		buf.WriteByte(svc.UpdateStat)
 		buf.WriteByte(stat.Secrets)
-		binary.Write(&buf, binary.LittleEndian, uint32(cl.stats.secrets))
+		if err := binary.Write(&buf, binary.LittleEndian, uint32(cl.stats.secrets)); err != nil {
+			return fmt.Errorf("Could not write demo: %w", err)
+		}
 
 		buf.WriteByte(svc.UpdateStat)
 		buf.WriteByte(stat.Monsters)
-		binary.Write(&buf, binary.LittleEndian, uint32(cl.stats.monsters))
+		if err := binary.Write(&buf, binary.LittleEndian, uint32(cl.stats.monsters)); err != nil {
+			return fmt.Errorf("Could not write demo: %w", err)
+		}
 
 		buf.WriteByte(svc.SetView)
-		binary.Write(&buf, binary.LittleEndian, uint16(cl.viewentity))
+		if err := binary.Write(&buf, binary.LittleEndian, uint16(cl.viewentity)); err != nil {
+			return fmt.Errorf("Could not write demo: %w", err)
+		}
 
 		buf.WriteByte(svc.SignonNum)
 		buf.WriteByte(3)
 
-		cls.writeDemoMessage(cls.demoSignon[0].Bytes())
-		cls.writeDemoMessage(cls.demoSignon[1].Bytes())
-		cls.writeDemoMessage(buf.Bytes())
+		if err := cls.writeDemoMessage(cls.demoSignon[0].Bytes()); err != nil {
+			return fmt.Errorf("Could not write demo: %w", err)
+		}
+		if err := cls.writeDemoMessage(cls.demoSignon[1].Bytes()); err != nil {
+			return fmt.Errorf("Could not write demo: %w", err)
+		}
+		if err := cls.writeDemoMessage(buf.Bytes()); err != nil {
+			return fmt.Errorf("Could not write demo: %w", err)
+		}
 	}
 	return nil
 }
