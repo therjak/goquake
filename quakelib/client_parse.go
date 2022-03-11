@@ -179,18 +179,21 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) (serverState, error) {
 			cl.intermission = 1
 			cl.intermissionTime = int(cl.time)
 			screen.recalcViewRect = true // go to full screen
+			restoreViewAngles()
 		case *protos.SCmd_Finale:
 			cl.intermission = 2
 			cl.intermissionTime = int(cl.time)
 			screen.recalcViewRect = true // go to full screen
 			screen.CenterPrint(cmd.Finale)
 			console.CenterPrint(cmd.Finale)
+			restoreViewAngles()
 		case *protos.SCmd_Cutscene:
 			cl.intermission = 3
 			cl.intermissionTime = int(cl.time)
 			screen.recalcViewRect = true // go to full screen
 			screen.CenterPrint(cmd.Cutscene)
 			console.CenterPrint(cmd.Cutscene)
+			restoreViewAngles()
 		case *protos.SCmd_SellScreen:
 			// Origin seems to be progs.dat
 			enterMenuHelp()
@@ -207,6 +210,11 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) (serverState, error) {
 		}
 	}
 	return serverRunning, nil
+}
+
+func restoreViewAngles() {
+	e := cl.Entities(cl.viewentity)
+	e.Angles = e.MsgAngles[0]
 }
 
 func CL_ParseServerInfo(si *protos.ServerInfo) error {
