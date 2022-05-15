@@ -1353,3 +1353,79 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 		lastcmd = cmd
 	}
 }
+
+func writeCoord(c *protos.Coord, protocolFlags uint32, m *net.Message) {
+	m.WriteCoord(c.X, protocolFlags)
+	m.WriteCoord(c.Y, protocolFlags)
+	m.WriteCoord(c.Z, protocolFlags)
+}
+
+func writeAngle(a *protos.Coord, protocolFlags uint32, m *net.Message) {
+	m.WriteAngle(a.X, protocolFlags)
+	m.WriteAngle(a.Y, protocolFlags)
+	m.WriteAngle(a.Z, protocolFlags)
+}
+
+func WriteParticle(p *protos.Particle, protocolFlags uint32, m *net.Message) {
+	m.WriteByte(Particle)
+	writeCoord(p.Origin, protocolFlags, m)
+	df := func(d float32) int {
+		v := d * 16
+		if v > 127 {
+			return 127
+		}
+		if v < -128 {
+			return -128
+		}
+		return int(v)
+	}
+	m.WriteChar(df(p.Direction.X))
+	m.WriteChar(df(p.Direction.Y))
+	m.WriteChar(df(p.Direction.Z))
+	m.WriteByte(int(p.Count))
+	m.WriteByte(int(p.Color))
+}
+
+func WriteSound(s *protos.Sound, pcol int, flags uint32, m *net.Message) {
+	fieldMask := 0
+	if s.Entity >= 8192 {
+		if pcol == protocol.NetQuake {
+			return
+		}
+		fieldMask |= SoundLargeEntity
+	}
+	if s.SoundNum >= 256 || s.Channel >= 8 {
+		if pcol == protocol.NetQuake {
+			return
+		}
+		fieldMask |= SoundLargeSound
+	}
+	v := s.Volume
+	if v != nil {
+		fieldMask |= SoundVolume
+	}
+	a := s.Attenuation
+	if a != nil {
+		fieldMask |= SoundAttenuation
+	}
+	m.WriteByte(Sound)
+	m.WriteByte(fieldMask)
+	if v != nil {
+		m.WriteByte(int(v.Value))
+	}
+	if a != nil {
+		m.WriteByte(int(a.Value))
+	}
+	if fieldMask&SoundLargeEntity != 0 {
+		m.WriteShort(int(s.Entity))
+		m.WriteByte(int(s.Channel))
+	} else {
+		m.WriteShort(int(s.Entity<<3 | s.Channel))
+	}
+	if fieldMask&SoundLargeSound != 0 {
+		m.WriteShort(int(s.SoundNum))
+	} else {
+		m.WriteByte(int(s.SoundNum))
+	}
+	writeCoord(s.Origin, flags, m)
+}

@@ -21,6 +21,7 @@ import (
 	"goquake/net"
 	"goquake/progs"
 	"goquake/protocol"
+	"goquake/protocol/server"
 	svc "goquake/protocol/server"
 	"goquake/protos"
 
@@ -170,25 +171,13 @@ func (s *Server) StartParticle(org, dir vec.Vec3, color, count int) {
 	if s.datagram.Len()+16 > net.MAX_DATAGRAM {
 		return
 	}
-	s.datagram.WriteByte(svc.Particle)
-	s.datagram.WriteCoord(org[0], s.protocolFlags)
-	s.datagram.WriteCoord(org[1], s.protocolFlags)
-	s.datagram.WriteCoord(org[2], s.protocolFlags)
-	df := func(d float32) int {
-		v := d * 16
-		if v > 127 {
-			return 127
-		}
-		if v < -128 {
-			return -128
-		}
-		return int(v)
+	p := &protos.Particle{
+		Origin:    &protos.Coord{X: org[0], Y: org[1], Z: org[2]},
+		Direction: &protos.Coord{X: dir[0], Y: dir[1], Z: dir[2]},
+		Count:     int32(count),
+		Color:     int32(color),
 	}
-	s.datagram.WriteChar(df(dir[0]))
-	s.datagram.WriteChar(df(dir[1]))
-	s.datagram.WriteChar(df(dir[2]))
-	s.datagram.WriteByte(count)
-	s.datagram.WriteByte(color)
+	server.WriteParticle(p, s.protocolFlags, &s.datagram)
 }
 
 func (s *Server) SendDatagram(c *SVClient) (bool, error) {
@@ -257,49 +246,28 @@ func (s *Server) StartSound(entity, channel, volume int, sample string, attenuat
 }
 
 func (s *Server) sendStartSound(entity, channel, volume, soundnum int, attenuation float32) {
-	fieldMask := 0
+	ev := EntVars(entity)
+	snd := &protos.Sound{
+		Entity:   int32(entity),
+		SoundNum: int32(soundnum),
+		Channel:  int32(channel),
+		Origin: &protos.Coord{
+			X: ev.Origin[0] + 0.5*(ev.Mins[0]+ev.Maxs[0]),
+			Y: ev.Origin[1] + 0.5*(ev.Mins[1]+ev.Maxs[1]),
+			Z: ev.Origin[2] + 0.5*(ev.Mins[2]+ev.Maxs[2]),
+		},
+	}
 	if volume != 255 {
-		fieldMask |= svc.SoundVolume
+		snd.Volume = &protos.OptionalInt32{
+			Value: int32(volume),
+		}
 	}
 	if attenuation != 1.0 {
-		fieldMask |= svc.SoundAttenuation
-	}
-	if entity >= 8192 {
-		if s.protocol == protocol.NetQuake {
-			return // protocol does not support this info
+		snd.Attenuation = &protos.OptionalInt32{
+			Value: int32(64 * attenuation),
 		}
-		fieldMask |= svc.SoundLargeEntity
 	}
-	if soundnum >= 256 || channel >= 8 {
-		if s.protocol == protocol.NetQuake {
-			return
-		}
-		fieldMask |= svc.SoundLargeSound
-	}
-	s.datagram.WriteByte(svc.Sound)
-	s.datagram.WriteByte(fieldMask)
-	if fieldMask&svc.SoundVolume != 0 {
-		s.datagram.WriteByte(volume)
-	}
-	if fieldMask&svc.SoundAttenuation != 0 {
-		s.datagram.WriteByte(int(attenuation * 64))
-	}
-	if fieldMask&svc.SoundLargeEntity != 0 {
-		s.datagram.WriteShort(entity)
-		s.datagram.WriteByte(channel)
-	} else {
-		s.datagram.WriteShort((entity << 3) | channel)
-	}
-	if fieldMask&svc.SoundLargeSound != 0 {
-		s.datagram.WriteShort(soundnum)
-	} else {
-		s.datagram.WriteByte(soundnum)
-	}
-	ev := EntVars(entity)
-	flags := s.protocolFlags
-	s.datagram.WriteCoord(ev.Origin[0]+0.5*(ev.Mins[0]+ev.Maxs[0]), flags)
-	s.datagram.WriteCoord(ev.Origin[1]+0.5*(ev.Mins[1]+ev.Maxs[1]), flags)
-	s.datagram.WriteCoord(ev.Origin[2]+0.5*(ev.Mins[2]+ev.Maxs[2]), flags)
+	svc.WriteSound(snd, s.protocol, s.protocolFlags, &s.datagram)
 }
 
 func (s *Server) CleanupEntvarEffects() {
