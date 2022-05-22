@@ -1429,3 +1429,187 @@ func WriteSound(s *protos.Sound, pcol int, flags uint32, m *net.Message) {
 	}
 	writeCoord(s.Origin, flags, m)
 }
+
+/*
+	e := EntVars(player)
+	alpha := s.edicts[player].Alpha
+	flags := s.protocolFlags
+	if e.DmgTake != 0 || e.DmgSave != 0 {
+		other := EntVars(int(e.DmgInflictor))
+		msgBuf.WriteByte(svc.Damage)
+		msgBuf.WriteByte(int(e.DmgSave))
+		msgBuf.WriteByte(int(e.DmgTake))
+		msgBuf.WriteCoord(other.Origin[0]+0.5*(other.Mins[0]+other.Maxs[0]), flags)
+		msgBuf.WriteCoord(other.Origin[1]+0.5*(other.Mins[1]+other.Maxs[1]), flags)
+		msgBuf.WriteCoord(other.Origin[2]+0.5*(other.Mins[2]+other.Maxs[2]), flags)
+		e.DmgTake = 0
+		e.DmgSave = 0
+	}
+
+	// send the current viewpos offset from the view entity
+	SV_SetIdealPitch(player) // how much to loop up/down ideally
+
+	// a fixangle might get lost in a dropped packet.  Oh well.
+	if e.FixAngle != 0 {
+		msgBuf.WriteByte(svc.SetAngle)
+		msgBuf.WriteAngle(e.Angles[0], flags)
+		msgBuf.WriteAngle(e.Angles[1], flags)
+		msgBuf.WriteAngle(e.Angles[2], flags)
+		e.FixAngle = 0
+	}
+*/
+
+func WriteClientData(cd *protos.ClientData, pcol int, flags uint32, m *net.Message) {
+	bits := 0
+	if cd.ViewHeight != nil {
+		bits |= SU_VIEWHEIGHT
+	}
+	if cd.IdealPitch != 0 {
+		bits |= SU_IDEALPITCH
+	}
+	bits |= SU_ITEMS
+	bits |= SU_WEAPON
+	if cd.OnGround {
+		bits |= SU_ONGROUND
+	}
+	if cd.InWater {
+		bits |= SU_INWATER
+	}
+	if cd.PunchAngle.X != 0 {
+		bits |= SU_PUNCH1
+	}
+	if cd.PunchAngle.Y != 0 {
+		bits |= SU_PUNCH2
+	}
+	if cd.PunchAngle.Z != 0 {
+		bits |= SU_PUNCH3
+	}
+	if cd.Velocity.X != 0 {
+		bits |= SU_VELOCITY1
+	}
+	if cd.Velocity.Y != 0 {
+		bits |= SU_VELOCITY2
+	}
+	if cd.Velocity.Z != 0 {
+		bits |= SU_VELOCITY3
+	}
+	if cd.WeaponFrame != 0 {
+		bits |= SU_WEAPONFRAME
+	}
+	if cd.Armor != 0 {
+		bits |= SU_ARMOR
+	}
+
+	if pcol != protocol.NetQuake {
+		if (cd.Weapon & 0xFF00) != 0 {
+			bits |= SU_WEAPON2
+		}
+		if (cd.Armor & 0xFF00) != 0 {
+			bits |= SU_ARMOR2
+		}
+		if (cd.Ammo & 0xFF00) != 0 {
+			bits |= SU_AMMO2
+		}
+		if (cd.Shells & 0xFF00) != 0 {
+			bits |= SU_SHELLS2
+		}
+		if (cd.Nails & 0xFF00) != 0 {
+			bits |= SU_NAILS2
+		}
+		if (cd.Rockets & 0xFF00) != 0 {
+			bits |= SU_ROCKETS2
+		}
+		if (cd.Cells & 0xFF00) != 0 {
+			bits |= SU_CELLS2
+		}
+		if (bits&SU_WEAPONFRAME != 0) &&
+			(cd.WeaponFrame&0xFF00) != 0 {
+			bits |= SU_WEAPONFRAME2
+		}
+		if cd.WeaponAlpha != 0 {
+			bits |= SU_WEAPONALPHA
+		}
+		if bits >= 65536 {
+			bits |= SU_EXTEND1
+		}
+		if bits >= 16777216 {
+			bits |= SU_EXTEND2
+		}
+	}
+	m.WriteByte(ClientData)
+	m.WriteShort(bits)
+	if (bits & SU_EXTEND1) != 0 {
+		m.WriteByte(bits >> 16)
+	}
+	if (bits & SU_EXTEND2) != 0 {
+		m.WriteByte(bits >> 24)
+	}
+	if (bits & SU_VIEWHEIGHT) != 0 {
+		m.WriteChar(int(cd.ViewHeight.Value))
+	}
+	if (bits & SU_IDEALPITCH) != 0 {
+		m.WriteChar(int(cd.IdealPitch))
+	}
+	if (bits & SU_PUNCH1) != 0 {
+		m.WriteChar(int(cd.PunchAngle.X))
+	}
+	if (bits & SU_VELOCITY1) != 0 {
+		m.WriteChar(int(cd.Velocity.X))
+	}
+	if (bits & SU_PUNCH2) != 0 {
+		m.WriteChar(int(cd.PunchAngle.Y))
+	}
+	if (bits & SU_VELOCITY2) != 0 {
+		m.WriteChar(int(cd.Velocity.Y))
+	}
+	if (bits & SU_PUNCH3) != 0 {
+		m.WriteChar(int(cd.PunchAngle.Z))
+	}
+	if (bits & SU_VELOCITY3) != 0 {
+		m.WriteChar(int(cd.Velocity.Z))
+	}
+	m.WriteLong(int(cd.Items))
+
+	if (bits & SU_WEAPONFRAME) != 0 {
+		m.WriteByte(int(cd.WeaponFrame))
+	}
+	if (bits & SU_ARMOR) != 0 {
+		m.WriteByte(int(cd.Armor))
+	}
+	m.WriteByte(int(cd.Weapon))
+	m.WriteShort(int(cd.Health))
+	m.WriteByte(int(cd.Ammo))
+	m.WriteByte(int(cd.Shells))
+	m.WriteByte(int(cd.Nails))
+	m.WriteByte(int(cd.Rockets))
+	m.WriteByte(int(cd.Cells))
+	m.WriteByte(int(cd.ActiveWeapon))
+
+	if (bits & SU_WEAPON2) != 0 {
+		m.WriteByte(int(cd.Weapon >> 8))
+	}
+	if (bits & SU_ARMOR2) != 0 {
+		m.WriteByte(int(cd.Armor) >> 8)
+	}
+	if (bits & SU_AMMO2) != 0 {
+		m.WriteByte(int(cd.Ammo) >> 8)
+	}
+	if (bits & SU_SHELLS2) != 0 {
+		m.WriteByte(int(cd.Shells) >> 8)
+	}
+	if (bits & SU_NAILS2) != 0 {
+		m.WriteByte(int(cd.Nails) >> 8)
+	}
+	if (bits & SU_ROCKETS2) != 0 {
+		m.WriteByte(int(cd.Rockets) >> 8)
+	}
+	if (bits & SU_CELLS2) != 0 {
+		m.WriteByte(int(cd.Cells) >> 8)
+	}
+	if (bits & SU_WEAPONFRAME2) != 0 {
+		m.WriteByte(int(cd.WeaponFrame) >> 8)
+	}
+	if (bits & SU_WEAPONALPHA) != 0 {
+		m.WriteByte(int(cd.WeaponAlpha))
+	}
+}

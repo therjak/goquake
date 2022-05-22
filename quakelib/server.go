@@ -306,13 +306,15 @@ func (s *Server) WriteClientdataToMessage(player int) {
 		e.FixAngle = 0
 	}
 
-	bits := 0
+	clientData := &protos.ClientData{}
+	clientData.PunchAngle = &protos.IntCoord{}
+	clientData.Velocity = &protos.IntCoord{}
+
 	if e.ViewOfs[2] != svc.DEFAULT_VIEWHEIGHT {
-		bits |= svc.SU_VIEWHEIGHT
+		clientData.ViewHeight = &protos.OptionalInt32{}
+		clientData.ViewHeight.Value = int32(e.ViewOfs[2])
 	}
-	if e.IdealPitch != 0 {
-		bits |= svc.SU_IDEALPITCH
-	}
+	clientData.IdealPitch = int32(e.IdealPitch)
 	// stuff the sigil bits into the high bits of items for sbar, or else mix in items2
 	items := func() int {
 		/*
@@ -323,38 +325,13 @@ func (s *Server) WriteClientdataToMessage(player int) {
 		*/
 		return int(e.Items) | int(progsdat.Globals.ServerFlags)<<28
 	}()
-	bits |= svc.SU_ITEMS
+	clientData.Items = uint32(items)
 	if (int(e.Flags) & progs.FlagOnGround) != 0 {
-		bits |= svc.SU_ONGROUND
+		clientData.OnGround = true
 	}
 	if e.WaterLevel >= 2 {
-		bits |= svc.SU_INWATER
+		clientData.InWater = true
 	}
-	if e.PunchAngle[0] != 0 {
-		bits |= svc.SU_PUNCH1
-	}
-	if e.PunchAngle[1] != 0 {
-		bits |= svc.SU_PUNCH2
-	}
-	if e.PunchAngle[2] != 0 {
-		bits |= svc.SU_PUNCH3
-	}
-	if e.Velocity[0] != 0 {
-		bits |= svc.SU_VELOCITY1
-	}
-	if e.Velocity[1] != 0 {
-		bits |= svc.SU_VELOCITY2
-	}
-	if e.Velocity[2] != 0 {
-		bits |= svc.SU_VELOCITY3
-	}
-	if e.WeaponFrame != 0 {
-		bits |= svc.SU_WEAPONFRAME
-	}
-	if e.ArmorValue != 0 {
-		bits |= svc.SU_ARMOR
-	}
-	bits |= svc.SU_WEAPON
 
 	wmi := 0
 	wms, err := progsdat.String(e.WeaponModel)
@@ -362,131 +339,36 @@ func (s *Server) WriteClientdataToMessage(player int) {
 		wmi = s.ModelIndex(wms)
 	}
 
-	if s.protocol != protocol.NetQuake {
-		if (wmi & 0xFF00) != 0 {
-			bits |= svc.SU_WEAPON2
-		}
-		if (int(e.ArmorValue) & 0xFF00) != 0 {
-			bits |= svc.SU_ARMOR2
-		}
-		if (int(e.CurrentAmmo) & 0xFF00) != 0 {
-			bits |= svc.SU_AMMO2
-		}
-		if (int(e.AmmoShells) & 0xFF00) != 0 {
-			bits |= svc.SU_SHELLS2
-		}
-		if (int(e.AmmoNails) & 0xFF00) != 0 {
-			bits |= svc.SU_NAILS2
-		}
-		if (int(e.AmmoRockets) & 0xFF00) != 0 {
-			bits |= svc.SU_ROCKETS2
-		}
-		if (int(e.AmmoCells) & 0xFF00) != 0 {
-			bits |= svc.SU_CELLS2
-		}
-		if (bits&svc.SU_WEAPONFRAME != 0) &&
-			(int(e.WeaponFrame)&0xFF00) != 0 {
-			bits |= svc.SU_WEAPONFRAME2
-		}
-		if alpha != 0 {
-			bits |= svc.SU_WEAPONALPHA
-		}
-		if bits >= 65536 {
-			bits |= svc.SU_EXTEND1
-		}
-		if bits >= 16777216 {
-			bits |= svc.SU_EXTEND2
-		}
-	}
-	msgBuf.WriteByte(svc.ClientData)
-	msgBuf.WriteShort(bits)
-	if (bits & svc.SU_EXTEND1) != 0 {
-		msgBuf.WriteByte(bits >> 16)
-	}
-	if (bits & svc.SU_EXTEND2) != 0 {
-		msgBuf.WriteByte(bits >> 24)
-	}
-	if (bits & svc.SU_VIEWHEIGHT) != 0 {
-		msgBuf.WriteChar(int(e.ViewOfs[2]))
-	}
-	if (bits & svc.SU_IDEALPITCH) != 0 {
-		msgBuf.WriteChar(int(e.IdealPitch))
-	}
-	if (bits & (svc.SU_PUNCH1)) != 0 {
-		msgBuf.WriteChar(int(e.PunchAngle[0]))
-	}
-	if (bits & (svc.SU_VELOCITY1)) != 0 {
-		msgBuf.WriteChar(int(e.Velocity[0] / 16))
-	}
-	if (bits & (svc.SU_PUNCH2)) != 0 {
-		msgBuf.WriteChar(int(e.PunchAngle[1]))
-	}
-	if (bits & (svc.SU_VELOCITY2)) != 0 {
-		msgBuf.WriteChar(int(e.Velocity[1] / 16))
-	}
-	if (bits & (svc.SU_PUNCH3)) != 0 {
-		msgBuf.WriteChar(int(e.PunchAngle[2]))
-	}
-	if (bits & (svc.SU_VELOCITY3)) != 0 {
-		msgBuf.WriteChar(int(e.Velocity[2] / 16))
-	}
+	clientData.PunchAngle.X = int32(e.PunchAngle[0])
+	clientData.Velocity.X = int32(e.Velocity[0] / 16)
+	clientData.PunchAngle.Y = int32(e.PunchAngle[1])
+	clientData.Velocity.Y = int32(e.Velocity[1] / 16)
+	clientData.PunchAngle.Z = int32(e.PunchAngle[2])
+	clientData.Velocity.Z = int32(e.Velocity[2] / 16)
 
-	msgBuf.WriteLong(items)
-
-	if (bits & (svc.SU_WEAPONFRAME)) != 0 {
-		msgBuf.WriteByte(int(e.WeaponFrame))
-	}
-	if (bits & (svc.SU_ARMOR)) != 0 {
-		msgBuf.WriteByte(int(e.ArmorValue))
-	}
-	msgBuf.WriteByte(wmi)
-	msgBuf.WriteShort(int(e.Health))
-	msgBuf.WriteByte(int(e.CurrentAmmo))
-	msgBuf.WriteByte(int(e.AmmoShells))
-	msgBuf.WriteByte(int(e.AmmoNails))
-	msgBuf.WriteByte(int(e.AmmoRockets))
-	msgBuf.WriteByte(int(e.AmmoCells))
+	clientData.WeaponFrame = int32(e.WeaponFrame)
+	clientData.Armor = int32(e.ArmorValue)
+	clientData.Weapon = int32(wmi)
+	clientData.Health = int32(e.Health)
+	clientData.Ammo = int32(e.CurrentAmmo)
+	clientData.Shells = int32(e.AmmoShells)
+	clientData.Nails = int32(e.AmmoNails)
+	clientData.Rockets = int32(e.AmmoRockets)
+	clientData.Cells = int32(e.AmmoCells)
 
 	if cmdl.Quoth() || cmdl.Rogue() || cmdl.Hipnotic() {
 		for i := 0; i < 32; i++ {
 			if int(e.Weapon)&(1<<uint(i)) != 0 {
-				msgBuf.WriteByte(i)
+				clientData.ActiveWeapon = int32(i)
 				break
 			}
 		}
 	} else {
-		msgBuf.WriteByte(int(e.Weapon))
+		clientData.ActiveWeapon = int32(e.Weapon)
 	}
-	if (bits & (svc.SU_WEAPON2)) != 0 {
-		msgBuf.WriteByte(wmi >> 8)
-	}
-	if (bits & (svc.SU_ARMOR2)) != 0 {
-		msgBuf.WriteByte(int(e.ArmorValue) >> 8)
-	}
-	if (bits & (svc.SU_AMMO2)) != 0 {
-		msgBuf.WriteByte(int(e.CurrentAmmo) >> 8)
-	}
-	if (bits & (svc.SU_SHELLS2)) != 0 {
-		msgBuf.WriteByte(int(e.AmmoShells) >> 8)
-	}
-	if (bits & (svc.SU_NAILS2)) != 0 {
-		msgBuf.WriteByte(int(e.AmmoNails) >> 8)
-	}
-	if (bits & (svc.SU_NAILS2)) != 0 {
-		msgBuf.WriteByte(int(e.AmmoNails) >> 8)
-	}
-	if (bits & (svc.SU_ROCKETS2)) != 0 {
-		msgBuf.WriteByte(int(e.AmmoRockets) >> 8)
-	}
-	if (bits & (svc.SU_CELLS2)) != 0 {
-		msgBuf.WriteByte(int(e.AmmoCells) >> 8)
-	}
-	if (bits & (svc.SU_WEAPONFRAME2)) != 0 {
-		msgBuf.WriteByte(int(e.WeaponFrame) >> 8)
-	}
-	if (bits & (svc.SU_WEAPONALPHA)) != 0 {
-		msgBuf.WriteByte(int(alpha))
-	}
+	clientData.WeaponAlpha = int32(alpha)
+
+	svc.WriteClientData(clientData, s.protocol, flags, &msgBuf)
 }
 
 // Initializes a client_t for a new net connection.  This will only be called
