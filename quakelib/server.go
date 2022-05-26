@@ -284,12 +284,17 @@ func (s *Server) WriteClientdataToMessage(player int) {
 	flags := s.protocolFlags
 	if e.DmgTake != 0 || e.DmgSave != 0 {
 		other := EntVars(int(e.DmgInflictor))
-		msgBuf.WriteByte(svc.Damage)
-		msgBuf.WriteByte(int(e.DmgSave))
-		msgBuf.WriteByte(int(e.DmgTake))
-		msgBuf.WriteCoord(other.Origin[0]+0.5*(other.Mins[0]+other.Maxs[0]), flags)
-		msgBuf.WriteCoord(other.Origin[1]+0.5*(other.Mins[1]+other.Maxs[1]), flags)
-		msgBuf.WriteCoord(other.Origin[2]+0.5*(other.Mins[2]+other.Maxs[2]), flags)
+		p := &protos.Coord{
+			X: other.Origin[0] + 0.5*(other.Mins[0]+other.Maxs[0]),
+			Y: other.Origin[1] + 0.5*(other.Mins[1]+other.Maxs[1]),
+			Z: other.Origin[2] + 0.5*(other.Mins[2]+other.Maxs[2]),
+		}
+		dmg := &protos.Damage{
+			Armor:    int32(e.DmgSave),
+			Blood:    int32(e.DmgTake),
+			Position: p,
+		}
+		svc.WriteDamage(dmg, s.protocol, flags, &msgBuf)
 		e.DmgTake = 0
 		e.DmgSave = 0
 	}
@@ -299,10 +304,12 @@ func (s *Server) WriteClientdataToMessage(player int) {
 
 	// a fixangle might get lost in a dropped packet.  Oh well.
 	if e.FixAngle != 0 {
-		msgBuf.WriteByte(svc.SetAngle)
-		msgBuf.WriteAngle(e.Angles[0], flags)
-		msgBuf.WriteAngle(e.Angles[1], flags)
-		msgBuf.WriteAngle(e.Angles[2], flags)
+		a := &protos.Coord{
+			X: e.Angles[0],
+			Y: e.Angles[1],
+			Z: e.Angles[2],
+		}
+		svc.WriteSetAngle(a, s.protocol, flags, &msgBuf)
 		e.FixAngle = 0
 	}
 
@@ -375,7 +382,7 @@ func (s *Server) WriteClientdataToMessage(player int) {
 //once for a player each game, not once for each level change.
 func ConnectClient(n int) error {
 	old := sv_clients[n]
-	new := &SVClient{
+	newC := &SVClient{
 		netConnection: old.netConnection,
 		edictId:       n + 1,
 		id:            n,
@@ -384,15 +391,15 @@ func ConnectClient(n int) error {
 		spawned:       false,
 	}
 	if sv.loadGame {
-		new.spawnParams = old.spawnParams
+		newC.spawnParams = old.spawnParams
 	} else {
 		if err := vm.ExecuteProgram(progsdat.Globals.SetNewParms); err != nil {
 			return err
 		}
-		new.spawnParams = progsdat.Globals.Parm
+		newC.spawnParams = progsdat.Globals.Parm
 	}
-	sv_clients[n] = new
-	new.SendServerinfo()
+	sv_clients[n] = newC
+	newC.SendServerinfo()
 	return nil
 }
 
@@ -402,8 +409,7 @@ func (s *Server) SendClientDatagram(c *SVClient) (bool, error) {
 	if c.Address() != "LOCAL" {
 		msgBufMaxLen = net.DATAGRAM_MTU
 	}
-	msgBuf.WriteByte(svc.Time)
-	msgBuf.WriteFloat(s.time)
+	svc.WriteTime(s.time, s.protocol, s.protocolFlags, &msgBuf)
 
 	s.WriteClientdataToMessage(c.edictId)
 
@@ -420,9 +426,11 @@ func (s *Server) UpdateToReliableMessages() {
 			// Does it actually matter to compare as float32?
 			// These subtle C things...
 			if float32(cl.oldFrags) != newFrags {
-				cl.msg.WriteByte(svc.UpdateFrags)
-				cl.msg.WriteByte(cl.id)
-				cl.msg.WriteShort(int(newFrags))
+				uf := &protos.UpdateFrags{
+					Player:   int32(cl.id),
+					NewFrags: int32(newFrags),
+				}
+				svc.WriteUpdateFrags(uf, s.protocol, s.protocolFlags, &cl.msg)
 			}
 			cl.msg.WriteBytes(b)
 		}

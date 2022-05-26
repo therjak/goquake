@@ -1430,34 +1430,17 @@ func WriteSound(s *protos.Sound, pcol int, flags uint32, m *net.Message) {
 	writeCoord(s.Origin, flags, m)
 }
 
-/*
-	e := EntVars(player)
-	alpha := s.edicts[player].Alpha
-	flags := s.protocolFlags
-	if e.DmgTake != 0 || e.DmgSave != 0 {
-		other := EntVars(int(e.DmgInflictor))
-		msgBuf.WriteByte(svc.Damage)
-		msgBuf.WriteByte(int(e.DmgSave))
-		msgBuf.WriteByte(int(e.DmgTake))
-		msgBuf.WriteCoord(other.Origin[0]+0.5*(other.Mins[0]+other.Maxs[0]), flags)
-		msgBuf.WriteCoord(other.Origin[1]+0.5*(other.Mins[1]+other.Maxs[1]), flags)
-		msgBuf.WriteCoord(other.Origin[2]+0.5*(other.Mins[2]+other.Maxs[2]), flags)
-		e.DmgTake = 0
-		e.DmgSave = 0
-	}
+func WriteDamage(d *protos.Damage, pcol int, flags uint32, m *net.Message) {
+	m.WriteByte(Damage)
+	m.WriteByte(int(d.Armor))
+	m.WriteByte(int(d.Blood))
+	writeCoord(d.Position, flags, m)
+}
 
-	// send the current viewpos offset from the view entity
-	SV_SetIdealPitch(player) // how much to loop up/down ideally
-
-	// a fixangle might get lost in a dropped packet.  Oh well.
-	if e.FixAngle != 0 {
-		msgBuf.WriteByte(svc.SetAngle)
-		msgBuf.WriteAngle(e.Angles[0], flags)
-		msgBuf.WriteAngle(e.Angles[1], flags)
-		msgBuf.WriteAngle(e.Angles[2], flags)
-		e.FixAngle = 0
-	}
-*/
+func WriteSetAngle(a *protos.Coord, pcol int, flags uint32, m *net.Message) {
+	m.WriteByte(SetAngle)
+	writeAngle(a, flags, m)
+}
 
 func WriteClientData(cd *protos.ClientData, pcol int, flags uint32, m *net.Message) {
 	bits := 0
@@ -1612,4 +1595,15 @@ func WriteClientData(cd *protos.ClientData, pcol int, flags uint32, m *net.Messa
 	if (bits & SU_WEAPONALPHA) != 0 {
 		m.WriteByte(int(cd.WeaponAlpha))
 	}
+}
+
+func WriteTime(t float32, pcol int, flags uint32, m *net.Message) {
+	m.WriteByte(Time)
+	m.WriteFloat(t)
+}
+
+func WriteUpdateFrags(uf *protos.UpdateFrags, pcol int, flags uint32, m *net.Message) {
+	m.WriteByte(UpdateFrags)
+	m.WriteByte(int(uf.Player))
+	m.WriteShort(int(uf.NewFrags))
 }
