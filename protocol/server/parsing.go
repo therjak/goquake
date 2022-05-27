@@ -867,7 +867,7 @@ func parseEntityUpdate(msg *net.QReader, pcol int, protocolFlags uint32, cmd byt
 			if v, err := msg.ReadByte(); err != nil {
 				return nil, err
 			} else {
-				eu.LerpFinish = &protos.OptionalFloat{Value: float32(v) / 255}
+				eu.LerpFinish = &protos.OptionalInt32{Value: int32(v)}
 			}
 		}
 	case protocol.NetQuake:
@@ -1606,4 +1606,141 @@ func WriteUpdateFrags(uf *protos.UpdateFrags, pcol int, flags uint32, m *net.Mes
 	m.WriteByte(UpdateFrags)
 	m.WriteByte(int(uf.Player))
 	m.WriteShort(int(uf.NewFrags))
+}
+
+func WriteEntityUpdate(eu *protos.EntityUpdate, pcol int, flags uint32, m *net.Message) {
+	bits := 0
+	if eu.OriginX != nil {
+		bits |= U_ORIGIN1
+	}
+	if eu.OriginY != nil {
+		bits |= U_ORIGIN2
+	}
+	if eu.OriginZ != nil {
+		bits |= U_ORIGIN3
+	}
+	if eu.AngleX != nil {
+		bits |= U_ANGLE1
+	}
+	if eu.AngleY != nil {
+		bits |= U_ANGLE2
+	}
+	if eu.AngleZ != nil {
+		bits |= U_ANGLE3
+	}
+	if eu.LerpMoveStep {
+		bits |= U_STEP // don't mess up the step animation
+	}
+	if eu.ColorMap != nil {
+		bits |= U_COLORMAP
+	}
+	if eu.Skin != nil {
+		bits |= U_SKIN
+	}
+	if eu.Frame != nil {
+		bits |= U_FRAME
+	}
+	if eu.Effects != 0 {
+		bits |= U_EFFECTS
+	}
+	if eu.Model != nil {
+		bits |= U_MODEL
+	}
+
+	if pcol != protocol.NetQuake {
+		if eu.Alpha != nil {
+			bits |= U_ALPHA
+		}
+		if eu.Frame != nil &&
+			eu.Frame.Value&0xFF00 != 0 {
+			bits |= U_FRAME2
+		}
+		if eu.Model != nil &&
+			eu.Model.Value&0xFF00 != 0 {
+			bits |= U_MODEL2
+		}
+		if eu.LerpFinish != nil {
+			bits |= U_LERPFINISH
+		}
+		if bits >= 65536 {
+			bits |= U_EXTEND1
+		}
+		if bits >= 16777216 {
+			bits |= U_EXTEND2
+		}
+	}
+
+	if eu.Entity >= 256 {
+		bits |= U_LONGENTITY
+	}
+
+	if bits >= 256 {
+		bits |= U_MOREBITS
+	}
+
+	m.WriteByte(bits | U_SIGNAL)
+
+	if bits&U_MOREBITS != 0 {
+		m.WriteByte(bits >> 8)
+	}
+
+	if bits&U_EXTEND1 != 0 {
+		m.WriteByte(bits >> 16)
+	}
+	if bits&U_EXTEND2 != 0 {
+		m.WriteByte(bits >> 24)
+	}
+
+	if bits&U_LONGENTITY != 0 {
+		m.WriteShort(int(eu.Entity))
+	} else {
+		m.WriteByte(int(eu.Entity))
+	}
+
+	if eu.Model != nil {
+		m.WriteByte(int(eu.Model.Value))
+	}
+	if eu.Frame != nil {
+		m.WriteByte(int(eu.Frame.Value))
+	}
+	if eu.ColorMap != nil {
+		m.WriteByte(int(eu.ColorMap.Value))
+	}
+	if eu.Skin != nil {
+		m.WriteByte(int(eu.Skin.Value))
+	}
+	if eu.Effects != 0 {
+		m.WriteByte(int(eu.Effects))
+	}
+	if eu.OriginX != nil {
+		m.WriteCoord(eu.OriginX.Value, flags)
+	}
+	if eu.AngleX != nil {
+		m.WriteAngle(eu.AngleX.Value, flags)
+	}
+	if eu.OriginY != nil {
+		m.WriteCoord(eu.OriginY.Value, flags)
+	}
+	if eu.AngleY != nil {
+		m.WriteAngle(eu.AngleY.Value, flags)
+	}
+	if eu.OriginZ != nil {
+		m.WriteCoord(eu.OriginZ.Value, flags)
+	}
+	if eu.AngleZ != nil {
+		m.WriteAngle(eu.AngleZ.Value, flags)
+	}
+
+	if bits&U_ALPHA != 0 {
+		m.WriteByte(int(eu.Alpha.Value))
+	}
+	if bits&U_FRAME2 != 0 {
+		m.WriteByte(int(eu.Frame.Value) >> 8)
+	}
+	if bits&U_MODEL2 != 0 {
+		m.WriteByte(int(eu.Model.Value) >> 8)
+	}
+	if bits&U_LERPFINISH != 0 {
+		m.WriteByte(int(eu.LerpFinish.Value))
+	}
 }

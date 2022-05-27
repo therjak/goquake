@@ -860,6 +860,17 @@ func (s *Server) WriteEntitiesToClient(clent int) {
 				continue // not visible
 			}
 		}
+
+		// if (pr_alpha_supported) {
+		// TODO: find a cleaner place to put this code
+		//   UpdateEdictAlpha(ent);
+		// }
+
+		// don't send invisible entities unless they have effects
+		if edict.Alpha == svc.EntityAlphaZero && ev.Effects == 0 {
+			continue
+		}
+
 		// max size for protocol 15 is 18 bytes.
 		// for protocol 85 the max size is 24 bytes.
 		if msgBuf.Len()+24 > msgBufMaxLen {
@@ -867,159 +878,54 @@ func (s *Server) WriteEntitiesToClient(clent int) {
 		}
 
 		// send an update
-		bits := 0
-
-		for i := uint32(0); i < 3; i++ {
-			miss := ev.Origin[i] - edict.Baseline.Origin[i]
-			if miss < -0.1 || miss > 0.1 {
-				bits |= svc.U_ORIGIN1 << i
-			}
-		}
-
-		if ev.Angles[0] != edict.Baseline.Angles[0] {
-			bits |= svc.U_ANGLE1
-		}
-
-		if ev.Angles[1] != edict.Baseline.Angles[1] {
-			bits |= svc.U_ANGLE2
-		}
-
-		if ev.Angles[2] != edict.Baseline.Angles[2] {
-			bits |= svc.U_ANGLE3
-		}
-
-		if ev.MoveType == progs.MoveTypeStep {
-			bits |= svc.U_STEP // don't mess up the step animation
-		}
-
-		if ev.ColorMap != float32(edict.Baseline.ColorMap) {
-			bits |= svc.U_COLORMAP
-		}
-
-		if ev.Skin != float32(edict.Baseline.Skin) {
-			bits |= svc.U_SKIN
-		}
-
-		if ev.Frame != float32(edict.Baseline.Frame) {
-			bits |= svc.U_FRAME
-		}
-
-		if ev.Effects != float32(edict.Baseline.Effects) {
-			bits |= svc.U_EFFECTS
-		}
+		eu := &protos.EntityUpdate{}
+		eu.Entity = int32(ent)
 
 		if ev.ModelIndex != float32(edict.Baseline.ModelIndex) {
-			bits |= svc.U_MODEL
+			eu.Model = &protos.OptionalInt32{Value: int32(ev.ModelIndex)}
 		}
-
-		//     if (pr_alpha_supported) {
-		// TODO: find a cleaner place to put this code
-		//       UpdateEdictAlpha(ent);
-		//     }
-
-		// don't send invisible entities unless they have effects
-		if edict.Alpha == svc.EntityAlphaZero && ev.Effects == 0 {
-			continue
+		if ev.Frame != float32(edict.Baseline.Frame) {
+			eu.Frame = &protos.OptionalInt32{Value: int32(ev.Frame)}
 		}
+		if ev.ColorMap != float32(edict.Baseline.ColorMap) {
+			eu.ColorMap = &protos.OptionalInt32{Value: int32(ev.ColorMap)}
+		}
+		if ev.Skin != float32(edict.Baseline.Skin) {
+			eu.Skin = &protos.OptionalInt32{Value: int32(ev.Skin)}
+		}
+		if ev.Effects != float32(edict.Baseline.Effects) {
+			eu.Effects = int32(ev.Effects)
+		}
+		if miss := ev.Origin[0] - edict.Baseline.Origin[0]; miss < -0.1 || miss > 0.1 {
+			eu.OriginX = &protos.OptionalFloat{Value: ev.Origin[0]}
+		}
+		if ev.Angles[0] != edict.Baseline.Angles[0] {
+			eu.AngleX = &protos.OptionalFloat{Value: ev.Angles[0]}
+		}
+		if miss := ev.Origin[1] - edict.Baseline.Origin[1]; miss < -0.1 || miss > 0.1 {
+			eu.OriginY = &protos.OptionalFloat{Value: ev.Origin[1]}
+		}
+		if ev.Angles[1] != edict.Baseline.Angles[1] {
+			eu.AngleY = &protos.OptionalFloat{Value: ev.Angles[1]}
+		}
+		if miss := ev.Origin[2] - edict.Baseline.Origin[2]; miss < -0.1 || miss > 0.1 {
+			eu.OriginZ = &protos.OptionalFloat{Value: ev.Origin[2]}
+		}
+		if ev.Angles[2] != edict.Baseline.Angles[2] {
+			eu.AngleZ = &protos.OptionalFloat{Value: ev.Angles[2]}
+		}
+		// don't mess up the step animation
+		eu.LerpMoveStep = ev.MoveType == progs.MoveTypeStep
 
-		// fitzquake
-		if s.protocol != protocol.NetQuake {
-			if edict.Baseline.Alpha != edict.Alpha {
-				bits |= svc.U_ALPHA
+		if edict.Baseline.Alpha != edict.Alpha {
+			eu.Alpha = &protos.OptionalInt32{Value: int32(edict.Alpha)}
+		}
+		if edict.SendInterval {
+			eu.LerpFinish = &protos.OptionalInt32{
+				Value: int32(math.Round((ev.NextThink - sv.time) * 255)),
 			}
-			if bits&svc.U_FRAME != 0 &&
-				int(ev.Frame)&0xFF00 != 0 {
-				bits |= svc.U_FRAME2
-			}
-			if bits&svc.U_MODEL != 0 &&
-				int(ev.ModelIndex)&0xFF00 != 0 {
-				bits |= svc.U_MODEL2
-			}
-			if edict.SendInterval {
-				bits |= svc.U_LERPFINISH
-			}
-			if bits >= 65536 {
-				bits |= svc.U_EXTEND1
-			}
-			if bits >= 16777216 {
-				bits |= svc.U_EXTEND2
-			}
 		}
-
-		if ent >= 256 {
-			bits |= svc.U_LONGENTITY
-		}
-
-		if bits >= 256 {
-			bits |= svc.U_MOREBITS
-		}
-
-		// write the message
-		msgBuf.WriteByte(bits | svc.U_SIGNAL)
-
-		if bits&svc.U_MOREBITS != 0 {
-			msgBuf.WriteByte(bits >> 8)
-		}
-
-		if bits&svc.U_EXTEND1 != 0 {
-			msgBuf.WriteByte(bits >> 16)
-		}
-		if bits&svc.U_EXTEND2 != 0 {
-			msgBuf.WriteByte(bits >> 24)
-		}
-
-		if bits&svc.U_LONGENTITY != 0 {
-			msgBuf.WriteShort(ent)
-		} else {
-			msgBuf.WriteByte(ent)
-		}
-
-		if bits&svc.U_MODEL != 0 {
-			msgBuf.WriteByte(int(ev.ModelIndex))
-		}
-		if bits&svc.U_FRAME != 0 {
-			msgBuf.WriteByte(int(ev.Frame))
-		}
-		if bits&svc.U_COLORMAP != 0 {
-			msgBuf.WriteByte(int(ev.ColorMap))
-		}
-		if bits&svc.U_SKIN != 0 {
-			msgBuf.WriteByte(int(ev.Skin))
-		}
-		if bits&svc.U_EFFECTS != 0 {
-			msgBuf.WriteByte(int(ev.Effects))
-		}
-		if bits&svc.U_ORIGIN1 != 0 {
-			msgBuf.WriteCoord(ev.Origin[0], s.protocolFlags)
-		}
-		if bits&svc.U_ANGLE1 != 0 {
-			msgBuf.WriteAngle(ev.Angles[0], s.protocolFlags)
-		}
-		if bits&svc.U_ORIGIN2 != 0 {
-			msgBuf.WriteCoord(ev.Origin[1], s.protocolFlags)
-		}
-		if bits&svc.U_ANGLE2 != 0 {
-			msgBuf.WriteAngle(ev.Angles[1], s.protocolFlags)
-		}
-		if bits&svc.U_ORIGIN3 != 0 {
-			msgBuf.WriteCoord(ev.Origin[2], s.protocolFlags)
-		}
-		if bits&svc.U_ANGLE3 != 0 {
-			msgBuf.WriteAngle(ev.Angles[2], s.protocolFlags)
-		}
-
-		if bits&svc.U_ALPHA != 0 {
-			msgBuf.WriteByte(int(edict.Alpha))
-		}
-		if bits&svc.U_FRAME2 != 0 {
-			msgBuf.WriteByte(int(ev.Frame) >> 8)
-		}
-		if bits&svc.U_MODEL2 != 0 {
-			msgBuf.WriteByte(int(ev.ModelIndex) >> 8)
-		}
-		if bits&svc.U_LERPFINISH != 0 {
-			msgBuf.WriteByte(int(math.Round((ev.NextThink - sv.time) * 255)))
-		}
+		svc.WriteEntityUpdate(eu, s.protocol, s.protocolFlags, &msgBuf)
 	}
 }
 

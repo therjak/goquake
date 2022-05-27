@@ -147,7 +147,7 @@ message EntityUpdate {
   OptionalFloat angle_x = 11;
   OptionalFloat angle_y = 12;
   OptionalFloat angle_z = 13;
-  OptionalFloat lerp_finish = 14;
+  OptionalInt32 lerp_finish = 14;
   OptionalInt32 alpha = 15;
   // OptionalInt32 scale = 16; // not used
 }

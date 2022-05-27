@@ -397,7 +397,7 @@ func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) {
 		e.Alpha = byte(eu.Alpha.Value)
 	}
 	if eu.LerpFinish != nil {
-		e.LerpFinish = e.MsgTime + float64(eu.LerpFinish.Value)
+		e.LerpFinish = e.MsgTime + float64(eu.LerpFinish.Value)/255
 		e.LerpFlags |= lerpFinish
 	} else {
 		e.LerpFlags &^= lerpFinish
