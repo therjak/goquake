@@ -18,6 +18,7 @@ import (
 	"goquake/progs"
 	"goquake/protocol"
 	svc "goquake/protocol/server"
+	"goquake/protos"
 	"goquake/qtime"
 )
 
@@ -225,9 +226,11 @@ func hostColor(args []cmd.QArg, _ int) error {
 	client := HostClient()
 	client.colors = c
 	EntVars(client.edictId).Team = float32(b + 1)
-	sv.reliableDatagram.WriteByte(svc.UpdateColors)
-	sv.reliableDatagram.WriteByte(client.id)
-	sv.reliableDatagram.WriteByte(c)
+	uc := &protos.UpdateColors{
+		Player:   int32(client.id),
+		NewColor: int32(c),
+	}
+	svc.WriteUpdateColors(uc, sv.protocol, sv.protocolFlags, &sv.reliableDatagram)
 	return nil
 }
 
@@ -256,13 +259,7 @@ func hostPause(args []cmd.QArg, playerEdictId int) error {
 		return "unpaused"
 	}())
 
-	sv.reliableDatagram.WriteByte(svc.SetPause)
-	sv.reliableDatagram.WriteByte(func() int {
-		if sv.paused {
-			return 1
-		}
-		return 0
-	}())
+	svc.WriteSetPause(sv.paused, sv.protocol, sv.protocolFlags, &sv.reliableDatagram)
 	return nil
 }
 
@@ -644,23 +641,28 @@ func hostSpawn(args []cmd.QArg, playerEdictId int) error {
 	c.msg.ClearMessage()
 
 	// send time of update
-	c.msg.WriteByte(svc.Time)
-	c.msg.WriteFloat(sv.time)
+	svc.WriteTime(sv.time, sv.protocol, sv.protocolFlags, &c.msg)
 
 	for i, sc := range sv_clients {
 		if i >= svs.maxClients {
 			// TODO: figure out why it ever makes sense to have len(sv_clients) svs.maxClients
 			break
 		}
-		c.msg.WriteByte(svc.UpdateName)
-		c.msg.WriteByte(i)
-		c.msg.WriteString(sc.name)
-		c.msg.WriteByte(svc.UpdateFrags)
-		c.msg.WriteByte(i)
-		c.msg.WriteShort(sc.oldFrags)
-		c.msg.WriteByte(svc.UpdateColors)
-		c.msg.WriteByte(i)
-		c.msg.WriteByte(sc.colors)
+		un := &protos.UpdateName{
+			Player:  int32(i),
+			NewName: sc.name,
+		}
+		svc.WriteUpdateName(un, sv.protocol, sv.protocolFlags, &c.msg)
+		uf := &protos.UpdateFrags{
+			Player:   int32(i),
+			NewFrags: int32(sc.oldFrags),
+		}
+		svc.WriteUpdateFrags(uf, sv.protocol, sv.protocolFlags, &c.msg)
+		uc := &protos.UpdateColors{
+			Player:   int32(i),
+			NewColor: int32(sc.colors),
+		}
+		svc.WriteUpdateColors(uc, sv.protocol, sv.protocolFlags, &c.msg)
 	}
 
 	// send all current light styles
@@ -691,10 +693,12 @@ func hostSpawn(args []cmd.QArg, playerEdictId int) error {
 	// in a state where it is expecting the client to correct the angle
 	// and it won't happen if the game was just loaded, so you wind up
 	// with a permanent head tilt
-	c.msg.WriteByte(svc.SetAngle)
-	c.msg.WriteAngle(EntVars(c.edictId).Angles[0], sv.protocolFlags)
-	c.msg.WriteAngle(EntVars(c.edictId).Angles[1], sv.protocolFlags)
-	c.msg.WriteAngle(0, sv.protocolFlags)
+	sa := &protos.Coord{
+		X: EntVars(c.edictId).Angles[0],
+		Y: EntVars(c.edictId).Angles[1],
+		Z: 0,
+	}
+	svc.WriteSetAngle(sa, sv.protocol, sv.protocolFlags, &c.msg)
 
 	msgBuf.ClearMessage()
 	msgBufMaxLen = protocol.MaxDatagram
@@ -834,10 +838,11 @@ func hostName(args []cmd.QArg, _ int) error {
 	EntVars(c.edictId).NetName = progsdat.AddString(newName)
 
 	// send notification to all clients
-	rd := &sv.reliableDatagram
-	rd.WriteByte(svc.UpdateName)
-	rd.WriteByte(c.id)
-	rd.WriteString(newName)
+	un := &protos.UpdateName{
+		Player:  int32(c.id),
+		NewName: newName,
+	}
+	svc.WriteUpdateName(un, sv.protocol, sv.protocolFlags, &sv.reliableDatagram)
 	return nil
 }
 

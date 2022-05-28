@@ -1744,3 +1744,25 @@ func WriteEntityUpdate(eu *protos.EntityUpdate, pcol int, flags uint32, m *net.M
 		m.WriteByte(int(eu.LerpFinish.Value))
 	}
 }
+
+func WriteUpdateColors(uc *protos.UpdateColors, pcol int, flags uint32, m *net.Message) {
+	m.WriteByte(UpdateColors)
+	m.WriteByte(int(uc.Player))
+	m.WriteByte(int(uc.NewColor))
+}
+
+func WriteUpdateName(un *protos.UpdateName, pcol int, flags uint32, m *net.Message) {
+	m.WriteByte(UpdateName)
+	m.WriteByte(int(un.Player))
+	m.WriteString(un.NewName)
+}
+
+func WriteSetPause(p bool, pcol int, flags uint32, m *net.Message) {
+	m.WriteByte(SetPause)
+	m.WriteByte(func() int {
+		if p {
+			return 1
+		}
+		return 0
+	}())
+}
