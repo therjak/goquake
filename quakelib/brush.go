@@ -125,7 +125,7 @@ func (d *qBrushDrawer) buildVertexBuffer() {
 				for _, v := range s.Polys.Verts {
 					buf = append(buf,
 						v.Pos[0], v.Pos[1], v.Pos[2],
-						v.S, v.T, // not in [0,1]
+						v.S, v.T, // includes texture repeats
 						v.LightMapS, v.LightMapT)
 				}
 			}
@@ -293,8 +293,6 @@ func (d *qBrushDrawer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *En
 	d.vao.Bind()
 	d.vbo.Bind()
 	d.ebo.Bind()
-	// gl.bindbuffer(gl.ARRAY_BUFFER, gl_bmodel_vbo)
-	// gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, 0)
 
 	gl.EnableVertexAttribArray(0) // Vert
 	defer gl.DisableVertexAttribArray(0)
@@ -303,8 +301,8 @@ func (d *qBrushDrawer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *En
 	gl.EnableVertexAttribArray(2) // LMCoords
 	defer gl.DisableVertexAttribArray(2)
 	gl.VertexAttribPointerWithOffset(0, 3, gl.FLOAT, false, 7*4, 0)
-	gl.VertexAttribPointerWithOffset(1, 2, gl.FLOAT, false, 7*4, 3)
-	gl.VertexAttribPointerWithOffset(2, 2, gl.FLOAT, false, 7*4, 5)
+	gl.VertexAttribPointerWithOffset(1, 2, gl.FLOAT, false, 7*4, 3*4)
+	gl.VertexAttribPointerWithOffset(2, 2, gl.FLOAT, false, 7*4, 5*4)
 
 	gl.Uniform1i(d.tex, 0) // Match gl.TEXTRUE0, see below
 	gl.Uniform1i(d.lmTex, 1)
