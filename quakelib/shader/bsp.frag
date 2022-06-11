@@ -18,7 +18,7 @@ void main() {
   vec4 result = texture2D(Tex, tc_tex.xy);
   if (UseAlphaTest && result.a < 0.666)
     discard;
-  result *= texture2D(LMTex, tc_lm.xy);
+  // result *= texture2D(LMTex, tc_lm.xy);
   if (UseOverbright)
     result.rgb *= 2.0;
   if (UseFullbrightTex)
