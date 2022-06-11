@@ -109,31 +109,31 @@ void GL_SetFrustum(float fovx, float fovy) {
   float xmax, ymax;
   xmax = NEARCLIP * tan(fovx * M_PI / 360.0);
   ymax = NEARCLIP * tan(fovy * M_PI / 360.0);
-  glFrustum(-xmax, xmax, -ymax, ymax, NEARCLIP, Cvar_GetValue(&gl_farclip));
+  // glFrustum(-xmax, xmax, -ymax, ymax, NEARCLIP, Cvar_GetValue(&gl_farclip));
 }
 
 void R_SetupGL(void) {
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
+  // glMatrixMode(GL_PROJECTION);
+  // glLoadIdentity();
   glViewport(R_Refdef_vrect_x(),
              GL_Height() - R_Refdef_vrect_y() - R_Refdef_vrect_height(),
              R_Refdef_vrect_width(), R_Refdef_vrect_height());
 
   GL_SetFrustum(r_fovx, r_fovy);
 
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
+  // glMatrixMode(GL_MODELVIEW);
+  // glLoadIdentity();
 
-  glRotatef(-90, 1, 0, 0);  // put Z going up
-  glRotatef(90, 0, 0, 1);   // put Z going up
+  // glRotatef(-90, 1, 0, 0);  // put Z going up
+  // glRotatef(90, 0, 0, 1);   // put Z going up
   vec3_t viewangles = {R_Refdef_viewangles(0), R_Refdef_viewangles(1),
                        R_Refdef_viewangles(2)};
-  glRotatef(-viewangles[2], 1, 0, 0);
-  glRotatef(-viewangles[0], 0, 1, 0);
-  glRotatef(-viewangles[1], 0, 0, 1);
+  // glRotatef(-viewangles[2], 1, 0, 0);
+  // glRotatef(-viewangles[0], 0, 1, 0);
+  // glRotatef(-viewangles[1], 0, 0, 1);
   vec3_t vieworg = {R_Refdef_vieworg(0), R_Refdef_vieworg(1),
                     R_Refdef_vieworg(2)};
-  glTranslatef(-vieworg[0], -vieworg[1], -vieworg[2]);
+  // glTranslatef(-vieworg[0], -vieworg[1], -vieworg[2]);
 
   if (Cvar_GetValue(&gl_cull)) {
     glEnable(GL_CULL_FACE);
@@ -152,8 +152,10 @@ void R_Clear(void) {
   clearbits = GL_DEPTH_BUFFER_BIT;
   // if we get a stencil buffer, we should clear it, even though we
   // don't use it
-  if (gl_stencilbits) clearbits |= GL_STENCIL_BUFFER_BIT;
-  if (Cvar_GetValue(&gl_clear)) clearbits |= GL_COLOR_BUFFER_BIT;
+  if (gl_stencilbits)
+    clearbits |= GL_STENCIL_BUFFER_BIT;
+  if (Cvar_GetValue(&gl_clear))
+    clearbits |= GL_COLOR_BUFFER_BIT;
   glClear(clearbits);
 }
 

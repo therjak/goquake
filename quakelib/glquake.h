@@ -149,14 +149,6 @@ void R_CullSurfaces(void);
 qboolean R_CullModelForEntity(entity_t *e);
 void R_RotateForEntity(vec3_t origin, vec3_t angles);
 
-void R_DrawWorld(void);
-void R_DrawAliasModel(entity_t *e);
-void R_DrawBrushModel(entity_t *e);
-void R_DrawSpriteModel(entity_t *e);
-
-void R_DrawTextureChains_Water(qmodel_t *model, entity_t *ent,
-                               texchain_t chain);
-
 void R_RenderDlights(void);
 void GL_BuildLightmaps(void);
 void GL_BuildBModelVertexBuffer(void);
@@ -170,14 +162,11 @@ void R_UploadLightmaps(void);
 
 void GL_DrawAliasShadow(entity_t *e);
 void DrawGLTriangleFan(glpoly_t *p);
-void DrawGLPoly(glpoly_t *p);
 void DrawWaterPoly(glpoly_t *p);
 void GL_MakeAliasModelDisplayLists(qmodel_t *m, aliashdr_t *hdr);
 
 void R_ClearTextureChains(qmodel_t *mod, texchain_t chain);
 void R_ChainSurface(msurface_t *surf, texchain_t chain);
-void R_DrawTextureChains(qmodel_t *model, entity_t *ent, texchain_t chain);
-void R_DrawWorld_Water(void);
 
 float GL_WaterAlphaForSurface(msurface_t *fa);
 

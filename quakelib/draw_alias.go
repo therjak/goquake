@@ -219,7 +219,6 @@ func (r *qRenderer) DrawAliasModel(e *Entity, model *mdl.Model) {
 	modelview.Translate(model.Translate[0], model.Translate[1], model.Translate[2])
 	modelview.Scale(model.Scale[0], model.Scale[1], model.Scale[2])
 
-	textureManager.DisableMultiTexture()
 	skin := e.SkinNum
 	if e.SkinNum >= model.SkinCount && e.SkinNum < 0 {
 		skin = 0
@@ -311,17 +310,10 @@ func drawAliasFrame(m *mdl.Model, ld *lerpData, tx, fb *texture.Texture, e *Enti
 	p.SetAsUniform(aliasDrawer.projection)
 	mv.SetAsUniform(aliasDrawer.modelview)
 
-	textureManager.SelectTextureUnit(gl.TEXTURE0)
-	textureManager.Bind(tx)
-	textureManager.SelectTextureUnit(gl.TEXTURE1)
-	textureManager.Bind(fb)
+	textureManager.BindUnit(tx, gl.TEXTURE0)
+	textureManager.BindUnit(fb, gl.TEXTURE1)
 
 	gl.DrawElements(gl.TRIANGLES, int32(m.IndiceCount), gl.UNSIGNED_SHORT, gl.PtrOffset(0))
-
-	textureManager.SelectTextureUnit(gl.TEXTURE0)
-
-	// just to set back to gl.UseProgram(0)
-	gl.UseProgram(0)
 }
 
 var aliasDrawer *qAliasDrawer

@@ -69,8 +69,8 @@ void Sky_EmitSkyBoxVertex(float s, float t, int axis) {
   t = t * (h - 1) / h + 0.5 / h;
 
   t = 1.0 - t;
-  glTexCoord2f(s, t);
-  glVertex3fv(v);
+  // glTexCoord2f(s, t);
+  // glVertex3fv(v);
 }
 
 /*

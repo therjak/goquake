@@ -21,12 +21,12 @@ void GL_SetupState(void) {
   glFrontFace(GL_CW);
   glEnable(GL_TEXTURE_2D);
   glEnable(GL_ALPHA_TEST);
-  glAlphaFunc(GL_GREATER, 0.666);
+  // glAlphaFunc(GL_GREATER, 0.666);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-  glShadeModel(GL_FLAT);
+  // glShadeModel(GL_FLAT);
   glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+  // glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
   glDepthRange(0, 1);
   glDepthFunc(GL_LEQUAL);
 }

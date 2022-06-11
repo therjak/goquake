@@ -44,8 +44,10 @@ void BoundPoly(int numverts, float *verts, vec3_t mins, vec3_t maxs) {
   v = verts;
   for (i = 0; i < numverts; i++)
     for (j = 0; j < 3; j++, v++) {
-      if (*v < mins[j]) mins[j] = *v;
-      if (*v > maxs[j]) maxs[j] = *v;
+      if (*v < mins[j])
+        mins[j] = *v;
+      if (*v > maxs[j])
+        maxs[j] = *v;
     }
 }
 
@@ -61,7 +63,8 @@ void SubdividePolygon(int numverts, float *verts) {
   glpoly_t *poly;
   float s, t;
 
-  if (numverts > 60) Go_Error_I("numverts = %v", numverts);
+  if (numverts > 60)
+    Go_Error_I("numverts = %v", numverts);
 
   BoundPoly(numverts, verts, mins, maxs);
 
@@ -69,8 +72,10 @@ void SubdividePolygon(int numverts, float *verts) {
     m = (mins[i] + maxs[i]) * 0.5;
     m = Cvar_GetValue(&gl_subdivide_size) *
         floor(m / Cvar_GetValue(&gl_subdivide_size) + 0.5);
-    if (maxs[i] - m < 8) continue;
-    if (m - mins[i] < 8) continue;
+    if (maxs[i] - m < 8)
+      continue;
+    if (m - mins[i] < 8)
+      continue;
 
     // cut it
     v = verts + i;
@@ -92,7 +97,8 @@ void SubdividePolygon(int numverts, float *verts) {
         VectorCopy(v, back[b]);
         b++;
       }
-      if (dist[j] == 0 || dist[j + 1] == 0) continue;
+      if (dist[j] == 0 || dist[j + 1] == 0)
+        continue;
       if ((dist[j] > 0) != (dist[j + 1] > 0)) {
         // clip point
         frac = dist[j] / (dist[j] - dist[j + 1]);
@@ -151,21 +157,21 @@ void DrawWaterPoly(glpoly_t *p) {
   int i;
 
   if (load_subdivide_size > 48) {
-    glBegin(GL_POLYGON);
+    // glBegin(GL_POLYGON);
     v = p->verts[0];
     for (i = 0; i < p->numverts; i++, v += VERTEXSIZE) {
-      glTexCoord2f(WARPCALC2(v[3], v[4]), WARPCALC2(v[4], v[3]));
-      glVertex3fv(v);
+      // glTexCoord2f(WARPCALC2(v[3], v[4]), WARPCALC2(v[4], v[3]));
+      // glVertex3fv(v);
     }
-    glEnd();
+    // glEnd();
   } else {
-    glBegin(GL_POLYGON);
+    // glBegin(GL_POLYGON);
     v = p->verts[0];
     for (i = 0; i < p->numverts; i++, v += VERTEXSIZE) {
-      glTexCoord2f(WARPCALC(v[3], v[4]), WARPCALC(v[4], v[3]));
-      glVertex3fv(v);
+      // glTexCoord2f(WARPCALC(v[3], v[4]), WARPCALC(v[4], v[3]));
+      // glVertex3fv(v);
     }
-    glEnd();
+    // glEnd();
   }
 }
 
@@ -185,29 +191,32 @@ void R_UpdateWarpTexturesC(void) {
   int i;
   float x, y, x2, warptess;
 
-  if (Cvar_GetValue(&r_oldwater) || CL_Paused()) return;
+  if (Cvar_GetValue(&r_oldwater) || CL_Paused())
+    return;
 
   warptess = 128.0 / CLAMP(3.0, floor(Cvar_GetValue(&r_waterquality)), 64.0);
 
   for (i = 0; i < cl.worldmodel->numtextures; i++) {
-    if (!(tx = cl.worldmodel->textures[i])) continue;
+    if (!(tx = cl.worldmodel->textures[i]))
+      continue;
 
-    if (!tx->update_warp) continue;
+    if (!tx->update_warp)
+      continue;
 
     // render warp
     GLSetCanvas(CANVAS_WARPIMAGE);
     GLBind(tx->gltexture);
     for (x = 0.0; x < 128.0; x = x2) {
       x2 = x + warptess;
-      glBegin(GL_TRIANGLE_STRIP);
+      // glBegin(GL_TRIANGLE_STRIP);
       for (y = 0.0; y < 128.01; y += warptess)  // .01 for rounding errors
       {
-        glTexCoord2f(WARPCALC(x, y), WARPCALC(y, x));
-        glVertex2f(x, y);
-        glTexCoord2f(WARPCALC(x2, y), WARPCALC(y, x2));
-        glVertex2f(x2, y);
+        // glTexCoord2f(WARPCALC(x, y), WARPCALC(y, x));
+        // glVertex2f(x, y);
+        // glTexCoord2f(WARPCALC(x2, y), WARPCALC(y, x2));
+        // glVertex2f(x2, y);
       }
-      glEnd();
+      // glEnd();
     }
 
     // copy to texture
@@ -225,7 +234,8 @@ void R_UpdateWarpTexturesC(void) {
 
   // if warp render went down into sbar territory, we need to be sure to refresh
   // it next frame
-  if (GL_warpimagesize() + Sbar_Lines() > GL_Height()) Sbar_Changed();
+  if (GL_warpimagesize() + Sbar_Lines() > GL_Height())
+    Sbar_Changed();
 
   // if viewsize is less than 100, we need to redraw the frame around the
   // viewport

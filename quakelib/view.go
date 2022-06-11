@@ -3,17 +3,16 @@ package quakelib
 
 // void R_SetupView(void);
 // void R_SetupScene(void);
-// void R_DrawWorld(void);
-// void R_DrawWorld_Water(void);
 // void R_RenderScene(void);
 import "C"
 
 import (
-	"github.com/chewxy/math32"
-	"github.com/go-gl/gl/v4.6-core/gl"
 	"goquake/cvars"
 	"goquake/glh"
 	"goquake/math/vec"
+
+	"github.com/chewxy/math32"
+	"github.com/go-gl/gl/v4.6-core/gl"
 )
 
 func CalcRoll(angles, velocity vec.Vec3) float32 {
@@ -127,10 +126,9 @@ func (v *qView) renderScene() {
 	C.R_SetupScene()
 	sky.Draw()
 	// TODO: enable fog?
-	gl.UseProgram(0) // enable fixed pipeline
-	C.R_DrawWorld()
+	renderer.DrawWorld(cl.worldModel, v.modelView)
 	renderer.DrawEntitiesOnList(!alphaPass)
-	C.R_DrawWorld_Water()
+	renderer.DrawWorldWater(cl.worldModel, v.modelView)
 	renderer.DrawEntitiesOnList(alphaPass)
 	renderer.RenderDynamicLights()
 	particlesDraw()

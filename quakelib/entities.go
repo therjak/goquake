@@ -16,7 +16,6 @@ package quakelib
 //extern entity_t cl_static_entities[512];
 //inline entity_t* getStaticEntity(int i) { return &cl_static_entities[i]; }
 //void CL_ParseStaticC(entity_t* e, int modelindex);
-//void R_DrawBrushModel(entity_t* e);
 //#endif
 import "C"
 
@@ -420,10 +419,6 @@ func (e *Entity) R_AddEfrags() {
 
 func (e *Entity) ParseStaticC(index int) {
 	C.CL_ParseStaticC(e.ptr, C.int(index))
-}
-
-func (r *qRenderer) DrawBrushModelC(e *Entity) {
-	C.R_DrawBrushModel(e.ptr)
 }
 
 //TODO(therjak): should this go into renderer?

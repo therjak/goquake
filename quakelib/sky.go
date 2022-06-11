@@ -11,7 +11,6 @@ package quakelib
 //extern float skymaxs[2][6];
 //extern int rs_brushpasses;
 //void Sky_Init(void);
-//void Sky_NewMap(void);
 //void Fog_EnableGFog(void);
 //void Fog_DisableGFog(void);
 //void Sky_DrawSkyBox(void);
@@ -173,12 +172,12 @@ func (s *qSky) LoadBox(name string) {
 func (s *qSky) LoadTexture(t *bsp.Texture) {
 
 	s.solidTexture = t.SolidSky
-	textureManager.Bind(s.solidTexture)
+	textureManager.BindUnit(s.solidTexture, gl.TEXTURE0)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
 
 	s.alphaTexture = t.AlphaSky
-	textureManager.Bind(s.alphaTexture)
+	textureManager.BindUnit(s.alphaTexture, gl.TEXTURE0)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
 
@@ -423,10 +422,9 @@ func (s *qSky) DrawSkyLayers() {
 	gl.Uniform1i(skyDrawer.solidTex, 0)
 	gl.Uniform1i(skyDrawer.alphaTex, 1)
 
-	textureManager.Bind(s.solidTexture)
-	textureManager.SelectTextureUnit(gl.TEXTURE1)
+	textureManager.BindUnit(s.solidTexture, gl.TEXTURE0)
 	defer textureManager.SelectTextureUnit(gl.TEXTURE0)
-	textureManager.Bind(s.alphaTexture)
+	textureManager.BindUnit(s.alphaTexture, gl.TEXTURE1)
 
 	sc1 := math32.Mod(float32(cl.time)*8, 128)
 	sc2 := math32.Mod(float32(cl.time)*16, 128)
@@ -668,7 +666,6 @@ func (s *qSky) processPoly(p *bsp.Poly, c Color) {
 // cl.worldmodel->numtextures
 // cl.worldmodel->textures
 // cl.worldmodel->entities
-// DrawGLPoly
 // Fog_DisableGFog()
 // Fog_EnableGFog()
 // r_origin -> == qRefreshRect.viewOrg

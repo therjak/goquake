@@ -370,7 +370,7 @@ func (tm *texMgr) EnableMultiTexture() {
 }
 
 func (tm *texMgr) SetFilterModes(t *texture.Texture) {
-	tm.Bind(t)
+	tm.BindUnit(t, gl.TEXTURE0)
 	m := glModes[tm.glModeIndex]
 	switch {
 	case t.Flags(texture.TexPrefNearest):
@@ -401,7 +401,7 @@ func (tm *texMgr) anisotropyCallback(cv *cvar.Cvar) {
 		for k, v := range tm.activeTextures {
 			if v {
 				if k.Flags(texture.TexPrefMipMap) {
-					tm.Bind(k)
+					tm.BindUnit(k, gl.TEXTURE0)
 					m := glModes[tm.glModeIndex]
 					gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, m.magfilter)
 					gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, m.magfilter)
@@ -511,7 +511,7 @@ func (tm *texMgr) loadRGBA(t *texture.Texture, data []byte) {
 	if t.Flags(texture.TexPrefAlpha) {
 		internalformat = gl.RGBA
 	}
-	tm.Bind(t)
+	tm.BindUnit(t, gl.TEXTURE0)
 	gl.TexImage2D(gl.TEXTURE_2D, 0, internalformat, t.Width, t.Height,
 		0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(data))
 
@@ -520,7 +520,7 @@ func (tm *texMgr) loadRGBA(t *texture.Texture, data []byte) {
 }
 
 func (tm *texMgr) loadLightMap(t *texture.Texture) {
-	tm.Bind(t)
+	tm.BindUnit(t, gl.TEXTURE0)
 	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, t.Width, t.Height,
 		0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(t.Data))
 	tm.SetFilterModes(t)

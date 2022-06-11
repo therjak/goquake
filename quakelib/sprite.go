@@ -102,8 +102,7 @@ func (r *qRenderer) DrawSpriteModel(e *Entity, m *spr.Model) {
 		defer gl.Disable(gl.POLYGON_OFFSET_LINE)
 	}
 
-	textureManager.DisableMultiTexture()
-	textureManager.Bind(frame.Texture)
+	textureManager.BindUnit(frame.Texture, gl.TEXTURE0)
 
 	p1 := vec.FMA(e.Origin, frame.Down, sUp)
 	p1 = vec.FMA(p1, frame.Left, sRight)

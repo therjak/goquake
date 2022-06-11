@@ -162,7 +162,7 @@ func (d *drawer) Draw(x, y, w, h float32, t *texture.Texture) {
 	gl.VertexAttribPointerWithOffset(0, 3, gl.FLOAT, false, 4*5, 0)
 	gl.VertexAttribPointerWithOffset(1, 2, gl.FLOAT, false, 4*5, 3*4)
 
-	textureManager.Bind(t)
+	textureManager.BindUnit(t, gl.TEXTURE0)
 
 	gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
 }
@@ -201,7 +201,7 @@ func (d *drawer) DrawQuad(x, y float32, num byte) {
 	gl.VertexAttribPointerWithOffset(0, 3, gl.FLOAT, false, 4*5, 0)
 	gl.VertexAttribPointerWithOffset(1, 2, gl.FLOAT, false, 4*5, 3*4)
 
-	textureManager.Bind(consoleTexture)
+	textureManager.BindUnit(consoleTexture, gl.TEXTURE0)
 
 	gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
 }
@@ -510,7 +510,7 @@ func (d *drawer) TileClear(x, y, w, h float32) {
 	color := []float32{1.0, 1.0, 1.0, 1.0}
 	gl.TexParameterfv(gl.TEXTURE_2D, gl.TEXTURE_BORDER_COLOR, &(color[0]))
 
-	textureManager.Bind(backtileTexture)
+	textureManager.BindUnit(backtileTexture, gl.TEXTURE0)
 
 	gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
 }

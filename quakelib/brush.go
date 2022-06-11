@@ -2,8 +2,6 @@
 
 package quakelib
 
-//extern unsigned int gl_bmodel_vbo;
-//void GL_BuildBModelVertexBufferOld(void);
 //void R_RebuildAllLightmapsC(void);
 import "C"
 
@@ -101,14 +99,11 @@ var (
 
 func CreateBrushDrawer() {
 	brushDrawer = newBrushDrawer()
-	C.gl_bmodel_vbo = C.uint(brushDrawer.vbo.ID())
 }
 
 //export GL_BuildBModelVertexBuffer
 func GL_BuildBModelVertexBuffer() {
 	brushDrawer.buildVertexBuffer()
-	// Provide vboFirstVert on the C side
-	C.GL_BuildBModelVertexBufferOld()
 }
 
 func (d *qBrushDrawer) buildVertexBuffer() {
@@ -190,9 +185,13 @@ func (r *qRenderer) DrawBrushModel(e *Entity, model *bsp.Model) {
 	}
 	r.drawTextureChains(modelview, model, e, chainModel)
 	r.drawTextureChainsWater(modelview, model, e, chainModel)
+}
 
-	// C variant
-	// r.DrawBrushModelC(e)
+func (r *qRenderer) DrawWorld(model *bsp.Model, mv *glh.Matrix) {
+	r.drawTextureChains(mv, model, nil, chainWorld)
+}
+func (r *qRenderer) DrawWorldWater(model *bsp.Model, mv *glh.Matrix) {
+	r.drawTextureChainsWater(mv, model, nil, chainWorld)
 }
 
 //export R_RebuildAllLightmaps
@@ -322,8 +321,9 @@ func (d *qBrushDrawer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *En
 
 	for _, t := range model.Textures {
 		if t == nil ||
-			t.TextureChains[chain] == nil || // Flags&SURF_DRAWTILED?
-			t.TextureChains[chain].Flags&bsp.SurfaceNoTexture != 0 {
+			t.TextureChains[chain] == nil ||
+			t.TextureChains[chain].Flags&(bsp.SurfaceNoTexture|bsp.SurfaceDrawTiled) != 0 {
+			// SurfaceDrawTiled removes water types and sky
 			continue
 		}
 
@@ -378,9 +378,6 @@ func (d *qBrushDrawer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *En
 		}
 	}
 	textureManager.SelectTextureUnit(gl.TEXTURE0)
-
-	// Enable the fixed function pipeline again. Remove after all draw stuff is modern
-	gl.UseProgram(0)
 }
 
 func textureAnimation(t *bsp.Texture, frame int) *bsp.Texture {
