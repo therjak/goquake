@@ -2,13 +2,13 @@
 
 package quakelib
 
-//void R_RebuildAllLightmapsC(void);
 import "C"
 
 import (
 
 	// "github.com/chewxy/math32"
 	"goquake/bsp"
+	"goquake/cvar"
 	"goquake/cvars"
 	"goquake/glh"
 	"goquake/math/vec"
@@ -199,9 +199,13 @@ func R_RebuildAllLightmaps() {
 	rebuildAllLightMaps()
 }
 
-func rebuildAllLightMaps() {
-	C.R_RebuildAllLightmapsC()
+func init() {
+	cvars.GlOverBright.SetCallback(func(*cvar.Cvar) {
+		rebuildAllLightMaps()
+	})
+}
 
+func rebuildAllLightMaps() {
 	if cl.worldModel == nil {
 		// this is probably not the exact test necessary but good enough?
 		return
@@ -381,6 +385,7 @@ func (d *qBrushDrawer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *En
 }
 
 func textureAnimation(t *bsp.Texture, frame int) *bsp.Texture {
+	// R_TextureAnimation
 	// TODO: alternate_anims
 	// TODO: base anims
 	// relative = cl.time*10 % anim_total

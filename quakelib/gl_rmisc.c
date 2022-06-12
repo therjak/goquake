@@ -9,8 +9,6 @@ extern cvar_t r_drawflat;
 extern cvar_t r_flatlightstyles;
 extern cvar_t gl_fullbrights;
 extern cvar_t gl_farclip;
-extern cvar_t gl_overbright;
-extern cvar_t gl_overbright_models;
 extern cvar_t r_waterquality;
 extern cvar_t r_oldwater;
 extern cvar_t r_waterwarp;
@@ -23,13 +21,6 @@ extern cvar_t r_nolerp_list;
 extern cvar_t r_noshadow_list;
 // johnfitz
 extern cvar_t gl_zfix;  // QuakeSpasm z-fighting fix
-
-/*
-====================
-GL_Overbright_f -- johnfitz
-====================
-*/
-static void GL_Overbright_f(cvar_t *var) { R_RebuildAllLightmaps(); }
 
 /*
 ====================
@@ -160,9 +151,6 @@ void R_Init(void) {
   Cvar_FakeRegister(&r_showtris, "r_showtris");
   Cvar_FakeRegister(&gl_farclip, "gl_farclip");
   Cvar_FakeRegister(&gl_fullbrights, "gl_fullbrights");
-  Cvar_FakeRegister(&gl_overbright, "gl_overbright");
-  Cvar_SetCallback(&gl_overbright, GL_Overbright_f);
-  Cvar_FakeRegister(&gl_overbright_models, "gl_overbright_models");
   Cvar_FakeRegister(&r_lerpmodels, "r_lerpmodels");
   Cvar_FakeRegister(&r_lerpmove, "r_lerpmove");
   Cvar_FakeRegister(&r_nolerp_list, "r_nolerp_list");
@@ -203,12 +191,16 @@ static void R_ParseWorldspawn(void) {
   map_slimealpha = Cvar_GetValue(&r_slimealpha);
 
   data = COM_Parse(cl.worldmodel->entities);
-  if (!data) return;                // error
-  if (com_token[0] != '{') return;  // error
+  if (!data)
+    return;  // error
+  if (com_token[0] != '{')
+    return;  // error
   while (1) {
     data = COM_Parse(data);
-    if (!data) return;               // error
-    if (com_token[0] == '}') break;  // end of worldspawn
+    if (!data)
+      return;  // error
+    if (com_token[0] == '}')
+      break;  // end of worldspawn
     if (com_token[0] == '_')
       strcpy(key, com_token + 1);
     else
@@ -216,16 +208,21 @@ static void R_ParseWorldspawn(void) {
     while (key[strlen(key) - 1] == ' ')  // remove trailing spaces
       key[strlen(key) - 1] = 0;
     data = COM_Parse(data);
-    if (!data) return;  // error
+    if (!data)
+      return;  // error
     strcpy(value, com_token);
 
-    if (!strcmp("wateralpha", key)) map_wateralpha = atof(value);
+    if (!strcmp("wateralpha", key))
+      map_wateralpha = atof(value);
 
-    if (!strcmp("lavaalpha", key)) map_lavaalpha = atof(value);
+    if (!strcmp("lavaalpha", key))
+      map_lavaalpha = atof(value);
 
-    if (!strcmp("telealpha", key)) map_telealpha = atof(value);
+    if (!strcmp("telealpha", key))
+      map_telealpha = atof(value);
 
-    if (!strcmp("slimealpha", key)) map_slimealpha = atof(value);
+    if (!strcmp("slimealpha", key))
+      map_slimealpha = atof(value);
   }
 }
 
@@ -245,7 +242,7 @@ void R_NewMap(void) {
   r_viewleaf = NULL;
   ParticlesClear();
 
-  GL_BuildLightmaps();
+  // GL_BuildLightmaps();
   GL_BuildBModelVertexBuffer();
   // ericw -- no longer load alias models into a VBO here, it's done in
   // Mod_LoadAliasModel
