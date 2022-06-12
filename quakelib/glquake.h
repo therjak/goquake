@@ -146,7 +146,6 @@ void Fog_Init(void);
 
 void R_AnimateLight(void);
 void R_CullSurfaces(void);
-qboolean R_CullModelForEntity(entity_t *e);
 void R_RotateForEntity(vec3_t origin, vec3_t angles);
 
 void R_RenderDlights(void);
@@ -160,7 +159,6 @@ void R_BuildLightMap(msurface_t *surf, byte *dest, int stride);
 void R_RenderDynamicLightmaps(msurface_t *fa);
 void R_UploadLightmaps(void);
 
-void GL_DrawAliasShadow(entity_t *e);
 void DrawGLTriangleFan(glpoly_t *p);
 void DrawWaterPoly(glpoly_t *p);
 void GL_MakeAliasModelDisplayLists(qmodel_t *m, aliashdr_t *hdr);

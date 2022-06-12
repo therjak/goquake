@@ -39,38 +39,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
             // interval of 0.1
 // johnfitz
 
-typedef struct entity_s {
-  vec3_t origin;
-  vec3_t angles;
-  struct qmodel_s *model;  // NULL = no model
-  int frame;
-  float syncbase;  // for client-side animations
-  int skinnum;     // for Alias models
-  int visframe;    // last frame this entity was
-                   //  found in an active leaf
-
-  int dlightframe;  // dynamic lighting
-  int dlightbits;
-
-  byte alpha2;          // johnfitz -- alpha
-  byte lerpflags;      // johnfitz -- lerping
-  float lerpstart;     // johnfitz -- animation lerping
-  float lerptime;      // johnfitz -- animation lerping
-  float lerpfinish;    // johnfitz -- lerping -- server sent us a more accurate
-                       // interval, use it instead of 0.1
-  short previouspose;  // johnfitz -- animation lerping
-  short currentpose;   // johnfitz -- animation lerping
-  //	short					futurepose;
-  ////johnfitz
-  //-- animation
-  // lerping
-  float movelerpstart;    // johnfitz -- transform lerping
-  vec3_t previousorigin;  // johnfitz -- transform lerping
-  vec3_t currentorigin;   // johnfitz -- transform lerping
-  vec3_t previousangles;  // johnfitz -- transform lerping
-  vec3_t currentangles;   // johnfitz -- transform lerping
-} entity_t;
-
 extern vec3_t r_origin, vpn, vright, vup;
 
 void R_Init(void);

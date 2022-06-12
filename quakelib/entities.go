@@ -2,26 +2,8 @@
 
 package quakelib
 
-//#ifndef ENTITIES_H
-//#define ENTITIES_H
-//#include <stdio.h>
-//#include "q_stdinc.h"
-//#include "gl_model.h"
-//#include "render.h"
-//extern entity_t *cl_entities;
-//extern entity_t cl_temp_entities[256];
-//typedef entity_t* entityPtr;
-//typedef qmodel_t* modelPtr;
-//inline entity_t* getCLEntity(int i) { return &cl_entities[i]; }
-//extern entity_t cl_static_entities[512];
-//inline entity_t* getStaticEntity(int i) { return &cl_static_entities[i]; }
-//void CL_ParseStaticC(entity_t* e, int modelindex);
-//#endif
-import "C"
-
 import (
 	"fmt"
-	"unsafe"
 
 	"goquake/cmd"
 	"goquake/conlog"
@@ -58,12 +40,12 @@ func printEntities(_ []cmd.QArg, _ int) error {
 	}
 	for i, e := range cl.entities {
 		conlog.Printf("%3d:", i)
-		if e.ptr.model == nil {
+		if e.Model == nil {
 			conlog.Printf("EMPTY\n")
 			continue
 		}
-		n := C.GoString(&e.ptr.model.name[0])
-		f := int(e.ptr.frame)
+		n := e.Model.Name
+		f := e.Frame
 		a := e.Angles
 		o := e.Origin
 		conlog.Printf("%s:%2d  (%5.1f,%5.1f,%5.1f) [%5.1f %5.1f %5.1f]\n",
@@ -128,8 +110,6 @@ type state struct {
 }
 
 type Entity struct {
-	ptr C.entityPtr
-
 	ForceLink      bool
 	Baseline       state
 	MsgTime        float64
@@ -174,41 +154,8 @@ func (c *Client) WorldEntity() *Entity {
 	return c.entities[0]
 }
 
-// Sync synces from the go side to the C side
-func (e *Entity) Sync() {
-	if e.ptr == nil {
-		return
-	}
-	e.ptr.frame = C.int(e.Frame)
-	e.ptr.skinnum = C.int(e.SkinNum)
-	e.ptr.alpha2 = C.uchar(e.Alpha)
-	e.ptr.origin[0] = C.float(e.Origin[0])
-	e.ptr.origin[1] = C.float(e.Origin[1])
-	e.ptr.origin[2] = C.float(e.Origin[2])
-	e.ptr.angles[0] = C.float(e.Angles[0])
-	e.ptr.angles[1] = C.float(e.Angles[1])
-	e.ptr.angles[2] = C.float(e.Angles[2])
-}
-
-// Sync synces from the C side to the go side
-func (e *Entity) SyncC() {
-	e.Frame = int(e.ptr.frame)
-	e.SkinNum = int(e.ptr.skinnum)
-	e.Origin = vec.Vec3{
-		float32(e.ptr.origin[0]),
-		float32(e.ptr.origin[1]),
-		float32(e.ptr.origin[2]),
-	}
-	e.Angles = vec.Vec3{
-		float32(e.ptr.angles[0]),
-		float32(e.ptr.angles[1]),
-		float32(e.ptr.angles[2]),
-	}
-}
-
 //TODO(therjak): remove idx and just use a pointer to Entity
 func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
-	e.SyncC()
 	if e.Model == nil { // empty slot
 		if e.ForceLink { // just became empty
 			e.R_RemoveEfrags()
@@ -219,10 +166,8 @@ func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
 	// if the object wasn't included in the last packet, remove it
 	if e.MsgTime != cl.messageTime {
 		e.Model = nil
-		e.ptr.model = nil
 		// next time this entity slot is reused, the lerp will need to be reset
 		e.LerpFlags |= lerpResetMove | lerpResetAnim
-		e.Sync()
 		return
 	}
 
@@ -342,17 +287,10 @@ func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
 		particlesAddRocketTrail(oldOrigin, e.Origin, 6, float32(cl.time))
 	}
 	e.ForceLink = false
-	e.Sync()
 	if idx == cl.viewentity && !cvars.ChaseActive.Bool() {
 		return
 	}
 	cl.AddVisibleEntity(e)
-}
-
-// This one adds error checks to cl_entities
-//export CL_EntityNum
-func CL_EntityNum(num int) C.entityPtr {
-	return cl.GetOrCreateEntity(num).ptr
 }
 
 var (
@@ -373,9 +311,7 @@ func (c *Client) CreateStaticEntity() *Entity {
 		Error("Too many static entities")
 	}
 	i := len(c.staticEntities)
-	c.staticEntities = append(c.staticEntities, Entity{
-		ptr: &C.cl_static_entities[i],
-	})
+	c.staticEntities = append(c.staticEntities, Entity{})
 	return &c.staticEntities[i]
 }
 
@@ -389,9 +325,8 @@ func (c *Client) GetOrCreateEntity(num int) *Entity {
 			Error("CL_EntityNum: %d is an invalid number", num)
 		}
 		for i := len(cl.entities); i <= num; i++ {
-			e := &Entity{ptr: C.getCLEntity(C.int(i))}
+			e := &Entity{}
 			e.LerpFlags |= lerpResetMove | lerpResetAnim
-			e.ptr.lerpflags = C.uchar(e.LerpFlags)
 			cl.entities = append(cl.entities, e)
 		}
 	}
@@ -403,11 +338,6 @@ func (c *Client) Entity() *Entity {
 	return c.Entities(c.viewentity)
 }
 
-//export SetWorldEntityModel
-func SetWorldEntityModel(m C.modelPtr) {
-	cl.WorldEntity().ptr.model = m
-}
-
 func (e *Entity) R_RemoveEfrags() {
 	RemoveEntityFragments(e)
 }
@@ -415,10 +345,6 @@ func (e *Entity) R_RemoveEfrags() {
 func (e *Entity) R_AddEfrags() {
 	ef := EntityFragmentAdder{entity: e, world: cl.worldModel}
 	ef.Do()
-}
-
-func (e *Entity) ParseStaticC(index int) {
-	C.CL_ParseStaticC(e.ptr, C.int(index))
 }
 
 //TODO(therjak): should this go into renderer?
@@ -441,12 +367,7 @@ func (c *Client) NewTempEntity() *Entity {
 		return nil
 	}
 	i := len(clientTempEntities)
-	cptr := &C.cl_temp_entities[i]
-	C.memset(unsafe.Pointer(cptr), 0, C.sizeof_entity_t)
-	clientTempEntities = append(clientTempEntities,
-		Entity{
-			ptr: cptr,
-		})
+	clientTempEntities = append(clientTempEntities, Entity{})
 	ent := &clientTempEntities[i]
 	c.AddVisibleEntity(ent)
 	return ent
@@ -459,12 +380,6 @@ func (c *Client) AddVisibleEntity(e *Entity) {
 	visibleEntities = append(visibleEntities, e)
 }
 
-//export VisibleEntity
-func VisibleEntity(i int) C.entityPtr {
-	return visibleEntities[i].ptr
-}
-
-//export VisibleEntitiesNum
 func VisibleEntitiesNum() int {
 	return len(visibleEntities)
 }

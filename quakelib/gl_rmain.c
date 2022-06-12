@@ -78,29 +78,6 @@ cvar_t r_slimealpha;  // = {"r_slimealpha", "0", CVAR_NONE};
 
 float map_wateralpha, map_lavaalpha, map_telealpha, map_slimealpha;
 
-qboolean R_CullModelForEntity(entity_t *e) {
-  vec3_t mins, maxs;
-  if (!e->model) {
-    return true;
-  }
-
-  if (e->angles[0] || e->angles[2])  // pitch or roll
-  {
-    VectorAdd(e->origin, e->model->rmins, mins);
-    VectorAdd(e->origin, e->model->rmaxs, maxs);
-  } else if (e->angles[1])  // yaw
-  {
-    VectorAdd(e->origin, e->model->ymins, mins);
-    VectorAdd(e->origin, e->model->ymaxs, maxs);
-  } else  // no rotation
-  {
-    VectorAdd(e->origin, e->model->mins, mins);
-    VectorAdd(e->origin, e->model->maxs, maxs);
-  }
-
-  return R_CullBox(mins, maxs);
-}
-
 #define DEG2RAD(a) ((a)*M_PI_DIV_180)
 
 // THERJAK

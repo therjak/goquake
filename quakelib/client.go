@@ -1161,8 +1161,6 @@ func (c *Client) calcRefreshRect() {
 	ent.Angles[YAW] = c.yaw // the model should face the view dir
 	// the model should face the view dir
 	ent.Angles[PITCH] = -c.pitch
-	ent.ptr.angles[YAW] = C.float(ent.Angles[YAW])
-	ent.ptr.angles[PITCH] = C.float(ent.Angles[PITCH])
 
 	bob := c.calcBob()
 

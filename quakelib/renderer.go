@@ -320,7 +320,6 @@ func (r *qRenderer) DrawEntitiesOnList(alphaPass bool) {
 
 		if e == cl.Entity() {
 			e.Angles[0] *= 0.3
-			e.ptr.angles[0] *= 0.3
 		}
 
 		switch m := e.Model.(type) {

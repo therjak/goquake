@@ -2,7 +2,6 @@
 
 package quakelib
 
-//void CL_ParseUpdate(int num, int modNum);
 //void CLPrecacheModelClear(void);
 //void FinishCL_ParseServerInfo(void);
 import "C"
@@ -329,7 +328,6 @@ func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) {
 	}
 	num := int(eu.Entity)
 	e := c.GetOrCreateEntity(num)
-	e.SyncC()
 	forceLink := e.MsgTime != c.messageTimeOld
 
 	if e.MsgTime+0.2 < c.messageTime {
@@ -441,8 +439,6 @@ func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) {
 		e.Model = nil
 	}
 
-	C.CL_ParseUpdate(C.int(num), C.int(modNum))
-
 	if forceLink {
 		e.MsgOrigin[1] = e.MsgOrigin[0]
 		e.Origin = e.MsgOrigin[0]
@@ -450,7 +446,6 @@ func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) {
 		e.Angles = e.MsgAngles[0]
 		e.ForceLink = true
 	}
-	e.Sync()
 }
 
 func handleServerDisconnected(msg string) error {
@@ -492,8 +487,6 @@ func (c *Client) parseStatic(pb *protos.Baseline) {
 	ent.Alpha = ent.Baseline.Alpha
 	ent.Origin = ent.Baseline.Origin
 	ent.Angles = ent.Baseline.Angles
-	ent.ParseStaticC(ent.Baseline.ModelIndex)
-	ent.Sync()
 
 	ent.R_AddEfrags() // clean up after removal of c-efrags
 }
