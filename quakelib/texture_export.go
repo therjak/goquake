@@ -120,10 +120,6 @@ func D8To24Table(i, p int) byte {
 func textureManagerInit() {
 	gl.GetFloatv(gl.MAX_TEXTURE_MAX_ANISOTROPY, &textureManager.maxAnisotropy)
 	gl.GetIntegerv(gl.MAX_TEXTURE_SIZE, &textureManager.maxTextureSize)
-	err := palette.Init()
-	if err != nil {
-		Error(err.Error())
-	}
 	textureManager.RecalcWarpImageSize(screen.Width, screen.Height)
 	nullTexture = textureManager.LoadNoTex("nulltexture", 2, 2, []byte{
 		127, 191, 255, 255, 0, 0, 0, 255,

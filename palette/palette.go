@@ -2,41 +2,32 @@
 package palette
 
 import (
-	"fmt"
-	"goquake/filesystem"
+	"goquake/texture"
 )
+
+type Palette [256 * 4]uint8
 
 var (
-	Table                [256 * 4]uint8
-	TableFullBright      [256 * 4]uint8
-	TableFullBrightFence [256 * 4]uint8
-	TableNoBright        [256 * 4]uint8
-	TableNoBrightFence   [256 * 4]uint8
-	TableConsoleChars    [256 * 4]uint8
+	Table                Palette
+	TableFullBright      Palette
+	TableFullBrightFence Palette
+	TableNoBright        Palette
+	TableNoBrightFence   Palette
+	TableConsoleChars    Palette
 )
 
-func Init() error {
-	b, err := filesystem.GetFileContents("gfx/palette.lmp")
-	if err != nil {
-		return fmt.Errorf("Couln't load gfx/palette.lmp")
-	}
-	// b is rgb 8bit, we want rgba float32
-	if 4*len(b) != 3*len(Table) {
-		return fmt.Errorf("Palette has wrong size: %v", len(b))
-	}
-	bi := 0
+func init() {
 	pi := 0
 	for i := 0; i < 256; i++ {
-		Table[pi] = b[bi]
-		Table[pi+1] = b[bi+1]
-		Table[pi+2] = b[bi+2]
-		Table[pi+3] = 255
-		TableFullBright[pi+3] = 255
-		TableNoBright[pi+3] = 255
+		rgba := texture.Palette[i]
+		Table[pi] = rgba.R
+		Table[pi+1] = rgba.G
+		Table[pi+2] = rgba.B
+		Table[pi+3] = rgba.A
+		TableFullBright[pi+3] = rgba.A
+		TableNoBright[pi+3] = rgba.A
 		pi += 4
-		bi += 3
 	}
-	// orig changed the last value to alpha 0?
 
 	blend := 4 * 224
 	// keep 0-223 black
@@ -47,11 +38,22 @@ func Init() error {
 	copy(TableFullBrightFence[:], TableFullBright[:])
 	copy(TableNoBrightFence[:], TableNoBright[:])
 
+	// Make the last color transparent
 	Table[256*4-1] = 0
 	copy(TableConsoleChars[:], Table[:])
+	// Make the first color transparent (black)
 	TableConsoleChars[3] = 0
 
 	copy(TableFullBrightFence[255*4:], []uint8{0, 0, 0, 0})
 	copy(TableNoBrightFence[255*4:], []uint8{0, 0, 0, 0})
-	return nil
+}
+
+func (p *Palette) Convert(data []byte) []byte {
+	nd := make([]byte, 0, len(data)*4)
+	for _, d := range data {
+		idx := int(d) * 4
+		pixel := p[idx : idx+4]
+		nd = append(nd, pixel...)
+	}
+	return nd
 }

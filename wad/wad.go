@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"goquake/filesystem"
+	"goquake/palette"
 )
 
 const (
@@ -85,7 +86,8 @@ const (
 func getConChars(ls []lump, data []byte) ([]byte, error) {
 	for _, l := range ls {
 		if strings.HasPrefix(string(l.Name[:]), consoleCharsLump) {
-			return data[l.Offset : l.Offset+l.Size], nil
+			d := data[l.Offset : l.Offset+l.Size]
+			return palette.TableConsoleChars.Convert(d), nil
 		}
 	}
 	return nil, fmt.Errorf("Could not find %v texture", consoleCharsLump)

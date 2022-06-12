@@ -97,15 +97,15 @@ func (tm *texMgr) Init() {
 
 func (tm *texMgr) LoadConsoleChars() *texture.Texture {
 	data := wad.GetConsoleChars()
-	if len(data) != 128*128 {
+	if len(data) != 128*128*4 {
 		Error("ConsoleChars not found")
 		return nil
 	}
 	t := texture.NewTexture(128, 128,
 		texture.TexPrefAlpha|texture.TexPrefNearest|texture.TexPrefNoPicMip|texture.TexPrefConChars,
-		"gfx.wad:conchars", texture.ColorTypeIndexed, data)
+		"gfx.wad:conchars", texture.ColorTypeRGBA, data)
 	tm.addActiveTexture(t)
-	tm.loadIndexed(t, data)
+	tm.loadRGBA(t, data)
 	return t
 }
 
@@ -527,7 +527,7 @@ func (tm *texMgr) loadLightMap(t *texture.Texture) {
 }
 
 func (tm *texMgr) loadIndexed(t *texture.Texture, data []byte) {
-	var p *[256 * 4]byte
+	var p *palette.Palette
 	switch {
 	case t.Flags(texture.TexPrefFullBright) && t.Flags(texture.TexPrefAlpha):
 		p = &palette.TableFullBrightFence
@@ -542,59 +542,12 @@ func (tm *texMgr) loadIndexed(t *texture.Texture, data []byte) {
 	default:
 		p = &palette.Table
 	}
-	nd := make([]byte, 0, len(data)*4)
-	// TODO(therjak): add workaround for 'shot1sid' texture
-	// do we actually need padding?
-	for _, d := range data {
-		idx := int(d) * 4
-		pixel := p[idx : idx+4]
-		nd = append(nd, pixel...)
-	}
+	nd := p.Convert(data)
 	// do we actually need padding?
 	if t.Flags(texture.TexPrefAlpha) {
-		alphaEdgeFix(t.Width, t.Height, nd)
+		palette.AlphaEdgeFix(t.Width, t.Height, nd)
 	}
 	tm.loadRGBA(t, nd)
-}
-
-func alphaEdgeFix(w, h int32, d []byte) {
-	alpha := func(p int32) byte {
-		return d[p+3]
-	}
-	for y := int32(0); y < h; y++ {
-		prev := (y - 1 + h) % h
-		next := (y + 1) % h
-		for x := int32(0); x < w; x++ {
-			pp := (x - 1 + w) % w
-			np := (x + 1) % w
-			prow := prev * w
-			crow := y * w
-			nrow := next * w
-			p := []int32{
-				(pp + prow) * 4, (x + prow) * 4, (np + prow) * 4,
-				(pp + crow) * 4 /*           */, (np + crow) * 4,
-				(pp + nrow) * 4, (x + nrow) * 4, (np + nrow) * 4,
-			}
-			pixel := (x + crow) * 4
-			if alpha(pixel) == 0 {
-				r, g, b := int32(0), int32(0), int32(0)
-				count := int32(0)
-				for _, rp := range p {
-					if alpha(rp) != 0 {
-						r += int32(d[rp])
-						g += int32(d[rp+1])
-						b += int32(d[rp+2])
-						count++
-					}
-				}
-				if count != 0 {
-					d[pixel] = byte(r / count)
-					d[pixel+1] = byte(g / count)
-					d[pixel+2] = byte(b / count)
-				}
-			}
-		}
-	}
 }
 
 func merge3Pixel(p1, p2, p3 []byte) [4]byte {
