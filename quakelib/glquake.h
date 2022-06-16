@@ -84,7 +84,6 @@ extern vec3_t r_origin;
 // screen size info
 //
 extern mleaf_t *r_viewleaf, *r_oldviewleaf;
-extern int d_lightstylevalue[256];  // 8.8 fraction of base light value
 
 extern cvar_t r_norefresh;
 extern cvar_t r_drawentities;
@@ -135,9 +134,6 @@ typedef struct glsl_attrib_binding_s {
   GLuint attrib;
 } glsl_attrib_binding_t;
 
-extern float map_wateralpha, map_lavaalpha, map_telealpha,
-    map_slimealpha;  // ericw
-
 // johnfitz -- fog functions called from outside gl_fog.c
 void Fog_EnableGFog(void);
 void Fog_DisableGFog(void);
@@ -165,7 +161,5 @@ void GL_MakeAliasModelDisplayLists(qmodel_t *m, aliashdr_t *hdr);
 
 void R_ClearTextureChains(qmodel_t *mod, texchain_t chain);
 void R_ChainSurface(msurface_t *surf, texchain_t chain);
-
-float GL_WaterAlphaForSurface(msurface_t *fa);
 
 #endif /* __GLQUAKE_H */

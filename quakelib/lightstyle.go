@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 package quakelib
 
-//extern int d_lightstylevalue[256];
 import "C"
 
 import (
@@ -70,7 +69,6 @@ func R_AnimateLight() {
 		s := &lightStyles[i]
 		if len(s.lightMap) == 0 {
 			lightStyleValues[i] = 256
-			C.d_lightstylevalue[i] = 256
 			continue
 		}
 		switch cvars.RFlatLightStyles.Value() {
@@ -81,6 +79,5 @@ func R_AnimateLight() {
 		default:
 			lightStyleValues[i] = s.lightMap[idx%len(lightStyles[i].lightMap)]
 		}
-		C.d_lightstylevalue[i] = C.int(lightStyleValues[i])
 	}
 }

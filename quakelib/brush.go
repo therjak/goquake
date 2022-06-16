@@ -101,11 +101,6 @@ func CreateBrushDrawer() {
 	brushDrawer = newBrushDrawer()
 }
 
-//export GL_BuildBModelVertexBuffer
-func GL_BuildBModelVertexBuffer() {
-	brushDrawer.buildVertexBuffer()
-}
-
 func (d *qBrushDrawer) buildVertexBuffer() {
 	// Gets called once per map
 	idx := 0
@@ -403,3 +398,22 @@ func (r *qRenderer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *Entit
 }
 
 func (r *qRenderer) drawTextureChainsWater(mv *glh.Matrix, model *bsp.Model, e *Entity, chain int) {}
+
+func waterAlphaForSurface(s *bsp.Surface) float32 {
+	orWater := func(v float32) float32 {
+		if v > 0 {
+			return v
+		}
+		return mapAlphas.water
+	}
+	switch {
+	case s.Flags&bsp.SurfaceDrawLava != 0:
+		return orWater(mapAlphas.lava)
+	case s.Flags&bsp.SurfaceDrawTele != 0:
+		return orWater(mapAlphas.tele)
+	case s.Flags&bsp.SurfaceDrawSlime != 0:
+		return orWater(mapAlphas.slime)
+	default:
+		return mapAlphas.water
+	}
+}

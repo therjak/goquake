@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 
+	"goquake/bsp"
 	"goquake/cmd"
 	"goquake/conlog"
 	"goquake/math"
@@ -98,7 +99,7 @@ func (f *QFog) command(args []cmd.QArg) {
 	}
 }
 
-func (f *QFog) ParseWorldspawn() {
+func (f *QFog) parseWorldspawn(worldspawn *bsp.Entity) {
 	f.Density = FogDefaultDensity
 	f.Color.R = FogDefaultGray
 	f.Color.G = FogDefaultGray
@@ -110,24 +111,16 @@ func (f *QFog) ParseWorldspawn() {
 	f.Time = 0
 	f.Done = 0
 
-	// "worldspawn" should always be the first entity but just to be sure
-	for _, e := range cl.worldModel.Entities {
-		n, ok := e.Name()
-		if !ok || n != "worldspawn" {
-			continue
-		}
-		txt, ok := e.Property("fog")
-		if ok {
-			var d, r, g, b float32
-			i, err := fmt.Sscanf(txt, "%f %f %f %f", &d, &r, &g, &b)
-			if err == nil && i == 4 {
-				f.Density = d
-				f.Color.R = r
-				f.Color.G = g
-				f.Color.B = b
-			} else {
-				log.Printf("Error parsing fog: %v", err)
-			}
+	if txt, ok := worldspawn.Property("fog"); ok {
+		var d, r, g, b float32
+		i, err := fmt.Sscanf(txt, "%f %f %f %f", &d, &r, &g, &b)
+		if err == nil && i == 4 {
+			f.Density = d
+			f.Color.R = r
+			f.Color.G = g
+			f.Color.B = b
+		} else {
+			log.Printf("Error parsing fog: %v", err)
 		}
 	}
 }
@@ -175,9 +168,4 @@ func (f *QFog) GetDensity() float32 {
 		return math.Lerp(f.Density, f.OldDensity, float32(fade))
 	}
 	return f.Density
-}
-
-//export Fog_NewMap
-func Fog_NewMap() {
-	fog.ParseWorldspawn() // for global fog
 }

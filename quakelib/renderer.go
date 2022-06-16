@@ -30,19 +30,9 @@ type qRenderer struct {
 
 var renderer qRenderer
 
-//export R_framecount
-func R_framecount() int {
-	return renderer.frameCount
-}
-
 //export R_framecount_inc
 func R_framecount_inc() {
 	renderer.frameCount++
-}
-
-//export R_framecount_reset
-func R_framecount_reset() {
-	renderer.frameCount = 0
 }
 
 //export R_visframecount
@@ -53,22 +43,6 @@ func R_visframecount() int {
 //export R_visframecount_inc
 func R_visframecount_inc() {
 	renderer.visFrameCount++
-}
-
-//export R_visframecount_reset
-func R_visframecount_reset() {
-	renderer.visFrameCount = 0
-}
-
-//export R_dlightframecount
-func R_dlightframecount() int {
-	return renderer.lightFrameCount
-}
-
-//export R_dlightframecount_up
-func R_dlightframecount_up() {
-	// gets executed before frameCount was increased
-	renderer.lightFrameCount = renderer.frameCount + 1
 }
 
 //export R_CullBox

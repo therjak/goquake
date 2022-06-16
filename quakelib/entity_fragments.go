@@ -37,13 +37,6 @@ func clearEntityFragments() {
 	efrags[len(efrags)-1].entNext = nil
 }
 
-//export ClearMapEntityFragments
-func ClearMapEntityFragments() {
-	for _, l := range cl.worldModel.Leafs {
-		l.Temporary = nil
-	}
-}
-
 // RemoveEntityFragments is called when removing an object from the world or
 // moving it to another position
 func RemoveEntityFragments(e *Entity) {
@@ -134,8 +127,8 @@ func MakeEntitiesVisible(leaf *bsp.MLeaf) {
 	ef, _ := leaf.Temporary.(*entityFragment)
 	for ef != nil {
 		ent := ef.entity
-		if ent.VisFrame != R_framecount() && VisibleEntitiesNum() < 4096 {
-			ent.VisFrame = R_framecount()
+		if ent.VisFrame != renderer.frameCount && VisibleEntitiesNum() < 4096 {
+			ent.VisFrame = renderer.frameCount
 			cl.AddVisibleEntity(ent)
 		}
 		ef = ef.leafNext

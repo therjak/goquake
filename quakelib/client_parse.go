@@ -309,11 +309,45 @@ func CL_ParseServerInfo(si *protos.ServerInfo) error {
 			sky.LoadTexture(t)
 		}
 	}
+	if err := newMap(cl.worldModel); err != nil {
+		return err
+	}
 
 	C.FinishCL_ParseServerInfo()
 
 	// we don't consider identical messages to be duplicates if the map has changed in between
 	console.lastCenter = ""
+	return nil
+}
+
+func newMap(m *bsp.Model) error {
+	for i := range lightStyleValues {
+		lightStyleValues[i] = 264
+	}
+
+	// clean up in case of reuse
+	for _, l := range m.Leafs {
+		l.Temporary = nil
+	}
+	// r_viewleaf = NULL
+
+	// GL_BuildLightmaps
+	brushDrawer.buildVertexBuffer() // should get the model
+
+	renderer.frameCount = 0
+	renderer.visFrameCount = 0
+
+	for _, e := range m.Entities {
+		if n, ok := e.Name(); !ok || n != "worldspawn" {
+			continue
+		}
+		sky.newMap(e)
+		fog.parseWorldspawn(e)
+		handleMapAlphas(e)
+	}
+
+	// load_subdivide_size = Cvar_GetValue(&gl_subdivide_size)
+
 	return nil
 }
 

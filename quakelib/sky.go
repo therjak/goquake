@@ -95,35 +95,24 @@ func CreateSkyDrawer() {
 	simpleSkyDrawer = newSimpleSkyDrawer()
 }
 
-//export SkyNewMap
-func SkyNewMap() {
-	sky.NewMap()
-}
-
-func (s *qSky) NewMap() {
+func (s *qSky) newMap(worldspawn *bsp.Entity) {
 	ClearSkyBox()
 	C.skyfog = C.float(cvars.RSkyFog.Value())
 
 	s.boxName = ""
 	s.boxTextures = [6]*texture.Texture{}
-	for _, e := range cl.worldModel.Entities {
-		if n, _ := e.Name(); n != "worldspawn" {
-			continue
+	if p, ok := worldspawn.Property("sky"); ok {
+		s.LoadBox(p)
+	}
+	if p, ok := worldspawn.Property("skyfog"); ok {
+		v, err := strconv.ParseFloat(p, 32)
+		if err == nil {
+			C.skyfog = C.float(v)
 		}
-		if p, ok := e.Property("sky"); ok {
-			s.LoadBox(p)
-		}
-		if p, ok := e.Property("skyfog"); ok {
-			v, err := strconv.ParseFloat(p, 32)
-			if err == nil {
-				C.skyfog = C.float(v)
-			}
-		} else if p, ok := e.Property("skyname"); ok { // half-life
-			s.LoadBox(p)
-		} else if p, ok := e.Property("glsky"); ok { // quake lives
-			s.LoadBox(p)
-		}
-		return
+	} else if p, ok := worldspawn.Property("skyname"); ok { // half-life
+		s.LoadBox(p)
+	} else if p, ok := worldspawn.Property("glsky"); ok { // quake lives
+		s.LoadBox(p)
 	}
 }
 
@@ -392,7 +381,7 @@ var (
 
 // DrawSkyLayers draws the old-style scrolling cloud layers
 func (s *qSky) DrawSkyLayers() {
-	if cvars.RSkyAlpha.Value() < 1 {
+	if mapAlphas.sky < 1 {
 		// TODO: this needs to go into the shader
 		//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
 		//defer glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE)

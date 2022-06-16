@@ -21,8 +21,6 @@ float r_fovx, r_fovy;  // johnfitz -- rendering fov may be different becuase of
 
 mleaf_t *r_viewleaf, *r_oldviewleaf;
 
-int d_lightstylevalue[256];  // 8.8 fraction of base light value
-
 cvar_t r_norefresh;      // = {"r_norefresh", "0", CVAR_NONE};
 cvar_t r_drawentities;   // = {"r_drawentities", "1", CVAR_NONE};
 cvar_t r_drawviewmodel;  // = {"r_drawviewmodel", "1", CVAR_NONE};

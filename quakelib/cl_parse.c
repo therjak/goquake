@@ -10,8 +10,6 @@ void FinishCL_ParseServerInfo(void) {
   // local state
   cl.worldmodel = cl.model_precache[1];
 
-  R_NewMap();
-
   Hunk_Check();              // make sure nothing is hurt
   noclip_anglehack = false;  // noclip is turned off at start
 }
