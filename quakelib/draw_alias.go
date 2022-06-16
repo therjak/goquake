@@ -103,7 +103,7 @@ func (l *lerpData) setupAliasFrame(e *Entity, m *mdl.Model) {
 			e.CurrentPose = poseNum
 		}
 	}
-	if cvars.RLerpModels.Bool() && (cvars.RLerpModels.Value() == 2 || m.Flags() != mdl.NoLerp) {
+	if cvars.RLerpModels.Bool() && !(cvars.RLerpModels.Value() != 2 && m.Flags()&mdl.NoLerp != 0) {
 		if e.LerpFlags&lerpFinish != 0 && numPoses == 1 {
 			l.blend = qmath.Clamp(0, (cl.time-e.LerpStart)/(e.LerpFinish-e.LerpStart), 1)
 		} else {

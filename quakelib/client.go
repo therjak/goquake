@@ -1820,14 +1820,12 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) {
 		particlesAddExplosion(pos, float32(cl.time))
 		l := cl.GetFreeDynamicLight()
 		*l = DynamicLight{
-			ptr:     l.ptr,
 			origin:  pos,
 			radius:  350,
 			dieTime: cl.time + 0.5,
 			decay:   300,
 			color:   vec.Vec3{1, 1, 1},
 		}
-		l.Sync()
 		snd.Start(-1, 0, clSounds[RExp3], pos, 1, 1, !loopingSound)
 	case *protos.TempEntity_TarExplosion:
 		// tarbaby explosion
@@ -1875,14 +1873,12 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) {
 		particlesAddExplosion2(pos, int(e.GetStartColor()), int(e.GetStopColor()), float32(cl.time))
 		l := cl.GetFreeDynamicLight()
 		*l = DynamicLight{
-			ptr:     l.ptr,
 			origin:  pos,
 			radius:  350,
 			dieTime: cl.time + 0.5,
 			decay:   300,
 			color:   vec.Vec3{1, 1, 1},
 		}
-		l.Sync()
 		snd.Start(-1, 0, clSounds[RExp3], pos, 1, 1, !loopingSound)
 	case *protos.TempEntity_Beam:
 		// grappling hook beam

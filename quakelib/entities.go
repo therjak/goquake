@@ -229,7 +229,6 @@ func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
 		dl.radius = 200 + float32(cRand.Uint32n(32))
 		dl.minLight = 32
 		dl.dieTime = cl.time + 0.1
-		dl.Sync()
 
 		// assume muzzle flash accompanied by muzzle flare, which looks bad when lerped
 		if cvars.RLerpModels.Value() != 2 {
@@ -251,7 +250,6 @@ func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
 		dl.origin[2] += 16
 		dl.radius = 400 + float32(cRand.Uint32n(32))
 		dl.dieTime = cl.time + 0.001
-		dl.Sync()
 	}
 	if e.Effects&model.EntityEffectDimLight != 0 {
 		dl := cl.GetDynamicLightByKey(idx)
@@ -260,7 +258,6 @@ func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
 		dl.origin = e.Origin
 		dl.radius = 200 + float32(cRand.Uint32n(32))
 		dl.dieTime = cl.time + 0.001
-		dl.Sync()
 	}
 
 	switch f := e.Model.Flags(); {
@@ -280,7 +277,6 @@ func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
 		dl.origin = e.Origin
 		dl.radius = 200
 		dl.dieTime = cl.time + 0.01
-		dl.Sync()
 	case f&model.EntityEffectGrenade != 0:
 		particlesAddRocketTrail(oldOrigin, e.Origin, 1, float32(cl.time))
 	case f&model.EntityEffectTracer3 != 0:
