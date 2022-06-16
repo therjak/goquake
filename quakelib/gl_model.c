@@ -59,11 +59,13 @@ void *Mod_Extradata(qmodel_t *mod) {
   void *r;
 
   r = Cache_Check(&mod->cache);
-  if (r) return r;
+  if (r)
+    return r;
 
   Mod_LoadModel(mod, true);
 
-  if (!mod->cache.data) Go_Error("Mod_Extradata: caching failed");
+  if (!mod->cache.data)
+    Go_Error("Mod_Extradata: caching failed");
   return mod->cache.data;
 }
 
@@ -78,11 +80,13 @@ mleaf_t *Mod_PointInLeaf(vec3_t p, qmodel_t *model) {
   float d;
   mplane_t *plane;
 
-  if (!model || !model->nodes) Go_Error("Mod_PointInLeaf: bad model");
+  if (!model || !model->nodes)
+    Go_Error("Mod_PointInLeaf: bad model");
 
   node = model->nodes;
   while (1) {
-    if (node->contents < 0) return (mleaf_t *)node;
+    if (node->contents < 0)
+      return (mleaf_t *)node;
     plane = node->plane;
     d = DotProduct(p, plane->normal) - plane->dist;
     if (d > 0)
@@ -138,7 +142,8 @@ byte *Mod_DecompressVis(byte *in, qmodel_t *model) {
 }
 
 byte *Mod_LeafPVS(mleaf_t *leaf, qmodel_t *model) {
-  if (leaf == model->leafs) return mod_novis;
+  if (leaf == model->leafs)
+    return mod_novis;
   return Mod_DecompressVis(leaf->compressed_vis, model);
 }
 
@@ -175,7 +180,8 @@ qmodel_t *Mod_FindName(const char *name) {
   // search the currently loaded models
   //
   for (i = 0, mod = mod_known; i < mod_numknown; i++, mod++)
-    if (!strcmp(mod->name, name)) break;
+    if (!strcmp(mod->name, name))
+      break;
 
   if (i == mod_numknown) {
     if (mod_numknown == MAX_MOD_KNOWN)
@@ -200,7 +206,8 @@ void Mod_TouchModel(const char *name) {
   mod = Mod_FindName(name);
 
   if (!mod->needload) {
-    if (mod->Type == mod_alias) Cache_Check(&mod->cache);
+    if (mod->Type == mod_alias)
+      Cache_Check(&mod->cache);
   }
 }
 
@@ -218,7 +225,8 @@ qmodel_t *Mod_LoadModel(qmodel_t *mod, qboolean crash) {
 
   if (!mod->needload) {
     if (mod->Type == mod_alias) {
-      if (Cache_Check(&mod->cache)) return mod;
+      if (Cache_Check(&mod->cache))
+        return mod;
     } else
       return mod;  // not cached at all
   }
@@ -305,7 +313,8 @@ Mod_CheckFullbrights -- johnfitz
 qboolean Mod_CheckFullbrights(byte *pixels, int count) {
   int i;
   for (i = 0; i < count; i++)
-    if (*pixels++ > 223) return true;
+    if (*pixels++ > 223)
+      return true;
   return false;
 }
 
@@ -352,7 +361,8 @@ void Mod_LoadTextures(lump_t *l) {
 
   for (i = 0; i < nummiptex; i++) {
     m->dataofs[i] = LittleLong(m->dataofs[i]);
-    if (m->dataofs[i] == -1) continue;
+    if (m->dataofs[i] == -1)
+      continue;
     mt = (miptex_t *)((byte *)m + m->dataofs[i]);
     mt->width = LittleLong(mt->width);
     mt->height = LittleLong(mt->height);
@@ -384,7 +394,6 @@ void Mod_LoadTextures(lump_t *l) {
 
     tx->update_warp = false;  // johnfitz
     tx->warpimage = 0;        // johnfitz
-    tx->fullbright = 0;       // johnfitz
 
     // johnfitz -- lots of changes
     if (!CMLDedicated())  // no texture uploading for dedicated server
@@ -448,7 +457,8 @@ void Mod_LoadTextures(lump_t *l) {
         int extraflags;
 
         extraflags = 0;
-        if (tx->name[0] == '{') extraflags |= TEXPREF_ALPHA;
+        if (tx->name[0] == '{')
+          extraflags |= TEXPREF_ALPHA;
         // ericw
 
         // external textures -- first look in "textures/mapname/" then look in
@@ -479,10 +489,6 @@ void Mod_LoadTextures(lump_t *l) {
             data = Image_LoadImage(filename2, &fwidth, &fheight);
           }
 
-          if (data)
-            tx->fullbright =
-                TexMgrLoadImage2(filename2, fwidth, fheight, SRC_RGBA, data,
-                                 filename, TEXPREF_MIPMAP | extraflags);
         } else  // use the texture from the bsp file
         {
           q_snprintf(texturename, sizeof(texturename), "%s:%s", loadmodel->name,
@@ -493,12 +499,6 @@ void Mod_LoadTextures(lump_t *l) {
                 texturename, tx->width, tx->height, SRC_INDEXED,
                 (byte *)(tx + 1), loadmodel->name,
                 TEXPREF_MIPMAP | TEXPREF_NOBRIGHT | extraflags);
-            q_snprintf(texturename, sizeof(texturename), "%s:%s_glow",
-                       loadmodel->name, tx->name);
-            tx->fullbright = TexMgrLoadImage2(
-                texturename, tx->width, tx->height, SRC_INDEXED,
-                (byte *)(tx + 1), loadmodel->name,
-                TEXPREF_MIPMAP | TEXPREF_FULLBRIGHT | extraflags);
           } else {
             tx->gltexture = TexMgrLoadImage2(
                 texturename, tx->width, tx->height, SRC_INDEXED,
@@ -522,8 +522,10 @@ void Mod_LoadTextures(lump_t *l) {
   //
   for (i = 0; i < nummiptex; i++) {
     tx = loadmodel->textures[i];
-    if (!tx || tx->name[0] != '+') continue;
-    if (tx->anim_next) continue;  // allready sequenced
+    if (!tx || tx->name[0] != '+')
+      continue;
+    if (tx->anim_next)
+      continue;  // allready sequenced
 
     // find the number of frames in the animation
     memset(anims, 0, sizeof(anims));
@@ -531,7 +533,8 @@ void Mod_LoadTextures(lump_t *l) {
 
     maxanim = tx->name[1];
     altmax = 0;
-    if (maxanim >= 'a' && maxanim <= 'z') maxanim -= 'a' - 'A';
+    if (maxanim >= 'a' && maxanim <= 'z')
+      maxanim -= 'a' - 'A';
     if (maxanim >= '0' && maxanim <= '9') {
       maxanim -= '0';
       altmax = 0;
@@ -547,19 +550,24 @@ void Mod_LoadTextures(lump_t *l) {
 
     for (j = i + 1; j < nummiptex; j++) {
       tx2 = loadmodel->textures[j];
-      if (!tx2 || tx2->name[0] != '+') continue;
-      if (strcmp(tx2->name + 2, tx->name + 2)) continue;
+      if (!tx2 || tx2->name[0] != '+')
+        continue;
+      if (strcmp(tx2->name + 2, tx->name + 2))
+        continue;
 
       num = tx2->name[1];
-      if (num >= 'a' && num <= 'z') num -= 'a' - 'A';
+      if (num >= 'a' && num <= 'z')
+        num -= 'a' - 'A';
       if (num >= '0' && num <= '9') {
         num -= '0';
         anims[num] = tx2;
-        if (num + 1 > maxanim) maxanim = num + 1;
+        if (num + 1 > maxanim)
+          maxanim = num + 1;
       } else if (num >= 'A' && num <= 'J') {
         num = num - 'A';
         altanims[num] = tx2;
-        if (num + 1 > altmax) altmax = num + 1;
+        if (num + 1 > altmax)
+          altmax = num + 1;
       } else
         Go_Error_S("Bad animating texture %v", tx->name);
     }
@@ -568,21 +576,25 @@ void Mod_LoadTextures(lump_t *l) {
     // link them all together
     for (j = 0; j < maxanim; j++) {
       tx2 = anims[j];
-      if (!tx2) Sys_Error("Missing frame %i of %s", j, tx->name);
+      if (!tx2)
+        Sys_Error("Missing frame %i of %s", j, tx->name);
       tx2->anim_total = maxanim * ANIM_CYCLE;
       tx2->anim_min = j * ANIM_CYCLE;
       tx2->anim_max = (j + 1) * ANIM_CYCLE;
       tx2->anim_next = anims[(j + 1) % maxanim];
-      if (altmax) tx2->alternate_anims = altanims[0];
+      if (altmax)
+        tx2->alternate_anims = altanims[0];
     }
     for (j = 0; j < altmax; j++) {
       tx2 = altanims[j];
-      if (!tx2) Sys_Error("Missing frame %i of %s", j, tx->name);
+      if (!tx2)
+        Sys_Error("Missing frame %i of %s", j, tx->name);
       tx2->anim_total = altmax * ANIM_CYCLE;
       tx2->anim_min = j * ANIM_CYCLE;
       tx2->anim_max = (j + 1) * ANIM_CYCLE;
       tx2->anim_next = altanims[(j + 1) % altmax];
-      if (maxanim) tx2->alternate_anims = anims[0];
+      if (maxanim)
+        tx2->alternate_anims = anims[0];
     }
   }
 }
@@ -631,7 +643,8 @@ void Mod_LoadLighting(lump_t *l) {
     }
   }
   // LordHavoc: no .lit found, expand the white lighting data to color
-  if (!l->filelen) return;
+  if (!l->filelen)
+    return;
   loadmodel->lightdata = (byte *)Hunk_AllocName(l->filelen * 3, litfilename);
   in = loadmodel->lightdata + l->filelen * 2;  // place the file at the end, so
                                                // it will not be overwritten
@@ -671,7 +684,8 @@ void Mod_LoadEntities(lump_t *l) {
   int mark;
   // unsigned int path_id;
 
-  if (!Cvar_GetValue(&external_ents)) goto _load_embedded;
+  if (!Cvar_GetValue(&external_ents))
+    goto _load_embedded;
 
   q_strlcpy(entfilename, loadmodel->name, sizeof(entfilename));
   COM_StripExtension(entfilename, entfilename, sizeof(entfilename));
@@ -872,8 +886,10 @@ void CalcSurfaceExtents(msurface_t *s) {
             ((double)v->position[2] * (double)tex->vecs[j][2]) +
             (double)tex->vecs[j][3];
 
-      if (val < mins[j]) mins[j] = val;
-      if (val > maxs[j]) maxs[j] = val;
+      if (val < mins[j])
+        mins[j] = val;
+      if (val > maxs[j])
+        maxs[j] = val;
     }
   }
 
@@ -958,13 +974,19 @@ void Mod_CalcSurfaceBounds(msurface_t *s) {
     else
       v = &loadmodel->vertexes[loadmodel->edges[-e].v[1]];
 
-    if (s->mins[0] > v->position[0]) s->mins[0] = v->position[0];
-    if (s->mins[1] > v->position[1]) s->mins[1] = v->position[1];
-    if (s->mins[2] > v->position[2]) s->mins[2] = v->position[2];
+    if (s->mins[0] > v->position[0])
+      s->mins[0] = v->position[0];
+    if (s->mins[1] > v->position[1])
+      s->mins[1] = v->position[1];
+    if (s->mins[2] > v->position[2])
+      s->mins[2] = v->position[2];
 
-    if (s->maxs[0] < v->position[0]) s->maxs[0] = v->position[0];
-    if (s->maxs[1] < v->position[1]) s->maxs[1] = v->position[1];
-    if (s->maxs[2] < v->position[2]) s->maxs[2] = v->position[2];
+    if (s->maxs[0] < v->position[0])
+      s->maxs[0] = v->position[0];
+    if (s->maxs[1] < v->position[1])
+      s->maxs[1] = v->position[1];
+    if (s->maxs[2] < v->position[2])
+      s->maxs[2] = v->position[2];
   }
 }
 
@@ -1026,7 +1048,8 @@ void Mod_LoadFaces(lump_t *l, qboolean bsp2) {
     // THERJAK: go - buildSurfacesV0
     out->flags = 0;
 
-    if (side) out->flags |= SURF_PLANEBACK;
+    if (side)
+      out->flags |= SURF_PLANEBACK;
 
     out->plane = loadmodel->planes + planenum;
 
@@ -1094,7 +1117,8 @@ Mod_SetParent
 */
 void Mod_SetParent(mnode_t *node, mnode_t *parent) {
   node->parent = parent;
-  if (node->contents < 0) return;
+  if (node->contents < 0)
+    return;
   Mod_SetParent(node->children[0], node);
   Mod_SetParent(node->children[1], node);
 }
@@ -1513,8 +1537,10 @@ void Mod_LoadClipnodes(lump_t *l, qboolean bsp2) {
       out->children[0] = (unsigned short)LittleShort(ins->children[0]);
       out->children[1] = (unsigned short)LittleShort(ins->children[1]);
 
-      if (out->children[0] >= count) out->children[0] -= 65536;
-      if (out->children[1] >= count) out->children[1] -= 65536;
+      if (out->children[0] >= count)
+        out->children[0] -= 65536;
+      if (out->children[1] >= count)
+        out->children[1] -= 65536;
       // johnfitz
     }
   }
@@ -1658,7 +1684,8 @@ void Mod_LoadPlanes(lump_t *l) {
     bits = 0;
     for (j = 0; j < 3; j++) {
       out->normal[j] = LittleFloat(in->normal[j]);
-      if (out->normal[j] < 0) bits |= 1 << j;
+      if (out->normal[j] < 0)
+        bits |= 1 << j;
     }
 
     out->dist = LittleFloat(in->dist);
@@ -1852,7 +1879,8 @@ static qboolean nameInList(const char *list, const char *name) {
     // make a copy until the next comma or end of string
     i = 0;
     while (*s && *s != ',') {
-      if (i < MAX_QPATH - 1) tmp[i++] = *s;
+      if (i < MAX_QPATH - 1)
+        tmp[i++] = *s;
       s++;
     }
     tmp[i] = '\0';
@@ -1874,7 +1902,8 @@ Mod_SetExtraFlags -- johnfitz -- set up extra flags that aren't in the mdl
 void Mod_SetExtraFlags(qmodel_t *mod) {
   extern cvar_t r_nolerp_list, r_noshadow_list;
 
-  if (!mod || mod->Type != mod_alias) return;
+  if (!mod || mod->Type != mod_alias)
+    return;
 
   mod->flags &= 0xFF;  // only preserve first byte
 

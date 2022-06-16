@@ -93,7 +93,6 @@ typedef struct texture_s {
   char name[16];
   unsigned width, height;
   uint32_t gltexture;                   // johnfitz -- pointer to gltexture
-  uint32_t fullbright;                  // johnfitz -- fullbright mask texture
   uint32_t warpimage;                   // johnfitz -- for water animation
   qboolean update_warp;                 // johnfitz -- update warp this frame
   struct msurface_s *texturechains[2];  // for texture chains
