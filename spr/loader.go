@@ -10,6 +10,7 @@ import (
 
 	"goquake/math/vec"
 	qm "goquake/model"
+	"goquake/palette"
 	"goquake/texture"
 )
 
@@ -207,8 +208,10 @@ func readFrame(buf *bytes.Reader, modName string, index int) (*Frame, error) {
 	if l != int(size) {
 		return nil, fmt.Errorf("readFrame: not enough pixel data")
 	}
+	rgba := palette.Table.Convert(data)
+	palette.AlphaEdgeFix(f.Width, f.Height, rgba)
 	flags := texture.TexPrefPad | texture.TexPrefAlpha | texture.TexPrefNoPicMip
 	name := fmt.Sprintf("%s:frame%d", modName, index)
-	out.Texture = texture.NewTexture(f.Width, f.Height, flags, name, texture.ColorTypeIndexed, data)
+	out.Texture = texture.NewTexture(f.Width, f.Height, flags, name, texture.ColorTypeRGBA, rgba)
 	return out, nil
 }

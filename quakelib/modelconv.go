@@ -86,7 +86,7 @@ func loadTextures(m model.Model) {
 		for _, rf := range mt.Data.Frames {
 			for _, f := range rf.Frames {
 				textureManager.addActiveTexture(f.Texture)
-				textureManager.loadIndexed(f.Texture, f.Texture.Data)
+				textureManager.loadRGBA(f.Texture, f.Texture.Data)
 			}
 		}
 	case *mdl.Model:
