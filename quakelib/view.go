@@ -7,9 +7,12 @@ package quakelib
 import "C"
 
 import (
+	"goquake/bsp"
 	"goquake/cvars"
 	"goquake/glh"
 	"goquake/math/vec"
+	"log"
+	"math"
 
 	"github.com/chewxy/math32"
 	"github.com/go-gl/gl/v4.6-core/gl"
@@ -90,29 +93,44 @@ func (v *qView) Render() {
 	v.polyBlend()
 }
 
+func setupGl() {
+	if cvars.GlCull.Bool() {
+		gl.Enable(gl.CULL_FACE)
+	} else {
+		gl.Disable(gl.CULL_FACE)
+	}
+	gl.Disable(gl.BLEND)
+	gl.Enable(gl.DEPTH_TEST)
+}
+
+const (
+	piDiv360    = math.Pi / 360
+	piDiv360Inv = 360 / math.Pi
+)
+
 func (v *qView) renderScene() {
 	const alphaPass = true
 
 	r_fovx := qRefreshRect.fovX
 	r_fovy := qRefreshRect.fovY
-	// TODO: water/slime/lava modification from R_SetupView
-	/*
-				if cvars.WaterWarp.Bool() {
-					contents := Mod_PointInLeaf(r_origin, cl.worldModel).contents
-					switch contents{
-					case CONTENTS_WATER,CONTENTS_SLIME,CONTENTS_LAVE:
-		      // variance is a percentage of width, where width = 2 * tan(fov / 2)
-		      // otherwise the effect is too dramatic at high FOV and too subtle at low
-		      // FOV.  what a mess!
-		      r_fovx = atan(tan(DEG2RAD(R_Refdef_fov_x()) / 2) *
-		                    (0.97 + sin(CL_Time() * 1.5) * 0.03)) *
-		               2 / M_PI_DIV_180;
-		      r_fovy = atan(tan(DEG2RAD(R_Refdef_fov_y()) / 2) *
-		                    (1.03 - sin(CL_Time() * 1.5) * 0.03)) *
-		               2 / M_PI_DIV_180;
+	if cvars.RWaterWarp.Bool() {
+		l, err := cl.worldModel.PointInLeaf(qRefreshRect.viewOrg)
+		if err != nil {
+			log.Printf("renderScene, PointInLeaf: %v", err)
+		}
+		switch l.Contents() {
+		case bsp.CONTENTS_WATER, bsp.CONTENTS_SLIME, bsp.CONTENTS_LAVA:
+			// variance is a percentage of width, where width = 2 * tan(fov / 2)
+			// otherwise the effect is too dramatic at high FOV and too subtle at low
+			// FOV.  what a mess!
+			t := math.Sin(cl.time*1.5) * 0.03
+			x := r_fovx * piDiv360
+			y := r_fovy * piDiv360
+			r_fovx = math.Atan(math.Tan(x)*(0.97+t)) * piDiv360Inv
+			r_fovy = math.Atan(math.Tan(y)*(1.03-t)) * piDiv360Inv
+		}
+	}
 
-					}
-	*/
 	v.projection = glh.Frustum(r_fovx, r_fovy, cvars.GlFarClip.Value())
 
 	v.modelView = glh.Identity()
@@ -123,7 +141,21 @@ func (v *qView) renderScene() {
 	v.modelView.RotateZ(-qRefreshRect.viewAngles[1])
 	v.modelView.Translate(-qRefreshRect.viewOrg[0], -qRefreshRect.viewOrg[1], -qRefreshRect.viewOrg[2])
 
-	C.R_SetupScene()
+	// setup scene
+	if !cvars.GlFlashBlend.Bool() {
+		markLights(cl.worldModel.Node)
+	}
+	R_AnimateLight()
+	renderer.frameCount++
+
+	gl.Viewport(
+		int32(qRefreshRect.viewRect.x),
+		int32(screen.Height-qRefreshRect.viewRect.y-qRefreshRect.viewRect.height),
+		int32(qRefreshRect.viewRect.width),
+		int32(qRefreshRect.viewRect.height))
+
+	setupGl()
+
 	sky.Draw()
 	// TODO: enable fog?
 	renderer.DrawWorld(cl.worldModel, v.modelView)
