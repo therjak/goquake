@@ -16,9 +16,6 @@ vec3_t vpn;
 vec3_t vright;
 vec3_t r_origin;
 
-float r_fovx, r_fovy;  // johnfitz -- rendering fov may be different becuase of
-                       // r_waterwarp
-
 mleaf_t *r_viewleaf, *r_oldviewleaf;
 
 cvar_t r_norefresh;      // = {"r_norefresh", "0", CVAR_NONE};
@@ -78,49 +75,6 @@ float map_wateralpha, map_lavaalpha, map_telealpha, map_slimealpha;
 
 #define DEG2RAD(a) ((a)*M_PI_DIV_180)
 
-// THERJAK
-#define NEARCLIP 4
-void GL_SetFrustum(float fovx, float fovy) {
-  float xmax, ymax;
-  xmax = NEARCLIP * tan(fovx * M_PI / 360.0);
-  ymax = NEARCLIP * tan(fovy * M_PI / 360.0);
-  // glFrustum(-xmax, xmax, -ymax, ymax, NEARCLIP, Cvar_GetValue(&gl_farclip));
-}
-
-void R_SetupGL(void) {
-  // glMatrixMode(GL_PROJECTION);
-  // glLoadIdentity();
-  glViewport(R_Refdef_vrect_x(),
-             GL_Height() - R_Refdef_vrect_y() - R_Refdef_vrect_height(),
-             R_Refdef_vrect_width(), R_Refdef_vrect_height());
-
-  GL_SetFrustum(r_fovx, r_fovy);
-
-  // glMatrixMode(GL_MODELVIEW);
-  // glLoadIdentity();
-
-  // glRotatef(-90, 1, 0, 0);  // put Z going up
-  // glRotatef(90, 0, 0, 1);   // put Z going up
-  vec3_t viewangles = {R_Refdef_viewangles(0), R_Refdef_viewangles(1),
-                       R_Refdef_viewangles(2)};
-  // glRotatef(-viewangles[2], 1, 0, 0);
-  // glRotatef(-viewangles[0], 0, 1, 0);
-  // glRotatef(-viewangles[1], 0, 0, 1);
-  vec3_t vieworg = {R_Refdef_vieworg(0), R_Refdef_vieworg(1),
-                    R_Refdef_vieworg(2)};
-  // glTranslatef(-vieworg[0], -vieworg[1], -vieworg[2]);
-
-  if (Cvar_GetValue(&gl_cull)) {
-    glEnable(GL_CULL_FACE);
-  } else {
-    glDisable(GL_CULL_FACE);
-  }
-
-  glDisable(GL_BLEND);
-  glDisable(GL_ALPHA_TEST);
-  glEnable(GL_DEPTH_TEST);
-}
-
 void R_Clear(void) {
   unsigned int clearbits;
 
@@ -132,13 +86,6 @@ void R_Clear(void) {
   if (Cvar_GetValue(&gl_clear))
     clearbits |= GL_COLOR_BUFFER_BIT;
   glClear(clearbits);
-}
-
-void R_SetupScene(void) {
-  R_PushDlights();
-  R_AnimateLight();
-  R_framecount_inc();
-  R_SetupGL();
 }
 
 void R_SetupView(void) {
@@ -161,25 +108,6 @@ void R_SetupView(void) {
   V_SetContentsColor(r_viewleaf->contents);
   V_CalcBlend();
 
-  r_fovx = R_Refdef_fov_x();
-  r_fovy = R_Refdef_fov_y();
-  if (Cvar_GetValue(&r_waterwarp)) {
-    int contents = Mod_PointInLeaf(r_origin, cl.worldmodel)->contents;
-    if (contents == CONTENTS_WATER || contents == CONTENTS_SLIME ||
-        contents == CONTENTS_LAVA) {
-      // variance is a percentage of width, where width = 2 * tan(fov / 2)
-      // otherwise the effect is too dramatic at high FOV and too subtle at low
-      // FOV.  what a mess!
-      r_fovx = atan(tan(DEG2RAD(R_Refdef_fov_x()) / 2) *
-                    (0.97 + sin(CL_Time() * 1.5) * 0.03)) *
-               2 / M_PI_DIV_180;
-      r_fovy = atan(tan(DEG2RAD(R_Refdef_fov_y()) / 2) *
-                    (1.03 - sin(CL_Time() * 1.5) * 0.03)) *
-               2 / M_PI_DIV_180;
-    }
-  }
-
-  R_SetFrustum(r_fovx, r_fovy);
   MarkSurfaces();  // create texture chains from PVS
   R_CullSurfaces();
   R_UpdateWarpTextures();

@@ -119,11 +119,6 @@ func (p *fPlane) TurnVector(forward, side vec.Vec3, angle float32) {
 	p.UpdateSignBits()
 }
 
-//export R_SetFrustum
-func R_SetFrustum(fovx, fovy float32) {
-	renderer.SetFrustum(fovx, fovy)
-}
-
 func (r *qRenderer) SetFrustum(fovx, fovy float32) {
 	// We do not use qRefreshRect.fovX/fovY directly as water has an effect on these values
 	r.frustum[0].TurnVector(qRefreshRect.viewForward, qRefreshRect.viewRight, fovx/2-90) // left

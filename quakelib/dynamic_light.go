@@ -2,12 +2,8 @@
 
 package quakelib
 
-//#include <stdio.h>
-//#include "dlight.h"
-import "C"
 import (
 	"goquake/bsp"
-	"goquake/cvars"
 	"goquake/math/vec"
 )
 
@@ -75,15 +71,6 @@ func (c *Client) DecayLights() {
 			dl.radius = 0
 		}
 	}
-}
-
-//export R_PushDlights
-func R_PushDlights() {
-	// Is this even necessary? It feels like DrawBrushModel would do this as well.
-	if cvars.GlFlashBlend.Bool() {
-		return
-	}
-	markLights(cl.worldModel.Node)
 }
 
 func markLights(node bsp.Node) {

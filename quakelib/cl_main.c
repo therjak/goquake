@@ -1,16 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // cl_main.c  -- client main loop
 
-#include "dlight.h"
 #include "quakedef.h"
 
 // we need to declare some mouse variables here, because the menu system
 // references them even when on a unix system.
 
 client_state_t cl;
-
-// FIXME: put these on hunk?
-dlight_t cl_dlights[MAX_DLIGHTS];
 
 /*
 =====================
