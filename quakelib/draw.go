@@ -275,7 +275,6 @@ func (c *Canvas) UpdateSize() {
 	case CANVAS_DEFAULT:
 		gl.Viewport(0, 0, int32(screen.Width), int32(screen.Height))
 		c.sx, c.sy = 2/float32(screen.Width), 2/float32(screen.Height)
-		C.GL_SetCanvas(C.canvastype(c.canvas))
 	case CANVAS_CONSOLE:
 		gl.Viewport(0, 0, int32(screen.Width), int32(screen.Height))
 		h := float32(console.height)
@@ -323,7 +322,6 @@ func (c *Canvas) UpdateSize() {
 	case CANVAS_WARPIMAGE:
 		gl.Viewport(0, int32(screen.Height)-glWarpImageSize, glWarpImageSize, glWarpImageSize)
 		c.sx, c.sy = float32(2)/128, float32(2)/128
-		C.GL_SetCanvas(C.canvastype(c.canvas))
 	case CANVAS_BOTTOMRIGHT:
 		s := float32(screen.Width) / float32(console.width)
 		gl.Viewport(
@@ -336,8 +334,6 @@ func (c *Canvas) UpdateSize() {
 		// case CANVAS_NONE:
 		Error("SetCanvas: bad canvas type")
 	}
-
-	C.GL_CanvasEnd()
 }
 
 func (c *Canvas) Apply() (float32, float32) {
