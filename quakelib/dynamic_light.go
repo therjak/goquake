@@ -12,7 +12,6 @@ import (
 )
 
 type DynamicLight struct {
-	ptr      *C.dlight_t
 	origin   vec.Vec3
 	radius   float32
 	dieTime  float64 // stop after this time
@@ -61,29 +60,7 @@ func (c *Client) GetFreeDynamicLight() *DynamicLight {
 func (c *Client) clearDLights() {
 	for i := range c.dynamicLights {
 		c.dynamicLights[i] = DynamicLight{}
-		c.dynamicLights[i].ptr = &C.cl_dlights[i]
-		c.dynamicLights[i].Sync()
 	}
-}
-
-func (d *DynamicLight) Sync() {
-	if d.ptr == nil {
-		return
-	}
-	d.ptr.origin[0] = C.float(d.origin[0])
-	d.ptr.origin[1] = C.float(d.origin[1])
-	d.ptr.origin[2] = C.float(d.origin[2])
-	d.ptr.radius = C.float(d.radius)
-	d.ptr.die = C.float(d.dieTime)
-	d.ptr.minlight = C.float(d.minLight)
-	d.ptr.color[0] = C.float(d.color[0])
-	d.ptr.color[1] = C.float(d.color[1])
-	d.ptr.color[2] = C.float(d.color[2])
-}
-
-//export CL_Dlight
-func CL_Dlight(idx int) *C.dlight_t {
-	return cl.dynamicLights[idx].ptr
 }
 
 func (c *Client) DecayLights() {
@@ -97,7 +74,6 @@ func (c *Client) DecayLights() {
 		if dl.radius < 0 {
 			dl.radius = 0
 		}
-		dl.Sync()
 	}
 }
 
