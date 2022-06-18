@@ -3,8 +3,8 @@
 
 #include "quakedef.h"
 
-extern cvar_t gl_fullbrights, r_drawflat, gl_overbright, r_oldwater,
-    r_oldskyleaf, r_showtris;  // johnfitz
+extern cvar_t gl_fullbrights, r_drawflat, gl_overbright, r_oldskyleaf,
+    r_showtris;  // johnfitz
 
 byte *SV_FatPVS(vec3_t org, qmodel_t *worldmodel);
 extern byte mod_novis[MAX_MAP_LEAFS / 8];
@@ -166,8 +166,6 @@ void R_CullSurfaces(void) {
       else {
         s->culled = false;
         rs_brushpolys++;  // count wpolys here
-        if (s->texinfo->texture->warpimage)
-          s->texinfo->texture->update_warp = true;
       }
     }
   }

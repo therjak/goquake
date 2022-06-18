@@ -5,30 +5,9 @@
 
 extern cvar_t r_drawflat;
 
-cvar_t r_oldwater;      // = {"r_oldwater", "0", CVAR_ARCHIVE};
-cvar_t r_waterquality;  // = {"r_waterquality", "8", CVAR_NONE};
-cvar_t r_waterwarp;     //= {"r_waterwarp", "1", CVAR_NONE};
-
 // should be read from gl_subdivide_size cvar
 float load_subdivide_size;  // johnfitz -- remember what subdivide_size value
                             // was when this map was loaded
-
-float turbsin[] = {
-#include "gl_warp_sin.h"
-};
-
-#define WARPCALC(s, t)                                                  \
-  ((s + turbsin[(int)((t * 2) + (CL_Time() * (128.0 / M_PI))) & 255]) * \
-   (1.0 / 64))  // johnfitz -- correct warp
-#define WARPCALC2(s, t)                                                   \
-  ((s + turbsin[(int)((t * 0.125 + CL_Time()) * (128.0 / M_PI)) & 255]) * \
-   (1.0 / 64))  // johnfitz -- old warp
-
-//==============================================================================
-//
-//  OLD-STYLE WATER
-//
-//==============================================================================
 
 extern qmodel_t *loadmodel;
 
@@ -146,99 +125,4 @@ void GL_SubdivideSurface(msurface_t *fa) {
     VectorCopy(fa->polys->verts[i], verts[i]);
 
   SubdividePolygon(fa->polys->numverts, verts[0]);
-}
-
-/*
-================
-DrawWaterPoly -- johnfitz
-================
-*/
-void DrawWaterPoly(glpoly_t *p) {
-  float *v;
-  int i;
-
-  if (load_subdivide_size > 48) {
-    // glBegin(GL_POLYGON);
-    v = p->verts[0];
-    for (i = 0; i < p->numverts; i++, v += VERTEXSIZE) {
-      // glTexCoord2f(WARPCALC2(v[3], v[4]), WARPCALC2(v[4], v[3]));
-      // glVertex3fv(v);
-    }
-    // glEnd();
-  } else {
-    // glBegin(GL_POLYGON);
-    v = p->verts[0];
-    for (i = 0; i < p->numverts; i++, v += VERTEXSIZE) {
-      // glTexCoord2f(WARPCALC(v[3], v[4]), WARPCALC(v[4], v[3]));
-      // glVertex3fv(v);
-    }
-    // glEnd();
-  }
-}
-
-//==============================================================================
-//
-//  RENDER-TO-FRAMEBUFFER WATER
-//
-//==============================================================================
-
-/*
-=============
-R_UpdateWarpTextures -- johnfitz -- each frame, update warping textures
-=============
-*/
-void R_UpdateWarpTexturesC(void) {
-  texture_t *tx;
-  int i;
-  float x, y, x2, warptess;
-
-  if (Cvar_GetValue(&r_oldwater) || CL_Paused())
-    return;
-
-  warptess = 128.0 / CLAMP(3.0, floor(Cvar_GetValue(&r_waterquality)), 64.0);
-
-  for (i = 0; i < cl.worldmodel->numtextures; i++) {
-    if (!(tx = cl.worldmodel->textures[i]))
-      continue;
-
-    if (!tx->update_warp)
-      continue;
-
-    // render warp
-    GLSetCanvas(CANVAS_WARPIMAGE);
-    GLBind(tx->gltexture);
-    for (x = 0.0; x < 128.0; x = x2) {
-      x2 = x + warptess;
-      // glBegin(GL_TRIANGLE_STRIP);
-      for (y = 0.0; y < 128.01; y += warptess)  // .01 for rounding errors
-      {
-        // glTexCoord2f(WARPCALC(x, y), WARPCALC(y, x));
-        // glVertex2f(x, y);
-        // glTexCoord2f(WARPCALC(x2, y), WARPCALC(y, x2));
-        // glVertex2f(x2, y);
-      }
-      // glEnd();
-    }
-
-    // copy to texture
-    GLBind(tx->warpimage);
-    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0,
-                        GL_Height() - GL_warpimagesize(), GL_warpimagesize(),
-                        GL_warpimagesize());
-
-    tx->update_warp = false;
-  }
-
-  // ericw -- workaround for osx 10.6 driver bug when using FSAA. R_Clear only
-  // clears the warpimage part of the screen.
-  GLSetCanvas(CANVAS_DEFAULT);
-
-  // if warp render went down into sbar territory, we need to be sure to refresh
-  // it next frame
-  if (GL_warpimagesize() + Sbar_Lines() > GL_Height())
-    Sbar_Changed();
-
-  // if viewsize is less than 100, we need to redraw the frame around the
-  // viewport
-  SCR_ResetTileClearUpdates();
 }

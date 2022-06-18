@@ -9,9 +9,6 @@ extern cvar_t r_drawflat;
 extern cvar_t r_flatlightstyles;
 extern cvar_t gl_fullbrights;
 extern cvar_t gl_farclip;
-extern cvar_t r_waterquality;
-extern cvar_t r_oldwater;
-extern cvar_t r_waterwarp;
 extern cvar_t r_oldskyleaf;
 extern cvar_t r_drawworld;
 extern cvar_t r_showtris;
@@ -86,9 +83,6 @@ void R_Init(void) {
 
   Cvar_FakeRegister(&r_clearcolor, "r_clearcolor");
   Cvar_SetCallback(&r_clearcolor, R_SetClearColor_f);
-  Cvar_FakeRegister(&r_waterquality, "r_waterquality");
-  Cvar_FakeRegister(&r_oldwater, "r_oldwater");
-  Cvar_FakeRegister(&r_waterwarp, "r_waterwarp");
   Cvar_FakeRegister(&r_drawflat, "r_drawflat");
   Cvar_FakeRegister(&r_flatlightstyles, "r_flatlightstyles");
   Cvar_FakeRegister(&r_oldskyleaf, "r_oldskyleaf");

@@ -93,8 +93,6 @@ typedef struct texture_s {
   char name[16];
   unsigned width, height;
   uint32_t gltexture;                   // johnfitz -- pointer to gltexture
-  uint32_t warpimage;                   // johnfitz -- for water animation
-  qboolean update_warp;                 // johnfitz -- update warp this frame
   struct msurface_s *texturechains[2];  // for texture chains
   int anim_total;                       // total tenths in sequence ( 0 = no)
   int anim_min, anim_max;               // time for this frame min <=time< max

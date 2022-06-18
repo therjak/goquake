@@ -24,7 +24,6 @@ cvar_t r_drawviewmodel;  // = {"r_drawviewmodel", "1", CVAR_NONE};
 cvar_t r_fullbright;     // = {"r_fullbright", "0", CVAR_NONE};
 cvar_t r_lightmap;       // = {"r_lightmap", "0", CVAR_NONE};
 cvar_t r_shadows;        // = {"r_shadows", "0", CVAR_ARCHIVE};
-cvar_t r_wateralpha;     // = {"r_wateralpha", "1", CVAR_ARCHIVE};
 cvar_t r_dynamic;        // = {"r_dynamic", "1", CVAR_ARCHIVE};
 cvar_t r_novis;          // = {"r_novis", "0", CVAR_ARCHIVE};
 
@@ -67,12 +66,6 @@ cvar_t r_noshadow_list;  // = {"r_noshadow_list",
 
 cvar_t gl_zfix;  // = {"gl_zfix", "0", CVAR_NONE};  // QuakeSpasm z-fighting fix
 
-cvar_t r_lavaalpha;   // = {"r_lavaalpha", "0", CVAR_NONE};
-cvar_t r_telealpha;   // = {"r_telealpha", "0", CVAR_NONE};
-cvar_t r_slimealpha;  // = {"r_slimealpha", "0", CVAR_NONE};
-
-float map_wateralpha, map_lavaalpha, map_telealpha, map_slimealpha;
-
 #define DEG2RAD(a) ((a)*M_PI_DIV_180)
 
 void R_Clear(void) {
@@ -110,6 +103,8 @@ void R_SetupView(void) {
 
   MarkSurfaces();  // create texture chains from PVS
   R_CullSurfaces();
-  R_UpdateWarpTextures();
+  GLSetCanvas(CANVAS_DEFAULT);
+  Sbar_Changed();
+  SCR_ResetTileClearUpdates();
   R_Clear();
 }

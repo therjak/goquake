@@ -89,14 +89,9 @@ extern cvar_t r_norefresh;
 extern cvar_t r_drawentities;
 extern cvar_t r_drawworld;
 extern cvar_t r_drawviewmodel;
-extern cvar_t r_waterwarp;
 extern cvar_t r_fullbright;
 extern cvar_t r_lightmap;
 extern cvar_t r_shadows;
-extern cvar_t r_wateralpha;
-extern cvar_t r_lavaalpha;
-extern cvar_t r_telealpha;
-extern cvar_t r_slimealpha;
 extern cvar_t r_dynamic;
 extern cvar_t r_novis;
 
