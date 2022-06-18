@@ -12,6 +12,7 @@ import (
 	"goquake/cvars"
 	"goquake/glh"
 	"goquake/math/vec"
+	"goquake/qtime"
 	"goquake/texture"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
@@ -60,6 +61,8 @@ type qBrushDrawer struct {
 	alpha         int32
 	fogDensity    int32
 	fogColor      int32
+	turb          int32
+	time          int32
 	vbo_indices   []uint32
 }
 
@@ -88,6 +91,8 @@ func newBrushDrawer() *qBrushDrawer {
 	d.alpha = d.prog.GetUniformLocation("Alpha")
 	d.fogDensity = d.prog.GetUniformLocation("FogDensity")
 	d.fogColor = d.prog.GetUniformLocation("FogColor")
+	d.turb = d.prog.GetUniformLocation("Turb")
+	d.time = d.prog.GetUniformLocation("Time")
 	d.vbo_indices = make([]uint32, 0, 4096)
 	return d
 }
@@ -179,14 +184,10 @@ func (r *qRenderer) DrawBrushModel(e *Entity, model *bsp.Model) {
 		}
 	}
 	r.drawTextureChains(modelview, model, e, chainModel)
-	r.drawTextureChainsWater(modelview, model, e, chainModel)
 }
 
 func (r *qRenderer) DrawWorld(model *bsp.Model, mv *glh.Matrix) {
 	r.drawTextureChains(mv, model, nil, chainWorld)
-}
-func (r *qRenderer) DrawWorldWater(model *bsp.Model, mv *glh.Matrix) {
-	r.drawTextureChainsWater(mv, model, nil, chainWorld)
 }
 
 //export R_RebuildAllLightmaps
@@ -315,16 +316,24 @@ func (d *qBrushDrawer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *En
 	gl.Uniform1f(d.alpha, entalpha)
 	gl.Uniform1f(d.fogDensity, fog.Density)
 	gl.Uniform4f(d.fogColor, fog.Color.R, fog.Color.G, fog.Color.B, 0)
+	gl.Uniform1f(d.time, float32(qtime.QTime().Seconds()))
 	view.projection.SetAsUniform(d.projection)
 	mv.SetAsUniform(d.modelview)
 
 	for _, t := range model.Textures {
 		if t == nil ||
 			t.TextureChains[chain] == nil ||
-			t.TextureChains[chain].Flags&(bsp.SurfaceNoTexture|bsp.SurfaceDrawTiled) != 0 {
-			// SurfaceDrawTiled removes water types and sky
+			t.TextureChains[chain].Flags&(bsp.SurfaceNoTexture|bsp.SurfaceDrawSky) != 0 {
 			continue
 		}
+		turb := func(flags int) float32 {
+			if flags&bsp.SurfaceDrawTurb != 0 {
+				return 1
+			}
+			return 0
+		}(t.TextureChains[chain].Flags)
+		gl.Uniform1f(d.turb, turb)
+		// TODO: check water alpha
 
 		frame := 0
 		if e != nil {
@@ -397,8 +406,6 @@ func (r *qRenderer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *Entit
 	brushDrawer.drawTextureChains(mv, model, e, chain)
 }
 
-func (r *qRenderer) drawTextureChainsWater(mv *glh.Matrix, model *bsp.Model, e *Entity, chain int) {}
-
 func waterAlphaForSurface(s *bsp.Surface) float32 {
 	orWater := func(v float32) float32 {
 		if v > 0 {
@@ -413,7 +420,10 @@ func waterAlphaForSurface(s *bsp.Surface) float32 {
 		return orWater(mapAlphas.tele)
 	case s.Flags&bsp.SurfaceDrawSlime != 0:
 		return orWater(mapAlphas.slime)
+	case s.Flags&bsp.SurfaceDrawTurb != 0:
+		return mapAlphas.water
 	default:
+		// TODO
 		return mapAlphas.water
 	}
 }

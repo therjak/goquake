@@ -160,7 +160,6 @@ func (v *qView) renderScene() {
 	// TODO: enable fog?
 	renderer.DrawWorld(cl.worldModel, v.modelView)
 	renderer.DrawEntitiesOnList(!alphaPass)
-	renderer.DrawWorldWater(cl.worldModel, v.modelView)
 	renderer.DrawEntitiesOnList(alphaPass)
 	renderer.RenderDynamicLights()
 	particlesDraw()
