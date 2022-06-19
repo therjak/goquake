@@ -83,7 +83,7 @@ func (v *qView) Render() {
 		if cvars.GlFinish.Bool() {
 			gl.Finish()
 		}
-		C.R_SetupView()
+		setupView()
 		v.renderScene()
 		if cvars.RPos.Bool() {
 			printPosition()
@@ -91,6 +91,32 @@ func (v *qView) Render() {
 	}
 
 	v.polyBlend()
+}
+
+func setupView() {
+	C.R_SetupView()
+
+	// markSurfaces
+	// cullSurfaces
+
+	qCanvas.Set(CANVAS_DEFAULT)
+	statusbar.MarkChanged()
+	screen.ResetTileClearUpdates()
+	clearGl()
+}
+
+func clearGl() {
+	var cb uint32 = gl.DEPTH_BUFFER_BIT
+	/*
+		  gl_stencilbits := SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE)
+			if gl_stencilbits {
+				cb |= gl.STENCIL_BUFFER_BIT
+			}
+	*/
+	if cvars.GlClear.Bool() {
+		cb |= gl.COLOR_BUFFER_BIT
+	}
+	gl.Clear(cb)
 }
 
 func setupGl() {

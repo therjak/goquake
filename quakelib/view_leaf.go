@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 package quakelib
 
-//void R_MarkSurfaces(void);
 import "C"
 
 import (
@@ -48,7 +47,6 @@ func init() {
 
 //export MarkSurfaces
 func MarkSurfaces() {
-	C.R_MarkSurfaces()
 	// check for water portals
 	nearWaterPortal := false
 	for _, mark := range viewLeaf.current.MarkSurfaces {
@@ -78,6 +76,7 @@ func MarkSurfaces() {
 		return
 	}
 	markSurfacesVisChanged = false
+	renderer.visFrameCount++
 	// TODO: I am quite sure this is the one that is not needed.
 	viewLeaf.old = viewLeaf.current
 

@@ -1,12 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 package quakelib
 
-//#include "stdlib.h"
-//#include "canvas.h"
-//void GL_SetCanvas(canvastype newCanvas);
-//void GL_CanvasEnd(void);
-import "C"
-
 import (
 	"encoding/binary"
 	"fmt"
@@ -24,13 +18,13 @@ import (
 type canvas int
 
 const (
-	CANVAS_NONE        canvas = C.CANVAS_NONE
-	CANVAS_DEFAULT     canvas = C.CANVAS_DEFAULT
-	CANVAS_CONSOLE     canvas = C.CANVAS_CONSOLE
-	CANVAS_MENU        canvas = C.CANVAS_MENU
-	CANVAS_STATUSBAR   canvas = C.CANVAS_SBAR
-	CANVAS_WARPIMAGE   canvas = C.CANVAS_WARPIMAGE
-	CANVAS_BOTTOMRIGHT canvas = C.CANVAS_BOTTOMRIGHT
+	CANVAS_NONE canvas = iota
+	CANVAS_DEFAULT
+	CANVAS_CONSOLE
+	CANVAS_MENU
+	CANVAS_STATUSBAR
+	CANVAS_WARPIMAGE
+	CANVAS_BOTTOMRIGHT
 )
 
 func newRecDrawProgram() (*glh.Program, error) {
@@ -227,11 +221,6 @@ func drawInit() {
 	textureManager.Init()
 	consoleTexture = textureManager.LoadConsoleChars()
 	backtileTexture = textureManager.LoadBacktile()
-}
-
-//export GLSetCanvas
-func GLSetCanvas(c C.canvastype) {
-	qCanvas.Set(canvas(c))
 }
 
 func drawSet2D() {

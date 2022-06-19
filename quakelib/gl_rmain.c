@@ -47,19 +47,6 @@ void R_Init(void) {
   Cvar_FakeRegister(&gl_farclip, "gl_farclip");
 }
 
-void R_Clear(void) {
-  unsigned int clearbits;
-
-  clearbits = GL_DEPTH_BUFFER_BIT;
-  // if we get a stencil buffer, we should clear it, even though we
-  // don't use it
-  if (gl_stencilbits)
-    clearbits |= GL_STENCIL_BUFFER_BIT;
-  if (Cvar_GetValue(&gl_clear))
-    clearbits |= GL_COLOR_BUFFER_BIT;
-  glClear(clearbits);
-}
-
 void R_SetupView(void) {
   // build the transformation matrix for the given view angles
   vec3_t vieworg = {R_Refdef_vieworg(0), R_Refdef_vieworg(1),
@@ -80,8 +67,4 @@ void R_SetupView(void) {
 
   MarkSurfaces();  // create texture chains from PVS
   R_CullSurfaces();
-  GLSetCanvas(CANVAS_DEFAULT);
-  Sbar_Changed();
-  SCR_ResetTileClearUpdates();
-  R_Clear();
 }
