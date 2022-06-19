@@ -218,8 +218,6 @@ typedef struct {
 // command line parms passed to the program, and the amount of memory
 // available for the program to use
 
-extern qboolean noclip_anglehack;
-
 //
 // host
 //

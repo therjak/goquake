@@ -41,8 +41,6 @@ void Host_Error(const char *error, ...) {
   GoHostError(string);
 }
 
-qboolean noclip_anglehack;
-
 /*
 ================
 Host_ClearMemory
@@ -72,7 +70,8 @@ void Host_Init(void) {
   else
     minimum_memory = MINIMUM_MEMORY_LEVELPAK;
 
-  if (CMLMinMemory()) host_parms->memsize = minimum_memory;
+  if (CMLMinMemory())
+    host_parms->memsize = minimum_memory;
 
   if (host_parms->memsize < minimum_memory)
     Sys_Error("Only %4.1f megs of memory available, can't execute game",

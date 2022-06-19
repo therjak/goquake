@@ -11,6 +11,5 @@ void CLPrecacheModel(const char* cn, int i) {
 
 void FinishCL_ParseServerInfo(void) {
   // local state
-  Hunk_Check();              // make sure nothing is hurt
-  noclip_anglehack = false;  // noclip is turned off at start
+  Hunk_Check();  // make sure nothing is hurt
 }

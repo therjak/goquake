@@ -5,6 +5,8 @@
 float Fog_GetDensity(void);
 float *Fog_GetColor(void);
 
+float fogColor[4];
+
 extern int rs_skypolys;   // for r_speeds readout
 extern int rs_skypasses;  // for r_speeds readout
 float skymins[2][6], skymaxs[2][6];

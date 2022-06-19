@@ -11,8 +11,6 @@ package quakelib
 //extern float skymaxs[2][6];
 //extern int rs_brushpasses;
 //void Sky_Init(void);
-//void Fog_EnableGFog(void);
-//void Fog_DisableGFog(void);
 //void Sky_DrawSkyBox(void);
 import "C"
 
@@ -655,8 +653,6 @@ func (s *qSky) processPoly(p *bsp.Poly, c Color) {
 // cl.worldmodel->numtextures
 // cl.worldmodel->textures
 // cl.worldmodel->entities
-// Fog_DisableGFog()
-// Fog_EnableGFog()
 // r_origin -> == qRefreshRect.viewOrg
 // rs_skypolys
 // rs_skypasses

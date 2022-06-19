@@ -82,8 +82,6 @@ void R_Clear(void) {
 }
 
 void R_SetupView(void) {
-  Fog_SetupFrame();  // johnfitz
-
   // build the transformation matrix for the given view angles
   vec3_t vieworg = {R_Refdef_vieworg(0), R_Refdef_vieworg(1),
                     R_Refdef_vieworg(2)};

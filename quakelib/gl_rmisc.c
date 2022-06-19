@@ -105,5 +105,4 @@ void R_Init(void) {
   R_SetClearColor_f(&r_clearcolor);
 
   SkyInit();
-  Fog_Init();
 }
