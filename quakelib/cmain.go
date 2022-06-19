@@ -91,6 +91,9 @@ func CallCMain() error {
 		drawInit()
 		screen.initialized = true
 		C.R_Init()
+		SkyInit()
+		particlesInit()
+		setClearColor(cvars.RClearColor)
 		soundInit()
 		statusbar.LoadPictures()
 		clientInit()

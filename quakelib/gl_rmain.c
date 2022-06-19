@@ -18,42 +18,18 @@ vec3_t r_origin;
 
 mleaf_t *r_viewleaf, *r_oldviewleaf;
 
-cvar_t r_norefresh;      // = {"r_norefresh", "0", CVAR_NONE};
-cvar_t r_drawentities;   // = {"r_drawentities", "1", CVAR_NONE};
-cvar_t r_drawviewmodel;  // = {"r_drawviewmodel", "1", CVAR_NONE};
-cvar_t r_fullbright;     // = {"r_fullbright", "0", CVAR_NONE};
-cvar_t r_lightmap;       // = {"r_lightmap", "0", CVAR_NONE};
-cvar_t r_shadows;        // = {"r_shadows", "0", CVAR_ARCHIVE};
-cvar_t r_dynamic;        // = {"r_dynamic", "1", CVAR_ARCHIVE};
-cvar_t r_novis;          // = {"r_novis", "0", CVAR_ARCHIVE};
+cvar_t r_novis;  // = {"r_novis", "0", CVAR_ARCHIVE};
 
-cvar_t gl_finish;        // = {"gl_finish", "0", CVAR_NONE};
-cvar_t gl_clear;         // = {"gl_clear", "1", CVAR_NONE};
-cvar_t gl_cull;          // = {"gl_cull", "1", CVAR_NONE};
-cvar_t gl_smoothmodels;  // = {"gl_smoothmodels", "1", CVAR_NONE};
-cvar_t gl_affinemodels;  // = {"gl_affinemodels", "0", CVAR_NONE};
-cvar_t gl_polyblend;     // = {"gl_polyblend", "1", CVAR_NONE};
-cvar_t gl_flashblend;    // = {"gl_flashblend", "0", CVAR_ARCHIVE};
-cvar_t gl_playermip;     // = {"gl_playermip", "0", CVAR_NONE};
-cvar_t gl_nocolors;      // = {"gl_nocolors", "0", CVAR_NONE};
+cvar_t gl_clear;  // = {"gl_clear", "1", CVAR_NONE};
 
 // johnfitz -- new cvars
-cvar_t r_clearcolor;          // = {"r_clearcolor", "2", CVAR_ARCHIVE};
-cvar_t r_drawflat;            // = {"r_drawflat", "0", CVAR_NONE};
-cvar_t r_flatlightstyles;     // = {"r_flatlightstyles", "0", CVAR_NONE};
-cvar_t gl_fullbrights;        // = {"gl_fullbrights", "1", CVAR_ARCHIVE};
-cvar_t gl_farclip;            // = {"gl_farclip", "16384", CVAR_ARCHIVE};
-cvar_t gl_overbright;         // = {"gl_overbright", "1", CVAR_ARCHIVE};
-cvar_t gl_overbright_models;  // = {"gl_overbright_models", "1", CVAR_ARCHIVE};
-cvar_t r_oldskyleaf;          // = {"r_oldskyleaf", "0", CVAR_NONE};
-cvar_t r_drawworld;           // = {"r_drawworld", "1", CVAR_NONE};
-cvar_t r_showtris;            // = {"r_showtris", "0", CVAR_NONE};
-cvar_t r_lerpmodels;          // = {"r_lerpmodels", "1", CVAR_NONE};
-cvar_t r_lerpmove;            // = {"r_lerpmove", "1", CVAR_NONE};
-cvar_t r_nolerp_list;         // = {"r_nolerp_list",
-                              //   "progs/flame.mdl,progs/flame2.mdl,progs/"
-                              //   "braztall.mdl,progs/brazshrt.mdl,progs/"
-                              //  "longtrch.mdl,progs/flame_pyre.mdl,progs/"
+cvar_t r_clearcolor;   // = {"r_clearcolor", "2", CVAR_ARCHIVE};
+cvar_t gl_farclip;     // = {"gl_farclip", "16384", CVAR_ARCHIVE};
+cvar_t r_oldskyleaf;   // = {"r_oldskyleaf", "0", CVAR_NONE};
+cvar_t r_nolerp_list;  // = {"r_nolerp_list",
+                       //   "progs/flame.mdl,progs/flame2.mdl,progs/"
+                       //   "braztall.mdl,progs/brazshrt.mdl,progs/"
+                       //  "longtrch.mdl,progs/flame_pyre.mdl,progs/"
 //       "v_saw.mdl,progs/v_xfist.mdl,progs/h2stuff/newfire.mdl",
 //     CVAR_NONE};
 cvar_t r_noshadow_list;  // = {"r_noshadow_list",
@@ -64,9 +40,12 @@ cvar_t r_noshadow_list;  // = {"r_noshadow_list",
 
 // johnfitz
 
-cvar_t gl_zfix;  // = {"gl_zfix", "0", CVAR_NONE};  // QuakeSpasm z-fighting fix
-
 #define DEG2RAD(a) ((a)*M_PI_DIV_180)
+
+void R_Init(void) {
+  Cvar_FakeRegister(&gl_clear, "gl_clear");
+  Cvar_FakeRegister(&gl_farclip, "gl_farclip");
+}
 
 void R_Clear(void) {
   unsigned int clearbits;

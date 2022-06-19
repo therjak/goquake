@@ -3,8 +3,7 @@
 
 #include "quakedef.h"
 
-extern cvar_t gl_fullbrights, r_drawflat, gl_overbright, r_oldskyleaf,
-    r_showtris;  // johnfitz
+extern cvar_t r_oldskyleaf;  // johnfitz
 
 byte *SV_FatPVS(vec3_t org, qmodel_t *worldmodel);
 extern byte mod_novis[MAX_MAP_LEAFS / 8];

@@ -330,6 +330,7 @@ func newMap(m *bsp.Model) error {
 		l.Temporary = nil
 	}
 	// r_viewleaf = NULL
+	particlesClear()
 
 	// GL_BuildLightmaps
 	brushDrawer.buildVertexBuffer() // should get the model

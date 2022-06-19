@@ -4,16 +4,30 @@ package quakelib
 import "C"
 import (
 	"goquake/bsp"
+	"goquake/cvar"
 	"goquake/cvars"
 	"goquake/glh"
 	"goquake/math/vec"
 	"goquake/mdl"
+	"goquake/palette"
 	"goquake/progs"
 	"goquake/spr"
 
 	"github.com/chewxy/math32"
 	"github.com/go-gl/gl/v4.6-core/gl"
 )
+
+func init() {
+	cvars.RClearColor.SetCallback(setClearColor)
+}
+
+func setClearColor(cv *cvar.Cvar) {
+	s := int(cv.Value()) & 0xff
+	r := float32(palette.Table[s*4]) / 255
+	g := float32(palette.Table[s*4+1]) / 255
+	b := float32(palette.Table[s*4+2]) / 255
+	gl.ClearColor(r, g, b, 0)
+}
 
 type fPlane struct {
 	signBits uint8 // caching of plane side tests

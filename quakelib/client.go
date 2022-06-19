@@ -21,6 +21,7 @@ import (
 	"goquake/cmd"
 	cmdl "goquake/commandline"
 	"goquake/conlog"
+	"goquake/cvar"
 	"goquake/cvars"
 	"goquake/execute"
 	"goquake/filesystem"
@@ -82,6 +83,17 @@ func init() {
 
 	addCommand("tracepos", tracePosition)
 	//cmd.AddCommand("mcache", Mod_Print);
+	updateExtraFlags := func() {
+		for _, m := range cl.modelPrecache {
+			setExtraFlags(m)
+		}
+	}
+	cvars.RNoLerpList.SetCallback(func(cv *cvar.Cvar) {
+		updateExtraFlags()
+	})
+	cvars.RNoShadowList.SetCallback(func(cv *cvar.Cvar) {
+		updateExtraFlags()
+	})
 }
 
 const (
