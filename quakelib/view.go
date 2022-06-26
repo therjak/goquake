@@ -96,8 +96,8 @@ func (v *qView) Render() {
 func setupView() {
 	C.R_SetupView()
 
-	// markSurfaces
-	// cullSurfaces
+	MarkSurfaces()
+	renderer.cullSurfaces(cl.worldModel)
 
 	qCanvas.Set(CANVAS_DEFAULT)
 	statusbar.MarkChanged()

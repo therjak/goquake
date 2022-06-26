@@ -83,7 +83,7 @@ extern vec3_t r_origin;
 //
 // screen size info
 //
-extern mleaf_t *r_viewleaf, *r_oldviewleaf;
+extern mleaf_t *r_viewleaf;
 
 extern cvar_t r_norefresh;
 extern cvar_t r_drawentities;
@@ -134,7 +134,6 @@ void Fog_SetupFrame(void);
 void Fog_Init(void);
 
 void R_AnimateLight(void);
-void R_CullSurfaces(void);
 void R_RotateForEntity(vec3_t origin, vec3_t angles);
 
 void R_RenderDlights(void);

@@ -14,8 +14,6 @@ qmodel_t *Mod_LoadModel(qmodel_t *mod, qboolean crash);
 
 cvar_t external_ents;
 
-byte mod_novis[MAX_MAP_LEAFS / 8];
-
 #define MAX_MOD_KNOWN 2048 /*johnfitz -- was 512 */
 qmodel_t mod_known[MAX_MOD_KNOWN];
 int mod_numknown;
@@ -32,8 +30,6 @@ Mod_Init
 void Mod_Init(void) {
   Cvar_FakeRegister(&gl_subdivide_size, "gl_subdivide_size");
   Cvar_FakeRegister(&external_ents, "external_ents");
-
-  memset(mod_novis, 0xff, sizeof(mod_novis));
 
   // johnfitz -- create notexture miptex
   r_notexture_mip =

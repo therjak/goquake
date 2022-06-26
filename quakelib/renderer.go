@@ -316,6 +316,36 @@ func (r *qRenderer) DrawEntitiesOnList(alphaPass bool) {
 	}
 }
 
+func (r *qRenderer) backFaceCull(s *bsp.Surface) bool {
+	viewOrg := qRefreshRect.viewOrg
+
+	dot := func(p *bsp.Plane) float32 {
+		switch p.Type {
+		case 0, 1, 2:
+			return viewOrg[p.Type] - p.Dist
+		default:
+			return vec.Dot(viewOrg, p.Normal) - p.Dist
+		}
+	}(s.Plane)
+
+	if (dot < 0) != (s.Flags&bsp.SurfacePlaneBack != 0) {
+		return true
+	}
+
+	return false
+}
+
+func (r *qRenderer) cullSurfaces(world *bsp.Model) {
+	for _, tx := range world.Textures {
+		if tx == nil || tx.TextureChains[chainWorld] == nil {
+			continue
+		}
+		for s := tx.TextureChains[chainWorld]; s != nil; s = s.TextureChain {
+			s.Culled = r.CullBox(s.Mins, s.Maxs) || r.backFaceCull(s)
+		}
+	}
+}
+
 /*
 func (r *qRenderer) DrawShadows() {
 	if !cvars.RShadows.Bool() {

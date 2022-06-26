@@ -45,7 +45,6 @@ func init() {
 	cvars.ROldSkyLeaf.SetCallback(f)
 }
 
-//export MarkSurfaces
 func MarkSurfaces() {
 	// check for water portals
 	nearWaterPortal := false
