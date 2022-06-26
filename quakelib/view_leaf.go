@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 package quakelib
 
-import "C"
-
 import (
 	"log"
 
 	"goquake/bsp"
 	"goquake/cvar"
 	"goquake/cvars"
+	"goquake/math/vec"
 )
 
 type qViewLeaf struct {
@@ -23,15 +22,14 @@ const (
 	chainModel = 1
 )
 
-//export UpdateViewLeafGo
-func UpdateViewLeafGo() {
+func (vl *qViewLeaf) Update(world *bsp.Model, viewOrg vec.Vec3) {
 	// TODO: it feels like there is a 'bug' if two places update viewLeaf.old
-	viewLeaf.old = viewLeaf.current
-	c, err := cl.worldModel.PointInLeaf(qRefreshRect.viewOrg)
+	vl.old = vl.current
+	c, err := world.PointInLeaf(viewOrg)
 	if err != nil {
 		log.Printf("UpdateViewLeaf: %v", err)
 	}
-	viewLeaf.current = c
+	vl.current = c
 }
 
 var markSurfacesVis []byte

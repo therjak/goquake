@@ -13,8 +13,6 @@ float rs_megatexels;
 //
 vec3_t r_origin;
 
-mleaf_t *r_viewleaf;
-
 // johnfitz -- new cvars
 cvar_t r_clearcolor;   // = {"r_clearcolor", "2", CVAR_ARCHIVE};
 cvar_t gl_farclip;     // = {"gl_farclip", "16384", CVAR_ARCHIVE};
@@ -44,12 +42,4 @@ void R_SetupView(void) {
   vec3_t vieworg = {R_Refdef_vieworg(0), R_Refdef_vieworg(1),
                     R_Refdef_vieworg(2)};
   VectorCopy(vieworg, r_origin);
-  UpdateVpnGo();
-
-  // current viewleaf
-  UpdateViewLeafGo();
-  r_viewleaf = Mod_PointInLeaf(r_origin, cl.worldmodel);
-
-  V_SetContentsColor(r_viewleaf->contents);
-  V_CalcBlend();
 }

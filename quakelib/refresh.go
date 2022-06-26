@@ -72,8 +72,3 @@ func R_Refdef_viewangles(i int) float32 {
 func R_Refdef_SetViewAngles(i int, v float32) {
 	qRefreshRect.viewAngles[i] = v
 }
-
-//export UpdateVpnGo
-func UpdateVpnGo() {
-	qRefreshRect.viewForward, qRefreshRect.viewRight, qRefreshRect.viewUp = vec.AngleVectors(qRefreshRect.viewAngles)
-}

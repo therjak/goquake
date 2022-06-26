@@ -96,6 +96,13 @@ func (v *qView) Render() {
 func setupView() {
 	C.R_SetupView()
 
+	qRefreshRect.viewForward, qRefreshRect.viewRight, qRefreshRect.viewUp = vec.AngleVectors(qRefreshRect.viewAngles)
+
+	viewLeaf.Update(cl.worldModel, qRefreshRect.viewOrg)
+
+	cl.setContentsColor(viewLeaf.current.Contents())
+	view.blendColor = cl.calcBlend()
+
 	MarkSurfaces()
 	renderer.cullSurfaces(cl.worldModel)
 

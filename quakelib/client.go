@@ -923,11 +923,6 @@ func (c *Client) driftPitch() {
 	}
 }
 
-//export V_CalcBlend
-func V_CalcBlend() {
-	view.blendColor = cl.calcBlend()
-}
-
 func (c *Client) calcBlend() Color {
 	color := Color{}
 	p := cvars.GlColorShiftPercent.Value() / 100
@@ -1091,11 +1086,6 @@ func (c *Client) calcIntermissionRefreshRect() {
 	w.Model = nil
 
 	c.addIdle(1)
-}
-
-//export V_SetContentsColor
-func V_SetContentsColor(c int) {
-	cl.setContentsColor(c)
 }
 
 func intColor(r, g, b, a float32) Color {
