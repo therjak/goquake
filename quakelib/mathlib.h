@@ -37,20 +37,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 extern vec3_t vec3_origin;
 
 #define DotProduct(x, y) (x[0] * y[0] + x[1] * y[1] + x[2] * y[2])
-#define DoublePrecisionDotProduct(x, y) \
-  ((double)x[0] * y[0] + (double)x[1] * y[1] + (double)x[2] * y[2])
-#define VectorSubtract(a, b, c) \
-  {                             \
-    c[0] = a[0] - b[0];         \
-    c[1] = a[1] - b[1];         \
-    c[2] = a[2] - b[2];         \
-  }
-#define VectorAdd(a, b, c) \
-  {                        \
-    c[0] = a[0] + b[0];    \
-    c[1] = a[1] + b[1];    \
-    c[2] = a[2] + b[2];    \
-  }
 #define VectorCopy(a, b) \
   {                      \
     b[0] = a[0];         \
@@ -58,15 +44,6 @@ extern vec3_t vec3_origin;
     b[2] = a[2];         \
   }
 
-void VectorAngles(const vec3_t forward, vec3_t angles);  // johnfitz
-
-void VectorMA(vec3_t veca, float scale, vec3_t vecb, vec3_t vecc);
-
-int VectorCompare(vec3_t v1, vec3_t v2);
 vec_t VectorLength(vec3_t v);
-float VectorNormalize(vec3_t v);  // returns vector length
-void VectorScale(vec3_t in, vec_t scale, vec3_t out);
-
-void AngleVectors(vec3_t angles, vec3_t forward, vec3_t right, vec3_t up);
 
 #endif /* __MATHLIB_H */

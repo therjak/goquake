@@ -194,9 +194,6 @@ typedef struct mleaf_s {
 
   struct mnode_s *parent;
 
-  // leaf specific
-  byte *compressed_vis;
-
   msurface_t **firstmarksurface;
   int nummarksurfaces;
   int key;  // BSP sequence number for leaf's contents
@@ -238,7 +235,6 @@ typedef struct mspriteframe_s {
 } mspriteframe_t;
 
 typedef struct {
-  int numframes;
   float *intervals;
   mspriteframe_t *frames[1];
 } mspritegroup_t;
@@ -252,7 +248,6 @@ typedef struct {
   int type;
   int maxwidth;
   int maxheight;
-  int numframes;
   float beamlength;  // remove?
   void *cachespot;   // remove?
   mspriteframedesc_t frames[1];
@@ -284,78 +279,10 @@ typedef struct meshst_s {
 } meshst_t;
 //--
 
-typedef struct {
-  int firstpose;
-  int numposes;
-  float interval;
-  trivertx_t bboxmin;
-  trivertx_t bboxmax;
-  int frame;
-  char name[16];
-} maliasframedesc_t;
-
-typedef struct {
-  trivertx_t bboxmin;
-  trivertx_t bboxmax;
-  int frame;
-} maliasgroupframedesc_t;
-
-typedef struct {
-  int numframes;
-  int intervals;
-  maliasgroupframedesc_t frames[1];
-} maliasgroup_t;
-
-// !!! if this is changed, it must be changed in asm_draw.h too !!!
-typedef struct mtriangle_s {
-  int facesfront;
-  int vertindex[3];
-} mtriangle_t;
-
 #define MAX_SKINS 32
-typedef struct {
-  // int ident;
-  // int version;
-  vec3_t scale;
-  vec3_t scale_origin;
-  // float boundingradius;
-  // vec3_t eyeposition;
-  int numskins;
-  int skinwidth;
-  int skinheight;
-  int numverts;
-  int numtris;
-  int numframes;
-  synctype_t synctype;
-  int flags;
-  // float size;
-
-  // ericw -- used to populate vbo
-  int numverts_vbo;   // number of verts with unique x,y,z,s,t
-  intptr_t meshdesc;  // offset into extradata: numverts_vbo aliasmesh_t
-  int numindexes;
-  intptr_t indexes;  // offset into extradata: numindexes unsigned shorts
-  intptr_t
-      vertexes;  // offset into extradata: numposes*vertsperframe trivertx_t
-  // ericw --
-
-  int numposes;
-  int poseverts;
-  int posedata;                       // numposes*poseverts trivert_t
-  int commands;                       // gl command list with embedded s/t
-  uint32_t gltextures[MAX_SKINS][4];  // johnfitz
-  uint32_t fbtextures[MAX_SKINS][4];  // johnfitz
-  int texels[MAX_SKINS];              // only for player skins
-  maliasframedesc_t frames[1];        // variable sized
-} aliashdr_t;
-
 #define MAXALIASVERTS 2000  // johnfitz -- was 1024
 #define MAXALIASFRAMES 256
 #define MAXALIASTRIS 2048
-extern aliashdr_t *pheader;
-extern stvert_t stverts[MAXALIASVERTS];
-extern mtriangle_t triangles[MAXALIASTRIS];
-extern trivertx_t *poseverts[MAXALIASFRAMES];
 
 //===================================================================
 
@@ -384,13 +311,9 @@ typedef enum { mod_brush, mod_sprite, mod_alias } modtype_t;
 
 typedef struct qmodel_s {
   char name[MAX_QPATH];
-  unsigned int path_id;  // path id of the game directory
-                         // that this model came from
-  qboolean needload;     // bmodels and sprites don't cache normally
+  qboolean needload;  // bmodels and sprites don't cache normally
 
   modtype_t Type;
-  int numframes;
-  synctype_t synctype;
 
   int flags;
 
@@ -441,26 +364,13 @@ typedef struct qmodel_s {
   int nummarksurfaces;
   msurface_t **marksurfaces;
 
-  hull_t hulls[MAX_MAP_HULLS];
-
   int numtextures;
   texture_t **textures;
 
-  byte *visdata;
   byte *lightdata;
   char *entities;
 
   int bspversion;
-
-  //
-  // alias model
-  //
-
-  GLuint meshvbo;
-  GLuint meshindexesvbo;
-  int vboindexofs;  // offset in vbo of the hdr->numindexes unsigned shorts
-  int vboxyzofs;  // offset in vbo of hdr->numposes*hdr->numverts_vbo meshxyz_t
-  int vbostofs;   // offset in vbo of hdr->numverts_vbo meshst_t
 
   //
   // additional model data

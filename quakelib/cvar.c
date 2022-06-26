@@ -3,7 +3,9 @@
 
 static char cvar_null_string[] = "";
 
-float Cvar_GetValue(cvar_t *variable) { return CvarGetValue(variable->id); }
+float Cvar_GetValue(cvar_t *variable) {
+  return CvarGetValue(variable->id);
+}
 
 const char *Cvar_GetString(cvar_t *variable) {
   static char buffer[2048];
@@ -16,14 +18,6 @@ const char *Cvar_GetString(cvar_t *variable) {
   return buffer;
 }
 
-void Cvar_FakeRegister(cvar_t *v, char *name) { v->id = CvarGetID(name); }
-
-void Cvar_SetCallback(cvar_t *var, cvarcallback_t func) {
-  CvarSetCallback(var->id, func);
-}
-
-void CallCvarCallback(int id, cvarcallback_t func) {
-  cvar_t var;
-  var.id = id;
-  func(&var);
+void Cvar_FakeRegister(cvar_t *v, char *name) {
+  v->id = CvarGetID(name);
 }

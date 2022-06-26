@@ -11,16 +11,9 @@ float rs_megatexels;
 //
 // view origin
 //
-vec3_t vup;
-vec3_t vpn;
-vec3_t vright;
 vec3_t r_origin;
 
 mleaf_t *r_viewleaf, *r_oldviewleaf;
-
-cvar_t r_novis;  // = {"r_novis", "0", CVAR_ARCHIVE};
-
-cvar_t gl_clear;  // = {"gl_clear", "1", CVAR_NONE};
 
 // johnfitz -- new cvars
 cvar_t r_clearcolor;   // = {"r_clearcolor", "2", CVAR_ARCHIVE};
@@ -43,7 +36,6 @@ cvar_t r_noshadow_list;  // = {"r_noshadow_list",
 #define DEG2RAD(a) ((a)*M_PI_DIV_180)
 
 void R_Init(void) {
-  Cvar_FakeRegister(&gl_clear, "gl_clear");
   Cvar_FakeRegister(&gl_farclip, "gl_farclip");
 }
 
@@ -52,9 +44,6 @@ void R_SetupView(void) {
   vec3_t vieworg = {R_Refdef_vieworg(0), R_Refdef_vieworg(1),
                     R_Refdef_vieworg(2)};
   VectorCopy(vieworg, r_origin);
-  vec3_t viewangles = {R_Refdef_viewangles(0), R_Refdef_viewangles(1),
-                       R_Refdef_viewangles(2)};
-  AngleVectors(viewangles, vpn, vright, vup);
   UpdateVpnGo();
 
   // current viewleaf

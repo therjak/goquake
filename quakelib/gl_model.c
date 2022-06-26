@@ -141,12 +141,6 @@ byte *Mod_DecompressVis(byte *in, qmodel_t *model) {
   return decompressed;
 }
 
-byte *Mod_LeafPVS(mleaf_t *leaf, qmodel_t *model) {
-  if (leaf == model->leafs)
-    return mod_novis;
-  return Mod_DecompressVis(leaf->compressed_vis, model);
-}
-
 /*
 ===================
 Mod_ClearAll
@@ -547,12 +541,6 @@ Mod_LoadVisibility
 =================
 */
 void Mod_LoadVisibility(lump_t *l) {
-  if (!l->filelen) {
-    loadmodel->visdata = NULL;
-    return;
-  }
-  loadmodel->visdata = (byte *)Hunk_AllocName(l->filelen, loadname);
-  memcpy(loadmodel->visdata, mod_base + l->fileofs, l->filelen);
 }
 
 /*
@@ -1211,12 +1199,6 @@ void Mod_ProcessLeafs_S(dsleaf_t *in, int filelen) {
     out->nummarksurfaces = (unsigned short)LittleShort(
         in->nummarksurfaces);  // johnfitz -- unsigned short
 
-    p = LittleLong(in->visofs);
-    if (p == -1)
-      out->compressed_vis = NULL;
-    else
-      out->compressed_vis = loadmodel->visdata + p;
-
     for (j = 0; j < 4; j++) out->ambient_sound_level[j] = in->ambient_level[j];
 
     // johnfitz -- removed code to mark surfaces as SURF_UNDERWATER
@@ -1255,12 +1237,6 @@ void Mod_ProcessLeafs_L1(dl1leaf_t *in, int filelen) {
         LittleLong(in->firstmarksurface);  // johnfitz -- unsigned short
     out->nummarksurfaces =
         LittleLong(in->nummarksurfaces);  // johnfitz -- unsigned short
-
-    p = LittleLong(in->visofs);
-    if (p == -1)
-      out->compressed_vis = NULL;
-    else
-      out->compressed_vis = loadmodel->visdata + p;
 
     for (j = 0; j < 4; j++) out->ambient_sound_level[j] = in->ambient_level[j];
 
@@ -1301,12 +1277,6 @@ void Mod_ProcessLeafs_L2(dl2leaf_t *in, int filelen) {
     out->nummarksurfaces =
         LittleLong(in->nummarksurfaces);  // johnfitz -- unsigned short
 
-    p = LittleLong(in->visofs);
-    if (p == -1)
-      out->compressed_vis = NULL;
-    else
-      out->compressed_vis = loadmodel->visdata + p;
-
     for (j = 0; j < 4; j++) out->ambient_sound_level[j] = in->ambient_level[j];
 
     // johnfitz -- removed code to mark surfaces as SURF_UNDERWATER
@@ -1340,7 +1310,6 @@ void Mod_LoadClipnodes(lump_t *l, qboolean bsp2) {
 
   mclipnode_t *out;  // johnfitz -- was dclipnode_t
   int i, count;
-  hull_t *hull;
 
   if (bsp2) {
     ins = NULL;
@@ -1366,32 +1335,6 @@ void Mod_LoadClipnodes(lump_t *l, qboolean bsp2) {
 
   loadmodel->clipnodes = out;
   loadmodel->numclipnodes = count;
-
-  hull = &loadmodel->hulls[1];
-  hull->clipnodes = out;
-  hull->firstclipnode = 0;
-  hull->lastclipnode = count - 1;
-  hull->numPlanes = loadmodel->numplanes;
-  hull->planes = loadmodel->planes;
-  hull->clip_mins[0] = -16;
-  hull->clip_mins[1] = -16;
-  hull->clip_mins[2] = -24;
-  hull->clip_maxs[0] = 16;
-  hull->clip_maxs[1] = 16;
-  hull->clip_maxs[2] = 32;
-
-  hull = &loadmodel->hulls[2];
-  hull->clipnodes = out;
-  hull->firstclipnode = 0;
-  hull->lastclipnode = count - 1;
-  hull->numPlanes = loadmodel->numplanes;
-  hull->planes = loadmodel->planes;
-  hull->clip_mins[0] = -32;
-  hull->clip_mins[1] = -32;
-  hull->clip_mins[2] = -24;
-  hull->clip_maxs[0] = 32;
-  hull->clip_maxs[1] = 32;
-  hull->clip_maxs[2] = 64;
 
   if (bsp2) {
     for (i = 0; i < count; i++, out++, inl++) {
@@ -1436,33 +1379,6 @@ Duplicate the drawing hull structure as a clipping hull
 =================
 */
 void Mod_MakeHull0(void) {
-  mnode_t *in, *child;
-  mclipnode_t *out;  // johnfitz -- was dclipnode_t
-  int i, j, count;
-  hull_t *hull;
-
-  hull = &loadmodel->hulls[0];
-
-  in = loadmodel->nodes;
-  count = loadmodel->numnodes;
-  out = (mclipnode_t *)Hunk_AllocName(count * sizeof(*out), loadname);
-
-  hull->clipnodes = out;
-  hull->firstclipnode = 0;
-  hull->lastclipnode = count - 1;
-  hull->numPlanes = loadmodel->numplanes;
-  hull->planes = loadmodel->planes;
-
-  for (i = 0; i < count; i++, out++, in++) {
-    out->planenum = in->plane - loadmodel->planes;
-    for (j = 0; j < 2; j++) {
-      child = in->children[j];
-      if (child->contents < 0)
-        out->children[j] = child->contents;
-      else
-        out->children[j] = child - loadmodel->nodes;
-    }
-  }
 }
 
 /*
@@ -1698,8 +1614,6 @@ void Mod_LoadBrushModel(qmodel_t *mod, void *buffer) {
 
   Mod_MakeHull0();
 
-  mod->numframes = 2;  // regular and alternate animation
-
   //
   // set up the submodels (FIXME: this is confusing)
   //
@@ -1713,12 +1627,6 @@ void Mod_LoadBrushModel(qmodel_t *mod, void *buffer) {
   // we create a new copy of the data to use the next time through.
   for (i = 0; i < mod->numsubmodels; i++) {
     bm = &mod->submodels[i];
-
-    mod->hulls[0].firstclipnode = bm->headnode[0];
-    for (j = 1; j < MAX_MAP_HULLS; j++) {
-      mod->hulls[j].firstclipnode = bm->headnode[j];
-      mod->hulls[j].lastclipnode = mod->numclipnodes - 1;
-    }
 
     mod->firstmodelsurface = bm->firstface;
     mod->nummodelsurfaces = bm->numfaces;

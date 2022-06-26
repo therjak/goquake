@@ -93,9 +93,7 @@ extern cvar_t r_fullbright;
 extern cvar_t r_lightmap;
 extern cvar_t r_shadows;
 extern cvar_t r_dynamic;
-extern cvar_t r_novis;
 
-extern cvar_t gl_clear;
 extern cvar_t gl_cull;
 extern cvar_t gl_smoothmodels;
 extern cvar_t gl_affinemodels;
@@ -149,10 +147,6 @@ void GL_SubdivideSurface(msurface_t *fa);
 void R_BuildLightMap(msurface_t *surf, byte *dest, int stride);
 void R_RenderDynamicLightmaps(msurface_t *fa);
 void R_UploadLightmaps(void);
-
-void DrawGLTriangleFan(glpoly_t *p);
-void DrawWaterPoly(glpoly_t *p);
-void GL_MakeAliasModelDisplayLists(qmodel_t *m, aliashdr_t *hdr);
 
 void R_ClearTextureChains(qmodel_t *mod, texchain_t chain);
 void R_ChainSurface(msurface_t *surf, texchain_t chain);

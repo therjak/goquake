@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 package quakelib
 
-//struct cvar_s;
-//typedef void (*cvarcallback_t)(struct cvar_s*);
-//void CallCvarCallback(int id, cvarcallback_t func);
 import "C"
 import (
 	"log"
@@ -38,16 +35,4 @@ func CvarGetID(name *C.char) C.int {
 		return -1
 	}
 	return C.int(cv.ID())
-}
-
-//export CvarSetCallback
-func CvarSetCallback(id C.int, f C.cvarcallback_t) {
-	cv, err := cvar.GetByID(int(id))
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	cv.SetCallback(func(_ *cvar.Cvar) {
-		C.CallCvarCallback(id, f)
-	})
 }
