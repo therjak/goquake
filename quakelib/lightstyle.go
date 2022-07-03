@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 package quakelib
 
-import "C"
-
 import (
 	"fmt"
 
@@ -62,7 +60,6 @@ func readLightStyle(idx int32, str string) error {
 	return nil
 }
 
-//export R_AnimateLight
 func R_AnimateLight() {
 	idx := int(cl.time * 10)
 	for i := 0; i < bsp.MaxLightStyles; i++ {

@@ -2,8 +2,6 @@
 
 package quakelib
 
-import "C"
-
 import (
 
 	// "github.com/chewxy/math32"
@@ -188,11 +186,6 @@ func (r *qRenderer) DrawBrushModel(e *Entity, model *bsp.Model) {
 
 func (r *qRenderer) DrawWorld(model *bsp.Model, mv *glh.Matrix) {
 	r.drawTextureChains(mv, model, nil, chainWorld)
-}
-
-//export R_RebuildAllLightmaps
-func R_RebuildAllLightmaps() {
-	rebuildAllLightMaps()
 }
 
 func init() {

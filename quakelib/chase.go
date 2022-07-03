@@ -1,18 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 package quakelib
 
-//#include "cgo_help.h"
-import "C"
-import "goquake/math/vec"
-
-func p2v3(p *C.float) vec.Vec3 {
-	return vec.Vec3{
-		float32(C.cf(0, p)),
-		float32(C.cf(1, p)),
-		float32(C.cf(2, p)),
-	}
-}
-
 /*
 func TraceLine(start, end, impact *C.float) {
 	s := p2v3(start)

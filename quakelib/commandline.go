@@ -2,20 +2,8 @@
 package quakelib
 
 import (
-	"C"
-
 	cmdl "goquake/commandline"
 )
-
-//export CMLDedicated
-func CMLDedicated() bool {
-	return cmdl.Dedicated()
-}
-
-//export CMLMinMemory
-func CMLMinMemory() bool {
-	return cmdl.MinMemory()
-}
 
 func CMLHipnotic() bool {
 	// TODO: why isQuoth?
@@ -24,14 +12,4 @@ func CMLHipnotic() bool {
 
 func CMLRogue() bool {
 	return cmdl.Rogue()
-}
-
-//export CMLStandardQuake
-func CMLStandardQuake() bool {
-	return !(cmdl.Quoth() || cmdl.Rogue() || cmdl.Hipnotic())
-}
-
-//export CMLZone
-func CMLZone() int {
-	return cmdl.Zone()
 }

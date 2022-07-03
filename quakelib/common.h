@@ -56,8 +56,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 void Q_memset(void *dest, int fill, size_t count);
 void Q_memcpy(void *dest, const void *src, size_t count);
 
-#include "strl_fn.h"
-
 /* locale-insensitive strcasecmp replacement functions: */
 extern int q_strncasecmp(const char *s1, const char *s2, size_t n);
 

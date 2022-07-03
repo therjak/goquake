@@ -188,44 +188,16 @@ extern "C" {
 
 #define SOUND_CHANNELS 8
 
-typedef struct {
-  void *membase;
-  int memsize;
-} quakeparms_t;
-
-#include "bspfile.h"
 #include "common.h"
 #include "cvar.h"
 #include "mathlib.h"
-#include "protocol.h"
-#include "zone.h"
 
 #ifndef APIENTRY
 #define APIENTRY
 #endif
 
 #include "_cgo_export.h"
-#include "client.h"
-#include "console.h"
-#include "gl_model.h"
-#include "gl_texmgr.h"  //johnfitz
 #include "glquake.h"
-#include "render.h"
-
-//=============================================================================
-
-// the host system specifies the base of the directory tree, the
-// command line parms passed to the program, and the amount of memory
-// available for the program to use
-
-//
-// host
-//
-
-void Host_ClearMemory(void);
-void Host_Init(void);
-void Host_Error(const char *error, ...);
-//    __attribute__((__format__(__printf__, 1, 2), __noreturn__));
 
 #ifdef __cplusplus
 }

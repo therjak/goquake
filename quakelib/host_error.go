@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 package quakelib
 
-import "C"
 import (
-	"fmt"
 	cmdl "goquake/commandline"
 	"goquake/conlog"
 )
@@ -11,11 +9,6 @@ import (
 var (
 	hostRecursionCheck = false
 )
-
-//export GoHostError
-func GoHostError(msg *C.char) {
-	HostError(fmt.Errorf(C.GoString(msg)))
-}
 
 func HostError(e error) {
 	s := e.Error()

@@ -2,9 +2,6 @@
 
 package quakelib
 
-//void Host_ClearMemory(void);
-import "C"
-
 import (
 	"fmt"
 	"log"
@@ -156,10 +153,6 @@ func serverInit() {
 			sv_protocol, protocol.NetQuake, protocol.FitzQuake, protocol.RMQ)
 		log.Printf("Server using protocol %v (Unknown)\n", sv_protocol)
 	}
-}
-
-func SV_NumEdicts() C.int {
-	return C.int(sv.numEdicts)
 }
 
 var (
@@ -957,7 +950,7 @@ func (s *Server) SpawnServer(name string) error {
 	}
 
 	// set up the new server
-	C.Host_ClearMemory()
+	ModClearAllGo()
 	freeEdicts()
 	sv = Server{
 		models:   make([]model.Model, 1),
@@ -976,7 +969,6 @@ func (s *Server) SpawnServer(name string) error {
 	LoadProgs()
 
 	// allocate server memory
-	// Host_ClearMemory() called above already cleared the whole sv structure
 	s.maxEdicts = math.ClampI(MIN_EDICTS, int(cvars.MaxEdicts.Value()), MAX_EDICTS)
 	AllocEdicts()
 

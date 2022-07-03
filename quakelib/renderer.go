@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 package quakelib
 
-import "C"
 import (
 	"goquake/bsp"
 	"goquake/cvar"
@@ -43,11 +42,6 @@ type qRenderer struct {
 }
 
 var renderer qRenderer
-
-//export R_framecount_inc
-func R_framecount_inc() {
-	renderer.frameCount++
-}
 
 // CullBox returns true if the box is completely outside the frustum
 func (r *qRenderer) CullBox(mins, maxs vec.Vec3) bool {

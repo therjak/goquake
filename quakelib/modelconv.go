@@ -1,10 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 package quakelib
 
-//#include <stdlib.h>
-//#include "gl_model.h"
-import "C"
-
 import (
 	"fmt"
 	"log"
@@ -26,7 +22,6 @@ func init() {
 	models = make(map[string]model.Model)
 }
 
-//export ModClearAllGo
 func ModClearAllGo() {
 	// TODO: disable for now as we do not correctly use faiface/mainthread
 	// and getting the gc clean up the models would crash

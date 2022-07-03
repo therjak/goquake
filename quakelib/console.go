@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 package quakelib
 
-import "C"
-
 import (
 	"fmt"
 	"io/ioutil"
@@ -111,11 +109,6 @@ func (c *qconsole) Toggle() {
 
 	screen.EndLoadingPlaque()
 	c.ClearNotify()
-}
-
-//export Con_PrintStr
-func Con_PrintStr(str *C.char) {
-	console.Print(C.GoString(str))
 }
 
 func (c *qconsole) BackScrollEnd() {
