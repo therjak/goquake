@@ -6,7 +6,6 @@ void CLPrecacheModel(const char* cn, int i) {
   if (i != 1) {
     return;
   }
-  cl.worldmodel = Mod_ForName(cn);
 }
 
 void FinishCL_ParseServerInfo(void) {

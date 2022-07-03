@@ -15,11 +15,6 @@ typedef enum {
 // server signon
 //
 typedef struct {
-  // information that is static for the entire time connected to a server
-  struct qmodel_s *model_precache[MAX_MODELS];
-
-  // refresh related state
-  struct qmodel_s *worldmodel;  // cl_entitites[0].model
 } client_state_t;
 
 extern client_state_t cl;

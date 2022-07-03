@@ -43,7 +43,8 @@ void Hunk_Check(void) {
   hunk_t *h;
 
   for (h = (hunk_t *)hunk_base; (byte *)h != hunk_base + hunk_low_used;) {
-    if (h->sentinal != HUNK_SENTINAL) Go_Error("Hunk_Check: trahsed sentinal");
+    if (h->sentinal != HUNK_SENTINAL)
+      Go_Error("Hunk_Check: trahsed sentinal");
     if (h->size < (int)sizeof(hunk_t) ||
         h->size + (byte *)h - hunk_base > hunk_size)
       Go_Error("Hunk_Check: bad size");
@@ -63,7 +64,8 @@ void *Hunk_AllocName(int size, const char *name) {
   Hunk_Check();
 #endif
 
-  if (size < 0) Go_Error_I("Hunk_Alloc: bad size: %v", size);
+  if (size < 0)
+    Go_Error_I("Hunk_Alloc: bad size: %v", size);
 
   size = sizeof(hunk_t) + ((size + 15) & ~15);
 
@@ -89,9 +91,13 @@ void *Hunk_AllocName(int size, const char *name) {
 Hunk_Alloc
 ===================
 */
-void *Hunk_Alloc(int size) { return Hunk_AllocName(size, "unknown"); }
+void *Hunk_Alloc(int size) {
+  return Hunk_AllocName(size, "unknown");
+}
 
-int Hunk_LowMark(void) { return hunk_low_used; }
+int Hunk_LowMark(void) {
+  return hunk_low_used;
+}
 
 void Hunk_FreeToLowMark(int mark) {
   if (mark < 0 || mark > hunk_low_used)
@@ -155,7 +161,8 @@ void Cache_FreeLow(int new_low_hunk) {
 
   while (1) {
     c = cache_head.next;
-    if (c == &cache_head) return;  // nothing in cache at all
+    if (c == &cache_head)
+      return;  // nothing in cache at all
     if ((byte *)c >= hunk_base + new_low_hunk)
       return;       // there is space to grow the hunk
     Cache_Move(c);  // reclaim the space
@@ -175,7 +182,8 @@ void Cache_FreeHigh(int new_high_hunk) {
   prev = NULL;
   while (1) {
     c = cache_head.prev;
-    if (c == &cache_head) return;  // nothing in cache at all
+    if (c == &cache_head)
+      return;  // nothing in cache at all
     if ((byte *)c + c->size <= hunk_base + hunk_size - new_high_hunk)
       return;  // there is space to grow the hunk
     if (c == prev)
@@ -189,7 +197,8 @@ void Cache_FreeHigh(int new_high_hunk) {
 }
 
 void Cache_UnlinkLRU(cache_system_t *cs) {
-  if (!cs->lru_next || !cs->lru_prev) Go_Error("Cache_UnlinkLRU: NULL link");
+  if (!cs->lru_next || !cs->lru_prev)
+    Go_Error("Cache_UnlinkLRU: NULL link");
 
   cs->lru_next->lru_prev = cs->lru_prev;
   cs->lru_prev->lru_next = cs->lru_next;
@@ -198,7 +207,8 @@ void Cache_UnlinkLRU(cache_system_t *cs) {
 }
 
 void Cache_MakeLRU(cache_system_t *cs) {
-  if (cs->lru_next || cs->lru_prev) Go_Error("Cache_MakeLRU: active link");
+  if (cs->lru_next || cs->lru_prev)
+    Go_Error("Cache_MakeLRU: active link");
 
   cache_head.lru_next->lru_prev = cs;
   cs->lru_next = cache_head.lru_next;
@@ -303,7 +313,8 @@ void Cache_Free(cache_user_t *c,
 {
   cache_system_t *cs;
 
-  if (!c->data) Go_Error("Cache_Free: not allocated");
+  if (!c->data)
+    Go_Error("Cache_Free: not allocated");
 
   cs = ((cache_system_t *)c->data) - 1;
 
@@ -320,61 +331,8 @@ void Cache_Free(cache_user_t *c,
   // becuase the cache_user_t is the last component of the qmodel_t struct.
   // Should
   // fail harmlessly if *c is actually part of an sfx_t struct.  I FEEL DIRTY
-  if (freetextures) TexMgrFreeTexturesForOwner((qmodel_t *)(c + 1) - 1);
-}
-
-/*
-==============
-Cache_Check
-==============
-*/
-void *Cache_Check(cache_user_t *c) {
-  cache_system_t *cs;
-
-  if (!c->data) return NULL;
-
-  cs = ((cache_system_t *)c->data) - 1;
-
-  // move to head of LRU
-  Cache_UnlinkLRU(cs);
-  Cache_MakeLRU(cs);
-
-  return c->data;
-}
-
-/*
-==============
-Cache_Alloc
-==============
-*/
-void *Cache_Alloc(cache_user_t *c, int size, const char *name) {
-  cache_system_t *cs;
-
-  if (c->data) Go_Error("Cache_Alloc: allready allocated");
-
-  if (size <= 0) Go_Error_I("Cache_Alloc: size %v", size);
-
-  size = (size + sizeof(cache_system_t) + 15) & ~15;
-
-  // find memory for it
-  while (1) {
-    cs = Cache_TryAlloc(size, false);
-    if (cs) {
-      q_strlcpy(cs->name, name, CACHENAME_LEN);
-      c->data = (void *)(cs + 1);
-      cs->user = c;
-      break;
-    }
-
-    // free the least recently used cahedat
-    if (cache_head.lru_prev == &cache_head)
-      Go_Error("Cache_Alloc: out of memory");  // not enough memory at all
-
-    Cache_Free(cache_head.lru_prev->user,
-               true);  // johnfitz -- added second argument
-  }
-
-  return Cache_Check(c);
+  if (freetextures)
+    TexMgrFreeTexturesForOwner((qmodel_t *)(c + 1) - 1);
 }
 
 //============================================================================

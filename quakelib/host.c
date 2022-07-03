@@ -51,7 +51,6 @@ not reinitialize anything.
 */
 void Host_ClearMemory(void) {
   Con_DPrintf("Clearing memory\n");
-  Mod_ClearAll();
   ModClearAllGo();
   /* host_hunklevel MUST be set at this point */
   Hunk_FreeToLowMark(host_hunklevel);
