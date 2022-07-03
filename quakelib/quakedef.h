@@ -221,10 +221,6 @@ typedef struct {
 //
 // host
 //
-extern quakeparms_t *host_parms;
-
-extern cvar_t developer;
-extern cvar_t max_edicts;  // johnfitz
 
 void Host_ClearMemory(void);
 void Host_Init(void);

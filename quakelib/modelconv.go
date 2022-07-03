@@ -3,14 +3,12 @@ package quakelib
 
 //#include <stdlib.h>
 //#include "gl_model.h"
-//void CLPrecacheModel(const char* cn, int i);
 import "C"
 
 import (
 	"fmt"
 	"log"
 	"strings"
-	"unsafe"
 
 	"goquake/bsp"
 	"goquake/cvars"
@@ -57,12 +55,6 @@ func loadModel(name string) (model.Model, error) {
 		return m, nil
 	}
 	return nil, fmt.Errorf("LoadModel err: %v", err)
-}
-
-func CLPrecacheModel(name string, i int) {
-	cn := C.CString(name)
-	C.CLPrecacheModel(cn, C.int(i))
-	C.free(unsafe.Pointer(cn))
 }
 
 func setExtraFlags(m model.Model) {

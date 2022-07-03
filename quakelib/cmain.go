@@ -3,12 +3,8 @@
 package quakelib
 
 /*
-void Sys_Init();
-void Host_Init();
-void HostInitAllocEnd();
 void R_Init();
 void GL_SetupState();
-void Mod_Init();
 */
 import "C"
 
@@ -55,15 +51,12 @@ func CallCMain() error {
 
 	vm = NewVirtualMachine()
 
-	C.Sys_Init()
-
 	log.Printf("Quake %1.2f (c) id Software\n", VERSION)
 	log.Printf("GLQuake %1.2f (c) id Software\n", GLQUAKE_VERSION)
 	log.Printf("FitzQuake %1.2f (c) John Fitzgibbons\n", FITZQUAKE_VERSION)
 	log.Printf("FitzQuake SDL port (c) SleepwalkR, Baker\n")
 	log.Printf("QuakeSpasm %1.2f.%d (c) Ozkan Sezer, Eric Wasylishen & others\n", QUAKESPASM_VERSION, QUAKESPASM_VER_PATCH)
 	log.Printf("Host_Init\n")
-	C.Host_Init()
 
 	filesystemInit()
 	hostInit()
@@ -74,7 +67,6 @@ func CallCMain() error {
 		history.Load()
 		consoleInit()
 	}
-	C.Mod_Init()
 	networkInit()
 	serverInit()
 
@@ -98,8 +90,6 @@ func CallCMain() error {
 		statusbar.LoadPictures()
 		clientInit()
 	}
-
-	C.HostInitAllocEnd()
 
 	host.initialized = true
 	conlog.Printf("\n========= Quake Initialized =========\n\n")

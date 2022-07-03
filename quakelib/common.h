@@ -69,14 +69,6 @@ extern int q_vsnprintf(char *str, size_t size, const char *format, va_list args)
 
 //============================================================================
 
-extern char com_token[1024];
-
-const char *COM_Parse(const char *data);
-
-const char *COM_SkipPath(const char *pathname);
-void COM_StripExtension(const char *in, char *out, size_t outsize);
-void COM_FileBase(const char *in, char *out, size_t outsize);
-
 //============================================================================
 
 #endif /* _Q_COMMON_H */

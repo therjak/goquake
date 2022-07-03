@@ -2,10 +2,6 @@
 
 package quakelib
 
-//void CLPrecacheModelClear(void);
-//void FinishCL_ParseServerInfo(void);
-import "C"
-
 import (
 	"fmt"
 	"path/filepath"
@@ -277,10 +273,8 @@ func CL_ParseServerInfo(si *protos.ServerInfo) error {
 	// now we try to load everything else until a cache allocation fails
 	cl.mapName = strings.TrimSuffix(filepath.Base(mapName), filepath.Ext(mapName))
 
-	C.CLPrecacheModelClear()
-	for i, mn := range si.ModelPrecache {
+	for _, mn := range si.ModelPrecache {
 		m, ok := models[mn]
-		CLPrecacheModel(mn, i+1) // keep C side happy
 		if !ok {
 			loadModel(mn)
 			m, ok = models[mn]
@@ -312,8 +306,6 @@ func CL_ParseServerInfo(si *protos.ServerInfo) error {
 	if err := newMap(cl.worldModel); err != nil {
 		return err
 	}
-
-	C.FinishCL_ParseServerInfo()
 
 	// we don't consider identical messages to be duplicates if the map has changed in between
 	console.lastCenter = ""

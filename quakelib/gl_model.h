@@ -371,16 +371,8 @@ typedef struct qmodel_s {
   char *entities;
 
   int bspversion;
-
-  //
-  // additional model data
-  //
-  cache_user_t cache;  // only access through Mod_Extradata
-
 } qmodel_t;
 
 //============================================================================
-
-void Mod_Init(void);
 
 #endif  // __MODEL__

@@ -34,16 +34,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define M_PI_DIV_180 (M_PI / 180.0)  // johnfitz
 
-extern vec3_t vec3_origin;
-
-#define DotProduct(x, y) (x[0] * y[0] + x[1] * y[1] + x[2] * y[2])
 #define VectorCopy(a, b) \
   {                      \
     b[0] = a[0];         \
     b[1] = a[1];         \
     b[2] = a[2];         \
   }
-
-vec_t VectorLength(vec3_t v);
 
 #endif /* __MATHLIB_H */

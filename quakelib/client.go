@@ -2,9 +2,6 @@
 
 package quakelib
 
-//void CL_ClearState(void);
-import "C"
-
 import (
 	"bytes"
 	"encoding/binary"
@@ -329,16 +326,6 @@ func clientClear() {
 	clearLightStyles()
 	clearBeams()
 	clearEntityFragments()
-}
-
-//export CL_Paused
-func CL_Paused() bool {
-	return cl.paused
-}
-
-//export CL_Time
-func CL_Time() C.double {
-	return C.double(cl.time)
 }
 
 func viewPositionCommand(args []cmd.QArg, _ int) error {
@@ -1939,7 +1926,6 @@ func (c *Client) ColorForEntity(e *Entity) vec.Vec3 {
 }
 
 func (c *Client) ClearState() {
-	C.CL_ClearState()
 	cls.signon = 0
 	clientClear()
 	cls.outProto.Reset()
