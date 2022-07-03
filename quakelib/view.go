@@ -83,7 +83,7 @@ func (v *qView) Render() {
 		if cvars.GlFinish.Bool() {
 			gl.Finish()
 		}
-		setupView()
+		v.setup()
 		v.renderScene()
 		if cvars.RPos.Bool() {
 			printPosition()
@@ -93,7 +93,7 @@ func (v *qView) Render() {
 	v.polyBlend()
 }
 
-func setupView() {
+func (v *qView) setup() {
 	C.R_SetupView()
 
 	qRefreshRect.viewForward, qRefreshRect.viewRight, qRefreshRect.viewUp = vec.AngleVectors(qRefreshRect.viewAngles)
@@ -101,7 +101,38 @@ func setupView() {
 	viewLeaf.Update(cl.worldModel, qRefreshRect.viewOrg)
 
 	cl.setContentsColor(viewLeaf.current.Contents())
-	view.blendColor = cl.calcBlend()
+	v.blendColor = cl.calcBlend()
+
+	r_fovx := qRefreshRect.fovX
+	r_fovy := qRefreshRect.fovY
+	if cvars.RWaterWarp.Bool() {
+		l, err := cl.worldModel.PointInLeaf(qRefreshRect.viewOrg)
+		if err != nil {
+			log.Printf("renderScene, PointInLeaf: %v", err)
+		}
+		switch l.Contents() {
+		case bsp.CONTENTS_WATER, bsp.CONTENTS_SLIME, bsp.CONTENTS_LAVA:
+			// variance is a percentage of width, where width = 2 * tan(fov / 2)
+			// otherwise the effect is too dramatic at high FOV and too subtle at low
+			// FOV.  what a mess!
+			t := math.Sin(cl.time*1.5) * 0.03
+			x := r_fovx * piDiv360
+			y := r_fovy * piDiv360
+			r_fovx = math.Atan(math.Tan(x)*(0.97+t)) * piDiv360Inv
+			r_fovy = math.Atan(math.Tan(y)*(1.03-t)) * piDiv360Inv
+		}
+	}
+
+	v.projection = glh.Frustum(r_fovx, r_fovy, cvars.GlFarClip.Value())
+	renderer.SetFrustum(float32(r_fovx), float32(r_fovy))
+
+	v.modelView = glh.Identity()
+	v.modelView.RotateX(-90)
+	v.modelView.RotateZ(90)
+	v.modelView.RotateX(-qRefreshRect.viewAngles[2])
+	v.modelView.RotateY(-qRefreshRect.viewAngles[0])
+	v.modelView.RotateZ(-qRefreshRect.viewAngles[1])
+	v.modelView.Translate(-qRefreshRect.viewOrg[0], -qRefreshRect.viewOrg[1], -qRefreshRect.viewOrg[2])
 
 	MarkSurfaces()
 	renderer.cullSurfaces(cl.worldModel)
@@ -143,36 +174,6 @@ const (
 
 func (v *qView) renderScene() {
 	const alphaPass = true
-
-	r_fovx := qRefreshRect.fovX
-	r_fovy := qRefreshRect.fovY
-	if cvars.RWaterWarp.Bool() {
-		l, err := cl.worldModel.PointInLeaf(qRefreshRect.viewOrg)
-		if err != nil {
-			log.Printf("renderScene, PointInLeaf: %v", err)
-		}
-		switch l.Contents() {
-		case bsp.CONTENTS_WATER, bsp.CONTENTS_SLIME, bsp.CONTENTS_LAVA:
-			// variance is a percentage of width, where width = 2 * tan(fov / 2)
-			// otherwise the effect is too dramatic at high FOV and too subtle at low
-			// FOV.  what a mess!
-			t := math.Sin(cl.time*1.5) * 0.03
-			x := r_fovx * piDiv360
-			y := r_fovy * piDiv360
-			r_fovx = math.Atan(math.Tan(x)*(0.97+t)) * piDiv360Inv
-			r_fovy = math.Atan(math.Tan(y)*(1.03-t)) * piDiv360Inv
-		}
-	}
-
-	v.projection = glh.Frustum(r_fovx, r_fovy, cvars.GlFarClip.Value())
-
-	v.modelView = glh.Identity()
-	v.modelView.RotateX(-90)
-	v.modelView.RotateZ(90)
-	v.modelView.RotateX(-qRefreshRect.viewAngles[2])
-	v.modelView.RotateY(-qRefreshRect.viewAngles[0])
-	v.modelView.RotateZ(-qRefreshRect.viewAngles[1])
-	v.modelView.Translate(-qRefreshRect.viewOrg[0], -qRefreshRect.viewOrg[1], -qRefreshRect.viewOrg[2])
 
 	// setup scene
 	if !cvars.GlFlashBlend.Bool() {

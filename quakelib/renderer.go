@@ -49,21 +49,6 @@ func R_framecount_inc() {
 	renderer.frameCount++
 }
 
-//export R_visframecount
-func R_visframecount() int {
-	return renderer.visFrameCount
-}
-
-//export R_visframecount_inc
-func R_visframecount_inc() {
-	renderer.visFrameCount++
-}
-
-//export R_CullBox
-func R_CullBox(mins, maxs *C.float) bool {
-	return renderer.CullBox(p2v3(mins), p2v3(maxs))
-}
-
 // CullBox returns true if the box is completely outside the frustum
 func (r *qRenderer) CullBox(mins, maxs vec.Vec3) bool {
 	for _, f := range r.frustum {
