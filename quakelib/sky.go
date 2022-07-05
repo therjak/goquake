@@ -9,7 +9,6 @@ package quakelib
 //extern float skyfog;
 //extern float skymins[2][6];
 //extern float skymaxs[2][6];
-//extern int rs_brushpasses;
 //void Sky_Init(void);
 //void Sky_DrawSkyBox(void);
 import "C"
@@ -637,7 +636,6 @@ func (s *qSky) processTextureChains(c Color) {
 
 func (s *qSky) processPoly(p *bsp.Poly, c Color) {
 	simpleSkyDrawer.draw(p, c)
-	C.rs_brushpasses++
 
 	// update sky bounds
 	if !cvars.RFastSky.Bool() {
@@ -654,5 +652,3 @@ func (s *qSky) processPoly(p *bsp.Poly, c Color) {
 // cl.worldmodel->textures
 // cl.worldmodel->entities
 // r_origin -> == qRefreshRect.viewOrg
-// rs_skypolys
-// rs_skypasses

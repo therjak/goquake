@@ -4,7 +4,6 @@ package quakelib
 
 /*
 void R_Init();
-void GL_SetupState();
 */
 import "C"
 
@@ -78,7 +77,6 @@ func CallCMain() error {
 			return err
 		}
 		shaderInit()
-		C.GL_SetupState()
 		textureManagerInit()
 		drawInit()
 		screen.initialized = true

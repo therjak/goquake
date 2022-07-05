@@ -28,6 +28,17 @@ func setClearColor(cv *cvar.Cvar) {
 	gl.ClearColor(r, g, b, 0)
 }
 
+func setupGLState() {
+	gl.ClearColor(0.15, 0.15, 0.15, 0)
+	gl.CullFace(gl.BACK)
+	gl.FrontFace(gl.CW)
+	gl.Enable(gl.TEXTURE_2D)
+	gl.PolygonMode(gl.FRONT_AND_BACK, gl.FILL)
+	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+	gl.DepthRange(0, 1)
+	gl.DepthFunc(gl.LEQUAL)
+}
+
 type fPlane struct {
 	signBits uint8 // caching of plane side tests
 	normal   vec.Vec3

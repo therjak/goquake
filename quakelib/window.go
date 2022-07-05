@@ -33,6 +33,10 @@ func videoSetMode(width, height int32, fullscreen bool) {
 	screen.disabled = true
 
 	window.SetMode(width, height, fullscreen)
+	// setupGLState should get called whenever a new gl context gets created
+	// and window.SetMode could have created a context
+	// TODO: This window stuff needs a cleanup.
+	setupGLState()
 	w, h := window.Size()
 	screen.UpdateSize(w, h)
 

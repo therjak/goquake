@@ -47,17 +47,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 extern vec3_t r_origin;
 
-extern int gl_stencilbits;
-
-// johnfitz -- rendering statistics
-extern int rs_brushpolys, rs_aliaspolys, rs_skypolys, rs_particles, rs_fogpolys;
-extern int rs_dynamiclightmaps, rs_brushpasses, rs_aliaspasses, rs_skypasses;
-extern float rs_megatexels;
-
-#define CONSOLE_RESPAM_TIME 3  // seconds between repeated warning messages
-
-// johnfitz -- moved here from r_brush.c
-extern int gl_lightmap_format, lightmap_bytes;
-#define MAX_LIGHTMAPS 512  // johnfitz -- was 64
+extern int rs_skypolys;
+extern int rs_skypasses;
 
 #endif /* __GLQUAKE_H */
