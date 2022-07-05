@@ -9,12 +9,12 @@ package quakelib
 //extern float skyfog;
 //extern float skymins[2][6];
 //extern float skymaxs[2][6];
-//void Sky_Init(void);
 //void Sky_DrawSkyBox(void);
 import "C"
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 
 	"goquake/bsp"
@@ -66,11 +66,6 @@ var (
 	simpleSkyDrawer *qSimpleSkyDrawer
 )
 
-//export HasSkyBox
-func HasSkyBox() bool {
-	return len(sky.boxName) != 0
-}
-
 func ClearSkyBox() {
 	sky.boxName = ""
 	sky.boxTextures = [6]*texture.Texture{}
@@ -82,9 +77,8 @@ func ClearSkyBox() {
 	C.skybox_textures[5] = 0
 }
 
-//export SkyInit
 func SkyInit() {
-	C.Sky_Init()
+	ClearSkyBox()
 }
 
 func CreateSkyDrawer() {
@@ -610,6 +604,7 @@ func (s *qSky) Draw() {
 		defer gl.DepthMask(true)
 
 		if len(sky.boxName) != 0 {
+			log.Printf("Drawing sky box: %v", sky.boxName)
 			C.Sky_DrawSkyBox()
 		} else {
 			s.DrawSkyLayers()

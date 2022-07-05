@@ -27,17 +27,6 @@ int st_to_vec[6][3] = {
 float skyfog;  // ericw
 
 /*
-=============
-Sky_Init
-=============
-*/
-void Sky_Init(void) {
-  int i;
-
-  for (i = 0; i < 6; i++) skybox_textures[i] = 0;
-}
-
-/*
 ==============
 Sky_EmitSkyBoxVertex
 ==============
