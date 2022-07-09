@@ -161,7 +161,7 @@ var (
 )
 
 func (s *Server) StartParticle(org, dir vec.Vec3, color, count int) {
-	if s.datagram.Len()+16 > net.MAX_DATAGRAM {
+	if s.datagram.Len() > protocol.MaxDatagram-18 {
 		return
 	}
 	p := &protos.Particle{
@@ -225,7 +225,7 @@ func (s *Server) StartSound(entity, channel, volume int, sample string, attenuat
 	if channel < 0 || channel > 7 {
 		return fmt.Errorf("SV_StartSound: channel = %d", channel)
 	}
-	if s.datagram.Len() > net.MAX_DATAGRAM-16 {
+	if s.datagram.Len() > protocol.MaxDatagram-21 {
 		return nil
 	}
 	for soundnum, m := range s.soundPrecache {
@@ -398,7 +398,7 @@ func ConnectClient(n int) error {
 
 func (s *Server) SendClientDatagram(c *SVClient) (bool, error) {
 	msgBuf.ClearMessage()
-	msgBufMaxLen = net.MAX_DATAGRAM
+	msgBufMaxLen = protocol.MaxDatagram
 	if c.Address() != "LOCAL" {
 		msgBufMaxLen = net.DATAGRAM_MTU
 	}

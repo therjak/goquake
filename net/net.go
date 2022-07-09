@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"goquake/protocol"
 	"goquake/qtime"
 
 	"github.com/google/uuid"
@@ -22,7 +23,7 @@ import (
 // qboolean = C.int
 // true = 1, false = 0
 const (
-	maxMessage = 32008
+	maxMessage = protocol.MaxDatagram + 8
 	// make the channel buffer larger than 1 as we need to
 	// consider unreliable messages as well and they should not block
 	// the channel.
@@ -200,7 +201,6 @@ const (
 	NETFLAG_UNRELIABLE  = 0x00100000
 	NETFLAG_CTL         = 0x80000000
 
-	MAX_DATAGRAM = 32000
 	DATAGRAM_MTU = 1400
 	MAX_MSGLEN   = 64000
 	quake        = "QUAKE\x00"
@@ -384,8 +384,8 @@ func writeUDP(c net.Conn, in <-chan msg, acks <-chan uint32, canWrite chan<- boo
 				log.Printf("ack sequencing error")
 			}
 			// remove last message
-			if len(reliableMsg) > MAX_DATAGRAM {
-				reliableMsg = reliableMsg[MAX_DATAGRAM:]
+			if len(reliableMsg) > protocol.MaxDatagram {
+				reliableMsg = reliableMsg[protocol.MaxDatagram:]
 			} else {
 				reliableMsg = reliableMsg[:0]
 			}
@@ -396,10 +396,10 @@ func writeUDP(c net.Conn, in <-chan msg, acks <-chan uint32, canWrite chan<- boo
 			}
 			if len(reliableMsg) != 0 {
 				// So we got our last reliableMsg acked and the packet was larger than
-				// MAX_DATAGRAM, so send next packet
-				length := MAX_DATAGRAM + 8
+				// MaxDatagram, so send next packet
+				length := protocol.MaxDatagram + 8
 				eom := 0
-				if len(reliableMsg) <= MAX_DATAGRAM {
+				if len(reliableMsg) <= protocol.MaxDatagram {
 					length = len(reliableMsg) + 8
 					eom = NETFLAG_EOM
 				}
@@ -428,9 +428,9 @@ func writeUDP(c net.Conn, in <-chan msg, acks <-chan uint32, canWrite chan<- boo
 			}
 
 		case <-resendTimer.C:
-			length := MAX_DATAGRAM + 8
+			length := protocol.MaxDatagram + 8
 			eom := 0
-			if len(reliableMsg) <= MAX_DATAGRAM {
+			if len(reliableMsg) <= protocol.MaxDatagram {
 				length = len(reliableMsg) + 8
 				eom = NETFLAG_EOM
 			}
@@ -457,9 +457,9 @@ func writeUDP(c net.Conn, in <-chan msg, acks <-chan uint32, canWrite chan<- boo
 			case 1:
 				reliableMsg = msg.data[1:]
 
-				length := MAX_DATAGRAM + 8
+				length := protocol.MaxDatagram + 8
 				eom := 0
-				if len(reliableMsg) <= MAX_DATAGRAM {
+				if len(reliableMsg) <= protocol.MaxDatagram {
 					length = len(reliableMsg) + 8
 					eom = NETFLAG_EOM
 				}
