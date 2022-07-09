@@ -76,8 +76,7 @@ func qFormatI(b int32) string {
 }
 
 func hostVersion(args []cmd.QArg, _ int) error {
-	conlog.Printf("Quake Version %1.2f\n", VERSION)
-	conlog.Printf("QuakeSpasm Version %1.2f.%d\n", QUAKESPASM_VERSION, QUAKESPASM_VER_PATCH)
+	conlog.Printf("GoQuake Version %1.2f.%d\n", goQuakeVersion, goQuakePatch)
 	return nil
 }
 
@@ -883,7 +882,7 @@ func hostStatus(args []cmd.QArg, _ int) error {
 	}()
 
 	printf("host:    %s\n", cvars.HostName.String())
-	printf("version: %4.2f\n", VERSION)
+	printf("version: %4.2f\n", baseVersion)
 	printf("tcp/ip:  %s\n", net.Address())
 	printf("map:     %s\n", sv.name)
 	active := 0

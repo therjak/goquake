@@ -25,11 +25,9 @@ import (
 )
 
 const (
-	VERSION              = 1.09
-	GLQUAKE_VERSION      = 1.00
-	FITZQUAKE_VERSION    = 0.85
-	QUAKESPASM_VERSION   = 0.92
-	QUAKESPASM_VER_PATCH = 2
+	baseVersion    = 1.09
+	goQuakeVersion = 0.80
+	goQuakePatch   = 2
 )
 
 type serverState int
@@ -50,12 +48,7 @@ func CallCMain() error {
 
 	vm = NewVirtualMachine()
 
-	log.Printf("Quake %1.2f (c) id Software\n", VERSION)
-	log.Printf("GLQuake %1.2f (c) id Software\n", GLQUAKE_VERSION)
-	log.Printf("FitzQuake %1.2f (c) John Fitzgibbons\n", FITZQUAKE_VERSION)
-	log.Printf("FitzQuake SDL port (c) SleepwalkR, Baker\n")
-	log.Printf("QuakeSpasm %1.2f.%d (c) Ozkan Sezer, Eric Wasylishen & others\n", QUAKESPASM_VERSION, QUAKESPASM_VER_PATCH)
-	log.Printf("Host_Init\n")
+	log.Printf("GoQuake %1.2f.%d\n", goQuakeVersion, goQuakePatch)
 
 	filesystemInit()
 	hostInit()

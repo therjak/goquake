@@ -262,8 +262,8 @@ func (c *SVClient) SendServerinfo() {
 	m := &c.msg
 	m.WriteByte(svc.Print)
 	m.WriteString(
-		fmt.Sprintf("%s\nFITZQUAKE %1.2f SERVER (%d CRC)\n",
-			[]byte{2}, FITZQUAKE_VERSION, progsdat.CRC))
+		fmt.Sprintf("%s\nGOQUAKE %1.2f SERVER (%d CRC)\n",
+			[]byte{2}, goQuakeVersion, progsdat.CRC))
 
 	m.WriteByte(int(svc.ServerInfo))
 	m.WriteLong(int(sv.protocol))
