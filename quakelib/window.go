@@ -284,9 +284,6 @@ func vidRestart(_ []cmd.QArg, _ int) error {
 
 	videoSetMode(width, height, fullscreen)
 
-	// warpimages needs to be recalculated
-	textureManager.RecalcWarpImageSize(screen.Width, screen.Height)
-
 	updateConsoleSize()
 	// keep cvars in line with actual mode
 	syncVideoCvars()

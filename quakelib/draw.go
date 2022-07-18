@@ -23,7 +23,6 @@ const (
 	CANVAS_CONSOLE
 	CANVAS_MENU
 	CANVAS_STATUSBAR
-	CANVAS_WARPIMAGE
 	CANVAS_BOTTOMRIGHT
 )
 
@@ -308,9 +307,6 @@ func (c *Canvas) UpdateSize() {
 				int32(48*s))
 			c.sx, c.sy = float32(2)/320, float32(2)/48
 		}
-	case CANVAS_WARPIMAGE:
-		gl.Viewport(0, int32(screen.Height)-glWarpImageSize, glWarpImageSize, glWarpImageSize)
-		c.sx, c.sy = float32(2)/128, float32(2)/128
 	case CANVAS_BOTTOMRIGHT:
 		s := float32(screen.Width) / float32(console.width)
 		gl.Viewport(

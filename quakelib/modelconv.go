@@ -107,10 +107,6 @@ func loadTextures(m model.Model) {
 				textureManager.addActiveTexture(t.Fullbright)
 				textureManager.loadIndexed(t.Fullbright, t.Fullbright.Data)
 			}
-			if t.Warp != nil {
-				textureManager.addActiveTexture(t.Warp)
-				textureManager.loadIndexed(t.Warp, t.Warp.Data)
-			}
 		}
 		for _, s := range mt.Surfaces {
 			if s.LightmapTexture != nil {

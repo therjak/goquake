@@ -60,6 +60,7 @@ func (t *Texture) loadBspTexture(data []byte, textureName, modelName string) {
 		extraFlag = texture.TexPrefAlpha
 	}
 
+	// TODO: integrate texMgr.loadIndexed and return as RGBA instead of Indexed
 	if checkFullbrights(t.Data) {
 		tName := fmt.Sprintf("%s:%s", modelName, textureName)
 		t.Texture = texture.NewTexture(

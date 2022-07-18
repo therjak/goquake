@@ -71,21 +71,31 @@ Sky_DrawSkyBox
 FIXME: eliminate cracks by adding an extra vert on tjuncs
 ==============
 */
-void Sky_DrawSkyBox(void) {
-  int i;
-
-  for (i = 0; i < 6; i++) {
-    if (skymins[0][i] >= skymaxs[0][i] || skymins[1][i] >= skymaxs[1][i])
-      continue;
-
-    GLBind(skybox_textures[skytexorder[i]]);
-
+void Sky_DrawSkyBox(int i) {
 #if 1  // FIXME: this is to avoid tjunctions until i can do it the right way
-    skymins[0][i] = -1;
-    skymins[1][i] = -1;
-    skymaxs[0][i] = 1;
-    skymaxs[1][i] = 1;
+  skymins[0][i] = -1;
+  skymins[1][i] = -1;
+  skymaxs[0][i] = 1;
+  skymaxs[1][i] = 1;
 #endif
+  glBegin(GL_QUADS);
+  Sky_EmitSkyBoxVertex(skymins[0][i], skymins[1][i], i);
+  Sky_EmitSkyBoxVertex(skymins[0][i], skymaxs[1][i], i);
+  Sky_EmitSkyBoxVertex(skymaxs[0][i], skymaxs[1][i], i);
+  Sky_EmitSkyBoxVertex(skymaxs[0][i], skymins[1][i], i);
+  glEnd();
+
+  rs_skypolys++;
+  rs_skypasses++;
+
+  if (Fog_GetDensity() > 0 && skyfog > 0) {
+    float *c;
+
+    c = Fog_GetColor();
+    glEnable(GL_BLEND);
+    glDisable(GL_TEXTURE_2D);
+    glColor4f(c[0], c[1], c[2], CLAMP(0.0, skyfog, 1.0));
+
     glBegin(GL_QUADS);
     Sky_EmitSkyBoxVertex(skymins[0][i], skymins[1][i], i);
     Sky_EmitSkyBoxVertex(skymins[0][i], skymaxs[1][i], i);
@@ -93,29 +103,10 @@ void Sky_DrawSkyBox(void) {
     Sky_EmitSkyBoxVertex(skymaxs[0][i], skymins[1][i], i);
     glEnd();
 
-    rs_skypolys++;
+    glColor3f(1, 1, 1);
+    glEnable(GL_TEXTURE_2D);
+    glDisable(GL_BLEND);
+
     rs_skypasses++;
-
-    if (Fog_GetDensity() > 0 && skyfog > 0) {
-      float *c;
-
-      c = Fog_GetColor();
-      glEnable(GL_BLEND);
-      glDisable(GL_TEXTURE_2D);
-      glColor4f(c[0], c[1], c[2], CLAMP(0.0, skyfog, 1.0));
-
-      glBegin(GL_QUADS);
-      Sky_EmitSkyBoxVertex(skymins[0][i], skymins[1][i], i);
-      Sky_EmitSkyBoxVertex(skymins[0][i], skymaxs[1][i], i);
-      Sky_EmitSkyBoxVertex(skymaxs[0][i], skymaxs[1][i], i);
-      Sky_EmitSkyBoxVertex(skymaxs[0][i], skymins[1][i], i);
-      glEnd();
-
-      glColor3f(1, 1, 1);
-      glEnable(GL_TEXTURE_2D);
-      glDisable(GL_BLEND);
-
-      rs_skypasses++;
-    }
   }
 }

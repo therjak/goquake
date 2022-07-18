@@ -197,11 +197,9 @@ type Texture struct {
 	name          string
 	Texture       *texture.Texture
 	Fullbright    *texture.Texture
-	Warp          *texture.Texture
 	SolidSky      *texture.Texture
 	AlphaSky      *texture.Texture
 	FlatSky       Color
-	UpdateWarp    bool
 	TextureChains [2]*Surface
 	// AnimTotal int
 	// AnimMin int

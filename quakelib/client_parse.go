@@ -39,8 +39,6 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) (serverState, error) {
 		conlog.Printf("------------------\n")
 	}
 
-	cl.onGround = false
-
 	for _, scmd := range pb.GetCmds() {
 		switch cmd := scmd.Union.(type) {
 		default:

@@ -2,18 +2,10 @@
 
 package quakelib
 
-//#include <stdlib.h>
-//#include <stdint.h>
-//extern float skyflatcolor[3];
-//extern uint32_t skybox_textures[6];
-//extern float skyfog;
-//extern float skymins[2][6];
-//extern float skymaxs[2][6];
-//void Sky_DrawSkyBox(void);
+//void Sky_DrawSkyBox(int i);
 import "C"
 
 import (
-	"fmt"
 	"log"
 	"strconv"
 
@@ -23,6 +15,7 @@ import (
 	"goquake/cvar"
 	"goquake/cvars"
 	"goquake/glh"
+	"goquake/math"
 	"goquake/math/vec"
 	"goquake/texture"
 
@@ -33,7 +26,7 @@ import (
 func init() {
 	addCommand("sky", skyCommand)
 	cvars.RSkyFog.SetCallback(func(cv *cvar.Cvar) {
-		C.skyfog = C.float(cv.Value())
+		sky.fog = cv.Value()
 	})
 
 }
@@ -52,53 +45,38 @@ func skyCommand(args []cmd.QArg, _ int) error {
 
 type qSky struct {
 	boxName      string
-	boxTextures  [6]*texture.Texture
 	solidTexture *texture.Texture
 	alphaTexture *texture.Texture
 	flat         Color
 	mins         [2][6]float32
 	maxs         [2][6]float32
+	fog          float32
+	simpleDrawer *qSimpleSkyDrawer
+	boxDrawer    *qSkyBoxDrawer
 }
 
 var (
-	sky             qSky
-	skyDrawer       *qSkyDrawer
-	simpleSkyDrawer *qSimpleSkyDrawer
+	sky       qSky
+	skyDrawer *qSkyDrawer
 )
-
-func ClearSkyBox() {
-	sky.boxName = ""
-	sky.boxTextures = [6]*texture.Texture{}
-	C.skybox_textures[0] = 0
-	C.skybox_textures[1] = 0
-	C.skybox_textures[2] = 0
-	C.skybox_textures[3] = 0
-	C.skybox_textures[4] = 0
-	C.skybox_textures[5] = 0
-}
-
-func SkyInit() {
-	ClearSkyBox()
-}
 
 func CreateSkyDrawer() {
 	skyDrawer = newSkyDrawer()
-	simpleSkyDrawer = newSimpleSkyDrawer()
+	sky.simpleDrawer = newSimpleSkyDrawer()
+	sky.boxDrawer = newSkyBoxDrawer()
 }
 
 func (s *qSky) newMap(worldspawn *bsp.Entity) {
-	ClearSkyBox()
-	C.skyfog = C.float(cvars.RSkyFog.Value())
-
+	s.fog = cvars.RSkyFog.Value()
 	s.boxName = ""
-	s.boxTextures = [6]*texture.Texture{}
+	s.boxDrawer.textures = [6]*texture.Texture{}
 	if p, ok := worldspawn.Property("sky"); ok {
 		s.LoadBox(p)
 	}
 	if p, ok := worldspawn.Property("skyfog"); ok {
 		v, err := strconv.ParseFloat(p, 32)
 		if err == nil {
-			C.skyfog = C.float(v)
+			s.fog = float32(v)
 		}
 	} else if p, ok := worldspawn.Property("skyname"); ok { // half-life
 		s.LoadBox(p)
@@ -107,45 +85,24 @@ func (s *qSky) newMap(worldspawn *bsp.Entity) {
 	}
 }
 
-var (
-	skySuf = [6]string{"rt", "bk", "lf", "ft", "up", "dn"}
-)
-
 func (s *qSky) LoadBox(name string) {
 	if name == s.boxName {
 		return
 	}
 	s.boxName = name
-	for i, t := range s.boxTextures {
+	for _, t := range s.boxDrawer.textures {
 		textureManager.FreeTexture(t) // clean up textureManager cache
-		C.skybox_textures[i] = 0
 	}
-	s.boxTextures = [6]*texture.Texture{}
+	s.boxDrawer.textures = [6]*texture.Texture{}
 	if s.boxName == "" {
 		// Turn off skybox
 		return
 	}
-	noneFound := true
-	for i, suf := range skySuf {
-		n := fmt.Sprintf("gfx/env/%s%s", s.boxName, suf)
-		s.boxTextures[i] = textureManager.LoadSkyBox(n)
-		if s.boxTextures[i] != nil {
-			noneFound = false
-		}
-	}
+	var noneFound bool
+	s.boxDrawer.textures, noneFound = textureManager.LoadSkyBox(s.boxName)
 	if noneFound {
 		// boxName == "" => No DrawSkyBox but only DrawSkyLayers
 		s.boxName = ""
-		return
-	}
-
-	for i := 0; i < 6; i++ {
-		if s.boxTextures[i] != nil {
-			texmap[s.boxTextures[i].ID()] = s.boxTextures[i]
-			C.skybox_textures[i] = C.uint32_t(s.boxTextures[i].ID())
-		} else {
-			C.skybox_textures[i] = C.uint32_t(unusedTexture)
-		}
 	}
 }
 
@@ -166,18 +123,14 @@ func (s *qSky) LoadTexture(t *bsp.Texture) {
 		G: t.FlatSky.G,
 		B: t.FlatSky.B,
 	}
-
-	texmap[s.solidTexture.ID()] = s.solidTexture
-	texmap[s.alphaTexture.ID()] = s.alphaTexture
 }
 
 type skyVec [3]int
 
 var (
-	st2vec      = [6]skyVec{{3, -1, 2}, {-3, 1, 2}, {1, 3, 2}, {-1, -3, 2}, {-2, -1, 3}, {2, -1, -3}}
-	vec2st      = [6]skyVec{{-2, 3, 1}, {2, 3, -1}, {1, 3, 2}, {-1, 3, -2}, {-2, -1, 3}, {-2, 1, -3}}
-	skyClip     = [6]vec.Vec3{{1, 1, 0}, {1, -1, 0}, {0, -1, 1}, {0, 1, 1}, {1, 0, 1}, {-1, 0, 1}}
-	skyTexOrder = [6]int{0, 2, 1, 3, 4, 5}
+	st2vec  = [6]skyVec{{3, -1, 2}, {-3, 1, 2}, {1, 3, 2}, {-1, -3, 2}, {-2, -1, 3}, {2, -1, -3}}
+	vec2st  = [6]skyVec{{-2, 3, 1}, {2, 3, -1}, {1, 3, 2}, {-1, 3, -2}, {-2, -1, 3}, {-2, 1, -3}}
+	skyClip = [6]vec.Vec3{{1, 1, 0}, {1, -1, 0}, {0, -1, 1}, {0, 1, 1}, {1, 0, 1}, {-1, 0, 1}}
 )
 
 func (sky *qSky) updateBounds(vecs []vec.Vec3) {
@@ -242,8 +195,8 @@ func (sky *qSky) updateBounds(vecs []vec.Vec3) {
 		if s > sky.maxs[0][axis] {
 			sky.maxs[0][axis] = s
 		}
-		if t > sky.maxs[0][axis] {
-			sky.maxs[0][axis] = t
+		if t > sky.maxs[1][axis] {
+			sky.maxs[1][axis] = t
 		}
 	}
 }
@@ -524,7 +477,6 @@ func (d *qSimpleSkyDrawer) draw(p *bsp.Poly, c Color) {
 	view.projection.SetAsUniform(d.projection)
 	view.modelView.SetAsUniform(d.modelview)
 	gl.Uniform4f(d.color, c.R, c.G, c.B, c.A)
-	// gl.Uniform4f(d.color, 1, 0, 0, 0)
 
 	d.vertices = d.vertices[:0]
 	for _, v := range p.Verts {
@@ -581,12 +533,6 @@ func (s *qSky) Draw() {
 	s.maxs = [2][6]float32{
 		{mf, mf, mf, mf, mf, mf},
 		{mf, mf, mf, mf, mf, mf}}
-	C.skymins = [2][6]C.float{
-		{-mf, -mf, -mf, -mf, -mf, -mf},
-		{-mf, -mf, -mf, -mf, -mf, -mf}}
-	C.skymaxs = [2][6]C.float{
-		{mf, mf, mf, mf, mf, mf},
-		{mf, mf, mf, mf, mf, mf}}
 
 	color := s.flat
 	if fog.Density > 0 {
@@ -596,7 +542,7 @@ func (s *qSky) Draw() {
 	s.processTextureChains(color)
 	s.processEntities(color)
 
-	if !cvars.RFastSky.Bool() && !(Fog_GetDensity() > 0 && C.skyfog >= 1) {
+	if !cvars.RFastSky.Bool() && !(Fog_GetDensity() > 0 && s.fog >= 1) {
 		// Draw better quality sky
 		gl.DepthFunc(gl.GEQUAL)
 		defer gl.DepthFunc(gl.LEQUAL)
@@ -604,8 +550,7 @@ func (s *qSky) Draw() {
 		defer gl.DepthMask(true)
 
 		if len(sky.boxName) != 0 {
-			log.Printf("Drawing sky box: %v", sky.boxName)
-			C.Sky_DrawSkyBox()
+			s.drawBox()
 		} else {
 			s.DrawSkyLayers()
 		}
@@ -630,7 +575,7 @@ func (s *qSky) processTextureChains(c Color) {
 }
 
 func (s *qSky) processPoly(p *bsp.Poly, c Color) {
-	simpleSkyDrawer.draw(p, c)
+	s.simpleDrawer.draw(p, c)
 
 	// update sky bounds
 	if !cvars.RFastSky.Bool() {
@@ -642,8 +587,81 @@ func (s *qSky) processPoly(p *bsp.Poly, c Color) {
 	}
 }
 
-// uses
-// cl.worldmodel->numtextures
-// cl.worldmodel->textures
-// cl.worldmodel->entities
-// r_origin -> == qRefreshRect.viewOrg
+func (s *qSky) drawBox() {
+	log.Printf("Drawing sky box: %v", s.boxName)
+	r, g, b, a := fog.GetColor()
+	a = math.Clamp32(0, s.fog, 1)
+	fogColor := Color{r, g, b, a}
+
+	s.boxDrawer.setup(fogColor)
+	for i := 0; i < 6; i++ {
+		if s.mins[0][i] >= s.maxs[0][i] || s.mins[1][i] >= s.maxs[1][i] {
+			continue
+		}
+		s.boxDrawer.draw(i)
+	}
+}
+
+// for drawing the single colored sky
+type qSkyBoxDrawer struct {
+	vao        *glh.VertexArray
+	vbo        *glh.Buffer
+	prog       *glh.Program
+	projection int32
+	modelview  int32
+	fogColor   int32
+	vertices   []float32
+	textures   [6]*texture.Texture
+}
+
+func newSkyBoxDrawer() *qSkyBoxDrawer {
+	d := &qSkyBoxDrawer{}
+	d.vao = glh.NewVertexArray()
+	d.vbo = glh.NewBuffer(glh.ArrayBuffer)
+	var err error
+	// d.prog, err = newSkyBoxProgram()
+	if err != nil {
+		Error(err.Error())
+	}
+	// d.projection = d.prog.GetUniformLocation("projection") // mat
+	// d.modelview = d.prog.GetUniformLocation("modelview")   // mat
+	// d.fogColor = d.prog.GetUniformLocation("fogColor")     // vec4
+	return d
+}
+
+func (d *qSkyBoxDrawer) setup(fog Color) {
+	bc := cvars.GlFarClip.Value() / math32.Sqrt(3)
+	vertices := []float32{
+		bc, bc, -bc, bc, bc, bc, bc, -bc, bc, bc, -bc, -bc, // wall 0, v0, v1, v2, v3
+		-bc, -bc, -bc, -bc, -bc, bc, -bc, bc, bc, -bc, bc, -bc, // wall 1
+		-bc, bc, -bc, -bc, bc, bc, bc, bc, bc, bc, bc, -bc, // wall 2
+		bc, -bc, -bc, bc, -bc, bc, -bc, -bc, bc, -bc, -bc, -bc, // wall 3
+		bc, bc, bc, -bc, bc, bc, -bc, -bc, bc, bc, -bc, bc, // wall 4
+		-bc, bc, -bc, bc, bc, -bc, bc, -bc, -bc, -bc, -bc, -bc, // wall 5
+	}
+	mv := view.modelView.Copy()
+	// put the viewer back into the center
+	mv.Translate(qRefreshRect.viewOrg[0], qRefreshRect.viewOrg[1], qRefreshRect.viewOrg[2])
+
+	d.prog.Use()
+	d.vao.Bind()
+	d.vbo.Bind()
+
+	gl.EnableVertexAttribArray(0)
+	defer gl.DisableVertexAttribArray(0)
+	gl.VertexAttribPointerWithOffset(0, 3, gl.FLOAT, false, 4*3, 0) // pos
+
+	view.projection.SetAsUniform(d.projection)
+	mv.SetAsUniform(d.modelview)
+	gl.Uniform4f(d.fogColor, fog.R, fog.G, fog.B, fog.A)
+
+	d.vbo.SetData(4*len(vertices), gl.Ptr(vertices))
+	// gl.DrawArrays(gl.TRIANGLE_FAN, 0, int32(len(p.Verts)))
+}
+
+func (s *qSkyBoxDrawer) draw(i int) {
+	// r_origin -> == qRefreshRect.viewOrg
+	s.textures[i].Bind()
+
+	C.Sky_DrawSkyBox(C.int(i))
+}

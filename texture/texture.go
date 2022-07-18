@@ -55,6 +55,20 @@ func NewTexture(w, h int32, flags TexPref, name string, typ ColorType, data []by
 	return t
 }
 
+func NewCubeTexture(w, h int32, flags TexPref, name string, typ ColorType, data []byte) *Texture {
+	// TODO
+	t := &Texture{
+		glID:   glh.NewTextureCube(),
+		Width:  w,
+		Height: h,
+		flags:  flags,
+		name:   name,
+		Typ:    typ,
+		Data:   data,
+	}
+	return t
+}
+
 func (t *Texture) Bind() {
 	t.glID.Bind()
 }

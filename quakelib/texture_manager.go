@@ -2,6 +2,7 @@
 package quakelib
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -164,17 +165,26 @@ func (tm *texMgr) loadParticleImage(name string, width, height int32, data []byt
 	return t
 }
 
-func (tm *texMgr) LoadSkyBox(n string) *texture.Texture {
-	img, err := image.Load(n)
-	if err != nil {
-		return nil
-	}
-	s := img.Bounds().Size()
+var skySuf = [6]string{"rt", "lf", "bk", "ft", "up", "dn"}
 
-	t := texture.NewTexture(int32(s.X), int32(s.Y), texture.TexPrefNone, n, texture.ColorTypeRGBA, img.Pix)
-	tm.addActiveTexture(t)
-	tm.loadRGBA(t, img.Pix)
-	return t
+func (tm *texMgr) LoadSkyBox(boxName string) ([6]*texture.Texture, bool) {
+	var ts [6]*texture.Texture
+	noneFound := true
+	for i, suf := range skySuf {
+		n := fmt.Sprintf("gfx/env/%s%s", boxName, suf)
+		img, err := image.Load(n)
+		if err != nil {
+			continue
+		}
+		noneFound = false
+		s := img.Bounds().Size()
+
+		t := texture.NewTexture(int32(s.X), int32(s.Y), texture.TexPrefNone, n, texture.ColorTypeRGBA, img.Pix)
+		tm.addActiveTexture(t)
+		tm.loadRGBA(t, img.Pix)
+		ts[i] = t
+	}
+	return ts, noneFound
 }
 
 func (tm *texMgr) FreeTexture(t *texture.Texture) {
@@ -211,29 +221,6 @@ func (tm *texMgr) safeTextureSize(s int32) int32 {
 func (tm *texMgr) padConditional(s int32) int32 {
 	// as support for textures with non pot 2 size is required, this is a nop
 	return s
-}
-
-var (
-	glWarpImageSize int32
-)
-
-func (tm *texMgr) RecalcWarpImageSize(w, h int) {
-	s := tm.safeTextureSize(512)
-	for int(s) > w || int(s) > h {
-		s >>= 1
-	}
-	glWarpImageSize = s
-
-	// TODO(therjak): there should be a better way.
-	dummy := make([]float32, s*s*3)
-	for t, b := range tm.activeTextures {
-		if b && t.Flags(texture.TexPrefWarpImage) {
-			tm.Bind(t)
-			gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGB, s, s, 0, gl.RGB, gl.FLOAT, gl.Ptr(dummy))
-			t.Width = s
-			t.Height = s
-		}
-	}
 }
 
 func (tm *texMgr) SelectTextureUnit(target uint32) {
