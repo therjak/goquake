@@ -3,6 +3,7 @@ package quakelib
 
 import (
 	"fmt"
+	"image"
 	"log"
 	"strconv"
 	"strings"
@@ -12,7 +13,7 @@ import (
 	"goquake/cvar"
 	"goquake/cvars"
 	"goquake/glh"
-	"goquake/image"
+	qimage "goquake/image"
 	"goquake/palette"
 	"goquake/texture"
 	"goquake/wad"
@@ -165,26 +166,34 @@ func (tm *texMgr) loadParticleImage(name string, width, height int32, data []byt
 	return t
 }
 
-var skySuf = [6]string{"rt", "lf", "bk", "ft", "up", "dn"}
+var skySuf = [6]string{"rt", "lf", "up", "dn", "bk", "ft"}
 
-func (tm *texMgr) LoadSkyBox(boxName string) ([6]*texture.Texture, bool) {
-	var ts [6]*texture.Texture
-	noneFound := true
+func (tm *texMgr) LoadSkyBox(boxName string) *texture.Texture {
+	var imgs [6]*image.NRGBA
 	for i, suf := range skySuf {
 		n := fmt.Sprintf("gfx/env/%s%s", boxName, suf)
-		img, err := image.Load(n)
+		img, err := qimage.Load(n)
 		if err != nil {
-			continue
+			// TODO: is it ok to allow incomplete cubemaps?
+			return nil
 		}
-		noneFound = false
-		s := img.Bounds().Size()
-
-		t := texture.NewTexture(int32(s.X), int32(s.Y), texture.TexPrefNone, n, texture.ColorTypeRGBA, img.Pix)
-		tm.addActiveTexture(t)
-		tm.loadRGBA(t, img.Pix)
-		ts[i] = t
+		imgs[i] = img
 	}
-	return ts, noneFound
+	t := texture.NewCubeTexture(0, 0, texture.TexPrefNone, boxName, texture.ColorTypeRGBA, nil)
+	tm.addActiveTexture(t)
+	tm.BindUnit(t, gl.TEXTURE0)
+	for i, img := range imgs {
+		s := img.Bounds().Size()
+		gl.TexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X+uint32(i),
+			0, gl.RGB, int32(s.X), int32(s.Y), 0, gl.RGB, gl.UNSIGNED_BYTE, gl.Ptr(img.Pix))
+	}
+	gl.TexParameterf(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+	gl.TexParameterf(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+	gl.TexParameterf(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+	gl.TexParameterf(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+	gl.TexParameterf(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE)
+
+	return t
 }
 
 func (tm *texMgr) FreeTexture(t *texture.Texture) {

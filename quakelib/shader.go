@@ -56,3 +56,9 @@ var vertexSourceBrushDrawer string
 
 //go:embed shader/bsp.frag
 var fragmentSourceBrushDrawer string
+
+//go:embed shader/skybox.vert
+var vertexSourceSkybox string
+
+//go:embed shader/skybox.frag
+var fragmentSourceSkybox string

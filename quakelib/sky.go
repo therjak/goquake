@@ -69,7 +69,7 @@ func CreateSkyDrawer() {
 func (s *qSky) newMap(worldspawn *bsp.Entity) {
 	s.fog = cvars.RSkyFog.Value()
 	s.boxName = ""
-	s.boxDrawer.textures = [6]*texture.Texture{}
+	s.boxDrawer.texture = nil
 	if p, ok := worldspawn.Property("sky"); ok {
 		s.LoadBox(p)
 	}
@@ -90,17 +90,14 @@ func (s *qSky) LoadBox(name string) {
 		return
 	}
 	s.boxName = name
-	for _, t := range s.boxDrawer.textures {
-		textureManager.FreeTexture(t) // clean up textureManager cache
-	}
-	s.boxDrawer.textures = [6]*texture.Texture{}
+	textureManager.FreeTexture(s.boxDrawer.texture) // clean up textureManager cache
+	s.boxDrawer.texture = nil
 	if s.boxName == "" {
 		// Turn off skybox
 		return
 	}
-	var noneFound bool
-	s.boxDrawer.textures, noneFound = textureManager.LoadSkyBox(s.boxName)
-	if noneFound {
+	s.boxDrawer.texture = textureManager.LoadSkyBox(s.boxName)
+	if s.boxDrawer.texture == nil {
 		// boxName == "" => No DrawSkyBox but only DrawSkyLayers
 		s.boxName = ""
 	}
@@ -592,14 +589,7 @@ func (s *qSky) drawBox() {
 	r, g, b, a := fog.GetColor()
 	a = math.Clamp32(0, s.fog, 1)
 	fogColor := Color{r, g, b, a}
-
-	s.boxDrawer.setup(fogColor)
-	for i := 0; i < 6; i++ {
-		if s.mins[0][i] >= s.maxs[0][i] || s.mins[1][i] >= s.maxs[1][i] {
-			continue
-		}
-		s.boxDrawer.draw(i)
-	}
+	s.boxDrawer.draw(fogColor)
 }
 
 // for drawing the single colored sky
@@ -611,7 +601,11 @@ type qSkyBoxDrawer struct {
 	modelview  int32
 	fogColor   int32
 	vertices   []float32
-	textures   [6]*texture.Texture
+	texture    *texture.Texture
+}
+
+func newSkyBoxProgram() (*glh.Program, error) {
+	return glh.NewProgram(vertexSourceSkybox, fragmentSourceSkybox)
 }
 
 func newSkyBoxDrawer() *qSkyBoxDrawer {
@@ -619,26 +613,69 @@ func newSkyBoxDrawer() *qSkyBoxDrawer {
 	d.vao = glh.NewVertexArray()
 	d.vbo = glh.NewBuffer(glh.ArrayBuffer)
 	var err error
-	// d.prog, err = newSkyBoxProgram()
+	d.prog, err = newSkyBoxProgram()
 	if err != nil {
 		Error(err.Error())
 	}
-	// d.projection = d.prog.GetUniformLocation("projection") // mat
-	// d.modelview = d.prog.GetUniformLocation("modelview")   // mat
+	d.projection = d.prog.GetUniformLocation("projection") // mat
+	d.modelview = d.prog.GetUniformLocation("modelview")   // mat
 	// d.fogColor = d.prog.GetUniformLocation("fogColor")     // vec4
+
+	vertices := []float32{
+		-1, 1, -1,
+		-1, -1, -1,
+		1, -1, -1,
+		1, -1, -1,
+		1, 1, -1,
+		-1, 1, -1,
+
+		-1, -1, 1,
+		-1, -1, -1,
+		-1, 1, -1,
+		-1, 1, -1,
+		-1, 1, 1,
+		-1, -1, 1,
+
+		1, -1, -1,
+		1, -1, 1,
+		1, 1, 1,
+		1, 1, 1,
+		1, 1, -1,
+		1, -1, -1,
+
+		-1, -1, 1,
+		-1, 1, 1,
+		1, 1, 1,
+		1, 1, 1,
+		1, -1, 1,
+		-1, -1, 1,
+
+		-1, 1, -1,
+		1, 1, -1,
+		1, 1, 1,
+		1, 1, 1,
+		-1, 1, 1,
+		-1, 1, -1,
+
+		-1, -1, -1,
+		-1, -1, 1,
+		1, -1, -1,
+		1, -1, -1,
+		-1, -1, 1,
+		1, -1, 1,
+	}
+	d.vao.Bind()
+	d.vbo.Bind()
+	d.vbo.SetData(4*len(vertices), gl.Ptr(vertices))
+
+	gl.EnableVertexAttribArray(0)
+	defer gl.DisableVertexAttribArray(0)
+	gl.VertexAttribPointerWithOffset(0, 3, gl.FLOAT, false, 4*3, 0)
+
 	return d
 }
 
-func (d *qSkyBoxDrawer) setup(fog Color) {
-	bc := cvars.GlFarClip.Value() / math32.Sqrt(3)
-	vertices := []float32{
-		bc, bc, -bc, bc, bc, bc, bc, -bc, bc, bc, -bc, -bc, // wall 0, v0, v1, v2, v3
-		-bc, -bc, -bc, -bc, -bc, bc, -bc, bc, bc, -bc, bc, -bc, // wall 1
-		-bc, bc, -bc, -bc, bc, bc, bc, bc, bc, bc, bc, -bc, // wall 2
-		bc, -bc, -bc, bc, -bc, bc, -bc, -bc, bc, -bc, -bc, -bc, // wall 3
-		bc, bc, bc, -bc, bc, bc, -bc, -bc, bc, bc, -bc, bc, // wall 4
-		-bc, bc, -bc, bc, bc, -bc, bc, -bc, -bc, -bc, -bc, -bc, // wall 5
-	}
+func (d *qSkyBoxDrawer) draw(fog Color) {
 	mv := view.modelView.Copy()
 	// put the viewer back into the center
 	mv.Translate(qRefreshRect.viewOrg[0], qRefreshRect.viewOrg[1], qRefreshRect.viewOrg[2])
@@ -647,21 +684,10 @@ func (d *qSkyBoxDrawer) setup(fog Color) {
 	d.vao.Bind()
 	d.vbo.Bind()
 
-	gl.EnableVertexAttribArray(0)
-	defer gl.DisableVertexAttribArray(0)
-	gl.VertexAttribPointerWithOffset(0, 3, gl.FLOAT, false, 4*3, 0) // pos
-
 	view.projection.SetAsUniform(d.projection)
 	mv.SetAsUniform(d.modelview)
-	gl.Uniform4f(d.fogColor, fog.R, fog.G, fog.B, fog.A)
+	// gl.Uniform4f(d.fogColor, fog.R, fog.G, fog.B, fog.A)
+	textureManager.BindUnit(d.texture, gl.TEXTURE0)
 
-	d.vbo.SetData(4*len(vertices), gl.Ptr(vertices))
 	// gl.DrawArrays(gl.TRIANGLE_FAN, 0, int32(len(p.Verts)))
-}
-
-func (s *qSkyBoxDrawer) draw(i int) {
-	// r_origin -> == qRefreshRect.viewOrg
-	s.textures[i].Bind()
-
-	C.Sky_DrawSkyBox(C.int(i))
 }
