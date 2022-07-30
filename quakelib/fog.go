@@ -2,9 +2,6 @@
 
 package quakelib
 
-//extern float fogColor[4];
-import "C"
-
 import (
 	"fmt"
 	"log"
@@ -125,16 +122,6 @@ func (f *QFog) parseWorldspawn(worldspawn *bsp.Entity) {
 	}
 }
 
-//export Fog_GetColor
-func Fog_GetColor() *C.float {
-	r, g, b, a := fog.GetColor()
-	C.fogColor[0] = C.float(r)
-	C.fogColor[1] = C.float(g)
-	C.fogColor[2] = C.float(b)
-	C.fogColor[3] = C.float(a)
-	return &C.fogColor[0]
-}
-
 func (f *QFog) GetColor() (float32, float32, float32, float32) {
 	var r, g, b float32
 	if f.Done > cl.time {
@@ -155,11 +142,6 @@ func (f *QFog) GetColor() (float32, float32, float32, float32) {
 	b = math.Round(b*255) / 255
 
 	return r, g, b, 1
-}
-
-//export Fog_GetDensity
-func Fog_GetDensity() float32 {
-	return fog.GetDensity()
 }
 
 func (f *QFog) GetDensity() float32 {

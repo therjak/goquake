@@ -2,9 +2,6 @@
 
 package quakelib
 
-//void Sky_DrawSkyBox(int i);
-import "C"
-
 import (
 	"log"
 	"strconv"
@@ -539,7 +536,7 @@ func (s *qSky) Draw() {
 	s.processTextureChains(color)
 	s.processEntities(color)
 
-	if !cvars.RFastSky.Bool() && !(Fog_GetDensity() > 0 && s.fog >= 1) {
+	if !cvars.RFastSky.Bool() && !(fog.GetDensity() > 0 && s.fog >= 1) {
 		// Draw better quality sky
 		gl.DepthFunc(gl.GEQUAL)
 		defer gl.DepthFunc(gl.LEQUAL)

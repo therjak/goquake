@@ -2,8 +2,6 @@
 
 package quakelib
 
-import "C"
-
 import (
 	"bytes"
 	"fmt"
@@ -249,11 +247,6 @@ func HostWriteConfiguration() error {
 		return fmt.Errorf("Couldn't write config.cfg: %w\n", err)
 	}
 	return nil
-}
-
-//export Host_Shutdown
-func Host_Shutdown() {
-	host.Shutdown()
 }
 
 func (h *Host) Shutdown() {

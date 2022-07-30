@@ -2,11 +2,6 @@
 
 package quakelib
 
-/*
-void R_Init();
-*/
-import "C"
-
 import (
 	"log"
 	"time"
@@ -73,7 +68,6 @@ func CallCMain() error {
 		textureManagerInit()
 		drawInit()
 		screen.initialized = true
-		C.R_Init()
 		particlesInit()
 		setClearColor(cvars.RClearColor)
 		soundInit()

@@ -1,11 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 package quakelib
 
-// void R_SetupView(void);
-// void R_SetupScene(void);
-// void R_RenderScene(void);
-import "C"
-
 import (
 	"goquake/bsp"
 	"goquake/cvars"
@@ -94,8 +89,6 @@ func (v *qView) Render() {
 }
 
 func (v *qView) setup() {
-	C.R_SetupView()
-
 	qRefreshRect.viewForward, qRefreshRect.viewRight, qRefreshRect.viewUp = vec.AngleVectors(qRefreshRect.viewAngles)
 
 	viewLeaf.Update(cl.worldModel, qRefreshRect.viewOrg)
