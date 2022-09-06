@@ -5,6 +5,7 @@ import (
 	"goquake/bsp"
 	"goquake/conlog"
 	"goquake/cvars"
+	"goquake/entvars"
 	"goquake/math/vec"
 	"goquake/progs"
 
@@ -32,7 +33,7 @@ flying/floating monsters are SOLID_SLIDEBOX and MOVETYPE_FLY
 solid_edge items only clip against bsp models.
 */
 func (q *qphysics) pushMove(pusher int, movetime float32) error {
-	pev := EntVars(pusher)
+	pev := entvars.Get(pusher)
 	if pev.Velocity == [3]float32{} {
 		pev.LTime += movetime
 		return nil
@@ -61,7 +62,7 @@ func (q *qphysics) pushMove(pusher int, movetime float32) error {
 		if edictNum(c).Free {
 			continue
 		}
-		cev := EntVars(c)
+		cev := entvars.Get(c)
 		switch cev.MoveType {
 		case progs.MoveTypePush, progs.MoveTypeNone, progs.MoveTypeNoClip:
 			continue
@@ -135,7 +136,7 @@ func (q *qphysics) pushMove(pusher int, movetime float32) error {
 
 			// move back any entities we already moved
 			for _, m := range movedEnts {
-				EntVars(m.ent).Origin = m.origin
+				entvars.Get(m.ent).Origin = m.origin
 				if err := vm.LinkEdict(m.ent, false); err != nil {
 					return err
 				}
@@ -147,15 +148,15 @@ func (q *qphysics) pushMove(pusher int, movetime float32) error {
 }
 
 func (q *qphysics) addGravity(ent int) {
-	val, err := EntVarsFieldValue(ent, "gravity")
+	val, err := entvars.FieldValue(ent, "gravity")
 	if err != nil || val == 0 {
 		val = 1.0
 	}
-	EntVars(ent).Velocity[2] -= val * cvars.ServerGravity.Value() * float32(host.frameTime)
+	entvars.Get(ent).Velocity[2] -= val * cvars.ServerGravity.Value() * float32(host.frameTime)
 }
 
 func (q *qphysics) pusher(ent int) error {
-	ev := EntVars(ent)
+	ev := entvars.Get(ent)
 	oldltime := float64(ev.LTime)
 	thinktime := float64(ev.NextThink)
 
@@ -196,7 +197,7 @@ func (q *qphysics) pusher(ent int) error {
 //
 // This is a hack, but in the interest of good gameplay...
 func (q *qphysics) tryUnstick(ent int, oldvel vec.Vec3) (int, error) {
-	ev := EntVars(ent)
+	ev := entvars.Get(ent)
 	oldorg := ev.Origin
 
 	for _, dir := range []vec.Vec3{
@@ -237,7 +238,7 @@ func (q *qphysics) tryUnstick(ent int, oldvel vec.Vec3) (int, error) {
 func (q *qphysics) wallFriction(ent int, planeNormal vec.Vec3) {
 	const deg = math32.Pi * 2 / 360
 
-	ev := EntVars(ent)
+	ev := entvars.Get(ent)
 	sp, cp := math32.Sincos(ev.VAngle[0] * deg) // PITCH
 	sy, cy := math32.Sincos(ev.VAngle[1] * deg) // YAW
 	forward := vec.Vec3{cp * cy, cp * sy, -sp}
@@ -260,7 +261,7 @@ func (q *qphysics) wallFriction(ent int, planeNormal vec.Vec3) {
 // Only used by players
 func (q *qphysics) walkMove(ent int) error {
 	const STEPSIZE = 18
-	ev := EntVars(ent)
+	ev := entvars.Get(ent)
 
 	// do a regular slide move unless it looks like you ran into a step
 	oldOnGround := int(ev.Flags)&FL_ONGROUND != 0
@@ -381,7 +382,7 @@ func (q *qphysics) noClip(ent int) error {
 	}
 	time := float32(host.frameTime)
 
-	ev := EntVars(ent)
+	ev := entvars.Get(ent)
 	av := vec.Vec3(ev.AVelocity)
 	av = vec.Scale(time, av)
 	angles := ev.Angles
@@ -398,7 +399,7 @@ func (q *qphysics) noClip(ent int) error {
 }
 
 func (q *qphysics) checkWaterTransition(ent int) error {
-	ev := EntVars(ent)
+	ev := entvars.Get(ent)
 
 	cont := pointContents(ev.Origin)
 
@@ -440,7 +441,7 @@ func (q *qphysics) toss(ent int) error {
 		return nil
 	}
 
-	ev := EntVars(ent)
+	ev := entvars.Get(ent)
 	if int(ev.Flags)&FL_ONGROUND != 0 {
 		return nil
 	}
@@ -503,7 +504,7 @@ func (q *qphysics) toss(ent int) error {
 // This is also used for objects that have become still on the ground, but
 // will fall if the floor is pulled out from under them.
 func (q *qphysics) step(ent int) error {
-	ev := EntVars(ent)
+	ev := entvars.Get(ent)
 
 	// freefall if not onground
 	if int(ev.Flags)&(FL_ONGROUND|FL_FLY|FL_SWIM) == 0 {
@@ -544,7 +545,7 @@ func (q *qphysics) step(ent int) error {
 // This is a big hack to try and fix the rare case of getting stuck in the world
 // clipping hull.
 func (q *qphysics) checkStuck(ent int) error {
-	ev := EntVars(ent)
+	ev := entvars.Get(ent)
 	if !testEntityPosition(ent) {
 		ev.OldOrigin = ev.Origin
 		return nil
@@ -595,7 +596,7 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *trace) (int, error)
 	numbumps := 4
 
 	blocked := 0
-	ev := EntVars(ent)
+	ev := entvars.Get(ent)
 	original_velocity := ev.Velocity
 	primal_velocity := ev.Velocity
 	numplanes := 0
@@ -638,7 +639,7 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *trace) (int, error)
 		}
 		if t.Plane.Normal[2] > 0.7 {
 			blocked |= 1 // floor
-			if EntVars(t.EntNumber).Solid == SOLID_BSP {
+			if entvars.Get(t.EntNumber).Solid == SOLID_BSP {
 				ev.Flags = float32(int(ev.Flags) | FL_ONGROUND)
 				ev.GroundEntity = int32(t.EntNumber)
 			}
@@ -710,7 +711,7 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *trace) (int, error)
 }
 
 func (q *qphysics) checkWater(ent int) bool {
-	ev := EntVars(ent)
+	ev := entvars.Get(ent)
 	point := vec.Vec3{
 		ev.Origin[0],
 		ev.Origin[1],
@@ -785,7 +786,7 @@ func (q *qphysics) playerActions(ent, num int) error {
 		return err
 	}
 
-	ev := EntVars(ent)
+	ev := entvars.Get(ent)
 	CheckVelocity(ev)
 
 	switch int(ev.MoveType) {
@@ -885,7 +886,7 @@ func RunPhysics() error {
 				return err
 			}
 		} else {
-			mt := EntVars(i).MoveType
+			mt := entvars.Get(i).MoveType
 			switch mt {
 			case progs.MoveTypePush:
 				if err := q.pusher(i); err != nil {

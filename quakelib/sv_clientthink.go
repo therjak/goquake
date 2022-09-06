@@ -3,6 +3,7 @@ package quakelib
 
 import (
 	"goquake/cvars"
+	"goquake/entvars"
 	"goquake/math/vec"
 	"goquake/progs"
 
@@ -10,7 +11,7 @@ import (
 )
 
 func (c *SVClient) accelerate(wishspeed float32, wishdir vec.Vec3) {
-	ev := EntVars(c.edictId)
+	ev := entvars.Get(c.edictId)
 	velocity := vec.VFromA(ev.Velocity)
 	currentspeed := vec.Dot(velocity, wishdir)
 	addspeed := wishspeed - currentspeed
@@ -25,7 +26,7 @@ func (c *SVClient) accelerate(wishspeed float32, wishdir vec.Vec3) {
 }
 
 func (c *SVClient) airAccelerate(wishspeed float32, wishveloc vec.Vec3) {
-	ev := EntVars(c.edictId)
+	ev := entvars.Get(c.edictId)
 	velocity := vec.VFromA(ev.Velocity)
 
 	wishspd := wishveloc.Length()
@@ -48,7 +49,7 @@ func (c *SVClient) airAccelerate(wishspeed float32, wishveloc vec.Vec3) {
 }
 
 func (c *SVClient) noclipMove() {
-	ev := EntVars(c.edictId)
+	ev := entvars.Get(c.edictId)
 	vangle := vec.VFromA(ev.VAngle)
 	forward, right, _ := vec.AngleVectors(vangle)
 
@@ -72,7 +73,7 @@ func (c *SVClient) noclipMove() {
 }
 
 func (c *SVClient) waterMove() {
-	ev := EntVars(c.edictId)
+	ev := entvars.Get(c.edictId)
 	// user intentions
 	vangle := vec.VFromA(ev.VAngle)
 	forward, right, _ := vec.AngleVectors(vangle)
@@ -132,7 +133,7 @@ func (c *SVClient) waterMove() {
 }
 
 func (c *SVClient) userFriction() {
-	ev := EntVars(c.edictId)
+	ev := entvars.Get(c.edictId)
 	velocity := vec.VFromA(ev.Velocity)
 	speed2 := velocity[0]*velocity[0] + velocity[1]*velocity[1]
 	if speed2 == 0 {
@@ -175,7 +176,7 @@ func (c *SVClient) userFriction() {
 }
 
 func (c *SVClient) airMove() {
-	ev := EntVars(c.edictId)
+	ev := entvars.Get(c.edictId)
 	forward, right, _ := vec.AngleVectors(vec.VFromA(ev.Angles))
 	fmove := float32(c.cmd.forwardmove)
 	smove := float32(c.cmd.sidemove)
@@ -223,7 +224,7 @@ func (c *SVClient) airMove() {
 }
 
 func (c *SVClient) DropPunchAngle() {
-	ev := EntVars(c.edictId)
+	ev := entvars.Get(c.edictId)
 	pa := vec.VFromA(ev.PunchAngle)
 	len := pa.Length()
 	if len == 0 {
@@ -237,7 +238,7 @@ func (c *SVClient) DropPunchAngle() {
 }
 
 func (c *SVClient) WaterJump() {
-	ev := EntVars(c.edictId)
+	ev := entvars.Get(c.edictId)
 	if sv.time > ev.TeleportTime || ev.WaterLevel == 0 {
 		ev.Flags = float32(int(ev.Flags) &^ FL_WATERJUMP)
 		ev.TeleportTime = 0
@@ -249,7 +250,7 @@ func (c *SVClient) WaterJump() {
 // the move fields specify an intended velocity in pix/sec
 // the angle fields specify an exact angular motion in degrees
 func (c *SVClient) Think() {
-	ev := EntVars(c.edictId)
+	ev := entvars.Get(c.edictId)
 
 	if ev.MoveType == progs.MoveTypeNone {
 		return

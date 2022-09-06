@@ -3,7 +3,6 @@
 package quakelib
 
 import (
-	"log"
 	"time"
 
 	"goquake/cbuf"
@@ -15,14 +14,11 @@ import (
 	"goquake/snd"
 	"goquake/wad"
 	"goquake/window"
-
-	"github.com/veandco/go-sdl2/sdl"
 )
 
 const (
-	baseVersion    = 1.09
-	goQuakeVersion = 0.80
-	goQuakePatch   = 2
+	GoQuakeVersion = 0.80
+	GoQuakePatch   = 2
 )
 
 type serverState int
@@ -33,17 +29,7 @@ const (
 )
 
 func CallCMain() error {
-	v := sdl.Version{}
-	sdl.GetVersion(&v)
-	log.Printf("Found SDL version %d.%d.%d\n", v.Major, v.Minor, v.Patch)
-	if err := sdl.Init(0); err != nil {
-		return err
-	}
-	defer sdl.Quit()
-
 	vm = NewVirtualMachine()
-
-	log.Printf("GoQuake %1.2f.%d\n", goQuakeVersion, goQuakePatch)
 
 	filesystemInit()
 	hostInit()

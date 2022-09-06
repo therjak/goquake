@@ -13,6 +13,7 @@ import (
 	"goquake/conlog"
 	"goquake/cvar"
 	"goquake/cvars"
+	"goquake/entvars"
 	"goquake/math"
 	"goquake/math/vec"
 	"goquake/progs"
@@ -111,7 +112,7 @@ func (v *virtualMachine) SaveGameGlobals() *protos.Globals {
 }
 
 func (v *virtualMachine) loadGameEntVars(idx int, e *protos.Edict) {
-	ClearEntVars(idx)
+	entvars.Clear(idx)
 	// TODO: keyname == "alpha"
 	for _, st := range e.Strings {
 		def, err := v.prog.FindFieldDef(st.GetId())
@@ -120,7 +121,7 @@ func (v *virtualMachine) loadGameEntVars(idx int, e *protos.Edict) {
 			continue
 		}
 		id := v.prog.NewString(st.GetValue())
-		SetRawEntVarsI(int32(idx), int32(def.Offset), id)
+		entvars.SetRawI(int32(idx), int32(def.Offset), id)
 	}
 	for _, fl := range e.Floats {
 		def, err := v.prog.FindFieldDef(fl.GetId())
@@ -128,7 +129,7 @@ func (v *virtualMachine) loadGameEntVars(idx int, e *protos.Edict) {
 			log.Printf("No float %s", fl.GetId())
 			continue
 		}
-		SetRawEntVarsF(int32(idx), int32(def.Offset), fl.GetValue())
+		entvars.SetRawF(int32(idx), int32(def.Offset), fl.GetValue())
 	}
 	for _, ent := range e.Entities {
 		def, err := v.prog.FindFieldDef(ent.GetId())
@@ -136,7 +137,7 @@ func (v *virtualMachine) loadGameEntVars(idx int, e *protos.Edict) {
 			log.Printf("No field %s", ent.GetId())
 			continue
 		}
-		SetRawEntVarsI(int32(idx), int32(def.Offset), ent.GetValue())
+		entvars.SetRawI(int32(idx), int32(def.Offset), ent.GetValue())
 	}
 	for _, fnc := range e.Functions {
 		def, err := v.prog.FindFieldDef(fnc.GetId())
@@ -147,7 +148,7 @@ func (v *virtualMachine) loadGameEntVars(idx int, e *protos.Edict) {
 		if err != nil {
 			continue
 		}
-		SetRawEntVarsI(int32(idx), int32(def.Offset), int32(fidx))
+		entvars.SetRawI(int32(idx), int32(def.Offset), int32(fidx))
 	}
 	for _, field := range e.Fields {
 		def, err := v.prog.FindFieldDef(field.GetId())
@@ -158,7 +159,7 @@ func (v *virtualMachine) loadGameEntVars(idx int, e *protos.Edict) {
 		if err != nil {
 			continue
 		}
-		SetRawEntVarsI(int32(idx), int32(def.Offset), int32(vdef.Offset))
+		entvars.SetRawI(int32(idx), int32(def.Offset), int32(vdef.Offset))
 	}
 	for _, vector := range e.Vectors {
 		def, err := v.prog.FindFieldDef(vector.GetId())
@@ -166,15 +167,15 @@ func (v *virtualMachine) loadGameEntVars(idx int, e *protos.Edict) {
 			continue
 		}
 		val := vector.GetValue()
-		SetRawEntVarsF(int32(idx), int32(def.Offset), val.GetX())
-		SetRawEntVarsF(int32(idx), int32(def.Offset+1), val.GetY())
-		SetRawEntVarsF(int32(idx), int32(def.Offset+2), val.GetZ())
+		entvars.SetRawF(int32(idx), int32(def.Offset), val.GetX())
+		entvars.SetRawF(int32(idx), int32(def.Offset+1), val.GetY())
+		entvars.SetRawF(int32(idx), int32(def.Offset+2), val.GetZ())
 	}
 
 }
 
 func (v *virtualMachine) saveEVString(idx int, name string, offset uint16) (*protos.StringDef, bool) {
-	val := RawEntVarsI(int32(idx), int32(offset))
+	val := entvars.RawI(int32(idx), int32(offset))
 	if val == 0 {
 		return nil, false
 	}
@@ -186,7 +187,7 @@ func (v *virtualMachine) saveEVString(idx int, name string, offset uint16) (*pro
 }
 
 func (v *virtualMachine) saveEVFloat(idx int, name string, offset uint16) (*protos.FloatDef, bool) {
-	val := RawEntVarsF(int32(idx), int32(offset))
+	val := entvars.RawF(int32(idx), int32(offset))
 	if val == 0 {
 		return nil, false
 	}
@@ -197,7 +198,7 @@ func (v *virtualMachine) saveEVFloat(idx int, name string, offset uint16) (*prot
 }
 
 func (v *virtualMachine) saveEVEntity(idx int, name string, offset uint16) (*protos.EntityDef, bool) {
-	val := RawEntVarsI(int32(idx), int32(offset))
+	val := entvars.RawI(int32(idx), int32(offset))
 	if val == 0 {
 		return nil, false
 	}
@@ -208,9 +209,9 @@ func (v *virtualMachine) saveEVEntity(idx int, name string, offset uint16) (*pro
 }
 
 func (v *virtualMachine) saveEVVector(idx int, name string, offset uint16) (*protos.VectorDef, bool) {
-	x := RawEntVarsF(int32(idx), int32(offset))
-	y := RawEntVarsF(int32(idx), int32(offset+1))
-	z := RawEntVarsF(int32(idx), int32(offset+2))
+	x := entvars.RawF(int32(idx), int32(offset))
+	y := entvars.RawF(int32(idx), int32(offset+1))
+	z := entvars.RawF(int32(idx), int32(offset+2))
 	if x == 0 && y == 0 && z == 0 {
 		return nil, false
 	}
@@ -223,7 +224,7 @@ func (v *virtualMachine) saveEVVector(idx int, name string, offset uint16) (*pro
 
 func (v *virtualMachine) saveEVField(idx int, name string, offset uint16) (*protos.FieldDef, bool) {
 	s := ""
-	val := RawEntVarsI(int32(idx), int32(offset))
+	val := entvars.RawI(int32(idx), int32(offset))
 	if val == 0 {
 		return nil, false
 	}
@@ -240,7 +241,7 @@ func (v *virtualMachine) saveEVField(idx int, name string, offset uint16) (*prot
 }
 
 func (v *virtualMachine) saveEVFunction(idx int, name string, offset uint16) (*protos.FunctionDef, bool) {
-	val := RawEntVarsI(int32(idx), int32(offset))
+	val := entvars.RawI(int32(idx), int32(offset))
 	if val == 0 {
 		return nil, false
 	}
@@ -386,7 +387,7 @@ teleported.
 */
 func (v *virtualMachine) setOrigin() error {
 	e := int(v.prog.Globals.Parm0[0])
-	ev := EntVars(e)
+	ev := entvars.Get(e)
 	ev.Origin = *v.prog.Globals.Parm1f()
 
 	if err := v.LinkEdict(e, false); err != nil {
@@ -408,7 +409,7 @@ func (v *virtualMachine) setSize() error {
 	e := int(v.prog.Globals.Parm0[0])
 	min := *v.prog.Globals.Parm1f()
 	max := *v.prog.Globals.Parm2f()
-	setMinMaxSize(EntVars(e), min, max)
+	setMinMaxSize(entvars.Get(e), min, max)
 	if err := v.LinkEdict(e, false); err != nil {
 		return err
 	}
@@ -434,7 +435,7 @@ func (v *virtualMachine) setModel() error {
 		return v.runError("no precache: %s", m)
 	}
 
-	ev := EntVars(e)
+	ev := entvars.Get(e)
 	ev.Model = mi
 	ev.ModelIndex = float32(idx)
 
@@ -720,7 +721,7 @@ func (v *virtualMachine) newcheckclient(check int) int {
 		if edictNum(ent).Free {
 			continue
 		}
-		ev := EntVars(ent)
+		ev := entvars.Get(ent)
 		if ev.Health <= 0 {
 			continue
 		}
@@ -732,7 +733,7 @@ func (v *virtualMachine) newcheckclient(check int) int {
 		break
 	}
 
-	ev := EntVars(ent)
+	ev := entvars.Get(ent)
 	// get the PVS for the entity
 	org := vec.Add(ev.Origin, ev.ViewOfs)
 	leaf, _ := sv.worldModel.PointInLeaf(org)
@@ -757,14 +758,14 @@ func (v *virtualMachine) checkClient() error {
 
 	// return check if it might be visible
 	ent := sv.lastCheck
-	if edictNum(ent).Free || EntVars(ent).Health <= 0 {
+	if edictNum(ent).Free || entvars.Get(ent).Health <= 0 {
 		v.prog.Globals.Return[0] = 0
 		return nil
 	}
 
 	// if current entity can't possibly see the check entity, return 0
 	self := int(v.prog.Globals.Self)
-	es := EntVars(self)
+	es := entvars.Get(self)
 	view := vec.Add(es.Origin, es.ViewOfs)
 	leaf, _ := sv.worldModel.PointInLeaf(view)
 	leafNum := -2
@@ -850,14 +851,14 @@ func (v *virtualMachine) cvarSet() error {
 // Returns a chain of entities that have origins within a spherical area
 func (v *virtualMachine) findRadius() error {
 	chain := int32(0)
-	org := vec.VFromA(*progsdat.Globals.Parm0f())
-	rad := progsdat.RawGlobalsF[progs.OffsetParm1]
+	org := vec.VFromA(*v.prog.Globals.Parm0f())
+	rad := v.prog.RawGlobalsF[progs.OffsetParm1]
 
 	for ent := 1; ent < sv.numEdicts; ent++ {
 		if edictNum(ent).Free {
 			continue
 		}
-		ev := EntVars(ent)
+		ev := entvars.Get(ent)
 		if ev.Solid == SOLID_NOT {
 			continue
 		}
@@ -873,12 +874,12 @@ func (v *virtualMachine) findRadius() error {
 		chain = int32(ent)
 	}
 
-	progsdat.Globals.Return[0] = chain
+	v.prog.Globals.Return[0] = chain
 	return nil
 }
 
 func (v *virtualMachine) ftos() error {
-	ve := progsdat.RawGlobalsF[progs.OffsetParm0]
+	ve := v.prog.RawGlobalsF[progs.OffsetParm0]
 	s := func() string {
 		iv := int(ve)
 		if ve == float32(iv) {
@@ -886,20 +887,20 @@ func (v *virtualMachine) ftos() error {
 		}
 		return fmt.Sprintf("%5.1f", ve)
 	}()
-	progsdat.Globals.Return[0] = progsdat.AddString(s)
+	v.prog.Globals.Return[0] = v.prog.AddString(s)
 	return nil
 }
 
 func (v *virtualMachine) fabs() error {
-	f := progsdat.RawGlobalsF[progs.OffsetParm0]
-	progsdat.Globals.Returnf()[0] = math32.Abs(f)
+	f := v.prog.RawGlobalsF[progs.OffsetParm0]
+	v.prog.Globals.Returnf()[0] = math32.Abs(f)
 	return nil
 }
 
 func (v *virtualMachine) vtos() error {
-	p := *progsdat.Globals.Parm0f()
+	p := *v.prog.Globals.Parm0f()
 	s := fmt.Sprintf("'%5.1f %5.1f %5.1f'", p[0], p[1], p[2])
-	progsdat.Globals.Return[0] = progsdat.AddString(s)
+	v.prog.Globals.Return[0] = v.prog.AddString(s)
 	return nil
 }
 
@@ -908,20 +909,20 @@ func (v *virtualMachine) spawn() error {
 	if err != nil {
 		return err
 	}
-	progsdat.Globals.Return[0] = int32(ed)
+	v.prog.Globals.Return[0] = int32(ed)
 	return nil
 }
 
 func (v *virtualMachine) remove() error {
-	ed := progsdat.Globals.Parm0[0]
+	ed := v.prog.Globals.Parm0[0]
 	v.edictFree(int(ed))
 	return nil
 }
 
 func (v *virtualMachine) find() error {
-	e := progsdat.Globals.Parm0[0]
-	f := progsdat.Globals.Parm1[0]
-	s, err := progsdat.String(progsdat.Globals.Parm2[0])
+	e := v.prog.Globals.Parm0[0]
+	f := v.prog.Globals.Parm1[0]
+	s, err := v.prog.String(v.prog.Globals.Parm2[0])
 	if err != nil {
 		return v.runError("PF_Find: bad search string")
 	}
@@ -929,30 +930,30 @@ func (v *virtualMachine) find() error {
 		if edictNum(int(e)).Free {
 			continue
 		}
-		ti := RawEntVarsI(e, f)
-		t, err := progsdat.String(ti)
+		ti := entvars.RawI(e, f)
+		t, err := v.prog.String(ti)
 		if err != nil {
 			continue
 		}
 		if t == s {
-			progsdat.Globals.Return[0] = int32(e)
+			v.prog.Globals.Return[0] = int32(e)
 			return nil
 		}
 	}
-	progsdat.Globals.Return[0] = 0
+	v.prog.Globals.Return[0] = 0
 	return nil
 }
 
 func (v *virtualMachine) finaleFinished() error {
 	// Used by 2021 release
 	// Expected to return a bool
-	progsdat.Globals.Return[0] = 0
+	v.prog.Globals.Return[0] = 0
 	return nil
 }
 
 // precache_file is only used to copy  files with qcc, it does nothing
 func (v *virtualMachine) precacheFile() error {
-	progsdat.Globals.Return[0] = progsdat.Globals.Parm0[0]
+	v.prog.Globals.Return[0] = v.prog.Globals.Parm0[0]
 	return nil
 }
 
@@ -961,9 +962,9 @@ func (v *virtualMachine) precacheSound() error {
 		return v.runError("PF_Precache_*: Precache can only be done in spawn functions")
 	}
 
-	si := progsdat.Globals.Parm0[0]
-	progsdat.Globals.Return[0] = si
-	s, err := progsdat.String(si)
+	si := v.prog.Globals.Parm0[0]
+	v.prog.Globals.Return[0] = si
+	s, err := v.prog.String(si)
 	if err != nil {
 		return v.runError("precacheSound: Bad string, %v", err)
 	}
@@ -991,9 +992,9 @@ func (v *virtualMachine) precacheModel() error {
 		return v.runError("PF_Precache_*: Precache can only be done in spawn functions")
 	}
 
-	si := progsdat.Globals.Parm0[0]
-	progsdat.Globals.Return[0] = si
-	s, err := progsdat.String(si)
+	si := v.prog.Globals.Parm0[0]
+	v.prog.Globals.Return[0] = si
+	s, err := v.prog.String(si)
 	if err != nil {
 		return v.runError("precacheModel: Bad string, %v", err)
 	}
@@ -1028,7 +1029,7 @@ func (v *virtualMachine) coredump() error {
 }
 
 func (v *virtualMachine) eprint() error {
-	edictPrint(int(progsdat.Globals.Parm0[0]))
+	edictPrint(int(v.prog.Globals.Parm0[0]))
 	return nil
 }
 
@@ -1046,7 +1047,7 @@ func (v *virtualMachine) walkMove() error {
 	ent := int(v.prog.Globals.Self)
 	yaw := v.prog.Globals.Parm0f()[0]
 	dist := v.prog.Globals.Parm1f()[0]
-	ev := EntVars(ent)
+	ev := entvars.Get(ent)
 
 	if int(ev.Flags)&(FL_ONGROUND|FL_FLY|FL_SWIM) == 0 {
 		(*(v.prog.Globals.Returnf()))[0] = 0
@@ -1079,8 +1080,8 @@ func (v *virtualMachine) walkMove() error {
 }
 
 func (v *virtualMachine) dropToFloor() error {
-	ent := int(progsdat.Globals.Self)
-	ev := EntVars(ent)
+	ent := int(v.prog.Globals.Self)
+	ev := entvars.Get(ent)
 	start := vec.VFromA(ev.Origin)
 	mins := vec.VFromA(ev.Mins)
 	maxs := vec.VFromA(ev.Maxs)
@@ -1090,7 +1091,7 @@ func (v *virtualMachine) dropToFloor() error {
 	t := svMove(start, mins, maxs, end, MOVE_NORMAL, ent)
 
 	if t.Fraction == 1 || t.AllSolid {
-		progsdat.Globals.Returnf()[0] = 0
+		v.prog.Globals.Returnf()[0] = 0
 	} else {
 		ev.Origin = t.EndPos
 		if err := v.LinkEdict(ent, false); err != nil {
@@ -1098,15 +1099,15 @@ func (v *virtualMachine) dropToFloor() error {
 		}
 		ev.Flags = float32(int(ev.Flags) | FL_ONGROUND)
 		ev.GroundEntity = int32(t.EntNumber)
-		progsdat.Globals.Returnf()[0] = 1
+		v.prog.Globals.Returnf()[0] = 1
 	}
 	return nil
 }
 
 func (v *virtualMachine) lightStyle() error {
-	style := int(progsdat.RawGlobalsF[progs.OffsetParm0])
-	vi := progsdat.Globals.Parm1[0]
-	val, err := progsdat.String(vi)
+	style := int(v.prog.RawGlobalsF[progs.OffsetParm0])
+	vi := v.prog.Globals.Parm1[0]
+	val, err := v.prog.String(vi)
 	if err != nil {
 		log.Printf("Invalid light style: %v", err)
 		return nil
@@ -1130,60 +1131,60 @@ func (v *virtualMachine) lightStyle() error {
 }
 
 func (v *virtualMachine) rint() error {
-	f := progsdat.RawGlobalsF[progs.OffsetParm0]
-	progsdat.Globals.Returnf()[0] = math.RoundToEven(f)
+	f := v.prog.RawGlobalsF[progs.OffsetParm0]
+	v.prog.Globals.Returnf()[0] = math.RoundToEven(f)
 	return nil
 }
 
 func (v *virtualMachine) floor() error {
-	f := progsdat.RawGlobalsF[progs.OffsetParm0]
-	progsdat.Globals.Returnf()[0] = math32.Floor(f)
+	f := v.prog.RawGlobalsF[progs.OffsetParm0]
+	v.prog.Globals.Returnf()[0] = math32.Floor(f)
 	return nil
 }
 
 func (v *virtualMachine) ceil() error {
-	f := progsdat.RawGlobalsF[progs.OffsetParm0]
-	progsdat.Globals.Returnf()[0] = math32.Ceil(f)
+	f := v.prog.RawGlobalsF[progs.OffsetParm0]
+	v.prog.Globals.Returnf()[0] = math32.Ceil(f)
 	return nil
 }
 
 func (v *virtualMachine) checkBottom() error {
-	entnum := int(progsdat.Globals.Parm0[0])
+	entnum := int(v.prog.Globals.Parm0[0])
 	f := float32(0)
 	if checkBottom(entnum) {
 		f = 1
 	}
-	progsdat.Globals.Returnf()[0] = f
+	v.prog.Globals.Returnf()[0] = f
 	return nil
 }
 
 // Writes new values for v_forward, v_up, and v_right based on angles makevectors(vector)
 func (v *virtualMachine) makeVectors() error {
-	ve := vec.VFromA(*progsdat.Globals.Parm0f())
+	ve := vec.VFromA(*v.prog.Globals.Parm0f())
 	f, r, u := vec.AngleVectors(ve)
-	progsdat.Globals.VForward = f
-	progsdat.Globals.VRight = r
-	progsdat.Globals.VUp = u
+	v.prog.Globals.VForward = f
+	v.prog.Globals.VRight = r
+	v.prog.Globals.VUp = u
 	return nil
 }
 
 func (v *virtualMachine) pointContents() error {
-	ve := vec.VFromA(*progsdat.Globals.Parm0f())
+	ve := vec.VFromA(*v.prog.Globals.Parm0f())
 	pc := pointContents(ve)
-	progsdat.Globals.Returnf()[0] = float32(pc)
+	v.prog.Globals.Returnf()[0] = float32(pc)
 	return nil
 }
 
 func (v *virtualMachine) nextEnt() error {
-	i := progsdat.Globals.Parm0[0]
+	i := v.prog.Globals.Parm0[0]
 	for {
 		i++
 		if int(i) == sv.numEdicts {
-			progsdat.Globals.Return[0] = 0
+			v.prog.Globals.Return[0] = 0
 			return nil
 		}
 		if edictNum(int(i)).Free {
-			progsdat.Globals.Return[0] = i
+			v.prog.Globals.Return[0] = i
 			return nil
 		}
 	}
@@ -1192,23 +1193,23 @@ func (v *virtualMachine) nextEnt() error {
 // Pick a vector for the player to shoot along
 func (v *virtualMachine) aim() error {
 	const DAMAGE_AIM = 2
-	ent := int(progsdat.Globals.Parm0[0])
-	ev := EntVars(ent)
+	ent := int(v.prog.Globals.Parm0[0])
+	ev := entvars.Get(ent)
 	// variable set but not used
-	// speed := progsdat.RawGlobalsF[progs.OffsetParm1]
+	// speed := v.prog.RawGlobalsF[progs.OffsetParm1]
 
 	start := vec.VFromA(ev.Origin)
 	start[2] += 20
 
 	// try sending a trace straight
-	dir := vec.VFromA(progsdat.Globals.VForward)
+	dir := vec.VFromA(v.prog.Globals.VForward)
 	end := vec.Add(start, vec.Scale(2048, dir))
 	tr := svMove(start, vec.Vec3{}, vec.Vec3{}, end, MOVE_NORMAL, ent)
 	if tr.EntPointer {
-		tev := EntVars(int(tr.EntNumber))
+		tev := entvars.Get(int(tr.EntNumber))
 		if tev.TakeDamage == DAMAGE_AIM &&
 			(!cvars.TeamPlay.Bool() || tev.Team <= 0 || ev.Team != tev.Team) {
-			*progsdat.Globals.Returnf() = progsdat.Globals.VForward
+			*v.prog.Globals.Returnf() = v.prog.Globals.VForward
 			return nil
 		}
 	}
@@ -1219,7 +1220,7 @@ func (v *virtualMachine) aim() error {
 	bestent := -1
 
 	for check := 1; check < sv.numEdicts; check++ {
-		cev := EntVars(check)
+		cev := entvars.Get(check)
 		if cev.TakeDamage != DAMAGE_AIM {
 			continue
 		}
@@ -1237,7 +1238,7 @@ func (v *virtualMachine) aim() error {
 		}
 		dir = vec.Sub(end, start)
 		dir = dir.Normalize()
-		vforward := progsdat.Globals.VForward
+		vforward := v.prog.Globals.VForward
 		dist := vec.Dot(dir, vforward)
 		if dist < bestdist {
 			// to far to turn
@@ -1252,25 +1253,25 @@ func (v *virtualMachine) aim() error {
 	}
 
 	if bestent >= 0 {
-		bev := EntVars(bestent)
+		bev := entvars.Get(bestent)
 		borigin := bev.Origin
 		eorigin := ev.Origin
 		dir := vec.Sub(borigin, eorigin)
-		vforward := vec.Vec3(progsdat.Globals.VForward)
+		vforward := vec.Vec3(v.prog.Globals.VForward)
 		dist := vec.Dot(dir, vforward)
 		end := vec.Scale(dist, vforward)
 		end[2] = dir[2]
 		end = end.Normalize()
-		*progsdat.Globals.Returnf() = end
+		*v.prog.Globals.Returnf() = end
 	} else {
-		*progsdat.Globals.Returnf() = bestdir
+		*v.prog.Globals.Returnf() = bestdir
 	}
 	return nil
 }
 
 // This was a major timewaster in progs
 func (v *virtualMachine) changeYaw() error {
-	ent := int(progsdat.Globals.Self)
+	ent := int(v.prog.Globals.Self)
 	changeYaw(ent)
 	return nil
 }
@@ -1283,7 +1284,7 @@ const (
 )
 
 func (v *virtualMachine) writeClient() (int, error) {
-	entnum := int(progsdat.Globals.MsgEntity)
+	entnum := int(v.prog.Globals.MsgEntity)
 	if entnum < 1 || entnum > svs.maxClients {
 		return 0, v.runError("WriteDest: not a client")
 	}
@@ -1291,8 +1292,8 @@ func (v *virtualMachine) writeClient() (int, error) {
 }
 
 func (v *virtualMachine) writeByte() error {
-	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
-	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
+	dest := int(v.prog.RawGlobalsF[progs.OffsetParm0])
+	msg := v.prog.RawGlobalsF[progs.OffsetParm1]
 	switch dest {
 	case MSG_ONE:
 		if c, err := v.writeClient(); err != nil {
@@ -1313,8 +1314,8 @@ func (v *virtualMachine) writeByte() error {
 }
 
 func (v *virtualMachine) writeChar() error {
-	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
-	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
+	dest := int(v.prog.RawGlobalsF[progs.OffsetParm0])
+	msg := v.prog.RawGlobalsF[progs.OffsetParm1]
 	switch dest {
 	case MSG_ONE:
 		if c, err := v.writeClient(); err != nil {
@@ -1335,8 +1336,8 @@ func (v *virtualMachine) writeChar() error {
 }
 
 func (v *virtualMachine) writeShort() error {
-	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
-	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
+	dest := int(v.prog.RawGlobalsF[progs.OffsetParm0])
+	msg := v.prog.RawGlobalsF[progs.OffsetParm1]
 	switch dest {
 	case MSG_ONE:
 		if c, err := v.writeClient(); err != nil {
@@ -1357,8 +1358,8 @@ func (v *virtualMachine) writeShort() error {
 }
 
 func (v *virtualMachine) writeLong() error {
-	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
-	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
+	dest := int(v.prog.RawGlobalsF[progs.OffsetParm0])
+	msg := v.prog.RawGlobalsF[progs.OffsetParm1]
 	switch dest {
 	case MSG_ONE:
 		if c, err := v.writeClient(); err != nil {
@@ -1379,8 +1380,8 @@ func (v *virtualMachine) writeLong() error {
 }
 
 func (v *virtualMachine) writeAngle() error {
-	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
-	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
+	dest := int(v.prog.RawGlobalsF[progs.OffsetParm0])
+	msg := v.prog.RawGlobalsF[progs.OffsetParm1]
 	switch dest {
 	case MSG_ONE:
 		if c, err := v.writeClient(); err != nil {
@@ -1401,8 +1402,8 @@ func (v *virtualMachine) writeAngle() error {
 }
 
 func (v *virtualMachine) writeCoord() error {
-	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
-	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
+	dest := int(v.prog.RawGlobalsF[progs.OffsetParm0])
+	msg := v.prog.RawGlobalsF[progs.OffsetParm1]
 	switch dest {
 	case MSG_ONE:
 		if c, err := v.writeClient(); err != nil {
@@ -1423,9 +1424,9 @@ func (v *virtualMachine) writeCoord() error {
 }
 
 func (v *virtualMachine) writeString() error {
-	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
-	i := progsdat.Globals.Parm1[0]
-	msg, err := progsdat.String(i)
+	dest := int(v.prog.RawGlobalsF[progs.OffsetParm0])
+	i := v.prog.Globals.Parm1[0]
+	msg, err := v.prog.String(i)
 	if err != nil {
 		return v.runError("PF_WriteString: bad string")
 	}
@@ -1449,8 +1450,8 @@ func (v *virtualMachine) writeString() error {
 }
 
 func (v *virtualMachine) writeEntity() error {
-	dest := int(progsdat.RawGlobalsF[progs.OffsetParm0])
-	msg := progsdat.RawGlobalsF[progs.OffsetParm1]
+	dest := int(v.prog.RawGlobalsF[progs.OffsetParm0])
+	msg := v.prog.RawGlobalsF[progs.OffsetParm1]
 	switch dest {
 	case MSG_ONE:
 		if c, err := v.writeClient(); err != nil {
@@ -1473,7 +1474,7 @@ func (v *virtualMachine) writeEntity() error {
 func (v *virtualMachine) makeStatic() error {
 	bits := 0
 
-	ent := int(progsdat.Globals.Parm0[0])
+	ent := int(v.prog.Globals.Parm0[0])
 	e := edictNum(ent)
 
 	// don't send invisible static entities
@@ -1481,9 +1482,9 @@ func (v *virtualMachine) makeStatic() error {
 		v.edictFree(ent)
 		return nil
 	}
-	ev := EntVars(ent)
+	ev := entvars.Get(ent)
 
-	m, err := progsdat.String(ev.Model)
+	m, err := v.prog.String(ev.Model)
 	if err != nil {
 		log.Printf("Error in PF_makstatic: %v", err)
 		return nil
@@ -1545,7 +1546,7 @@ func (v *virtualMachine) makeStatic() error {
 }
 
 func (v *virtualMachine) setSpawnParms() error {
-	i := int(progsdat.Globals.Parm0[0])
+	i := int(v.prog.Globals.Parm0[0])
 	if i < 1 || i > svs.maxClients {
 		return v.runError("Entity is not a client")
 	}
@@ -1554,7 +1555,7 @@ func (v *virtualMachine) setSpawnParms() error {
 	client := sv_clients[i-1]
 
 	for i := 0; i < NUM_SPAWN_PARMS; i++ {
-		progsdat.Globals.Parm[i] = client.spawnParams[i]
+		v.prog.Globals.Parm[i] = client.spawnParams[i]
 	}
 	return nil
 }
@@ -1570,8 +1571,8 @@ func (v *virtualMachine) changeLevel() error {
 	}
 	svs.changeLevelIssued = true
 
-	i := progsdat.Globals.Parm0[0]
-	s, err := progsdat.String(i)
+	i := v.prog.Globals.Parm0[0]
+	s, err := v.prog.String(i)
 	if err != nil {
 		return v.runError("PF_changelevel: bad level name")
 	}

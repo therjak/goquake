@@ -10,6 +10,7 @@ import (
 
 	"goquake/conlog"
 	"goquake/cvars"
+	"goquake/entvars"
 	"goquake/execute"
 	"goquake/keys"
 	"goquake/net"
@@ -263,7 +264,7 @@ func (c *SVClient) SendServerinfo() {
 	m.WriteByte(svc.Print)
 	m.WriteString(
 		fmt.Sprintf("%s\nGOQUAKE %1.2f SERVER (%d CRC)\n",
-			[]byte{2}, goQuakeVersion, progsdat.CRC))
+			[]byte{2}, GoQuakeVersion, progsdat.CRC))
 
 	m.WriteByte(int(svc.ServerInfo))
 	m.WriteLong(int(sv.protocol))
@@ -280,7 +281,7 @@ func (c *SVClient) SendServerinfo() {
 		m.WriteByte(svc.GameCoop)
 	}
 
-	s, err := progsdat.String(EntVars(0).Message)
+	s, err := progsdat.String(entvars.Get(0).Message)
 	if err != nil {
 		s = ""
 	}
@@ -303,8 +304,8 @@ func (c *SVClient) SendServerinfo() {
 	m.WriteByte(0)
 
 	m.WriteByte(svc.CDTrack)
-	m.WriteByte(int(EntVars(0).Sounds))
-	m.WriteByte(int(EntVars(0).Sounds))
+	m.WriteByte(int(entvars.Get(0).Sounds))
+	m.WriteByte(int(entvars.Get(0).Sounds))
 
 	m.WriteByte(svc.SetView)
 	m.WriteShort(c.edictId)
@@ -395,7 +396,7 @@ func (c *SVClient) ReadClientMessage() bool {
 				c.pingTimes[c.numPings%len(c.pingTimes)] = sv.time - mc.GetMessageTime()
 				c.numPings++
 				c.numPings %= len(c.pingTimes)
-				ev := EntVars(c.edictId)
+				ev := entvars.Get(c.edictId)
 				ev.VAngle[0] = mc.GetPitch()
 				ev.VAngle[1] = mc.GetYaw()
 				ev.VAngle[2] = mc.GetRoll()

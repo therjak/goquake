@@ -11,6 +11,7 @@ import (
 	cmdl "goquake/commandline"
 	"goquake/conlog"
 	"goquake/cvars"
+	"goquake/entvars"
 	"goquake/execute"
 	"goquake/filesystem"
 	"goquake/keys"
@@ -76,7 +77,7 @@ func qFormatI(b int32) string {
 }
 
 func hostVersion(args []cmd.QArg, _ int) error {
-	conlog.Printf("GoQuake Version %1.2f.%d\n", goQuakeVersion, goQuakePatch)
+	conlog.Printf("GoQuake Version %1.2f.%d\n", GoQuakeVersion, GoQuakePatch)
 	return nil
 }
 
@@ -105,7 +106,7 @@ func hostGod(args []cmd.QArg, playerEdictId int) error {
 	if progsdat.Globals.DeathMatch != 0 {
 		return nil
 	}
-	ev := EntVars(playerEdictId)
+	ev := entvars.Get(playerEdictId)
 	f := int32(ev.Flags)
 	const flag = progs.FlagGodMode
 	switch len(args) {
@@ -134,7 +135,7 @@ func hostNoTarget(args []cmd.QArg, playerEdictId int) error {
 	if progsdat.Globals.DeathMatch != 0 {
 		return nil
 	}
-	ev := EntVars(playerEdictId)
+	ev := entvars.Get(playerEdictId)
 	f := int32(ev.Flags)
 	const flag = progs.FlagNoTarget
 	switch len(args) {
@@ -163,7 +164,7 @@ func hostFly(args []cmd.QArg, playerEdictId int) error {
 	if progsdat.Globals.DeathMatch != 0 {
 		return nil
 	}
-	ev := EntVars(playerEdictId)
+	ev := entvars.Get(playerEdictId)
 	m := int32(ev.MoveType)
 	switch len(args) {
 	default:
@@ -224,7 +225,7 @@ func hostColor(args []cmd.QArg, _ int) error {
 	}
 	client := HostClient()
 	client.colors = c
-	EntVars(client.edictId).Team = float32(b + 1)
+	entvars.Get(client.edictId).Team = float32(b + 1)
 	uc := &protos.UpdateColors{
 		Player:   int32(client.id),
 		NewColor: int32(c),
@@ -249,7 +250,7 @@ func hostPause(args []cmd.QArg, playerEdictId int) error {
 	}
 	sv.paused = !sv.paused
 
-	ev := EntVars(playerEdictId)
+	ev := entvars.Get(playerEdictId)
 	playerName, _ := progsdat.String(ev.NetName)
 	SV_BroadcastPrintf("%s %s the game\n", playerName, func() string {
 		if sv.paused {
@@ -279,7 +280,7 @@ func hostGive(args []cmd.QArg, playerEdictId int) error {
 	if progsdat.Globals.DeathMatch != 0 {
 		return nil
 	}
-	ev := EntVars(playerEdictId)
+	ev := entvars.Get(playerEdictId)
 
 	if len(args) == 0 {
 		return nil
@@ -546,7 +547,7 @@ func hostSay(team bool, args []cmd.QArg) {
 			continue
 		}
 		if team && cvars.TeamPlay.Bool() &&
-			EntVars(c.edictId).Team != EntVars(HostClient().edictId).Team {
+			entvars.Get(c.edictId).Team != entvars.Get(HostClient().edictId).Team {
 			continue
 		}
 		c.Printf(text)
@@ -617,8 +618,8 @@ func hostSpawn(args []cmd.QArg, playerEdictId int) error {
 		// if this is the last client to be connected, unpause
 		sv.paused = false
 	} else {
-		ClearEntVars(c.edictId)
-		ev := EntVars(c.edictId)
+		entvars.Clear(c.edictId)
+		ev := entvars.Get(c.edictId)
 		ev.ColorMap = float32(c.edictId)
 		ev.Team = float32((c.colors & 15) + 1)
 		ev.NetName = progsdat.AddString(c.name)
@@ -693,8 +694,8 @@ func hostSpawn(args []cmd.QArg, playerEdictId int) error {
 	// and it won't happen if the game was just loaded, so you wind up
 	// with a permanent head tilt
 	sa := &protos.Coord{
-		X: EntVars(c.edictId).Angles[0],
-		Y: EntVars(c.edictId).Angles[1],
+		X: entvars.Get(c.edictId).Angles[0],
+		Y: entvars.Get(c.edictId).Angles[1],
 		Z: 0,
 	}
 	svc.WriteSetAngle(sa, sv.protocol, sv.protocolFlags, &c.msg)
@@ -719,7 +720,7 @@ func hostNoClip(args []cmd.QArg, playerEdictId int) error {
 	if progsdat.Globals.DeathMatch != 0 {
 		return nil
 	}
-	ev := EntVars(playerEdictId)
+	ev := entvars.Get(playerEdictId)
 	m := int32(ev.MoveType)
 	switch len(args) {
 	default:
@@ -753,7 +754,7 @@ func hostSetPos(args []cmd.QArg, playerEdictId int) error {
 		return nil
 	}
 
-	ev := EntVars(playerEdictId)
+	ev := entvars.Get(playerEdictId)
 	if len(args) != 6 && len(args) != 3 {
 		c := HostClient()
 		c.Printf("usage:\n")
@@ -834,7 +835,7 @@ func hostName(args []cmd.QArg, _ int) error {
 		conlog.Printf("%s renamed to %s\n", c.name, newName)
 	}
 	c.name = newName
-	EntVars(c.edictId).NetName = progsdat.AddString(newName)
+	entvars.Get(c.edictId).NetName = progsdat.AddString(newName)
 
 	// send notification to all clients
 	un := &protos.UpdateName{
@@ -851,7 +852,7 @@ func hostKill(args []cmd.QArg, playerEdictId int) error {
 		return nil
 	}
 
-	ev := EntVars(playerEdictId)
+	ev := entvars.Get(playerEdictId)
 
 	if ev.Health <= 0 {
 		HostClient().Printf("Can't suicide -- already dead!\n")
@@ -867,6 +868,7 @@ func hostKill(args []cmd.QArg, playerEdictId int) error {
 }
 
 func hostStatus(args []cmd.QArg, _ int) error {
+	const baseVersion = 1.09
 	if execute.IsSrcCommand() {
 		if !sv.active {
 			forwardToServer("status", args)
@@ -899,7 +901,7 @@ func hostStatus(args []cmd.QArg, _ int) error {
 		}
 		d := ntime - c.ConnectTime()
 		d = d.Truncate(time.Second)
-		ev := EntVars(c.edictId)
+		ev := entvars.Get(c.edictId)
 		printf("#%-2d %-16.16s  %3d  %9s\n", i+1, c.name, int(ev.Frags), d.String())
 		printf("   %s\n", c.Address())
 	}

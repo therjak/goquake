@@ -12,6 +12,7 @@ import (
 	"goquake/conlog"
 	"goquake/cvar"
 	"goquake/cvars"
+	"goquake/entvars"
 	"goquake/math"
 	"goquake/math/vec"
 	"goquake/model"
@@ -239,7 +240,7 @@ func (s *Server) StartSound(entity, channel, volume int, sample string, attenuat
 }
 
 func (s *Server) sendStartSound(entity, channel, volume, soundnum int, attenuation float32) {
-	ev := EntVars(entity)
+	ev := entvars.Get(entity)
 	snd := &protos.Sound{
 		Entity:   int32(entity),
 		SoundNum: int32(soundnum),
@@ -265,18 +266,18 @@ func (s *Server) sendStartSound(entity, channel, volume, soundnum int, attenuati
 
 func (s *Server) CleanupEntvarEffects() {
 	for i := 1; i < s.numEdicts; i++ {
-		ev := EntVars(i)
+		ev := entvars.Get(i)
 		eff := int(ev.Effects)
 		ev.Effects = float32(eff &^ svc.EffectMuzzleFlash)
 	}
 }
 
 func (s *Server) WriteClientdataToMessage(player int) {
-	e := EntVars(player)
+	e := entvars.Get(player)
 	alpha := s.edicts[player].Alpha
 	flags := s.protocolFlags
 	if e.DmgTake != 0 || e.DmgSave != 0 {
-		other := EntVars(int(e.DmgInflictor))
+		other := entvars.Get(int(e.DmgInflictor))
 		p := &protos.Coord{
 			X: other.Origin[0] + 0.5*(other.Mins[0]+other.Maxs[0]),
 			Y: other.Origin[1] + 0.5*(other.Mins[1]+other.Maxs[1]),
@@ -414,7 +415,7 @@ func (s *Server) SendClientDatagram(c *SVClient) (bool, error) {
 func (s *Server) UpdateToReliableMessages() {
 	b := s.reliableDatagram.Bytes()
 	for _, cl := range sv_clients {
-		newFrags := EntVars(cl.edictId).Frags
+		newFrags := entvars.Get(cl.edictId).Frags
 		if cl.active {
 			// Does it actually matter to compare as float32?
 			// These subtle C things...
@@ -438,8 +439,8 @@ func (s *Server) Impact(e1, e2 int) error {
 
 	progsdat.Globals.Time = s.time
 
-	ent1 := EntVars(e1)
-	ent2 := EntVars(e2)
+	ent1 := entvars.Get(e1)
+	ent2 := entvars.Get(e2)
 	if ent1.Touch != 0 && ent1.Solid != SOLID_NOT {
 		progsdat.Globals.Self = int32(e1)
 		progsdat.Globals.Other = int32(e2)
@@ -488,7 +489,7 @@ func (s *Server) CreateBaseline() {
 		if e.Free {
 			continue
 		}
-		sev := EntVars(entnum)
+		sev := entvars.Get(entnum)
 		if entnum > svs.maxClients && sev.ModelIndex == 0 {
 			continue
 		}
@@ -663,7 +664,7 @@ func (s *Server) SendClientMessages() error {
 // in a frame.  Not used for pushmove objects, because they must be exact.
 // Returns false if the entity removed itself.
 func runThink(e int) (bool, error) {
-	thinktime := EntVars(e).NextThink
+	thinktime := entvars.Get(e).NextThink
 	if thinktime <= 0 || thinktime > sv.time+float32(host.frameTime) {
 		return true, nil
 	}
@@ -675,9 +676,9 @@ func runThink(e int) (bool, error) {
 		thinktime = sv.time
 	}
 
-	oldframe := EntVars(e).Frame
+	oldframe := entvars.Get(e).Frame
 
-	ev := EntVars(e)
+	ev := entvars.Get(e)
 	ev.NextThink = 0
 	progsdat.Globals.Time = thinktime
 	progsdat.Globals.Self = int32(e)
@@ -706,7 +707,7 @@ func runThink(e int) (bool, error) {
 func pushEntity(e int, push vec.Vec3) (trace, error) {
 	// trace_t trace;
 	// vec3_t end;
-	ev := EntVars(e)
+	ev := entvars.Get(e)
 	origin := ev.Origin
 	mins := ev.Mins
 	maxs := ev.Maxs
@@ -741,7 +742,7 @@ func pushEntity(e int, push vec.Vec3) (trace, error) {
 func SV_SetIdealPitch(player int) {
 	const MAX_FORWARD = 6
 	z := [MAX_FORWARD]float32{}
-	ev := EntVars(player)
+	ev := entvars.Get(player)
 	if int(ev.Flags)&FL_ONGROUND == 0 {
 		return
 	}
@@ -810,14 +811,14 @@ func (s *Server) WriteEntitiesToClient(clent int) {
 	// TODO: this looks like the worst case for any branch prediction
 	// probably worth to get a better implementation
 
-	cev := EntVars(clent)
+	cev := entvars.Get(clent)
 	org := vec.Add(cev.Origin, cev.ViewOfs)
 	// find the client's PVS
 	pvs := s.worldModel.FatPVS(org)
 
 	// send over all entities (except the client) that touch the pvs
 	for ent := 1; ent < s.numEdicts; ent++ {
-		ev := EntVars(ent)
+		ev := entvars.Get(ent)
 		edict := &s.edicts[ent]
 
 		// check if we need to send this edict
@@ -1009,9 +1010,9 @@ func (s *Server) SpawnServer(name string) error {
 	clearWorld()
 
 	// load the rest of the entities
-	ClearEntVars(0)
+	entvars.Clear(0)
 	sv.edicts[0].Free = false
-	ev := EntVars(0)
+	ev := entvars.Get(0)
 	ev.Model = progsdat.AddString(s.modelName)
 	ev.ModelIndex = 1 // world model
 	ev.Solid = SOLID_BSP

@@ -11,6 +11,7 @@ import (
 	"goquake/conlog"
 	"goquake/cvar"
 	"goquake/cvars"
+	"goquake/entvars"
 	"goquake/math"
 	"goquake/math/vec"
 	"goquake/progs"
@@ -122,7 +123,7 @@ func (v *virtualMachine) UnlinkEdict(e int) {
 
 func triggerEdicts(e int, a *areaNode) []int {
 	ret := []int{}
-	ev := EntVars(e)
+	ev := entvars.Get(e)
 
 	for l := a.triggerEdicts.Next(); l != a.triggerEdicts; l = l.Next() {
 		if l == nil {
@@ -134,7 +135,7 @@ func triggerEdicts(e int, a *areaNode) []int {
 		if touch == e {
 			continue
 		}
-		tv := EntVars(touch)
+		tv := entvars.Get(touch)
 		if tv == nil || tv.Touch == 0 || tv.Solid != SOLID_TRIGGER {
 			continue
 		}
@@ -164,13 +165,13 @@ func triggerEdicts(e int, a *areaNode) []int {
 
 func (v *virtualMachine) touchLinks(e int, a *areaNode) error {
 	te := triggerEdicts(e, a)
-	ev := EntVars(e)
+	ev := entvars.Get(e)
 
 	for _, touch := range te {
 		if touch == e {
 			continue
 		}
-		tv := EntVars(touch)
+		tv := entvars.Get(touch)
 		if tv == nil || tv.Touch == 0 || tv.Solid != SOLID_TRIGGER {
 			continue
 		}
@@ -212,7 +213,7 @@ func (v *virtualMachine) LinkEdict(e int, touchTriggers bool) error {
 	if ed.Free {
 		return nil
 	}
-	ev := EntVars(e)
+	ev := entvars.Get(e)
 
 	ev.AbsMin[0] = ev.Origin[0] + ev.Mins[0]
 	ev.AbsMin[1] = ev.Origin[1] + ev.Mins[1]
@@ -307,7 +308,7 @@ func findTouchedLeafs(e int, node bsp.Node, world *bsp.Model) {
 	}
 	n := node.(*bsp.MNode)
 	splitplane := n.Plane
-	ev := EntVars(e)
+	ev := entvars.Get(e)
 	sides := boxOnPlaneSide(vec.VFromA(ev.AbsMin), vec.VFromA(ev.AbsMax), splitplane)
 	if sides&1 != 0 {
 		findTouchedLeafs(e, n.Children[0], world)
@@ -386,7 +387,7 @@ type moveClip struct {
 func clipToLinks(a *areaNode, clip *moveClip) {
 	for l := a.solidEdicts.Next(); l != a.solidEdicts; l = l.Next() {
 		touch := l.Value.(int)
-		tv := EntVars(touch)
+		tv := entvars.Get(touch)
 		if tv.Solid == SOLID_NOT {
 			continue
 		}
@@ -409,7 +410,7 @@ func clipToLinks(a *areaNode, clip *moveClip) {
 			continue
 		}
 
-		if clip.edict >= 0 && EntVars(clip.edict).Size[0] != 0 &&
+		if clip.edict >= 0 && entvars.Get(clip.edict).Size[0] != 0 &&
 			tv.Size[0] == 0 {
 			continue
 		}
@@ -420,7 +421,7 @@ func clipToLinks(a *areaNode, clip *moveClip) {
 			if tv.Owner == int32(clip.edict) {
 				continue
 			}
-			if EntVars(clip.edict).Owner == int32(touch) {
+			if entvars.Get(clip.edict).Owner == int32(touch) {
 				continue
 			}
 		}
@@ -646,7 +647,7 @@ func clipMoveToEntity(ent int, start, mins, maxs, end vec.Vec3) trace {
 	t.Fraction = 1
 	t.AllSolid = true
 	t.EndPos = end
-	hull, offset := hullForEntity(EntVars(ent), mins, maxs)
+	hull, offset := hullForEntity(entvars.Get(ent), mins, maxs)
 	startL := vec.Sub(start, offset)
 	endL := vec.Sub(end, offset)
 	recursiveHullCheck(hull, hull.FirstClipNode, 0, 1, startL, endL, &t)
@@ -670,7 +671,7 @@ func (c *moveClip) moveBounds(s, e vec.Vec3) {
 }
 
 func testEntityPosition(ent int) bool {
-	ev := EntVars(ent)
+	ev := entvars.Get(ent)
 	t := svMove(ev.Origin, ev.Mins, ev.Maxs, ev.Origin, MOVE_NORMAL, ent)
 	return t.StartSolid
 }
@@ -714,7 +715,7 @@ const (
 //Returns false if any part of the bottom of the entity is off an edge that
 //is not a staircase.
 func checkBottom(ent int) bool {
-	ev := EntVars(ent)
+	ev := entvars.Get(ent)
 	o := ev.Origin
 	mins := vec.Add(o, ev.Mins)
 	maxs := vec.Add(o, ev.Maxs)

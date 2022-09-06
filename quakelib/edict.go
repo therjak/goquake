@@ -10,6 +10,7 @@ import (
 	"goquake/cmd"
 	"goquake/conlog"
 	"goquake/cvars"
+	"goquake/entvars"
 	"goquake/math"
 	"goquake/math/vec"
 	"goquake/progs"
@@ -60,12 +61,13 @@ func edictNum(i int) *Edict {
 }
 
 func AllocEdicts() {
-	AllocEntvars(sv.maxEdicts, progsdat.EdictSize)
+	log.Printf("AllocEdicts: %v", progsdat)
+	entvars.AllocEntvars(sv.maxEdicts, progsdat.EdictSize, progsdat)
 	sv.edicts = make([]Edict, sv.maxEdicts)
 }
 
 func freeEdicts() {
-	FreeEntvars()
+	entvars.Free()
 	sv.edicts = sv.edicts[:0]
 }
 
@@ -80,7 +82,7 @@ func (v *virtualMachine) edictFree(i int) {
 	e.Alpha = 0
 	e.FreeTime = sv.time
 
-	ev := EntVars(i)
+	ev := entvars.Get(i)
 	ev.Model = 0
 	ev.TakeDamage = 0
 	ev.ModelIndex = 0
@@ -96,7 +98,7 @@ func (v *virtualMachine) edictFree(i int) {
 func ClearEdict(e int) {
 	ent := edictNum(e)
 	*ent = Edict{}
-	ClearEntVars(e)
+	entvars.Clear(e)
 }
 
 // Either finds a free edict, or allocates a new one.
@@ -111,7 +113,7 @@ func edictAlloc() (int, error) {
 		// the first couple seconds of server time can involve a lot of
 		// freeing and allocating, so relax the replacement policy
 		if e.Free && (e.FreeTime < 2 || sv.time-e.FreeTime > 0.5) {
-			ClearEntVars(i)
+			entvars.Clear(i)
 			edictNum(i).Free = false
 			return i, nil
 		}
@@ -150,7 +152,7 @@ func edictPrint(ed int) {
 		for ; l < 15; l++ {
 			conlog.SafePrintf(" ")
 		}
-		conlog.SafePrintf("%s\n", EntVarsSprint(ed, d))
+		conlog.SafePrintf("%s\n", entvars.Sprint(ed, d))
 	}
 }
 
@@ -196,13 +198,13 @@ func edictCount(_ []cmd.QArg, _ int) error {
 			continue
 		}
 		active++
-		if EntVars(i).Solid != 0 {
+		if entvars.Get(i).Solid != 0 {
 			solid++
 		}
-		if EntVars(i).Model != 0 {
+		if entvars.Get(i).Model != 0 {
 			models++
 		}
-		if EntVars(i).MoveType == progs.MoveTypeStep {
+		if entvars.Get(i).MoveType == progs.MoveTypeStep {
 			step++
 		}
 	}
@@ -223,7 +225,7 @@ func entAlphaEncode(a float32) byte {
 }
 
 func UpdateEdictAlpha(ent int) {
-	v, err := EntVarsFieldValue(ent, "alpha")
+	v, err := entvars.FieldValue(ent, "alpha")
 	if err != nil {
 		return
 	}
@@ -232,7 +234,7 @@ func UpdateEdictAlpha(ent int) {
 
 func parse(ed int, data *bsp.Entity) {
 	if ed != 0 {
-		ClearEntVars(ed)
+		entvars.Clear(ed)
 	}
 	for _, on := range data.PropertyNames() {
 		// some hacks...
@@ -257,7 +259,7 @@ func parse(ed int, data *bsp.Entity) {
 		if angleHack {
 			p = fmt.Sprintf("0 %s 0", p)
 		}
-		EntVarsParsePair(ed, def, p)
+		entvars.ParsePair(ed, def, p)
 	}
 }
 
@@ -296,7 +298,7 @@ func loadEntities(data []*bsp.Entity) error {
 		}
 		parse(eNr, j)
 
-		ev := EntVars(eNr)
+		ev := entvars.Get(eNr)
 
 		// remove things from different skill levels or deathmatch
 		if cvars.DeathMatch.Bool() {

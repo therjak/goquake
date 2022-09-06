@@ -3,6 +3,7 @@ package quakelib
 
 import (
 	"goquake/bsp"
+	"goquake/entvars"
 	"goquake/math"
 	"goquake/math/vec"
 	"goquake/progs"
@@ -16,7 +17,7 @@ import (
 //pr_global_struct->trace_normal is set to the normal of the blocking wall
 func (v *virtualMachine) monsterMoveStep(ent int, move vec.Vec3, relink bool) (bool, error) {
 	const STEPSIZE = 18
-	ev := EntVars(ent)
+	ev := entvars.Get(ent)
 	mins := vec.VFromA(ev.Mins)
 	maxs := vec.VFromA(ev.Maxs)
 	flags := int(ev.Flags)
@@ -29,7 +30,7 @@ func (v *virtualMachine) monsterMoveStep(ent int, move vec.Vec3, relink bool) (b
 			neworg := vec.Add(origin, move)
 			enemy := int(ev.Enemy)
 			if i == 0 && enemy != 0 {
-				dz := origin[2] - EntVars(enemy).Origin[2]
+				dz := origin[2] - entvars.Get(enemy).Origin[2]
 				if dz > 40 {
 					neworg[2] -= 8
 				}
@@ -130,7 +131,7 @@ func (v *virtualMachine) monsterMoveStep(ent int, move vec.Vec3, relink bool) (b
 
 // This was a major timewaster in progs
 func changeYaw(ent int) {
-	ev := EntVars(ent)
+	ev := entvars.Get(ent)
 	current := math.AngleMod32(ev.Angles[1])
 	ideal := ev.IdealYaw
 	speed := ev.YawSpeed
@@ -163,7 +164,7 @@ func changeYaw(ent int) {
 // Turns to the movement direction, and walks the current distance if
 // facing it.
 func (v *virtualMachine) monsterStepDirection(ent int, yaw, dist float32) (bool, error) {
-	ev := EntVars(ent)
+	ev := entvars.Get(ent)
 	ev.IdealYaw = yaw
 
 	changeYaw(ent)
@@ -199,8 +200,8 @@ func (v *virtualMachine) monsterStepDirection(ent int, yaw, dist float32) (bool,
 
 func (v *virtualMachine) monsterNewChaseDir(a, e int, dist float32) error {
 	const DI_NODIR = -1
-	actor := EntVars(a)
-	enemy := EntVars(e)
+	actor := entvars.Get(a)
+	enemy := entvars.Get(e)
 
 	olddir := math.AngleMod32(math32.Trunc(actor.IdealYaw/45) * 45)
 	turnaround := math.AngleMod32(olddir - 180)
@@ -322,8 +323,8 @@ func (v *virtualMachine) monsterNewChaseDir(a, e int, dist float32) error {
 }
 
 func monsterCloseEnough(e, g int, dist float32) bool {
-	eev := EntVars(e)
-	gev := EntVars(g)
+	eev := entvars.Get(e)
+	gev := entvars.Get(g)
 
 	for i := 0; i < 3; i++ {
 		if (gev.AbsMin[i] > eev.AbsMax[i]+dist) ||
@@ -337,7 +338,7 @@ func monsterCloseEnough(e, g int, dist float32) bool {
 // this is part of vm_functions
 func (v *virtualMachine) monsterMoveToGoal() error {
 	ent := int(progsdat.Globals.Self)
-	ev := EntVars(ent)
+	ev := entvars.Get(ent)
 
 	if int(ev.Flags)&(FL_ONGROUND|FL_FLY|FL_SWIM) == 0 {
 		progsdat.Globals.Returnf()[0] = 0

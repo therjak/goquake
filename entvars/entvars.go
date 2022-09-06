@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-package quakelib
+package entvars
 
 // This needs test and should probably be a separate package
 // It needs a progs.LoadedProg as input
@@ -18,9 +18,10 @@ var (
 	maxEdicts    int
 	g_entvars    unsafe.Pointer
 	entvars      [][]int32
+	progsdat     *progs.LoadedProg
 )
 
-func AllocEntvars(numEdicts int, entityfields int) {
+func AllocEntvars(numEdicts int, entityfields int, pg *progs.LoadedProg) {
 	entityFields = entityfields
 	maxEdicts = numEdicts
 	virtmem = make([]int32, maxEdicts*entityFields)
@@ -29,26 +30,31 @@ func AllocEntvars(numEdicts int, entityfields int) {
 	for i := 0; i < maxEdicts; i++ {
 		entvars[i] = virtmem[i*entityFields : (i+1)*entityFields]
 	}
+	progsdat = pg
 }
 
-func FreeEntvars() {
+func Address(idx, off int32) int32 {
+	return idx*int32(entityFields)*4 + off*4
+}
+
+func Free() {
 	g_entvars = nil
 	entvars = nil
 	virtmem = nil
 }
 
-func ClearEntVars(idx int) {
+func Clear(idx int) {
 	v := entvars[idx]
 	for i := 0; i < len(v); i++ {
 		v[i] = 0
 	}
 }
 
-func EntVars(idx int) *progs.EntVars {
+func Get(idx int) *progs.EntVars {
 	return (*progs.EntVars)(unsafe.Pointer(&(entvars[idx][0])))
 }
 
-func EntVarsSprint(idx int, d progs.Def) string {
+func Sprint(idx int, d progs.Def) string {
 	vp := &(entvars[idx][d.Offset])
 	switch d.Type {
 	case progs.EV_Void:
@@ -87,11 +93,11 @@ func EntVarsSprint(idx int, d progs.Def) string {
 	}
 }
 
-func RawEntVarsI(idx, off int32) int32 {
+func RawI(idx, off int32) int32 {
 	return (entvars[idx][off])
 }
 
-func SetRawEntVarsI(idx, off int32, value int32) {
+func SetRawI(idx, off int32, value int32) {
 	entvars[idx][off] = value
 }
 
@@ -101,23 +107,23 @@ func getUnsafe(off int32) unsafe.Pointer {
 	return unsafe.Pointer(uintptr(g_entvars) + uintptr(off))
 }
 
-func Set0RawEntVarsI(off int32, value int32) {
+func Set0RawI(off int32, value int32) {
 	*(*int32)(getUnsafe(off)) = value
 }
 
-func Set0RawEntVarsF(off int32, value float32) {
+func Set0RawF(off int32, value float32) {
 	*(*float32)(getUnsafe(off)) = value
 }
 
-func RawEntVarsF(idx, off int32) float32 {
+func RawF(idx, off int32) float32 {
 	return *(*float32)(unsafe.Pointer(&(entvars[idx][off])))
 }
 
-func SetRawEntVarsF(idx, off int32, value float32) {
+func SetRawF(idx, off int32, value float32) {
 	*(*float32)(unsafe.Pointer(&(entvars[idx][off]))) = value
 }
 
-func EntVarsFieldValue(idx int, name string) (float32, error) {
+func FieldValue(idx int, name string) (float32, error) {
 	// Orig returns the union 'eval_t' but afterwards it is always a float32
 	d, err := progsdat.FindFieldDef(name)
 	if err != nil {
@@ -126,7 +132,7 @@ func EntVarsFieldValue(idx int, name string) (float32, error) {
 	return *(*float32)(unsafe.Pointer(&(entvars[idx][d.Offset]))), nil
 }
 
-func EntVarsParsePair(idx int, key progs.Def, val string) {
+func ParsePair(idx int, key progs.Def, val string) {
 	// edict number, key, value
 	// Def{Type, Offset, uint16, SName int32}
 	vp := &(entvars[idx][key.Offset])

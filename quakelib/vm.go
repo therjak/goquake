@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"goquake/conlog"
+	"goquake/entvars"
 	"goquake/math/vec"
 	"goquake/progs"
 )
@@ -295,40 +296,6 @@ func (v *virtualMachine) stackTrace() {
 	}
 }
 
-/*
-TODO:
-func init() {
-	cmd.AddCommand("profile", PR_Profile_f)
-}
-
-void PR_Profile_f(void) {
-  int i, num;
-  int pmax;
-  dfunction_t *f, *best;
-
-	if (!sv.active) return;
-
-  num = 0;
-  do {
-    pmax = 0;
-    best = NULL;
-    for (i = 0; i < progs->numfunctions; i++) {
-      f = &pr_functions[i];
-      if (f->profile > pmax) {
-        pmax = f->profile;
-        best = f;
-      }
-    }
-    if (best) {
-      if (num < 10)
-        Con_Printf("%7i %s\n", best->profile, PR_GetString(best->s_name));
-      num++;
-      best->profile = 0;
-    }
-  } while (best);
-}
-
-*/
 // Aborts the currently executing function
 func (v *virtualMachine) runError(format string, a ...interface{}) error {
 	v.printStatement(v.prog.Statements[v.statement])
@@ -480,18 +447,10 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) error {
 		return 0
 	}
 
-	// startprofile := int32(0)
-	// profile := int32(0)
-
 	//hack to offset the first increment of currentStatement
 	currentStatement--
 	for {
 		currentStatement++
-		//profile++
-		//if profile > 100000 {
-		//	v.statement = currentStatement - int32(len(v.prog.Statements))
-		//	v.runError("runaway loop error")
-		//}
 
 		if v.trace {
 			v.printStatement(v.prog.Statements[currentStatement])
@@ -603,26 +562,14 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) error {
 			operatorSTOREP_S,
 			operatorSTOREP_FNC: // pointers
 			o := OPBI()
-			Set0RawEntVarsI(o, OPAI())
+			entvars.Set0RawI(o, OPAI())
 
-			//ptr = (eval_t *)((byte *)EVars(0) + OPBI);
-			//ptr->_int = OPAI;
 		case operatorSTOREP_V:
-			// log.Printf("TODO: storep 2, OPBI %d", OPBI())
 			o := OPBI()
-			//off := o % (int32(entityFields * 4))
-			//idx := o / (int32(entityFields * 4))
 			value := OPAV()
-			// log.Printf("idx %d, off %d, v %v", idx, off, value)
-			Set0RawEntVarsF(o, value[0])
-			Set0RawEntVarsF(o+4, value[1])
-			Set0RawEntVarsF(o+8, value[2])
-
-			// log.Printf("EntVar: %v", EntVars(int(idx)))
-			//ptr = (eval_t *)((byte *)EVars(0) + OPBI);
-			//ptr->vector[0] = OPAV1;
-			//ptr->vector[1] = OPAV2;
-			//ptr->vector[2] = OPAV3;
+			entvars.Set0RawF(o, value[0])
+			entvars.Set0RawF(o+4, value[1])
+			entvars.Set0RawF(o+8, value[2])
 
 		case operatorADDRESS:
 			ed := OPAI()
@@ -630,32 +577,22 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) error {
 				v.statement = currentStatement
 				return v.runError("assignment to world entity")
 			}
-			setOPCI(OPAI()*int32(entityFields)*4 + OPBI()*4)
-			//SOPCI((byte *)((int *)EVars(OPAI) + OPBI) - (byte *)EVars(0));
+			setOPCI(entvars.Address(OPAI(), OPBI()))
 
 		case operatorLOAD_F,
 			operatorLOAD_FLD,
 			operatorLOAD_ENT,
 			operatorLOAD_S,
 			operatorLOAD_FNC:
-			i := RawEntVarsI(OPAI(), +OPBI())
+			i := entvars.RawI(OPAI(), +OPBI())
 			setOPCI(i)
-			//SOPCI(((eval_t *)((int *)EVars(OPAI) + OPBI))->_int);
 
 		case operatorLOAD_V:
-			//ptr = (eval_t *)((int *)EVars(OPAI) + OPBI);
-			//SOPCV1(ptr->vector[0]);
-			//SOPCV2(ptr->vector[1]);
-			//SOPCV3(ptr->vector[2]);
 			ve := [3]float32{
-				RawEntVarsF(OPAI(), OPBI()),
-				RawEntVarsF(OPAI(), OPBI()+1),
-				RawEntVarsF(OPAI(), OPBI()+2),
+				entvars.RawF(OPAI(), OPBI()),
+				entvars.RawF(OPAI(), OPBI()+1),
+				entvars.RawF(OPAI(), OPBI()+2),
 			}
-			//if OPAI() > 1 {
-			//	log.Printf("LOAD_S, OPAI %v, OPBI %v, v %v", OPAI(), OPBI(), ve)
-			//	log.Printf("EntVar: %v", EntVars(int(OPAI())))
-			//}
 			setOPCV(ve)
 
 		case operatorIFNOT:
@@ -680,8 +617,6 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) error {
 			operatorCALL6,
 			operatorCALL7,
 			operatorCALL8:
-			// v.xfunction.Profile += profile - startprofile
-			// startprofile = profile
 			v.statement = currentStatement
 			v.argc = int(st().Operator) - operatorCALL0
 			if OPAI() == 0 {
@@ -707,8 +642,6 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) error {
 			}
 
 		case operatorDONE, operatorRETURN:
-			// v.xfunction.Profile += profile - startprofile
-			// startprofile = profile
 			v.statement = currentStatement
 			*(v.prog.Globals.Returnf()) = OPAV()
 			if s, err := v.leaveFunction(); err != nil {
@@ -721,7 +654,7 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) error {
 			}
 
 		case operatorSTATE:
-			ev := EntVars(int(v.prog.Globals.Self))
+			ev := entvars.Get(int(v.prog.Globals.Self))
 			ev.NextThink = v.prog.Globals.Time + 0.1
 			ev.Frame = OPAF()
 			ev.Think = OPBI()

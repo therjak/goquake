@@ -11,6 +11,7 @@ import (
 	cmdl "goquake/commandline"
 	"goquake/conlog"
 	"goquake/cvars"
+	"goquake/entvars"
 	"goquake/execute"
 	"goquake/protos"
 
@@ -55,7 +56,7 @@ func saveGame(args []cmd.QArg, _ int) error {
 		return nil
 	}
 
-	if EntVars(sv_clients[0].edictId).Health <= 0 {
+	if entvars.Get(sv_clients[0].edictId).Health <= 0 {
 		conlog.Printf("Can't savegame with a dead player\n")
 		return nil
 	}

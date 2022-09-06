@@ -359,7 +359,7 @@ func (c *qconsole) Draw(lines int) {
 	}
 
 	c.DrawInput()
-	version := fmt.Sprintf("GoQuake %1.2f.%d", goQuakeVersion, goQuakePatch)
+	version := fmt.Sprintf("GoQuake %1.2f.%d", GoQuakeVersion, GoQuakePatch)
 	y += 8
 	x := (c.lineWidth - len(version) + 2) * 8
 	DrawStringWhite(x, y, version)

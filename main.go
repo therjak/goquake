@@ -9,6 +9,8 @@ import (
 
 	"goquake/quakelib"
 
+	"github.com/veandco/go-sdl2/sdl"
+
 	// register the model loaders
 	_ "goquake/bsp"
 	_ "goquake/mdl"
@@ -27,6 +29,16 @@ func main() {
 		pprof.StartCPUProfile(f)
 		defer pprof.StopCPUProfile()
 	}
+	v := sdl.Version{}
+	sdl.GetVersion(&v)
+	log.Printf("Found SDL version %d.%d.%d\n", v.Major, v.Minor, v.Patch)
+	if err := sdl.Init(0); err != nil {
+		log.Fatal(err)
+	}
+	defer sdl.Quit()
+
+	log.Printf("GoQuake %1.2f.%d\n", quakelib.GoQuakeVersion, quakelib.GoQuakePatch)
+
 	if err := quakelib.CallCMain(); err != nil {
 		log.Fatal(err)
 	}
