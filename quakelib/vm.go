@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"goquake/conlog"
-	"goquake/entvars"
 	"goquake/math/vec"
 	"goquake/progs"
 )

@@ -11,7 +11,6 @@ import (
 	cmdl "goquake/commandline"
 	"goquake/conlog"
 	"goquake/cvars"
-	"goquake/entvars"
 	"goquake/execute"
 	"goquake/protos"
 

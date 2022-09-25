@@ -10,7 +10,6 @@ import (
 	"goquake/cmd"
 	"goquake/conlog"
 	"goquake/cvars"
-	"goquake/entvars"
 	"goquake/math"
 	"goquake/math/vec"
 	"goquake/progs"
@@ -60,9 +59,11 @@ func edictNum(i int) *Edict {
 	return &sv.edicts[i]
 }
 
+var entvars *progs.EntityVars
+
 func AllocEdicts() {
 	log.Printf("AllocEdicts: %v", progsdat)
-	entvars.AllocEntvars(sv.maxEdicts, progsdat.EdictSize, progsdat)
+	entvars = progs.AllocEntvars(sv.maxEdicts, progsdat.EdictSize, progsdat)
 	sv.edicts = make([]Edict, sv.maxEdicts)
 }
 

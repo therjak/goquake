@@ -3,7 +3,6 @@ package quakelib
 
 import (
 	"goquake/bsp"
-	"goquake/entvars"
 	"goquake/math"
 	"goquake/math/vec"
 	"goquake/progs"

@@ -5,7 +5,6 @@ import (
 	"goquake/bsp"
 	"goquake/conlog"
 	"goquake/cvars"
-	"goquake/entvars"
 	"goquake/math/vec"
 	"goquake/progs"
 

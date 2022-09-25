@@ -13,7 +13,6 @@ import (
 	"goquake/conlog"
 	"goquake/cvar"
 	"goquake/cvars"
-	"goquake/entvars"
 	"goquake/math"
 	"goquake/math/vec"
 	"goquake/progs"
@@ -396,6 +395,7 @@ func (v *virtualMachine) setOrigin() error {
 	return nil
 }
 
+// TODO
 func setMinMaxSize(ev *progs.EntVars, min, max vec.Vec3) {
 	if min[0] > max[0] || min[1] > max[1] || min[2] > max[2] {
 		conlog.DPrintf("backwards mins/maxs")
@@ -460,6 +460,7 @@ func (v *virtualMachine) setModel() error {
 	return nil
 }
 
+// TODO
 func (v *virtualMachine) normalize() error {
 	ve := vec.VFromA(*v.prog.Globals.Parm0f())
 	l := 1 / gmath.Sqrt(vec.DoublePrecDot(ve, ve))
@@ -472,6 +473,7 @@ func (v *virtualMachine) normalize() error {
 	return nil
 }
 
+// TODO
 func (v *virtualMachine) vlen() error {
 	ve := vec.VFromA(*v.prog.Globals.Parm0f())
 	l := gmath.Sqrt(vec.DoublePrecDot(ve, ve))
@@ -479,6 +481,7 @@ func (v *virtualMachine) vlen() error {
 	return nil
 }
 
+// TODO
 func (v *virtualMachine) vecToYaw() error {
 	ve := vec.VFromA(*v.prog.Globals.Parm0f())
 	yaw := func() float32 {
@@ -496,6 +499,7 @@ func (v *virtualMachine) vecToYaw() error {
 	return nil
 }
 
+// TODO
 func (v *virtualMachine) vecToAngles() error {
 	ve := vec.VFromA(*v.prog.Globals.Parm0f())
 	yaw, pitch := func() (float32, float32) {
@@ -525,6 +529,7 @@ func (v *virtualMachine) vecToAngles() error {
 	return nil
 }
 
+// TODO
 // Returns a number from 0 <= num < 1
 func (v *virtualMachine) random() error {
 	v.prog.Globals.Returnf()[0] = sRand.Float32()
@@ -878,6 +883,7 @@ func (v *virtualMachine) findRadius() error {
 	return nil
 }
 
+// TODO
 func (v *virtualMachine) ftos() error {
 	ve := v.prog.RawGlobalsF[progs.OffsetParm0]
 	s := func() string {
@@ -891,12 +897,14 @@ func (v *virtualMachine) ftos() error {
 	return nil
 }
 
+// TODO
 func (v *virtualMachine) fabs() error {
 	f := v.prog.RawGlobalsF[progs.OffsetParm0]
 	v.prog.Globals.Returnf()[0] = math32.Abs(f)
 	return nil
 }
 
+// TODO
 func (v *virtualMachine) vtos() error {
 	p := *v.prog.Globals.Parm0f()
 	s := fmt.Sprintf("'%5.1f %5.1f %5.1f'", p[0], p[1], p[2])
@@ -1130,18 +1138,21 @@ func (v *virtualMachine) lightStyle() error {
 	return nil
 }
 
+// TODO
 func (v *virtualMachine) rint() error {
 	f := v.prog.RawGlobalsF[progs.OffsetParm0]
 	v.prog.Globals.Returnf()[0] = math.RoundToEven(f)
 	return nil
 }
 
+// TODO
 func (v *virtualMachine) floor() error {
 	f := v.prog.RawGlobalsF[progs.OffsetParm0]
 	v.prog.Globals.Returnf()[0] = math32.Floor(f)
 	return nil
 }
 
+// TODO
 func (v *virtualMachine) ceil() error {
 	f := v.prog.RawGlobalsF[progs.OffsetParm0]
 	v.prog.Globals.Returnf()[0] = math32.Ceil(f)
@@ -1158,6 +1169,7 @@ func (v *virtualMachine) checkBottom() error {
 	return nil
 }
 
+// TODO
 // Writes new values for v_forward, v_up, and v_right based on angles makevectors(vector)
 func (v *virtualMachine) makeVectors() error {
 	ve := vec.VFromA(*v.prog.Globals.Parm0f())

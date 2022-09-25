@@ -10,7 +10,6 @@ import (
 
 	"goquake/conlog"
 	"goquake/cvars"
-	"goquake/entvars"
 	"goquake/execute"
 	"goquake/keys"
 	"goquake/net"

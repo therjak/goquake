@@ -12,7 +12,6 @@ import (
 	"goquake/conlog"
 	"goquake/cvar"
 	"goquake/cvars"
-	"goquake/entvars"
 	"goquake/math"
 	"goquake/math/vec"
 	"goquake/model"
