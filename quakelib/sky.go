@@ -28,7 +28,7 @@ func init() {
 
 }
 
-func skyCommand(args []cmd.QArg, _ int) error {
+func skyCommand(args []cmd.QArg, p, s int) error {
 	switch len(args) {
 	case 0:
 		conlog.Printf("\"sky\" is \"%s\"\n", sky.boxName)

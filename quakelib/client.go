@@ -64,10 +64,10 @@ var (
 )
 
 func init() {
-	addCommand("disconnect", func(args []cmd.QArg, _ int) error {
+	addCommand("disconnect", func(args []cmd.QArg, p, s int) error {
 		return clientDisconnect()
 	})
-	addCommand("reconnect", func(args []cmd.QArg, _ int) error {
+	addCommand("reconnect", func(args []cmd.QArg, p, s int) error {
 		clientReconnect()
 		return nil
 	})
@@ -328,7 +328,7 @@ func clientClear() {
 	clearEntityFragments()
 }
 
-func viewPositionCommand(args []cmd.QArg, _ int) error {
+func viewPositionCommand(args []cmd.QArg, p, s int) error {
 	if cls.state != ca_connected {
 		return nil
 	}
@@ -344,7 +344,7 @@ func printPosition() {
 		cl.pitch, cl.yaw, cl.roll)
 }
 
-func executeOnServer(args []cmd.QArg, _ int) error {
+func executeOnServer(args []cmd.QArg, p, s int) error {
 	if cls.state != ca_connected {
 		conlog.Printf("Can't \"cmd\", not connected\n")
 		return nil
@@ -1105,7 +1105,7 @@ func (c *Client) bonusFlash() {
 }
 
 func init() {
-	addCommand("v_cshift", func(a []cmd.QArg, _ int) error {
+	addCommand("v_cshift", func(a []cmd.QArg, p, s int) error {
 		cshiftEmpty = Color{0, 0, 0, 0}
 		switch l := len(a); {
 		case l >= 4:
@@ -1122,11 +1122,11 @@ func init() {
 		}
 		return nil
 	})
-	addCommand("bf", func(_ []cmd.QArg, _ int) error {
+	addCommand("bf", func(a []cmd.QArg, p, s int) error {
 		cl.bonusFlash()
 		return nil
 	})
-	addCommand("centerview", func(_ []cmd.QArg, _ int) error {
+	addCommand("centerview", func(a []cmd.QArg, p, s int) error {
 		cl.startPitchDrift()
 		return nil
 	})
@@ -1262,7 +1262,7 @@ func (c *Client) calcRefreshRect() {
 }
 
 // display impact point of trace along VPN
-func tracePosition(args []cmd.QArg, _ int) error {
+func tracePosition(args []cmd.QArg, p, s int) error {
 	if cls.state != ca_connected {
 		return nil
 	}
@@ -1411,7 +1411,7 @@ func (c *ClientStatic) writeDemoMessage(data []byte) error {
 	return nil
 }
 
-func clientStartDemos(args []cmd.QArg, _ int) error {
+func clientStartDemos(args []cmd.QArg, p, s int) error {
 	if cmdl.Dedicated() {
 		return nil
 	}
@@ -1437,8 +1437,8 @@ func clientStartDemos(args []cmd.QArg, _ int) error {
 	return nil
 }
 
-func clientRecordDemo(args []cmd.QArg, playerEdictId int) error {
-	if !execute.IsSrcCommand() {
+func clientRecordDemo(args []cmd.QArg, playerEdictId, s int) error {
+	if s != execute.Command {
 		return nil
 	}
 	if cls.demoPlayback {
@@ -1560,8 +1560,8 @@ func clientRecordDemo(args []cmd.QArg, playerEdictId int) error {
 	return nil
 }
 
-func clientStopDemoRecording(_ []cmd.QArg, _ int) error {
-	if !execute.IsSrcCommand() {
+func clientStopDemoRecording(a []cmd.QArg, p, s int) error {
+	if s != execute.Command {
 		return nil
 	}
 	if cls.demoWriter == nil {
@@ -1572,8 +1572,8 @@ func clientStopDemoRecording(_ []cmd.QArg, _ int) error {
 	return nil
 }
 
-func clientPlayDemo(args []cmd.QArg, _ int) error {
-	if !execute.IsSrcCommand() {
+func clientPlayDemo(args []cmd.QArg, p, s int) error {
+	if s != execute.Command {
 		return nil
 	}
 
@@ -1588,8 +1588,8 @@ func clientPlayDemo(args []cmd.QArg, _ int) error {
 	return nil
 }
 
-func clientTimeDemo(args []cmd.QArg, _ int) error {
-	if !execute.IsSrcCommand() {
+func clientTimeDemo(args []cmd.QArg, p, s int) error {
+	if s != execute.Command {
 		return nil
 	}
 

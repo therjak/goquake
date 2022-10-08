@@ -306,7 +306,7 @@ func init() {
 	addCommand("unbindall", keyUnbindAll)
 }
 
-func keyBindlist(args []cmd.QArg, _ int) error {
+func keyBindlist(args []cmd.QArg, p, s int) error {
 	count := 0
 	for k, v := range keyBindings {
 		if v != "" {
@@ -318,7 +318,7 @@ func keyBindlist(args []cmd.QArg, _ int) error {
 	return nil
 }
 
-func keyUnbind(args []cmd.QArg, _ int) error {
+func keyUnbind(args []cmd.QArg, p, s int) error {
 	if len(args) != 1 {
 		conlog.Printf("unbind <key> : remove commands from a key\n")
 		return nil
@@ -334,12 +334,12 @@ func keyUnbind(args []cmd.QArg, _ int) error {
 	return nil
 }
 
-func keyUnbindAll(_ []cmd.QArg, _ int) error {
+func keyUnbindAll(_ []cmd.QArg, p, s int) error {
 	keyBindings = make(map[kc.KeyCode]string)
 	return nil
 }
 
-func keyBind(args []cmd.QArg, _ int) error {
+func keyBind(args []cmd.QArg, p, s int) error {
 	c := len(args)
 	if c != 1 && c != 2 {
 		conlog.Printf("bind <key> [command] : attach a command to a key\n")
@@ -497,6 +497,7 @@ func keyEvent(key kc.KeyCode, down bool) {
 				return
 			}
 			if key >= 200 && ("" != keyBindings[key]) {
+				// >= 200 is mouse + joystick
 				// TODO(therjak): is this the right condidition, do we want this at all?
 				conlog.Printf("%s is unbound, hit F4 to set.\n", kc.KeyToString(key))
 			}

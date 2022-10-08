@@ -12,7 +12,7 @@ import (
 	"unicode/utf8"
 )
 
-type QFunc func([]QArg, int) error
+type QFunc func(args []QArg, player int, source int) error
 
 var (
 	commands = make(map[string]QFunc)
@@ -48,13 +48,13 @@ func Exists(cmdName string) bool {
 	return ok
 }
 
-func Execute(n []QArg, player int) (bool, error) {
+func Execute(n []QArg, player int, source int) (bool, error) {
 	if len(n) == 0 {
 		return false, nil
 	}
 	name := strings.ToLower(n[0].String())
 	if c, ok := commands[name]; ok {
-		if err := c(n[1:], player); err != nil {
+		if err := c(n[1:], player, source); err != nil {
 			return false, err
 		}
 		return true, nil

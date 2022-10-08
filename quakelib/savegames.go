@@ -31,8 +31,8 @@ func saveGameComment() string {
 	return fmt.Sprintf("%-22s kills:%3d/%3d", ln, km, tm)
 }
 
-func saveGame(args []cmd.QArg, _ int) error {
-	if !execute.IsSrcCommand() {
+func saveGame(args []cmd.QArg, p, s int) error {
+	if s != execute.Command {
 		return nil
 	}
 	if !sv.active {
@@ -100,8 +100,8 @@ func saveGame(args []cmd.QArg, _ int) error {
 	return nil
 }
 
-func loadGame(args []cmd.QArg, _ int) error {
-	if !execute.IsSrcCommand() {
+func loadGame(args []cmd.QArg, p, s int) error {
+	if s != execute.Command {
 		return nil
 	}
 

@@ -185,7 +185,7 @@ func MustRegister(n, v string, flag flag) *Cvar {
 	return cv
 }
 
-func Execute(args []cmd.QArg, _ int) (bool, error) {
+func Execute(args []cmd.QArg, player int, source int) (bool, error) {
 	if len(args) == 0 {
 		return false, nil
 	}
@@ -215,7 +215,7 @@ func init() {
 	cmd.Must(cmd.AddCommand("toggle", toggle))
 }
 
-func set(args []cmd.QArg, _ int) error {
+func set(args []cmd.QArg, p, s int) error {
 	switch {
 	case len(args) >= 2:
 		if cmd.Exists(args[0].String()) {
@@ -234,7 +234,7 @@ func set(args []cmd.QArg, _ int) error {
 	return nil
 }
 
-func seta(args []cmd.QArg, _ int) error {
+func seta(args []cmd.QArg, p, s int) error {
 	switch {
 	case len(args) >= 2:
 		if cmd.Exists(args[0].String()) {
@@ -256,7 +256,7 @@ func seta(args []cmd.QArg, _ int) error {
 	return nil
 }
 
-func toggle(args []cmd.QArg, _ int) error {
+func toggle(args []cmd.QArg, p, s int) error {
 	switch c := len(args); c {
 	case 1:
 		arg := args[0].String()
@@ -283,7 +283,7 @@ func incr(n string, v float32) {
 	}
 }
 
-func inc(args []cmd.QArg, _ int) error {
+func inc(args []cmd.QArg, p, s int) error {
 	switch c := len(args); c {
 	case 1:
 		arg := args[0].String()
@@ -297,7 +297,7 @@ func inc(args []cmd.QArg, _ int) error {
 	return nil
 }
 
-func reset(args []cmd.QArg, _ int) error {
+func reset(args []cmd.QArg, p, s int) error {
 	switch c := len(args); c {
 	case 1:
 		arg := args[0].String()
@@ -313,7 +313,7 @@ func reset(args []cmd.QArg, _ int) error {
 	return nil
 }
 
-func resetAll(_ []cmd.QArg, _ int) error {
+func resetAll(_ []cmd.QArg, p, s int) error {
 	// bail if args not empty?
 	for _, cv := range All() {
 		cv.Reset()
@@ -321,7 +321,7 @@ func resetAll(_ []cmd.QArg, _ int) error {
 	return nil
 }
 
-func resetCfg(_ []cmd.QArg, _ int) error {
+func resetCfg(_ []cmd.QArg, p, s int) error {
 	// bail if args not empty?
 	for _, cv := range All() {
 		if cv.Archive() {
@@ -331,7 +331,7 @@ func resetCfg(_ []cmd.QArg, _ int) error {
 	return nil
 }
 
-func list(args []cmd.QArg, _ int) error {
+func list(args []cmd.QArg, p, s int) error {
 	// TODO(therjak):
 	// this should probably print the syntax of cvarlist if len(args) > 1
 	switch len(args) {
@@ -373,7 +373,7 @@ func partialList(p cmd.QArg) {
 	// in length print add ("beginning with \"%s\"", p)
 }
 
-func cycle(args []cmd.QArg, _ int) error {
+func cycle(args []cmd.QArg, p, s int) error {
 	if len(args) < 2 {
 		conlog.Printf("cycle <cvar> <value list>: cycle cvar through a list of values\n")
 		return nil

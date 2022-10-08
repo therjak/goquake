@@ -19,7 +19,7 @@ func init() {
 	cmd.Must(cmd.AddCommand("wait", waitCmd))
 }
 
-func waitCmd(_ []cmd.QArg, _ int) error {
+func waitCmd(_ []cmd.QArg, p, s int) error {
 	wait = true
 	return nil
 }

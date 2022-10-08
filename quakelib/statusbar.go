@@ -21,11 +21,11 @@ var (
 )
 
 func init() {
-	addCommand("+showscores", func(_ []cmd.QArg, _ int) error {
+	addCommand("+showscores", func(_ []cmd.QArg, p, s int) error {
 		statusbar.ShowScores()
 		return nil
 	})
-	addCommand("-showscores", func(_ []cmd.QArg, _ int) error {
+	addCommand("-showscores", func(_ []cmd.QArg, p, s int) error {
 		statusbar.HideScores()
 		return nil
 	})
