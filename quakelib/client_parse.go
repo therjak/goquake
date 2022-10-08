@@ -380,16 +380,16 @@ func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) {
 
 	modNum := e.Baseline.ModelIndex
 	if eu.Model != nil {
-		modNum = int(eu.Model.Value)
+		modNum = int(*eu.Model)
 	}
 	if modNum >= model.MAX_MODELS {
 		Error("CL_ParseModel: mad modnum")
 	}
 	if eu.Frame != nil {
-		e.Frame = int(eu.Frame.Value)
+		e.Frame = int(*eu.Frame)
 	}
 	if eu.Skin != nil {
-		e.SkinNum = int(eu.Skin.Value)
+		e.SkinNum = int(*eu.Skin)
 	}
 	if e.SkinNum != oldSkinNum {
 		if num > 0 && num <= cl.maxClients {
@@ -398,29 +398,29 @@ func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) {
 	}
 	e.Effects = int(eu.Effects)
 	if eu.OriginX != nil {
-		e.MsgOrigin[0][0] = eu.OriginX.Value
+		e.MsgOrigin[0][0] = *eu.OriginX
 	}
 	if eu.OriginY != nil {
-		e.MsgOrigin[0][1] = eu.OriginY.Value
+		e.MsgOrigin[0][1] = *eu.OriginY
 	}
 	if eu.OriginZ != nil {
-		e.MsgOrigin[0][2] = eu.OriginZ.Value
+		e.MsgOrigin[0][2] = *eu.OriginZ
 	}
 	if eu.AngleX != nil {
-		e.MsgAngles[0][0] = eu.AngleX.Value
+		e.MsgAngles[0][0] = *eu.AngleX
 	}
 	if eu.AngleY != nil {
-		e.MsgAngles[0][1] = eu.AngleY.Value
+		e.MsgAngles[0][1] = *eu.AngleY
 	}
 	if eu.AngleZ != nil {
-		e.MsgAngles[0][2] = eu.AngleZ.Value
+		e.MsgAngles[0][2] = *eu.AngleZ
 	}
 
 	if eu.Alpha != nil {
-		e.Alpha = byte(eu.Alpha.Value)
+		e.Alpha = byte(*eu.Alpha)
 	}
 	if eu.LerpFinish != nil {
-		e.LerpFinish = e.MsgTime + float64(eu.LerpFinish.Value)/255
+		e.LerpFinish = e.MsgTime + float64(*eu.LerpFinish)/255
 		e.LerpFlags |= lerpFinish
 	} else {
 		e.LerpFlags &^= lerpFinish

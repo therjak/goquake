@@ -4,15 +4,6 @@ syntax = "proto3";
 package protos;
 option go_package = "github.com/therjak/goquake/protos";
 
-// Used for values with different default
-message OptionalInt32 {
-  int32 Value = 1;
-}
-
-message OptionalFloat {
-  float Value = 1;
-}
-
 message Coord {
   float x = 1;
   float y = 2;
@@ -64,8 +55,8 @@ message LightStyle {
 }
 
 message Sound {
-  OptionalInt32 volume = 1; // byte - default 255
-  OptionalInt32 attenuation = 2; // byte - default 64
+  optional int32 volume = 1; // byte - default 255
+  optional int32 attenuation = 2; // byte - default 64
   int32 entity = 3; // int16
   int32 channel = 4; // byte
   int32 sound_num = 5; // int16
@@ -88,7 +79,7 @@ message UpdateColors {
 }
 
 message ClientData {
-  OptionalInt32 view_height = 1; // byte, default 22
+  optional int32 view_height = 1; // byte, default 22
   int32 ideal_pitch = 2; // byte
   IntCoord punch_angle = 3; // byte
   IntCoord velocity = 4; // byte
@@ -136,20 +127,20 @@ message ServerInfo {
 message EntityUpdate {
   int32 entity = 1;
   bool lerp_move_step = 2; // -- need recheck
-  OptionalInt32 model = 3;
-  OptionalInt32 frame = 4;
-  OptionalInt32 color_map = 5;
-  OptionalInt32 skin = 6;
+  optional int32 model = 3;
+  optional int32 frame = 4;
+  optional int32 color_map = 5;
+  optional int32 skin = 6;
   int32 effects = 7;
-  OptionalFloat origin_x = 8;
-  OptionalFloat origin_y = 9;
-  OptionalFloat origin_z = 10;
-  OptionalFloat angle_x = 11;
-  OptionalFloat angle_y = 12;
-  OptionalFloat angle_z = 13;
-  OptionalInt32 lerp_finish = 14;
-  OptionalInt32 alpha = 15;
-  // OptionalInt32 scale = 16; // not used
+  optional float origin_x = 8;
+  optional float origin_y = 9;
+  optional float origin_z = 10;
+  optional float angle_x = 11;
+  optional float angle_y = 12;
+  optional float angle_z = 13;
+  optional int32 lerp_finish = 14;
+  optional int32 alpha = 15;
+  // optional int32 scale = 16; // not used
 }
 
 message StaticSound {

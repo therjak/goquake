@@ -251,14 +251,10 @@ func (s *Server) sendStartSound(entity, channel, volume, soundnum int, attenuati
 		},
 	}
 	if volume != 255 {
-		snd.Volume = &protos.OptionalInt32{
-			Value: int32(volume),
-		}
+		snd.Volume = proto.Int32(int32(volume))
 	}
 	if attenuation != 1.0 {
-		snd.Attenuation = &protos.OptionalInt32{
-			Value: int32(64 * attenuation),
-		}
+		snd.Attenuation = proto.Int32(int32(64 * attenuation))
 	}
 	svc.WriteSound(snd, s.protocol, s.protocolFlags, &s.datagram)
 }
@@ -311,8 +307,7 @@ func (s *Server) WriteClientdataToMessage(player int) {
 	clientData.Velocity = &protos.IntCoord{}
 
 	if e.ViewOfs[2] != svc.DEFAULT_VIEWHEIGHT {
-		clientData.ViewHeight = &protos.OptionalInt32{}
-		clientData.ViewHeight.Value = int32(e.ViewOfs[2])
+		clientData.ViewHeight = proto.Int32(int32(e.ViewOfs[2]))
 	}
 	clientData.IdealPitch = int32(e.IdealPitch)
 	// stuff the sigil bits into the high bits of items for sbar, or else mix in items2
@@ -875,48 +870,46 @@ func (s *Server) WriteEntitiesToClient(clent int) {
 		eu.Entity = int32(ent)
 
 		if ev.ModelIndex != float32(edict.Baseline.ModelIndex) {
-			eu.Model = &protos.OptionalInt32{Value: int32(ev.ModelIndex)}
+			eu.Model = proto.Int32(int32(ev.ModelIndex))
 		}
 		if ev.Frame != float32(edict.Baseline.Frame) {
-			eu.Frame = &protos.OptionalInt32{Value: int32(ev.Frame)}
+			eu.Frame = proto.Int32(int32(ev.Frame))
 		}
 		if ev.ColorMap != float32(edict.Baseline.ColorMap) {
-			eu.ColorMap = &protos.OptionalInt32{Value: int32(ev.ColorMap)}
+			eu.ColorMap = proto.Int32(int32(ev.ColorMap))
 		}
 		if ev.Skin != float32(edict.Baseline.Skin) {
-			eu.Skin = &protos.OptionalInt32{Value: int32(ev.Skin)}
+			eu.Skin = proto.Int32(int32(ev.Skin))
 		}
 		if ev.Effects != float32(edict.Baseline.Effects) {
 			eu.Effects = int32(ev.Effects)
 		}
 		if miss := ev.Origin[0] - edict.Baseline.Origin[0]; miss < -0.1 || miss > 0.1 {
-			eu.OriginX = &protos.OptionalFloat{Value: ev.Origin[0]}
+			eu.OriginX = proto.Float32(ev.Origin[0])
 		}
 		if ev.Angles[0] != edict.Baseline.Angles[0] {
-			eu.AngleX = &protos.OptionalFloat{Value: ev.Angles[0]}
+			eu.AngleX = proto.Float32(ev.Angles[0])
 		}
 		if miss := ev.Origin[1] - edict.Baseline.Origin[1]; miss < -0.1 || miss > 0.1 {
-			eu.OriginY = &protos.OptionalFloat{Value: ev.Origin[1]}
+			eu.OriginY = proto.Float32(ev.Origin[1])
 		}
 		if ev.Angles[1] != edict.Baseline.Angles[1] {
-			eu.AngleY = &protos.OptionalFloat{Value: ev.Angles[1]}
+			eu.AngleY = proto.Float32(ev.Angles[1])
 		}
 		if miss := ev.Origin[2] - edict.Baseline.Origin[2]; miss < -0.1 || miss > 0.1 {
-			eu.OriginZ = &protos.OptionalFloat{Value: ev.Origin[2]}
+			eu.OriginZ = proto.Float32(ev.Origin[2])
 		}
 		if ev.Angles[2] != edict.Baseline.Angles[2] {
-			eu.AngleZ = &protos.OptionalFloat{Value: ev.Angles[2]}
+			eu.AngleZ = proto.Float32(ev.Angles[2])
 		}
 		// don't mess up the step animation
 		eu.LerpMoveStep = ev.MoveType == progs.MoveTypeStep
 
 		if edict.Baseline.Alpha != edict.Alpha {
-			eu.Alpha = &protos.OptionalInt32{Value: int32(edict.Alpha)}
+			eu.Alpha = proto.Int32(int32(edict.Alpha))
 		}
 		if edict.SendInterval {
-			eu.LerpFinish = &protos.OptionalInt32{
-				Value: int32(math.Round((ev.NextThink - sv.time) * 255)),
-			}
+			eu.LerpFinish = proto.Int32(int32(math.Round((ev.NextThink - sv.time) * 255)))
 		}
 		svc.WriteEntityUpdate(eu, s.protocol, s.protocolFlags, &msgBuf)
 	}

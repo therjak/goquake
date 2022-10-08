@@ -680,12 +680,12 @@ func CL_ParseStartSoundPacket(m *protos.Sound) error {
 		return fmt.Errorf("CL_ParseStartSoundPacket: ent = %d", m.Entity)
 	}
 	volume := float32(1.0)
-	if v := m.Volume; v != nil {
-		volume = float32(v.Value) / 255
+	if m.Volume != nil {
+		volume = float32(*m.Volume) / 255
 	}
 	attenuation := float32(1.0)
-	if a := m.Attenuation; a != nil {
-		attenuation = float32(a.Value) / 64.0
+	if m.Attenuation != nil {
+		attenuation = float32(*m.Attenuation) / 64.0
 	}
 	origin := vec.Vec3{m.Origin.X, m.Origin.Y, m.Origin.Z}
 	snd.Start(int(m.Entity), int(m.Channel), cl.soundPrecache[m.SoundNum], origin, volume, attenuation, !loopingSound)
@@ -1282,9 +1282,8 @@ func tracePosition(args []cmd.QArg, p, s int) error {
 
 // Server information pertaining to this client only
 func (c *Client) parseClientData(cdp *protos.ClientData) {
-	vh := cdp.GetViewHeight()
-	if vh != nil {
-		c.viewHeight = float32(cdp.ViewHeight.Value)
+	if cdp.ViewHeight != nil {
+		c.viewHeight = float32(*cdp.ViewHeight)
 	} else {
 		c.viewHeight = svc.DEFAULT_VIEWHEIGHT
 	}

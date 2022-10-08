@@ -8,6 +8,8 @@ import (
 	"goquake/net"
 	"goquake/protocol"
 	"goquake/protos"
+
+	"google.golang.org/protobuf/proto"
 )
 
 var (
@@ -139,9 +141,7 @@ func parseClientData(msg *net.QReader) (*protos.ClientData, error) {
 		if err != nil {
 			return nil, err
 		}
-		clientData.ViewHeight = &protos.OptionalInt32{
-			Value: int32(m),
-		}
+		clientData.ViewHeight = proto.Int32(int32(m))
 	}
 
 	if err := readInt8If(SU_IDEALPITCH, &clientData.IdealPitch); err != nil {
@@ -504,9 +504,7 @@ func parseSoundMessage(msg *net.QReader, protocolFlags uint32) (*protos.Sound, e
 		if err != nil {
 			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
 		}
-		message.Volume = &protos.OptionalInt32{
-			Value: int32(volume),
-		}
+		message.Volume = proto.Int32(int32(volume))
 	}
 
 	if fieldMask&SoundAttenuation != 0 {
@@ -514,9 +512,7 @@ func parseSoundMessage(msg *net.QReader, protocolFlags uint32) (*protos.Sound, e
 		if err != nil {
 			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
 		}
-		message.Attenuation = &protos.OptionalInt32{
-			Value: int32(a),
-		}
+		message.Attenuation = proto.Int32(int32(a))
 	}
 
 	if fieldMask&SoundLargeEntity != 0 {
@@ -755,28 +751,28 @@ func parseEntityUpdate(msg *net.QReader, pcol int, protocolFlags uint32, cmd byt
 		if v, err := msg.ReadByte(); err != nil {
 			return nil, err
 		} else {
-			eu.Model = &protos.OptionalInt32{Value: int32(v)}
+			eu.Model = proto.Int32(int32(v))
 		}
 	}
 	if bits&U_FRAME != 0 {
 		if v, err := msg.ReadByte(); err != nil {
 			return nil, err
 		} else {
-			eu.Frame = &protos.OptionalInt32{Value: int32(v)}
+			eu.Frame = proto.Int32(int32(v))
 		}
 	}
 	if bits&U_COLORMAP != 0 {
 		if v, err := msg.ReadByte(); err != nil {
 			return nil, err
 		} else {
-			eu.ColorMap = &protos.OptionalInt32{Value: int32(v)}
+			eu.ColorMap = proto.Int32(int32(v))
 		}
 	}
 	if bits&U_SKIN != 0 {
 		if v, err := msg.ReadByte(); err != nil {
 			return nil, err
 		} else {
-			eu.Skin = &protos.OptionalInt32{Value: int32(v)}
+			eu.Skin = proto.Int32(int32(v))
 		}
 	}
 	if bits&U_EFFECTS != 0 {
@@ -793,42 +789,42 @@ func parseEntityUpdate(msg *net.QReader, pcol int, protocolFlags uint32, cmd byt
 		if v, err := msg.ReadCoord(protocolFlags); err != nil {
 			return nil, err
 		} else {
-			eu.OriginX = &protos.OptionalFloat{Value: v}
+			eu.OriginX = &v
 		}
 	}
 	if bits&U_ANGLE1 != 0 {
 		if v, err := msg.ReadAngle(protocolFlags); err != nil {
 			return nil, err
 		} else {
-			eu.AngleX = &protos.OptionalFloat{Value: v}
+			eu.AngleX = &v
 		}
 	}
 	if bits&U_ORIGIN2 != 0 {
 		if v, err := msg.ReadCoord(protocolFlags); err != nil {
 			return nil, err
 		} else {
-			eu.OriginY = &protos.OptionalFloat{Value: v}
+			eu.OriginY = &v
 		}
 	}
 	if bits&U_ANGLE2 != 0 {
 		if v, err := msg.ReadAngle(protocolFlags); err != nil {
 			return nil, err
 		} else {
-			eu.AngleY = &protos.OptionalFloat{Value: v}
+			eu.AngleY = &v
 		}
 	}
 	if bits&U_ORIGIN3 != 0 {
 		if v, err := msg.ReadCoord(protocolFlags); err != nil {
 			return nil, err
 		} else {
-			eu.OriginZ = &protos.OptionalFloat{Value: v}
+			eu.OriginZ = &v
 		}
 	}
 	if bits&U_ANGLE3 != 0 {
 		if v, err := msg.ReadAngle(protocolFlags); err != nil {
 			return nil, err
 		} else {
-			eu.AngleZ = &protos.OptionalFloat{Value: v}
+			eu.AngleZ = &v
 		}
 	}
 
@@ -838,7 +834,7 @@ func parseEntityUpdate(msg *net.QReader, pcol int, protocolFlags uint32, cmd byt
 			if v, err := msg.ReadByte(); err != nil {
 				return nil, err
 			} else {
-				eu.Alpha = &protos.OptionalInt32{Value: int32(v)}
+				eu.Alpha = proto.Int32(int32(v))
 			}
 		}
 		if bits&U_SCALE != 0 {
@@ -852,7 +848,7 @@ func parseEntityUpdate(msg *net.QReader, pcol int, protocolFlags uint32, cmd byt
 			if v, err := msg.ReadByte(); err != nil {
 				return nil, err
 			} else {
-				eu.Frame.Value |= int32(v) << 8
+				*eu.Frame |= int32(v) << 8
 			}
 		}
 		if bits&U_MODEL2 != 0 {
@@ -860,14 +856,14 @@ func parseEntityUpdate(msg *net.QReader, pcol int, protocolFlags uint32, cmd byt
 			if v, err := msg.ReadByte(); err != nil {
 				return nil, err
 			} else {
-				eu.Model.Value |= int32(v) << 8
+				*eu.Model |= int32(v) << 8
 			}
 		}
 		if bits&U_LERPFINISH != 0 {
 			if v, err := msg.ReadByte(); err != nil {
 				return nil, err
 			} else {
-				eu.LerpFinish = &protos.OptionalInt32{Value: int32(v)}
+				eu.LerpFinish = proto.Int32(int32(v))
 			}
 		}
 	case protocol.NetQuake:
@@ -889,14 +885,13 @@ func parseEntityUpdate(msg *net.QReader, pcol int, protocolFlags uint32, cmd byt
 				}
 			}
 			b *= 255
-			eu.Alpha = &protos.OptionalInt32{}
 			switch {
 			case b < 0:
-				eu.Alpha.Value = 0
+				eu.Alpha = proto.Int32(0)
 			case b == 0, b >= 255:
-				eu.Alpha.Value = 255
+				eu.Alpha = proto.Int32(255)
 			default:
-				eu.Alpha.Value = int32(b)
+				eu.Alpha = proto.Int32(int32(b))
 			}
 		}
 	}
@@ -1411,10 +1406,10 @@ func WriteSound(s *protos.Sound, pcol int, flags uint32, m *net.Message) {
 	m.WriteByte(Sound)
 	m.WriteByte(fieldMask)
 	if v != nil {
-		m.WriteByte(int(v.Value))
+		m.WriteByte(int(*v))
 	}
 	if a != nil {
-		m.WriteByte(int(a.Value))
+		m.WriteByte(int(*a))
 	}
 	if fieldMask&SoundLargeEntity != 0 {
 		m.WriteShort(int(s.Entity))
@@ -1528,7 +1523,7 @@ func WriteClientData(cd *protos.ClientData, pcol int, flags uint32, m *net.Messa
 		m.WriteByte(bits >> 24)
 	}
 	if (bits & SU_VIEWHEIGHT) != 0 {
-		m.WriteChar(int(cd.ViewHeight.Value))
+		m.WriteChar(int(*cd.ViewHeight))
 	}
 	if (bits & SU_IDEALPITCH) != 0 {
 		m.WriteChar(int(cd.IdealPitch))
@@ -1652,11 +1647,11 @@ func WriteEntityUpdate(eu *protos.EntityUpdate, pcol int, flags uint32, m *net.M
 			bits |= U_ALPHA
 		}
 		if eu.Frame != nil &&
-			eu.Frame.Value&0xFF00 != 0 {
+			*eu.Frame&0xFF00 != 0 {
 			bits |= U_FRAME2
 		}
 		if eu.Model != nil &&
-			eu.Model.Value&0xFF00 != 0 {
+			*eu.Model&0xFF00 != 0 {
 			bits |= U_MODEL2
 		}
 		if eu.LerpFinish != nil {
@@ -1698,50 +1693,50 @@ func WriteEntityUpdate(eu *protos.EntityUpdate, pcol int, flags uint32, m *net.M
 	}
 
 	if eu.Model != nil {
-		m.WriteByte(int(eu.Model.Value))
+		m.WriteByte(int(*eu.Model))
 	}
 	if eu.Frame != nil {
-		m.WriteByte(int(eu.Frame.Value))
+		m.WriteByte(int(*eu.Frame))
 	}
 	if eu.ColorMap != nil {
-		m.WriteByte(int(eu.ColorMap.Value))
+		m.WriteByte(int(*eu.ColorMap))
 	}
 	if eu.Skin != nil {
-		m.WriteByte(int(eu.Skin.Value))
+		m.WriteByte(int(*eu.Skin))
 	}
 	if eu.Effects != 0 {
 		m.WriteByte(int(eu.Effects))
 	}
 	if eu.OriginX != nil {
-		m.WriteCoord(eu.OriginX.Value, flags)
+		m.WriteCoord(*eu.OriginX, flags)
 	}
 	if eu.AngleX != nil {
-		m.WriteAngle(eu.AngleX.Value, flags)
+		m.WriteAngle(*eu.AngleX, flags)
 	}
 	if eu.OriginY != nil {
-		m.WriteCoord(eu.OriginY.Value, flags)
+		m.WriteCoord(*eu.OriginY, flags)
 	}
 	if eu.AngleY != nil {
-		m.WriteAngle(eu.AngleY.Value, flags)
+		m.WriteAngle(*eu.AngleY, flags)
 	}
 	if eu.OriginZ != nil {
-		m.WriteCoord(eu.OriginZ.Value, flags)
+		m.WriteCoord(*eu.OriginZ, flags)
 	}
 	if eu.AngleZ != nil {
-		m.WriteAngle(eu.AngleZ.Value, flags)
+		m.WriteAngle(*eu.AngleZ, flags)
 	}
 
 	if bits&U_ALPHA != 0 {
-		m.WriteByte(int(eu.Alpha.Value))
+		m.WriteByte(int(*eu.Alpha))
 	}
 	if bits&U_FRAME2 != 0 {
-		m.WriteByte(int(eu.Frame.Value) >> 8)
+		m.WriteByte(int(*eu.Frame) >> 8)
 	}
 	if bits&U_MODEL2 != 0 {
-		m.WriteByte(int(eu.Model.Value) >> 8)
+		m.WriteByte(int(*eu.Model) >> 8)
 	}
 	if bits&U_LERPFINISH != 0 {
-		m.WriteByte(int(eu.LerpFinish.Value))
+		m.WriteByte(int(*eu.LerpFinish))
 	}
 }
 
