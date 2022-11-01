@@ -366,26 +366,26 @@ func (c *SVClient) ReadClientMessage() bool {
 				default:
 					conlog.Printf("%s tried to %s\n", c.name, s)
 				case
-					hasPrefix(s, "status"),
-					hasPrefix(s, "god"),
-					hasPrefix(s, "notarget"),
+					hasPrefix(s, "ban"),
+					hasPrefix(s, "begin"),
+					hasPrefix(s, "color"),
 					hasPrefix(s, "fly"),
+					hasPrefix(s, "give"),
+					hasPrefix(s, "god"),
+					hasPrefix(s, "kick"),
+					hasPrefix(s, "kill"),
 					hasPrefix(s, "name"),
 					hasPrefix(s, "noclip"),
-					hasPrefix(s, "setpos"),
+					hasPrefix(s, "notarget"),
+					hasPrefix(s, "pause"),
+					hasPrefix(s, "ping"),
+					hasPrefix(s, "prespawn"),
 					hasPrefix(s, "say"),
 					hasPrefix(s, "say_team"),
-					hasPrefix(s, "tell"),
-					hasPrefix(s, "color"),
-					hasPrefix(s, "kill"),
-					hasPrefix(s, "pause"),
+					hasPrefix(s, "setpos"),
 					hasPrefix(s, "spawn"),
-					hasPrefix(s, "begin"),
-					hasPrefix(s, "prespawn"),
-					hasPrefix(s, "kick"),
-					hasPrefix(s, "ping"),
-					hasPrefix(s, "give"),
-					hasPrefix(s, "ban"):
+					hasPrefix(s, "status"),
+					hasPrefix(s, "tell"):
 					if err := execute.Execute(s, execute.Client, c.edictId); err != nil {
 						HostError(err)
 					}
