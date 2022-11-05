@@ -1468,9 +1468,8 @@ func clientRecordDemo(args []cmd.QArg, playerEdictId, s int) error {
 		conlog.Printf("Forcing CD track to %i\n", track)
 	}
 	if len(args) > 1 {
-		if err := execute.Execute(
+		if err := execute.ExecuteCommand(
 			fmt.Sprintf("map %s", args[1].String()),
-			execute.Command,
 			playerEdictId); err != nil {
 			return err
 		}

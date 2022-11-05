@@ -50,7 +50,7 @@ func Execute(player int) {
 			i++
 		}
 		cbuf = cbuf[i:]
-		execute.Execute(line, execute.Command, player)
+		execute.ExecuteCommand(line, player)
 		if wait {
 			// wait for the next frame to continue executing
 			wait = false

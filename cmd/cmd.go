@@ -15,7 +15,8 @@ import (
 type QFunc func(args []QArg, player int, source int) error
 
 var (
-	commands = make(map[string]QFunc)
+	commands       = make(map[string]QFunc)
+	clientCommands = make(map[string]QFunc)
 )
 
 func Must(err error) {

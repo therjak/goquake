@@ -386,7 +386,7 @@ func (c *SVClient) ReadClientMessage() bool {
 					hasPrefix(s, "spawn"),
 					hasPrefix(s, "status"),
 					hasPrefix(s, "tell"):
-					if err := execute.Execute(s, execute.Client, c.edictId); err != nil {
+					if err := execute.ExecuteClient(s, c.edictId); err != nil {
 						HostError(err)
 					}
 				}

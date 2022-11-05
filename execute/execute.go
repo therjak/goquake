@@ -17,15 +17,30 @@ const (
 // args, player, source
 type Efunc func([]cmd.QArg, int, int) (bool, error)
 
+type executors []Efunc
+
 var (
-	executors []Efunc
+	clientExecutors  executors
+	commandExecutors executors
 )
 
-func SetExecutors(e []Efunc) {
-	executors = e
+func SetClientExecutors(e []Efunc) {
+	clientExecutors = e
 }
 
-func Execute(s string, source int, player int) error {
+func SetCommandExecutors(e []Efunc) {
+	commandExecutors = e
+}
+
+func ExecuteClient(s string, player int) error {
+	return clientExecutors.execute(s, Client, player)
+}
+
+func ExecuteCommand(s string, player int) error {
+	return commandExecutors.execute(s, Command, player)
+}
+
+func (ex *executors) execute(s string, source int, player int) error {
 	cmd.Parse(s)
 
 	args := cmd.Args()
@@ -33,7 +48,7 @@ func Execute(s string, source int, player int) error {
 		return nil // no tokens
 	}
 	name := args[0].String()
-	for _, e := range executors {
+	for _, e := range *ex {
 		if ok, err := e(args, player, source); err != nil {
 			return err
 		} else if ok {
