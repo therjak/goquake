@@ -17,7 +17,8 @@ func addCommand(name string, f cmd.QFunc) {
 	cmd.Must(cmd.AddCommand(name, f))
 }
 func addClientCommand(name string, f cmd.QFunc) {
-	cmd.Must(cmd.AddClientCommand(name, f))
+	// TODO: use local cmd.Commands list
+	cmd.Must(cmd.AddCommand(name, f))
 }
 
 func echo(args []cmd.QArg, p, s int) error {

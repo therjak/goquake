@@ -14,9 +14,53 @@ import (
 
 type QFunc func(args []QArg, player int, source int) error
 
+type Commands map[string]QFunc
+
+func New() *Commands {
+	c := make(Commands)
+	return &c
+}
+
+func (c *Commands) Add(name string, f QFunc) error {
+	ln := strings.ToLower(name)
+	if _, ok := (*c)[ln]; ok {
+		return fmt.Errorf("Cmd_AddCommand: %s already defined\n", ln)
+	}
+	(*c)[ln] = f
+	return nil
+}
+
+func (c *Commands) Exists(cmdName string) bool {
+	name := strings.ToLower(cmdName)
+	_, ok := (*c)[name]
+	return ok
+}
+
+func (c *Commands) List() []string {
+	cmds := make([]string, 0, len(*c))
+	for cmd := range *c {
+		cmds = append(cmds, cmd)
+	}
+	sort.Strings(cmds)
+	return cmds
+}
+
+func (c *Commands) Execute(n []QArg, player int, source int) (bool, error) {
+	if len(n) == 0 {
+		return false, nil
+	}
+	name := strings.ToLower(n[0].String())
+	if cmd, ok := (*c)[name]; ok {
+		if err := cmd(n[1:], player, source); err != nil {
+			return false, err
+		}
+		return true, nil
+	}
+	return false, nil
+}
+
 var (
-	commands       = make(map[string]QFunc)
-	clientCommands = make(map[string]QFunc)
+	commands = make(Commands)
 )
 
 func Must(err error) {
@@ -26,50 +70,19 @@ func Must(err error) {
 }
 
 func AddCommand(name string, f QFunc) error {
-	ln := strings.ToLower(name)
-	if _, ok := commands[ln]; ok {
-		// ConPrintf
-		return fmt.Errorf("Cmd_AddCommand: %s already defined\n", ln)
-	}
-	commands[ln] = f
-	return nil
-}
-
-func AddServerCommand(name string, f QFunc) error {
-	return AddCommand(name, f)
-}
-
-func AddClientCommand(name string, f QFunc) error {
-	return AddCommand(name, f)
+	return commands.Add(name, f)
 }
 
 func Exists(cmdName string) bool {
-	name := strings.ToLower(cmdName)
-	_, ok := commands[name]
-	return ok
+	return commands.Exists(cmdName)
 }
 
 func Execute(n []QArg, player int, source int) (bool, error) {
-	if len(n) == 0 {
-		return false, nil
-	}
-	name := strings.ToLower(n[0].String())
-	if c, ok := commands[name]; ok {
-		if err := c(n[1:], player, source); err != nil {
-			return false, err
-		}
-		return true, nil
-	}
-	return false, nil
+	return commands.Execute(n, player, source)
 }
 
 func List() []string {
-	cmds := make([]string, 0, len(commands))
-	for c := range commands {
-		cmds = append(cmds, c)
-	}
-	sort.Strings(cmds)
-	return cmds
+	return commands.List()
 }
 
 type QArg struct {
