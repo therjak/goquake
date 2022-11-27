@@ -23,30 +23,49 @@ import (
 )
 
 func init() {
+	addCommand("begin", hostBegin)
 	addClientCommand("begin", hostBegin)
+	addCommand("color", hostColor)
 	addClientCommand("color", hostColor)
+	addCommand("fly", hostFly)
 	addClientCommand("fly", hostFly)
+	addCommand("give", hostGive)
 	addClientCommand("give", hostGive)
+	addCommand("god", hostGod)
 	addClientCommand("god", hostGod)
+	addCommand("kick", hostKick)
 	addClientCommand("kick", hostKick)
+	addCommand("kill", hostKill)
 	addClientCommand("kill", hostKill)
+	addCommand("name", hostName)
 	addClientCommand("name", hostName)
+	addCommand("noclip", hostNoClip)
 	addClientCommand("noclip", hostNoClip)
+	addCommand("notarget", hostNoTarget)
 	addClientCommand("notarget", hostNoTarget)
+	addCommand("pause", hostPause)
 	addClientCommand("pause", hostPause)
+	addCommand("ping", hostPing)
 	addClientCommand("ping", hostPing)
+	addCommand("prespawn", hostPreSpawn)
 	addClientCommand("prespawn", hostPreSpawn)
+	addCommand("say", hostSayAll)
 	addClientCommand("say", hostSayAll)
+	addCommand("say_team", hostSayTeam)
 	addClientCommand("say_team", hostSayTeam)
+	addCommand("setpos", hostSetPos)
 	addClientCommand("setpos", hostSetPos)
+	addCommand("spawn", hostSpawn)
 	addClientCommand("spawn", hostSpawn)
+	addCommand("status", hostStatus)
 	addClientCommand("status", hostStatus)
+	addCommand("tell", hostTell)
 	addClientCommand("tell", hostTell)
 	addCommand("changelevel", hostChangelevel)
 	addCommand("connect", hostConnect)
 	addCommand("map", hostMap)
 	addCommand("mapname", hostMapName)
-	addCommand("quit", func(a []cmd.QArg, p, s int) error { return hostQuit() })
+	addCommand("quit", func(a cmd.Arguments, p, s int) error { return hostQuit() })
 	addCommand("restart", hostRestart)
 	addCommand("version", hostVersion)
 }
@@ -75,12 +94,12 @@ func qFormatI(b int32) string {
 	return "ON"
 }
 
-func hostVersion(args []cmd.QArg, p, s int) error {
+func hostVersion(a cmd.Arguments, p, s int) error {
 	conlog.Printf("GoQuake Version %1.2f.%d\n", GoQuakeVersion, GoQuakePatch)
 	return nil
 }
 
-func hostPreSpawn(args []cmd.QArg, p, s int) error {
+func hostPreSpawn(a cmd.Arguments, p, s int) error {
 	if s == execute.Command {
 		conlog.Printf("prespawn is not valid from the console\n")
 		return nil
@@ -97,9 +116,10 @@ func hostPreSpawn(args []cmd.QArg, p, s int) error {
 	return nil
 }
 
-func hostGod(args []cmd.QArg, playerEdictId, s int) error {
+func hostGod(a cmd.Arguments, playerEdictId, s int) error {
+	args := a.Args()[1:]
 	if s == execute.Command {
-		forwardToServer("god", args)
+		forwardToServer(a)
 		return nil
 	}
 	if progsdat.Globals.DeathMatch != 0 {
@@ -126,9 +146,10 @@ func hostGod(args []cmd.QArg, playerEdictId, s int) error {
 	return nil
 }
 
-func hostNoTarget(args []cmd.QArg, playerEdictId, s int) error {
+func hostNoTarget(a cmd.Arguments, playerEdictId, s int) error {
+	args := a.Args()[1:]
 	if s == execute.Command {
-		forwardToServer("notarget", args)
+		forwardToServer(a)
 		return nil
 	}
 	if progsdat.Globals.DeathMatch != 0 {
@@ -155,9 +176,10 @@ func hostNoTarget(args []cmd.QArg, playerEdictId, s int) error {
 	return nil
 }
 
-func hostFly(args []cmd.QArg, playerEdictId, s int) error {
+func hostFly(a cmd.Arguments, playerEdictId, s int) error {
+	args := a.Args()[1:]
 	if s == execute.Command {
-		forwardToServer("fly", args)
+		forwardToServer(a)
 		return nil
 	}
 	if progsdat.Globals.DeathMatch != 0 {
@@ -191,7 +213,8 @@ func hostFly(args []cmd.QArg, playerEdictId, s int) error {
 	return nil
 }
 
-func hostColor(args []cmd.QArg, p, s int) error {
+func hostColor(a cmd.Arguments, p, s int) error {
+	args := a.Args()[1:]
 	c := int(cvars.ClientColor.Value())
 	t := c >> 4
 	b := c & 0x0f
@@ -218,7 +241,7 @@ func hostColor(args []cmd.QArg, p, s int) error {
 	if s == execute.Command {
 		cvars.ClientColor.SetValue(float32(c))
 		if cls.state == ca_connected {
-			forwardToServer("color", args)
+			forwardToServer(a)
 		}
 		return nil
 	}
@@ -233,14 +256,14 @@ func hostColor(args []cmd.QArg, p, s int) error {
 	return nil
 }
 
-func hostPause(args []cmd.QArg, playerEdictId, s int) error {
+func hostPause(a cmd.Arguments, playerEdictId, s int) error {
 	if cls.demoPlayback {
 		cls.demoPaused = !cls.demoPaused
 		cl.paused = cls.demoPaused
 		return nil
 	}
 	if s == execute.Command {
-		forwardToServer("pause", args)
+		forwardToServer(a)
 		return nil
 	}
 	if cvars.Pausable.String() != "1" {
@@ -262,7 +285,7 @@ func hostPause(args []cmd.QArg, playerEdictId, s int) error {
 	return nil
 }
 
-func hostBegin(args []cmd.QArg, p, s int) error {
+func hostBegin(a cmd.Arguments, p, s int) error {
 	if s == execute.Command {
 		conlog.Printf("begin is not valid from the console\n")
 		return nil
@@ -271,9 +294,10 @@ func hostBegin(args []cmd.QArg, p, s int) error {
 	return nil
 }
 
-func hostGive(args []cmd.QArg, playerEdictId, s int) error {
+func hostGive(a cmd.Arguments, playerEdictId, s int) error {
+	args := a.Args()[1:]
 	if s == execute.Command {
-		forwardToServer("give", args)
+		forwardToServer(a)
 		return nil
 	}
 	if progsdat.Globals.DeathMatch != 0 {
@@ -497,9 +521,10 @@ func concatArgs(args []cmd.QArg) string {
 	return b.String()
 }
 
-func hostTell(args []cmd.QArg, p, s int) error {
+func hostTell(a cmd.Arguments, p, s int) error {
+	args := a.Args()[1:]
 	if s == execute.Command {
-		forwardToServer("tell", args)
+		forwardToServer(a)
 		return nil
 	}
 
@@ -556,14 +581,15 @@ func hostSay(team bool, args []cmd.QArg, s int) {
 	}
 }
 
-func hostSayAll(args []cmd.QArg, p, s int) error {
+func hostSayAll(a cmd.Arguments, p, s int) error {
+	args := a.Args()[1:]
 	// say
 	if len(args) < 1 {
 		return nil
 	}
 	if s == execute.Command {
 		if !cmdl.Dedicated() {
-			forwardToServer("say", args)
+			forwardToServer(a)
 			return nil
 		}
 	}
@@ -571,14 +597,15 @@ func hostSayAll(args []cmd.QArg, p, s int) error {
 	return nil
 }
 
-func hostSayTeam(args []cmd.QArg, p, s int) error {
+func hostSayTeam(a cmd.Arguments, p, s int) error {
+	args := a.Args()[1:]
 	// say_team
 	if len(args) < 1 {
 		return nil
 	}
 	if s == execute.Command {
 		if !cmdl.Dedicated() {
-			forwardToServer("say_team", args)
+			forwardToServer(a)
 			return nil
 		}
 	}
@@ -586,9 +613,9 @@ func hostSayTeam(args []cmd.QArg, p, s int) error {
 	return nil
 }
 
-func hostPing(args []cmd.QArg, p, s int) error {
+func hostPing(a cmd.Arguments, p, s int) error {
 	if s == execute.Command {
-		forwardToServer("ping", args)
+		forwardToServer(a)
 		return nil
 	}
 	HostClient().Printf("Client ping times:\n")
@@ -601,7 +628,7 @@ func hostPing(args []cmd.QArg, p, s int) error {
 	return nil
 }
 
-func hostSpawn(args []cmd.QArg, playerEdictId, s int) error {
+func hostSpawn(a cmd.Arguments, playerEdictId, s int) error {
 	if s == execute.Command {
 		conlog.Printf("spawn is not valid from the console\n")
 		return nil
@@ -710,9 +737,10 @@ func hostSpawn(args []cmd.QArg, playerEdictId, s int) error {
 	return nil
 }
 
-func hostNoClip(args []cmd.QArg, playerEdictId, s int) error {
+func hostNoClip(a cmd.Arguments, playerEdictId, s int) error {
+	args := a.Args()[1:]
 	if s == execute.Command {
-		forwardToServer("noclip", args)
+		forwardToServer(a)
 		return nil
 	}
 
@@ -743,9 +771,10 @@ func hostNoClip(args []cmd.QArg, playerEdictId, s int) error {
 	return nil
 }
 
-func hostSetPos(args []cmd.QArg, playerEdictId, s int) error {
+func hostSetPos(a cmd.Arguments, playerEdictId, s int) error {
+	args := a.Args()[1:]
 	if s == execute.Command {
-		forwardToServer("setpos", args)
+		forwardToServer(a)
 		return nil
 	}
 
@@ -796,7 +825,8 @@ func hostSetPos(args []cmd.QArg, playerEdictId, s int) error {
 	return nil
 }
 
-func hostName(args []cmd.QArg, p, s int) error {
+func hostName(a cmd.Arguments, p, s int) error {
+	args := a.Args()[1:]
 	if len(args) == 0 {
 		conlog.Printf("\"name\" is %q\n", cvars.ClientName.String())
 		return nil
@@ -824,7 +854,7 @@ func hostName(args []cmd.QArg, p, s int) error {
 		}
 		cvars.ClientName.SetByString(newName)
 		if cls.state == ca_connected {
-			forwardToServer("name", args)
+			forwardToServer(a)
 		}
 		return nil
 	}
@@ -845,9 +875,9 @@ func hostName(args []cmd.QArg, p, s int) error {
 	return nil
 }
 
-func hostKill(args []cmd.QArg, playerEdictId, s int) error {
+func hostKill(a cmd.Arguments, playerEdictId, s int) error {
 	if s == execute.Command {
-		forwardToServer("kill", args)
+		forwardToServer(a)
 		return nil
 	}
 
@@ -866,11 +896,11 @@ func hostKill(args []cmd.QArg, playerEdictId, s int) error {
 	return nil
 }
 
-func hostStatus(args []cmd.QArg, p, s int) error {
+func hostStatus(a cmd.Arguments, p, s int) error {
 	const baseVersion = 1.09
 	if s == execute.Command {
 		if !sv.active {
-			forwardToServer("status", args)
+			forwardToServer(a)
 			return nil
 		}
 
@@ -907,7 +937,7 @@ func hostStatus(args []cmd.QArg, p, s int) error {
 	return nil
 }
 
-func hostMapName(args []cmd.QArg, p, s int) error {
+func hostMapName(a cmd.Arguments, p, s int) error {
 	if sv.active {
 		conlog.Printf("%q is %q\n", "mapname", sv.name)
 		return nil
@@ -977,13 +1007,14 @@ func hostShutdownServer(crash bool) error {
 }
 
 // Kicks a user off of the server
-func hostKick(args []cmd.QArg, playerEdictId, s int) error {
+func hostKick(a cmd.Arguments, playerEdictId, s int) error {
+	args := a.Args()[1:]
 	if len(args) == 0 {
 		return nil
 	}
 	if s == execute.Command {
 		if !sv.active {
-			forwardToServer("kick", args)
+			forwardToServer(a)
 			return nil
 		}
 	} else if progsdat.Globals.DeathMatch != 0 {
@@ -1051,7 +1082,8 @@ func hostKick(args []cmd.QArg, playerEdictId, s int) error {
 }
 
 // User command to connect to server
-func hostConnect(args []cmd.QArg, p, s int) error {
+func hostConnect(a cmd.Arguments, p, s int) error {
+	args := a.Args()[1:]
 	if len(args) == 0 {
 		return nil
 	}
@@ -1073,7 +1105,8 @@ func hostConnect(args []cmd.QArg, p, s int) error {
 // handle a
 // map <servername>
 // command from the console.  Active clients are kicked off.
-func hostMap(args []cmd.QArg, p, s int) error {
+func hostMap(a cmd.Arguments, p, s int) error {
+	args := a.Args()[1:]
 	if len(args) == 0 {
 		// no map name given
 		if cmdl.Dedicated() {
@@ -1140,7 +1173,8 @@ func hostMap(args []cmd.QArg, p, s int) error {
 }
 
 // Goes to a new map, taking all clients along
-func hostChangelevel(args []cmd.QArg, p, s int) error {
+func hostChangelevel(a cmd.Arguments, p, s int) error {
+	args := a.Args()[1:]
 	if len(args) != 1 {
 		conlog.Printf("changelevel <levelname> : continue game on a new level\n")
 		return nil
@@ -1174,7 +1208,7 @@ func hostChangelevel(args []cmd.QArg, p, s int) error {
 }
 
 // Restarts the current server for a dead player
-func hostRestart(args []cmd.QArg, p, s int) error {
+func hostRestart(a cmd.Arguments, p, s int) error {
 	if cls.demoPlayback || !sv.active {
 		return nil
 	}

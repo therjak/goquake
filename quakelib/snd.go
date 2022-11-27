@@ -73,23 +73,23 @@ func init() {
 	addCommand("soundinfo", soundInfoCmd)
 }
 
-func playCmd(args []cmd.QArg, p, s int) error {
+func playCmd(args cmd.Arguments, p, s int) error {
 	log.Println("play CMD from snd")
 	return nil
 }
-func playVolCmd(args []cmd.QArg, p, s int) error {
+func playVolCmd(args cmd.Arguments, p, s int) error {
 	log.Println("play vol CMD from snd")
 	return nil
 }
-func stopSoundCmd(args []cmd.QArg, p, s int) error {
+func stopSoundCmd(args cmd.Arguments, p, s int) error {
 	log.Println("stop sound CMD from snd")
 	return nil
 }
-func soundListCmd(args []cmd.QArg, p, s int) error {
+func soundListCmd(args cmd.Arguments, p, s int) error {
 	log.Println("sound list CMD from snd")
 	return nil
 }
-func soundInfoCmd(args []cmd.QArg, p, s int) error {
+func soundInfoCmd(args cmd.Arguments, p, s int) error {
 	log.Println("sound info CMD from snd")
 	return nil
 }

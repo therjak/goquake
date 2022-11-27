@@ -15,7 +15,7 @@ const (
 )
 
 // args, player, source
-type Efunc func([]cmd.QArg, int, int) (bool, error)
+type Efunc func(cmd.Arguments, int, int) (bool, error)
 
 type executors []Efunc
 
@@ -41,21 +41,20 @@ func ExecuteCommand(s string, player int) error {
 }
 
 func (ex *executors) execute(s string, source int, player int) error {
-	cmd.Parse(s)
-
-	args := cmd.Args()
+	a := cmd.Parse(s)
+	args := a.Args()
 	if len(args) == 0 {
 		return nil // no tokens
 	}
-	name := args[0].String()
 	for _, e := range *ex {
-		if ok, err := e(args, player, source); err != nil {
+		if ok, err := e(a, player, source); err != nil {
 			return err
 		} else if ok {
 			return nil
 		}
 	}
 
+	name := args[0].String()
 	log.Printf("Unknown command \"%s\"", name)
 	conlog.Printf("Unknown command \"%s\"\n", name)
 	return nil

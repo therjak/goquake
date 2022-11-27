@@ -14,7 +14,8 @@ var (
 	aliases = make(map[string]string)
 )
 
-func alias(args []cmd.QArg, p, s int) error {
+func alias(a cmd.Arguments, p, s int) error {
+	args := a.Args()[1:]
 	switch c := len(args); c {
 	case 0:
 		listAliases()
@@ -77,7 +78,8 @@ func setAlias(args []cmd.QArg) {
 	aliases[name.String()] = strings.TrimSpace(command) + "\n"
 }
 
-func unalias(args []cmd.QArg, p, s int) error {
+func unalias(a cmd.Arguments, p, s int) error {
+	args := a.Args()[1:]
 	switch c := len(args); c {
 	case 1:
 		name := args[0].String()
@@ -94,7 +96,7 @@ func unalias(args []cmd.QArg, p, s int) error {
 	return nil
 }
 
-func unaliasAll(args []cmd.QArg, p, s int) error {
+func unaliasAll(a cmd.Arguments, p, s int) error {
 	aliases = make(map[string]string)
 	return nil
 }
@@ -104,8 +106,9 @@ func Get(name string) (string, bool) {
 	return a, ok
 }
 
-func Execute(args []cmd.QArg, player int, source int) (bool, error) {
-	if len(args) == 0 {
+func Execute(a cmd.Arguments, player int, source int) (bool, error) {
+	args := a.Args()
+	if len(args) < 1 {
 		return false, nil
 	}
 	name := args[0].String()

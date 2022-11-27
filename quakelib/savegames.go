@@ -31,7 +31,7 @@ func saveGameComment() string {
 	return fmt.Sprintf("%-22s kills:%3d/%3d", ln, km, tm)
 }
 
-func saveGame(args []cmd.QArg, p, s int) error {
+func saveGame(a cmd.Arguments, p, s int) error {
 	if s != execute.Command {
 		return nil
 	}
@@ -49,7 +49,7 @@ func saveGame(args []cmd.QArg, p, s int) error {
 		conlog.Printf("Can't save multiplayer games.\n")
 		return nil
 	}
-
+	args := a.Args()[1:]
 	if len(args) != 1 {
 		conlog.Printf("save <savename> : save a game\n")
 		return nil
@@ -100,11 +100,12 @@ func saveGame(args []cmd.QArg, p, s int) error {
 	return nil
 }
 
-func loadGame(args []cmd.QArg, p, s int) error {
+func loadGame(a cmd.Arguments, p, s int) error {
 	if s != execute.Command {
 		return nil
 	}
 
+	args := a.Args()[1:]
 	if len(args) != 1 {
 		conlog.Printf("load <savename> : load a game\n")
 		return nil

@@ -193,8 +193,12 @@ func HandleMove() error {
 }
 
 func init() {
-	addCommand("impulse", func(args []cmd.QArg, p, s int) error {
-		in_impulse = args[0].Int()
+	addCommand("impulse", func(a cmd.Arguments, p, s int) error {
+		args := a.Args()
+		if len(args) < 2 {
+			return nil
+		}
+		in_impulse = args[1].Int()
 		return nil
 	})
 }

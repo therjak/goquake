@@ -24,7 +24,7 @@ const (
 
 func init() {
 	addCommand("edict", edictPrintEdictFunc)
-	addCommand("edicts", func(_ []cmd.QArg, p, s int) error {
+	addCommand("edicts", func(_ cmd.Arguments, p, s int) error {
 		edictPrintEdicts()
 		return nil
 	})
@@ -170,7 +170,8 @@ func edictPrintEdicts() {
 }
 
 // For debugging, prints a single edict
-func edictPrintEdictFunc(args []cmd.QArg, p, s int) error {
+func edictPrintEdictFunc(a cmd.Arguments, p, s int) error {
+	args := a.Args()[1:]
 	if !sv.active || len(args) == 0 {
 		return nil
 	}
@@ -185,7 +186,7 @@ func edictPrintEdictFunc(args []cmd.QArg, p, s int) error {
 }
 
 // For debugging
-func edictCount(_ []cmd.QArg, p, s int) error {
+func edictCount(_ cmd.Arguments, p, s int) error {
 	if !sv.active {
 		return nil
 	}

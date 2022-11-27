@@ -548,12 +548,12 @@ func init() {
 	addCommand("sizedown", screenSizedown)
 }
 
-func screenSizeup(_ []cmd.QArg, p, s int) error {
+func screenSizeup(_ cmd.Arguments, p, s int) error {
 	cvars.ViewSize.SetValue(cvars.ViewSize.Value() + 10)
 	return nil
 }
 
-func screenSizedown(_ []cmd.QArg, p, s int) error {
+func screenSizedown(_ cmd.Arguments, p, s int) error {
 	cvars.ViewSize.SetValue(cvars.ViewSize.Value() - 10)
 	return nil
 }
@@ -566,7 +566,7 @@ func fileExists(filename string) bool {
 	return !info.IsDir()
 }
 
-func screenShot(_ []cmd.QArg, p, s int) error {
+func screenShot(_ cmd.Arguments, p, s int) error {
 	var pngName string
 	var fileName string
 	for i := 0; i < 10000; i++ {

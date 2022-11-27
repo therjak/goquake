@@ -232,7 +232,7 @@ func syncVideoCvars() {
 	videoChanged = false
 }
 
-func describeCurrentMode(_ []cmd.QArg, p, s int) error {
+func describeCurrentMode(_ cmd.Arguments, p, s int) error {
 	if window.Get() != nil {
 		w, h := window.Size()
 		fs := func() string {
@@ -246,7 +246,7 @@ func describeCurrentMode(_ []cmd.QArg, p, s int) error {
 	return nil
 }
 
-func describeModes(_ []cmd.QArg, p, s int) error {
+func describeModes(_ cmd.Arguments, p, s int) error {
 	count := 0
 	for _, m := range availableDisplayModes {
 		conlog.Printf("  %4d x %4d\n", m.Width, m.Height)
@@ -260,11 +260,11 @@ func init() {
 	addCommand("vid_describecurrentmode", describeCurrentMode)
 	addCommand("vid_describemodes", describeModes)
 	addCommand("vid_unlock", vidUnlock)
-	addCommand("vid_restart", vidRestart)
+	addCommand("vid_restart", func(_ cmd.Arguments, _, _ int) error { return vidRestart() })
 	addCommand("vid_test", vidTest)
 }
 
-func vidRestart(_ []cmd.QArg, p, s int) error {
+func vidRestart() error {
 	if videoLocked || !videoChanged {
 		return nil
 	}
@@ -303,14 +303,14 @@ func vidRestart(_ []cmd.QArg, p, s int) error {
 	return nil
 }
 
-func vidTest(_ []cmd.QArg, p, s int) error {
+func vidTest(_ cmd.Arguments, p, s int) error {
 	if videoLocked || !videoChanged {
 		return nil
 	}
 	oldWidth, oldHeight := window.Size()
 	oldFullscreen := window.Fullscreen()
 
-	if err := vidRestart(nil, 0, 0); err != nil {
+	if err := vidRestart(); err != nil {
 		return err
 	}
 
@@ -322,14 +322,14 @@ func vidTest(_ []cmd.QArg, p, s int) error {
 		} else {
 			cvars.VideoFullscreen.SetByString("0")
 		}
-		if err := vidRestart(nil, 0, 0); err != nil {
+		if err := vidRestart(); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func vidUnlock(_ []cmd.QArg, p, s int) error {
+func vidUnlock(_ cmd.Arguments, p, s int) error {
 	videoLocked = false
 	syncVideoCvars()
 	return nil

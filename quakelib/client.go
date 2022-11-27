@@ -64,10 +64,10 @@ var (
 )
 
 func init() {
-	addCommand("disconnect", func(args []cmd.QArg, p, s int) error {
+	addCommand("disconnect", func(args cmd.Arguments, p, s int) error {
 		return clientDisconnect()
 	})
-	addCommand("reconnect", func(args []cmd.QArg, p, s int) error {
+	addCommand("reconnect", func(args cmd.Arguments, p, s int) error {
 		clientReconnect()
 		return nil
 	})
@@ -328,7 +328,7 @@ func clientClear() {
 	clearEntityFragments()
 }
 
-func viewPositionCommand(args []cmd.QArg, p, s int) error {
+func viewPositionCommand(args cmd.Arguments, p, s int) error {
 	if cls.state != ca_connected {
 		return nil
 	}
@@ -344,7 +344,7 @@ func printPosition() {
 		cl.pitch, cl.yaw, cl.roll)
 }
 
-func executeOnServer(args []cmd.QArg, p, s int) error {
+func executeOnServer(a cmd.Arguments, p, s int) error {
 	if cls.state != ca_connected {
 		conlog.Printf("Can't \"cmd\", not connected\n")
 		return nil
@@ -352,30 +352,32 @@ func executeOnServer(args []cmd.QArg, p, s int) error {
 	if cls.demoPlayback {
 		return nil
 	}
-	if len(args) > 0 {
+	args := a.Args()
+	if len(args) > 1 {
 		cls.outProto.Cmds = append(cls.outProto.Cmds, &protos.Cmd{
-			Union: &protos.Cmd_StringCmd{cmd.Full()},
+			Union: &protos.Cmd_StringCmd{a.Full()},
 		})
 	}
 	return nil
 }
 
-func forwardToServer(c string, args []cmd.QArg) {
+func forwardToServer(a cmd.Arguments) {
+	args := a.Args()
 	if cls.state != ca_connected {
-		conlog.Printf("Can't \"%s\", not connected\n", c)
+		conlog.Printf("Can't \"%s\", not connected\n", args[0])
 		return
 	}
 	if cls.demoPlayback {
 		return
 	}
-	if len(args) > 0 {
-		s := c + " " + cmd.Full()
+	if len(args) > 1 {
+		s := args[0].String() + " " + a.Full()
 		cls.outProto.Cmds = append(cls.outProto.Cmds, &protos.Cmd{
 			Union: &protos.Cmd_StringCmd{s},
 		})
 	} else {
 		cls.outProto.Cmds = append(cls.outProto.Cmds, &protos.Cmd{
-			Union: &protos.Cmd_StringCmd{c},
+			Union: &protos.Cmd_StringCmd{args[0].String()},
 		})
 	}
 }
@@ -1105,7 +1107,8 @@ func (c *Client) bonusFlash() {
 }
 
 func init() {
-	addCommand("v_cshift", func(a []cmd.QArg, p, s int) error {
+	addCommand("v_cshift", func(arg cmd.Arguments, p, s int) error {
+		a := arg.Args()[1:]
 		cshiftEmpty = Color{0, 0, 0, 0}
 		switch l := len(a); {
 		case l >= 4:
@@ -1122,11 +1125,11 @@ func init() {
 		}
 		return nil
 	})
-	addCommand("bf", func(a []cmd.QArg, p, s int) error {
+	addCommand("bf", func(a cmd.Arguments, p, s int) error {
 		cl.bonusFlash()
 		return nil
 	})
-	addCommand("centerview", func(a []cmd.QArg, p, s int) error {
+	addCommand("centerview", func(a cmd.Arguments, p, s int) error {
 		cl.startPitchDrift()
 		return nil
 	})
@@ -1262,7 +1265,7 @@ func (c *Client) calcRefreshRect() {
 }
 
 // display impact point of trace along VPN
-func tracePosition(args []cmd.QArg, p, s int) error {
+func tracePosition(args cmd.Arguments, p, s int) error {
 	if cls.state != ca_connected {
 		return nil
 	}
@@ -1410,10 +1413,11 @@ func (c *ClientStatic) writeDemoMessage(data []byte) error {
 	return nil
 }
 
-func clientStartDemos(args []cmd.QArg, p, s int) error {
+func clientStartDemos(a cmd.Arguments, p, s int) error {
 	if cmdl.Dedicated() {
 		return nil
 	}
+	args := a.Args()[1:]
 
 	cls.demos = cls.demos[:0]
 	for _, a := range args {
@@ -1436,7 +1440,7 @@ func clientStartDemos(args []cmd.QArg, p, s int) error {
 	return nil
 }
 
-func clientRecordDemo(args []cmd.QArg, playerEdictId, s int) error {
+func clientRecordDemo(a cmd.Arguments, playerEdictId, s int) error {
 	if s != execute.Command {
 		return nil
 	}
@@ -1446,6 +1450,7 @@ func clientRecordDemo(args []cmd.QArg, playerEdictId, s int) error {
 	}
 
 	cls.stopDemoRecording()
+	args := a.Args()[1:]
 
 	switch len(args) {
 	case 1, 2, 3:
@@ -1558,7 +1563,7 @@ func clientRecordDemo(args []cmd.QArg, playerEdictId, s int) error {
 	return nil
 }
 
-func clientStopDemoRecording(a []cmd.QArg, p, s int) error {
+func clientStopDemoRecording(a cmd.Arguments, p, s int) error {
 	if s != execute.Command {
 		return nil
 	}
@@ -1570,11 +1575,12 @@ func clientStopDemoRecording(a []cmd.QArg, p, s int) error {
 	return nil
 }
 
-func clientPlayDemo(args []cmd.QArg, p, s int) error {
+func clientPlayDemo(a cmd.Arguments, p, s int) error {
 	if s != execute.Command {
 		return nil
 	}
 
+	args := a.Args()[1:]
 	if len(args) != 1 {
 		conlog.Printf("playdemo <demoname> : plays a demo\n")
 		return nil
@@ -1586,11 +1592,12 @@ func clientPlayDemo(args []cmd.QArg, p, s int) error {
 	return nil
 }
 
-func clientTimeDemo(args []cmd.QArg, p, s int) error {
+func clientTimeDemo(a cmd.Arguments, p, s int) error {
 	if s != execute.Command {
 		return nil
 	}
 
+	args := a.Args()[1:]
 	if len(args) != 1 {
 		conlog.Printf("timedemo <demoname> : gets demo speeds\n")
 		return nil

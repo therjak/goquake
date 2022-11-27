@@ -111,7 +111,8 @@ var (
 	host_client int
 )
 
-func svProtocol(args []cmd.QArg, p, s int) error {
+func svProtocol(a cmd.Arguments, p, s int) error {
+	args := a.Args()[1:]
 	switch len(args) {
 	default:
 		conlog.SafePrintf("usage: sv_protocol <protocol>\n")

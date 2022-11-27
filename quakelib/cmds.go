@@ -13,30 +13,34 @@ import (
 	"goquake/filesystem"
 )
 
+var (
+	svClientCommands = cmd.New()
+)
+
 func addCommand(name string, f cmd.QFunc) {
 	cmd.Must(cmd.AddCommand(name, f))
 }
 func addClientCommand(name string, f cmd.QFunc) {
-	// TODO: use local cmd.Commands list
-	cmd.Must(cmd.AddCommand(name, f))
+	cmd.Must(svClientCommands.Add(name, f))
 }
 
-func echo(args []cmd.QArg, p, s int) error {
-	for _, a := range args {
-		conlog.Printf("%s ", a)
+func echo(a cmd.Arguments, p, s int) error {
+	for _, arg := range a.Args()[1:] {
+		conlog.Printf("%s ", arg)
 	}
 	conlog.Printf("\n")
 	return nil
 }
 
-func printCmdList(args []cmd.QArg, p, s int) error {
+func printCmdList(a cmd.Arguments, p, s int) error {
 	//TODO(therjak):
 	// this should probably print the syntax of cmdlist if len(args) > 1
+	args := a.Args()
 	switch len(args) {
 	default:
-		printPartialCmdList(args[0].String())
+		printPartialCmdList(args[1].String())
 		return nil
-	case 0:
+	case 0, 1:
 		printFullCmdList()
 		break
 	}
@@ -67,7 +71,7 @@ func printPartialCmdList(part string) {
 // Commands lead with a +, and continue until a - or another +
 // quake +prog jctest.qp +cmd amlev1
 // quake -nosound +cmd amlev1
-func executeCommandLineScripts(_ []cmd.QArg, p, s int) error {
+func executeCommandLineScripts(_ cmd.Arguments, p, s int) error {
 	plus := false
 	cmd := ""
 	// args[0] is command name
@@ -98,22 +102,23 @@ func executeCommandLineScripts(_ []cmd.QArg, p, s int) error {
 	return nil
 }
 
-func execFile(args []cmd.QArg, p, s int) error {
-	if len(args) != 1 {
+func execFile(a cmd.Arguments, p, s int) error {
+	args := a.Args()
+	if len(args) != 2 {
 		conlog.Printf("exec <filename> : execute a script file\n")
 		return nil
 	}
-	b, err := filesystem.GetFileContents(args[0].String())
+	b, err := filesystem.GetFileContents(args[1].String())
 	if err != nil {
-		if args[0].String() == "default.cfg" {
-			conlog.Printf("execing %v\n", args[0])
+		if args[1].String() == "default.cfg" {
+			conlog.Printf("execing %v\n", args[1])
 			cbuf.InsertText(defaultCfg)
 		} else {
-			conlog.Printf("couldn't exec %v\n", args[0])
+			conlog.Printf("couldn't exec %v\n", args[1])
 		}
 		return nil
 	}
-	conlog.Printf("execing %v\n", args[0])
+	conlog.Printf("execing %v\n", args[1])
 	cbuf.InsertText(string(b))
 	return nil
 }

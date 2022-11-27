@@ -168,7 +168,7 @@ func serverFrame() error {
 }
 
 // Return to looping demos
-func hostStopDemo(a []cmd.QArg, p, s int) error {
+func hostStopDemo(a cmd.Arguments, p, s int) error {
 	if cmdl.Dedicated() {
 		return nil
 	}
@@ -183,7 +183,7 @@ func hostStopDemo(a []cmd.QArg, p, s int) error {
 }
 
 // Return to looping demos
-func hostDemos(a []cmd.QArg, p, s int) error {
+func hostDemos(a cmd.Arguments, p, s int) error {
 	if cmdl.Dedicated() {
 		return nil
 	}

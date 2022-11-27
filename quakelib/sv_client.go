@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	qcmd "goquake/cmd"
 	"goquake/conlog"
 	"goquake/cvars"
 	"goquake/execute"
@@ -386,7 +387,11 @@ func (c *SVClient) ReadClientMessage() bool {
 					hasPrefix(s, "spawn"),
 					hasPrefix(s, "status"),
 					hasPrefix(s, "tell"):
-					if err := execute.ExecuteClient(s, c.edictId); err != nil {
+					ok, err := svClientCommands.Execute(qcmd.Parse(s), c.edictId, execute.Client)
+					if !ok {
+						panic("cmd must be known")
+					}
+					if err != nil {
 						HostError(err)
 					}
 				}
