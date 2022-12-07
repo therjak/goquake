@@ -82,19 +82,29 @@ func (c *Arguments) Args() []QArg {
 	return c.args
 }
 
-func Parse(s string) (args Arguments) {
-	defer func() {
-		if len(args.args) > 0 {
-			s := strings.TrimLeftFunc(s, unicode.IsSpace)
-			args.full = strings.TrimPrefix(s, args.args[0].String())
-			args.full = strings.TrimFunc(args.full, unicode.IsSpace)
-		} else {
-			args.full = ""
+func (c *Arguments) ArgumentString() string {
+	// args[0] is the cmd
+	if len(c.args) < 2 {
+		return ""
+	}
+	r := strings.TrimPrefix(c.full, c.args[0].String())
+	r = strings.TrimLeftFunc(r, unicode.IsSpace)
+	// we want to remove " around the text.
+	// the end is not that important but the result should not start with " or
+	// space.
+	if len(r) > 1 {
+		if r[0] == '"' {
+			r = strings.Trim(r, "\"\t\n\v\f\r ")
 		}
-	}()
+	}
+	return r
+}
+
+func Parse(s string) (args Arguments) {
+	args.full = strings.TrimFunc(s, unicode.IsSpace)
 	args.args = []QArg{}
 
-	l := lex(s)
+	l := lex(args.full)
 	for {
 		i := l.nextItem()
 

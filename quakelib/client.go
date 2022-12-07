@@ -355,7 +355,7 @@ func executeOnServer(a cmd.Arguments, p, s int) error {
 	args := a.Args()
 	if len(args) > 1 {
 		cls.outProto.Cmds = append(cls.outProto.Cmds, &protos.Cmd{
-			Union: &protos.Cmd_StringCmd{a.Full()},
+			Union: &protos.Cmd_StringCmd{a.ArgumentString()},
 		})
 	}
 	return nil
@@ -370,16 +370,9 @@ func forwardToServer(a cmd.Arguments) {
 	if cls.demoPlayback {
 		return
 	}
-	if len(args) > 1 {
-		s := args[0].String() + " " + a.Full()
-		cls.outProto.Cmds = append(cls.outProto.Cmds, &protos.Cmd{
-			Union: &protos.Cmd_StringCmd{s},
-		})
-	} else {
-		cls.outProto.Cmds = append(cls.outProto.Cmds, &protos.Cmd{
-			Union: &protos.Cmd_StringCmd{args[0].String()},
-		})
-	}
+	cls.outProto.Cmds = append(cls.outProto.Cmds, &protos.Cmd{
+		Union: &protos.Cmd_StringCmd{a.Full()},
+	})
 }
 
 func init() {

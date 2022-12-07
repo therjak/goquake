@@ -69,6 +69,8 @@ const (
 )
 
 type Server struct {
+	// active is used by the client to check if the server is local
+	// needs to be changed to a client state which gets the state change by channel
 	active   bool
 	paused   bool
 	loadGame bool
@@ -928,13 +930,13 @@ func init() {
 }
 
 //This is called at the start of each level
-func (s *Server) SpawnServer(name string) error {
+func (s *Server) SpawnServer(mapName string) error {
 	// let's not have any servers with no name
 	if len(cvars.HostName.String()) == 0 {
 		cvars.HostName.SetByString("UNNAMED")
 	}
 
-	conlog.DPrintf("SpawnServer: %s\n", name)
+	conlog.DPrintf("SpawnServer: %s\n", mapName)
 	// now safe to issue another
 	svs.changeLevelIssued = false
 
@@ -948,7 +950,7 @@ func (s *Server) SpawnServer(name string) error {
 	freeEdicts()
 	sv = Server{
 		models:   make([]model.Model, 1),
-		name:     name,
+		name:     mapName,
 		protocol: sv_protocol,
 	}
 	s = &sv
@@ -978,7 +980,7 @@ func (s *Server) SpawnServer(name string) error {
 	s.state = ServerStateLoading
 	s.paused = false
 	s.time = 1.0
-	s.modelName = fmt.Sprintf("maps/%s.bsp", name)
+	s.modelName = fmt.Sprintf("maps/%s.bsp", mapName)
 
 	log.Printf("New world: %s", s.modelName)
 	s.worldModel = nil
@@ -1016,7 +1018,7 @@ func (s *Server) SpawnServer(name string) error {
 	} else {
 		progsdat.Globals.DeathMatch = cvars.DeathMatch.Value()
 	}
-	progsdat.Globals.MapName = progsdat.AddString(name)
+	progsdat.Globals.MapName = progsdat.AddString(mapName)
 
 	// serverflags are for cross level information (sigils)
 	progsdat.Globals.ServerFlags = float32(svs.serverFlags)

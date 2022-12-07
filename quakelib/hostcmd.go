@@ -187,8 +187,7 @@ func hostTell(a cmd.Arguments, p, s int) error {
 	}
 
 	cn := HostClient().name
-	// TODO: should we really concat or use cmd.Full?
-	ms := concatArgs(args[1:])
+	ms := a.ArgumentString()
 	text := fmt.Sprintf("%s: %s", cn, ms)
 
 	for _, c := range sv_clients {
@@ -204,14 +203,13 @@ func hostTell(a cmd.Arguments, p, s int) error {
 	return nil
 }
 
-func hostSay(team bool, args []cmd.QArg, s int) {
-	// we know len(args) >= 1
+func hostSay(team bool, a cmd.Arguments, s int) {
 	fromServer := false
 	if s == execute.Command {
 		team = false
 		fromServer = true
 	}
-	ms := concatArgs(args)
+	ms := a.ArgumentString()
 	text := func() string {
 		if fromServer {
 			return fmt.Sprintf("\001<%s> %s", cvars.HostName.String(), ms)
@@ -235,9 +233,7 @@ func hostSay(team bool, args []cmd.QArg, s int) {
 }
 
 func hostSayAll(a cmd.Arguments, p, s int) error {
-	args := a.Args()[1:]
-	// say
-	if len(args) < 1 {
+	if len(a.Args()) < 2 {
 		return nil
 	}
 	if s == execute.Command {
@@ -246,14 +242,13 @@ func hostSayAll(a cmd.Arguments, p, s int) error {
 			return nil
 		}
 	}
-	hostSay(false, args, s)
+	hostSay(false, a, s)
 	return nil
 }
 
 func hostSayTeam(a cmd.Arguments, p, s int) error {
-	args := a.Args()[1:]
 	// say_team
-	if len(args) < 1 {
+	if len(a.Args()) < 2 {
 		return nil
 	}
 	if s == execute.Command {
@@ -262,7 +257,7 @@ func hostSayTeam(a cmd.Arguments, p, s int) error {
 			return nil
 		}
 	}
-	hostSay(true, args, s)
+	hostSay(true, a, s)
 	return nil
 }
 
