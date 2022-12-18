@@ -17,13 +17,16 @@ import (
 	"goquake/net"
 	svc "goquake/protocol/server"
 	"goquake/protos"
-	"goquake/qtime"
 )
+
+func hostFwd(a cmd.Arguments, p, s int) error {
+	forwardToServer(a)
+	return nil
+}
 
 func init() {
 	addCommand("color", hostColor)
 	addCommand("fly", hostFly)
-	addCommand("give", hostGive)
 	addCommand("god", hostGod)
 	addCommand("kick", hostKick)
 	addClientCommand("kick", hostKick)
@@ -38,7 +41,6 @@ func init() {
 	addClientCommand("say", hostSayAll)
 	addCommand("say_team", hostSayTeam)
 	addClientCommand("say_team", hostSayTeam)
-	addCommand("setpos", hostSetPos)
 	addCommand("status", hostStatus)
 	addClientCommand("status", hostStatus)
 	addCommand("tell", hostTell)
@@ -50,6 +52,12 @@ func init() {
 	addCommand("quit", func(a cmd.Arguments, p, s int) error { return hostQuit() })
 	addCommand("restart", hostRestart)
 	addCommand("version", hostVersion)
+
+	addCommand("setpos", hostFwd)
+	addCommand("give", hostFwd)
+	addCommand("edict", hostFwd)
+	addCommand("edicts", hostFwd)
+	addCommand("edictcount", hostFwd)
 }
 
 func hostQuit() error {
@@ -149,11 +157,6 @@ func hostPause(a cmd.Arguments, playerEdictId, s int) error {
 		cl.paused = cls.demoPaused
 		return nil
 	}
-	forwardToServer(a)
-	return nil
-}
-
-func hostGive(a cmd.Arguments, playerEdictId, s int) error {
 	forwardToServer(a)
 	return nil
 }
@@ -276,11 +279,6 @@ func hostNoClip(a cmd.Arguments, playerEdictId, s int) error {
 	return nil
 }
 
-func hostSetPos(a cmd.Arguments, playerEdictId, s int) error {
-	forwardToServer(a)
-	return nil
-}
-
 func hostName(a cmd.Arguments, p, s int) error {
 	args := a.Args()[1:]
 	if len(args) == 0 {
@@ -378,16 +376,14 @@ func hostStatus(a cmd.Arguments, p, s int) error {
 }
 
 func hostMapName(a cmd.Arguments, p, s int) error {
-	if sv.active {
-		conlog.Printf("%q is %q\n", "mapname", sv.name)
-		return nil
+	switch {
+	case cmdl.Dedicated():
+		forwardToServer(a)
+	case cls.state == ca_connected:
+		conlog.Printf("\"mapname\" is %q\n", cl.mapName)
+	default:
+		conlog.Printf("no map loaded\n")
 	}
-	if cls.state == ca_connected {
-		// TODO
-		// conlog.Printf("%q is %q\n", "mapname", cl.mapname)
-		return nil
-	}
-	conlog.Printf("no map loaded\n")
 	return nil
 }
 
@@ -407,7 +403,7 @@ func hostShutdownServer(crash bool) error {
 	}
 
 	// flush any pending messages - like the score!!!
-	start := qtime.QTime()
+	end := time.Now().Add(3 * time.Second)
 	count := 1
 	for count != 0 {
 		count = 0
@@ -424,7 +420,7 @@ func hostShutdownServer(crash bool) error {
 				}
 			}
 		}
-		if (qtime.QTime() - start).Seconds() > 3.0 {
+		if time.Now().After(end) {
 			break
 		}
 	}
@@ -556,7 +552,7 @@ func hostMap(a cmd.Arguments, p, s int) error {
 				conlog.Printf("Server not active\n")
 			}
 		} else if cls.state == ca_connected {
-			// conlog.Printf("Current map: %s ( %s )\n", cl.levelname, cl.mapname);
+			conlog.Printf("Current map: %s ( %s )\n", cl.levelName, cl.mapName)
 		} else {
 			conlog.Printf("map <levelname>: start a new server\n")
 		}

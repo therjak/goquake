@@ -3,6 +3,7 @@ package quakelib
 
 import (
 	"fmt"
+	"time"
 
 	"goquake/cmd"
 	kc "goquake/keycode"
@@ -15,6 +16,12 @@ func nextDemo() {
 	if err := CL_NextDemo(); err != nil {
 		HostError(err)
 	}
+}
+
+func blink() int {
+	n := time.Now()
+	return ((n.Nanosecond() * 4) / 1e9) & 1
+	//return int(qtime.QTime().Seconds()*4) & 1
 }
 
 func init() {
@@ -185,7 +192,7 @@ type qMenuItem struct {
 
 func (m *qMenuItem) Draw() {}
 func (m *qMenuItem) DrawCursor() {
-	DrawCharacterWhite(m.Xcursor, m.Y, 12+(int(Time()*4))&1)
+	DrawCharacterWhite(m.Xcursor, m.Y, 12+blink())
 }
 func (m *qMenuItem) Enter()              {}
 func (m *qMenuItem) Backspace()          {}
@@ -200,7 +207,8 @@ type qDotMenuItem struct {
 }
 
 func (m *qDotMenuItem) DrawCursor() {
-	i := (int(Time()*10) % 6) + 1
+	n := time.Now()
+	i := 1 + (n.Second()*10+n.Nanosecond()/1e8)%6
 	name := fmt.Sprintf("gfx/menudot%d.lmp", i)
 	DrawPicture(m.Xcursor, m.Y, GetCachedPicture(name))
 }

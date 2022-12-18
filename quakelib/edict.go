@@ -7,7 +7,6 @@ import (
 	"log"
 
 	"goquake/bsp"
-	"goquake/cmd"
 	"goquake/conlog"
 	"goquake/cvars"
 	"goquake/math"
@@ -21,15 +20,6 @@ const (
 	MAX_EDICTS    = 32000 // edicts past 8192 can't play sounds in standard protocol
 
 )
-
-func init() {
-	addCommand("edict", edictPrintEdictFunc)
-	addCommand("edicts", func(_ cmd.Arguments, p, s int) error {
-		edictPrintEdicts()
-		return nil
-	})
-	addCommand("edictcount", edictCount)
-}
 
 type EntityState struct {
 	Origin     vec.Vec3
@@ -128,95 +118,6 @@ func edictAlloc() (int, error) {
 	ClearEdict(i)
 
 	return i, nil
-}
-
-// For debugging
-func edictPrint(ed int) {
-	if edictNum(ed).Free {
-		conlog.Printf("FREE\n")
-		return
-	}
-	conlog.SafePrintf("\nEDICT %d:\n", ed)
-	for i := 1; i < len(progsdat.FieldDefs); i++ {
-		d := progsdat.FieldDefs[i]
-		name, err := progsdat.String(d.SName)
-		if err != nil {
-			continue
-		}
-		l := len(name)
-		if l > 1 && (name)[l-2] == '_' {
-			// skip _x, _y, _z vars
-			continue
-		}
-		// TODO: skip 0 values
-		conlog.SafePrintf(name)
-		for ; l < 15; l++ {
-			conlog.SafePrintf(" ")
-		}
-		conlog.SafePrintf("%s\n", entvars.Sprint(ed, d))
-	}
-}
-
-// For debugging, prints all the entities in the current server
-func edictPrintEdicts() {
-	if !sv.active {
-		return
-	}
-
-	conlog.Printf("%d entities\n", sv.numEdicts)
-	for i := 0; i < sv.numEdicts; i++ {
-		edictPrint(i)
-	}
-}
-
-// For debugging, prints a single edict
-func edictPrintEdictFunc(a cmd.Arguments, p, s int) error {
-	args := a.Args()[1:]
-	if !sv.active || len(args) == 0 {
-		return nil
-	}
-
-	i := args[0].Int()
-	if i < 0 || i >= sv.numEdicts {
-		conlog.Printf("Bad edict number\n")
-		return nil
-	}
-	edictPrint(i)
-	return nil
-}
-
-// For debugging
-func edictCount(_ cmd.Arguments, p, s int) error {
-	if !sv.active {
-		return nil
-	}
-
-	active := 0
-	models := 0
-	solid := 0
-	step := 0
-	for i := 0; i < sv.numEdicts; i++ {
-		if edictNum(i).Free {
-			continue
-		}
-		active++
-		if entvars.Get(i).Solid != 0 {
-			solid++
-		}
-		if entvars.Get(i).Model != 0 {
-			models++
-		}
-		if entvars.Get(i).MoveType == progs.MoveTypeStep {
-			step++
-		}
-	}
-
-	conlog.Printf("num_edicts:%3d\n", sv.numEdicts)
-	conlog.Printf("active    :%3d\n", active)
-	conlog.Printf("view      :%3d\n", models)
-	conlog.Printf("touch     :%3d\n", solid)
-	conlog.Printf("step      :%3d\n", step)
-	return nil
 }
 
 func entAlphaEncode(a float32) byte {

@@ -38,10 +38,6 @@ type Host struct {
 	frameCount  int
 }
 
-func Time() float64 {
-	return host.time
-}
-
 func (h *Host) Reset() {
 	h.frameTime = 0.1
 }
@@ -69,12 +65,10 @@ func (h *Host) UpdateTime() bool {
 
 func hostInit() {
 	// TODO: this is some random stuff and needs cleanup
-	// Like why is cls.state here? Do we need cls.state at all?
 	svs.maxClients = 1
 	if cmdl.Dedicated() {
 		svs.maxClients = cmdl.DedicatedNum()
 	}
-	cls.state = ca_disconnected
 	if cmdl.Listen() {
 		if cmdl.Dedicated() {
 			Error("Only one of -dedicated or -listen can be specified")

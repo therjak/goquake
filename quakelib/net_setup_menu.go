@@ -120,8 +120,7 @@ func (m *hostnameMenuItem) Draw() {
 
 func (m *hostnameMenuItem) DrawCursor() {
 	m.qMenuItem.DrawCursor()
-	DrawCharacterWhite(168+8*len(netSetupMenu.hostname), m.Y,
-		10+(int(Time()*4)&1))
+	DrawCharacterWhite(168+8*len(netSetupMenu.hostname), m.Y, 10+blink())
 }
 
 func removeLast(s string) string {
@@ -148,7 +147,7 @@ func (m *playernameMenuItem) Draw() {
 func (m *playernameMenuItem) DrawCursor() {
 	m.qMenuItem.DrawCursor()
 	DrawCharacterWhite(168+8*len(netSetupMenu.playername), m.Y,
-		10+(int(Time()*4)&1))
+		10+blink())
 }
 
 func (m *playernameMenuItem) Backspace() {

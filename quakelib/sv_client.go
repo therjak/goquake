@@ -402,12 +402,28 @@ func (c *SVClient) ReadClientMessage() bool {
 					}
 				case hasPrefix(s, "give"):
 					svGiveCmd(qcmd.Parse(s), c.edictId)
+				case hasPrefix(s, "mapname"):
+					// this is for a dedicated server
+					if sv.active {
+						fmt.Printf("\"mapname\" is %q", sv.name)
+					} else {
+						fmt.Printf("no map loaded")
+					}
+					// TODO(therjak):
+					// case hasPrefix(s, "map"):
+				case hasPrefix(s, "edicts"):
+					edictPrintEdicts()
+				case hasPrefix(s, "edictcount"):
+					edictCount()
+				case hasPrefix(s, "edict"):
+					edictPrintEdictFunc(qcmd.Parse(s))
+
 				case
 					hasPrefix(s, "ban"),
 					hasPrefix(s, "kick"),
 					hasPrefix(s, "name"),
-					hasPrefix(s, "say"),
 					hasPrefix(s, "say_team"),
+					hasPrefix(s, "say"),
 					hasPrefix(s, "status"),
 					hasPrefix(s, "tell"):
 					ok, err := svClientCommands.Execute(qcmd.Parse(s), c.edictId, execute.Client)
@@ -1016,4 +1032,87 @@ func SV_RunClients() error {
 		}
 	}
 	return nil
+}
+
+// For debugging
+func edictPrint(ed int) {
+	if edictNum(ed).Free {
+		fmt.Printf("FREE\n")
+		return
+	}
+	fmt.Printf("\nEDICT %d:\n", ed)
+	for i := 1; i < len(progsdat.FieldDefs); i++ {
+		d := progsdat.FieldDefs[i]
+		name, err := progsdat.String(d.SName)
+		if err != nil {
+			continue
+		}
+		l := len(name)
+		if l > 1 && (name)[l-2] == '_' {
+			// skip _x, _y, _z vars
+			continue
+		}
+		// TODO: skip 0 values
+		fmt.Printf("%-15s %s\n", name, entvars.Sprint(ed, d))
+	}
+}
+
+// For debugging, prints all the entities in the current server
+func edictPrintEdicts() {
+	if !sv.active {
+		return
+	}
+
+	fmt.Printf("%d entities\n", sv.numEdicts)
+	for i := 0; i < sv.numEdicts; i++ {
+		edictPrint(i)
+	}
+}
+
+// For debugging, prints a single edict
+func edictPrintEdictFunc(a cmd.Arguments) {
+	args := a.Args()
+	if !sv.active || len(args) < 2 {
+		return
+	}
+
+	i := args[1].Int()
+	if i < 0 || i >= sv.numEdicts {
+		fmt.Printf("Bad edict number\n")
+		return
+	}
+	edictPrint(i)
+}
+
+// For debugging
+func edictCount() {
+	if !sv.active {
+		return
+	}
+
+	active := 0
+	models := 0
+	solid := 0
+	step := 0
+	for i := 0; i < sv.numEdicts; i++ {
+		if edictNum(i).Free {
+			continue
+		}
+		active++
+		if entvars.Get(i).Solid != 0 {
+			solid++
+		}
+		if entvars.Get(i).Model != 0 {
+			models++
+		}
+		if entvars.Get(i).MoveType == progs.MoveTypeStep {
+			step++
+		}
+	}
+
+	fmt.Printf("num_edicts:%3d\n", sv.numEdicts)
+	fmt.Printf("active    :%3d\n", active)
+	fmt.Printf("view      :%3d\n", models)
+	fmt.Printf("touch     :%3d\n", solid)
+	fmt.Printf("step      :%3d\n", step)
 }
