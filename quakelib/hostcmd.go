@@ -3,7 +3,6 @@ package quakelib
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -16,7 +15,7 @@ import (
 	"goquake/keys"
 	"goquake/net"
 	svc "goquake/protocol/server"
-	"goquake/protos"
+	"goquake/version"
 )
 
 func hostFwd(a cmd.Arguments, p, s int) error {
@@ -29,22 +28,13 @@ func init() {
 	addCommand("fly", hostFly)
 	addCommand("god", hostGod)
 	addCommand("kick", hostKick)
-	addClientCommand("kick", hostKick)
-	addCommand("kill", hostKill)
 	addCommand("name", hostName)
-	addClientCommand("name", hostName)
 	addCommand("noclip", hostNoClip)
 	addCommand("notarget", hostNoTarget)
 	addCommand("pause", hostPause)
-	addCommand("ping", hostPing)
-	addCommand("say", hostSayAll)
-	addClientCommand("say", hostSayAll)
-	addCommand("say_team", hostSayTeam)
-	addClientCommand("say_team", hostSayTeam)
-	addCommand("status", hostStatus)
-	addClientCommand("status", hostStatus)
+	addCommand("say", hostSay)
+	addCommand("say_team", hostSay)
 	addCommand("tell", hostTell)
-	addClientCommand("tell", hostTell)
 	addCommand("changelevel", hostChangelevel)
 	addCommand("connect", hostConnect)
 	addCommand("map", hostMap)
@@ -52,12 +42,49 @@ func init() {
 	addCommand("quit", func(a cmd.Arguments, p, s int) error { return hostQuit() })
 	addCommand("restart", hostRestart)
 	addCommand("version", hostVersion)
+	addCommand("stopdemo", hostStopDemo)
+	addCommand("demos", hostDemos)
 
 	addCommand("setpos", hostFwd)
 	addCommand("give", hostFwd)
 	addCommand("edict", hostFwd)
 	addCommand("edicts", hostFwd)
 	addCommand("edictcount", hostFwd)
+	addCommand("status", hostFwd)
+	addCommand("ping", hostFwd)
+	addCommand("kill", hostFwd)
+}
+
+// Return to looping demos
+func hostStopDemo(a cmd.Arguments, p, s int) error {
+	if cmdl.Dedicated() {
+		return nil
+	}
+	if !cls.demoPlayback {
+		return nil
+	}
+	cls.stopPlayback()
+	if err := cls.Disconnect(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Return to looping demos
+func hostDemos(a cmd.Arguments, p, s int) error {
+	if cmdl.Dedicated() {
+		return nil
+	}
+	if cls.demoNum == -1 {
+		cls.demoNum = 1
+	}
+	if err := clientDisconnect(); err != nil {
+		return err
+	}
+	if err := CL_NextDemo(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func hostQuit() error {
@@ -77,15 +104,8 @@ func hostQuit() error {
 	return nil
 }
 
-func qFormatI(b int32) string {
-	if b == 0 {
-		return "OFF"
-	}
-	return "ON"
-}
-
 func hostVersion(a cmd.Arguments, p, s int) error {
-	conlog.Printf("GoQuake Version %1.2f.%d\n", GoQuakeVersion, GoQuakePatch)
+	conlog.Printf("GoQuake Version %1.2f.%d\n", version.Base, version.Patch)
 	return nil
 }
 
@@ -178,93 +198,18 @@ func concatArgs(args []cmd.QArg) string {
 }
 
 func hostTell(a cmd.Arguments, p, s int) error {
-	args := a.Args()[1:]
-	if s == execute.Command {
-		forwardToServer(a)
-		return nil
-	}
-
-	if len(args) < 2 {
+	if len(a.Args()) < 3 {
 		// need at least destination and message
 		return nil
 	}
-
-	cn := HostClient().name
-	ms := a.ArgumentString()
-	text := fmt.Sprintf("%s: %s", cn, ms)
-
-	for _, c := range sv_clients {
-		if !c.active || !c.spawned {
-			continue
-		}
-		if strings.ToLower(c.name) != strings.ToLower(args[0].String()) {
-			continue
-		}
-		// TODO: We check without case check. Are names unique ignoring the case?
-		c.Printf(text)
-	}
+	forwardToServer(a)
 	return nil
 }
 
-func hostSay(team bool, a cmd.Arguments, s int) {
-	fromServer := false
-	if s == execute.Command {
-		team = false
-		fromServer = true
-	}
-	ms := a.ArgumentString()
-	text := func() string {
-		if fromServer {
-			return fmt.Sprintf("\001<%s> %s", cvars.HostName.String(), ms)
-		} else {
-			return fmt.Sprintf("\001%s: %s", HostClient().name, ms)
-		}
-	}()
-	for _, c := range sv_clients {
-		if !c.active || !c.spawned {
-			continue
-		}
-		if team && cvars.TeamPlay.Bool() &&
-			entvars.Get(c.edictId).Team != entvars.Get(HostClient().edictId).Team {
-			continue
-		}
-		c.Printf(text)
-	}
-	if cmdl.Dedicated() {
-		log.Printf(text)
-	}
-}
-
-func hostSayAll(a cmd.Arguments, p, s int) error {
+func hostSay(a cmd.Arguments, p, s int) error {
 	if len(a.Args()) < 2 {
 		return nil
 	}
-	if s == execute.Command {
-		if !cmdl.Dedicated() {
-			forwardToServer(a)
-			return nil
-		}
-	}
-	hostSay(false, a, s)
-	return nil
-}
-
-func hostSayTeam(a cmd.Arguments, p, s int) error {
-	// say_team
-	if len(a.Args()) < 2 {
-		return nil
-	}
-	if s == execute.Command {
-		if !cmdl.Dedicated() {
-			forwardToServer(a)
-			return nil
-		}
-	}
-	hostSay(true, a, s)
-	return nil
-}
-
-func hostPing(a cmd.Arguments, p, s int) error {
 	forwardToServer(a)
 	return nil
 }
@@ -280,97 +225,20 @@ func hostNoClip(a cmd.Arguments, playerEdictId, s int) error {
 }
 
 func hostName(a cmd.Arguments, p, s int) error {
-	args := a.Args()[1:]
-	if len(args) == 0 {
+	if len(a.Args()) < 2 {
 		conlog.Printf("\"name\" is %q\n", cvars.ClientName.String())
 		return nil
 	}
-	newName := func() string {
-		if len(args) == 1 {
-			return args[0].String()
-		}
-		b := strings.Builder{}
-		b.WriteString(args[0].String())
-		for _, a := range args[1:] {
-			b.WriteRune(' ')
-			b.WriteString(a.String())
-		}
-		return b.String()
-	}()
-	// client_t structure says name[32]
+	newName := a.ArgumentString()
 	if len(newName) > 15 {
 		newName = newName[:15]
 	}
-
-	if s == execute.Command {
-		if cvars.ClientName.String() == newName {
-			return nil
-		}
-		cvars.ClientName.SetByString(newName)
-		if cls.state == ca_connected {
-			forwardToServer(a)
-		}
+	if cvars.ClientName.String() == newName {
 		return nil
 	}
-
-	c := HostClient()
-	if len(c.name) != 0 && c.name != "unconnected" && c.name != newName {
-		conlog.Printf("%s renamed to %s\n", c.name, newName)
-	}
-	c.name = newName
-	entvars.Get(c.edictId).NetName = progsdat.AddString(newName)
-
-	// send notification to all clients
-	un := &protos.UpdateName{
-		Player:  int32(c.id),
-		NewName: newName,
-	}
-	svc.WriteUpdateName(un, sv.protocol, sv.protocolFlags, &sv.reliableDatagram)
-	return nil
-}
-
-func hostKill(a cmd.Arguments, playerEdictId, s int) error {
-	forwardToServer(a)
-	return nil
-}
-
-func hostStatus(a cmd.Arguments, p, s int) error {
-	const baseVersion = 1.09
-	if s == execute.Command {
-		if !sv.active {
-			forwardToServer(a)
-			return nil
-		}
-
-	}
-	printf := func() func(format string, v ...interface{}) {
-		if s == execute.Command {
-			return conlog.Printf
-		}
-		return HostClient().Printf
-	}()
-
-	printf("host:    %s\n", cvars.HostName.String())
-	printf("version: %4.2f\n", baseVersion)
-	printf("tcp/ip:  %s\n", net.Address())
-	printf("map:     %s\n", sv.name)
-	active := 0
-	for _, c := range sv_clients {
-		if c.active {
-			active++
-		}
-	}
-	printf("players: %d active (%d max)\n\n", active, svs.maxClients)
-	ntime := net.Time()
-	for i, c := range sv_clients {
-		if !c.active {
-			continue
-		}
-		d := ntime - c.ConnectTime()
-		d = d.Truncate(time.Second)
-		ev := entvars.Get(c.edictId)
-		printf("#%-2d %-16.16s  %3d  %9s\n", i+1, c.name, int(ev.Frags), d.String())
-		printf("   %s\n", c.Address())
+	cvars.ClientName.SetByString(newName)
+	if cls.state == ca_connected {
+		forwardToServer(a)
 	}
 	return nil
 }
@@ -444,76 +312,11 @@ func hostShutdownServer(crash bool) error {
 
 // Kicks a user off of the server
 func hostKick(a cmd.Arguments, playerEdictId, s int) error {
-	args := a.Args()[1:]
-	if len(args) == 0 {
+	args := a.Args()
+	if len(args) < 2 {
 		return nil
 	}
-	if s == execute.Command {
-		if !sv.active {
-			forwardToServer(a)
-			return nil
-		}
-	} else if progsdat.Globals.DeathMatch != 0 {
-		return nil
-	}
-
-	var toKick *SVClient
-	var message string
-
-	if len(args) > 1 && args[0].String() == "#" {
-		i := args[1].Int() - 1
-		if i < 0 || i >= svs.maxClients {
-			return nil
-		}
-		toKick = sv_clients[i]
-		if !toKick.active {
-			return nil
-		}
-		if len(args) > 2 {
-			// skip # and number
-			message = concatArgs(args[2:])
-		}
-	} else {
-		for _, c := range sv_clients {
-			if !c.active {
-				continue
-			}
-			if c.name == args[0].String() {
-				toKick = c
-				if len(args) > 1 {
-					// skip name
-					message = concatArgs(args[1:])
-				}
-				break
-			}
-		}
-	}
-	if toKick == nil {
-		return nil
-	}
-	if playerEdictId == toKick.edictId {
-		// can't kick yourself!
-		return nil
-	}
-	who := func() string {
-		if s == execute.Command {
-			if cmdl.Dedicated() {
-				return "Console"
-			} else {
-				return cvars.ClientName.String()
-			}
-		}
-		return HostClient().name
-	}()
-
-	if message != "" {
-		toKick.Printf("Kicked by %s: %s\n", who, message)
-	} else {
-		toKick.Printf("Kicked by %s\n", who)
-	}
-	if err := toKick.Drop(false); err != nil {
-		return err
-	}
+	forwardToServer(a)
 	return nil
 }
 
@@ -585,7 +388,7 @@ func hostMap(a cmd.Arguments, p, s int) error {
 	mapName := args[0].String()
 	mapName = strings.TrimSuffix(mapName, ".bsp")
 
-	if err := sv.SpawnServer(mapName); err != nil {
+	if err := sv.SpawnServer(mapName, sv_protocol); err != nil {
 		return err
 	}
 	if !sv.active {
@@ -600,7 +403,7 @@ func hostMap(a cmd.Arguments, p, s int) error {
 		}
 		cls.spawnParms = b.String()
 
-		if err := clEstablishConnection("local"); err != nil {
+		if err := clEstablishConnection(net.LocalAddress); err != nil {
 			return err
 		}
 		clientReconnect()
@@ -633,7 +436,7 @@ func hostChangelevel(a cmd.Arguments, p, s int) error {
 	if err := SV_SaveSpawnparms(); err != nil {
 		return err
 	}
-	if err := sv.SpawnServer(level); err != nil {
+	if err := sv.SpawnServer(level, sv_protocol); err != nil {
 		return err
 	}
 	// also issue an error if spawn failed -- O.S.
@@ -652,7 +455,7 @@ func hostRestart(a cmd.Arguments, p, s int) error {
 		return nil
 	}
 	mapname := sv.name // sv.name gets cleared in spawnserver
-	if err := sv.SpawnServer(mapname); err != nil {
+	if err := sv.SpawnServer(mapname, sv_protocol); err != nil {
 		return err
 	}
 

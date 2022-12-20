@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+
 package quakelib
 
 import (
@@ -7,6 +8,8 @@ import (
 	"goquake/cvars"
 	"goquake/math/vec"
 	"goquake/progs"
+	"log"
+	"runtime/debug"
 
 	"github.com/chewxy/math32"
 )
@@ -634,7 +637,8 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *trace) (int, error)
 			break
 		}
 		if !t.EntPointer {
-			Error("SV_FlyMove: !trace.ent")
+			debug.PrintStack()
+			log.Fatalf("SV_FlyMove: !trace.ent")
 		}
 		if t.Plane.Normal[2] > 0.7 {
 			blocked |= 1 // floor
@@ -839,7 +843,8 @@ func (q *qphysics) playerActions(ent, num int) error {
 		ev.Origin = vec.Add(ev.Origin, v)
 
 	default:
-		Error("SV_Physics_client: bad movetype %v", ev.MoveType)
+		debug.PrintStack()
+		log.Fatalf("SV_Physics_client: bad movetype %v", ev.MoveType)
 	}
 
 	if err := vm.LinkEdict(ent, true); err != nil {
@@ -912,7 +917,8 @@ func RunPhysics() error {
 					return err
 				}
 			default:
-				Error("SV_Physics: bad movetype %v", mt)
+				debug.PrintStack()
+				log.Fatalf("SV_Physics: bad movetype %v", mt)
 			}
 		}
 	}

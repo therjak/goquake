@@ -3,22 +3,26 @@
 package quakelib
 
 import (
+	"bytes"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"path/filepath"
+	"runtime/debug"
 	"time"
 
 	"goquake/cbuf"
+	"goquake/cmd"
 	cmdl "goquake/commandline"
 	"goquake/conlog"
 	"goquake/cvar"
 	"goquake/cvars"
+	"goquake/input"
 	"goquake/net"
+	"goquake/protocol"
 	"goquake/snd"
 	"goquake/wad"
 	"goquake/window"
-)
-
-const (
-	GoQuakeVersion = 0.80
-	GoQuakePatch   = 2
 )
 
 type serverState int
@@ -27,6 +31,56 @@ const (
 	serverRunning      serverState = 0
 	serverDisconnected serverState = 1
 )
+
+var (
+	sv_protocol int
+)
+
+func svProtocol(a cmd.Arguments, p, s int) error {
+	args := a.Args()[1:]
+	switch len(args) {
+	default:
+		conlog.SafePrintf("usage: sv_protocol <protocol>\n")
+	case 0:
+		conlog.Printf(`"sv_protocol" is "%v"`+"\n", sv_protocol)
+	case 1:
+		i := args[0].Int()
+		switch i {
+		case protocol.NetQuake, protocol.FitzQuake, protocol.RMQ:
+			sv_protocol = i
+			if sv.active {
+				conlog.Printf("changes will not take effect until the next level load.\n")
+			}
+		default:
+			conlog.Printf("sv_protocol must be %v or %v or %v\n",
+				protocol.NetQuake, protocol.FitzQuake, protocol.RMQ)
+		}
+	}
+	return nil
+}
+
+func init() {
+	addCommand("sv_protocol", svProtocol)
+}
+
+func serverInit() {
+	sv_protocol = cmdl.Protocol()
+	switch sv_protocol {
+	case protocol.NetQuake:
+		log.Printf("Server using protocol %v (NetQuake)\n", sv_protocol)
+	case protocol.FitzQuake:
+		log.Printf("Server using protocol %v (FitzQuake)\n", sv_protocol)
+	case protocol.RMQ:
+		log.Printf("Server using protocol %v (RMQ)\n", sv_protocol)
+	case protocol.GoQuake:
+		log.Printf("Server using protocol %v (GoQuake)\n", sv_protocol)
+	default:
+		debug.PrintStack()
+		host.Shutdown()
+		log.Fatalf("Bad protocol version request %v. Accepted values: %v, %v, %v.",
+			sv_protocol, protocol.NetQuake, protocol.FitzQuake, protocol.RMQ)
+	}
+}
 
 func CallCMain() error {
 	vm = NewVirtualMachine()
@@ -173,7 +227,7 @@ func executeFrame() {
 	sRand.NewSeed(uint32(time.Now().UnixNano()))
 
 	// decide the simulation time
-	if !host.UpdateTime() {
+	if !host.UpdateTime(cls.timeDemo) {
 		return // don't run too fast, or packets will flood out
 	}
 
@@ -314,4 +368,55 @@ func (m *measure) endMeasureFunc() {
 		}
 	}
 	conlog.Printf("serverprofile: %2d clients %v\n", clientNum, div.String())
+}
+
+// Writes key bindings and archived cvars to config.cfg
+func HostWriteConfiguration() error {
+	// dedicated servers initialize the host but don't parse and set the
+	// config.cfg cvars
+	if cmdl.Dedicated() {
+		return nil
+	}
+
+	var b bytes.Buffer
+	if err := writeKeyBindings(&b); err != nil {
+		return fmt.Errorf("Couldn't write config.cfg: %w\n", err)
+	}
+	if err := writeCvarVariables(&b); err != nil {
+		return fmt.Errorf("Couldn't write config.cfg: %w\n", err)
+	}
+
+	b.WriteString("vid_restart\n")
+	if input.MLook.Down() {
+		b.WriteString("+mlook\n")
+	}
+
+	filename := filepath.Join(gameDirectory, "config.cfg")
+	err := ioutil.WriteFile(filename, b.Bytes(), 0644)
+	if err != nil {
+		return fmt.Errorf("Couldn't write config.cfg: %w\n", err)
+	}
+	return nil
+}
+
+func (h *Host) Shutdown() {
+	if h.isDown {
+		log.Printf("recursive shutdown\n")
+		return
+	}
+	h.isDown = true
+	screen.disabled = true
+	if host.initialized {
+		if err := HostWriteConfiguration(); err != nil {
+			log.Printf(err.Error())
+		}
+	}
+	net.Shutdown()
+	if !cmdl.Dedicated() {
+		if console.initialized {
+			history.Save()
+		}
+		snd.Shutdown()
+		videoShutdown()
+	}
 }

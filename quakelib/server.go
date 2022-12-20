@@ -5,9 +5,9 @@ package quakelib
 import (
 	"fmt"
 	"log"
+	"runtime/debug"
 
 	"goquake/bsp"
-	"goquake/cmd"
 	cmdl "goquake/commandline"
 	"goquake/conlog"
 	"goquake/cvar"
@@ -93,15 +93,18 @@ type Server struct {
 
 	state ServerState // some actions are only valid during load
 
-	modelPrecache []string
 	soundPrecache []string
 	lightStyles   [64]string
 
 	name      string // map name
 	modelName string // maps/<name>.bsp, for model_precache[0]
 
-	models     []model.Model
-	worldModel *bsp.Model
+	// TODO(therjak): merge modelPrecache and models into a map[string]model.Model?
+	//                we also need an index based access for entvars
+	//                the empty 0 element can probably be dropped
+	modelPrecache []string
+	models        []model.Model
+	worldModel    *bsp.Model
 }
 
 var (
@@ -109,54 +112,8 @@ var (
 	sv  = Server{
 		models: make([]model.Model, 1),
 	}
-	sv_protocol int
 	host_client int
 )
-
-func svProtocol(a cmd.Arguments, p, s int) error {
-	args := a.Args()[1:]
-	switch len(args) {
-	default:
-		conlog.SafePrintf("usage: sv_protocol <protocol>\n")
-	case 0:
-		conlog.Printf(`"sv_protocol" is "%v"`+"\n", sv_protocol)
-	case 1:
-		i := args[0].Int()
-		switch i {
-		case protocol.NetQuake, protocol.FitzQuake, protocol.RMQ:
-			sv_protocol = i
-			if sv.active {
-				conlog.Printf("changes will not take effect until the next level load.\n")
-			}
-		default:
-			conlog.Printf("sv_protocol must be %v or %v or %v\n",
-				protocol.NetQuake, protocol.FitzQuake, protocol.RMQ)
-		}
-	}
-	return nil
-}
-
-func init() {
-	addCommand("sv_protocol", svProtocol)
-}
-
-func serverInit() {
-	sv_protocol = cmdl.Protocol()
-	switch sv_protocol {
-	case protocol.NetQuake:
-		log.Printf("Server using protocol %v (NetQuake)\n", sv_protocol)
-	case protocol.FitzQuake:
-		log.Printf("Server using protocol %v (FitzQuake)\n", sv_protocol)
-	case protocol.RMQ:
-		log.Printf("Server using protocol %v (RMQ)\n", sv_protocol)
-	case protocol.GoQuake:
-		log.Printf("Server using protocol %v (GoQuake)\n", sv_protocol)
-	default:
-		Error("Bad protocol version request %v. Accepted values: %v, %v, %v.",
-			sv_protocol, protocol.NetQuake, protocol.FitzQuake, protocol.RMQ)
-		log.Printf("Server using protocol %v (Unknown)\n", sv_protocol)
-	}
-}
 
 var (
 	msgBuf       = net.Message{}
@@ -203,9 +160,6 @@ func (s *Server) SendReliableDatagram() {
 
 func (s *Server) sendReconnect() {
 	SendReconnectToAll()
-	if !cmdl.Dedicated() {
-		clientReconnect()
-	}
 }
 
 /*
@@ -375,6 +329,7 @@ func ConnectClient(n int) error {
 	old := sv_clients[n]
 	newC := &SVClient{
 		netConnection: old.netConnection,
+		admin:         old.admin, // admin is a property of the connection
 		edictId:       n + 1,
 		id:            n,
 		name:          "unconnected",
@@ -397,7 +352,7 @@ func ConnectClient(n int) error {
 func (s *Server) SendClientDatagram(c *SVClient) (bool, error) {
 	msgBuf.ClearMessage()
 	msgBufMaxLen = protocol.MaxDatagram
-	if c.Address() != "LOCAL" {
+	if c.Address() != net.LocalAddress {
 		msgBufMaxLen = net.DATAGRAM_MTU
 	}
 	svc.WriteTime(s.time, s.protocol, s.protocolFlags, &msgBuf)
@@ -930,7 +885,7 @@ func init() {
 }
 
 //This is called at the start of each level
-func (s *Server) SpawnServer(mapName string) error {
+func (s *Server) SpawnServer(mapName string, pcl int) error {
 	// let's not have any servers with no name
 	if len(cvars.HostName.String()) == 0 {
 		cvars.HostName.SetByString("UNNAMED")
@@ -946,12 +901,11 @@ func (s *Server) SpawnServer(mapName string) error {
 	}
 
 	// set up the new server
-	ModClearAllGo()
 	freeEdicts()
 	sv = Server{
 		models:   make([]model.Model, 1),
 		name:     mapName,
-		protocol: sv_protocol,
+		protocol: pcl,
 	}
 	s = &sv
 
@@ -1111,4 +1065,18 @@ func (s *Server) loadGameEdicts(es []*protos.Edict) error {
 	}
 	s.numEdicts = len(es)
 	return nil
+}
+
+func (s *Server) ModelIndex(n string) int {
+	if len(n) == 0 {
+		return 0
+	}
+	for i, m := range s.modelPrecache {
+		if m == n {
+			return i
+		}
+	}
+	debug.PrintStack()
+	log.Fatalf("SV_ModelIndex: model %v not precached", n)
+	return 0
 }

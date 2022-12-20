@@ -9,24 +9,28 @@ func TestParse(t *testing.T) {
 		in     string
 		wantF  string
 		wantAS string
+		wantMS string
 		wantA  []QArg
 	}{
 		{
 			in:     `say hello world`,
 			wantF:  `say hello world`,
 			wantAS: `hello world`,
+			wantMS: `world`,
 			wantA:  []QArg{{"say"}, {"hello"}, {"world"}},
 		},
 		{
 			in:     `say "hello world"`,
 			wantF:  `say "hello world"`,
 			wantAS: `hello world`,
+			wantMS: ``,
 			wantA:  []QArg{{"say"}, {"hello world"}},
 		},
 		{
 			in:     ` say_team  foo bar baz `,
 			wantF:  `say_team  foo bar baz`,
 			wantAS: `foo bar baz`,
+			wantMS: `bar baz`,
 			wantA:  []QArg{{"say_team"}, {"foo"}, {"bar"}, {"baz"}},
 		},
 	} {
@@ -36,6 +40,9 @@ func TestParse(t *testing.T) {
 		}
 		if tc.wantAS != arg.ArgumentString() {
 			t.Errorf("Parse(%q).ArgumentString()=%q, want %q", tc.in, arg.ArgumentString(), tc.wantAS)
+		}
+		if tc.wantMS != arg.Message() {
+			t.Errorf("Parse(%q).Message()=%q, want %q", tc.in, arg.Message(), tc.wantMS)
 		}
 		as := arg.Args()
 		if len(tc.wantA) != len(as) {

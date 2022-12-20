@@ -6,9 +6,11 @@ import (
 	"runtime/debug"
 )
 
+/*
 func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 }
+*/
 
 func Error(format string, v ...interface{}) {
 	debug.PrintStack()

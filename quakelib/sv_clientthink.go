@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+
 package quakelib
 
 import (
@@ -267,7 +268,7 @@ func (c *SVClient) Think() {
 
 	// show 1/3 the pitch angle and all the roll angle
 	vAngle := vec.Add(vec.VFromA(ev.VAngle), vec.VFromA(ev.PunchAngle))
-	angles[2] = CalcRoll(angles, vec.VFromA(ev.Velocity)) * 4 // ROLL
+	angles[2] = cvars.CalcRoll(angles, vec.VFromA(ev.Velocity)) * 4 // ROLL
 	if ev.FixAngle == 0 {
 		angles[0] = -vAngle[0] / 3 // PITCH
 		angles[1] = vAngle[1]      // YAW

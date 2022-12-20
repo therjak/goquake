@@ -3,25 +3,18 @@
 package quakelib
 
 import (
-	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
-	"path/filepath"
+	"runtime/debug"
 
-	"goquake/cmd"
 	cmdl "goquake/commandline"
 	"goquake/conlog"
 	"goquake/cvar"
 	"goquake/cvars"
-	"goquake/input"
-	"goquake/keys"
 	"goquake/math"
-	"goquake/net"
 	"goquake/qtime"
 	"goquake/rand"
-	"goquake/snd"
 )
 
 var (
@@ -44,10 +37,10 @@ func (h *Host) Reset() {
 
 // UpdateTime updates the host time.
 // Returns false if it would exceed max fps
-func (h *Host) UpdateTime() bool {
+func (h *Host) UpdateTime(timedemo bool) bool {
 	h.time = qtime.QTime().Seconds()
 	maxFPS := math.Clamp(10.0, float64(cvars.HostMaxFps.Value()), 1000.0)
-	if !cls.timeDemo && (h.time-h.oldTime < 1/maxFPS) {
+	if !timedemo && (h.time-h.oldTime < 1/maxFPS) {
 		return false
 	}
 	h.frameTime = h.time - h.oldTime
@@ -71,7 +64,8 @@ func hostInit() {
 	}
 	if cmdl.Listen() {
 		if cmdl.Dedicated() {
-			Error("Only one of -dedicated or -listen can be specified")
+			debug.PrintStack()
+			log.Fatalf("Only one of -dedicated or -listen can be specified")
 		}
 		svs.maxClients = cmdl.ListenNum()
 	}
@@ -123,8 +117,11 @@ func init() {
 	})
 
 	cvars.MaxEdicts.SetCallback(func(cv *cvar.Cvar) {
-		// TODO: clamp it here?
-		if cls.state == ca_connected || sv.active {
+		v := int(cv.Value())
+		c := math.ClampI(MIN_EDICTS, v, MAX_EDICTS)
+		if v != c {
+			cv.SetValue(float32(c))
+		} else {
 			conlog.Printf("Changes to max_edicts will not take effect until the next time a map is loaded.\n")
 		}
 	})
@@ -148,54 +145,20 @@ func serverFrame() error {
 	}
 
 	// move things around and think
-	// always pause in single player if in console or menus
-	if !sv.paused && (svs.maxClients > 1 || keyDestination == keys.Game) {
+	if !sv.paused {
+		// TODO(therjak): is this pause stuff really needed?
+		// always pause in single player if in console or menus
+		//if svs.maxClients > 1 || keyDestination == keys.Game {
 		if err := RunPhysics(); err != nil {
 			return err
 		}
+		//}
 	}
 	// send all messages to the clients
 	if err := sv.SendClientMessages(); err != nil {
 		return err
 	}
 	return nil
-}
-
-// Return to looping demos
-func hostStopDemo(a cmd.Arguments, p, s int) error {
-	if cmdl.Dedicated() {
-		return nil
-	}
-	if !cls.demoPlayback {
-		return nil
-	}
-	cls.stopPlayback()
-	if err := cls.Disconnect(); err != nil {
-		return err
-	}
-	return nil
-}
-
-// Return to looping demos
-func hostDemos(a cmd.Arguments, p, s int) error {
-	if cmdl.Dedicated() {
-		return nil
-	}
-	if cls.demoNum == -1 {
-		cls.demoNum = 1
-	}
-	if err := clientDisconnect(); err != nil {
-		return err
-	}
-	if err := CL_NextDemo(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func init() {
-	addCommand("stopdemo", hostStopDemo)
-	addCommand("demos", hostDemos)
 }
 
 func writeCvarVariables(w io.Writer) error {
@@ -212,55 +175,4 @@ func writeCvarVariables(w io.Writer) error {
 		}
 	}
 	return nil
-}
-
-// Writes key bindings and archived cvars to config.cfg
-func HostWriteConfiguration() error {
-	// dedicated servers initialize the host but don't parse and set the
-	// config.cfg cvars
-	if cmdl.Dedicated() {
-		return nil
-	}
-
-	var b bytes.Buffer
-	if err := writeKeyBindings(&b); err != nil {
-		return fmt.Errorf("Couldn't write config.cfg: %w\n", err)
-	}
-	if err := writeCvarVariables(&b); err != nil {
-		return fmt.Errorf("Couldn't write config.cfg: %w\n", err)
-	}
-
-	b.WriteString("vid_restart\n")
-	if input.MLook.Down() {
-		b.WriteString("+mlook\n")
-	}
-
-	filename := filepath.Join(gameDirectory, "config.cfg")
-	err := ioutil.WriteFile(filename, b.Bytes(), 0644)
-	if err != nil {
-		return fmt.Errorf("Couldn't write config.cfg: %w\n", err)
-	}
-	return nil
-}
-
-func (h *Host) Shutdown() {
-	if h.isDown {
-		log.Printf("recursive shutdown\n")
-		return
-	}
-	h.isDown = true
-	screen.disabled = true
-	if host.initialized {
-		if err := HostWriteConfiguration(); err != nil {
-			log.Printf(err.Error())
-		}
-	}
-	net.Shutdown()
-	if !cmdl.Dedicated() {
-		if console.initialized {
-			history.Save()
-		}
-		snd.Shutdown()
-		videoShutdown()
-	}
 }

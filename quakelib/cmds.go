@@ -13,15 +13,8 @@ import (
 	"goquake/filesystem"
 )
 
-var (
-	svClientCommands = cmd.New()
-)
-
 func addCommand(name string, f cmd.QFunc) {
 	cmd.Must(cmd.AddCommand(name, f))
-}
-func addClientCommand(name string, f cmd.QFunc) {
-	cmd.Must(svClientCommands.Add(name, f))
 }
 
 func echo(a cmd.Arguments, p, s int) error {

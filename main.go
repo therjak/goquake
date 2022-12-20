@@ -8,6 +8,7 @@ import (
 	"runtime/pprof"
 
 	"goquake/quakelib"
+	"goquake/version"
 
 	"github.com/veandco/go-sdl2/sdl"
 
@@ -37,7 +38,7 @@ func main() {
 	}
 	defer sdl.Quit()
 
-	log.Printf("GoQuake %1.2f.%d\n", quakelib.GoQuakeVersion, quakelib.GoQuakePatch)
+	log.Printf("GoQuake %1.2f.%d\n", version.Base, version.Patch)
 
 	if err := quakelib.CallCMain(); err != nil {
 		log.Fatal(err)

@@ -1008,7 +1008,7 @@ func (c *Client) parseDamage(armor, blood int, from vec.Vec3) {
 func (c *Client) calcViewRoll() {
 	ent := c.Entities(c.viewentity)
 	angles := ent.Angles
-	side := CalcRoll(angles, c.velocity)
+	side := cvars.CalcRoll(angles, c.velocity)
 	qRefreshRect.viewAngles[ROLL] += side
 
 	if c.dmgTime > 0 {

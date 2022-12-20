@@ -1,16 +1,14 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+
 package quakelib
 
 import (
 	"container/ring"
 	"log"
 	"runtime/debug"
-	"strconv"
 
 	"goquake/bsp"
 	"goquake/conlog"
-	"goquake/cvar"
-	"goquake/cvars"
 	"goquake/math"
 	"goquake/math/vec"
 	"goquake/progs"
@@ -20,10 +18,6 @@ const (
 	MOVE_NORMAL = iota
 	MOVE_NOMONSTERS
 	MOVE_MISSILE
-)
-
-const (
-	DIST_EPSILON = 0.03125 // (1/32) to keep floating point happy
 )
 
 type plane struct {
@@ -363,7 +357,8 @@ func boxOnPlaneSide(mins, maxs vec.Vec3, p *bsp.Plane) int {
 			d2 := n[0]*maxs[0] + n[1]*maxs[1] + n[2]*maxs[2]
 			return d1, d2
 		default:
-			Error("BoxOnPlaneSide: Bad signbits")
+			debug.PrintStack()
+			log.Fatalf("BoxOnPlaneSide: Bad signbits")
 			return 0, 0
 		}
 	}()
@@ -394,7 +389,8 @@ func clipToLinks(a *areaNode, clip *moveClip) {
 			continue
 		}
 		if tv.Solid == SOLID_TRIGGER {
-			Error("Trigger in clipping list")
+			debug.PrintStack()
+			log.Fatalf("Trigger in clipping list")
 		}
 		if clip.typ == MOVE_NOMONSTERS && tv.Solid != SOLID_BSP {
 			continue
@@ -499,12 +495,14 @@ func hullForBox(mins, maxs vec.Vec3) *bsp.Hull {
 func hullForEntity(ent *progs.EntVars, mins, maxs vec.Vec3) (*bsp.Hull, vec.Vec3) {
 	if ent.Solid == SOLID_BSP {
 		if ent.MoveType != progs.MoveTypePush {
-			Error("SOLID_BSP without MOVETYPE_PUSH")
+			debug.PrintStack()
+			log.Fatalf("SOLID_BSP without MOVETYPE_PUSH")
 		}
 		m := sv.models[int(ent.ModelIndex)]
 		switch qm := m.(type) {
 		default:
-			Error("MOVETYPE_PUSH with a non bsp model")
+			debug.PrintStack()
+			log.Fatalf("MOVETYPE_PUSH with a non bsp model")
 		case *bsp.Model:
 			s := maxs[0] - mins[0]
 			h := func() *bsp.Hull {
@@ -528,7 +526,8 @@ func hullForEntity(ent *progs.EntVars, mins, maxs vec.Vec3) (*bsp.Hull, vec.Vec3
 func hullPointContents(h *bsp.Hull, num int, p vec.Vec3) int {
 	for num >= 0 {
 		if num < h.FirstClipNode || num > h.LastClipNode {
-			Error("SV_HullPointContents: bad node number")
+			debug.PrintStack()
+			log.Fatalf("SV_HullPointContents: bad node number")
 		}
 		node := h.ClipNodes[num]
 		plane := node.Plane
@@ -553,7 +552,8 @@ func pointContents(p vec.Vec3) int {
 }
 
 func recursiveHullCheck(h *bsp.Hull, num int, p1f, p2f float32, p1, p2 vec.Vec3, trace *trace) bool {
-	if num < 0 { // check for empty
+	const epsilon = 0.03125 // (1/32) to keep floating point happy
+	if num < 0 {            // check for empty
 		if num != bsp.CONTENTS_SOLID {
 			trace.AllSolid = false
 			if num == bsp.CONTENTS_EMPTY {
@@ -567,7 +567,8 @@ func recursiveHullCheck(h *bsp.Hull, num int, p1f, p2f float32, p1, p2 vec.Vec3,
 		return true
 	}
 	if num < h.FirstClipNode || num > h.LastClipNode {
-		Error("RecursiveHullCheck: bad node number")
+		debug.PrintStack()
+		log.Fatalf("RecursiveHullCheck: bad node number")
 	}
 	node := h.ClipNodes[num]
 	plane := node.Plane
@@ -587,14 +588,14 @@ func recursiveHullCheck(h *bsp.Hull, num int, p1f, p2f float32, p1, p2 vec.Vec3,
 		return recursiveHullCheck(h, node.Children[1], p1f, p2f, p1, p2, trace)
 	}
 
-	// put the crosspoint DIST_EPSILON pixels on the near side
+	// put the crosspoint epsilon pixels on the near side
 	frac := func() float32 {
 		d := t1 - t2
-		// In the C implementation DIST_EPSILON is a float64..
+		// In the C implementation epsilon is a float64..
 		if t1 < 0 {
-			return (t1 + DIST_EPSILON) / d
+			return (t1 + epsilon) / d
 		}
-		return (t1 - DIST_EPSILON) / d
+		return (t1 - epsilon) / d
 	}()
 	frac = math.Clamp32(0, frac, 1)
 	midf := math.Lerp(p1f, p2f, frac)
@@ -772,79 +773,4 @@ func expensiveCheckBottom(ent int, mins, maxs vec.Vec3) bool {
 		}
 	}
 	return true
-}
-
-type alphas struct {
-	water float32
-	lava  float32
-	tele  float32
-	slime float32
-	sky   float32
-}
-
-var (
-	// used for transparent fluid drawing (drawTextureChainsWater)
-	mapAlphas alphas
-)
-
-func init() {
-	cvars.RWaterAlpha.SetCallback(func(cv *cvar.Cvar) {
-		mapAlphas.water = cv.Value()
-	})
-	cvars.RLavaAlpha.SetCallback(func(cv *cvar.Cvar) {
-		mapAlphas.lava = cv.Value()
-	})
-	cvars.RTeleAlpha.SetCallback(func(cv *cvar.Cvar) {
-		mapAlphas.tele = cv.Value()
-	})
-	cvars.RSlimeAlpha.SetCallback(func(cv *cvar.Cvar) {
-		mapAlphas.slime = cv.Value()
-	})
-	cvars.RSkyAlpha.SetCallback(func(cv *cvar.Cvar) {
-		mapAlphas.sky = cv.Value()
-	})
-	// handle RWaterQuality ?
-}
-
-func handleMapAlphas(e *bsp.Entity) {
-	mapAlphas.water = cvars.RWaterAlpha.Value()
-	mapAlphas.lava = cvars.RLavaAlpha.Value()
-	mapAlphas.tele = cvars.RTeleAlpha.Value()
-	mapAlphas.slime = cvars.RSlimeAlpha.Value()
-	mapAlphas.sky = cvars.RSkyAlpha.Value()
-
-	atof := func(s string) float32 {
-		v, err := strconv.ParseFloat(s, 32)
-		if err != nil {
-			return 0
-		}
-		return float32(v)
-	}
-	if v, ok := e.Property("wateralpha"); ok {
-		mapAlphas.water = atof(v)
-	}
-	if v, ok := e.Property("_wateralpha"); ok {
-		mapAlphas.water = atof(v)
-	}
-	if v, ok := e.Property("lavaalpha"); ok {
-		mapAlphas.lava = atof(v)
-	}
-	if v, ok := e.Property("_lavaalpha"); ok {
-		mapAlphas.lava = atof(v)
-	}
-	if v, ok := e.Property("telealpha"); ok {
-		mapAlphas.tele = atof(v)
-	}
-	if v, ok := e.Property("_telealpha"); ok {
-		mapAlphas.tele = atof(v)
-	}
-	if v, ok := e.Property("slimealpha"); ok {
-		mapAlphas.slime = atof(v)
-	}
-	if v, ok := e.Property("_slimealpha"); ok {
-		mapAlphas.slime = atof(v)
-	}
-	if v, ok := e.Property("skyalpha"); ok {
-		mapAlphas.sky = atof(v)
-	}
 }

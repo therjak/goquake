@@ -118,7 +118,7 @@ func Time() time.Duration {
 func Connect(host string) (*Connection, error) {
 	SetTime()
 	// loopback only
-	if strings.ToLower(host) != "local" {
+	if strings.ToUpper(host) != LocalAddress {
 		return udpConnect(host, port)
 	}
 	return localConnect()
@@ -500,6 +500,11 @@ var (
 	maxClients = 4
 )
 
+const (
+	// LocalAddress is a sentinel value only used for a loopback address
+	LocalAddress = "LOCAL"
+)
+
 func localConnect() (*Connection, error) {
 	loopConnectPending = true
 	c2s := make(chan msg, chanBufLength)
@@ -515,7 +520,7 @@ func localConnect() (*Connection, error) {
 	// this 'server' is the connection from the server to the client
 	loopServer = &Connection{
 		connectTime: netTime,
-		addr:        "LOCAL",
+		addr:        LocalAddress,
 		in:          c2s,
 		out:         s2c,
 		canWrite:    true,

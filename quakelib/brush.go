@@ -130,6 +130,7 @@ func (d *qBrushDrawer) buildVertexBuffer() {
 
 // This are only used for 'secondary' bsp eg doors
 func (r *qRenderer) DrawBrushModel(e *Entity, model *bsp.Model) {
+	const epsilon = 0.03125 // (1/32) to keep floating point happy
 	if r.cullBrush(e, model) {
 		return
 	}
@@ -148,7 +149,7 @@ func (r *qRenderer) DrawBrushModel(e *Entity, model *bsp.Model) {
 	}
 
 	if cvars.GlZFix.Bool() {
-		e.Origin.Sub(vec.Vec3{DIST_EPSILON, DIST_EPSILON, DIST_EPSILON})
+		e.Origin.Sub(vec.Vec3{epsilon, epsilon, epsilon})
 	}
 
 	modelview := view.modelView.Copy()
@@ -159,7 +160,7 @@ func (r *qRenderer) DrawBrushModel(e *Entity, model *bsp.Model) {
 	modelview.RotateX(e.Angles[2])
 
 	if cvars.GlZFix.Bool() {
-		e.Origin.Add(vec.Vec3{DIST_EPSILON, DIST_EPSILON, DIST_EPSILON})
+		e.Origin.Add(vec.Vec3{epsilon, epsilon, epsilon})
 	}
 
 	for _, t := range model.Textures {

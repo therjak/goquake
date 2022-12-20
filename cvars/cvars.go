@@ -6,6 +6,9 @@ import (
 	"strings"
 
 	"goquake/cvar"
+	"goquake/math/vec"
+
+	"github.com/chewxy/math32"
 )
 
 var (
@@ -428,4 +431,27 @@ func init() {
 		"progs/flame.mdl",
 		"progs/boss.mdl",
 	}, ","), cvar.NONE)
+}
+
+func CalcRoll(angles, velocity vec.Vec3) float32 {
+	_, right, _ := vec.AngleVectors(angles)
+
+	side := vec.Dot(velocity, right)
+	neg := math32.Signbit(side)
+	side = math32.Abs(side)
+
+	r := ClientRollAngle.Value()
+	rs := ClientRollSpeed.Value()
+
+	if side < rs {
+		side *= r / rs
+		if neg {
+			return -side
+		}
+		return side
+	}
+	if neg {
+		return -r
+	}
+	return r
 }

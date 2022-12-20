@@ -12,6 +12,7 @@ import (
 	"goquake/conlog"
 	"goquake/cvars"
 	"goquake/execute"
+	"goquake/net"
 	"goquake/protos"
 
 	"google.golang.org/protobuf/proto"
@@ -151,7 +152,7 @@ func loadGame(a cmd.Arguments, p, s int) error {
 		return err
 	}
 
-	if err := sv.SpawnServer(data.GetMapName()); err != nil {
+	if err := sv.SpawnServer(data.GetMapName(), sv_protocol); err != nil {
 		return err
 	}
 	if !sv.active {
@@ -175,7 +176,7 @@ func loadGame(a cmd.Arguments, p, s int) error {
 	copy(sv_clients[0].spawnParams[:], data.GetSpawnParams())
 
 	if !cmdl.Dedicated() {
-		if err := clEstablishConnection("local"); err != nil {
+		if err := clEstablishConnection(net.LocalAddress); err != nil {
 			return err
 		}
 		clientReconnect()

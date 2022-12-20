@@ -18,6 +18,7 @@ import (
 	"goquake/keys"
 	"goquake/math"
 	svc "goquake/protocol/server"
+	"goquake/version"
 )
 
 const (
@@ -359,7 +360,7 @@ func (c *qconsole) Draw(lines int) {
 	}
 
 	c.DrawInput()
-	version := fmt.Sprintf("GoQuake %1.2f.%d", GoQuakeVersion, GoQuakePatch)
+	version := fmt.Sprintf("GoQuake %1.2f.%d", version.Base, version.Patch)
 	y += 8
 	x := (c.lineWidth - len(version) + 2) * 8
 	DrawStringWhite(x, y, version)

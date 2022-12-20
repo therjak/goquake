@@ -59,10 +59,6 @@ type Arguments struct {
 	full string
 }
 
-func (c *Arguments) Argc() int {
-	return len(c.args)
-}
-
 func (c *Arguments) Argv(i int) QArg {
 	if i < 0 || i >= len(c.args) {
 		log.Printf("Got Argv out of bounds %v, %v", i, len(c.args))
@@ -98,6 +94,16 @@ func (c *Arguments) ArgumentString() string {
 		}
 	}
 	return r
+}
+
+// Message returns the message send to the target in argument 1.
+// Expects the first two arguments to be cmd and target.
+func (c *Arguments) Message() string {
+	if len(c.args) < 3 {
+		return ""
+	}
+	t := c.args[1].String()
+	return c.full[strings.Index(c.full, t)+len(t)+1:]
 }
 
 func Parse(s string) (args Arguments) {
