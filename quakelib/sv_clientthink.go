@@ -18,7 +18,7 @@ func (c *SVClient) accelerate(wishspeed float32, wishdir vec.Vec3) {
 	if addspeed <= 0 {
 		return
 	}
-	accelspeed := cvars.ServerAccelerate.Value() * float32(host.frameTime) * wishspeed
+	accelspeed := cvars.ServerAccelerate.Value() * float32(host.FrameTime()) * wishspeed
 	if accelspeed > addspeed {
 		accelspeed = addspeed
 	}
@@ -41,7 +41,7 @@ func (c *SVClient) airAccelerate(wishspeed float32, wishveloc vec.Vec3) {
 	if addspeed <= 0 {
 		return
 	}
-	accelspeed := cvars.ServerAccelerate.Value() * float32(host.frameTime) * wishspeed
+	accelspeed := cvars.ServerAccelerate.Value() * float32(host.FrameTime()) * wishspeed
 	if accelspeed > addspeed {
 		accelspeed = addspeed
 	}
@@ -108,7 +108,7 @@ func (c *SVClient) waterMove() {
 	speed := velocity.Length()
 	newspeed := float32(0)
 	if speed != 0 {
-		newspeed = speed - float32(host.frameTime)*speed*cvars.ServerFriction.Value()
+		newspeed = speed - float32(host.FrameTime())*speed*cvars.ServerFriction.Value()
 		if newspeed < 0 {
 			newspeed = 0
 		}
@@ -125,7 +125,7 @@ func (c *SVClient) waterMove() {
 	}
 
 	wishvel = wishvel.Normalize()
-	accelspeed := cvars.ServerAccelerate.Value() * wishspeed * float32(host.frameTime)
+	accelspeed := cvars.ServerAccelerate.Value() * wishspeed * float32(host.FrameTime())
 	if accelspeed > addspeed {
 		accelspeed = addspeed
 	}
@@ -165,7 +165,7 @@ func (c *SVClient) userFriction() {
 		}
 		return speed
 	}()
-	newspeed := speed - float32(host.frameTime)*control*friction
+	newspeed := speed - float32(host.FrameTime())*control*friction
 
 	if newspeed <= 0 {
 		ev.Velocity = [3]float32{0, 0, 0}
@@ -230,7 +230,7 @@ func (c *SVClient) DropPunchAngle() {
 	if len == 0 {
 		len = 1
 	}
-	len2 := 1 - (10 * float32(host.frameTime) / len)
+	len2 := 1 - (10 * float32(host.FrameTime()) / len)
 	if len2 < 0 {
 		len2 = 0
 	}

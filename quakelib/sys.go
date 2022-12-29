@@ -14,11 +14,11 @@ func init() {
 
 func Error(format string, v ...interface{}) {
 	debug.PrintStack()
-	host.Shutdown()
+	shutdown()
 	log.Fatalf(format, v...)
 }
 
 func Sys_Quit() {
-	host.Shutdown()
+	shutdown()
 	quitChan <- true
 }

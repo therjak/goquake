@@ -10,8 +10,8 @@ import (
 	"goquake/cvars"
 	"goquake/glh"
 	"goquake/math/vec"
-	"goquake/qtime"
 	"goquake/texture"
+	"time"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
 )
@@ -62,6 +62,7 @@ type qBrushDrawer struct {
 	turb          int32
 	time          int32
 	vbo_indices   []uint32
+	startTime     time.Time
 }
 
 func newBrushDrawProgram() (*glh.Program, error) {
@@ -69,7 +70,7 @@ func newBrushDrawProgram() (*glh.Program, error) {
 }
 
 func newBrushDrawer() *qBrushDrawer {
-	d := &qBrushDrawer{}
+	d := &qBrushDrawer{startTime: time.Now()}
 	d.vao = glh.NewVertexArray()
 	d.ebo = glh.NewBuffer(glh.ElementArrayBuffer)
 	d.vbo = glh.NewBuffer(glh.ArrayBuffer)
@@ -310,7 +311,7 @@ func (d *qBrushDrawer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *En
 	gl.Uniform1f(d.alpha, entalpha)
 	gl.Uniform1f(d.fogDensity, fog.Density)
 	gl.Uniform4f(d.fogColor, fog.Color.R, fog.Color.G, fog.Color.B, 0)
-	gl.Uniform1f(d.time, float32(qtime.QTime().Seconds()))
+	gl.Uniform1f(d.time, float32(time.Now().Sub(d.startTime).Seconds()))
 	view.projection.SetAsUniform(d.projection)
 	mv.SetAsUniform(d.modelview)
 

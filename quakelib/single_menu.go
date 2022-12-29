@@ -67,14 +67,14 @@ func makeSinglePlayerMenuItems() []MenuItem {
 type MenuItemPlay struct{ qDotMenuItem }
 
 func (m *MenuItemPlay) Enter() {
-	if sv.active &&
+	if ServerActive() &&
 		!screen.ModalMessage("Are you sure you want to\nstart a new game?\n", 0) {
 		return
 	}
 
 	inputActivate()
 	keyDestination = keys.Game
-	if sv.active {
+	if ServerActive() {
 		cbuf.AddText("disconnect\n")
 	}
 	cbuf.AddText("maxplayers 1\n")

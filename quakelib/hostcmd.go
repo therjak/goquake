@@ -4,7 +4,6 @@ package quakelib
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"goquake/cmd"
 	cmdl "goquake/commandline"
@@ -14,7 +13,6 @@ import (
 	"goquake/filesystem"
 	"goquake/keys"
 	"goquake/net"
-	svc "goquake/protocol/server"
 	"goquake/version"
 )
 
@@ -257,57 +255,13 @@ func hostMapName(a cmd.Arguments, p, s int) error {
 
 // This only happens at the end of a game, not between levels
 func hostShutdownServer(crash bool) error {
-	if !sv.active {
-		return nil
-	}
-
-	sv.active = false
-
 	// stop all client sounds immediately
 	if cls.state == ca_connected {
 		if err := cls.Disconnect(); err != nil {
 			return err
 		}
 	}
-
-	// flush any pending messages - like the score!!!
-	end := time.Now().Add(3 * time.Second)
-	count := 1
-	for count != 0 {
-		count = 0
-		for _, c := range sv_clients {
-			if c.active && c.msg.HasMessage() {
-				if c.CanSendMessage() {
-					c.SendMessage()
-					c.msg.ClearMessage()
-				} else {
-					if err := c.GetMessage(); err != nil {
-						return err
-					}
-					count++
-				}
-			}
-		}
-		if time.Now().After(end) {
-			break
-		}
-	}
-
-	// make sure all the clients know we're disconnecting
-	SendToAll([]byte{svc.Disconnect})
-
-	for _, c := range sv_clients {
-		if c.active {
-			if err := c.Drop(crash); err != nil {
-				return nil
-			}
-		}
-	}
-
-	sv.worldModel = nil
-
-	CreateSVClients()
-	return nil
+	return ShutdownServer(crash)
 }
 
 // Kicks a user off of the server

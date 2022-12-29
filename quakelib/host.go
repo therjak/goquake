@@ -12,49 +12,15 @@ import (
 	"goquake/conlog"
 	"goquake/cvar"
 	"goquake/cvars"
+	"goquake/gametime"
 	"goquake/math"
-	"goquake/qtime"
 	"goquake/rand"
 )
 
 var (
-	host  = Host{}
+	host  gametime.GameTime
 	sRand = rand.New(0)
 )
-
-type Host struct {
-	time        float64
-	oldTime     float64
-	frameTime   float64
-	initialized bool
-	isDown      bool
-	frameCount  int
-}
-
-func (h *Host) Reset() {
-	h.frameTime = 0.1
-}
-
-// UpdateTime updates the host time.
-// Returns false if it would exceed max fps
-func (h *Host) UpdateTime(timedemo bool) bool {
-	h.time = qtime.QTime().Seconds()
-	maxFPS := math.Clamp(10.0, float64(cvars.HostMaxFps.Value()), 1000.0)
-	if !timedemo && (h.time-h.oldTime < 1/maxFPS) {
-		return false
-	}
-	h.frameTime = h.time - h.oldTime
-	h.oldTime = h.time
-
-	if cvars.HostTimeScale.Value() > 0 {
-		h.frameTime *= float64(cvars.HostTimeScale.Value())
-	} else if cvars.HostFrameRate.Value() > 0 {
-		h.frameTime = float64(cvars.HostFrameRate.Value())
-	} else {
-		h.frameTime = math.Clamp(0.001, h.frameTime, 0.1)
-	}
-	return true
-}
 
 func hostInit() {
 	// TODO: this is some random stuff and needs cleanup
@@ -129,7 +95,7 @@ func init() {
 
 func serverFrame() error {
 	// run the world state
-	progsdat.Globals.FrameTime = float32(host.frameTime)
+	progsdat.Globals.FrameTime = float32(host.FrameTime())
 
 	// set the time and clear the general datagram
 	sv.datagram.ClearMessage()

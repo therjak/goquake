@@ -172,7 +172,7 @@ func (scr *qScreen) setupToDrawConsole() {
 		if timeScale <= 0 {
 			timeScale = 1
 		}
-		t := float32(host.frameTime) / timeScale
+		t := float32(host.FrameTime()) / timeScale
 		s := float32(scr.Height) / 600 // normalize for 800x600 screen
 		d := int(cvars.ScreenConsoleSpeed.Value() * s * t)
 		if scr.consoleLines < lines {
@@ -236,7 +236,7 @@ func (scr *qScreen) ModalMessage(msg string, timeout time.Duration) bool {
 }
 
 func (scr *qScreen) drawNet() {
-	if host.time-cl.lastReceivedMessageTime < 0.3 {
+	if host.Time()-cl.lastReceivedMessageTime < 0.3 {
 		return
 	}
 	if cls.demoPlayback {
@@ -256,7 +256,7 @@ func (scr *qScreen) drawTurtle() {
 	if scr.turtlePic == nil {
 		scr.turtlePic = GetPictureFromWad("turtle")
 	}
-	if host.frameTime < 0.1 {
+	if host.FrameTime() < 0.1 {
 		scr.turtleCount = 0
 	}
 	scr.turtleCount++
@@ -393,7 +393,7 @@ func (scr *qScreen) BeginLoadingPlaque() {
 	scr.loading = false
 
 	scr.disabled = true
-	scr.disabledTime = host.time
+	scr.disabledTime = host.Time()
 }
 
 func (scr *qScreen) EndLoadingPlaque() {
@@ -476,7 +476,7 @@ func (scr *qScreen) Update() {
 	}
 
 	if scr.disabled {
-		if host.time-scr.disabledTime > 60 {
+		if host.Time()-scr.disabledTime > 60 {
 			scr.disabled = false
 			conlog.Printf("load failed.\n")
 		} else {

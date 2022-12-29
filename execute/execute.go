@@ -20,20 +20,11 @@ type Efunc func(cmd.Arguments, int, int) (bool, error)
 type executors []Efunc
 
 var (
-	clientExecutors  executors
 	commandExecutors executors
 )
 
-func SetClientExecutors(e []Efunc) {
-	clientExecutors = e
-}
-
 func SetCommandExecutors(e []Efunc) {
 	commandExecutors = e
-}
-
-func ExecuteClient(s string, player int) error {
-	return clientExecutors.execute(s, Client, player)
 }
 
 func ExecuteCommand(s string, player int) error {

@@ -9,8 +9,8 @@ import (
 	"goquake/conlog"
 	"goquake/cvars"
 	kc "goquake/keycode"
-	"goquake/qtime"
 	"goquake/snd"
+	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -24,7 +24,7 @@ func printKeyEvent(e *sdl.KeyboardEvent) {
 	}
 	conlog.Printf("%v scancode: '%v', keycode: '%v', time: %v", etype,
 		sdl.GetScancodeName(e.Keysym.Scancode),
-		sdl.GetKeyName(e.Keysym.Sym), qtime.QTime().Seconds())
+		sdl.GetKeyName(e.Keysym.Sym), time.Now().UnixMilli())
 }
 
 func printTextInputEvent(e *sdl.TextInputEvent) {
@@ -84,12 +84,12 @@ func selectTextMode(tm bool) {
 	if tm {
 		sdl.StartTextInput()
 		if cvars.InputDebugKeys.Value() != 0 {
-			conlog.Printf("SDL_StartTextInput time: %v\n", qtime.QTime().Seconds())
+			conlog.Printf("SDL_StartTextInput time: %v\n", time.Now().UnixMilli())
 		}
 	} else {
 		sdl.StopTextInput()
 		if cvars.InputDebugKeys.Value() != 0 {
-			conlog.Printf("SDL_StopTextInput time: %v\n", qtime.QTime().Seconds())
+			conlog.Printf("SDL_StopTextInput time: %v\n", time.Now().UnixMilli())
 		}
 	}
 }

@@ -107,9 +107,9 @@ const (
 func (c *Client) adjustAngles() {
 	speed := func() float32 {
 		if (cvars.ClientForwardSpeed.Value() > 200) != input.Speed.Down() {
-			return float32(host.frameTime) * cvars.ClientAngleSpeedKey.Value()
+			return float32(host.FrameTime()) * cvars.ClientAngleSpeedKey.Value()
 		}
-		return float32(host.frameTime)
+		return float32(host.FrameTime())
 	}()
 	if !input.Strafe.Down() {
 		c.yaw -= speed * cvars.ClientYawSpeed.Value() * input.Right.ConsumeImpulse()
@@ -383,7 +383,7 @@ func init() {
 // Read all incoming data from the server
 func (c *Client) ReadFromServer() (serverState, error) {
 	c.oldTime = cl.time
-	c.time += host.frameTime
+	c.time += host.FrameTime()
 	for {
 		// TODO: code needs major cleanup (getMessage + CL_ParseServerMessage)
 		ret := cls.getMessage()
@@ -393,7 +393,7 @@ func (c *Client) ReadFromServer() (serverState, error) {
 		if ret == 0 {
 			break
 		}
-		c.lastReceivedMessageTime = host.time
+		c.lastReceivedMessageTime = host.Time()
 		pb, err := svc.ParseServerMessage(cls.inMessage, c.protocol, c.protocolFlags)
 		if err != nil {
 			fmt.Printf("Bad server message\n %v", err)
@@ -524,7 +524,7 @@ func (c *ClientStatic) Disconnect() error {
 		cls.connection.Close()
 
 		c.state = ca_disconnected
-		if sv.active {
+		if ServerActive() {
 			if err := hostShutdownServer(false); err != nil {
 				return err
 			}
@@ -543,7 +543,7 @@ func clientDisconnect() error {
 	if err := cls.Disconnect(); err != nil {
 		return err
 	}
-	if sv.active {
+	if ServerActive() {
 		if err := hostShutdownServer(false); err != nil {
 			return err
 		}
@@ -694,7 +694,7 @@ var (
 // When the client is taking a long time to load stuff, send keepalive messages
 // so the server doesn't disconnect.
 func CL_KeepaliveMessage() error {
-	if sv.active {
+	if ServerActive() {
 		// no need if server is local
 		return nil
 	}
@@ -770,7 +770,7 @@ func CL_InitSounds() {
 func (c *Client) LerpPoint() float64 {
 	f := c.messageTime - c.messageTimeOld
 
-	if f == 0 || cls.timeDemo || sv.active {
+	if f == 0 || cls.timeDemo || ServerActive() {
 		c.time = c.messageTime
 		return 1
 	}
@@ -870,7 +870,7 @@ func (c *Client) driftPitch() {
 		if math32.Abs(cl.cmdForwardMove) < cvars.ClientForwardSpeed.Value() {
 			cl.driftMove = 0
 		} else {
-			cl.driftMove += float32(host.frameTime)
+			cl.driftMove += float32(host.FrameTime())
 		}
 
 		if cl.driftMove > cvars.ViewCenterMove.Value() {
@@ -887,8 +887,8 @@ func (c *Client) driftPitch() {
 		return
 	}
 
-	move := float32(host.frameTime) * cl.pitchVel
-	cl.pitchVel += float32(host.frameTime) * cvars.ViewCenterSpeed.Value()
+	move := float32(host.FrameTime()) * cl.pitchVel
+	cl.pitchVel += float32(host.FrameTime()) * cvars.ViewCenterSpeed.Value()
 
 	if delta > 0 {
 		if move > delta {
@@ -937,7 +937,7 @@ func (c *Client) updateBlend() {
 			c.colorShiftsPrev[i] = c.colorShifts[i]
 		}
 	}
-	ft := float32(host.frameTime)
+	ft := float32(host.FrameTime())
 	c.colorShifts[ColorShiftDamage].A -= ft * 150 / 255.0
 	if c.colorShifts[ColorShiftDamage].A < 0 {
 		c.colorShifts[ColorShiftDamage].A = 0
@@ -1015,7 +1015,7 @@ func (c *Client) calcViewRoll() {
 		kt := cvars.ViewKickTime.Value()
 		qRefreshRect.viewAngles[ROLL] += c.dmgTime / kt * c.dmgRoll
 		qRefreshRect.viewAngles[PITCH] += c.dmgTime / kt * c.dmgPitch
-		c.dmgTime -= float32(host.frameTime)
+		c.dmgTime -= float32(host.FrameTime())
 	}
 	if c.stats.health <= 0 {
 		// dead view angle
@@ -1212,7 +1212,7 @@ func (c *Client) calcRefreshRect() {
 		for i := 0; i < 3; i++ {
 			if calcRefreshRectPunch[i] != c.punchAngle[0][i] {
 				// speed determined by how far we need to lerp in 1/10th of a second
-				delta := (c.punchAngle[0][i] - c.punchAngle[1][i]) * float32(host.frameTime) * 10
+				delta := (c.punchAngle[0][i] - c.punchAngle[1][i]) * float32(host.FrameTime()) * 10
 				if delta > 0 {
 					calcRefreshRectPunch[i] = math32.Min(
 						calcRefreshRectPunch[i]+delta,
@@ -1379,8 +1379,8 @@ func (c *ClientStatic) stopPlayback() {
 func (c *ClientStatic) finishTimeDemo() {
 	c.timeDemo = false
 	// the first frame didn't count
-	frames := host.frameCount - c.timeDemoStartFrame - 1
-	time := host.time - float64(c.timeDemoStartTime)
+	frames := host.FrameCount() - c.timeDemoStartFrame - 1
+	time := host.Time() - float64(c.timeDemoStartTime)
 	if time == 0 {
 		time = 1
 	}
@@ -1418,7 +1418,7 @@ func clientStartDemos(a cmd.Arguments, p, s int) error {
 	}
 	conlog.Printf("%d demo(s) in loop\n", len(cls.demos))
 
-	if !sv.active && cls.demoNum != -1 && !cls.demoPlayback {
+	if !ServerActive() && cls.demoNum != -1 && !cls.demoPlayback {
 		cls.demoNum = 0
 		if !cmdl.Fitz() { // QuakeSpasm customization:
 			// go straight to menu, no CL_NextDemo
@@ -1664,15 +1664,15 @@ func (c *ClientStatic) getDemoMessage() int {
 	if c.signon == 4 /*SIGNONS*/ {
 		// always grab until fully connected
 		if c.timeDemo {
-			if host.frameCount == c.timeDemoLastFrame {
+			if host.FrameCount() == c.timeDemoLastFrame {
 				// already read this frame's message
 				return 0
 			}
-			c.timeDemoLastFrame = host.frameCount
+			c.timeDemoLastFrame = host.FrameCount()
 			// if this is the second frame, grab the real timeDemoStartTime
 			// so the bogus time on the first frame doesn't count
-			if host.frameCount == c.timeDemoStartFrame+1 {
-				c.timeDemoStartTime = host.time
+			if host.FrameCount() == c.timeDemoStartFrame+1 {
+				c.timeDemoStartTime = host.Time()
 			}
 		} else if cl.time <= cl.messageTime {
 			// don't need another message yet
@@ -1746,7 +1746,7 @@ func (c *ClientStatic) startTimeDemo(name string) {
 	// cls.timeDemoStartTime will be grabbed at the second frame of the demo,
 	// so all the loading time doesn't get counted
 	c.timeDemo = true
-	c.timeDemoStartFrame = host.frameCount
+	c.timeDemoStartFrame = host.FrameCount()
 	c.timeDemoLastFrame = -1 // get a new message this frame
 }
 
@@ -1929,6 +1929,6 @@ func (c *Client) ClearState() {
 	cls.outProto.Reset()
 	c.clearDLights()
 
-	maxEdicts := math.ClampI(MIN_EDICTS, int(cvars.MaxEdicts.Value()), MAX_EDICTS)
+	maxEdicts := int(cvars.MaxEdicts.Value())
 	c.setMaxEdicts(maxEdicts)
 }

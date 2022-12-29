@@ -154,7 +154,7 @@ func (q *qphysics) addGravity(ent int) {
 	if err != nil || val == 0 {
 		val = 1.0
 	}
-	entvars.Get(ent).Velocity[2] -= val * cvars.ServerGravity.Value() * float32(host.frameTime)
+	entvars.Get(ent).Velocity[2] -= val * cvars.ServerGravity.Value() * float32(host.FrameTime())
 }
 
 func (q *qphysics) pusher(ent int) error {
@@ -163,14 +163,14 @@ func (q *qphysics) pusher(ent int) error {
 	thinktime := float64(ev.NextThink)
 
 	movetime := func() float32 {
-		if thinktime < oldltime+host.frameTime {
+		if thinktime < oldltime+host.FrameTime() {
 			t := thinktime - oldltime
 			if t < 0 {
 				return 0
 			}
 			return float32(t)
 		}
-		return float32(host.frameTime)
+		return float32(host.FrameTime())
 	}()
 
 	if movetime != 0 {
@@ -272,7 +272,7 @@ func (q *qphysics) walkMove(ent int) error {
 	oldOrigin := ev.Origin
 	oldVelocity := ev.Velocity
 
-	time := float32(host.frameTime)
+	time := float32(host.FrameTime())
 	steptrace := trace{}
 	clip, err := q.flyMove(ent, time, &steptrace)
 	if err != nil {
@@ -382,7 +382,7 @@ func (q *qphysics) noClip(ent int) error {
 	} else if !ok {
 		return nil
 	}
-	time := float32(host.frameTime)
+	time := float32(host.FrameTime())
 
 	ev := entvars.Get(ent)
 	av := vec.Vec3(ev.AVelocity)
@@ -454,7 +454,7 @@ func (q *qphysics) toss(ent int) error {
 		q.addGravity(ent)
 	}
 
-	time := float32(host.frameTime)
+	time := float32(host.FrameTime())
 
 	av := vec.Scale(time, ev.AVelocity)
 	ev.Angles = vec.Add(ev.Angles, av)
@@ -512,7 +512,7 @@ func (q *qphysics) step(ent int) error {
 	if int(ev.Flags)&(FL_ONGROUND|FL_FLY|FL_SWIM) == 0 {
 		hitSound := ev.Velocity[2] < cvars.ServerGravity.Value()*-0.1
 
-		time := float32(host.frameTime)
+		time := float32(host.FrameTime())
 		q.addGravity(ent)
 		CheckVelocity(ev)
 		if _, err := q.flyMove(ent, time, nil); err != nil {
@@ -827,7 +827,7 @@ func (q *qphysics) playerActions(ent, num int) error {
 		} else if !ok {
 			return nil
 		}
-		time := float32(host.frameTime)
+		time := float32(host.FrameTime())
 		if _, err := q.flyMove(ent, time, nil); err != nil {
 			return err
 		}
@@ -838,7 +838,7 @@ func (q *qphysics) playerActions(ent, num int) error {
 		} else if !ok {
 			return nil
 		}
-		time := float32(host.frameTime)
+		time := float32(host.FrameTime())
 		v := vec.Scale(time, ev.Velocity)
 		ev.Origin = vec.Add(ev.Origin, v)
 
@@ -928,7 +928,7 @@ func RunPhysics() error {
 	}
 
 	if !freezeNonClients {
-		sv.time += float32(host.frameTime)
+		sv.time += float32(host.FrameTime())
 	}
 	return nil
 }

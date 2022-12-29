@@ -24,7 +24,7 @@ func enterLoadMenu() {
 	loadMenu.update()
 }
 func enterSaveMenu() {
-	if !sv.active || (cl.intermission != 0) || (svs.maxClients != 1) {
+	if !ServerActive() || (cl.intermission != 0) || (svs.maxClients != 1) {
 		return
 	}
 

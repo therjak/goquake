@@ -22,7 +22,6 @@ import (
 	clc "goquake/protocol/client"
 	svc "goquake/protocol/server"
 	"goquake/protos"
-	"goquake/qtime"
 	"goquake/version"
 )
 
@@ -164,7 +163,7 @@ func (cl *SVClient) Close() {
 	cl.oldFrags = -999999
 }
 
-func (cl *SVClient) ConnectTime() time.Duration {
+func (cl *SVClient) ConnectTime() time.Time {
 	return cl.netConnection.ConnectTime()
 }
 
@@ -182,7 +181,7 @@ func (cl *SVClient) SendNop() error {
 			return err
 		}
 	}
-	cl.lastMessage = host.time
+	cl.lastMessage = host.Time()
 	return nil
 }
 
@@ -427,6 +426,8 @@ func (c *SVClient) ReadClientMessage() (bool, error) {
 					c.kickCmd(a)
 				case "name":
 					c.nameCmd(a)
+				case "save":
+					c.saveCmd(a)
 				case "status":
 					c.statusCmd()
 				case "say_team":
@@ -714,7 +715,7 @@ func (c *SVClient) spawnCmd() error {
 		if err := vm.ExecuteProgram(progsdat.Globals.ClientConnect); err != nil {
 			return err
 		}
-		if (qtime.QTime() - c.ConnectTime()).Seconds() <= float64(sv.time) {
+		if time.Now().Sub(c.ConnectTime()).Seconds() <= float64(sv.time) {
 			log.Printf("%v entered the game\n", c.name)
 		}
 		if err := vm.ExecuteProgram(progsdat.Globals.PutClientInServer); err != nil {
@@ -1027,7 +1028,7 @@ func (c *SVClient) kickCmd(a cmd.Arguments) error {
 		return nil
 	}
 	// TODO(therjak): admin mode
-	if progsdat.Globals.DeathMatch != 0 {
+	if !c.admin && progsdat.Globals.DeathMatch != 0 {
 		return nil
 	}
 
@@ -1117,7 +1118,7 @@ func (c *SVClient) statusCmd() {
 		if !ac.active {
 			continue
 		}
-		d := ntime - ac.ConnectTime()
+		d := ntime.Sub(ac.ConnectTime())
 		d = d.Truncate(time.Second)
 		ev := entvars.Get(c.edictId)
 		c.Printf("#%-2d %-16.16s  %3d  %9s\n", i+1, ac.name, int(ev.Frags), d.String())

@@ -476,7 +476,7 @@ func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) {
 func handleServerDisconnected(msg string) error {
 	conlog.DPrintf("Host_EndGame: %s\n", msg)
 
-	if sv.active {
+	if ServerActive() {
 		if err := hostShutdownServer(false); err != nil {
 			return err
 		}

@@ -33,7 +33,8 @@ const (
 )
 
 var (
-	sv_protocol int
+	sv_protocol     int
+	hostInitialized bool
 )
 
 func svProtocol(a cmd.Arguments, p, s int) error {
@@ -76,10 +77,14 @@ func serverInit() {
 		log.Printf("Server using protocol %v (GoQuake)\n", sv_protocol)
 	default:
 		debug.PrintStack()
-		host.Shutdown()
+		shutdown()
 		log.Fatalf("Bad protocol version request %v. Accepted values: %v, %v, %v.",
 			sv_protocol, protocol.NetQuake, protocol.FitzQuake, protocol.RMQ)
 	}
+}
+
+func ServerActive() bool {
+	return sv.active
 }
 
 func CallCMain() error {
@@ -115,7 +120,7 @@ func CallCMain() error {
 		clientInit()
 	}
 
-	host.initialized = true
+	hostInitialized = true
 	conlog.Printf("\n========= Quake Initialized =========\n\n")
 	cbuf.AddText("alias startmap_sp \"map start\"\n")
 	cbuf.AddText("alias startmap_dm \"map start\"\n")
@@ -315,7 +320,7 @@ func executeFrame() {
 	}
 
 	// this is for demo syncing
-	host.frameCount++
+	host.FrameIncrease()
 }
 
 type measure struct {
@@ -399,14 +404,9 @@ func HostWriteConfiguration() error {
 	return nil
 }
 
-func (h *Host) Shutdown() {
-	if h.isDown {
-		log.Printf("recursive shutdown\n")
-		return
-	}
-	h.isDown = true
+func shutdown() {
 	screen.disabled = true
-	if host.initialized {
+	if hostInitialized {
 		if err := HostWriteConfiguration(); err != nil {
 			log.Printf(err.Error())
 		}

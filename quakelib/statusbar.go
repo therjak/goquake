@@ -393,7 +393,7 @@ func (s *qstatusbar) DrawScrollString(x, y, width int, str string) {
 
 	ps := fmt.Sprintf("%s /// %s", str, str)
 	l = (len(str) + 5) * 8
-	ofs := int(host.time*30) % l
+	ofs := int(host.Time()*30) % l
 	DrawStringWhite(x-ofs, y, ps)
 
 	gl.Disable(gl.SCISSOR_TEST)

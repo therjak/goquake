@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"goquake/protocol"
-	"goquake/qtime"
 
 	"github.com/google/uuid"
 )
@@ -31,7 +30,7 @@ const (
 )
 
 type Connection struct {
-	connectTime  time.Duration
+	connectTime  time.Time
 	con          net.Conn
 	addr         string
 	in           <-chan msg
@@ -46,7 +45,7 @@ type msg struct {
 }
 
 var (
-	netTime            time.Duration
+	netTime            time.Time
 	loopClient         *Connection
 	loopServer         *Connection
 	loopConnectPending = false
@@ -95,7 +94,7 @@ func ServerName() string {
 	return n
 }
 
-func (c *Connection) ConnectTime() time.Duration {
+func (c *Connection) ConnectTime() time.Time {
 	return c.connectTime
 }
 
@@ -108,10 +107,10 @@ func (c *Connection) Address() string {
 }
 
 func SetTime() {
-	netTime = qtime.QTime()
+	netTime = time.Now()
 }
 
-func Time() time.Duration {
+func Time() time.Time {
 	return netTime
 }
 
@@ -540,7 +539,7 @@ func CheckNewConnections() *Connection {
 		for _, c := range conuuids {
 			if c.con != nil && c.con.RemoteAddr() == req.addr {
 				log.Printf("ListenRequest from %v already known", req.addr.IP)
-				if c.connectTime+(2*time.Second) > qtime.QTime() {
+				if c.connectTime.Add(2 * time.Second).After(time.Now()) {
 					log.Printf("Should resend CCREP_ACCEPT")
 					// TODO: resend CCREP_ACCEPT
 				} else {

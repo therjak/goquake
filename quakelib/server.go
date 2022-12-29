@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"runtime/debug"
+	"time"
 
 	"goquake/bsp"
 	cmdl "goquake/commandline"
@@ -568,7 +569,7 @@ func (s *Server) SendClientMessages() error {
 			// some other message data (name changes, etc) may accumulate
 			// between signon stages
 			if !c.sendSignon {
-				if host.time-c.lastMessage > 5 {
+				if host.Time()-c.lastMessage > 5 {
 					if err := c.SendNop(); err != nil {
 						return err
 					}
@@ -601,7 +602,7 @@ func (s *Server) SendClientMessages() error {
 				}
 			}
 			c.msg.ClearMessage()
-			c.lastMessage = host.time
+			c.lastMessage = host.Time()
 			c.sendSignon = false
 		}
 	}
@@ -617,7 +618,7 @@ func (s *Server) SendClientMessages() error {
 // Returns false if the entity removed itself.
 func runThink(e int) (bool, error) {
 	thinktime := entvars.Get(e).NextThink
-	if thinktime <= 0 || thinktime > sv.time+float32(host.frameTime) {
+	if thinktime <= 0 || thinktime > sv.time+float32(host.FrameTime()) {
 		return true, nil
 	}
 
@@ -919,7 +920,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 	LoadProgs()
 
 	// allocate server memory
-	s.maxEdicts = math.ClampI(MIN_EDICTS, int(cvars.MaxEdicts.Value()), MAX_EDICTS)
+	s.maxEdicts = int(cvars.MaxEdicts.Value())
 	AllocEdicts()
 
 	// leave slots at start for clients only
@@ -938,6 +939,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 
 	log.Printf("New world: %s", s.modelName)
 	s.worldModel = nil
+	sv_models = make(map[string]model.Model)
 	s.modelPrecache = s.modelPrecache[:0]
 	s.soundPrecache = s.soundPrecache[:0]
 	s.models = append(s.models, nil)
@@ -987,7 +989,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 	s.state = ServerStateActive
 
 	// run two frames to allow everything to settle
-	host.frameTime = 0.1
+	host.Reset()
 	if err := RunPhysics(); err != nil {
 		return err
 	}
@@ -1013,6 +1015,54 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 	}
 
 	conlog.DPrintf("Server spawned.\n")
+	return nil
+}
+
+// This only happens at the end of a game, not between levels
+func ShutdownServer(crash bool) error {
+	if !sv.active {
+		return nil
+	}
+
+	sv.active = false
+
+	// flush any pending messages - like the score!!!
+	end := time.Now().Add(3 * time.Second)
+	count := 1
+	for count != 0 {
+		count = 0
+		for _, c := range sv_clients {
+			if c.active && c.msg.HasMessage() {
+				if c.CanSendMessage() {
+					c.SendMessage()
+					c.msg.ClearMessage()
+				} else {
+					if err := c.GetMessage(); err != nil {
+						return err
+					}
+					count++
+				}
+			}
+		}
+		if time.Now().After(end) {
+			break
+		}
+	}
+
+	// make sure all the clients know we're disconnecting
+	SendToAll([]byte{svc.Disconnect})
+
+	for _, c := range sv_clients {
+		if c.active {
+			if err := c.Drop(crash); err != nil {
+				return nil
+			}
+		}
+	}
+
+	sv.worldModel = nil
+
+	CreateSVClients()
 	return nil
 }
 

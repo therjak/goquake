@@ -16,6 +16,7 @@ import (
 	"goquake/cvars"
 	"goquake/math"
 	"goquake/math/vec"
+	"goquake/model"
 	"goquake/progs"
 	"goquake/protocol"
 	svc "goquake/protocol/server"
@@ -1023,13 +1024,36 @@ func (v *virtualMachine) precacheModel() error {
 		return v.runError("PF_precache_sound: overflow")
 	}
 	sv.modelPrecache = append(sv.modelPrecache, s)
-	m, err := loadModel(s)
+
+	m, err := svLoadModel(s)
 	if err != nil {
-		log.Printf("Model could not be loaded: %s", s)
+		log.Printf("Model %q could not be loaded: %v", s, err)
 		return nil
 	}
 	sv.models = append(sv.models, m)
 	return nil
+}
+
+// create in SpawnServer
+var sv_models map[string]model.Model
+
+func svLoadModel(name string) (model.Model, error) {
+	m, ok := sv_models[name]
+	if ok {
+		return m, nil
+	}
+	mods, err := model.Load(name)
+	if err != nil {
+		return nil, err
+	}
+	for _, m := range mods {
+		sv_models[m.Name()] = m
+	}
+	m, ok = sv_models[name]
+	if ok {
+		return m, nil
+	}
+	return nil, fmt.Errorf("not found")
 }
 
 func (v *virtualMachine) coredump() error {

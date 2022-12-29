@@ -70,7 +70,7 @@ func maxPlayersCmd(a cmd.Arguments, p, s int) error {
 	default:
 		conlog.Printf("maxplayers is %d", svs.maxClients)
 	case 1:
-		if sv.active {
+		if ServerActive() {
 			conlog.Printf("maxplayers can not be changed while a server is running")
 			return nil
 		}

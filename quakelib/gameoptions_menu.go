@@ -284,7 +284,7 @@ func (m *beginGameMenuItem) Enter() {
 
 func (m *qGameOptionsMenu) Accept() {
 	localSound("misc/menu2.wav")
-	if sv.active {
+	if ServerActive() {
 		cbuf.AddText("disconnect\n")
 	}
 	cbuf.AddText("listen 0\n") // this seems to be a workaround to get the port set

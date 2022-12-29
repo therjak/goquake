@@ -52,7 +52,6 @@ func edictNum(i int) *Edict {
 var entvars *progs.EntityVars
 
 func AllocEdicts() {
-	log.Printf("AllocEdicts: %v", progsdat)
 	entvars = progs.AllocEntvars(sv.maxEdicts, progsdat.EdictSize, progsdat)
 	sv.edicts = make([]Edict, sv.maxEdicts)
 }
