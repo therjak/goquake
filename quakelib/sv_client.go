@@ -870,7 +870,7 @@ func (c *SVClient) giveCmd(a cmd.Arguments) {
 	    case '8':
 	    case '9':
 	      // MED 01/04/97 added hipnotic give stuff
-	      if (CMLHipnotic()) {
+	      if (cmdl.Hipnotic() || cmdl.Quoth()) {
 	        if (t[0] == '6') {
 	          if (t[1] == 'a')
 	            pent->items = (int)pent->items | HIT_PROXIMITY_GUN;
@@ -889,7 +889,7 @@ func (c *SVClient) giveCmd(a cmd.Arguments) {
 	      break;
 
 	    case 's':
-	      if (CMLRogue()) {
+	      if (cmdl.Rogue()) {
 	        val = GetEdictFieldValue(pent, "ammo_shells1");
 	        if (val) val->_float = v;
 	      }
@@ -897,7 +897,7 @@ func (c *SVClient) giveCmd(a cmd.Arguments) {
 	      break;
 
 	    case 'n':
-	      if (CMLRogue()) {
+	      if (cmdl.Rogue()) {
 	        val = GetEdictFieldValue(pent, "ammo_nails1");
 	        if (val) {
 	          val->_float = v;
@@ -909,7 +909,7 @@ func (c *SVClient) giveCmd(a cmd.Arguments) {
 	      break;
 
 	    case 'l':
-	      if (CMLRogue()) {
+	      if (cmdl.Rogue()) {
 	        val = GetEdictFieldValue(pent, "ammo_lava_nails");
 	        if (val) {
 	          val->_float = v;
@@ -919,7 +919,7 @@ func (c *SVClient) giveCmd(a cmd.Arguments) {
 	      break;
 
 	    case 'r':
-	      if (CMLRogue()) {
+	      if (cmdl.Rogue()) {
 	        val = GetEdictFieldValue(pent, "ammo_rockets1");
 	        if (val) {
 	          val->_float = v;
@@ -931,7 +931,7 @@ func (c *SVClient) giveCmd(a cmd.Arguments) {
 	      break;
 
 	    case 'm':
-	      if (CMLRogue()) {
+	      if (cmdl.Rogue()) {
 	        val = GetEdictFieldValue(pent, "ammo_multi_rockets");
 	        if (val) {
 	          val->_float = v;
@@ -945,7 +945,7 @@ func (c *SVClient) giveCmd(a cmd.Arguments) {
 	      break;
 
 	    case 'c':
-	      if (CMLRogue()) {
+	      if (cmdl.Rogue()) {
 	        val = GetEdictFieldValue(pent, "ammo_cells1");
 	        if (val) {
 	          val->_float = v;
@@ -957,7 +957,7 @@ func (c *SVClient) giveCmd(a cmd.Arguments) {
 	      break;
 
 	    case 'p':
-	      if (CMLRogue()) {
+	      if (cmdl.Rogue()) {
 	        val = GetEdictFieldValue(pent, "ammo_plasma");
 	        if (val) {
 	          val->_float = v;
