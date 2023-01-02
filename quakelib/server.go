@@ -121,6 +121,13 @@ var (
 	msgBufMaxLen = 0
 )
 
+func (s *Server) Active() bool {
+	if s == nil {
+		return false
+	}
+	return s.active
+}
+
 func (s *Server) StartParticle(org, dir vec.Vec3, color, count int) {
 	if s.datagram.Len() > protocol.MaxDatagram-18 {
 		return
@@ -885,6 +892,24 @@ func init() {
 	})
 }
 
+func (s *Server) SpawnSaveGameServer(data *protos.SaveGame, pcl int) error {
+	cvars.Skill.SetValue(float32(data.GetCurrentSkill()))
+	if err := s.SpawnServer(data.GetMapName(), pcl); err != nil {
+		return err
+	}
+	// pause until all clients connect
+	s.paused = true
+	s.loadGame = true
+	copy(s.lightStyles[:], data.GetLightStyles())
+	vm.LoadGameGlobals(data.GetGlobals())
+	if err := s.loadGameEdicts(data.GetEdicts()); err != nil {
+		return err
+	}
+	s.time = data.GetMapTime()
+	copy(sv_clients[0].spawnParams[:], data.GetSpawnParams())
+	return nil
+}
+
 //This is called at the start of each level
 func (s *Server) SpawnServer(mapName string, pcl int) error {
 	// let's not have any servers with no name
@@ -897,7 +922,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 	svs.changeLevelIssued = false
 
 	// tell all connected clients that we are going to a new level
-	if s.active {
+	if s.Active() {
 		s.sendReconnect()
 	}
 
@@ -947,7 +972,6 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 	mods, err := bsp.Load(s.modelName)
 	if err != nil || len(mods) < 1 {
 		conlog.Printf("Couldn't spawn server %s\n", s.modelName)
-		s.active = false
 		return nil
 	}
 	s.worldModel = mods[0]
@@ -991,9 +1015,11 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 	// run two frames to allow everything to settle
 	host.Reset()
 	if err := RunPhysics(); err != nil {
+		s.active = false
 		return err
 	}
 	if err := RunPhysics(); err != nil {
+		s.active = false
 		return err
 	}
 
@@ -1020,7 +1046,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 
 // This only happens at the end of a game, not between levels
 func ShutdownServer(crash bool) error {
-	if !sv.active {
+	if !sv.Active() {
 		return nil
 	}
 

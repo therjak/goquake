@@ -10,6 +10,7 @@ import (
 	"goquake/cvars"
 	kc "goquake/keycode"
 	"goquake/snd"
+	"log"
 	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
@@ -330,6 +331,9 @@ func sdlScancodeToQuake(e *sdl.KeyboardEvent) kc.KeyCode {
 	case sdl.SCANCODE_PAUSE:
 		return kc.PAUSE
 	}
+	log.Printf("unknown key: %v, %v",
+		sdl.GetScancodeName(e.Keysym.Scancode),
+		sdl.GetKeyName(e.Keysym.Sym))
 	return 0
 }
 

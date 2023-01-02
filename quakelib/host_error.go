@@ -22,7 +22,7 @@ func HostError(e error) {
 
 	conlog.Printf("Host_Error: %s\n", s)
 
-	if sv.active {
+	if sv.Active() {
 		if err := hostShutdownServer(false); err != nil {
 			// FIXME: this is recursion
 			HostError(err)

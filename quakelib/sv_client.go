@@ -407,7 +407,7 @@ func (c *SVClient) ReadClientMessage() (bool, error) {
 					c.giveCmd(a)
 				case "mapname":
 					// this is for a dedicated server
-					if sv.active {
+					if sv.Active() {
 						fmt.Printf("\"mapname\" is %q", sv.name)
 					} else {
 						fmt.Printf("no map loaded")
@@ -1208,7 +1208,7 @@ func edictPrint(ed int) {
 
 // For debugging, prints all the entities in the current server
 func edictPrintEdicts() {
-	if !sv.active {
+	if !sv.Active() {
 		return
 	}
 
@@ -1221,7 +1221,7 @@ func edictPrintEdicts() {
 // For debugging, prints a single edict
 func edictPrintEdictFunc(a cmd.Arguments) {
 	args := a.Args()
-	if !sv.active || len(args) < 2 {
+	if !sv.Active() || len(args) < 2 {
 		return
 	}
 
@@ -1235,7 +1235,7 @@ func edictPrintEdictFunc(a cmd.Arguments) {
 
 // For debugging
 func edictCount() {
-	if !sv.active {
+	if !sv.Active() {
 		return
 	}
 

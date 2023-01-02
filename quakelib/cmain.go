@@ -49,7 +49,7 @@ func svProtocol(a cmd.Arguments, p, s int) error {
 		switch i {
 		case protocol.NetQuake, protocol.FitzQuake, protocol.RMQ:
 			sv_protocol = i
-			if sv.active {
+			if sv.Active() {
 				conlog.Printf("changes will not take effect until the next level load.\n")
 			}
 		default:
@@ -84,7 +84,7 @@ func serverInit() {
 }
 
 func ServerActive() bool {
-	return sv.active
+	return sv.Active()
 }
 
 func CallCMain() error {
@@ -133,7 +133,7 @@ func CallCMain() error {
 		cbuf.AddText("exec autoexec.cfg\n")
 		cbuf.AddText("stuffcmds")
 		cbuf.Execute(0)
-		if !sv.active {
+		if !sv.Active() {
 			cbuf.AddText("startmap_dm\n")
 		}
 	}
@@ -247,7 +247,7 @@ func executeFrame() {
 	net.SetTime()
 
 	// if running the server locally, make intentions now
-	if sv.active {
+	if sv.Active() {
 		if err := CL_SendCmd(); err != nil {
 			HostError(err)
 		}
@@ -258,7 +258,7 @@ func executeFrame() {
 	// check for commands typed to the host
 	hostGetConsoleCommands()
 
-	if sv.active {
+	if sv.Active() {
 		if err := serverFrame(); err != nil {
 			HostError(err)
 		}
@@ -268,7 +268,7 @@ func executeFrame() {
 
 	// if running the server remotely, send intentions now after
 	// the incoming messages have been read
-	if !sv.active {
+	if !sv.Active() {
 		if err := CL_SendCmd(); err != nil {
 			HostError(err)
 		}

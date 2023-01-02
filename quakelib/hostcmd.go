@@ -303,7 +303,7 @@ func hostMap(a cmd.Arguments, p, s int) error {
 	if len(args) == 0 {
 		// no map name given
 		if cmdl.Dedicated() {
-			if sv.active {
+			if sv.Active() {
 				conlog.Printf("Current map: %s\n", sv.name)
 			} else {
 				conlog.Printf("Server not active\n")
@@ -345,9 +345,6 @@ func hostMap(a cmd.Arguments, p, s int) error {
 	if err := sv.SpawnServer(mapName, sv_protocol); err != nil {
 		return err
 	}
-	if !sv.active {
-		return nil
-	}
 
 	if !cmdl.Dedicated() {
 		var b strings.Builder
@@ -373,7 +370,7 @@ func hostChangelevel(a cmd.Arguments, p, s int) error {
 		return nil
 	}
 
-	if cls.demoPlayback || !sv.active {
+	if cls.demoPlayback || !sv.Active() {
 		conlog.Printf("Only the server may changelevel\n")
 		return nil
 	}
@@ -391,18 +388,14 @@ func hostChangelevel(a cmd.Arguments, p, s int) error {
 		return err
 	}
 	if err := sv.SpawnServer(level, sv_protocol); err != nil {
-		return err
-	}
-	// also issue an error if spawn failed -- O.S.
-	if !sv.active {
-		return fmt.Errorf("cannot run map %s", level)
+		return fmt.Errorf("cannot run map %s: %w", level, err)
 	}
 	return nil
 }
 
 // Restarts the current server for a dead player
 func hostRestart(a cmd.Arguments, p, s int) error {
-	if cls.demoPlayback || !sv.active {
+	if cls.demoPlayback || !sv.Active() {
 		return nil
 	}
 	if s != execute.Command {
@@ -410,11 +403,9 @@ func hostRestart(a cmd.Arguments, p, s int) error {
 	}
 	mapname := sv.name // sv.name gets cleared in spawnserver
 	if err := sv.SpawnServer(mapname, sv_protocol); err != nil {
+		return fmt.Errorf("cannot restart map %s: %w", mapname, err)
 		return err
 	}
 
-	if !sv.active {
-		return fmt.Errorf("cannot restart map %s", mapname)
-	}
 	return nil
 }

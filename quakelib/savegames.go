@@ -9,7 +9,6 @@ import (
 	"goquake/cmd"
 	cmdl "goquake/commandline"
 	"goquake/conlog"
-	"goquake/cvars"
 	"goquake/execute"
 	"goquake/net"
 	"goquake/protos"
@@ -81,34 +80,14 @@ func loadGame(a cmd.Arguments, p, s int) error {
 		return nil
 	}
 
-	cvars.Skill.SetValue(float32(data.GetCurrentSkill()))
-
 	if err := clientDisconnect(); err != nil {
 		return err
 	}
 
-	if err := sv.SpawnServer(data.GetMapName(), sv_protocol); err != nil {
-		return err
-	}
-	if !sv.active {
+	if err := sv.SpawnSaveGameServer(data, sv_protocol); err != nil {
 		conlog.Printf("Couldn't load map\n")
-		return nil
-	}
-	// pause until all clients connect
-	sv.paused = true
-	sv.loadGame = true
-
-	// load the light styles
-	copy(sv.lightStyles[:], data.GetLightStyles())
-
-	vm.LoadGameGlobals(data.GetGlobals())
-	if err := sv.loadGameEdicts(data.GetEdicts()); err != nil {
 		return err
 	}
-
-	sv.time = data.GetMapTime()
-
-	copy(sv_clients[0].spawnParams[:], data.GetSpawnParams())
 
 	if !cmdl.Dedicated() {
 		if err := clEstablishConnection(net.LocalAddress); err != nil {
