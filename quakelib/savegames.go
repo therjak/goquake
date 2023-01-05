@@ -9,7 +9,6 @@ import (
 	"goquake/cmd"
 	cmdl "goquake/commandline"
 	"goquake/conlog"
-	"goquake/execute"
 	"goquake/net"
 	"goquake/protos"
 
@@ -21,7 +20,7 @@ func init() {
 	addCommand("load", loadGame)
 }
 
-func saveGame(a cmd.Arguments, p, s int) error {
+func saveGame(a cmd.Arguments) error {
 	args := a.Args()
 	if len(args) != 2 {
 		conlog.Printf("save <savename> : save a game\n")
@@ -35,11 +34,7 @@ func saveGame(a cmd.Arguments, p, s int) error {
 	return nil
 }
 
-func loadGame(a cmd.Arguments, p, s int) error {
-	if s != execute.Command {
-		return nil
-	}
-
+func loadGame(a cmd.Arguments) error {
 	args := a.Args()[1:]
 	if len(args) != 1 {
 		conlog.Printf("load <savename> : load a game\n")

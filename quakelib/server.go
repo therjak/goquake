@@ -56,9 +56,12 @@ const (
 )
 
 type ServerStatic struct {
-	maxClients        int
-	maxClientsLimit   int
-	serverFlags       int // TODO: is int the correct way?
+	maxClients      int
+	maxClientsLimit int
+	// stores data between map changes, while actually flags (aka as int) it is
+	// only modified to anything but 0 inside qc. So no point in matching the
+	// flag intent but better to match the use as qc number which is a float.
+	serverFlags       float32
 	changeLevelIssued bool
 }
 
@@ -537,7 +540,7 @@ func (s *Server) CreateBaseline() {
 //Grabs the current state of each client for saving across the
 //transition to another level
 func SV_SaveSpawnparms() error {
-	svs.serverFlags = int(progsdat.Globals.ServerFlags)
+	svs.serverFlags = progsdat.Globals.ServerFlags
 
 	for _, c := range sv_clients {
 		if !c.active {
@@ -1001,7 +1004,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 	progsdat.Globals.MapName = progsdat.AddString(mapName)
 
 	// serverflags are for cross level information (sigils)
-	progsdat.Globals.ServerFlags = float32(svs.serverFlags)
+	progsdat.Globals.ServerFlags = svs.serverFlags
 
 	if err := loadEntities(sv.worldModel.Entities); err != nil {
 		return err

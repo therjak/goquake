@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-type QFunc func(args Arguments, player int, source int) error
+type QFunc func(args Arguments) error
 
 type Commands map[string]QFunc
 
@@ -41,14 +41,14 @@ func (c *Commands) List() []string {
 	return cmds
 }
 
-func (c *Commands) Execute(a Arguments, player int, source int) (bool, error) {
+func (c *Commands) Execute(a Arguments) (bool, error) {
 	n := a.Args()
 	if len(n) == 0 {
 		return false, nil
 	}
 	name := strings.ToLower(n[0].String())
 	if cmd, ok := (*c)[name]; ok {
-		if err := cmd(a, player, source); err != nil {
+		if err := cmd(a); err != nil {
 			return false, err
 		}
 		return true, nil
@@ -74,8 +74,8 @@ func Exists(cmdName string) bool {
 	return commands.Exists(cmdName)
 }
 
-func Execute(a Arguments, player int, source int) (bool, error) {
-	return commands.Execute(a, player, source)
+func Execute(a Arguments) (bool, error) {
+	return commands.Execute(a)
 }
 
 func List() []string {

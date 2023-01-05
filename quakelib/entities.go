@@ -34,7 +34,7 @@ func init() {
 	addCommand("entities", printEntities)
 }
 
-func printEntities(_ cmd.Arguments, p, s int) error {
+func printEntities(_ cmd.Arguments) error {
 	if cls.state != ca_connected {
 		return nil
 	}

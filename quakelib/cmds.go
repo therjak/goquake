@@ -17,7 +17,7 @@ func addCommand(name string, f cmd.QFunc) {
 	cmd.Must(cmd.AddCommand(name, f))
 }
 
-func echo(a cmd.Arguments, p, s int) error {
+func echo(a cmd.Arguments) error {
 	for _, arg := range a.Args()[1:] {
 		conlog.Printf("%s ", arg)
 	}
@@ -25,7 +25,7 @@ func echo(a cmd.Arguments, p, s int) error {
 	return nil
 }
 
-func printCmdList(a cmd.Arguments, p, s int) error {
+func printCmdList(a cmd.Arguments) error {
 	//TODO(therjak):
 	// this should probably print the syntax of cmdlist if len(args) > 1
 	args := a.Args()
@@ -64,7 +64,7 @@ func printPartialCmdList(part string) {
 // Commands lead with a +, and continue until a - or another +
 // quake +prog jctest.qp +cmd amlev1
 // quake -nosound +cmd amlev1
-func executeCommandLineScripts(_ cmd.Arguments, p, s int) error {
+func executeCommandLineScripts(_ cmd.Arguments) error {
 	plus := false
 	cmd := ""
 	// args[0] is command name
@@ -95,7 +95,7 @@ func executeCommandLineScripts(_ cmd.Arguments, p, s int) error {
 	return nil
 }
 
-func execFile(a cmd.Arguments, p, s int) error {
+func execFile(a cmd.Arguments) error {
 	args := a.Args()
 	if len(args) != 2 {
 		conlog.Printf("exec <filename> : execute a script file\n")

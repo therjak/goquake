@@ -20,7 +20,7 @@ func init() {
 	addCommand("maxplayers", maxPlayersCmd)
 }
 
-func listenCmd(a cmd.Arguments, p, s int) error {
+func listenCmd(a cmd.Arguments) error {
 	args := a.Args()[1:]
 	switch c := len(args); c {
 	case 1:
@@ -43,7 +43,7 @@ func unlisten() {
 	net.StopListen()
 }
 
-func portCmd(a cmd.Arguments, p, s int) error {
+func portCmd(a cmd.Arguments) error {
 	args := a.Args()[1:]
 	switch c := len(args); c {
 	default:
@@ -64,7 +64,7 @@ func portCmd(a cmd.Arguments, p, s int) error {
 	return nil
 }
 
-func maxPlayersCmd(a cmd.Arguments, p, s int) error {
+func maxPlayersCmd(a cmd.Arguments) error {
 	args := a.Args()[1:]
 	switch c := len(args); c {
 	default:

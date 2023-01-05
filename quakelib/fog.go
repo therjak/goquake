@@ -66,7 +66,7 @@ func init() {
 	addCommand("fog", fogCommand)
 }
 
-func fogCommand(a cmd.Arguments, p, s int) error {
+func fogCommand(a cmd.Arguments) error {
 	fog.command(a.Args()[1:])
 	return nil
 }

@@ -38,7 +38,7 @@ var (
 	}
 )
 
-func describeTextureModes(_ cmd.Arguments, p, s int) error {
+func describeTextureModes(_ cmd.Arguments) error {
 	for i, m := range glModes {
 		conlog.SafePrintf("   %2d: %s", i+1, m.name)
 	}
@@ -48,7 +48,7 @@ func describeTextureModes(_ cmd.Arguments, p, s int) error {
 
 func init() {
 	addCommand("gl_describetexturemodes", describeTextureModes)
-	addCommand("imagelist", func(_ cmd.Arguments, p, s int) error {
+	addCommand("imagelist", func(_ cmd.Arguments) error {
 		textureManager.logTextures()
 		return nil
 	})

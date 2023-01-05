@@ -37,7 +37,7 @@ var (
 	hostInitialized bool
 )
 
-func svProtocol(a cmd.Arguments, p, s int) error {
+func svProtocol(a cmd.Arguments) error {
 	args := a.Args()[1:]
 	switch len(args) {
 	default:
@@ -132,7 +132,7 @@ func CallCMain() error {
 	} else {
 		cbuf.AddText("exec autoexec.cfg\n")
 		cbuf.AddText("stuffcmds")
-		cbuf.Execute(0)
+		cbuf.Execute()
 		if !sv.Active() {
 			cbuf.AddText("startmap_dm\n")
 		}
@@ -242,7 +242,7 @@ func executeFrame() {
 	sendKeyEvents()
 
 	// process console commands
-	cbuf.Execute(0) // TODO: this needs to be the local player, not 0
+	cbuf.Execute()
 
 	net.SetTime()
 

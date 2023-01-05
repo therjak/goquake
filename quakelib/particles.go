@@ -324,7 +324,7 @@ func particlesClear() {
 }
 
 // on cmd "pointfile"
-func particlesReadPointFile(_ cmd.Arguments, _, _ int) error {
+func particlesReadPointFile(_ cmd.Arguments) error {
 	// This is a file to debug maps. They should not be part of a pak.
 	// It's to show ingame where the map has holes.
 	log.Printf("pointfile")

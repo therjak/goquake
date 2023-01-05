@@ -28,7 +28,7 @@ func init() {
 
 }
 
-func skyCommand(a cmd.Arguments, p, s int) error {
+func skyCommand(a cmd.Arguments) error {
 	args := a.Args()[1:]
 	switch len(args) {
 	case 0:

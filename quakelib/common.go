@@ -34,12 +34,12 @@ func init() {
 	})
 }
 
-func CmdPath(a cmd.Arguments, p, s int) error {
+func CmdPath(a cmd.Arguments) error {
 	// TODO
 	log.Printf("path called")
 	return nil
 }
-func CmdGame(args cmd.Arguments, p, s int) error {
+func CmdGame(args cmd.Arguments) error {
 	// TODO
 	return nil
 }

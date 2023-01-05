@@ -204,6 +204,7 @@ func (g *GlobalVars) Parm4f() *[3]float32 {
 	return (*[3]float32)(unsafe.Pointer(&g.Parm4[0]))
 }
 
+// in qc int32 is a pointer/string, float32 a number
 type GlobalVars struct {
 	Null   int32
 	Return [3]int32

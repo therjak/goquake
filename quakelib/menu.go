@@ -25,55 +25,55 @@ func blink() int {
 }
 
 func init() {
-	addCommand("togglemenu", func(_ cmd.Arguments, p, s int) error {
+	addCommand("togglemenu", func(_ cmd.Arguments) error {
 		toggleMenu()
 		return nil
 	})
-	addCommand("menu_main", func(_ cmd.Arguments, p, s int) error {
+	addCommand("menu_main", func(_ cmd.Arguments) error {
 		enterMenuMain()
 		return nil
 	})
-	addCommand("menu_singleplayer", func(_ cmd.Arguments, p, s int) error {
+	addCommand("menu_singleplayer", func(_ cmd.Arguments) error {
 		enterSinglePlayerMenu()
 		return nil
 	})
-	addCommand("menu_load", func(_ cmd.Arguments, p, s int) error {
+	addCommand("menu_load", func(_ cmd.Arguments) error {
 		enterLoadMenu()
 		return nil
 	})
-	addCommand("menu_save", func(_ cmd.Arguments, p, s int) error {
+	addCommand("menu_save", func(_ cmd.Arguments) error {
 		enterSaveMenu()
 		return nil
 	})
-	addCommand("menu_multiplayer", func(_ cmd.Arguments, p, s int) error {
+	addCommand("menu_multiplayer", func(_ cmd.Arguments) error {
 		enterMultiPlayerMenu()
 		return nil
 	})
-	addCommand("menu_setup", func(_ cmd.Arguments, p, s int) error {
+	addCommand("menu_setup", func(_ cmd.Arguments) error {
 		enterNetSetupMenu()
 		return nil
 	})
-	addCommand("menu_options", func(_ cmd.Arguments, p, s int) error {
+	addCommand("menu_options", func(_ cmd.Arguments) error {
 		enterMenuOptions()
 		return nil
 	})
-	addCommand("menu_keys", func(_ cmd.Arguments, p, s int) error {
+	addCommand("menu_keys", func(_ cmd.Arguments) error {
 		enterMenuKeys()
 		return nil
 	})
-	addCommand("menu_video", func(_ cmd.Arguments, p, s int) error {
+	addCommand("menu_video", func(_ cmd.Arguments) error {
 		enterMenuVideo()
 		return nil
 	})
-	addCommand("help", func(_ cmd.Arguments, p, s int) error {
+	addCommand("help", func(_ cmd.Arguments) error {
 		enterMenuHelp()
 		return nil
 	})
-	addCommand("menu_quit", func(_ cmd.Arguments, p, s int) error {
+	addCommand("menu_quit", func(_ cmd.Arguments) error {
 		enterQuitMenu()
 		return nil
 	})
-	addCommand("menu_credits", func(_ cmd.Arguments, p, s int) error {
+	addCommand("menu_credits", func(_ cmd.Arguments) error {
 		return nil
 	})
 }

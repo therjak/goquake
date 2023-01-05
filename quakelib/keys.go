@@ -306,7 +306,7 @@ func init() {
 	addCommand("unbindall", keyUnbindAll)
 }
 
-func keyBindlist(a cmd.Arguments, p, s int) error {
+func keyBindlist(a cmd.Arguments) error {
 	count := 0
 	for k, v := range keyBindings {
 		if v != "" {
@@ -318,7 +318,7 @@ func keyBindlist(a cmd.Arguments, p, s int) error {
 	return nil
 }
 
-func keyUnbind(a cmd.Arguments, p, s int) error {
+func keyUnbind(a cmd.Arguments) error {
 	args := a.Args()[1:]
 	if len(args) != 1 {
 		conlog.Printf("unbind <key> : remove commands from a key\n")
@@ -335,12 +335,12 @@ func keyUnbind(a cmd.Arguments, p, s int) error {
 	return nil
 }
 
-func keyUnbindAll(_ cmd.Arguments, p, s int) error {
+func keyUnbindAll(_ cmd.Arguments) error {
 	keyBindings = make(map[kc.KeyCode]string)
 	return nil
 }
 
-func keyBind(a cmd.Arguments, p, s int) error {
+func keyBind(a cmd.Arguments) error {
 	args := a.Args()[1:]
 	c := len(args)
 	if c != 1 && c != 2 {
