@@ -152,13 +152,10 @@ type ClientStatic struct {
 	timeDemoLastFrame  int
 	timeDemoStartFrame int
 	timeDemoStartTime  float64
-	// personalization data sent to server
-	// to restart a level
-	spawnParms string
-	demos      []string
-	demoWriter io.WriteCloser
-	demoData   []byte
-	msgBadRead bool
+	demos              []string
+	demoWriter         io.WriteCloser
+	demoData           []byte
+	msgBadRead         bool
 }
 
 type score struct {
@@ -615,7 +612,7 @@ func CL_SignonReply() {
 				Union: &protos.Cmd_StringCmd{fmt.Sprintf("color %d %d", color>>4, color&15)},
 			},
 			&protos.Cmd{
-				Union: &protos.Cmd_StringCmd{fmt.Sprintf("spawn %s", cls.spawnParms)},
+				Union: &protos.Cmd_StringCmd{"spawn"},
 			},
 		)
 

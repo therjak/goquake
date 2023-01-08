@@ -537,25 +537,6 @@ func (s *Server) CreateBaseline() {
 	}
 }
 
-//Grabs the current state of each client for saving across the
-//transition to another level
-func SV_SaveSpawnparms() error {
-	svs.serverFlags = progsdat.Globals.ServerFlags
-
-	for _, c := range sv_clients {
-		if !c.active {
-			continue
-		}
-		// call the progs to get default spawn parms for the new client
-		progsdat.Globals.Self = int32(c.edictId)
-		if err := vm.ExecuteProgram(progsdat.Globals.SetChangeParms); err != nil {
-			return err
-		}
-		c.spawnParams = progsdat.Globals.Parm
-	}
-	return nil
-}
-
 func (s *Server) SendClientMessages() error {
 	// update frags, names, etc
 	s.UpdateToReliableMessages()
@@ -895,6 +876,35 @@ func init() {
 	})
 }
 
+//Grabs the current state of each client for saving across the
+//transition to another level
+func SV_SaveSpawnparms() error {
+	svs.serverFlags = progsdat.Globals.ServerFlags
+
+	for _, c := range sv_clients {
+		if !c.active {
+			continue
+		}
+		// call the progs to get default spawn parms for the new client
+		progsdat.Globals.Self = int32(c.edictId)
+		if err := vm.ExecuteProgram(progsdat.Globals.SetChangeParms); err != nil {
+			return err
+		}
+		c.spawnParams = progsdat.Globals.Parm
+	}
+	return nil
+}
+
+func (s *Server) ChangeLevel(mapName string, pcl int) error {
+	if err := SV_SaveSpawnparms(); err != nil {
+		return err
+	}
+	if err := s.SpawnServer(mapName, pcl); err != nil {
+		return fmt.Errorf("cannot run map %s: %w", mapName, err)
+	}
+	return nil
+}
+
 func (s *Server) SpawnSaveGameServer(data *protos.SaveGame, pcl int) error {
 	cvars.Skill.SetValue(float32(data.GetCurrentSkill()))
 	if err := s.SpawnServer(data.GetMapName(), pcl); err != nil {
@@ -910,6 +920,18 @@ func (s *Server) SpawnSaveGameServer(data *protos.SaveGame, pcl int) error {
 	}
 	s.time = data.GetMapTime()
 	copy(sv_clients[0].spawnParams[:], data.GetSpawnParams())
+	return nil
+}
+
+func (s *Server) ResetServer() error {
+	if !s.active {
+		return nil
+	}
+	mapname := s.name // s.name gets cleared in spawnserver
+	pcl := s.protocol // s.protocol gets cleared in spawnserver
+	if err := s.SpawnServer(mapname, pcl); err != nil {
+		return fmt.Errorf("cannot restart map %s: %w", mapname, err)
+	}
 	return nil
 }
 

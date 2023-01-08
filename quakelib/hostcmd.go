@@ -342,13 +342,6 @@ func hostMap(a cmd.Arguments) error {
 	}
 
 	if !cmdl.Dedicated() {
-		var b strings.Builder
-		for _, a := range args[1:] {
-			b.WriteString(a.String())
-			b.WriteRune(' ')
-		}
-		cls.spawnParms = b.String()
-
 		if err := clEstablishConnection(net.LocalAddress); err != nil {
 			return err
 		}
@@ -373,31 +366,25 @@ func hostChangelevel(a cmd.Arguments) error {
 	if _, err := filesystem.GetFile(fmt.Sprintf("maps/%s.bsp", level)); err != nil {
 		return fmt.Errorf("cannot find map %s", level)
 	}
+	if err := sv.ChangeLevel(level, sv_protocol); err != nil {
+		return err
+	}
 	if !cmdl.Dedicated() {
 		inputActivate()
 	}
-
 	// remove console or menu
 	keyDestination = keys.Game
-	if err := SV_SaveSpawnparms(); err != nil {
-		return err
-	}
-	if err := sv.SpawnServer(level, sv_protocol); err != nil {
-		return fmt.Errorf("cannot run map %s: %w", level, err)
-	}
+
 	return nil
 }
 
 // Restarts the current server for a dead player
 func hostRestart(a cmd.Arguments) error {
-	if cls.demoPlayback || !sv.Active() {
+	if cls.demoPlayback {
 		return nil
 	}
-	mapname := sv.name // sv.name gets cleared in spawnserver
-	if err := sv.SpawnServer(mapname, sv_protocol); err != nil {
-		return fmt.Errorf("cannot restart map %s: %w", mapname, err)
+	if err := sv.ResetServer(); err != nil {
 		return err
 	}
-
 	return nil
 }
