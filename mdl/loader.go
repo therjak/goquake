@@ -61,7 +61,8 @@ type Model struct {
 	Radius     float32
 	YawRadius  float32
 
-	VertexElementArrayBuffer *glh.Buffer
+	VertexElementArrayBuffer     *glh.Buffer
+	vertexElementArrayBufferData []uint16
 
 	// VertexArrayBuffer is a gl.Buffer with following data layout:
 	// ([ 4 int8 xyzw, 4 uint8 normal(xyzw) ] * numverts ) * posecount
@@ -70,7 +71,8 @@ type Model struct {
 	// vertices with normals as the actual 'model'
 	// the texcoords are consecutive at the end of the vbo (use STOffset) and
 	// match the order of the verts inside a pose
-	VertexArrayBuffer *glh.Buffer
+	VertexArrayBuffer     *glh.Buffer
+	vertexArrayBufferData []byte
 }
 
 type TextureCoord struct {
@@ -191,8 +193,6 @@ func load(name string, data []byte) (*Model, error) {
 	mod.Translate = vec.Vec3{h.Translate[0], h.Translate[1], h.Translate[2]}
 	mod.SyncType = int(h.SyncType)
 	mod.flags = (int(h.Flags & 0xff))
-	mod.VertexElementArrayBuffer = glh.NewBuffer(glh.ElementArrayBuffer)
-	mod.VertexArrayBuffer = glh.NewBuffer(glh.ArrayBuffer)
 
 	skinSize := int64(h.SkinWidth) * int64(h.SkinHeight)
 	for i := int32(0); i < h.SkinCount; i++ { // See Mod_LoadAllSkins
@@ -363,8 +363,7 @@ func (m *Model) setupBuffers(frames []frame) {
 	}
 
 	m.IndiceCount = len(indices)
-	m.VertexElementArrayBuffer.Bind()
-	m.VertexElementArrayBuffer.SetData(2*len(indices), glh.Ptr(indices))
+	m.vertexElementArrayBufferData = indices
 
 	sizeofMeshPos := m.poseCount * m.verticeCount * 8 // 4 uint8 + 4 int8
 	sizeofTS := m.verticeCount * 8                    // 2 float32
@@ -394,9 +393,17 @@ func (m *Model) setupBuffers(frames []frame) {
 		vboBuf.Write(buf[:])
 	}
 
+	m.vertexArrayBufferData = vboBuf.Bytes()
+}
+
+func (m *Model) UploadBuffer() {
+	m.VertexElementArrayBuffer = glh.NewBuffer(glh.ElementArrayBuffer)
+	m.VertexElementArrayBuffer.Bind()
+	m.VertexElementArrayBuffer.SetData(2*len(m.vertexElementArrayBufferData), glh.Ptr(m.vertexElementArrayBufferData))
+
+	m.VertexArrayBuffer = glh.NewBuffer(glh.ArrayBuffer)
 	m.VertexArrayBuffer.Bind()
-	bb := vboBuf.Bytes()
-	m.VertexArrayBuffer.SetData(len(bb), glh.Ptr(bb))
+	m.VertexArrayBuffer.SetData(len(m.vertexArrayBufferData), glh.Ptr(m.vertexArrayBufferData))
 }
 
 func calcFrames(mod *Model, pheader *header, frames []frame) {

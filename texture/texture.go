@@ -32,6 +32,13 @@ const (
 	ColorTypeLightmap
 )
 
+type texType int
+
+const (
+	texType2D texType = iota
+	texTypeCube
+)
+
 type Texture struct {
 	glID   glh.Texture
 	Width  int32 // mipmap can make it differ from source width
@@ -40,17 +47,18 @@ type Texture struct {
 	name   string
 	Typ    ColorType
 	Data   []byte
+	tt     texType
 }
 
 func NewTexture(w, h int32, flags TexPref, name string, typ ColorType, data []byte) *Texture {
 	t := &Texture{
-		glID:   glh.NewTexture2D(),
 		Width:  w,
 		Height: h,
 		flags:  flags,
 		name:   name,
 		Typ:    typ,
 		Data:   data,
+		tt:     texType2D,
 	}
 	return t
 }
@@ -58,27 +66,31 @@ func NewTexture(w, h int32, flags TexPref, name string, typ ColorType, data []by
 func NewCubeTexture(w, h int32, flags TexPref, name string, typ ColorType, data []byte) *Texture {
 	// TODO
 	t := &Texture{
-		glID:   glh.NewTextureCube(),
 		Width:  w,
 		Height: h,
 		flags:  flags,
 		name:   name,
 		Typ:    typ,
 		Data:   data,
+		tt:     texTypeCube,
 	}
 	return t
 }
 
 func (t *Texture) Bind() {
+	if t.glID == nil {
+		switch t.tt {
+		case texTypeCube:
+			t.glID = glh.NewTextureCube()
+		case texType2D:
+			t.glID = glh.NewTexture2D()
+		}
+	}
 	t.glID.Bind()
 }
 
 func (t *Texture) Name() string {
 	return t.name
-}
-
-func (t *Texture) ID() glh.TexID {
-	return t.glID.ID()
 }
 
 func (t *Texture) Texels() int {

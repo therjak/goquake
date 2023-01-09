@@ -89,6 +89,7 @@ func loadTextures(m model.Model) {
 				textureManager.loadIndexed(st, st.Data)
 			}
 		}
+		mt.UploadBuffer()
 	case *bsp.Model:
 		for _, t := range mt.Textures {
 			if t.SolidSky != nil {

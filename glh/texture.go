@@ -12,7 +12,6 @@ import (
 type TexID uint32
 
 type Texture interface {
-	ID() TexID
 	Bind()
 }
 
@@ -25,10 +24,6 @@ type texture2D struct {
 }
 type textureCube struct {
 	texture
-}
-
-func (t *texture) ID() TexID {
-	return TexID(t.id)
 }
 
 func (t *texture) delete() {

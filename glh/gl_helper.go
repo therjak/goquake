@@ -122,10 +122,6 @@ func Ptr(data interface{}) unsafe.Pointer {
 	return gl.Ptr(data)
 }
 
-func (b *Buffer) ID() uint32 {
-	return b.buf
-}
-
 type VertexArray struct {
 	a uint32
 }
