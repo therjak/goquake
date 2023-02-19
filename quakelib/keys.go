@@ -16,6 +16,7 @@ import (
 	cmdl "goquake/commandline"
 	"goquake/conlog"
 	"goquake/cvars"
+	"goquake/filesystem"
 	kc "goquake/keycode"
 	"goquake/keys"
 	"goquake/protos"
@@ -71,7 +72,7 @@ const (
 )
 
 func (h *qHistory) Load() {
-	fullname := filepath.Join(BaseDirectory(), historyFilename)
+	fullname := filepath.Join(filesystem.BaseDir(), historyFilename)
 	in, err := ioutil.ReadFile(fullname)
 	if err != nil {
 		return
@@ -86,7 +87,7 @@ func (h *qHistory) Load() {
 }
 
 func (h *qHistory) Save() {
-	fullname := filepath.Join(BaseDirectory(), historyFilename)
+	fullname := filepath.Join(filesystem.BaseDir(), historyFilename)
 	max := 32 // add a max size to prevent the file from growing indefinitely
 	if len(h.txt) < max {
 		max = len(h.txt)

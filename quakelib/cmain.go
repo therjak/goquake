@@ -17,6 +17,7 @@ import (
 	"goquake/conlog"
 	"goquake/cvar"
 	"goquake/cvars"
+	"goquake/filesystem"
 	"goquake/input"
 	"goquake/net"
 	"goquake/protocol"
@@ -396,7 +397,7 @@ func HostWriteConfiguration() error {
 		b.WriteString("+mlook\n")
 	}
 
-	filename := filepath.Join(gameDirectory, "config.cfg")
+	filename := filepath.Join(filesystem.GameDir(), "config.cfg")
 	err := ioutil.WriteFile(filename, b.Bytes(), 0644)
 	if err != nil {
 		return fmt.Errorf("Couldn't write config.cfg: %w\n", err)

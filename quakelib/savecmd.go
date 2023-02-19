@@ -11,6 +11,7 @@ import (
 
 	"goquake/cmd"
 	"goquake/cvars"
+	"goquake/filesystem"
 	"goquake/protos"
 
 	"google.golang.org/protobuf/proto"
@@ -53,7 +54,7 @@ func (c *SVClient) saveCmd(a cmd.Arguments) {
 		return
 	}
 
-	fullname := filepath.Join(GameDirectory(), filename)
+	fullname := filepath.Join(filesystem.GameDir(), filename)
 	if filepath.Ext(fullname) != ".sav" {
 		fullname = fullname + ".sav"
 	}

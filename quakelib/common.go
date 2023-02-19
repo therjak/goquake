@@ -14,17 +14,6 @@ import (
 	"goquake/filesystem"
 )
 
-var (
-	baseDirectory string
-	gameDirectory string
-	searchPaths   []qPath
-)
-
-type qPath struct {
-	path string
-	paks []string
-}
-
 func init() {
 	addCommand("path", CmdPath)
 	addCommand("game", CmdGame)
@@ -46,6 +35,7 @@ func CmdGame(args cmd.Arguments) error {
 
 func filesystemInit() {
 	bd := cmdl.BaseDirectory()
+	var baseDirectory string
 	if bd != "" {
 		baseDirectory = filepath.Clean(bd)
 	} else {
@@ -56,27 +46,14 @@ func filesystemInit() {
 		}
 	}
 
-	addGameDirectory(baseDirectory, "id1")
+	filesystem.UseBaseDir(baseDirectory)
 
 	// g := cmdl.Game()
 	if cmdl.Rogue() /*|| game == "rogue"*/ {
-		addGameDirectory(baseDirectory, "rogue")
+		filesystem.UseGameDir("rogue")
 	} else if cmdl.Hipnotic() /*|| game == "hipnotic"*/ {
-		addGameDirectory(baseDirectory, "hipnotic")
+		filesystem.UseGameDir("hipnotic")
 	} else if cmdl.Quoth() /*|| game == "quoth"*/ {
-		addGameDirectory(baseDirectory, "quoth")
+		filesystem.UseGameDir("quoth")
 	}
-}
-
-func GameDirectory() string {
-	return gameDirectory
-}
-
-func BaseDirectory() string {
-	return baseDirectory
-}
-
-func addGameDirectory(base, dir string) {
-	gameDirectory = filepath.Join(base, dir)
-	filesystem.AddGameDir(gameDirectory)
 }

@@ -1623,7 +1623,7 @@ func (c *ClientStatic) stopDemoRecording() {
 }
 
 func (c *ClientStatic) createDemoFile(filename string, cdtrack int) error {
-	path := filepath.Join(gameDirectory, filename)
+	path := filepath.Join(filesystem.GameDir(), filename)
 	if !strings.HasSuffix(filename, ".dem") {
 		path += ".dem"
 	}

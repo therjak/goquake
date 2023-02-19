@@ -14,6 +14,7 @@ import (
 	"goquake/conlog"
 	"goquake/cvar"
 	"goquake/cvars"
+	"goquake/filesystem"
 	"goquake/image"
 	"goquake/keys"
 	"goquake/snd"
@@ -571,7 +572,7 @@ func screenShot(_ cmd.Arguments) error {
 	var fileName string
 	for i := 0; i < 10000; i++ {
 		pngName = fmt.Sprintf("spasm%04d.png", i)
-		fileName = filepath.Join(gameDirectory, pngName)
+		fileName = filepath.Join(filesystem.GameDir(), pngName)
 		if !fileExists(fileName) {
 			break
 		}

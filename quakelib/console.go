@@ -15,6 +15,7 @@ import (
 	"goquake/conlog"
 	"goquake/cvar"
 	"goquake/cvars"
+	"goquake/filesystem"
 	"goquake/keys"
 	"goquake/math"
 	svc "goquake/protocol/server"
@@ -185,8 +186,8 @@ func init() {
 }
 
 func (c *qconsole) dump() {
-	fn := path.Join(gameDirectory, "condump.txt")
-	err := os.MkdirAll(gameDirectory, os.ModePerm)
+	fn := path.Join(filesystem.GameDir(), "condump.txt")
+	err := os.MkdirAll(filesystem.GameDir(), os.ModePerm)
 	if err != nil {
 		conlog.Printf("Could not create directory")
 		return

@@ -11,13 +11,19 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"goquake/pack"
+
 	"golang.org/x/tools/godoc/vfs"
 )
 
 var (
-	ns = vfs.NewNameSpace()
+	baseDir string
+	baseNS  = vfs.NewNameSpace()
+	gameDir string
+	gameNS  vfs.NameSpace
+	mutex   sync.RWMutex
 )
 
 type QFile interface {
@@ -65,7 +71,37 @@ func (p packFileSystem) String() string {
 	return p.p.String()
 }
 
-func AddGameDir(dir string) {
+func GameDir() string {
+	mutex.RLock()
+	defer mutex.RUnlock()
+	return gameDir
+}
+
+func BaseDir() string {
+	mutex.RLock()
+	defer mutex.RUnlock()
+	return baseDir
+}
+
+func UseBaseDir(dir string) {
+	mutex.Lock()
+	defer mutex.Unlock()
+	baseDir = dir
+	gameDir = filepath.Join(baseDir, "id1")
+	gameNS = vfs.NewNameSpace()
+	useDir(&gameNS, gameDir)
+}
+
+func UseGameDir(dir string) {
+	mutex.Lock()
+	defer mutex.Unlock()
+	gameNS = vfs.NewNameSpace()
+	useDir(&gameNS, filepath.Join(baseDir, "id1"))
+	gameDir = filepath.Join(baseDir, dir)
+	useDir(&gameNS, gameDir)
+}
+
+func useDir(ns *vfs.NameSpace, dir string) {
 	// 1) add path to the beginning of the search paths list
 	// 2) Add pak[i].pak files to the beginning order high number to low number
 	// 3) add quakespasm.pak to the beginning
@@ -87,11 +123,15 @@ func AddGameDir(dir string) {
 }
 
 func Stat(path string) (os.FileInfo, error) {
-	return ns.Stat(path)
+	mutex.RLock()
+	defer mutex.RUnlock()
+	return gameNS.Stat(path)
 }
 
 func GetFile(name string) (QFile, error) {
-	return ns.Open(filepath.Join("/", name))
+	mutex.RLock()
+	defer mutex.RUnlock()
+	return gameNS.Open(filepath.Join("/", name))
 }
 
 func GetFileContents(name string) ([]byte, error) {

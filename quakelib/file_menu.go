@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"goquake/cbuf"
+	"goquake/filesystem"
 	kc "goquake/keycode"
 	"goquake/keys"
 	"goquake/menu"
@@ -101,7 +102,7 @@ func (m *qFileMenu) update() {
 	for _, i := range m.items {
 		i.loadable = false
 		i.comment = unusedSaveName
-		n := filepath.Join(GameDirectory(), i.filename)
+		n := filepath.Join(filesystem.GameDir(), i.filename)
 
 		in, err := ioutil.ReadFile(n)
 		if err != nil {

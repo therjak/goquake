@@ -9,6 +9,7 @@ import (
 	"goquake/cmd"
 	cmdl "goquake/commandline"
 	"goquake/conlog"
+	"goquake/filesystem"
 	"goquake/net"
 	"goquake/protos"
 
@@ -52,7 +53,7 @@ func loadGame(a cmd.Arguments) error {
 	// stop demo loop in case this fails
 	cls.demoNum = -1
 
-	fullname := filepath.Join(GameDirectory(), filename)
+	fullname := filepath.Join(filesystem.GameDir(), filename)
 	if filepath.Ext(fullname) != ".sav" {
 		fullname = fullname + ".sav"
 	}
