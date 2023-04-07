@@ -26,13 +26,6 @@ import (
 	"goquake/window"
 )
 
-type serverState int
-
-const (
-	serverRunning      serverState = 0
-	serverDisconnected serverState = 1
-)
-
 var (
 	sv_protocol     int
 	hostInitialized bool
