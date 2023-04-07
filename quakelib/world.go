@@ -8,8 +8,6 @@ import (
 	"runtime/debug"
 
 	"goquake/bsp"
-	"goquake/conlog"
-	"goquake/math"
 	"goquake/math/vec"
 	"goquake/progs"
 )
@@ -19,23 +17,6 @@ const (
 	MOVE_NOMONSTERS
 	MOVE_MISSILE
 )
-
-type plane struct {
-	Normal   vec.Vec3
-	Distance float32
-}
-
-type trace struct {
-	AllSolid   bool
-	StartSolid bool
-	InOpen     bool
-	InWater    bool
-	Fraction   float32
-	EndPos     vec.Vec3
-	Plane      plane
-	EntPointer bool
-	EntNumber  int
-}
 
 type areaNode struct {
 	axis          int
@@ -374,7 +355,7 @@ func boxOnPlaneSide(mins, maxs vec.Vec3, p *bsp.Plane) int {
 
 type moveClip struct {
 	boxmins, boxmaxs, mins, maxs, mins2, maxs2, start, end vec.Vec3
-	trace                                                  trace
+	trace                                                  bsp.Trace
 	typ, edict                                             int
 }
 
@@ -420,7 +401,7 @@ func clipToLinks(a *areaNode, clip *moveClip) {
 				continue
 			}
 		}
-		t := func() trace {
+		t := func() bsp.Trace {
 			if (int(tv.Flags) & FL_MONSTER) != 0 {
 				// this just makes monstern easier to hit with missiles
 				return clipMoveToEntity(touch, clip.start, clip.mins2, clip.maxs2, clip.end)
@@ -523,134 +504,19 @@ func hullForEntity(ent *progs.EntVars, mins, maxs vec.Vec3) (*bsp.Hull, vec.Vec3
 	return hullForBox(hullmins, hullmaxs), origin
 }
 
-func hullPointContents(h *bsp.Hull, num int, p vec.Vec3) int {
-	for num >= 0 {
-		if num < h.FirstClipNode || num > h.LastClipNode {
-			debug.PrintStack()
-			log.Fatalf("SV_HullPointContents: bad node number")
-		}
-		node := h.ClipNodes[num]
-		plane := node.Plane
-		d := func() float32 {
-			if plane.Type < 3 {
-				return p[int(plane.Type)] - plane.Dist
-			}
-			return float32(vec.DoublePrecDot(plane.Normal, p)) - plane.Dist
-		}()
-		if d < 0 {
-			num = node.Children[1]
-		} else {
-			num = node.Children[0]
-		}
-	}
-
-	return num
-}
-
 func pointContents(p vec.Vec3) int {
-	return hullPointContents(&sv.worldModel.Hulls[0], 0, p)
+	return sv.worldModel.Hulls[0].PointContents(0, p)
 }
 
-func recursiveHullCheck(h *bsp.Hull, num int, p1f, p2f float32, p1, p2 vec.Vec3, trace *trace) bool {
-	const epsilon = 0.03125 // (1/32) to keep floating point happy
-	if num < 0 {            // check for empty
-		if num != bsp.CONTENTS_SOLID {
-			trace.AllSolid = false
-			if num == bsp.CONTENTS_EMPTY {
-				trace.InOpen = true
-			} else {
-				trace.InWater = true
-			}
-		} else {
-			trace.StartSolid = true
-		}
-		return true
-	}
-	if num < h.FirstClipNode || num > h.LastClipNode {
-		debug.PrintStack()
-		log.Fatalf("RecursiveHullCheck: bad node number")
-	}
-	node := h.ClipNodes[num]
-	plane := node.Plane
-	t1, t2 := func() (float32, float32) {
-		if plane.Type < 3 {
-			return (p1[int(plane.Type)] - plane.Dist),
-				(p2[int(plane.Type)] - plane.Dist)
-		} else {
-			return float32(vec.DoublePrecDot(plane.Normal, p1)) - plane.Dist,
-				float32(vec.DoublePrecDot(plane.Normal, p2)) - plane.Dist
-		}
-	}()
-	if t1 >= 0 && t2 >= 0 {
-		return recursiveHullCheck(h, node.Children[0], p1f, p2f, p1, p2, trace)
-	}
-	if t1 < 0 && t2 < 0 {
-		return recursiveHullCheck(h, node.Children[1], p1f, p2f, p1, p2, trace)
-	}
-
-	// put the crosspoint epsilon pixels on the near side
-	frac := func() float32 {
-		d := t1 - t2
-		// In the C implementation epsilon is a float64..
-		if t1 < 0 {
-			return (t1 + epsilon) / d
-		}
-		return (t1 - epsilon) / d
-	}()
-	frac = math.Clamp32(0, frac, 1)
-	midf := math.Lerp(p1f, p2f, frac)
-	mid := vec.Lerp(p1, p2, frac)
-	side := func() int {
-		if t1 < 0 {
-			return 1
-		}
-		return 0
-	}()
-	// move up to the node
-	if !recursiveHullCheck(h, node.Children[side], p1f, midf, p1, mid, trace) {
-		return false
-	}
-	if hullPointContents(h, node.Children[side^1], mid) != bsp.CONTENTS_SOLID {
-		return recursiveHullCheck(h, node.Children[side^1], midf, p2f, mid, p2, trace)
-	}
-	if trace.AllSolid {
-		return false // never got out of the solid area
-	}
-	// the other side of the node is solid, this is the impact point
-	if side == 0 {
-		trace.Plane.Normal = plane.Normal
-		trace.Plane.Distance = plane.Dist
-	} else {
-		trace.Plane.Normal = vec.Sub(vec.Vec3{}, plane.Normal)
-		trace.Plane.Distance = -plane.Dist
-	}
-	for hullPointContents(h, h.FirstClipNode, mid) == bsp.CONTENTS_SOLID {
-		// shouldn't really happen, but does occasionally
-		frac -= 0.1
-		if frac < 0 {
-			trace.Fraction = midf
-			trace.EndPos = mid
-			conlog.DPrintf("backup past 0\n")
-			return false
-		}
-		midf = math.Lerp(p1f, p2f, frac)
-		mid = vec.Lerp(p1, p2, frac)
-	}
-	trace.Fraction = midf
-	trace.EndPos = mid
-
-	return false
-}
-
-func clipMoveToEntity(ent int, start, mins, maxs, end vec.Vec3) trace {
-	var t trace
+func clipMoveToEntity(ent int, start, mins, maxs, end vec.Vec3) bsp.Trace {
+	var t bsp.Trace
 	t.Fraction = 1
 	t.AllSolid = true
 	t.EndPos = end
 	hull, offset := hullForEntity(entvars.Get(ent), mins, maxs)
 	startL := vec.Sub(start, offset)
 	endL := vec.Sub(end, offset)
-	recursiveHullCheck(hull, hull.FirstClipNode, 0, 1, startL, endL, &t)
+	hull.RecursiveCheck(hull.FirstClipNode, 0, 1, startL, endL, &t)
 
 	if t.Fraction != 1 {
 		t.EndPos[0] += offset[0]
@@ -683,7 +549,7 @@ func testEntityPosition(ent int) bool {
 // nomonsters is used for line of sight or edge testing where monsters
 // shouldn't be considered solid objects
 // passedict is explicitly excluded from clipping checks (normally NULL)
-func svMove(start, mins, maxs, end vec.Vec3, typ, ed int) trace {
+func svMove(start, mins, maxs, end vec.Vec3, typ, ed int) bsp.Trace {
 	clip := moveClip{
 		trace: clipMoveToEntity(0, start, mins, maxs, end),
 		start: start,

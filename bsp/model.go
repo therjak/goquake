@@ -71,15 +71,6 @@ type ClipNode struct {
 	Children [2]int
 }
 
-type Hull struct {
-	ClipNodes     []*ClipNode
-	Planes        []*Plane
-	FirstClipNode int
-	LastClipNode  int
-	ClipMins      vec.Vec3
-	ClipMaxs      vec.Vec3
-}
-
 type NodeBase struct {
 	contents int // 0 to differentiate from leafs
 	visFrame int

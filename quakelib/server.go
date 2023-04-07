@@ -648,16 +648,14 @@ func runThink(e int) (bool, error) {
 }
 
 //Does not change the entities velocity at all
-func pushEntity(e int, push vec.Vec3) (trace, error) {
-	// trace_t trace;
-	// vec3_t end;
+func pushEntity(e int, push vec.Vec3) (bsp.Trace, error) {
 	ev := entvars.Get(e)
 	origin := ev.Origin
 	mins := ev.Mins
 	maxs := ev.Maxs
 	end := vec.Add(origin, push)
 
-	tr := func() trace {
+	tr := func() bsp.Trace {
 		if ev.MoveType == progs.MoveTypeFlyMissile {
 			return svMove(origin, mins, maxs, end, MOVE_MISSILE, e)
 		}
@@ -671,12 +669,12 @@ func pushEntity(e int, push vec.Vec3) (trace, error) {
 
 	ev.Origin = tr.EndPos
 	if err := vm.LinkEdict(e, true); err != nil {
-		return trace{}, err
+		return bsp.Trace{}, err
 	}
 
 	if tr.EntPointer {
 		if err := sv.Impact(e, tr.EntNumber); err != nil {
-			return trace{}, err
+			return bsp.Trace{}, err
 		}
 	}
 

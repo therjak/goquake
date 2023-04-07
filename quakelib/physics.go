@@ -219,7 +219,7 @@ func (q *qphysics) tryUnstick(ent int, oldvel vec.Vec3) (int, error) {
 		// retry the original move
 		ev.Velocity = oldvel
 		ev.Velocity[2] = 0 // TODO: why?
-		steptrace := trace{}
+		steptrace := bsp.Trace{}
 		clip, err := q.flyMove(ent, 0.1, &steptrace)
 		if err != nil {
 			return 0, err
@@ -273,7 +273,7 @@ func (q *qphysics) walkMove(ent int) error {
 	oldVelocity := ev.Velocity
 
 	time := float32(host.FrameTime())
-	steptrace := trace{}
+	steptrace := bsp.Trace{}
 	clip, err := q.flyMove(ent, time, &steptrace)
 	if err != nil {
 		return err
@@ -591,7 +591,7 @@ func (q *qphysics) checkStuck(ent int) error {
 //2 = wall / step
 //4 = dead stop
 //If steptrace is not NULL, the trace of any vertical wall hit will be stored
-func (q *qphysics) flyMove(ent int, time float32, steptrace *trace) (int, error) {
+func (q *qphysics) flyMove(ent int, time float32, steptrace *bsp.Trace) (int, error) {
 	const MAX_CLIP_PLANES = 5
 	planes := [MAX_CLIP_PLANES]vec.Vec3{}
 

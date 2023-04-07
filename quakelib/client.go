@@ -1262,8 +1262,8 @@ func tracePosition(args cmd.Arguments) error {
 	org := qRefreshRect.viewOrg
 	vpn := qRefreshRect.viewForward
 	v := vec.Add(org, vec.Scale(8192, vpn))
-	w := trace{}
-	recursiveHullCheck(&cl.worldModel.Hulls[0], 0, 0, 1, org, v, &w)
+	w := bsp.Trace{}
+	cl.worldModel.Hulls[0].RecursiveCheck(0, 0, 1, org, v, &w)
 
 	if w.EndPos.Length() == 0 {
 		conlog.Printf("Tracepos: trace didn't hit anything\n")
