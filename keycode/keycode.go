@@ -252,7 +252,7 @@ func KeyToString(k KeyCode) string {
 		return "<KEY NOT FOUND>"
 	}
 	if k > 32 && k < 127 {
-		return string(k)
+		return string(rune(k))
 	}
 	s, ok := k2s[k]
 	if ok {

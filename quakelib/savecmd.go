@@ -26,8 +26,8 @@ func saveGameComment() string {
 	tm := progsdat.Globals.TotalMonsters
 	// somehow nobody can count?
 	// we should have 39 chars total available, why clip at 22 for the map?
-	log.Printf("%-22s kills:%3d/%3d", levelName, km, tm)
-	return fmt.Sprintf("%-22s kills:%3d/%3d", levelName, km, tm)
+	log.Printf("%-22s kills:%3d/%3d", levelName, int(km), int(tm))
+	return fmt.Sprintf("%-22s kills:%3d/%3d", levelName, int(km), int(tm))
 }
 
 func (c *SVClient) saveCmd(a cmd.Arguments) {

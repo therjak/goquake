@@ -29,7 +29,7 @@ func TestPackFileSystem(t *testing.T) {
 }
 
 func TestFilesystemOrder(t *testing.T) {
-	AddGameDir("testdir")
+	UseGameDir("testdir")
 	f, err := GetFile("doc1.txt")
 	if err != nil {
 		t.Fatalf("No file doc1: %v", err)
@@ -44,7 +44,7 @@ func TestFilesystemOrder(t *testing.T) {
 }
 
 func TestFilesystemPak(t *testing.T) {
-	AddGameDir("testdir")
+	UseGameDir("testdir")
 	f, err := GetFile("doc2.txt")
 	if err != nil {
 		t.Fatalf("No file doc2: %v", err)
@@ -59,7 +59,7 @@ func TestFilesystemPak(t *testing.T) {
 }
 
 func TestFilesystemOs(t *testing.T) {
-	AddGameDir("testdir")
+	UseGameDir("testdir")
 	f, err := GetFile("doc5.txt")
 	if err != nil {
 		t.Fatalf("No file doc5: %v", err)
