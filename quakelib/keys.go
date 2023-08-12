@@ -4,8 +4,6 @@ package quakelib
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
-	"path/filepath"
 	"sort"
 	"strings"
 	"time"
@@ -16,13 +14,11 @@ import (
 	cmdl "goquake/commandline"
 	"goquake/conlog"
 	"goquake/cvars"
-	"goquake/filesystem"
+	qhistory "goquake/history"
 	kc "goquake/keycode"
 	"goquake/keys"
-	"goquake/protos"
 
 	"github.com/veandco/go-sdl2/sdl"
-	"google.golang.org/protobuf/proto"
 )
 
 var (
@@ -35,75 +31,8 @@ var (
 	keyBindings map[kc.KeyCode]string
 
 	keyInput qKeyInput
-	history  qHistory
+	history  qhistory.History
 )
-
-type qHistory struct {
-	txt []string
-	idx int
-}
-
-func (h *qHistory) String() string {
-	if len(h.txt) == h.idx {
-		return ""
-	}
-	return h.txt[h.idx]
-}
-
-func (h *qHistory) Up() {
-	if h.idx > 0 {
-		h.idx--
-	}
-}
-
-func (h *qHistory) Down() {
-	if h.idx < len(h.txt) {
-		h.idx++
-	}
-}
-
-func (h *qHistory) Add(s string) {
-	h.txt = append(h.txt, s)
-	h.idx = len(h.txt)
-}
-
-const (
-	historyFilename = "history.txt"
-)
-
-func (h *qHistory) Load() {
-	fullname := filepath.Join(filesystem.BaseDir(), historyFilename)
-	in, err := ioutil.ReadFile(fullname)
-	if err != nil {
-		return
-	}
-	data := &protos.History{}
-	if err := proto.Unmarshal(in, data); err != nil {
-		conlog.Printf("failed to decode history.\n")
-		return
-	}
-	h.txt = data.Entries
-	h.idx = len(h.txt)
-}
-
-func (h *qHistory) Save() {
-	fullname := filepath.Join(filesystem.BaseDir(), historyFilename)
-	max := 32 // add a max size to prevent the file from growing indefinitely
-	if len(h.txt) < max {
-		max = len(h.txt)
-	}
-	data := &protos.History{
-		Entries: h.txt[:max],
-	}
-	out, err := proto.Marshal(data)
-	if err != nil {
-		conlog.Printf("failed to encode history.\n")
-		return
-	}
-	if err := ioutil.WriteFile(fullname, out, 0660); err != nil {
-		conlog.Printf("ERROR: couln't write file.\n")
-	}
-}
 
 type qKeyInput struct {
 	text       string

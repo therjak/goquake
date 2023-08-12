@@ -90,7 +90,10 @@ func CallCMain() error {
 		return err
 	}
 	if !cmdl.Dedicated() {
-		history.Load()
+		if err := history.Load(); err != nil {
+			// BUG? console is not ready
+			conlog.Printf("%v\n", err)
+		}
 		consoleInit()
 	}
 	networkInit()
@@ -408,7 +411,9 @@ func shutdown() {
 	net.Shutdown()
 	if !cmdl.Dedicated() {
 		if console.initialized {
-			history.Save()
+			if err := history.Save(); err != nil {
+				conlog.Printf("%v\n", err)
+			}
 		}
 		snd.Shutdown()
 		videoShutdown()
