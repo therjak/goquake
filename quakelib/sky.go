@@ -448,7 +448,7 @@ func newSimpleSkyDrawer() *qSimpleSkyDrawer {
 	var err error
 	d.prog, err = newSimpleSkyProgram()
 	if err != nil {
-		Error(err.Error())
+		log.Fatalf("failed to create simple sky drawer: %v", err)
 	}
 	d.projection = d.prog.GetUniformLocation("projection") // mat
 	d.modelview = d.prog.GetUniformLocation("modelview")   // mat
@@ -506,7 +506,7 @@ func newSkyDrawer() *qSkyDrawer {
 	var err error
 	d.prog, err = newSkyProgram()
 	if err != nil {
-		Error(err.Error())
+		log.Fatalf("failed to create sky drawer: %v", err)
 	}
 	d.projection = d.prog.GetUniformLocation("projection")
 	d.modelview = d.prog.GetUniformLocation("modelview")
@@ -613,7 +613,7 @@ func newSkyBoxDrawer() *qSkyBoxDrawer {
 	var err error
 	d.prog, err = newSkyBoxProgram()
 	if err != nil {
-		Error(err.Error())
+		log.Fatalf("failed to create sky box drawer: %v", err)
 	}
 	d.projection = d.prog.GetUniformLocation("projection") // mat
 	d.modelview = d.prog.GetUniformLocation("modelview")   // mat

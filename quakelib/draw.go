@@ -4,6 +4,7 @@ package quakelib
 import (
 	"encoding/binary"
 	"fmt"
+	"log"
 
 	"goquake/cvars"
 	"goquake/filesystem"
@@ -24,6 +25,7 @@ const (
 	CANVAS_MENU
 	CANVAS_STATUSBAR
 	CANVAS_BOTTOMRIGHT
+	CANVAS_SCENE
 )
 
 func newRecDrawProgram() (*glh.Program, error) {
@@ -56,7 +58,7 @@ func NewRecDrawer() *recDrawer {
 	var err error
 	d.prog, err = newRecDrawProgram()
 	if err != nil {
-		Error(err.Error())
+		log.Fatalf("failed to create rec drawer: %v", err)
 	}
 	d.color = d.prog.GetUniformLocation("in_color")
 
@@ -119,7 +121,7 @@ func NewDrawer() *drawer {
 	var err error
 	d.prog, err = newDrawProgram()
 	if err != nil {
-		Error(err.Error())
+		log.Fatalf("failed to create drawer: %v", err)
 	}
 
 	return d
@@ -222,22 +224,23 @@ func drawInit() {
 	backtileTexture = textureManager.LoadBacktile()
 }
 
-func drawSet2D() {
-	qCanvas.canvas = CANVAS_NONE
-	qCanvas.Set(CANVAS_DEFAULT)
-	gl.Disable(gl.DEPTH_TEST)
-	gl.Disable(gl.CULL_FACE)
-	gl.Disable(gl.BLEND)
+type box interface {
+	Height() int
+	Width() int
 }
 
 type Canvas struct {
 	canvas
-	sx float32
-	sy float32
+	sx      float32
+	sy      float32
+	screen  box
+	console box
 }
 
 var (
-	qCanvas Canvas
+	qCanvas = Canvas{
+		canvas: CANVAS_DEFAULT,
+	}
 )
 
 func (c *Canvas) YShift() float32 {
@@ -245,7 +248,7 @@ func (c *Canvas) YShift() float32 {
 		return 1
 	}
 	sh := float32(screen.consoleLines)
-	vh := float32(screen.Height)
+	vh := float32(screen.Height())
 	l := (sh / vh)
 	return 3 - (2 * l)
 }
@@ -261,10 +264,10 @@ func (c *Canvas) Set(nc canvas) {
 func (c *Canvas) UpdateSize() {
 	switch c.canvas {
 	case CANVAS_DEFAULT:
-		gl.Viewport(0, 0, int32(screen.Width), int32(screen.Height))
-		c.sx, c.sy = 2/float32(screen.Width), 2/float32(screen.Height)
+		gl.Viewport(0, 0, int32(screen.Width()), int32(screen.Height()))
+		c.sx, c.sy = 2/float32(screen.Width()), 2/float32(screen.Height())
 	case CANVAS_CONSOLE:
-		gl.Viewport(0, 0, int32(screen.Width), int32(screen.Height))
+		gl.Viewport(0, 0, int32(screen.Width()), int32(screen.Height()))
 		h := float32(console.height)
 		w := float32(console.width)
 		c.sx, c.sy = 2/w, 2/h
@@ -273,21 +276,21 @@ func (c *Canvas) UpdateSize() {
 		if s < 1 {
 			s = 1
 		}
-		dw := float32(screen.Width) / 320
+		dw := float32(screen.Width()) / 320
 		if s > dw {
 			s = dw
 		}
-		dh := float32(screen.Height) / 200
+		dh := float32(screen.Height()) / 200
 		if s > dh {
 			s = dh
 		}
 		gl.Viewport(
-			int32((float32(screen.Width)-320*s)/2),
-			int32((float32(screen.Height)-200*s)/2),
+			int32((float32(screen.Width())-320*s)/2),
+			int32((float32(screen.Height())-200*s)/2),
 			int32(640*s), int32(200*s))
 		c.sx, c.sy = float32(2)/640, float32(2)/200
 	case CANVAS_STATUSBAR:
-		w := float32(screen.Width)
+		w := float32(screen.Width())
 		s := cvars.ScreenStatusbarScale.Value()
 		if s < 1 {
 			s = 1
@@ -297,27 +300,34 @@ func (c *Canvas) UpdateSize() {
 			s = dw
 		}
 		if cl.DeathMatch() {
-			gl.Viewport(0, 0, int32(screen.Width), int32(48*s))
+			gl.Viewport(0, 0, int32(screen.Width()), int32(48*s))
 			c.sx, c.sy = 2*s/w, float32(2)/48
 		} else {
 			gl.Viewport(
-				int32((float32(screen.Width)-320*s)/2),
+				int32((float32(screen.Width())-320*s)/2),
 				0,
 				int32(320*s),
 				int32(48*s))
 			c.sx, c.sy = float32(2)/320, float32(2)/48
 		}
 	case CANVAS_BOTTOMRIGHT:
-		s := float32(screen.Width) / float32(console.width)
+		s := float32(screen.Width()) / float32(console.width)
 		gl.Viewport(
-			int32(float32(screen.Width)-320*s),
+			int32(float32(screen.Width())-320*s),
 			0,
 			int32(320*s),
 			int32(200*s))
 		c.sx, c.sy = float32(2)/320, float32(2)/200
+	case CANVAS_SCENE:
+		gl.Viewport(
+			int32(qRefreshRect.viewRect.x),
+			int32(screen.Height()-qRefreshRect.viewRect.y-qRefreshRect.viewRect.height),
+			int32(qRefreshRect.viewRect.width),
+			int32(qRefreshRect.viewRect.height))
+		c.sx, c.sy = 2/float32(screen.Width()), 2/float32(screen.Height())
 	default:
 		// case CANVAS_NONE:
-		Error("SetCanvas: bad canvas type")
+		log.Fatalf("SetCanvas: bad canvas type %v", c.canvas)
 	}
 }
 
@@ -439,7 +449,7 @@ func DrawConsoleBackground() {
 func DrawFadeScreen() {
 	qCanvas.Set(CANVAS_DEFAULT)
 	c := Color{0, 0, 0, 0.5}
-	qRecDrawer.Draw(0, 0, float32(screen.Width), float32(screen.Height), c)
+	qRecDrawer.Draw(0, 0, float32(screen.Width()), float32(screen.Height()), c)
 	statusbar.MarkChanged()
 }
 

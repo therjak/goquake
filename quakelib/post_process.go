@@ -59,22 +59,24 @@ func newPostProcessor() *postProcess {
 	return p
 }
 
-func (p *postProcess) Draw(gamma, contrast float32, width, height int32) {
-	if p.texture == nil || p.width != width || p.height != height {
+func (p *postProcess) Draw(gamma, contrast float32) {
+	var viewport [4]int32
+	gl.GetIntegerv(gl.VIEWPORT, &viewport[0])
+
+	if p.texture == nil || p.width != viewport[2] || p.height != viewport[3] {
 		p.texture = glh.NewTexture2D()
 		p.texture.Bind()
-		p.width = width
-		p.height = height
-		gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, width, height,
+		p.width = viewport[2]
+		p.height = viewport[3]
+		gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, p.width, p.height,
 			0, gl.BGRA, gl.UNSIGNED_INT_8_8_8_8_REV, nil)
 		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
 		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
 	}
-	gl.Viewport(0, 0, width, height)
 
 	textureManager.DisableMultiTexture()
 	p.texture.Bind()
-	gl.CopyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 0, 0, width, height)
+	gl.CopyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 0, 0, p.width, p.height)
 
 	p.prog.Use()
 	p.vao.Bind()
@@ -97,7 +99,7 @@ func (p *postProcess) Draw(gamma, contrast float32, width, height int32) {
 	textureManager.ClearBindings()
 }
 
-func postProcessGammaContrast(gamma, contrast float32, width, height int32) {
+func postProcessGammaContrast(gamma, contrast float32) {
 	contrast = math.Clamp32(1, contrast, 2)
-	pprocess.Draw(gamma, contrast, width, height)
+	pprocess.Draw(gamma, contrast)
 }

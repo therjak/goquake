@@ -84,8 +84,8 @@ type qScreen struct {
 
 	tileClearUpdates int
 
-	Width  int
-	Height int
+	width  int
+	height int
 
 	initialized bool
 }
@@ -97,6 +97,14 @@ func init() {
 	cvars.Fov.SetCallback(f)
 	cvars.FovAdapt.SetCallback(f)
 	cvars.ViewSize.SetCallback(f)
+}
+
+func (scr *qScreen) Height() int {
+	return scr.height
+}
+
+func (scr *qScreen) Width() int {
+	return scr.width
 }
 
 func (scr *qScreen) RecalcViewRect() {
@@ -125,11 +133,12 @@ func (scr *qScreen) ResetTileClearUpdates() {
 }
 
 func (scr *qScreen) UpdateSize(w, h int) {
-	scr.Width = w
-	scr.Height = h
+	scr.width = w
+	scr.height = h
 	scr.RecalcViewRect()
-	updateConsoleSize()
-	statusbar.UpdateSize()
+	console.UpdateSize(w, h)
+	statusbar.UpdateSize(w, h)
+	qCanvas.UpdateSize()
 }
 
 func (scr *qScreen) tileClear() {
@@ -140,11 +149,11 @@ func (scr *qScreen) tileClear() {
 	}
 	scr.tileClearUpdates++
 
-	h := scr.Height - statusbar.Lines()
+	h := scr.height - statusbar.Lines()
 	if scr.vrect.x > 0 {
 		sw := scr.vrect.x + scr.vrect.width
 		DrawTileClear(0, 0, scr.vrect.x, h)
-		DrawTileClear(sw, 0, int(scr.Width)-sw, h)
+		DrawTileClear(sw, 0, int(scr.width)-sw, h)
 	}
 	if scr.vrect.y > 0 {
 		sh := scr.vrect.y + scr.vrect.height
@@ -162,10 +171,10 @@ func (scr *qScreen) setupToDrawConsole() {
 
 	lines := 0
 	if console.forceDuplication {
-		lines = scr.Height
+		lines = scr.height
 		scr.consoleLines = lines
 	} else if keyDestination == keys.Console {
-		lines = scr.Height / 2
+		lines = scr.height / 2
 	}
 
 	if lines != scr.consoleLines {
@@ -174,7 +183,7 @@ func (scr *qScreen) setupToDrawConsole() {
 			timeScale = 1
 		}
 		t := float32(host.FrameTime()) / timeScale
-		s := float32(scr.Height) / 600 // normalize for 800x600 screen
+		s := float32(scr.height) / 600 // normalize for 800x600 screen
 		d := int(cvars.ScreenConsoleSpeed.Value() * s * t)
 		if scr.consoleLines < lines {
 			scr.consoleLines += d
@@ -431,17 +440,17 @@ func (scr *qScreen) calcViewRect() {
 	} else {
 		size /= 100
 	}
-	w := float32(scr.Width) * size
+	w := float32(scr.width) * size
 	if w < 96 {
 		w = 96 // lower limit for icons
 	}
-	h := float32(scr.Height) * size
-	hbound := float32(scr.Height) - float32(statusbar.Lines())
+	h := float32(scr.height) * size
+	hbound := float32(scr.height) - float32(statusbar.Lines())
 	if h > hbound {
 		h = hbound // keep space for the statusbar
 	}
-	x := (float32(scr.Width) - w) / 2
-	y := (float32(scr.Height) - float32(statusbar.Lines()) - h) / 2
+	x := (float32(scr.width) - w) / 2
+	y := (float32(scr.height) - float32(statusbar.Lines()) - h) / 2
 
 	scr.vrect = Rect{
 		x:      int(x),
@@ -449,8 +458,8 @@ func (scr *qScreen) calcViewRect() {
 		width:  int(w),
 		height: int(h),
 	}
-	sh := float64(scr.Height)
-	sw := float64(scr.Width)
+	sh := float64(scr.height)
+	sw := float64(scr.width)
 
 	if cvars.FovAdapt.Bool() {
 		x := sh / sw
@@ -496,7 +505,10 @@ func (scr *qScreen) Update() {
 	scr.setupToDrawConsole()
 
 	view.Render()
-	drawSet2D()
+	qCanvas.Set(CANVAS_DEFAULT)
+	gl.Disable(gl.DEPTH_TEST)
+	gl.Disable(gl.CULL_FACE)
+	gl.Disable(gl.BLEND)
 
 	scr.tileClear()
 
@@ -536,7 +548,8 @@ func (scr *qScreen) Update() {
 	gamma := cvars.Gamma.Value()
 	contrast := cvars.Contrast.Value()
 	if contrast != 1 || gamma != 1 {
-		postProcessGammaContrast(gamma, contrast, int32(screen.Width), int32(screen.Height))
+		qCanvas.Set(CANVAS_DEFAULT)
+		postProcessGammaContrast(gamma, contrast)
 	}
 	gl.UseProgram(0) // enable fixed function pipeline
 
@@ -581,11 +594,11 @@ func screenShot(_ cmd.Arguments) error {
 			return nil
 		}
 	}
-	buffer := make([]byte, screen.Width*screen.Height*4)
+	buffer := make([]byte, screen.Width()*screen.Height()*4)
 	gl.PixelStorei(gl.PACK_ALIGNMENT, 1)
-	gl.ReadPixels(0, 0, int32(screen.Width), int32(screen.Height),
+	gl.ReadPixels(0, 0, int32(screen.Width()), int32(screen.Height()),
 		gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(buffer))
-	err := image.Write(fileName, buffer, screen.Width, screen.Height)
+	err := image.Write(fileName, buffer, screen.Width(), screen.Height())
 	if err != nil {
 		conlog.Printf("Coudn't create screenshot file\n")
 	} else {
