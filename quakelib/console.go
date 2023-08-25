@@ -45,30 +45,38 @@ type qconsole struct {
 	visibleLines     int    // con_vislines
 }
 
+func (c *qconsole) Height() int {
+	return c.height
+}
+
+func (c *qconsole) Width() int {
+	return c.width
+}
+
 func init() {
 	f := func(_ *cvar.Cvar) {
 		screen.RecalcViewRect()
-		updateConsoleSize()
+		console.UpdateSize(screen.Width(), screen.Height())
 	}
 	cvars.ScreenConsoleWidth.SetCallback(f)
 	cvars.ScreenConsoleScale.SetCallback(f)
 }
 
-func updateConsoleSize() {
+func (c *qconsole) UpdateSize(width, height int) {
 	w := func() int {
 		if cvars.ScreenConsoleWidth.Value() > 0 {
 			return int(cvars.ScreenConsoleWidth.Value())
 		}
 		if cvars.ScreenConsoleScale.Value() > 0 {
-			return int(float32(screen.Width) / cvars.ScreenConsoleScale.Value())
+			return int(float32(width) / cvars.ScreenConsoleScale.Value())
 		}
-		return screen.Width
+		return width
 	}()
-	w = math.ClampI(320, w, screen.Width)
+	w = math.ClampI(320, w, width)
 	w &= 0xFFFFFFF8
 
-	console.width = int(w)
-	console.height = console.width * screen.Height / screen.Width
+	c.width = w
+	c.height = c.width * height / width
 }
 
 // produce new line breaks in case of a new width
@@ -327,7 +335,7 @@ func (c *qconsole) Draw(lines int) {
 	if lines <= 0 {
 		return
 	}
-	c.visibleLines = lines * c.height / screen.Height
+	c.visibleLines = lines * c.height / screen.Height()
 	qCanvas.Set(CANVAS_CONSOLE)
 
 	DrawConsoleBackground()

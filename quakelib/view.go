@@ -151,11 +151,7 @@ func (v *qView) renderScene() {
 	R_AnimateLight()
 	renderer.frameCount++
 
-	gl.Viewport(
-		int32(qRefreshRect.viewRect.x),
-		int32(screen.Height-qRefreshRect.viewRect.y-qRefreshRect.viewRect.height),
-		int32(qRefreshRect.viewRect.width),
-		int32(qRefreshRect.viewRect.height))
+	qCanvas.Set(CANVAS_SCENE)
 
 	setupGl()
 
@@ -176,5 +172,5 @@ func (v *qView) polyBlend() {
 	}
 
 	textureManager.DisableMultiTexture()
-	qRecDrawer.Draw(0, 0, float32(screen.Width), float32(screen.Height), v.blendColor)
+	qRecDrawer.Draw(0, 0, float32(screen.Width()), float32(screen.Height()), v.blendColor)
 }

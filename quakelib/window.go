@@ -284,11 +284,7 @@ func vidRestart() error {
 
 	videoSetMode(width, height, fullscreen)
 
-	updateConsoleSize()
-	// keep cvars in line with actual mode
 	syncVideoCvars()
-
-	qCanvas.UpdateSize()
 
 	// update mouse grab
 	switch keyDestination {
