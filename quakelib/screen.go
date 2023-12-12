@@ -335,7 +335,7 @@ func (s *qScreen) drawCenterPrint() {
 
 	remaining := 9999
 	if cl.intermission != 0 {
-		r := time.Duration(cvars.ScreenPrintSpeed.Value()) * time.Now().Sub(s.centerTime)
+		r := time.Duration(cvars.ScreenPrintSpeed.Value()) * time.Since(s.centerTime)
 		remaining = int(r.Seconds())
 	}
 	if remaining < 1 {

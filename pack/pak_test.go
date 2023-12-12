@@ -3,7 +3,7 @@
 package pack
 
 import (
-	"io/ioutil"
+	"io"
 	"testing"
 )
 
@@ -23,7 +23,7 @@ func TestPak(t *testing.T) {
 	if f1 == nil {
 		t.Error("Got no file 'doc1.txt")
 	}
-	b1, err := ioutil.ReadAll(f1)
+	b1, err := io.ReadAll(f1)
 	if err != nil {
 		t.Fatalf("Could not read f1: %v", err)
 	}
@@ -38,7 +38,7 @@ func TestPak(t *testing.T) {
 	if f5 == nil {
 		t.Error("Got no file 'testdir/doc4.txt")
 	}
-	b5, err := ioutil.ReadAll(f5)
+	b5, err := io.ReadAll(f5)
 	if err != nil {
 		t.Fatalf("Could not read f5: %v", err)
 	}

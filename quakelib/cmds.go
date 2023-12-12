@@ -32,10 +32,8 @@ func printCmdList(a cmd.Arguments) error {
 	switch len(args) {
 	default:
 		printPartialCmdList(args[1].String())
-		return nil
 	case 0, 1:
 		printFullCmdList()
-		break
 	}
 	return nil
 }
@@ -78,15 +76,12 @@ func executeCommandLineScripts(_ cmd.Arguments) error {
 				cmd = "; " + a[1:]
 			}
 			plus = true
-			break
 		case '-':
 			plus = false
-			break
 		default:
 			if plus {
 				cmd = cmd + " " + a
 			}
-			break
 		}
 	}
 	if len(cmd) > 0 {

@@ -242,7 +242,7 @@ func SendToAll(data []byte) {
 	start := time.Now()
 TimeoutLoop:
 	for {
-		if time.Now().Sub(start) > 5*time.Second {
+		if time.Since(start) > 5*time.Second {
 			return
 		}
 		for i, c := range sv_clients {
@@ -715,7 +715,7 @@ func (c *SVClient) spawnCmd() error {
 		if err := vm.ExecuteProgram(progsdat.Globals.ClientConnect); err != nil {
 			return err
 		}
-		if time.Now().Sub(c.ConnectTime()).Seconds() <= float64(sv.time) {
+		if time.Since(c.ConnectTime()).Seconds() <= float64(sv.time) {
 			log.Printf("%v entered the game\n", c.name)
 		}
 		if err := vm.ExecuteProgram(progsdat.Globals.PutClientInServer); err != nil {
@@ -1012,7 +1012,7 @@ func (c *SVClient) tellCmd(a cmd.Arguments) error {
 		if !ac.active || !ac.spawned {
 			continue
 		}
-		if strings.ToLower(ac.name) != strings.ToLower(args[1].String()) {
+		if !strings.EqualFold(ac.name, args[1].String()) {
 			continue
 		}
 		// TODO: We check without case check. Are names unique ignoring the case?
@@ -1142,7 +1142,7 @@ func (c *SVClient) sayCmd(team bool, a cmd.Arguments) {
 		ac.Printf(text)
 	}
 	if cmdl.Dedicated() {
-		log.Printf(text)
+		log.Print(text)
 	}
 }
 

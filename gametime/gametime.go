@@ -32,7 +32,7 @@ func (h *GameTime) FrameIncrease()     { h.frameCount++ }
 // UpdateTime updates the host time.
 // Returns false if it would exceed max fps
 func (h *GameTime) UpdateTime(timedemo bool) bool {
-	h.time = time.Now().Sub(startTime).Seconds()
+	h.time = time.Since(startTime).Seconds()
 	maxFPS := math.Clamp(10.0, float64(cvars.HostMaxFps.Value()), 1000.0)
 	if !timedemo && (h.time-h.oldTime < 1/maxFPS) {
 		return false

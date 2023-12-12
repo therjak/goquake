@@ -270,10 +270,8 @@ func toggle(a cmd.Arguments) error {
 			log.Printf("toggle: Cvar not found %v", arg)
 			conlog.Printf("toggle: variable %v not found\n", arg)
 		}
-		break
 	default:
 		conlog.Printf("toggle <cvar> : toggle cvar\n")
-		break
 	}
 	return nil
 }
@@ -344,7 +342,6 @@ func list(a cmd.Arguments) error {
 	switch len(args) {
 	default:
 		partialList(args[1])
-		return nil
 	case 0, 1:
 		fullList()
 	}

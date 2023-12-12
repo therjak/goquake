@@ -19,13 +19,10 @@ func alias(a cmd.Arguments) error {
 	switch c := len(args); c {
 	case 0:
 		listAliases()
-		break
 	case 1:
 		printAlias(args[0])
-		break
 	default:
 		setAlias(args)
-		break
 	}
 	return nil
 }
@@ -88,10 +85,8 @@ func unalias(a cmd.Arguments) error {
 		} else {
 			conlog.Printf("No alias named %s\n", name)
 		}
-		break
 	default:
 		conlog.Printf("unalias <name> : delete alias\n")
-		break
 	}
 	return nil
 }

@@ -178,22 +178,6 @@ func hostPause(a cmd.Arguments) error {
 	return nil
 }
 
-func concatArgs(args []cmd.QArg) string {
-	n := len(args)
-	for i := 0; i < len(args); i++ {
-		n += len(args[i].String())
-	}
-	var b strings.Builder
-	b.Grow(n)
-	b.WriteString(args[0].String())
-	for _, s := range args[1:] {
-		b.WriteString(" ")
-		b.WriteString(s.String())
-	}
-	b.WriteString("\n")
-	return b.String()
-}
-
 func hostTell(a cmd.Arguments) error {
 	if len(a.Args()) < 3 {
 		// need at least destination and message

@@ -7,7 +7,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"strings"
 
 	"goquake/filesystem"
@@ -51,7 +50,7 @@ func getWad() ([]byte, error) {
 		return nil, err
 	}
 	defer file.Close()
-	return ioutil.ReadAll(file)
+	return io.ReadAll(file)
 }
 
 func getLumps(data []byte) ([]lump, error) {
