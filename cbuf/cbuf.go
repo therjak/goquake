@@ -65,8 +65,7 @@ func (c *CommandBuffer) InsertText(text string) {
 }
 
 func (c *CommandBuffer) SetCommandExecutors(e []Efunc) {
-	var wait Efunc
-	wait = func(a cmd.Arguments) (bool, error) {
+	var wait Efunc = func(a cmd.Arguments) (bool, error) {
 		n := a.Args()
 		if len(n) == 0 {
 			return false, nil

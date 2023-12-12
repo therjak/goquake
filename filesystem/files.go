@@ -7,7 +7,6 @@ package filesystem
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -20,7 +19,7 @@ import (
 
 var (
 	baseDir string
-	baseNS  = vfs.NewNameSpace()
+	//baseNS  = vfs.NewNameSpace()
 	gameDir string
 	gameNS  vfs.NameSpace
 	mutex   sync.RWMutex
@@ -140,7 +139,7 @@ func GetFileContents(name string) ([]byte, error) {
 		return nil, err
 	}
 	defer file.Close()
-	return ioutil.ReadAll(file)
+	return io.ReadAll(file)
 }
 
 func isSep(c uint8) bool {

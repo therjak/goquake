@@ -258,7 +258,7 @@ func (v *virtualMachine) printStatement(s progs.Statement) {
 		conlog.Printf("%sbranch %d", v.prog.GlobalString(s.A), s.A)
 	} else if s.Operator == operatorGOTO {
 		conlog.Printf("branch %d", s.A)
-	} else if d := s.Operator - operatorSTORE_F; d < 6 && d >= 0 {
+	} else if d := s.Operator - operatorSTORE_F; d < 6 {
 		conlog.Printf("%s", v.prog.GlobalString(s.A))
 		conlog.Printf("%s", v.prog.GlobalStringNoContents(s.B))
 	} else {
@@ -309,7 +309,7 @@ func (v *virtualMachine) runError(format string, a ...interface{}) error {
 	return fmt.Errorf("Program error")
 }
 
-//Returns the new program statement counter
+// Returns the new program statement counter
 func (v *virtualMachine) enterFunction(f *progs.Function) (int32, error) {
 	if len(v.stack) == cap(v.stack) {
 		return 0, v.runError("stack overflow")
@@ -365,7 +365,7 @@ func (v *virtualMachine) leaveFunction() (int32, error) {
 	return top.statement, nil
 }
 
-//  The interpretation main loop
+// The interpretation main loop
 func (v *virtualMachine) ExecuteProgram(fnum int32) error {
 	if fnum == 0 || int(fnum) >= len(v.prog.Functions) {
 		if v.prog.Globals.Self != 0 {

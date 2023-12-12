@@ -35,7 +35,6 @@ var (
 )
 
 type qKeyInput struct {
-	text       string
 	buf        []byte
 	cursorXPos int
 	insert     bool

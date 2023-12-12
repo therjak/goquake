@@ -3,7 +3,7 @@
 package filesystem
 
 import (
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"goquake/pack"
@@ -19,7 +19,7 @@ func TestPackFileSystem(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not open doc1: %v", err)
 	}
-	b, err := ioutil.ReadAll(f)
+	b, err := io.ReadAll(f)
 	if err != nil {
 		t.Fatalf("Could not read file: %v", err)
 	}
@@ -34,7 +34,7 @@ func TestFilesystemOrder(t *testing.T) {
 	if err != nil {
 		t.Fatalf("No file doc1: %v", err)
 	}
-	b, err := ioutil.ReadAll(f)
+	b, err := io.ReadAll(f)
 	if err != nil {
 		t.Fatalf("Could not read file: %v", err)
 	}
@@ -49,7 +49,7 @@ func TestFilesystemPak(t *testing.T) {
 	if err != nil {
 		t.Fatalf("No file doc2: %v", err)
 	}
-	b, err := ioutil.ReadAll(f)
+	b, err := io.ReadAll(f)
 	if err != nil {
 		t.Fatalf("Could not read file: %v", err)
 	}
@@ -64,7 +64,7 @@ func TestFilesystemOs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("No file doc5: %v", err)
 	}
-	b, err := ioutil.ReadAll(f)
+	b, err := io.ReadAll(f)
 	if err != nil {
 		t.Fatalf("Could not read file: %v", err)
 	}

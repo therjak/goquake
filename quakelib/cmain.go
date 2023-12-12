@@ -5,8 +5,8 @@ package quakelib
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"runtime/debug"
 	"time"
@@ -394,7 +394,7 @@ func HostWriteConfiguration() error {
 	}
 
 	filename := filepath.Join(filesystem.GameDir(), "config.cfg")
-	err := ioutil.WriteFile(filename, b.Bytes(), 0644)
+	err := os.WriteFile(filename, b.Bytes(), 0644)
 	if err != nil {
 		return fmt.Errorf("Couldn't write config.cfg: %w\n", err)
 	}
@@ -405,7 +405,7 @@ func shutdown() {
 	screen.disabled = true
 	if hostInitialized {
 		if err := HostWriteConfiguration(); err != nil {
-			log.Printf(err.Error())
+			log.Print(err.Error())
 		}
 	}
 	net.Shutdown()

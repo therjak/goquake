@@ -311,7 +311,7 @@ func (d *qBrushDrawer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *En
 	gl.Uniform1f(d.alpha, entalpha)
 	gl.Uniform1f(d.fogDensity, fog.Density)
 	gl.Uniform4f(d.fogColor, fog.Color.R, fog.Color.G, fog.Color.B, 0)
-	gl.Uniform1f(d.time, float32(time.Now().Sub(d.startTime).Seconds()))
+	gl.Uniform1f(d.time, float32(time.Since(d.startTime).Seconds()))
 	view.projection.SetAsUniform(d.projection)
 	mv.SetAsUniform(d.modelview)
 

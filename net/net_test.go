@@ -48,7 +48,7 @@ func TestUDPReadUnreliable(t *testing.T) {
 
 	got := <-out
 	want := []byte{2, 1, 2, 45, 5}
-	if bytes.Compare(got.data, want) != 0 {
+	if !bytes.Equal(got.data, want) {
 		t.Fatalf("Got wrong unreliable sequence. want %v, got %v", want, got.data)
 	}
 
@@ -67,7 +67,7 @@ func TestUDPReadUnreliable(t *testing.T) {
 
 	got = <-out
 	want = []byte{2, 83, 212, 43}
-	if bytes.Compare(got.data, want) != 0 {
+	if !bytes.Equal(got.data, want) {
 		t.Fatalf("Got wrong unreliable sequence. want %v, got %v", want, got.data)
 	}
 
@@ -86,7 +86,7 @@ func TestUDPReadUnreliable(t *testing.T) {
 
 	got = <-out
 	want = []byte{2, 25, 11, 53, 62, 62, 66, 67, 68}
-	if bytes.Compare(got.data, want) != 0 {
+	if !bytes.Equal(got.data, want) {
 		t.Fatalf("Got wrong unreliable sequence. want %v, got %v", want, got.data)
 	}
 }
@@ -112,13 +112,13 @@ func TestUDPReadReliableSinglePacket(t *testing.T) {
 		t.Fatalf("Could not read ACK")
 	}
 	wantRet := []byte{0, 2, 0, 8, 0, 0, 0, 0} // ACK(2), len(8), seq(0)
-	if bytes.Compare(ret, wantRet) != 0 {
+	if !bytes.Equal(ret, wantRet) {
 		t.Errorf("wrong Ack. want %v got %v", wantRet, ret)
 	}
 
 	got := <-out
 	want := []byte{1, 1, 2, 45, 5}
-	if bytes.Compare(got.data, want) != 0 {
+	if !bytes.Equal(got.data, want) {
 		t.Fatalf("Got wrong unreliable sequence. want %v, got %v", want, got.data)
 	}
 
@@ -132,7 +132,7 @@ func TestUDPReadReliableSinglePacket(t *testing.T) {
 		t.Fatalf("Could not read ACK")
 	}
 	wantRet = []byte{0, 2, 0, 8, 0, 0, 0, 0}
-	if bytes.Compare(ret, wantRet) != 0 {
+	if !bytes.Equal(ret, wantRet) {
 		t.Errorf("wrong Ack. want %v got %v", wantRet, ret)
 	}
 
@@ -146,13 +146,13 @@ func TestUDPReadReliableSinglePacket(t *testing.T) {
 		t.Fatalf("Could not read ACK")
 	}
 	wantRet = []byte{0, 2, 0, 8, 0, 0, 0, 1}
-	if bytes.Compare(ret, wantRet) != 0 {
+	if !bytes.Equal(ret, wantRet) {
 		t.Errorf("wrong Ack. want %v got %v", wantRet, ret)
 	}
 
 	got = <-out
 	want = []byte{1, 83, 212, 43}
-	if bytes.Compare(got.data, want) != 0 {
+	if !bytes.Equal(got.data, want) {
 		t.Fatalf("Got wrong unreliable sequence. want %v, got %v", want, got.data)
 	}
 }
@@ -193,14 +193,14 @@ func TestUDPReadDualMessage(t *testing.T) {
 	want := []byte{2, 2, 7, 180, 232, 18, 67, 15, 34, 70, 12, 20, 1, 17, 0, 0,
 		65, 100, 0, 25, 25, 0, 0, 0, 1, 207, 1, 2, 7, 167, 4, 253, 0, 54, 64, 3,
 		128, 46, 128, 47, 128, 59, 128, 65, 128, 81, 128, 82, 128, 83}
-	if bytes.Compare(got.data, want) != 0 {
+	if !bytes.Equal(got.data, want) {
 		t.Fatalf("Got wrong unreliable message 1. want %v, got %v", want, got.data)
 	}
 	got = <-out
 	want = []byte{2, 2, 7, 80, 237, 18, 67, 15, 162, 66, 12, 20, 0, 1, 17, 0,
 		0, 65, 100, 0, 25, 25, 0, 0, 0, 1, 207, 1, 2, 7, 213, 4, 253, 0, 54, 62,
 		3, 128, 46, 128, 47, 128, 59, 128, 65, 128, 81, 128, 82, 128, 83}
-	if bytes.Compare(got.data, want) != 0 {
+	if !bytes.Equal(got.data, want) {
 		t.Fatalf("Got wrong unreliable message 2. want %v, got %v", want, got.data)
 	}
 }
@@ -226,7 +226,7 @@ func TestUDPReadReliableMultiPacket(t *testing.T) {
 		t.Fatalf("Could not read ACK")
 	}
 	wantRet := []byte{0, 2, 0, 8, 0, 0, 0, 0} // ACK(2), len(8), seq(0)
-	if bytes.Compare(ret, wantRet) != 0 {
+	if !bytes.Equal(ret, wantRet) {
 		t.Errorf("wrong Ack. want %v got %v", wantRet, ret)
 	}
 
@@ -239,13 +239,13 @@ func TestUDPReadReliableMultiPacket(t *testing.T) {
 		t.Fatalf("Could not read ACK")
 	}
 	wantRet = []byte{0, 2, 0, 8, 0, 0, 0, 1}
-	if bytes.Compare(ret, wantRet) != 0 {
+	if !bytes.Equal(ret, wantRet) {
 		t.Errorf("wrong Ack. want %v got %v", wantRet, ret)
 	}
 
 	got := <-out
 	want := []byte{1, 1, 2, 45, 5, 83, 212, 43} // 1 + msg1 + msg2
-	if bytes.Compare(got.data, want) != 0 {
+	if !bytes.Equal(got.data, want) {
 		t.Fatalf("Got wrong unreliable sequence. want %v, got %v", want, got.data)
 	}
 }
@@ -270,7 +270,7 @@ func TestUDPWriteUnreliable(t *testing.T) {
 		t.Errorf("Got wrong number of bytes: want %v got %v", 4+8, i)
 	}
 	want := []byte{0, 0x10, 0, 12, 0, 0, 0, 0, 1, 2, 45, 5}
-	if bytes.Compare(want, got[:i]) != 0 {
+	if !bytes.Equal(want, got[:i]) {
 		t.Errorf("Got wrong message: want %v, got %v", want, got[:i])
 	}
 
@@ -283,7 +283,7 @@ func TestUDPWriteUnreliable(t *testing.T) {
 		t.Errorf("Got wrong number of bytes: want %v got %v", 3+8, i)
 	}
 	want = []byte{0, 0x10, 0, 11, 0, 0, 0, 1, 84, 212, 43}
-	if bytes.Compare(want, got[:i]) != 0 {
+	if !bytes.Equal(want, got[:i]) {
 		t.Errorf("Got wrong message: want %v, got %v", want, got[:i])
 	}
 }
@@ -309,7 +309,7 @@ func TestUDPWriteReliable(t *testing.T) {
 	}
 	// 0x00 0x09 == NETFLAG_DATA + NETFLAG_EOM
 	want := []byte{0, 0x09, 0, 12, 0, 0, 0, 0, 1, 2, 45, 5}
-	if bytes.Compare(want, got[:i]) != 0 {
+	if !bytes.Equal(want, got[:i]) {
 		t.Errorf("Got wrong message: want %v, got %v", want, got[:i])
 	}
 	acks <- 0 // ack the sequence 0,0,0,0
@@ -327,7 +327,7 @@ func TestUDPWriteReliable(t *testing.T) {
 		t.Errorf("Got wrong number of bytes: want %v got %v", 3+8, i)
 	}
 	want = []byte{0, 0x09, 0, 11, 0, 0, 0, 1, 84, 212, 43}
-	if bytes.Compare(want, got[:i]) != 0 {
+	if !bytes.Equal(want, got[:i]) {
 		t.Errorf("Got wrong message: want %v, got %v", want, got[:i])
 	}
 	acks <- 1 // ack the 0,0,0,1
