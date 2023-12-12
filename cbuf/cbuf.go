@@ -4,33 +4,30 @@ package cbuf
 
 import (
 	"goquake/cmd"
-	"goquake/execute"
+	"strings"
 )
 
 var (
+	cbuf CommandBuffer
+)
+
+type CommandBuffer struct {
 	// original: buffer of 8192 byte size
-	cbuf string
+	buf string
 	// toogle to add a wait to Cbuf_Execute,
 	// causing the following commands to be executed one frame later
 	wait bool
-)
 
-func init() {
-	cmd.Must(cmd.AddCommand("wait", waitCmd))
+	ex executors
 }
 
-func waitCmd(_ cmd.Arguments) error {
-	wait = true
-	return nil
-}
-
-func Execute() {
-	for len(cbuf) != 0 {
+func (c *CommandBuffer) Execute() {
+	for len(c.buf) != 0 {
 		i := 0
 		quote := false
 	LineLoop:
-		for i = 0; i < len(cbuf); i++ {
-			switch cbuf[i] {
+		for i = 0; i < len(c.buf); i++ {
+			switch c.buf[i] {
 			case '"':
 				quote = !quote
 				continue LineLoop
@@ -44,25 +41,64 @@ func Execute() {
 			}
 		}
 		// do not put ';' or '\n' in line
-		line := cbuf[:i]
+		line := c.buf[:i]
 		// but remove this char as well
-		if i < len(cbuf) {
+		if i < len(c.buf) {
 			i++
 		}
-		cbuf = cbuf[i:]
-		execute.ExecuteCommand(line)
-		if wait {
+		c.buf = c.buf[i:]
+		c.ex.execute(line)
+		if c.wait {
 			// wait for the next frame to continue executing
-			wait = false
+			c.wait = false
 			return
 		}
 	}
 }
 
-func AddText(text string) {
-	cbuf = cbuf + text
+func (c *CommandBuffer) AddText(text string) {
+	c.buf = c.buf + text
+}
+
+func (c *CommandBuffer) InsertText(text string) {
+	c.buf = text + "\n" + c.buf
+}
+
+func (c *CommandBuffer) SetCommandExecutors(e []Efunc) {
+	var wait Efunc
+	wait = func(a cmd.Arguments) (bool, error) {
+		n := a.Args()
+		if len(n) == 0 {
+			return false, nil
+		}
+		name := strings.ToLower(n[0].String())
+		if name == "wait" {
+			c.wait = true
+			return true, nil
+		}
+		return false, nil
+	}
+	c.ex = append([]Efunc{wait}, e...)
+}
+
+// TODO(therjak): the following functions are deprecated and should be removed
+
+func Execute() {
+	cbuf.Execute()
 }
 
 func InsertText(text string) {
-	cbuf = text + "\n" + cbuf
+	cbuf.InsertText(text)
+}
+
+func AddText(text string) {
+	cbuf.AddText(text)
+}
+
+func SetCommandExecutors(e []Efunc) {
+	cbuf.SetCommandExecutors(e)
+}
+
+func ExecuteCommand(s string) error {
+	return cbuf.ex.execute(s)
 }

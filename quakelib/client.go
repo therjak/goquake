@@ -20,7 +20,6 @@ import (
 	"goquake/conlog"
 	"goquake/cvar"
 	"goquake/cvars"
-	"goquake/execute"
 	"goquake/filesystem"
 	"goquake/input"
 	"goquake/keys"
@@ -493,8 +492,8 @@ func (c *ClientStatic) getMessage() int {
 	return r
 }
 
-//Sends a disconnect message to the server
-//This is also called on Host_Error, so it shouldn't cause any errors
+// Sends a disconnect message to the server
+// This is also called on Host_Error, so it shouldn't cause any errors
 func (c *ClientStatic) Disconnect() error {
 	if keyDestination == keys.Message {
 		// don't get stuck in chat mode
@@ -1460,7 +1459,9 @@ func clientRecordDemo(a cmd.Arguments) error {
 		conlog.Printf("Forcing CD track to %i\n", track)
 	}
 	if len(args) > 1 {
-		if err := execute.ExecuteCommand(
+		// THERJAK: this should be the same as
+		// if err := hostMap(cmd.Parse(fmt.Sprintf(....)); ...
+		if err := cbuf.ExecuteCommand(
 			fmt.Sprintf("map %s", args[1].String())); err != nil {
 			return err
 		}
