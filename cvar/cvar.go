@@ -7,6 +7,7 @@ import (
 	"log"
 	"strconv"
 
+	"goquake/cbuf"
 	"goquake/cmd"
 	"goquake/conlog"
 )
@@ -185,7 +186,7 @@ func MustRegister(n, v string, flag flag) *Cvar {
 	return cv
 }
 
-func Execute(a cmd.Arguments) (bool, error) {
+func Execute(cb *cbuf.CommandBuffer, a cbuf.Arguments) (bool, error) {
 	args := a.Args()
 	if len(args) == 0 {
 		return false, nil
@@ -216,7 +217,7 @@ func init() {
 	cmd.Must(cmd.AddCommand("toggle", toggle))
 }
 
-func set(a cmd.Arguments) error {
+func set(a cbuf.Arguments) error {
 	args := a.Args()[1:]
 	switch {
 	case len(args) >= 2:
@@ -236,7 +237,7 @@ func set(a cmd.Arguments) error {
 	return nil
 }
 
-func seta(a cmd.Arguments) error {
+func seta(a cbuf.Arguments) error {
 	args := a.Args()[1:]
 	switch {
 	case len(args) >= 2:
@@ -259,7 +260,7 @@ func seta(a cmd.Arguments) error {
 	return nil
 }
 
-func toggle(a cmd.Arguments) error {
+func toggle(a cbuf.Arguments) error {
 	args := a.Args()[1:]
 	switch c := len(args); c {
 	case 1:
@@ -285,7 +286,7 @@ func incr(n string, v float32) {
 	}
 }
 
-func inc(a cmd.Arguments) error {
+func inc(a cbuf.Arguments) error {
 	args := a.Args()[1:]
 	switch c := len(args); c {
 	case 1:
@@ -300,7 +301,7 @@ func inc(a cmd.Arguments) error {
 	return nil
 }
 
-func reset(a cmd.Arguments) error {
+func reset(a cbuf.Arguments) error {
 	args := a.Args()[1:]
 	switch c := len(args); c {
 	case 1:
@@ -317,7 +318,7 @@ func reset(a cmd.Arguments) error {
 	return nil
 }
 
-func resetAll(_ cmd.Arguments) error {
+func resetAll(_ cbuf.Arguments) error {
 	// bail if args not empty?
 	for _, cv := range All() {
 		cv.Reset()
@@ -325,7 +326,7 @@ func resetAll(_ cmd.Arguments) error {
 	return nil
 }
 
-func resetCfg(_ cmd.Arguments) error {
+func resetCfg(_ cbuf.Arguments) error {
 	// bail if args not empty?
 	for _, cv := range All() {
 		if cv.Archive() {
@@ -335,7 +336,7 @@ func resetCfg(_ cmd.Arguments) error {
 	return nil
 }
 
-func list(a cmd.Arguments) error {
+func list(a cbuf.Arguments) error {
 	// TODO(therjak):
 	// this should probably print the syntax of cvarlist if len(args) > 2
 	args := a.Args()
@@ -370,14 +371,14 @@ func fullList() {
 	conlog.SafePrintf("%v cvars\n", len(cvars))
 }
 
-func partialList(p cmd.QArg) {
+func partialList(p cbuf.QArg) {
 	log.Printf("TODO")
 	// if beginning of name == p
 	// same as ListFull
 	// in length print add ("beginning with \"%s\"", p)
 }
 
-func cycle(a cmd.Arguments) error {
+func cycle(a cbuf.Arguments) error {
 	args := a.Args()[1:]
 	if len(args) < 2 {
 		conlog.Printf("cycle <cvar> <value list>: cycle cvar through a list of values\n")

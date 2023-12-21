@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math/bits"
 
-	"goquake/cmd"
+	"goquake/cbuf"
 	cmdl "goquake/commandline"
 	"goquake/cvar"
 	"goquake/cvars"
@@ -21,11 +21,11 @@ var (
 )
 
 func init() {
-	addCommand("+showscores", func(_ cmd.Arguments) error {
+	addCommand("+showscores", func(_ cbuf.Arguments) error {
 		statusbar.ShowScores()
 		return nil
 	})
-	addCommand("-showscores", func(_ cmd.Arguments) error {
+	addCommand("-showscores", func(_ cbuf.Arguments) error {
 		statusbar.HideScores()
 		return nil
 	})
@@ -94,7 +94,7 @@ func (s *qstatusbar) UpdateSize(w, h int) {
 	s.MarkChanged()
 }
 
-//sortFrags updates s.sortByFrags to have descending frag counts
+// sortFrags updates s.sortByFrags to have descending frag counts
 func (s *qstatusbar) sortFrags() {
 	// There are no more than 16 elements, so performance does not matter
 	if cap(s.sortByFrags) < 16 {

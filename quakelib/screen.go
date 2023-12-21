@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"goquake/cmd"
+	"goquake/cbuf"
 	cmdl "goquake/commandline"
 	"goquake/conlog"
 	"goquake/cvar"
@@ -562,12 +562,12 @@ func init() {
 	addCommand("sizedown", screenSizedown)
 }
 
-func screenSizeup(_ cmd.Arguments) error {
+func screenSizeup(_ cbuf.Arguments) error {
 	cvars.ViewSize.SetValue(cvars.ViewSize.Value() + 10)
 	return nil
 }
 
-func screenSizedown(_ cmd.Arguments) error {
+func screenSizedown(_ cbuf.Arguments) error {
 	cvars.ViewSize.SetValue(cvars.ViewSize.Value() - 10)
 	return nil
 }
@@ -580,7 +580,7 @@ func fileExists(filename string) bool {
 	return !info.IsDir()
 }
 
-func screenShot(_ cmd.Arguments) error {
+func screenShot(_ cbuf.Arguments) error {
 	var pngName string
 	var fileName string
 	for i := 0; i < 10000; i++ {

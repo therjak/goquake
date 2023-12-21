@@ -3,7 +3,6 @@
 package cbuf
 
 import (
-	"goquake/cmd"
 	"strings"
 )
 
@@ -47,7 +46,7 @@ func (c *CommandBuffer) Execute() {
 			i++
 		}
 		c.buf = c.buf[i:]
-		c.ex.execute(line)
+		c.ex.execute(c, line)
 		if c.wait {
 			// wait for the next frame to continue executing
 			c.wait = false
@@ -65,14 +64,14 @@ func (c *CommandBuffer) InsertText(text string) {
 }
 
 func (c *CommandBuffer) SetCommandExecutors(e []Efunc) {
-	var wait Efunc = func(a cmd.Arguments) (bool, error) {
+	var wait Efunc = func(cb *CommandBuffer, a Arguments) (bool, error) {
 		n := a.Args()
 		if len(n) == 0 {
 			return false, nil
 		}
 		name := strings.ToLower(n[0].String())
 		if name == "wait" {
-			c.wait = true
+			cb.wait = true
 			return true, nil
 		}
 		return false, nil
@@ -99,5 +98,5 @@ func SetCommandExecutors(e []Efunc) {
 }
 
 func ExecuteCommand(s string) error {
-	return cbuf.ex.execute(s)
+	return cbuf.ex.execute(&cbuf, s)
 }

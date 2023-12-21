@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"goquake/cbuf"
-	"goquake/cmd"
 	cmdl "goquake/commandline"
 	"goquake/conlog"
 	"goquake/cvar"
@@ -31,7 +30,7 @@ var (
 	hostInitialized bool
 )
 
-func svProtocol(a cmd.Arguments) error {
+func svProtocol(a cbuf.Arguments) error {
 	args := a.Args()[1:]
 	switch len(args) {
 	default:

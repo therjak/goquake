@@ -60,26 +60,26 @@ func makeNetJoinMenu() *qNetJoinMenu {
 }
 
 /*
-type joinGameSearchMenuItem struct {
-	qMenuItem
-	accepter qAccept
-}
+	type joinGameSearchMenuItem struct {
+		qMenuItem
+		accepter qAccept
+	}
 
-func (m *joinGameSearchMenuItem) Draw() {
-	drawString(60, m.Y, "Search for local games...")
-	// the following is a little bit hacky as is does not belong to this item
-	drawString(60, 108, "Join game at:")
-}
+	func (m *joinGameSearchMenuItem) Draw() {
+		drawString(60, m.Y, "Search for local games...")
+		// the following is a little bit hacky as is does not belong to this item
+		drawString(60, 108, "Join game at:")
+	}
 
-func (m *joinGameSearchMenuItem) Enter() {
-	qmenu.playEnterSound = true
-	m.accepter.Accept() // to update the port
-	//  M_Menu_Search_f();
-}
+	func (m *joinGameSearchMenuItem) Enter() {
+		qmenu.playEnterSound = true
+		m.accepter.Accept() // to update the port
+		//  M_Menu_Search_f();
+	}
 
-func (m *joinGameSearchMenuItem) Update(a qAccept) {
-	m.accepter = a
-}
+	func (m *joinGameSearchMenuItem) Update(a qAccept) {
+		m.accepter = a
+	}
 */
 type newGameOkMenuItem struct {
 	qMenuItem

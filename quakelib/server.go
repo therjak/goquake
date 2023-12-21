@@ -335,7 +335,7 @@ func (s *Server) WriteClientdataToMessage(player int) {
 }
 
 // Initializes a client_t for a new net connection.  This will only be called
-//once for a player each game, not once for each level change.
+// once for a player each game, not once for each level change.
 func ConnectClient(n int) error {
 	old := sv_clients[n]
 	newC := &SVClient{
@@ -647,7 +647,7 @@ func runThink(e int) (bool, error) {
 	return !ed.Free, nil
 }
 
-//Does not change the entities velocity at all
+// Does not change the entities velocity at all
 func pushEntity(e int, push vec.Vec3) (bsp.Trace, error) {
 	ev := entvars.Get(e)
 	origin := ev.Origin
@@ -874,8 +874,8 @@ func init() {
 	})
 }
 
-//Grabs the current state of each client for saving across the
-//transition to another level
+// Grabs the current state of each client for saving across the
+// transition to another level
 func SV_SaveSpawnparms() error {
 	svs.serverFlags = progsdat.Globals.ServerFlags
 
@@ -933,7 +933,7 @@ func (s *Server) ResetServer() error {
 	return nil
 }
 
-//This is called at the start of each level
+// This is called at the start of each level
 func (s *Server) SpawnServer(mapName string, pcl int) error {
 	// let's not have any servers with no name
 	if len(cvars.HostName.String()) == 0 {

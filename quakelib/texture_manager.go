@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"goquake/cmd"
+	"goquake/cbuf"
 	"goquake/conlog"
 	"goquake/cvar"
 	"goquake/cvars"
@@ -38,7 +38,7 @@ var (
 	}
 )
 
-func describeTextureModes(_ cmd.Arguments) error {
+func describeTextureModes(_ cbuf.Arguments) error {
 	for i, m := range glModes {
 		conlog.SafePrintf("   %2d: %s", i+1, m.name)
 	}
@@ -48,7 +48,7 @@ func describeTextureModes(_ cmd.Arguments) error {
 
 func init() {
 	addCommand("gl_describetexturemodes", describeTextureModes)
-	addCommand("imagelist", func(_ cmd.Arguments) error {
+	addCommand("imagelist", func(_ cbuf.Arguments) error {
 		textureManager.logTextures()
 		return nil
 	})

@@ -375,7 +375,7 @@ func (q *qphysics) none(ent int) error {
 	return nil
 }
 
-//A moving object that doesn't obey physics
+// A moving object that doesn't obey physics
 func (q *qphysics) noClip(ent int) error {
 	if ok, err := runThink(ent); err != nil {
 		return err
@@ -585,12 +585,12 @@ func (q *qphysics) checkStuck(ent int) error {
 	return nil
 }
 
-//The basic solid body movement clip that slides along multiple planes
-//Returns the clipflags if the velocity was modified (hit something solid)
-//1 = floor
-//2 = wall / step
-//4 = dead stop
-//If steptrace is not NULL, the trace of any vertical wall hit will be stored
+// The basic solid body movement clip that slides along multiple planes
+// Returns the clipflags if the velocity was modified (hit something solid)
+// 1 = floor
+// 2 = wall / step
+// 4 = dead stop
+// If steptrace is not NULL, the trace of any vertical wall hit will be stored
 func (q *qphysics) flyMove(ent int, time float32, steptrace *bsp.Trace) (int, error) {
 	const MAX_CLIP_PLANES = 5
 	planes := [MAX_CLIP_PLANES]vec.Vec3{}

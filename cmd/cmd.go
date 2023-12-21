@@ -4,11 +4,12 @@ package cmd
 
 import (
 	"fmt"
+	"goquake/cbuf"
 	"sort"
 	"strings"
 )
 
-type QFunc func(args Arguments) error
+type QFunc func(args cbuf.Arguments) error
 
 type Commands map[string]QFunc
 
@@ -41,7 +42,7 @@ func (c *Commands) List() []string {
 	return cmds
 }
 
-func (c *Commands) Execute(a Arguments) (bool, error) {
+func (c *Commands) Execute(cb *cbuf.CommandBuffer, a cbuf.Arguments) (bool, error) {
 	n := a.Args()
 	if len(n) == 0 {
 		return false, nil
@@ -74,8 +75,8 @@ func Exists(cmdName string) bool {
 	return commands.Exists(cmdName)
 }
 
-func Execute(a Arguments) (bool, error) {
-	return commands.Execute(a)
+func Execute(cb *cbuf.CommandBuffer, a cbuf.Arguments) (bool, error) {
+	return commands.Execute(cb, a)
 }
 
 func List() []string {

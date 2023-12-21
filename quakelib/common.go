@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"goquake/cmd"
+	"goquake/cbuf"
 	cmdl "goquake/commandline"
 	"goquake/conlog"
 	"goquake/cvar"
@@ -23,12 +23,12 @@ func init() {
 	})
 }
 
-func CmdPath(a cmd.Arguments) error {
+func CmdPath(a cbuf.Arguments) error {
 	// TODO
 	log.Printf("path called")
 	return nil
 }
-func CmdGame(args cmd.Arguments) error {
+func CmdGame(args cbuf.Arguments) error {
 	// TODO
 	return nil
 }

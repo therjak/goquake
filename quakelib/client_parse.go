@@ -342,9 +342,9 @@ func newMap(m *bsp.Model) error {
 	return nil
 }
 
-//ParseEntityUpdate parses an entity update message from the server
-//If an entities model or origin changes from frame to frame, it must be
-//relinked. Other attributes can change without relinking.
+// ParseEntityUpdate parses an entity update message from the server
+// If an entities model or origin changes from frame to frame, it must be
+// relinked. Other attributes can change without relinking.
 func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) {
 	if cls.signon == 3 {
 		// first update is the final signon stage

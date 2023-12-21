@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"goquake/cmd"
+	"goquake/cbuf"
 	cmdl "goquake/commandline"
 	"goquake/conlog"
 	"goquake/cvars"
@@ -15,7 +15,7 @@ import (
 	"goquake/version"
 )
 
-func hostFwd(a cmd.Arguments) error {
+func hostFwd(a cbuf.Arguments) error {
 	forwardToServer(a)
 	return nil
 }
@@ -36,7 +36,7 @@ func init() {
 	addCommand("connect", hostConnect)
 	addCommand("map", hostMap)
 	addCommand("mapname", hostMapName)
-	addCommand("quit", func(a cmd.Arguments) error { return hostQuit() })
+	addCommand("quit", func(a cbuf.Arguments) error { return hostQuit() })
 	addCommand("restart", hostRestart)
 	addCommand("version", hostVersion)
 	addCommand("stopdemo", hostStopDemo)
@@ -53,7 +53,7 @@ func init() {
 }
 
 // Return to looping demos
-func hostStopDemo(a cmd.Arguments) error {
+func hostStopDemo(a cbuf.Arguments) error {
 	if cmdl.Dedicated() {
 		return nil
 	}
@@ -68,7 +68,7 @@ func hostStopDemo(a cmd.Arguments) error {
 }
 
 // Return to looping demos
-func hostDemos(a cmd.Arguments) error {
+func hostDemos(a cbuf.Arguments) error {
 	if cmdl.Dedicated() {
 		return nil
 	}
@@ -101,12 +101,12 @@ func hostQuit() error {
 	return nil
 }
 
-func hostVersion(a cmd.Arguments) error {
+func hostVersion(a cbuf.Arguments) error {
 	conlog.Printf("GoQuake Version %1.2f.%d\n", version.Base, version.Patch)
 	return nil
 }
 
-func hostGod(a cmd.Arguments) error {
+func hostGod(a cbuf.Arguments) error {
 	args := a.Args()
 	if len(args) > 2 {
 		conlog.Printf("god [value] : toggle god mode. values: 0 = off, 1 = on\n")
@@ -116,7 +116,7 @@ func hostGod(a cmd.Arguments) error {
 	return nil
 }
 
-func hostNoTarget(a cmd.Arguments) error {
+func hostNoTarget(a cbuf.Arguments) error {
 	args := a.Args()
 	if len(args) > 2 {
 		conlog.Printf("notarget [value] : toggle notarget mode. values: 0 = off, 1 = on\n")
@@ -126,7 +126,7 @@ func hostNoTarget(a cmd.Arguments) error {
 	return nil
 }
 
-func hostFly(a cmd.Arguments) error {
+func hostFly(a cbuf.Arguments) error {
 	args := a.Args()
 	if len(args) > 2 {
 		conlog.Printf("fly [value] : toggle fly mode. values: 0 = off, 1 = on\n")
@@ -136,7 +136,7 @@ func hostFly(a cmd.Arguments) error {
 	return nil
 }
 
-func hostColor(a cmd.Arguments) error {
+func hostColor(a cbuf.Arguments) error {
 	args := a.Args()[1:]
 	c := int(cvars.ClientColor.Value())
 	t := c >> 4
@@ -168,7 +168,7 @@ func hostColor(a cmd.Arguments) error {
 	return nil
 }
 
-func hostPause(a cmd.Arguments) error {
+func hostPause(a cbuf.Arguments) error {
 	if cls.demoPlayback {
 		cls.demoPaused = !cls.demoPaused
 		cl.paused = cls.demoPaused
@@ -178,7 +178,7 @@ func hostPause(a cmd.Arguments) error {
 	return nil
 }
 
-func hostTell(a cmd.Arguments) error {
+func hostTell(a cbuf.Arguments) error {
 	if len(a.Args()) < 3 {
 		// need at least destination and message
 		return nil
@@ -187,7 +187,7 @@ func hostTell(a cmd.Arguments) error {
 	return nil
 }
 
-func hostSay(a cmd.Arguments) error {
+func hostSay(a cbuf.Arguments) error {
 	if len(a.Args()) < 2 {
 		return nil
 	}
@@ -195,7 +195,7 @@ func hostSay(a cmd.Arguments) error {
 	return nil
 }
 
-func hostNoClip(a cmd.Arguments) error {
+func hostNoClip(a cbuf.Arguments) error {
 	args := a.Args()
 	if len(args) > 2 {
 		conlog.Printf("noclip [value] : toggle noclip mode. values: 0 = off, 1 = on\n")
@@ -205,7 +205,7 @@ func hostNoClip(a cmd.Arguments) error {
 	return nil
 }
 
-func hostName(a cmd.Arguments) error {
+func hostName(a cbuf.Arguments) error {
 	if len(a.Args()) < 2 {
 		conlog.Printf("\"name\" is %q\n", cvars.ClientName.String())
 		return nil
@@ -224,7 +224,7 @@ func hostName(a cmd.Arguments) error {
 	return nil
 }
 
-func hostMapName(a cmd.Arguments) error {
+func hostMapName(a cbuf.Arguments) error {
 	switch {
 	case cmdl.Dedicated():
 		forwardToServer(a)
@@ -248,7 +248,7 @@ func hostShutdownServer(crash bool) error {
 }
 
 // Kicks a user off of the server
-func hostKick(a cmd.Arguments) error {
+func hostKick(a cbuf.Arguments) error {
 	args := a.Args()
 	if len(args) < 2 {
 		return nil
@@ -258,7 +258,7 @@ func hostKick(a cmd.Arguments) error {
 }
 
 // User command to connect to server
-func hostConnect(a cmd.Arguments) error {
+func hostConnect(a cbuf.Arguments) error {
 	args := a.Args()[1:]
 	if len(args) == 0 {
 		return nil
@@ -281,7 +281,7 @@ func hostConnect(a cmd.Arguments) error {
 // handle a
 // map <servername>
 // command from the console.  Active clients are kicked off.
-func hostMap(a cmd.Arguments) error {
+func hostMap(a cbuf.Arguments) error {
 	args := a.Args()[1:]
 	if len(args) == 0 {
 		// no map name given
@@ -335,7 +335,7 @@ func hostMap(a cmd.Arguments) error {
 }
 
 // Goes to a new map, taking all clients along
-func hostChangelevel(a cmd.Arguments) error {
+func hostChangelevel(a cbuf.Arguments) error {
 	args := a.Args()[1:]
 	if len(args) != 1 {
 		conlog.Printf("changelevel <levelname> : continue game on a new level\n")
@@ -363,7 +363,7 @@ func hostChangelevel(a cmd.Arguments) error {
 }
 
 // Restarts the current server for a dead player
-func hostRestart(a cmd.Arguments) error {
+func hostRestart(a cbuf.Arguments) error {
 	if cls.demoPlayback {
 		return nil
 	}

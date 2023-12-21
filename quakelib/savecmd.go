@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"goquake/cmd"
+	"goquake/cbuf"
 	"goquake/cvars"
 	"goquake/filesystem"
 	"goquake/protos"
@@ -30,7 +30,7 @@ func saveGameComment() string {
 	return fmt.Sprintf("%-22s kills:%3d/%3d", levelName, int(km), int(tm))
 }
 
-func (c *SVClient) saveCmd(a cmd.Arguments) {
+func (c *SVClient) saveCmd(a cbuf.Arguments) {
 	args := a.Args()
 	if len(args) != 2 {
 		return

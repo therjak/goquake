@@ -7,7 +7,7 @@ import (
 	"log"
 
 	"goquake/bsp"
-	"goquake/cmd"
+	"goquake/cbuf"
 	"goquake/conlog"
 	"goquake/math"
 )
@@ -66,12 +66,12 @@ func init() {
 	addCommand("fog", fogCommand)
 }
 
-func fogCommand(a cmd.Arguments) error {
+func fogCommand(a cbuf.Arguments) error {
 	fog.command(a.Args()[1:])
 	return nil
 }
 
-func (f *QFog) command(args []cmd.QArg) {
+func (f *QFog) command(args []cbuf.QArg) {
 	switch len(args) {
 	default:
 		conlog.Printf("usage:\n")

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"goquake/cmd"
+	"goquake/cbuf"
 	cmdl "goquake/commandline"
 	"goquake/conlog"
 	"goquake/cvar"
@@ -170,24 +170,24 @@ func (c *qconsole) currentHeight() int {
 }
 
 func init() {
-	addCommand("toggleconsole", func(a cmd.Arguments) error {
+	addCommand("toggleconsole", func(a cbuf.Arguments) error {
 		console.Toggle()
 		return nil
 	})
-	addCommand("clear", func(a cmd.Arguments) error {
+	addCommand("clear", func(a cbuf.Arguments) error {
 		console.Clear()
 		return nil
 	})
-	addCommand("messagemode", func(a cmd.Arguments) error {
+	addCommand("messagemode", func(a cbuf.Arguments) error {
 		console.messageMode(false)
 		return nil
 	})
-	addCommand("messagemode2", func(a cmd.Arguments) error {
+	addCommand("messagemode2", func(a cbuf.Arguments) error {
 		console.messageMode(true)
 		return nil
 	})
 
-	addCommand("condump", func(a cmd.Arguments) error {
+	addCommand("condump", func(a cbuf.Arguments) error {
 		console.dump()
 		return nil
 	})
@@ -445,14 +445,14 @@ func (q *qconsole) print(txt string) {
 	copy(q.times[:], newTimes[len(newTimes)-4:])
 }
 
-//do not use. use conlog.Printf
+// do not use. use conlog.Printf
 func conPrintf(format string, v ...interface{}) {
 	s := fmt.Sprintf(format, v...)
 	log.Print(s)
 	console.Print(s)
 }
 
-//do not use. use conlog.SafePrintf
+// do not use. use conlog.SafePrintf
 func conSafePrintf(format string, v ...interface{}) {
 	tmp := screen.disabled
 	screen.disabled = true

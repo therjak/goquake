@@ -5,7 +5,7 @@ package quakelib
 import (
 	"fmt"
 
-	"goquake/cmd"
+	"goquake/cbuf"
 	"goquake/conlog"
 	"goquake/cvars"
 	"goquake/math/vec"
@@ -34,7 +34,7 @@ func init() {
 	addCommand("entities", printEntities)
 }
 
-func printEntities(_ cmd.Arguments) error {
+func printEntities(_ cbuf.Arguments) error {
 	if cls.state != ca_connected {
 		return nil
 	}
@@ -154,7 +154,7 @@ func (c *Client) WorldEntity() *Entity {
 	return c.entities[0]
 }
 
-//TODO(therjak): remove idx and just use a pointer to Entity
+// TODO(therjak): remove idx and just use a pointer to Entity
 func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
 	if e.Model == nil { // empty slot
 		if e.ForceLink { // just became empty
@@ -343,7 +343,7 @@ func (e *Entity) R_AddEfrags() {
 	ef.Do()
 }
 
-//TODO(therjak): should this go into renderer?
+// TODO(therjak): should this go into renderer?
 var visibleEntities []*Entity // pointers into cl.entities, cl.staticEntities, tempEntities
 
 func ClearVisibleEntities() {

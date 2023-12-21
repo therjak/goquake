@@ -4,7 +4,7 @@ package quakelib
 import (
 	"log"
 
-	"goquake/cmd"
+	"goquake/cbuf"
 	"goquake/commandline"
 	"goquake/cvar"
 	"goquake/cvars"
@@ -73,23 +73,23 @@ func init() {
 	addCommand("soundinfo", soundInfoCmd)
 }
 
-func playCmd(args cmd.Arguments) error {
+func playCmd(args cbuf.Arguments) error {
 	log.Println("play CMD from snd")
 	return nil
 }
-func playVolCmd(args cmd.Arguments) error {
+func playVolCmd(args cbuf.Arguments) error {
 	log.Println("play vol CMD from snd")
 	return nil
 }
-func stopSoundCmd(args cmd.Arguments) error {
+func stopSoundCmd(args cbuf.Arguments) error {
 	log.Println("stop sound CMD from snd")
 	return nil
 }
-func soundListCmd(args cmd.Arguments) error {
+func soundListCmd(args cbuf.Arguments) error {
 	log.Println("sound list CMD from snd")
 	return nil
 }
-func soundInfoCmd(args cmd.Arguments) error {
+func soundInfoCmd(args cbuf.Arguments) error {
 	log.Println("sound info CMD from snd")
 	return nil
 }

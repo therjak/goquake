@@ -30,7 +30,7 @@ func (d *DynamicLight) Radius() float32 {
 	return d.radius
 }
 
-//GetDynamicLightByKey return the light with the same key or if none exists a free light
+// GetDynamicLightByKey return the light with the same key or if none exists a free light
 func (c *Client) GetDynamicLightByKey(key int) *DynamicLight {
 	// key 0 is worldEntity or 'unowned'. world can have more than one
 	for i := range c.dynamicLights {

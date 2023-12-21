@@ -11,8 +11,7 @@ import (
 	"time"
 	"unicode"
 
-	"goquake/cmd"
-	qcmd "goquake/cmd"
+	"goquake/cbuf"
 	cmdl "goquake/commandline"
 	"goquake/conlog"
 	"goquake/cvars"
@@ -366,7 +365,7 @@ func (c *SVClient) ReadClientMessage() (bool, error) {
 					log.Fatalf("HostClient differs")
 				}
 				s := cmd.GetStringCmd()
-				a := qcmd.Parse(s)
+				a := cbuf.Parse(s)
 				if len(a.Args()) == 0 {
 					continue
 				}
@@ -463,7 +462,7 @@ func (c *SVClient) ReadClientMessage() (bool, error) {
 	}
 }
 
-func (c *SVClient) colorCmd(a cmd.Arguments) {
+func (c *SVClient) colorCmd(a cbuf.Arguments) {
 	args := a.Args()[1:]
 	t := args[0].Int()
 	b := t
@@ -488,7 +487,7 @@ func (c *SVClient) colorCmd(a cmd.Arguments) {
 	svc.WriteUpdateColors(uc, sv.protocol, sv.protocolFlags, &sv.reliableDatagram)
 }
 
-func (c *SVClient) flyCmd(a cmd.Arguments) {
+func (c *SVClient) flyCmd(a cbuf.Arguments) {
 	if progsdat.Globals.DeathMatch != 0 {
 		return
 	}
@@ -519,7 +518,7 @@ func (c *SVClient) flyCmd(a cmd.Arguments) {
 	}
 }
 
-func (c *SVClient) godCmd(a cmd.Arguments) {
+func (c *SVClient) godCmd(a cbuf.Arguments) {
 	args := a.Args()[1:]
 	if progsdat.Globals.DeathMatch != 0 {
 		return
@@ -543,7 +542,7 @@ func (c *SVClient) godCmd(a cmd.Arguments) {
 	c.Printf("godmode %v\n", qFormatI(f&flag))
 }
 
-func (c *SVClient) killCmd(a cmd.Arguments) error {
+func (c *SVClient) killCmd(a cbuf.Arguments) error {
 	ev := entvars.Get(c.edictId)
 
 	if ev.Health <= 0 {
@@ -559,7 +558,7 @@ func (c *SVClient) killCmd(a cmd.Arguments) error {
 	return nil
 }
 
-func (c *SVClient) noClipCmd(a cmd.Arguments) {
+func (c *SVClient) noClipCmd(a cbuf.Arguments) {
 	if progsdat.Globals.DeathMatch != 0 {
 		return
 	}
@@ -586,7 +585,7 @@ func (c *SVClient) noClipCmd(a cmd.Arguments) {
 	c.Printf("noclip %v\n", qFormatI(m&progs.MoveTypeNoClip))
 }
 
-func (c *SVClient) noTargetCmd(a cmd.Arguments) {
+func (c *SVClient) noTargetCmd(a cbuf.Arguments) {
 	if progsdat.Globals.DeathMatch != 0 {
 		return
 	}
@@ -610,7 +609,7 @@ func (c *SVClient) noTargetCmd(a cmd.Arguments) {
 	c.Printf("notarget %v\n", qFormatI(f&flag))
 }
 
-func (c *SVClient) pauseCmd(a cmd.Arguments) {
+func (c *SVClient) pauseCmd(a cbuf.Arguments) {
 	if cvars.Pausable.String() != "1" {
 		c.Printf("Pause not allowed.\n")
 		return
@@ -629,7 +628,7 @@ func (c *SVClient) pauseCmd(a cmd.Arguments) {
 	svc.WriteSetPause(sv.paused, sv.protocol, sv.protocolFlags, &sv.reliableDatagram)
 }
 
-func (c *SVClient) pingCmd(a cmd.Arguments) {
+func (c *SVClient) pingCmd(a cbuf.Arguments) {
 	c.Printf("Client ping times:\n")
 	for _, ac := range sv_clients {
 		if !ac.active {
@@ -650,7 +649,7 @@ func (c *SVClient) preSpawnCmd() {
 	c.sendSignon = true
 }
 
-func (c *SVClient) setPosCmd(a cmd.Arguments) error {
+func (c *SVClient) setPosCmd(a cbuf.Arguments) error {
 	if progsdat.Globals.DeathMatch != 0 {
 		return nil
 	}
@@ -797,7 +796,7 @@ func (c *SVClient) spawnCmd() error {
 	return nil
 }
 
-func (c *SVClient) giveCmd(a cmd.Arguments) {
+func (c *SVClient) giveCmd(a cbuf.Arguments) {
 	if progsdat.Globals.DeathMatch != 0 {
 		return
 	}
@@ -1001,7 +1000,7 @@ func (c *SVClient) giveCmd(a cmd.Arguments) {
 	}
 }
 
-func (c *SVClient) tellCmd(a cmd.Arguments) error {
+func (c *SVClient) tellCmd(a cbuf.Arguments) error {
 	args := a.Args()
 	if len(args) < 3 {
 		// need at least destination and message
@@ -1022,7 +1021,7 @@ func (c *SVClient) tellCmd(a cmd.Arguments) error {
 }
 
 // Kicks a user off of the server
-func (c *SVClient) kickCmd(a cmd.Arguments) error {
+func (c *SVClient) kickCmd(a cbuf.Arguments) error {
 	args := a.Args()[1:]
 	if len(args) == 0 {
 		return nil
@@ -1076,7 +1075,7 @@ func (c *SVClient) kickCmd(a cmd.Arguments) error {
 	return nil
 }
 
-func (c *SVClient) nameCmd(a cmd.Arguments) {
+func (c *SVClient) nameCmd(a cbuf.Arguments) {
 	args := a.Args()
 	if len(args) < 2 {
 		return
@@ -1126,7 +1125,7 @@ func (c *SVClient) statusCmd() {
 	}
 }
 
-func (c *SVClient) sayCmd(team bool, a cmd.Arguments) {
+func (c *SVClient) sayCmd(team bool, a cbuf.Arguments) {
 	if len(a.Args()) < 2 {
 		return
 	}
@@ -1219,7 +1218,7 @@ func edictPrintEdicts() {
 }
 
 // For debugging, prints a single edict
-func edictPrintEdictFunc(a cmd.Arguments) {
+func edictPrintEdictFunc(a cbuf.Arguments) {
 	args := a.Args()
 	if !sv.Active() || len(args) < 2 {
 		return
