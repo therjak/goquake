@@ -3,7 +3,6 @@
 package cbuf
 
 import (
-	"goquake/cmd"
 	"testing"
 )
 
@@ -11,7 +10,7 @@ func TestWait(t *testing.T) {
 	c := CommandBuffer{}
 	runCount := 0
 	c.SetCommandExecutors([]Efunc{
-		func(a cmd.Arguments) (bool, error) {
+		func(cb *CommandBuffer, a Arguments) (bool, error) {
 			runCount++
 			return true, nil
 		}})

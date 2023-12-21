@@ -578,8 +578,8 @@ const (
 	kStepSize = 18
 )
 
-//Returns false if any part of the bottom of the entity is off an edge that
-//is not a staircase.
+// Returns false if any part of the bottom of the entity is off an edge that
+// is not a staircase.
 func checkBottom(ent int) bool {
 	ev := entvars.Get(ent)
 	o := ev.Origin

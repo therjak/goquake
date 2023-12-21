@@ -10,7 +10,6 @@ import (
 	"unsafe"
 
 	"goquake/cbuf"
-	"goquake/cmd"
 	cmdl "goquake/commandline"
 	"goquake/conlog"
 	"goquake/cvars"
@@ -235,7 +234,7 @@ func init() {
 	addCommand("unbindall", keyUnbindAll)
 }
 
-func keyBindlist(a cmd.Arguments) error {
+func keyBindlist(a cbuf.Arguments) error {
 	count := 0
 	for k, v := range keyBindings {
 		if v != "" {
@@ -247,7 +246,7 @@ func keyBindlist(a cmd.Arguments) error {
 	return nil
 }
 
-func keyUnbind(a cmd.Arguments) error {
+func keyUnbind(a cbuf.Arguments) error {
 	args := a.Args()[1:]
 	if len(args) != 1 {
 		conlog.Printf("unbind <key> : remove commands from a key\n")
@@ -264,12 +263,12 @@ func keyUnbind(a cmd.Arguments) error {
 	return nil
 }
 
-func keyUnbindAll(_ cmd.Arguments) error {
+func keyUnbindAll(_ cbuf.Arguments) error {
 	keyBindings = make(map[kc.KeyCode]string)
 	return nil
 }
 
-func keyBind(a cmd.Arguments) error {
+func keyBind(a cbuf.Arguments) error {
 	args := a.Args()[1:]
 	c := len(args)
 	if c != 1 && c != 2 {

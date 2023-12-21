@@ -172,15 +172,15 @@ const (
 	SPAWNFLAG_NOT_DEATHMATCH = 2048
 )
 
-//The entities are directly placed in the array, rather than allocated with
-//ED_Alloc, because otherwise an error loading the map would have entity
-//number references out of order.
+// The entities are directly placed in the array, rather than allocated with
+// ED_Alloc, because otherwise an error loading the map would have entity
+// number references out of order.
 //
-//Creates a server's entity / program execution context by
-//parsing textual entity definitions out of an ent file.
+// Creates a server's entity / program execution context by
+// parsing textual entity definitions out of an ent file.
 //
-//Used for both fresh maps and savegame loads.  A fresh map would also need
-//to call ED_CallSpawnFunctions () to let the objects initialize themselves.
+// Used for both fresh maps and savegame loads.  A fresh map would also need
+// to call ED_CallSpawnFunctions () to let the objects initialize themselves.
 func loadEntities(data []*bsp.Entity) error {
 	progsdat.Globals.Time = sv.time
 	inhibit := 0

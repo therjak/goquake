@@ -3,7 +3,6 @@ package quakelib
 
 import (
 	"goquake/cbuf"
-	"goquake/cmd"
 	"goquake/conlog"
 	"goquake/cvars"
 	"goquake/net"
@@ -20,7 +19,7 @@ func init() {
 	addCommand("maxplayers", maxPlayersCmd)
 }
 
-func listenCmd(a cmd.Arguments) error {
+func listenCmd(a cbuf.Arguments) error {
 	args := a.Args()[1:]
 	switch c := len(args); c {
 	case 1:
@@ -43,7 +42,7 @@ func unlisten() {
 	net.StopListen()
 }
 
-func portCmd(a cmd.Arguments) error {
+func portCmd(a cbuf.Arguments) error {
 	args := a.Args()[1:]
 	switch c := len(args); c {
 	default:
@@ -64,7 +63,7 @@ func portCmd(a cmd.Arguments) error {
 	return nil
 }
 
-func maxPlayersCmd(a cmd.Arguments) error {
+func maxPlayersCmd(a cbuf.Arguments) error {
 	args := a.Args()[1:]
 	switch c := len(args); c {
 	default:

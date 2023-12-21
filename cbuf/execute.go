@@ -5,23 +5,22 @@ package cbuf
 import (
 	"log"
 
-	"goquake/cmd"
 	"goquake/conlog"
 )
 
 // args, player, source
-type Efunc func(cmd.Arguments) (bool, error)
+type Efunc func(*CommandBuffer, Arguments) (bool, error)
 
 type executors []Efunc
 
-func (ex *executors) execute(s string) error {
-	a := cmd.Parse(s)
+func (ex *executors) execute(c *CommandBuffer, s string) error {
+	a := Parse(s)
 	args := a.Args()
 	if len(args) == 0 {
 		return nil // no tokens
 	}
 	for _, e := range *ex {
-		if ok, err := e(a); err != nil {
+		if ok, err := e(c, a); err != nil {
 			return err
 		} else if ok {
 			return nil

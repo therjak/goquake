@@ -11,10 +11,10 @@ import (
 	"github.com/chewxy/math32"
 )
 
-//Called by monster program code.
-//The move will be adjusted for slopes and stairs, but if the move isn't
-//possible, no move is done, false is returned, and
-//pr_global_struct->trace_normal is set to the normal of the blocking wall
+// Called by monster program code.
+// The move will be adjusted for slopes and stairs, but if the move isn't
+// possible, no move is done, false is returned, and
+// pr_global_struct->trace_normal is set to the normal of the blocking wall
 func (v *virtualMachine) monsterMoveStep(ent int, move vec.Vec3, relink bool) (bool, error) {
 	const STEPSIZE = 18
 	ev := entvars.Get(ent)

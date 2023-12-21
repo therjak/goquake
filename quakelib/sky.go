@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"goquake/bsp"
-	"goquake/cmd"
+	"goquake/cbuf"
 	"goquake/conlog"
 	"goquake/cvar"
 	"goquake/cvars"
@@ -28,7 +28,7 @@ func init() {
 
 }
 
-func skyCommand(a cmd.Arguments) error {
+func skyCommand(a cbuf.Arguments) error {
 	args := a.Args()[1:]
 	switch len(args) {
 	case 0:

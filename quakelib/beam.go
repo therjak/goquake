@@ -3,11 +3,12 @@
 package quakelib
 
 import (
-	"github.com/chewxy/math32"
 	"goquake/math"
 	"goquake/math/vec"
 	"goquake/model"
 	"goquake/rand"
+
+	"github.com/chewxy/math32"
 )
 
 type beam struct {

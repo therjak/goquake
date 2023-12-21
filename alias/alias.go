@@ -14,7 +14,7 @@ var (
 	aliases = make(map[string]string)
 )
 
-func alias(a cmd.Arguments) error {
+func alias(a cbuf.Arguments) error {
 	args := a.Args()[1:]
 	switch c := len(args); c {
 	case 0:
@@ -39,14 +39,14 @@ func listAliases() {
 	conlog.SafePrintf("%v alias command(s)\n", len(aliases))
 }
 
-func printAlias(arg cmd.QArg) {
+func printAlias(arg cbuf.QArg) {
 	name := arg.String()
 	if v, ok := aliases[name]; ok {
 		conlog.Printf("  %s: %s", name, v)
 	}
 }
 
-func join(a []cmd.QArg, sep string) string {
+func join(a []cbuf.QArg, sep string) string {
 	switch len(a) {
 	case 0:
 		return ""
@@ -67,7 +67,7 @@ func join(a []cmd.QArg, sep string) string {
 	return string(b)
 }
 
-func setAlias(args []cmd.QArg) {
+func setAlias(args []cbuf.QArg) {
 	// join the parts, the parts have '"' already removed
 	// len(args) > 1,
 	name := args[0]
@@ -75,7 +75,7 @@ func setAlias(args []cmd.QArg) {
 	aliases[name.String()] = strings.TrimSpace(command) + "\n"
 }
 
-func unalias(a cmd.Arguments) error {
+func unalias(a cbuf.Arguments) error {
 	args := a.Args()[1:]
 	switch c := len(args); c {
 	case 1:
@@ -91,7 +91,7 @@ func unalias(a cmd.Arguments) error {
 	return nil
 }
 
-func unaliasAll(a cmd.Arguments) error {
+func unaliasAll(a cbuf.Arguments) error {
 	aliases = make(map[string]string)
 	return nil
 }
@@ -101,14 +101,14 @@ func Get(name string) (string, bool) {
 	return a, ok
 }
 
-func Execute(a cmd.Arguments) (bool, error) {
+func Execute(cb *cbuf.CommandBuffer, a cbuf.Arguments) (bool, error) {
 	args := a.Args()
 	if len(args) < 1 {
 		return false, nil
 	}
 	name := args[0].String()
 	if v, ok := Get(name); ok {
-		cbuf.InsertText(v)
+		cb.InsertText(v)
 		return true, nil
 	}
 	return false, nil

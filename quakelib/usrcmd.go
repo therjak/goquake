@@ -2,7 +2,7 @@
 package quakelib
 
 import (
-	"goquake/cmd"
+	"goquake/cbuf"
 	"goquake/conlog"
 	"goquake/cvars"
 	"goquake/input"
@@ -193,7 +193,7 @@ func HandleMove() error {
 }
 
 func init() {
-	addCommand("impulse", func(a cmd.Arguments) error {
+	addCommand("impulse", func(a cbuf.Arguments) error {
 		args := a.Args()
 		if len(args) < 2 {
 			return nil

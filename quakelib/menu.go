@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"goquake/cmd"
+	"goquake/cbuf"
 	kc "goquake/keycode"
 	"goquake/keys"
 	"goquake/math"
@@ -25,55 +25,55 @@ func blink() int {
 }
 
 func init() {
-	addCommand("togglemenu", func(_ cmd.Arguments) error {
+	addCommand("togglemenu", func(_ cbuf.Arguments) error {
 		toggleMenu()
 		return nil
 	})
-	addCommand("menu_main", func(_ cmd.Arguments) error {
+	addCommand("menu_main", func(_ cbuf.Arguments) error {
 		enterMenuMain()
 		return nil
 	})
-	addCommand("menu_singleplayer", func(_ cmd.Arguments) error {
+	addCommand("menu_singleplayer", func(_ cbuf.Arguments) error {
 		enterSinglePlayerMenu()
 		return nil
 	})
-	addCommand("menu_load", func(_ cmd.Arguments) error {
+	addCommand("menu_load", func(_ cbuf.Arguments) error {
 		enterLoadMenu()
 		return nil
 	})
-	addCommand("menu_save", func(_ cmd.Arguments) error {
+	addCommand("menu_save", func(_ cbuf.Arguments) error {
 		enterSaveMenu()
 		return nil
 	})
-	addCommand("menu_multiplayer", func(_ cmd.Arguments) error {
+	addCommand("menu_multiplayer", func(_ cbuf.Arguments) error {
 		enterMultiPlayerMenu()
 		return nil
 	})
-	addCommand("menu_setup", func(_ cmd.Arguments) error {
+	addCommand("menu_setup", func(_ cbuf.Arguments) error {
 		enterNetSetupMenu()
 		return nil
 	})
-	addCommand("menu_options", func(_ cmd.Arguments) error {
+	addCommand("menu_options", func(_ cbuf.Arguments) error {
 		enterMenuOptions()
 		return nil
 	})
-	addCommand("menu_keys", func(_ cmd.Arguments) error {
+	addCommand("menu_keys", func(_ cbuf.Arguments) error {
 		enterMenuKeys()
 		return nil
 	})
-	addCommand("menu_video", func(_ cmd.Arguments) error {
+	addCommand("menu_video", func(_ cbuf.Arguments) error {
 		enterMenuVideo()
 		return nil
 	})
-	addCommand("help", func(_ cmd.Arguments) error {
+	addCommand("help", func(_ cbuf.Arguments) error {
 		enterMenuHelp()
 		return nil
 	})
-	addCommand("menu_quit", func(_ cmd.Arguments) error {
+	addCommand("menu_quit", func(_ cbuf.Arguments) error {
 		enterQuitMenu()
 		return nil
 	})
-	addCommand("menu_credits", func(_ cmd.Arguments) error {
+	addCommand("menu_credits", func(_ cbuf.Arguments) error {
 		return nil
 	})
 }
