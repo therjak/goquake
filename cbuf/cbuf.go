@@ -79,6 +79,10 @@ func (c *CommandBuffer) SetCommandExecutors(e []Efunc) {
 	c.ex = append([]Efunc{wait}, e...)
 }
 
+func (c *CommandBuffer) Buf() string {
+	return c.buf
+}
+
 // TODO(therjak): the following functions are deprecated and should be removed
 
 func Execute() {

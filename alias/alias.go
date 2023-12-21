@@ -10,38 +10,38 @@ import (
 	"goquake/conlog"
 )
 
-var (
-	aliases = make(map[string]string)
-)
+type Aliases map[string]string
 
-func alias(a cbuf.Arguments) error {
-	args := a.Args()[1:]
-	switch c := len(args); c {
-	case 0:
-		listAliases()
-	case 1:
-		printAlias(args[0])
-	default:
-		setAlias(args)
+func (al *Aliases) Alias() func(a cbuf.Arguments) error {
+	return func(a cbuf.Arguments) error {
+		args := a.Args()[1:]
+		switch c := len(args); c {
+		case 0:
+			al.listAliases()
+		case 1:
+			al.printAlias(args[0])
+		default:
+			al.setAlias(args)
+		}
+		return nil
 	}
-	return nil
 }
 
-func listAliases() {
-	if len(aliases) == 0 {
+func (al *Aliases) listAliases() {
+	if len(*al) == 0 {
 		conlog.SafePrintf("no alias commands found\n")
 		return
 	}
-	for k, v := range aliases {
+	for k, v := range *al {
 		// each alias value ends with a '\n'
 		conlog.SafePrintf("  %s: %s", k, v)
 	}
-	conlog.SafePrintf("%v alias command(s)\n", len(aliases))
+	conlog.SafePrintf("%v alias command(s)\n", len(*al))
 }
 
-func printAlias(arg cbuf.QArg) {
+func (al *Aliases) printAlias(arg cbuf.QArg) {
 	name := arg.String()
-	if v, ok := aliases[name]; ok {
+	if v, ok := (*al)[name]; ok {
 		conlog.Printf("  %s: %s", name, v)
 	}
 }
@@ -67,55 +67,80 @@ func join(a []cbuf.QArg, sep string) string {
 	return string(b)
 }
 
-func setAlias(args []cbuf.QArg) {
+func (al *Aliases) setAlias(args []cbuf.QArg) {
 	// join the parts, the parts have '"' already removed
 	// len(args) > 1,
 	name := args[0]
 	command := join(args[1:], " ")
-	aliases[name.String()] = strings.TrimSpace(command) + "\n"
+	(*al)[name.String()] = strings.TrimSpace(command) + "\n"
 }
 
-func unalias(a cbuf.Arguments) error {
-	args := a.Args()[1:]
-	switch c := len(args); c {
-	case 1:
-		name := args[0].String()
-		if _, ok := aliases[name]; ok {
-			delete(aliases, name)
-		} else {
-			conlog.Printf("No alias named %s\n", name)
+func (al *Aliases) Unalias() func(a cbuf.Arguments) error {
+	return func(a cbuf.Arguments) error {
+		args := a.Args()[1:]
+		switch c := len(args); c {
+		case 1:
+			name := args[0].String()
+			if _, ok := (*al)[name]; ok {
+				delete(*al, name)
+			} else {
+				conlog.Printf("No alias named %s\n", name)
+			}
+		default:
+			conlog.Printf("unalias <name> : delete alias\n")
 		}
-	default:
-		conlog.Printf("unalias <name> : delete alias\n")
+		return nil
 	}
-	return nil
 }
 
-func unaliasAll(a cbuf.Arguments) error {
-	aliases = make(map[string]string)
-	return nil
+func (al *Aliases) UnaliasAll() func(a cbuf.Arguments) error {
+	return func(a cbuf.Arguments) error {
+		*al = make(map[string]string)
+		return nil
+	}
 }
 
-func Get(name string) (string, bool) {
-	a, ok := aliases[name]
-	return a, ok
-}
-
-func Execute(cb *cbuf.CommandBuffer, a cbuf.Arguments) (bool, error) {
-	args := a.Args()
-	if len(args) < 1 {
+func (al *Aliases) Execute() func(cb *cbuf.CommandBuffer, a cbuf.Arguments) (bool, error) {
+	return func(cb *cbuf.CommandBuffer, a cbuf.Arguments) (bool, error) {
+		args := a.Args()
+		if len(args) < 1 {
+			return false, nil
+		}
+		name := args[0].String()
+		if v, ok := (*al)[name]; ok {
+			cb.InsertText(v)
+			return true, nil
+		}
 		return false, nil
 	}
-	name := args[0].String()
-	if v, ok := Get(name); ok {
-		cb.InsertText(v)
-		return true, nil
-	}
-	return false, nil
 }
 
+func (al *Aliases) Register(c *cmd.Commands) error {
+	if err := c.Add("alias", al.Alias()); err != nil {
+		return err
+	}
+	if err := c.Add("unalias", al.Unalias()); err != nil {
+		return err
+	}
+	if err := c.Add("unaliasall", al.UnaliasAll()); err != nil {
+		return err
+	}
+	return nil
+}
+
+func New() *Aliases {
+	a := make(Aliases)
+	return &a
+}
+
+var (
+	Execute func(cb *cbuf.CommandBuffer, a cbuf.Arguments) (bool, error)
+)
+
 func init() {
-	cmd.Must(cmd.AddCommand("alias", alias))
-	cmd.Must(cmd.AddCommand("unalias", unalias))
-	cmd.Must(cmd.AddCommand("unaliasall", unaliasAll))
+	al := New()
+	Execute = al.Execute()
+	cmd.Must(cmd.AddCommand("alias", al.Alias()))
+	cmd.Must(cmd.AddCommand("unalias", al.Unalias()))
+	cmd.Must(cmd.AddCommand("unaliasall", al.UnaliasAll()))
 }

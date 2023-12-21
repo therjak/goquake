@@ -42,19 +42,21 @@ func (c *Commands) List() []string {
 	return cmds
 }
 
-func (c *Commands) Execute(cb *cbuf.CommandBuffer, a cbuf.Arguments) (bool, error) {
-	n := a.Args()
-	if len(n) == 0 {
+func (c *Commands) Execute() func(cb *cbuf.CommandBuffer, a cbuf.Arguments) (bool, error) {
+	return func(cb *cbuf.CommandBuffer, a cbuf.Arguments) (bool, error) {
+		n := a.Args()
+		if len(n) == 0 {
+			return false, nil
+		}
+		name := strings.ToLower(n[0].String())
+		if cmd, ok := (*c)[name]; ok {
+			if err := cmd(a); err != nil {
+				return false, err
+			}
+			return true, nil
+		}
 		return false, nil
 	}
-	name := strings.ToLower(n[0].String())
-	if cmd, ok := (*c)[name]; ok {
-		if err := cmd(a); err != nil {
-			return false, err
-		}
-		return true, nil
-	}
-	return false, nil
 }
 
 var (
@@ -76,7 +78,7 @@ func Exists(cmdName string) bool {
 }
 
 func Execute(cb *cbuf.CommandBuffer, a cbuf.Arguments) (bool, error) {
-	return commands.Execute(cb, a)
+	return commands.Execute()(cb, a)
 }
 
 func List() []string {
