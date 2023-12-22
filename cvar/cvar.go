@@ -13,7 +13,6 @@ import (
 )
 
 var (
-	cvarArray  []*Cvar
 	cvarByName = make(map[string]*Cvar)
 )
 
@@ -51,11 +50,19 @@ type Cvar struct {
 	stringValue  string
 	value        float32
 	defaultValue string
-	id           int
 }
 
 func All() []*Cvar {
-	return cvarArray
+	var r []*Cvar
+	for _, cv := range cvarByName {
+		r = append(r, cv)
+	}
+	return r
+}
+
+func Get(name string) (*Cvar, bool) {
+	cv, err := cvarByName[name]
+	return cv, err
 }
 
 func (cv *Cvar) Archive() bool {
@@ -98,10 +105,6 @@ func (cv *Cvar) String() string {
 	return cv.stringValue
 }
 
-func (cv *Cvar) ID() int {
-	return cv.id
-}
-
 func (cv *Cvar) Name() string {
 	return cv.name
 }
@@ -132,25 +135,10 @@ func (cv *Cvar) Bool() bool {
 	return cv.stringValue != "0"
 }
 
-func Get(name string) (*Cvar, bool) {
-	cv, err := cvarByName[name]
-	return cv, err
-}
-
-func GetByID(id int) (*Cvar, error) {
-	if id < 0 || id >= len(cvarArray) {
-		return nil, fmt.Errorf("id out of bounds")
-	}
-	return cvarArray[id], nil
-}
-
 func create(name, value string) *Cvar {
 	cv := &Cvar{name: name, defaultValue: value}
 	cv.SetByString(value)
-	pos := len(cvarArray)
-	cvarArray = append(cvarArray, cv)
 	cvarByName[name] = cv
-	cv.id = pos
 	return cv
 }
 
