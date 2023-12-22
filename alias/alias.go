@@ -12,7 +12,7 @@ import (
 
 type Aliases map[string]string
 
-func (al *Aliases) Alias() func(a cbuf.Arguments) error {
+func (al *Aliases) alias() func(a cbuf.Arguments) error {
 	return func(a cbuf.Arguments) error {
 		args := a.Args()[1:]
 		switch c := len(args); c {
@@ -75,7 +75,7 @@ func (al *Aliases) setAlias(args []cbuf.QArg) {
 	(*al)[name.String()] = strings.TrimSpace(command) + "\n"
 }
 
-func (al *Aliases) Unalias() func(a cbuf.Arguments) error {
+func (al *Aliases) unalias() func(a cbuf.Arguments) error {
 	return func(a cbuf.Arguments) error {
 		args := a.Args()[1:]
 		switch c := len(args); c {
@@ -93,7 +93,7 @@ func (al *Aliases) Unalias() func(a cbuf.Arguments) error {
 	}
 }
 
-func (al *Aliases) UnaliasAll() func(a cbuf.Arguments) error {
+func (al *Aliases) unaliasAll() func(a cbuf.Arguments) error {
 	return func(a cbuf.Arguments) error {
 		*al = make(map[string]string)
 		return nil
@@ -116,13 +116,13 @@ func (al *Aliases) Execute() func(cb *cbuf.CommandBuffer, a cbuf.Arguments) (boo
 }
 
 func (al *Aliases) Register(c *cmd.Commands) error {
-	if err := c.Add("alias", al.Alias()); err != nil {
+	if err := c.Add("alias", al.alias()); err != nil {
 		return err
 	}
-	if err := c.Add("unalias", al.Unalias()); err != nil {
+	if err := c.Add("unalias", al.unalias()); err != nil {
 		return err
 	}
-	if err := c.Add("unaliasall", al.UnaliasAll()); err != nil {
+	if err := c.Add("unaliasall", al.unaliasAll()); err != nil {
 		return err
 	}
 	return nil
@@ -140,7 +140,7 @@ var (
 func init() {
 	al := New()
 	Execute = al.Execute()
-	cmd.Must(cmd.AddCommand("alias", al.Alias()))
-	cmd.Must(cmd.AddCommand("unalias", al.Unalias()))
-	cmd.Must(cmd.AddCommand("unaliasall", al.UnaliasAll()))
+	cmd.Must(cmd.AddCommand("alias", al.alias()))
+	cmd.Must(cmd.AddCommand("unalias", al.unalias()))
+	cmd.Must(cmd.AddCommand("unaliasall", al.unaliasAll()))
 }
