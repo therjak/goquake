@@ -115,7 +115,7 @@ func (al *Aliases) Execute() func(cb *cbuf.CommandBuffer, a cbuf.Arguments) (boo
 	}
 }
 
-func (al *Aliases) Register(c *cmd.Commands) error {
+func (al *Aliases) Commands(c *cmd.Commands) error {
 	if err := c.Add("alias", al.alias()); err != nil {
 		return err
 	}
