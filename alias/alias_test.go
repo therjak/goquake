@@ -10,10 +10,10 @@ import (
 	"testing"
 )
 
-func TestAliasRegister(t *testing.T) {
+func TestAliasCommands(t *testing.T) {
 	al := New()
 	cmds := cmd.New()
-	if err := al.Register(cmds); err != nil {
+	if err := al.Commands(cmds); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -21,7 +21,7 @@ func TestAliasRegister(t *testing.T) {
 func TestExecuteAlias(t *testing.T) {
 	al := New()
 	cmds := cmd.New()
-	if err := al.Register(cmds); err != nil {
+	if err := al.Commands(cmds); err != nil {
 		t.Fatal(err)
 	}
 	cb := cbuf.CommandBuffer{}
@@ -63,7 +63,7 @@ func TestPrintAlias(t *testing.T) {
 	conlog.SetSafePrintf(spf)
 	al := New()
 	cmds := cmd.New()
-	if err := al.Register(cmds); err != nil {
+	if err := al.Commands(cmds); err != nil {
 		t.Fatal(err)
 	}
 	cb := cbuf.CommandBuffer{}
