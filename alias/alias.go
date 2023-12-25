@@ -132,15 +132,3 @@ func New() *Aliases {
 	a := make(Aliases)
 	return &a
 }
-
-var (
-	Execute func(cb *cbuf.CommandBuffer, a cbuf.Arguments) (bool, error)
-)
-
-func init() {
-	al := New()
-	Execute = al.Execute()
-	cmd.Must(cmd.AddCommand("alias", al.alias()))
-	cmd.Must(cmd.AddCommand("unalias", al.unalias()))
-	cmd.Must(cmd.AddCommand("unaliasall", al.unaliasAll()))
-}

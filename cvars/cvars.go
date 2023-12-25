@@ -1019,8 +1019,9 @@ func Register(c *cvar.Cvars) error {
 	return nil
 }
 
-func init() {
-	cvar.Must(Register(cvar.Global()))
+func New() *cvar.Cvars {
+	cs := make(cvar.Cvars)
+	return &cs
 }
 
 func CalcRoll(angles, velocity vec.Vec3) float32 {

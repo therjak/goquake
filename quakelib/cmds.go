@@ -7,14 +7,41 @@ import (
 	"os"
 	"strings"
 
+	"goquake/alias"
 	"goquake/cbuf"
 	"goquake/cmd"
 	"goquake/conlog"
+	"goquake/cvars"
 	"goquake/filesystem"
+	"goquake/input"
 )
 
+var (
+	commands    = cmd.New()
+	aliases     = alias.New()
+	commandVars = cvars.New()
+)
+
+func must(err error) {
+	if err != nil {
+		panic(err.Error())
+	}
+}
+
+func init() {
+	must(aliases.Commands(commands))
+	must(commandVars.Commands(commands))
+	must(input.Commands(commands))
+	must(cvars.Register(commandVars))
+	cbuf.SetCommandExecutors([]cbuf.Efunc{
+		commands.Execute(),
+		aliases.Execute(),
+		commandVars.Execute(),
+	})
+}
+
 func addCommand(name string, f cmd.QFunc) {
-	cmd.Must(cmd.AddCommand(name, f))
+	must(commands.Add(name, f))
 }
 
 func echo(a cbuf.Arguments) error {
@@ -39,7 +66,7 @@ func printCmdList(a cbuf.Arguments) error {
 }
 
 func printFullCmdList() {
-	cmds := cmd.List()
+	cmds := commands.List()
 	for _, c := range cmds {
 		conlog.SafePrintf("  %s\n", c)
 	}
@@ -47,7 +74,7 @@ func printFullCmdList() {
 }
 
 func printPartialCmdList(part string) {
-	cmds := cmd.List()
+	cmds := commands.List()
 	count := 0
 	for _, c := range cmds {
 		if strings.HasPrefix(c, part) {

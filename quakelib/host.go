@@ -128,7 +128,7 @@ func serverFrame() error {
 }
 
 func writeCvarVariables(w io.Writer) error {
-	for _, c := range cvar.All() {
+	for _, c := range commandVars.All() {
 		if c.Archive() {
 			if c.UserDefined() || c.SetA() {
 				if _, err := w.Write([]byte("seta ")); err != nil {

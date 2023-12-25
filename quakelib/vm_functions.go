@@ -12,7 +12,6 @@ import (
 	"goquake/bsp"
 	"goquake/cbuf"
 	"goquake/conlog"
-	"goquake/cvar"
 	"goquake/cvars"
 	"goquake/math"
 	"goquake/math/vec"
@@ -828,7 +827,7 @@ func (v *virtualMachine) cvar() error {
 		return v.runError("PF_cvar: no string")
 	}
 	f := func(n string) float32 {
-		if cv, ok := cvar.Get(n); ok {
+		if cv, ok := (*commandVars)[n]; ok {
 			return cv.Value()
 		}
 		return 0
@@ -846,7 +845,7 @@ func (v *virtualMachine) cvarSet() error {
 	if err != nil {
 		return v.runError("PF_cvar_set: no val string")
 	}
-	if cv, ok := cvar.Get(name); ok {
+	if cv, ok := (*commandVars)[name]; ok {
 		cv.SetByString(val)
 	} else {
 		log.Printf("Cvar not found %v", name)
