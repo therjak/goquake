@@ -5,7 +5,6 @@ package quakelib
 
 import (
 	"os"
-	"strings"
 
 	"goquake/alias"
 	"goquake/cbuf"
@@ -50,39 +49,6 @@ func echo(a cbuf.Arguments) error {
 	}
 	conlog.Printf("\n")
 	return nil
-}
-
-func printCmdList(a cbuf.Arguments) error {
-	//TODO(therjak):
-	// this should probably print the syntax of cmdlist if len(args) > 1
-	args := a.Args()
-	switch len(args) {
-	default:
-		printPartialCmdList(args[1].String())
-	case 0, 1:
-		printFullCmdList()
-	}
-	return nil
-}
-
-func printFullCmdList() {
-	cmds := commands.List()
-	for _, c := range cmds {
-		conlog.SafePrintf("  %s\n", c)
-	}
-	conlog.SafePrintf("%v commands\n", len(cmds))
-}
-
-func printPartialCmdList(part string) {
-	cmds := commands.List()
-	count := 0
-	for _, c := range cmds {
-		if strings.HasPrefix(c, part) {
-			conlog.SafePrintf("  %s\n", c)
-			count++
-		}
-	}
-	conlog.SafePrintf("%v commands beginning with \"%v\"\n", count, part)
 }
 
 // Adds command line parameters as script statements
@@ -140,7 +106,6 @@ func execFile(a cbuf.Arguments) error {
 
 func init() {
 	addCommand("echo", echo)
-	addCommand("cmdlist", printCmdList)
 	addCommand("stuffcmds", executeCommandLineScripts)
 	addCommand("exec", execFile)
 }

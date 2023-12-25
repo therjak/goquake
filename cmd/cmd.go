@@ -4,9 +4,9 @@ package cmd
 
 import (
 	"fmt"
-	"goquake/cbuf"
-	"sort"
 	"strings"
+
+	"goquake/cbuf"
 )
 
 type QFunc func(args cbuf.Arguments) error
@@ -15,6 +15,7 @@ type Commands map[string]QFunc
 
 func New() *Commands {
 	c := make(Commands)
+	c.Add("cmdlist", c.printCmdList())
 	return &c
 }
 
@@ -31,15 +32,6 @@ func (c *Commands) Exists(cmdName string) bool {
 	name := strings.ToLower(cmdName)
 	_, ok := (*c)[name]
 	return ok
-}
-
-func (c *Commands) List() []string {
-	cmds := make([]string, 0, len(*c))
-	for cmd := range *c {
-		cmds = append(cmds, cmd)
-	}
-	sort.Strings(cmds)
-	return cmds
 }
 
 func (c *Commands) Execute() func(cb *cbuf.CommandBuffer, a cbuf.Arguments) (bool, error) {
