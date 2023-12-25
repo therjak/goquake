@@ -5,6 +5,7 @@ package cvar
 import (
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
 
 	"goquake/cbuf"
@@ -146,6 +147,7 @@ func (c *Cvars) All() []*Cvar {
 	for _, cv := range *c {
 		r = append(r, cv)
 	}
+	sort.Slice(r, func(i, j int) bool { return (r)[i].name < (r)[j].name })
 	return r
 }
 
