@@ -107,16 +107,20 @@ func (b *button) upKey(k int) {
 	b.impulseUp = true
 }
 
-func (b *button) upCmd(a []cbuf.QArg) {
-	if len(a) == 0 {
-		// typed manually
-		b.holdingDown[0] = 0
-		b.holdingDown[1] = 0
-		b.down = false
-		b.impulseDown = false
-		b.impulseUp = true
-	} else {
-		b.upKey(a[0].Int())
+func (b *button) upCmd() func(a cbuf.Arguments) error {
+	return func(a cbuf.Arguments) error {
+		k := a.Args()[1:]
+		if len(k) == 0 {
+			// typed manually
+			b.holdingDown[0] = 0
+			b.holdingDown[1] = 0
+			b.down = false
+			b.impulseDown = false
+			b.impulseUp = true
+		} else {
+			b.upKey(k[0].Int())
+		}
+		return nil
 	}
 }
 
@@ -136,155 +140,127 @@ func (b *button) downKey(k int) {
 	b.impulseDown = true
 }
 
-func (b *button) downCmd(a []cbuf.QArg) {
-	if len(a) == 0 {
-		// typed manually
-		b.downKey(-1)
-	} else {
-		b.downKey(a[0].Int())
+func (b *button) downCmd() func(a cbuf.Arguments) error {
+	return func(a cbuf.Arguments) error {
+		k := a.Args()[1:]
+		if len(k) == 0 {
+			// typed manually
+			b.downKey(-1)
+		} else {
+			b.downKey(k[0].Int())
+		}
+		return nil
 	}
 }
 
-func init() {
+func Commands(c *cmd.Commands) error {
 	// Key events issue these commands and pass the key number as argument,
 	// if no number expect console/cfg input
-	cmd.Must(cmd.AddCommand("+moveup", func(a cbuf.Arguments) error {
-		Up.downCmd(a.Args()[1:])
+	if err := c.Add("+moveup", Up.downCmd()); err != nil {
+		return err
+	}
+	if err := c.Add("-moveup", Up.upCmd()); err != nil {
+		return err
+	}
+	if err := c.Add("+movedown", Down.downCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("-moveup", func(a cbuf.Arguments) error {
-		Up.upCmd(a.Args()[1:])
+	}
+	if err := c.Add("-movedown", Down.upCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("+movedown", func(a cbuf.Arguments) error {
-		Down.downCmd(a.Args()[1:])
+	}
+	if err := c.Add("+left", Left.downCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("-movedown", func(a cbuf.Arguments) error {
-		Down.upCmd(a.Args()[1:])
+	}
+	if err := c.Add("-left", Left.upCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("+left", func(a cbuf.Arguments) error {
-		Left.downCmd(a.Args()[1:])
+	}
+	if err := c.Add("+right", Right.downCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("-left", func(a cbuf.Arguments) error {
-		Left.upCmd(a.Args()[1:])
+	}
+	if err := c.Add("-right", Right.upCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("+right", func(a cbuf.Arguments) error {
-		Right.downCmd(a.Args()[1:])
+	}
+	if err := c.Add("+forward", Forward.downCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("-right", func(a cbuf.Arguments) error {
-		Right.upCmd(a.Args()[1:])
+	}
+	if err := c.Add("-forward", Forward.upCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("+forward", func(a cbuf.Arguments) error {
-		Forward.downCmd(a.Args()[1:])
+	}
+	if err := c.Add("+back", Back.downCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("-forward", func(a cbuf.Arguments) error {
-		Forward.upCmd(a.Args()[1:])
+	}
+	if err := c.Add("-back", Back.upCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("+back", func(a cbuf.Arguments) error {
-		Back.downCmd(a.Args()[1:])
+	}
+	if err := c.Add("+lookup", LookUp.downCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("-back", func(a cbuf.Arguments) error {
-		Back.upCmd(a.Args()[1:])
+	}
+	if err := c.Add("-lookup", LookUp.upCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("+lookup", func(a cbuf.Arguments) error {
-		LookUp.downCmd(a.Args()[1:])
+	}
+	if err := c.Add("+lookdown", LookDown.downCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("-lookup", func(a cbuf.Arguments) error {
-		LookUp.upCmd(a.Args()[1:])
+	}
+	if err := c.Add("-lookdown", LookDown.upCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("+lookdown", func(a cbuf.Arguments) error {
-		LookDown.downCmd(a.Args()[1:])
+	}
+	if err := c.Add("+strafe", Strafe.downCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("-lookdown", func(a cbuf.Arguments) error {
-		LookDown.upCmd(a.Args()[1:])
+	}
+	if err := c.Add("-strafe", Strafe.upCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("+strafe", func(a cbuf.Arguments) error {
-		Strafe.downCmd(a.Args()[1:])
+	}
+	if err := c.Add("+moveleft", MoveLeft.downCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("-strafe", func(a cbuf.Arguments) error {
-		Strafe.upCmd(a.Args()[1:])
+	}
+	if err := c.Add("-moveleft", MoveLeft.upCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("+moveleft", func(a cbuf.Arguments) error {
-		MoveLeft.downCmd(a.Args()[1:])
+	}
+	if err := c.Add("+moveright", MoveRight.downCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("-moveleft", func(a cbuf.Arguments) error {
-		MoveLeft.upCmd(a.Args()[1:])
+	}
+	if err := c.Add("-moveright", MoveRight.upCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("+moveright", func(a cbuf.Arguments) error {
-		MoveRight.downCmd(a.Args()[1:])
+	}
+	if err := c.Add("+speed", Speed.downCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("-moveright", func(a cbuf.Arguments) error {
-		MoveRight.upCmd(a.Args()[1:])
+	}
+	if err := c.Add("-speed", Speed.upCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("+speed", func(a cbuf.Arguments) error {
-		Speed.downCmd(a.Args()[1:])
+	}
+	if err := c.Add("+attack", Attack.downCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("-speed", func(a cbuf.Arguments) error {
-		Speed.upCmd(a.Args()[1:])
+	}
+	if err := c.Add("-attack", Attack.upCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("+attack", func(a cbuf.Arguments) error {
-		Attack.downCmd(a.Args()[1:])
+	}
+	if err := c.Add("+use", Use.downCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("-attack", func(a cbuf.Arguments) error {
-		Attack.upCmd(a.Args()[1:])
+	}
+	if err := c.Add("-use", Use.upCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("+use", func(a cbuf.Arguments) error {
-		Use.downCmd(a.Args()[1:])
+	}
+	if err := c.Add("+jump", Jump.downCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("-use", func(a cbuf.Arguments) error {
-		Use.upCmd(a.Args()[1:])
+	}
+	if err := c.Add("-jump", Jump.upCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("+jump", func(a cbuf.Arguments) error {
-		Jump.downCmd(a.Args()[1:])
+	}
+	if err := c.Add("+klook", KLook.downCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("-jump", func(a cbuf.Arguments) error {
-		Jump.upCmd(a.Args()[1:])
+	}
+	if err := c.Add("-klook", KLook.upCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("+klook", func(a cbuf.Arguments) error {
-		KLook.downCmd(a.Args()[1:])
+	}
+	if err := c.Add("+mlook", MLook.downCmd()); err != nil {
 		return nil
-	}))
-	cmd.Must(cmd.AddCommand("-klook", func(a cbuf.Arguments) error {
-		KLook.upCmd(a.Args()[1:])
-		return nil
-	}))
-	cmd.Must(cmd.AddCommand("+mlook", func(a cbuf.Arguments) error {
-		MLook.downCmd(a.Args()[1:])
-		return nil
-	}))
-	cmd.Must(cmd.AddCommand("-mlook", func(a cbuf.Arguments) error {
-		MLook.upCmd(a.Args()[1:])
+	}
+	if err := c.Add("-mlook", MLook.upCmd()); err != nil {
+		// TODO: this command did contain the following as well:
 		// if !MLook.down && Cvar_GetValue(&lookspring) {
 		// V_StartPitchDrift()
 		// }
 		return nil
-	}))
+	}
+	return nil
 }

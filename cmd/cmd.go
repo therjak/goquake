@@ -58,29 +58,3 @@ func (c *Commands) Execute() func(cb *cbuf.CommandBuffer, a cbuf.Arguments) (boo
 		return false, nil
 	}
 }
-
-var (
-	commands = make(Commands)
-)
-
-func Must(err error) {
-	if err != nil {
-		panic(err.Error())
-	}
-}
-
-func AddCommand(name string, f QFunc) error {
-	return commands.Add(name, f)
-}
-
-func Exists(cmdName string) bool {
-	return commands.Exists(cmdName)
-}
-
-func Execute(cb *cbuf.CommandBuffer, a cbuf.Arguments) (bool, error) {
-	return commands.Execute()(cb, a)
-}
-
-func List() []string {
-	return commands.List()
-}

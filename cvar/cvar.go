@@ -178,16 +178,16 @@ func (c *Cvars) Execute() func(cb *cbuf.CommandBuffer, a cbuf.Arguments) (bool, 
 	}
 }
 
-func (c *Cvars) set() func(a cbuf.Arguments) error {
+func (c *Cvars) set(cs *cmd.Commands) func(a cbuf.Arguments) error {
 	return func(a cbuf.Arguments) error {
 		args := a.Args()[1:]
 		switch {
 		case len(args) >= 2:
-			if cmd.Exists(args[0].String()) {
+			name, value := args[0].String(), args[1].String()
+			if cs.Exists(name) {
 				conlog.Printf("conflict with command\n")
 				return nil
 			}
-			name, value := args[0].String(), args[1].String()
 			if cv, ok := (*c)[name]; ok {
 				cv.SetByString(value)
 			} else {
@@ -202,16 +202,16 @@ func (c *Cvars) set() func(a cbuf.Arguments) error {
 	}
 }
 
-func (c *Cvars) seta() func(a cbuf.Arguments) error {
+func (c *Cvars) seta(cs *cmd.Commands) func(a cbuf.Arguments) error {
 	return func(a cbuf.Arguments) error {
 		args := a.Args()[1:]
 		switch {
 		case len(args) >= 2:
-			if cmd.Exists(args[0].String()) {
+			name, value := args[0].String(), args[1].String()
+			if cs.Exists(name) {
 				conlog.Printf("conflict with command\n")
 				return nil
 			}
-			name, value := args[0].String(), args[1].String()
 			if cv, ok := (*c)[name]; ok {
 				cv.SetByString(value)
 				cv.seta = true
@@ -386,38 +386,33 @@ func (c *Cvars) cycle() func(a cbuf.Arguments) error {
 	}
 }
 
-var (
-	Execute func(cb *cbuf.CommandBuffer, a cbuf.Arguments) (bool, error)
-)
-
-var (
-	cvarByName Cvars = make(map[string]*Cvar)
-)
-
-func init() {
-	Execute = cvarByName.Execute()
-	cmd.Must(cmd.AddCommand("cvarlist", cvarByName.list()))
-	cmd.Must(cmd.AddCommand("cycle", cvarByName.cycle()))
-	cmd.Must(cmd.AddCommand("inc", cvarByName.inc()))
-	cmd.Must(cmd.AddCommand("reset", cvarByName.reset()))
-	cmd.Must(cmd.AddCommand("resetall", cvarByName.resetAll()))
-	cmd.Must(cmd.AddCommand("resetcfg", cvarByName.resetCfg()))
-	cmd.Must(cmd.AddCommand("set", cvarByName.set()))
-	cmd.Must(cmd.AddCommand("seta", cvarByName.seta()))
-	cmd.Must(cmd.AddCommand("toggle", cvarByName.toggle()))
+func (cvs *Cvars) Commands(c *cmd.Commands) error {
+	if err := c.Add("cvarlist", cvs.list()); err != nil {
+		return err
+	}
+	if err := c.Add("cycle", cvs.cycle()); err != nil {
+		return err
+	}
+	if err := c.Add("inc", cvs.inc()); err != nil {
+		return err
+	}
+	if err := c.Add("reset", cvs.reset()); err != nil {
+		return err
+	}
+	if err := c.Add("resetall", cvs.resetAll()); err != nil {
+		return err
+	}
+	if err := c.Add("resetcfg", cvs.resetCfg()); err != nil {
+		return err
+	}
+	if err := c.Add("set", cvs.set(c)); err != nil {
+		return err
+	}
+	if err := c.Add("seta", cvs.seta(c)); err != nil {
+		return err
+	}
+	if err := c.Add("toggle", cvs.toggle()); err != nil {
+		return err
+	}
+	return nil
 }
-
-func All() []*Cvar {
-	return cvarByName.All()
-}
-
-func Get(name string) (*Cvar, bool) {
-	cv, err := cvarByName[name]
-	return cv, err
-}
-
-func Global() *Cvars {
-	return &cvarByName
-}
-
-var Must = cmd.Must
