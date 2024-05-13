@@ -6,10 +6,8 @@ require (
 	github.com/go-gl/gl v0.0.0-20211210172815-726fda9656d6
 	github.com/google/uuid v1.6.0
 	github.com/veandco/go-sdl2 v0.4.38
-	golang.org/x/tools v0.20.0
+	golang.org/x/tools v0.21.0
 	google.golang.org/protobuf v1.34.0
 )
-
-require golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 
 go 1.21
