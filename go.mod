@@ -7,7 +7,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/veandco/go-sdl2 v0.4.40
 	golang.org/x/tools v0.27.0
-	google.golang.org/protobuf v1.35.1
+	google.golang.org/protobuf v1.35.2
 )
 
 go 1.21
