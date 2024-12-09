@@ -6,10 +6,9 @@ require (
 	github.com/go-gl/gl v0.0.0-20211210172815-726fda9656d6
 	github.com/google/uuid v1.6.0
 	github.com/veandco/go-sdl2 v0.4.40
-	golang.org/x/tools v0.27.0
+	golang.org/x/tools v0.28.0
 	google.golang.org/protobuf v1.35.2
 )
 
 go 1.21
-
 toolchain go1.22.5
