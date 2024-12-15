@@ -9,7 +9,6 @@ import (
 	"goquake/conlog"
 	"goquake/cvars"
 	kc "goquake/keycode"
-	"goquake/snd"
 	"log"
 	"time"
 

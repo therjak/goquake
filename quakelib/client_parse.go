@@ -17,7 +17,6 @@ import (
 	"goquake/model"
 	"goquake/protocol"
 	"goquake/protos"
-	"goquake/snd"
 	"goquake/spr"
 )
 

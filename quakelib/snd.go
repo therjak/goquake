@@ -9,12 +9,26 @@ import (
 	"goquake/cvar"
 	"goquake/cvars"
 	"goquake/math/vec"
-	"goquake/snd"
+	qsnd "goquake/snd"
 )
 
 // it should support to play U8, S8 and S16 sounds (is it necessary to replicate this?)
 
 // there are 4 ambient sound channel
+
+type soundsystem interface {
+	Start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3, fvol float32, attenuation float32, looping bool)
+	Stop(entnum, entchannel int)
+	StopAll()
+	PrecacheSound(n string) int
+	Update(id int, origin vec.Vec3, right vec.Vec3)
+	Shutdown()
+	Unblock()
+	Block()
+	SetVolume(v float32)
+}
+
+var snd soundsystem
 
 const (
 	loopingSound = true
@@ -40,23 +54,19 @@ func onVolumeChange(cv *cvar.Cvar) {
 }
 
 func soundInit() {
-	snd.Init(commandline.Sound() && !cvars.NoSound.Bool())
+	snd = qsnd.InitSoundSystem(commandline.Sound() && !cvars.NoSound.Bool())
 	onVolumeChange(cvars.Volume)
 }
 
 /*
 func S_Update(origin *C.float, _ *C.float, right *C.float, _ *C.float) {
-	// update the direction and distance to all sound sources
-	listener := snd.Listener{
-		Origin: cfloatToVec3(origin),
-		Right:  cfloatToVec3(right),
-		ID:     cl.viewentity,
-	}
 	// TODO(therjak): snd.UpdateAmbientSounds(ambient_levels)
 	// with ambient_levels containing
 	// ambient_level
 	// ambient_sound_level per ambient channel [4]
-	snd.Update(listener)
+
+	// update the direction and distance to all sound sources
+	snd.Update(cl.viewentity, cfloatToVec3(origin), cfloatToVec3(right))
 }*/
 
 func localSound(name string) {
