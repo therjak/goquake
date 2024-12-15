@@ -32,7 +32,6 @@ import (
 	svc "goquake/protocol/server"
 	"goquake/protos"
 	"goquake/rand"
-	"goquake/snd"
 	"goquake/stat"
 
 	"github.com/chewxy/math32"

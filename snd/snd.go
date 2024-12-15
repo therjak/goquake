@@ -34,6 +34,9 @@ var (
 	mustSampleRate  = desiredSampleRate
 	mustChannelNum  = desiredChannelNum
 	mustAudioFormat = uint16(desiredAudioFormat)
+	activeSounds    = newASounds()
+	listener        = aListener{}
+	volume          float32
 )
 
 type playingSound struct {
@@ -147,10 +150,6 @@ func newASounds() *aSounds {
 	return &aSounds{make(map[int]*playingSound)}
 }
 
-var (
-	activeSounds = newASounds()
-)
-
 func (a *aSounds) soundCleanup(channel int) {
 	delete(a.sounds, channel)
 }
@@ -186,7 +185,7 @@ func soundCleanup(channel int) {
 	activeSounds.soundCleanup(channel)
 }
 
-func Init(active bool) {
+func initSound(active bool) {
 	if !active {
 		soundFlag = false
 		return
@@ -239,14 +238,14 @@ func Init(active bool) {
 	mix.ChannelFinished(soundCleanup)
 }
 
-func Shutdown() {
+func shutdown() {
 	if !soundFlag {
 		return
 	}
 	mix.CloseAudio()
 }
 
-func Start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3,
+func start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3,
 	fvol float32, attenuation float32, looping bool) {
 	if !soundFlag {
 		return
@@ -300,7 +299,7 @@ func Start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3,
 	activeSounds.add(ps)
 }
 
-func Stop(entnum, entchannel int) {
+func stop(entnum, entchannel int) {
 	if !soundFlag {
 		return
 	}
@@ -308,31 +307,31 @@ func Stop(entnum, entchannel int) {
 	activeSounds.stop(entnum, entchannel)
 }
 
-func StopAll() {
+func stopAll() {
 	if !soundFlag {
 		return
 	}
 	activeSounds.stopAll()
 }
 
-var (
-	listener = Listener{}
-)
-
-type Listener struct {
+type aListener struct {
 	Origin vec.Vec3
 	Right  vec.Vec3
 	ID     int
 }
 
-func Update(l Listener) {
+func update(id int, origin vec.Vec3, right vec.Vec3) {
 	// update the direction and distance to all sound sources
-	listener = l
-	activeSounds.update(l.ID, l.Origin, l.Right)
+	listener = aListener{
+		Origin: origin,
+		Right:  right,
+		ID:     id,
+	}
+	activeSounds.update(id, origin, right)
 }
 
 // gets called when window looses focus
-func Block() {
+func block() {
 	if !soundFlag {
 		return
 	}
@@ -340,7 +339,7 @@ func Block() {
 }
 
 // gets called when window gains focus
-func Unblock() {
+func unblock() {
 	if !soundFlag {
 		return
 	}
@@ -359,7 +358,7 @@ func newSDLSound(s *pcmSound) (*mix.Chunk, error) {
 	return mix.QuickLoadRAW(&s.pcm[0], uint32(l))
 }
 
-func PrecacheSound(n string) int {
+func precacheSound(n string) int {
 	if soundFlag == false {
 		return -1
 	}
@@ -379,9 +378,7 @@ func PrecacheSound(n string) int {
 	return soundPrecache.Add(s)
 }
 
-var volume float32
-
-func SetVolume(v float32) {
+func setVolume(v float32) {
 	if !soundFlag {
 		return
 	}
@@ -389,4 +386,42 @@ func SetVolume(v float32) {
 	// this needs some init to work,
 	// can only be called between mix.OpenAudio and mix.CloseAudio
 	mix.Volume(-1, int(volume*mix.MAX_VOLUME))
+}
+
+// The API
+
+func InitSoundSystem(active bool) *SndSys {
+	initSound(active)
+	return &SndSys{}
+}
+
+type SndSys struct{}
+
+func (*SndSys) Start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3, fvol float32, attenuation float32, looping bool) {
+	start(entnum, entchannel, sfx, sndOrigin, fvol, attenuation, looping)
+}
+
+func (*SndSys) Stop(entnum, entchannel int) {
+	stop(entnum, entchannel)
+}
+func (*SndSys) StopAll() {
+	stopAll()
+}
+func (*SndSys) PrecacheSound(n string) int {
+	return precacheSound(n)
+}
+func (*SndSys) Update(id int, origin vec.Vec3, right vec.Vec3) {
+	update(id, origin, right)
+}
+func (*SndSys) Shutdown() {
+	shutdown()
+}
+func (*SndSys) Unblock() {
+	unblock()
+}
+func (*SndSys) Block() {
+	block()
+}
+func (*SndSys) SetVolume(v float32) {
+	setVolume(v)
 }

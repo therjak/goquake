@@ -18,9 +18,9 @@ import (
 	"goquake/cvars"
 	"goquake/filesystem"
 	"goquake/input"
+	"goquake/math/vec"
 	"goquake/net"
 	"goquake/protocol"
-	"goquake/snd"
 	"goquake/wad"
 	"goquake/window"
 )
@@ -295,15 +295,15 @@ func executeFrame() {
 	}
 
 	// update audio
-	listener := snd.Listener{
-		ID: cl.viewentity,
-	}
+	listenerID := cl.viewentity
+	var listenerOrigin vec.Vec3
+	var listenerRight vec.Vec3
 	if cls.signon == 4 {
-		listener.Origin = qRefreshRect.viewOrg
-		listener.Right = qRefreshRect.viewRight
+		listenerOrigin = qRefreshRect.viewOrg
+		listenerRight = qRefreshRect.viewRight
 		cl.DecayLights()
 	}
-	snd.Update(listener)
+	snd.Update(listenerID, listenerOrigin, listenerRight)
 
 	if cvars.HostSpeeds.Bool() {
 		pass1 := time1.Sub(executeFrameTime)
