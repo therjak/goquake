@@ -58,17 +58,6 @@ func soundInit() {
 	onVolumeChange(cvars.Volume)
 }
 
-/*
-func S_Update(origin *C.float, _ *C.float, right *C.float, _ *C.float) {
-	// TODO(therjak): snd.UpdateAmbientSounds(ambient_levels)
-	// with ambient_levels containing
-	// ambient_level
-	// ambient_sound_level per ambient channel [4]
-
-	// update the direction and distance to all sound sources
-	snd.Update(cl.viewentity, cfloatToVec3(origin), cfloatToVec3(right))
-}*/
-
 func localSound(name string) {
 	// This is mostly for the menu sounds
 	sfx := snd.PrecacheSound(name)

@@ -2,10 +2,6 @@
 
 package snd
 
-var (
-	soundPrecache cache
-)
-
 type cache []*pcmSound
 
 func (c *cache) Get(i int) *pcmSound {

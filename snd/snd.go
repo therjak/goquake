@@ -4,8 +4,8 @@ package snd
 
 // This uses sdl2 mixer. This is not sufficient for the kind of stuff quake does.
 // probably should do this with something along
-// github.com/faiface/beep
-// github.com/hajimehoshi/oto
+// github.com/gopxl/beep/v2
+// github.com/ebitengine/oto/v3
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ import (
 
 	"goquake/math/vec"
 
-	// "github.com/hajimehoshi/oto"
+	// github.com/ebitengine/oto/v3
 
 	"github.com/veandco/go-sdl2/mix"
 	"github.com/veandco/go-sdl2/sdl"
@@ -30,13 +30,10 @@ const (
 )
 
 var (
-	soundFlag       = true
 	mustSampleRate  = desiredSampleRate
 	mustChannelNum  = desiredChannelNum
 	mustAudioFormat = uint16(desiredAudioFormat)
 	activeSounds    = newASounds()
-	listener        = aListener{}
-	volume          float32
 )
 
 type playingSound struct {
@@ -60,6 +57,15 @@ type playingSound struct {
 	startTime          time.Time
 	sound              *pcmSound
 }
+
+// beep interface:
+// Len() int
+// Position() int
+// Seek(p int) error
+// Close() error
+// Error() error
+// Stream(samples [][2]float64) (n int, ok bool)
+//
 
 /*
 type Player struct {
@@ -179,21 +185,16 @@ func (a *aSounds) update(listener int, listenerOrigin, listenerRight vec.Vec3) {
 	}
 	// TODO(therjak): start sounds which became audible
 	//                stop sounds which are unaudible
+	// ambientsounds to ambient_levels
 }
 
 func soundCleanup(channel int) {
 	activeSounds.soundCleanup(channel)
 }
 
-func initSound(active bool) {
-	if !active {
-		soundFlag = false
-		return
-	}
+func initSound() error {
 	if err := sdl.InitSubSystem(sdl.INIT_AUDIO); err != nil {
-		log.Println(err)
-		soundFlag = false
-		return
+		return err
 	}
 
 	chunkSize := func() int {
@@ -210,15 +211,11 @@ func initSound(active bool) {
 	}()
 
 	if err := mix.OpenAudio(desiredSampleRate, desiredAudioFormat, desiredChannelNum, chunkSize); err != nil {
-		log.Println(err)
-		soundFlag = false
-		return
+		return err
 	}
 	frequency, format, channels, _ /*open*/, err := mix.QuerySpec()
 	if err != nil {
-		log.Println(err)
-		soundFlag = false
-		return
+		return err
 	}
 	mustSampleRate = frequency
 	mustChannelNum = channels
@@ -230,28 +227,22 @@ func initSound(active bool) {
 		mustChannelNum != desiredChannelNum ||
 		mustAudioFormat != desiredAudioFormat {
 		log.Println(err)
-		soundFlag = false
-		return
+		return fmt.Errorf("Wrong samplerate")
 	}
 
 	mix.AllocateChannels(128) // Observed are maps with more than 64 sounds
 	mix.ChannelFinished(soundCleanup)
+	return nil
 }
 
-func shutdown() {
-	if !soundFlag {
-		return
-	}
+func (s *SndSys) shutdown() {
 	mix.CloseAudio()
 }
 
-func start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3,
+func (s *SndSys) start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3,
 	fvol float32, attenuation float32, looping bool) {
-	if !soundFlag {
-		return
-	}
-	s := soundPrecache.Get(sfx)
-	if s == nil {
+	pres := s.cache.Get(sfx)
+	if pres == nil {
 		log.Printf("asked found sound out of range %v", sfx)
 		return
 	}
@@ -265,10 +256,10 @@ func start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3,
 		distanceMultiplier: attenuation / clipDistance,
 		startTime:          time.Now(),
 		channel:            -1,
-		sound:              s,
+		sound:              pres,
 	}
 
-	ps.spatialize(listener.ID, listener.Origin, listener.Right) // update panning
+	ps.spatialize(s.listener.ID, s.listener.Origin, s.listener.Right) // update panning
 	if ps.left != 0 || ps.right != 0 {
 		// ignore this sound
 	}
@@ -281,7 +272,7 @@ func start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3,
 		// should start at loopstart.
 		return -1 // loop infinite
 	}()
-	chunk, err := newSDLSound(s)
+	chunk, err := newSDLSound(pres)
 	if err != nil {
 		log.Println(err)
 		return
@@ -299,30 +290,24 @@ func start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3,
 	activeSounds.add(ps)
 }
 
-func stop(entnum, entchannel int) {
-	if !soundFlag {
-		return
-	}
+func (s *SndSys) stop(entnum, entchannel int) {
 	// why does the server know which channel to stop
 	activeSounds.stop(entnum, entchannel)
 }
 
-func stopAll() {
-	if !soundFlag {
-		return
-	}
+func (s *SndSys) stopAll() {
 	activeSounds.stopAll()
 }
 
-type aListener struct {
+type listener struct {
 	Origin vec.Vec3
 	Right  vec.Vec3
 	ID     int
 }
 
-func update(id int, origin vec.Vec3, right vec.Vec3) {
+func (s *SndSys) update(id int, origin vec.Vec3, right vec.Vec3) {
 	// update the direction and distance to all sound sources
-	listener = aListener{
+	s.listener = listener{
 		Origin: origin,
 		Right:  right,
 		ID:     id,
@@ -331,19 +316,13 @@ func update(id int, origin vec.Vec3, right vec.Vec3) {
 }
 
 // gets called when window looses focus
-func block() {
-	if !soundFlag {
-		return
-	}
+func (s *SndSys) block() {
 	mix.Volume(-1, 0)
 }
 
 // gets called when window gains focus
-func unblock() {
-	if !soundFlag {
-		return
-	}
-	mix.Volume(-1, int(volume*mix.MAX_VOLUME))
+func (s *SndSys) unblock() {
+	mix.Volume(-1, int(s.volume*mix.MAX_VOLUME))
 }
 
 func newSDLSound(s *pcmSound) (*mix.Chunk, error) {
@@ -358,70 +337,101 @@ func newSDLSound(s *pcmSound) (*mix.Chunk, error) {
 	return mix.QuickLoadRAW(&s.pcm[0], uint32(l))
 }
 
-func precacheSound(n string) int {
-	if soundFlag == false {
-		return -1
-	}
+func (s *SndSys) precacheSound(n string) int {
 	name := filepath.Join("sound", n)
-	if i, ok := soundPrecache.Has(name); ok {
+	if i, ok := s.cache.Has(name); ok {
 		return i
 	}
-	s, err := loadSFX(name)
+	sfx, err := loadSFX(name)
 	if err != nil {
 		log.Println(err)
 		return -1
 	}
-	if err := s.resample(); err != nil {
+	if err := sfx.resample(); err != nil {
 		log.Println(err)
 		return -1
 	}
-	return soundPrecache.Add(s)
+	return s.cache.Add(sfx)
 }
 
-func setVolume(v float32) {
-	if !soundFlag {
-		return
-	}
-	volume = v
+func (s *SndSys) setVolume(v float32) {
+	s.volume = v
 	// this needs some init to work,
 	// can only be called between mix.OpenAudio and mix.CloseAudio
-	mix.Volume(-1, int(volume*mix.MAX_VOLUME))
+	mix.Volume(-1, int(s.volume*mix.MAX_VOLUME))
 }
 
 // The API
 
 func InitSoundSystem(active bool) *SndSys {
-	initSound(active)
+	if !active {
+		return nil
+	}
+	if err := initSound(); err != nil {
+		log.Println(err)
+		return nil
+	}
 	return &SndSys{}
 }
 
-type SndSys struct{}
-
-func (*SndSys) Start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3, fvol float32, attenuation float32, looping bool) {
-	start(entnum, entchannel, sfx, sndOrigin, fvol, attenuation, looping)
+type SndSys struct {
+	cache    cache
+	volume   float32
+	listener listener
 }
 
-func (*SndSys) Stop(entnum, entchannel int) {
-	stop(entnum, entchannel)
+func (s *SndSys) Start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3, fvol float32, attenuation float32, looping bool) {
+	if s == nil {
+		return
+	}
+	s.start(entnum, entchannel, sfx, sndOrigin, fvol, attenuation, looping)
 }
-func (*SndSys) StopAll() {
-	stopAll()
+
+func (s *SndSys) Stop(entnum, entchannel int) {
+	if s == nil {
+		return
+	}
+	s.stop(entnum, entchannel)
 }
-func (*SndSys) PrecacheSound(n string) int {
-	return precacheSound(n)
+func (s *SndSys) StopAll() {
+	if s == nil {
+		return
+	}
+	s.stopAll()
 }
-func (*SndSys) Update(id int, origin vec.Vec3, right vec.Vec3) {
-	update(id, origin, right)
+func (s *SndSys) PrecacheSound(n string) int {
+	if s == nil {
+		return -1
+	}
+	return s.precacheSound(n)
 }
-func (*SndSys) Shutdown() {
-	shutdown()
+func (s *SndSys) Update(id int, origin vec.Vec3, right vec.Vec3) {
+	if s == nil {
+		return
+	}
+	s.update(id, origin, right)
 }
-func (*SndSys) Unblock() {
-	unblock()
+func (s *SndSys) Shutdown() {
+	if s == nil {
+		return
+	}
+	s.shutdown()
 }
-func (*SndSys) Block() {
-	block()
+func (s *SndSys) Unblock() {
+	if s == nil {
+		return
+	}
+	s.unblock()
 }
-func (*SndSys) SetVolume(v float32) {
-	setVolume(v)
+func (s *SndSys) Block() {
+	if s == nil {
+		return
+	}
+	s.block()
+}
+func (s *SndSys) SetVolume(v float32) {
+	if s == nil {
+		return
+	}
+	s.setVolume(v)
 }
