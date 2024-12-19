@@ -76,14 +76,18 @@ func parseClientData(msg *net.QReader) (*protos.ClientData, error) {
 	}
 	bits := int(m)
 
-	if bits&SU_EXTEND1 != 0 {
+	has := func(flag int) bool {
+		return bits&flag != 0
+	}
+
+	if has(SU_EXTEND1) {
 		m, err := msg.ReadByte()
 		if err != nil {
 			return nil, err
 		}
 		bits |= int(m) << 16
 	}
-	if bits&SU_EXTEND2 != 0 {
+	if has(SU_EXTEND2) {
 		m, err := msg.ReadByte()
 		if err != nil {
 			return nil, err
@@ -99,27 +103,6 @@ func parseClientData(msg *net.QReader) (*protos.ClientData, error) {
 		*v = int32(nv)
 		return nil
 	}
-	readByteIf := func(flag int, v *int32) error {
-		if bits&flag != 0 {
-			return readByte(v)
-		}
-		return nil
-	}
-
-	readInt8 := func(v *int32) error {
-		nv, err := msg.ReadInt8()
-		if err != nil {
-			return err
-		}
-		*v = int32(nv)
-		return nil
-	}
-	readInt8If := func(flag int, v *int32) error {
-		if bits&flag != 0 {
-			return readInt8(v)
-		}
-		return nil
-	}
 
 	readUpperByte := func(v *int32) error {
 		s, err := msg.ReadByte()
@@ -129,14 +112,8 @@ func parseClientData(msg *net.QReader) (*protos.ClientData, error) {
 		*v |= int32(s) << 8
 		return nil
 	}
-	readUpperByteIf := func(flag int, v *int32) error {
-		if bits&flag != 0 {
-			return readUpperByte(v)
-		}
-		return nil
-	}
 
-	if bits&SU_VIEWHEIGHT != 0 {
+	if has(SU_VIEWHEIGHT) {
 		m, err := msg.ReadInt8()
 		if err != nil {
 			return nil, err
@@ -144,30 +121,58 @@ func parseClientData(msg *net.QReader) (*protos.ClientData, error) {
 		clientData.ViewHeight = proto.Int32(int32(m))
 	}
 
-	if err := readInt8If(SU_IDEALPITCH, &clientData.IdealPitch); err != nil {
-		return nil, err
+	if has(SU_IDEALPITCH) {
+		p, err := msg.ReadInt8()
+		if err != nil {
+			return nil, err
+		}
+		clientData.IdealPitch = int32(p)
 	}
 
 	clientData.PunchAngle = &protos.IntCoord{}
 	clientData.Velocity = &protos.IntCoord{}
 
-	if err := readInt8If(SU_PUNCH1, &clientData.PunchAngle.X); err != nil {
-		return nil, err
+	if has(SU_PUNCH1) {
+		v, err := msg.ReadInt8()
+		if err != nil {
+			return nil, err
+		}
+		clientData.PunchAngle.X = int32(v)
 	}
-	if err := readInt8If(SU_VELOCITY1, &clientData.Velocity.X); err != nil {
-		return nil, err
+	if has(SU_VELOCITY1) {
+		v, err := msg.ReadInt8()
+		if err != nil {
+			return nil, err
+		}
+		clientData.Velocity.X = int32(v)
 	}
-	if err := readInt8If(SU_PUNCH2, &clientData.PunchAngle.Y); err != nil {
-		return nil, err
+	if has(SU_PUNCH2) {
+		v, err := msg.ReadInt8()
+		if err != nil {
+			return nil, err
+		}
+		clientData.PunchAngle.Y = int32(v)
 	}
-	if err := readInt8If(SU_VELOCITY2, &clientData.Velocity.Y); err != nil {
-		return nil, err
+	if has(SU_VELOCITY2) {
+		v, err := msg.ReadInt8()
+		if err != nil {
+			return nil, err
+		}
+		clientData.Velocity.Y = int32(v)
 	}
-	if err := readInt8If(SU_PUNCH3, &clientData.PunchAngle.Z); err != nil {
-		return nil, err
+	if has(SU_PUNCH3) {
+		v, err := msg.ReadInt8()
+		if err != nil {
+			return nil, err
+		}
+		clientData.PunchAngle.Z = int32(v)
 	}
-	if err := readInt8If(SU_VELOCITY3, &clientData.Velocity.Z); err != nil {
-		return nil, err
+	if has(SU_VELOCITY3) {
+		v, err := msg.ReadInt8()
+		if err != nil {
+			return nil, err
+		}
+		clientData.Velocity.Z = int32(v)
 	}
 
 	// [always sent]	if (bits & SU_ITEMS) != 0
@@ -180,14 +185,23 @@ func parseClientData(msg *net.QReader) (*protos.ClientData, error) {
 	clientData.InWater = bits&SU_INWATER != 0
 	clientData.OnGround = bits&SU_ONGROUND != 0
 
-	if err := readByteIf(SU_WEAPONFRAME, &clientData.WeaponFrame); err != nil {
-		return nil, err
+	var weaponFrame int32
+	var armor int32
+	var weapon int32
+	if has(SU_WEAPONFRAME) {
+		if err := readByte(&weaponFrame); err != nil {
+			return nil, err
+		}
 	}
-	if err := readByteIf(SU_ARMOR, &clientData.Armor); err != nil {
-		return nil, err
+	if has(SU_ARMOR) {
+		if err := readByte(&armor); err != nil {
+			return nil, err
+		}
 	}
-	if err := readByteIf(SU_WEAPON, &clientData.Weapon); err != nil {
-		return nil, err
+	if has(SU_WEAPON) {
+		if err := readByte(&weapon); err != nil {
+			return nil, err
+		}
 	}
 
 	health, err := msg.ReadInt16()
@@ -196,52 +210,94 @@ func parseClientData(msg *net.QReader) (*protos.ClientData, error) {
 	}
 	clientData.Health = int32(health)
 
-	if err := readByte(&clientData.Ammo); err != nil {
+	var ammo int32
+	var shells int32
+	var nails int32
+	var rockets int32
+	var cells int32
+	if err := readByte(&ammo); err != nil {
 		return nil, err
 	}
-	if err := readByte(&clientData.Shells); err != nil {
+	if err := readByte(&shells); err != nil {
 		return nil, err
 	}
-	if err := readByte(&clientData.Nails); err != nil {
+	if err := readByte(&nails); err != nil {
 		return nil, err
 	}
-	if err := readByte(&clientData.Rockets); err != nil {
+	if err := readByte(&rockets); err != nil {
 		return nil, err
 	}
-	if err := readByte(&clientData.Cells); err != nil {
+	if err := readByte(&cells); err != nil {
 		return nil, err
 	}
-	if err := readByte(&clientData.ActiveWeapon); err != nil {
+	active, err := msg.ReadByte()
+	if err != nil {
 		return nil, err
+	}
+	clientData.ActiveWeapon = int32(active)
+
+	if has(SU_WEAPON2) {
+		if err := readUpperByte(&weapon); err != nil {
+			return nil, err
+		}
+	}
+	if has(SU_ARMOR2) {
+		if err := readUpperByte(&armor); err != nil {
+			return nil, err
+		}
+	}
+	if has(SU_AMMO2) {
+		if err := readUpperByte(&ammo); err != nil {
+			return nil, err
+		}
+	}
+	if has(SU_SHELLS2) {
+		if err := readUpperByte(&shells); err != nil {
+			return nil, err
+		}
+	}
+	if has(SU_NAILS2) {
+		if err := readUpperByte(&nails); err != nil {
+			return nil, err
+		}
+	}
+	if has(SU_ROCKETS2) {
+		if err := readUpperByte(&rockets); err != nil {
+			return nil, err
+		}
+	}
+	if has(SU_CELLS2) {
+		if err := readUpperByte(&cells); err != nil {
+			return nil, err
+		}
+	}
+	if has(SU_WEAPONFRAME2) {
+		if err := readUpperByte(&weaponFrame); err != nil {
+			return nil, err
+		}
+	}
+	if has(SU_WEAPONALPHA) {
+		v, err := msg.ReadByte()
+		if err != nil {
+			return nil, err
+		}
+		clientData.WeaponAlpha = int32(v)
+	}
+	clientData.Ammo = ammo
+	clientData.Shells = shells
+	clientData.Nails = nails
+	clientData.Rockets = rockets
+	clientData.Cells = cells
+	if has(SU_WEAPONFRAME) || has(SU_WEAPONFRAME2) {
+		clientData.WeaponFrame = weaponFrame
+	}
+	if has(SU_ARMOR) || has(SU_ARMOR2) {
+		clientData.Armor = armor
+	}
+	if has(SU_WEAPON) || has(SU_WEAPON2) {
+		clientData.Weapon = weapon
 	}
 
-	if err := readUpperByteIf(SU_WEAPON2, &clientData.Weapon); err != nil {
-		return nil, err
-	}
-	if err := readUpperByteIf(SU_ARMOR2, &clientData.Armor); err != nil {
-		return nil, err
-	}
-	if err := readUpperByteIf(SU_AMMO2, &clientData.Ammo); err != nil {
-		return nil, err
-	}
-	if err := readUpperByteIf(SU_SHELLS2, &clientData.Shells); err != nil {
-		return nil, err
-	}
-	if err := readUpperByteIf(SU_NAILS2, &clientData.Nails); err != nil {
-		return nil, err
-	}
-	if err := readUpperByteIf(SU_ROCKETS2, &clientData.Rockets); err != nil {
-		return nil, err
-	}
-	if err := readUpperByteIf(SU_CELLS2, &clientData.Cells); err != nil {
-		return nil, err
-	}
-	if err := readUpperByteIf(SU_WEAPONFRAME2, &clientData.WeaponFrame); err != nil {
-		return nil, err
-	}
-	if err := readByteIf(SU_WEAPONALPHA, &clientData.WeaponAlpha); err != nil {
-		return nil, err
-	}
 	return clientData, nil
 }
 
