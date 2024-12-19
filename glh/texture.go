@@ -5,8 +5,8 @@ package glh
 import (
 	"runtime"
 
-	"github.com/faiface/mainthread"
 	"github.com/go-gl/gl/v4.6-core/gl"
+	"github.com/gopxl/mainthread/v2"
 )
 
 type TexID uint32
