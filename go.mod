@@ -7,7 +7,7 @@ require (
 	github.com/gopxl/mainthread/v2 v2.1.1
 	github.com/veandco/go-sdl2 v0.4.40
 	golang.org/x/tools v0.28.0
-	google.golang.org/protobuf v1.35.2
+	google.golang.org/protobuf v1.36.0
 )
 
 go 1.22.0
