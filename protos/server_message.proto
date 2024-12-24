@@ -1,8 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-syntax = "proto3";
+edition = "2023";
 
 package protos;
 option go_package = "github.com/therjak/goquake/protos";
+option features.field_presence = IMPLICIT;
+option features.enum_type = OPEN;
+option features.json_format = ALLOW;
+option features.utf8_validation = VERIFY;
 
 message Coord {
   float x = 1;
@@ -55,8 +59,8 @@ message LightStyle {
 }
 
 message Sound {
-  optional int32 volume = 1; // byte - default 255
-  optional int32 attenuation = 2; // byte - default 64
+  int32 volume = 1 [features.field_presence=EXPLICIT]; // byte - default 255
+  int32 attenuation = 2 [features.field_presence=EXPLICIT]; // byte - default 64
   int32 entity = 3; // int16
   int32 channel = 4; // byte
   int32 sound_num = 5; // int16
@@ -79,7 +83,7 @@ message UpdateColors {
 }
 
 message ClientData {
-  optional int32 view_height = 1; // byte, default 22
+  int32 view_height = 1 [features.field_presence=EXPLICIT]; // byte, default 22
   int32 ideal_pitch = 2; // byte
   IntCoord punch_angle = 3; // byte
   IntCoord velocity = 4; // byte
@@ -127,19 +131,19 @@ message ServerInfo {
 message EntityUpdate {
   int32 entity = 1;
   bool lerp_move_step = 2; // -- need recheck
-  optional int32 model = 3;
-  optional int32 frame = 4;
-  optional int32 color_map = 5;
-  optional int32 skin = 6;
+  int32 model = 3 [features.field_presence=EXPLICIT];
+  int32 frame = 4 [features.field_presence=EXPLICIT];
+  int32 color_map = 5 [features.field_presence=EXPLICIT];
+  int32 skin = 6 [features.field_presence=EXPLICIT];
   int32 effects = 7;
-  optional float origin_x = 8;
-  optional float origin_y = 9;
-  optional float origin_z = 10;
-  optional float angle_x = 11;
-  optional float angle_y = 12;
-  optional float angle_z = 13;
-  optional int32 lerp_finish = 14;
-  optional int32 alpha = 15;
+  float origin_x = 8 [features.field_presence=EXPLICIT];
+  float origin_y = 9 [features.field_presence=EXPLICIT];
+  float origin_z = 10 [features.field_presence=EXPLICIT];
+  float angle_x = 11 [features.field_presence=EXPLICIT];
+  float angle_y = 12 [features.field_presence=EXPLICIT];
+  float angle_z = 13 [features.field_presence=EXPLICIT];
+  int32 lerp_finish = 14 [features.field_presence=EXPLICIT];
+  int32 alpha = 15 [features.field_presence=EXPLICIT];
   // optional int32 scale = 16; // not used
 }
 

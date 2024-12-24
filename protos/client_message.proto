@@ -1,8 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-syntax = "proto3";
+edition = "2023";
 
 package protos;
 option go_package = "github.com/therjak/goquake/protos";
+option features.field_presence = IMPLICIT;
+option features.enum_type = OPEN;
+option features.json_format = ALLOW;
+option features.utf8_validation = VERIFY;
 
 // nop == empty Cmd
 // disconnect
