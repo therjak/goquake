@@ -86,7 +86,6 @@ func FromBytes(data []byte, protocol int, flags uint32) (*protos.ClientMessage, 
 	if protocol == ptcl.NetQuake {
 		readAngle = netMessage.ReadAngle
 	}
-	var err error
 	for netMessage.Len() != 0 {
 		ccmd, _ := netMessage.ReadInt8()
 		switch ccmd {
@@ -100,23 +99,27 @@ func FromBytes(data []byte, protocol int, flags uint32) (*protos.ClientMessage, 
 			}.Build()))
 		case Move:
 			cmd := &protos.UsrCmd{}
-			cmd.MessageTime, err = netMessage.ReadFloat32()
+			v, err := netMessage.ReadFloat32()
 			if err != nil {
 				return nil, fmt.Errorf("SV_ReadClientMessage: badread %v\n", err)
 			}
+			cmd.SetMessageTime(v)
 
-			cmd.Pitch, err = readAngle(flags)
+			v, err = readAngle(flags)
 			if err != nil {
 				return nil, fmt.Errorf("SV_ReadClientMessage: badread %v\n", err)
 			}
-			cmd.Yaw, err = readAngle(flags)
+			cmd.SetPitch(v)
+			v, err = readAngle(flags)
 			if err != nil {
 				return nil, fmt.Errorf("SV_ReadClientMessage: badread %v\n", err)
 			}
-			cmd.Roll, err = readAngle(flags)
+			cmd.SetYaw(v)
+			v, err = readAngle(flags)
 			if err != nil {
 				return nil, fmt.Errorf("SV_ReadClientMessage: badread %v\n", err)
 			}
+			cmd.SetRoll(v)
 
 			forward, err := netMessage.ReadInt16()
 			if err != nil {
