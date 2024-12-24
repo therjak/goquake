@@ -122,8 +122,8 @@ func (m *Model) addToFatPVS(org vec.Vec3, n Node, fpvs *[]byte) {
 	}
 }
 
-//Calculates a PVS that is the inclusive or of all leafs within 8 pixels of the
-//given point.
+// Calculates a PVS that is the inclusive or of all leafs within 8 pixels of the
+// given point.
 func (m *Model) FatPVS(org vec.Vec3) []byte {
 	fatbytes := (len(m.Leafs) + 6) / 8 // (len(Leafs) - 'leaf[0]' + 7)/8
 	pvs := fatpvs[:fatbytes]

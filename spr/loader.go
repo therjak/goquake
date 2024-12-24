@@ -53,7 +53,7 @@ func loadM(name string, data []byte) ([]qm.Model, error) {
 	return []qm.Model{mod}, nil
 }
 
-//TODO: move into Model
+// TODO: move into Model
 type Sprite struct {
 	Type      SpriteType
 	MaxWidth  int32
