@@ -135,12 +135,12 @@ func (s *Server) StartParticle(org, dir vec.Vec3, color, count int) {
 	if s.datagram.Len() > protocol.MaxDatagram-18 {
 		return
 	}
-	p := &protos.Particle{
-		Origin:    &protos.Coord{X: org[0], Y: org[1], Z: org[2]},
-		Direction: &protos.Coord{X: dir[0], Y: dir[1], Z: dir[2]},
+	p := protos.Particle_builder{
+		Origin:    protos.Coord_builder{X: org[0], Y: org[1], Z: org[2]}.Build(),
+		Direction: protos.Coord_builder{X: dir[0], Y: dir[1], Z: dir[2]}.Build(),
 		Count:     int32(count),
 		Color:     int32(color),
-	}
+	}.Build()
 	server.WriteParticle(p, s.protocolFlags, &s.datagram)
 }
 
@@ -208,21 +208,21 @@ func (s *Server) StartSound(entity, channel, volume int, sample string, attenuat
 
 func (s *Server) sendStartSound(entity, channel, volume, soundnum int, attenuation float32) {
 	ev := entvars.Get(entity)
-	snd := &protos.Sound{
+	snd := protos.Sound_builder{
 		Entity:   int32(entity),
 		SoundNum: int32(soundnum),
 		Channel:  int32(channel),
-		Origin: &protos.Coord{
+		Origin: protos.Coord_builder{
 			X: ev.Origin[0] + 0.5*(ev.Mins[0]+ev.Maxs[0]),
 			Y: ev.Origin[1] + 0.5*(ev.Mins[1]+ev.Maxs[1]),
 			Z: ev.Origin[2] + 0.5*(ev.Mins[2]+ev.Maxs[2]),
-		},
-	}
+		}.Build(),
+	}.Build()
 	if volume != 255 {
-		snd.Volume = proto.Int32(int32(volume))
+		snd.SetVolume(int32(volume))
 	}
 	if attenuation != 1.0 {
-		snd.Attenuation = proto.Int32(int32(64 * attenuation))
+		snd.SetAttenuation(int32(64 * attenuation))
 	}
 	svc.WriteSound(snd, s.protocol, s.protocolFlags, &s.datagram)
 }
@@ -241,16 +241,16 @@ func (s *Server) WriteClientdataToMessage(player int) {
 	flags := s.protocolFlags
 	if e.DmgTake != 0 || e.DmgSave != 0 {
 		other := entvars.Get(int(e.DmgInflictor))
-		p := &protos.Coord{
+		p := protos.Coord_builder{
 			X: other.Origin[0] + 0.5*(other.Mins[0]+other.Maxs[0]),
 			Y: other.Origin[1] + 0.5*(other.Mins[1]+other.Maxs[1]),
 			Z: other.Origin[2] + 0.5*(other.Mins[2]+other.Maxs[2]),
-		}
-		dmg := &protos.Damage{
+		}.Build()
+		dmg := protos.Damage_builder{
 			Armor:    int32(e.DmgSave),
 			Blood:    int32(e.DmgTake),
 			Position: p,
-		}
+		}.Build()
 		svc.WriteDamage(dmg, s.protocol, flags, &msgBuf)
 		e.DmgTake = 0
 		e.DmgSave = 0
@@ -261,23 +261,23 @@ func (s *Server) WriteClientdataToMessage(player int) {
 
 	// a fixangle might get lost in a dropped packet.  Oh well.
 	if e.FixAngle != 0 {
-		a := &protos.Coord{
+		a := protos.Coord_builder{
 			X: e.Angles[0],
 			Y: e.Angles[1],
 			Z: e.Angles[2],
-		}
+		}.Build()
 		svc.WriteSetAngle(a, s.protocol, flags, &msgBuf)
 		e.FixAngle = 0
 	}
 
 	clientData := &protos.ClientData{}
-	clientData.PunchAngle = &protos.IntCoord{}
-	clientData.Velocity = &protos.IntCoord{}
+	clientData.SetPunchAngle(&protos.IntCoord{})
+	clientData.SetVelocity(&protos.IntCoord{})
 
 	if e.ViewOfs[2] != svc.DEFAULT_VIEWHEIGHT {
-		clientData.ViewHeight = proto.Int32(int32(e.ViewOfs[2]))
+		clientData.SetViewHeight(int32(e.ViewOfs[2]))
 	}
-	clientData.IdealPitch = int32(e.IdealPitch)
+	clientData.SetIdealPitch(int32(e.IdealPitch))
 	// stuff the sigil bits into the high bits of items for sbar, or else mix in items2
 	items := func() int {
 		/*
@@ -288,12 +288,12 @@ func (s *Server) WriteClientdataToMessage(player int) {
 		*/
 		return int(e.Items) | int(progsdat.Globals.ServerFlags)<<28
 	}()
-	clientData.Items = uint32(items)
+	clientData.SetItems(uint32(items))
 	if (int(e.Flags) & progs.FlagOnGround) != 0 {
-		clientData.OnGround = true
+		clientData.SetOnGround(true)
 	}
 	if e.WaterLevel >= 2 {
-		clientData.InWater = true
+		clientData.SetInWater(true)
 	}
 
 	wmi := 0
@@ -302,34 +302,34 @@ func (s *Server) WriteClientdataToMessage(player int) {
 		wmi = s.ModelIndex(wms)
 	}
 
-	clientData.PunchAngle.X = int32(e.PunchAngle[0])
-	clientData.Velocity.X = int32(e.Velocity[0] / 16)
-	clientData.PunchAngle.Y = int32(e.PunchAngle[1])
-	clientData.Velocity.Y = int32(e.Velocity[1] / 16)
-	clientData.PunchAngle.Z = int32(e.PunchAngle[2])
-	clientData.Velocity.Z = int32(e.Velocity[2] / 16)
+	clientData.GetPunchAngle().SetX(int32(e.PunchAngle[0]))
+	clientData.GetVelocity().SetX(int32(e.Velocity[0] / 16))
+	clientData.GetPunchAngle().SetY(int32(e.PunchAngle[1]))
+	clientData.GetVelocity().SetY(int32(e.Velocity[1] / 16))
+	clientData.GetPunchAngle().SetZ(int32(e.PunchAngle[2]))
+	clientData.GetVelocity().SetZ(int32(e.Velocity[2] / 16))
 
-	clientData.WeaponFrame = int32(e.WeaponFrame)
-	clientData.Armor = int32(e.ArmorValue)
-	clientData.Weapon = int32(wmi)
-	clientData.Health = int32(e.Health)
-	clientData.Ammo = int32(e.CurrentAmmo)
-	clientData.Shells = int32(e.AmmoShells)
-	clientData.Nails = int32(e.AmmoNails)
-	clientData.Rockets = int32(e.AmmoRockets)
-	clientData.Cells = int32(e.AmmoCells)
+	clientData.SetWeaponFrame(int32(e.WeaponFrame))
+	clientData.SetArmor(int32(e.ArmorValue))
+	clientData.SetWeapon(int32(wmi))
+	clientData.SetHealth(int32(e.Health))
+	clientData.SetAmmo(int32(e.CurrentAmmo))
+	clientData.SetShells(int32(e.AmmoShells))
+	clientData.SetNails(int32(e.AmmoNails))
+	clientData.SetRockets(int32(e.AmmoRockets))
+	clientData.SetCells(int32(e.AmmoCells))
 
 	if cmdl.Quoth() || cmdl.Rogue() || cmdl.Hipnotic() {
 		for i := 0; i < 32; i++ {
 			if int(e.Weapon)&(1<<uint(i)) != 0 {
-				clientData.ActiveWeapon = int32(i)
+				clientData.SetActiveWeapon(int32(i))
 				break
 			}
 		}
 	} else {
-		clientData.ActiveWeapon = int32(e.Weapon)
+		clientData.SetActiveWeapon(int32(e.Weapon))
 	}
-	clientData.WeaponAlpha = int32(alpha)
+	clientData.SetWeaponAlpha(int32(alpha))
 
 	svc.WriteClientData(clientData, s.protocol, flags, &msgBuf)
 }
@@ -383,10 +383,10 @@ func (s *Server) UpdateToReliableMessages() {
 			// Does it actually matter to compare as float32?
 			// These subtle C things...
 			if float32(cl.oldFrags) != newFrags {
-				uf := &protos.UpdateFrags{
+				uf := protos.UpdateFrags_builder{
 					Player:   int32(cl.id),
 					NewFrags: int32(newFrags),
-				}
+				}.Build()
 				svc.WriteUpdateFrags(uf, s.protocol, s.protocolFlags, &cl.msg)
 			}
 			cl.msg.WriteBytes(b)
@@ -815,49 +815,49 @@ func (s *Server) WriteEntitiesToClient(clent int) {
 
 		// send an update
 		eu := &protos.EntityUpdate{}
-		eu.Entity = int32(ent)
+		eu.SetEntity(int32(ent))
 
 		if ev.ModelIndex != float32(edict.Baseline.ModelIndex) {
-			eu.Model = proto.Int32(int32(ev.ModelIndex))
+			eu.SetModel(int32(ev.ModelIndex))
 		}
 		if ev.Frame != float32(edict.Baseline.Frame) {
-			eu.Frame = proto.Int32(int32(ev.Frame))
+			eu.SetFrame(int32(ev.Frame))
 		}
 		if ev.ColorMap != float32(edict.Baseline.ColorMap) {
-			eu.ColorMap = proto.Int32(int32(ev.ColorMap))
+			eu.SetColorMap(int32(ev.ColorMap))
 		}
 		if ev.Skin != float32(edict.Baseline.Skin) {
-			eu.Skin = proto.Int32(int32(ev.Skin))
+			eu.SetSkin(int32(ev.Skin))
 		}
 		if ev.Effects != float32(edict.Baseline.Effects) {
-			eu.Effects = int32(ev.Effects)
+			eu.SetEffects(int32(ev.Effects))
 		}
 		if miss := ev.Origin[0] - edict.Baseline.Origin[0]; miss < -0.1 || miss > 0.1 {
-			eu.OriginX = proto.Float32(ev.Origin[0])
+			eu.SetOriginX(ev.Origin[0])
 		}
 		if ev.Angles[0] != edict.Baseline.Angles[0] {
-			eu.AngleX = proto.Float32(ev.Angles[0])
+			eu.SetAngleX(ev.Angles[0])
 		}
 		if miss := ev.Origin[1] - edict.Baseline.Origin[1]; miss < -0.1 || miss > 0.1 {
-			eu.OriginY = proto.Float32(ev.Origin[1])
+			eu.SetOriginY(ev.Origin[1])
 		}
 		if ev.Angles[1] != edict.Baseline.Angles[1] {
-			eu.AngleY = proto.Float32(ev.Angles[1])
+			eu.SetAngleY(ev.Angles[1])
 		}
 		if miss := ev.Origin[2] - edict.Baseline.Origin[2]; miss < -0.1 || miss > 0.1 {
-			eu.OriginZ = proto.Float32(ev.Origin[2])
+			eu.SetOriginZ(ev.Origin[2])
 		}
 		if ev.Angles[2] != edict.Baseline.Angles[2] {
-			eu.AngleZ = proto.Float32(ev.Angles[2])
+			eu.SetAngleZ(ev.Angles[2])
 		}
 		// don't mess up the step animation
-		eu.LerpMoveStep = ev.MoveType == progs.MoveTypeStep
+		eu.SetLerpMoveStep(ev.MoveType == progs.MoveTypeStep)
 
 		if edict.Baseline.Alpha != edict.Alpha {
-			eu.Alpha = proto.Int32(int32(edict.Alpha))
+			eu.SetAlpha(int32(edict.Alpha))
 		}
 		if edict.SendInterval {
-			eu.LerpFinish = proto.Int32(int32(math.Round((ev.NextThink - sv.time) * 255)))
+			eu.SetLerpFinish(int32(math.Round((ev.NextThink - sv.time) * 255)))
 		}
 		svc.WriteEntityUpdate(eu, s.protocol, s.protocolFlags, &msgBuf)
 	}
@@ -1127,9 +1127,9 @@ func (s *Server) saveGameEdicts() []*protos.Edict {
 		if /*!pr_alpha_supported &&*/ s.edicts[i].Alpha != 0 {
 			wa := s.edicts[i].Alpha
 			if wa == 1 {
-				e.Alpha = -1
+				e.SetAlpha(-1)
 			} else {
-				e.Alpha = (float32(wa) - 1) / 254
+				e.SetAlpha((float32(wa) - 1) / 254)
 			}
 		}
 

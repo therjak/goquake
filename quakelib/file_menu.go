@@ -113,7 +113,7 @@ func (m *qFileMenu) update() {
 			continue
 		}
 
-		i.comment = sg.Comment
+		i.comment = sg.GetComment()
 		if len(i.comment) > 39 {
 			i.comment = i.comment[:39] // orig says 39 but includes \0
 		}

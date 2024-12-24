@@ -29,7 +29,7 @@ const (
 )
 
 func (v *virtualMachine) LoadGameGlobals(g *protos.Globals) {
-	for _, st := range g.Strings {
+	for _, st := range g.GetStrings() {
 		def, err := v.prog.FindGlobalDef(st.GetId())
 		if err != nil {
 			continue
@@ -37,14 +37,14 @@ func (v *virtualMachine) LoadGameGlobals(g *protos.Globals) {
 		id := v.prog.NewString(st.GetValue())
 		v.prog.RawGlobalsI[def.Offset] = id
 	}
-	for _, fl := range g.Floats {
+	for _, fl := range g.GetFloats() {
 		def, err := v.prog.FindGlobalDef(fl.GetId())
 		if err != nil {
 			continue
 		}
 		v.prog.RawGlobalsF[def.Offset] = fl.GetValue()
 	}
-	for _, ent := range g.Entities {
+	for _, ent := range g.GetEntities() {
 		def, err := v.prog.FindGlobalDef(ent.GetId())
 		if err != nil {
 			continue
@@ -56,26 +56,26 @@ func (v *virtualMachine) LoadGameGlobals(g *protos.Globals) {
 func (v *virtualMachine) saveGlobalString(name string, offset uint16) *protos.StringDef {
 	val := v.prog.RawGlobalsI[offset]
 	s, _ := v.prog.String(val)
-	return &protos.StringDef{
+	return protos.StringDef_builder{
 		Id:    name,
 		Value: s,
-	}
+	}.Build()
 }
 
 func (v *virtualMachine) saveGlobalFloat(name string, offset uint16) *protos.FloatDef {
 	val := v.prog.RawGlobalsF[offset]
-	return &protos.FloatDef{
+	return protos.FloatDef_builder{
 		Id:    name,
 		Value: val,
-	}
+	}.Build()
 }
 
 func (v *virtualMachine) saveGlobalEntity(name string, offset uint16) *protos.EntityDef {
 	val := v.prog.RawGlobalsI[offset]
-	return &protos.EntityDef{
+	return protos.EntityDef_builder{
 		Id:    name,
 		Value: val,
-	}
+	}.Build()
 }
 
 func (v *virtualMachine) SaveGameGlobals() *protos.Globals {
@@ -104,17 +104,17 @@ func (v *virtualMachine) SaveGameGlobals() *protos.Globals {
 			continue
 		}
 	}
-	return &protos.Globals{
+	return protos.Globals_builder{
 		Entities: entities,
 		Floats:   floats,
 		Strings:  ostrings,
-	}
+	}.Build()
 }
 
 func (v *virtualMachine) loadGameEntVars(idx int, e *protos.Edict) {
 	entvars.Clear(idx)
 	// TODO: keyname == "alpha"
-	for _, st := range e.Strings {
+	for _, st := range e.GetStrings() {
 		def, err := v.prog.FindFieldDef(st.GetId())
 		if err != nil {
 			log.Printf("No string %s", st.GetId())
@@ -123,7 +123,7 @@ func (v *virtualMachine) loadGameEntVars(idx int, e *protos.Edict) {
 		id := v.prog.NewString(st.GetValue())
 		entvars.SetRawI(int32(idx), int32(def.Offset), id)
 	}
-	for _, fl := range e.Floats {
+	for _, fl := range e.GetFloats() {
 		def, err := v.prog.FindFieldDef(fl.GetId())
 		if err != nil {
 			log.Printf("No float %s", fl.GetId())
@@ -131,7 +131,7 @@ func (v *virtualMachine) loadGameEntVars(idx int, e *protos.Edict) {
 		}
 		entvars.SetRawF(int32(idx), int32(def.Offset), fl.GetValue())
 	}
-	for _, ent := range e.Entities {
+	for _, ent := range e.GetEntities() {
 		def, err := v.prog.FindFieldDef(ent.GetId())
 		if err != nil {
 			log.Printf("No field %s", ent.GetId())
@@ -139,7 +139,7 @@ func (v *virtualMachine) loadGameEntVars(idx int, e *protos.Edict) {
 		}
 		entvars.SetRawI(int32(idx), int32(def.Offset), ent.GetValue())
 	}
-	for _, fnc := range e.Functions {
+	for _, fnc := range e.GetFunctions() {
 		def, err := v.prog.FindFieldDef(fnc.GetId())
 		if err != nil {
 			continue
@@ -150,7 +150,7 @@ func (v *virtualMachine) loadGameEntVars(idx int, e *protos.Edict) {
 		}
 		entvars.SetRawI(int32(idx), int32(def.Offset), int32(fidx))
 	}
-	for _, field := range e.Fields {
+	for _, field := range e.GetFields() {
 		def, err := v.prog.FindFieldDef(field.GetId())
 		if err != nil {
 			continue
@@ -161,7 +161,7 @@ func (v *virtualMachine) loadGameEntVars(idx int, e *protos.Edict) {
 		}
 		entvars.SetRawI(int32(idx), int32(def.Offset), int32(vdef.Offset))
 	}
-	for _, vector := range e.Vectors {
+	for _, vector := range e.GetVectors() {
 		def, err := v.prog.FindFieldDef(vector.GetId())
 		if err != nil {
 			continue
@@ -180,10 +180,10 @@ func (v *virtualMachine) saveEVString(idx int, name string, offset uint16) (*pro
 		return nil, false
 	}
 	s, _ := v.prog.String(val)
-	return &protos.StringDef{
+	return protos.StringDef_builder{
 		Id:    name,
 		Value: s,
-	}, true
+	}.Build(), true
 }
 
 func (v *virtualMachine) saveEVFloat(idx int, name string, offset uint16) (*protos.FloatDef, bool) {
@@ -191,10 +191,10 @@ func (v *virtualMachine) saveEVFloat(idx int, name string, offset uint16) (*prot
 	if val == 0 {
 		return nil, false
 	}
-	return &protos.FloatDef{
+	return protos.FloatDef_builder{
 		Id:    name,
 		Value: val,
-	}, true
+	}.Build(), true
 }
 
 func (v *virtualMachine) saveEVEntity(idx int, name string, offset uint16) (*protos.EntityDef, bool) {
@@ -202,10 +202,10 @@ func (v *virtualMachine) saveEVEntity(idx int, name string, offset uint16) (*pro
 	if val == 0 {
 		return nil, false
 	}
-	return &protos.EntityDef{
+	return protos.EntityDef_builder{
 		Id:    name,
 		Value: val,
-	}, true
+	}.Build(), true
 }
 
 func (v *virtualMachine) saveEVVector(idx int, name string, offset uint16) (*protos.VectorDef, bool) {
@@ -215,11 +215,11 @@ func (v *virtualMachine) saveEVVector(idx int, name string, offset uint16) (*pro
 	if x == 0 && y == 0 && z == 0 {
 		return nil, false
 	}
-	vec := &protos.Vector{X: x, Y: y, Z: z}
-	return &protos.VectorDef{
+	vec := protos.Vector_builder{X: x, Y: y, Z: z}.Build()
+	return protos.VectorDef_builder{
 		Id:    name,
 		Value: vec,
-	}, true
+	}.Build(), true
 }
 
 func (v *virtualMachine) saveEVField(idx int, name string, offset uint16) (*protos.FieldDef, bool) {
@@ -234,10 +234,10 @@ func (v *virtualMachine) saveEVField(idx int, name string, offset uint16) (*prot
 			break
 		}
 	}
-	return &protos.FieldDef{
+	return protos.FieldDef_builder{
 		Id:    name,
 		Value: s,
-	}, true
+	}.Build(), true
 }
 
 func (v *virtualMachine) saveEVFunction(idx int, name string, offset uint16) (*protos.FunctionDef, bool) {
@@ -247,10 +247,10 @@ func (v *virtualMachine) saveEVFunction(idx int, name string, offset uint16) (*p
 	}
 	sname := v.prog.Functions[val].SName
 	s, _ := v.prog.String(sname)
-	return &protos.FunctionDef{
+	return protos.FunctionDef_builder{
 		Id:    name,
 		Value: s,
-	}, true
+	}.Build(), true
 }
 
 func (v *virtualMachine) saveGameEntVars(idx int) *protos.Edict {
@@ -302,14 +302,14 @@ func (v *virtualMachine) saveGameEntVars(idx int) *protos.Edict {
 		}
 	}
 	// TODO: alpha
-	return &protos.Edict{
+	return protos.Edict_builder{
 		Entities:  entities,
 		Fields:    fields,
 		Floats:    floats,
 		Functions: functions,
 		Strings:   ostrings,
 		Vectors:   vectors,
-	}
+	}.Build()
 }
 
 // Dumps out self, then an error message.  The program is aborted and self is

@@ -355,12 +355,12 @@ func (c *SVClient) ReadClientMessage() (bool, error) {
 				// a command caused an error
 				return false, nil
 			}
-			switch cmd.Union.(type) {
+			switch cmd.WhichUnion() {
 			default:
 				// nop
-			case *protos.Cmd_Disconnect:
+			case protos.Cmd_Disconnect_case:
 				return false, nil
-			case *protos.Cmd_StringCmd:
+			case protos.Cmd_StringCmd_case:
 				if c != HostClient() {
 					log.Fatalf("HostClient differs")
 				}
@@ -434,7 +434,7 @@ func (c *SVClient) ReadClientMessage() (bool, error) {
 				case "say":
 					c.sayCmd(false, a)
 				}
-			case *protos.Cmd_MoveCmd:
+			case protos.Cmd_MoveCmd_case:
 				mc := cmd.GetMoveCmd()
 				c.pingTimes[c.numPings%len(c.pingTimes)] = sv.time - mc.GetMessageTime()
 				c.numPings++
@@ -480,10 +480,10 @@ func (c *SVClient) colorCmd(a cbuf.Arguments) {
 	color := t*16 + b
 	c.colors = color
 	entvars.Get(c.edictId).Team = float32(b + 1)
-	uc := &protos.UpdateColors{
+	uc := protos.UpdateColors_builder{
 		Player:   int32(c.id),
 		NewColor: int32(color),
-	}
+	}.Build()
 	svc.WriteUpdateColors(uc, sv.protocol, sv.protocolFlags, &sv.reliableDatagram)
 }
 
@@ -733,20 +733,20 @@ func (c *SVClient) spawnCmd() error {
 			// TODO: figure out why it ever makes sense to have len(sv_clients) svs.maxClients
 			break
 		}
-		un := &protos.UpdateName{
+		un := protos.UpdateName_builder{
 			Player:  int32(i),
 			NewName: sc.name,
-		}
+		}.Build()
 		svc.WriteUpdateName(un, sv.protocol, sv.protocolFlags, &c.msg)
-		uf := &protos.UpdateFrags{
+		uf := protos.UpdateFrags_builder{
 			Player:   int32(i),
 			NewFrags: int32(sc.oldFrags),
-		}
+		}.Build()
 		svc.WriteUpdateFrags(uf, sv.protocol, sv.protocolFlags, &c.msg)
-		uc := &protos.UpdateColors{
+		uc := protos.UpdateColors_builder{
 			Player:   int32(i),
 			NewColor: int32(sc.colors),
-		}
+		}.Build()
 		svc.WriteUpdateColors(uc, sv.protocol, sv.protocolFlags, &c.msg)
 	}
 
@@ -778,11 +778,11 @@ func (c *SVClient) spawnCmd() error {
 	// in a state where it is expecting the client to correct the angle
 	// and it won't happen if the game was just loaded, so you wind up
 	// with a permanent head tilt
-	sa := &protos.Coord{
+	sa := protos.Coord_builder{
 		X: entvars.Get(c.edictId).Angles[0],
 		Y: entvars.Get(c.edictId).Angles[1],
 		Z: 0,
-	}
+	}.Build()
 	svc.WriteSetAngle(sa, sv.protocol, sv.protocolFlags, &c.msg)
 
 	msgBuf.ClearMessage()
@@ -1092,10 +1092,10 @@ func (c *SVClient) nameCmd(a cbuf.Arguments) {
 	entvars.Get(c.edictId).NetName = progsdat.AddString(newName)
 
 	// send notification to all clients
-	un := &protos.UpdateName{
+	un := protos.UpdateName_builder{
 		Player:  int32(c.id),
 		NewName: newName,
-	}
+	}.Build()
 	svc.WriteUpdateName(un, sv.protocol, sv.protocolFlags, &sv.reliableDatagram)
 }
 
