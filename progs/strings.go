@@ -17,7 +17,7 @@ type LoadedProg struct {
 	engineStrings []string
 }
 
-//-- call this LoadProgs and let it return something called progs.LoadedProg
+// -- call this LoadProgs and let it return something called progs.LoadedProg
 func LoadProgs() (*LoadedProg, error) {
 	lp, err := loadProgs()
 	if err != nil {
