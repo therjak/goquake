@@ -6,8 +6,6 @@
 // 	protoc        v5.29.2
 // source: client_message.proto
 
-//go:build !protoopaque
-
 package protos
 
 import (
@@ -25,19 +23,19 @@ const (
 )
 
 type UsrCmd struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	MessageTime   float32                `protobuf:"fixed32,1,opt,name=message_time,json=messageTime" json:"message_time,omitempty"`
-	Pitch         float32                `protobuf:"fixed32,2,opt,name=pitch" json:"pitch,omitempty"`
-	Yaw           float32                `protobuf:"fixed32,3,opt,name=yaw" json:"yaw,omitempty"`
-	Roll          float32                `protobuf:"fixed32,4,opt,name=roll" json:"roll,omitempty"`
-	Forward       float32                `protobuf:"fixed32,5,opt,name=forward" json:"forward,omitempty"`
-	Side          float32                `protobuf:"fixed32,6,opt,name=side" json:"side,omitempty"`
-	Up            float32                `protobuf:"fixed32,7,opt,name=up" json:"up,omitempty"`
-	Attack        bool                   `protobuf:"varint,8,opt,name=attack" json:"attack,omitempty"`
-	Jump          bool                   `protobuf:"varint,9,opt,name=jump" json:"jump,omitempty"`
-	Impulse       int32                  `protobuf:"varint,10,opt,name=impulse" json:"impulse,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_MessageTime float32                `protobuf:"fixed32,1,opt,name=message_time,json=messageTime" json:"message_time,omitempty"`
+	xxx_hidden_Pitch       float32                `protobuf:"fixed32,2,opt,name=pitch" json:"pitch,omitempty"`
+	xxx_hidden_Yaw         float32                `protobuf:"fixed32,3,opt,name=yaw" json:"yaw,omitempty"`
+	xxx_hidden_Roll        float32                `protobuf:"fixed32,4,opt,name=roll" json:"roll,omitempty"`
+	xxx_hidden_Forward     float32                `protobuf:"fixed32,5,opt,name=forward" json:"forward,omitempty"`
+	xxx_hidden_Side        float32                `protobuf:"fixed32,6,opt,name=side" json:"side,omitempty"`
+	xxx_hidden_Up          float32                `protobuf:"fixed32,7,opt,name=up" json:"up,omitempty"`
+	xxx_hidden_Attack      bool                   `protobuf:"varint,8,opt,name=attack" json:"attack,omitempty"`
+	xxx_hidden_Jump        bool                   `protobuf:"varint,9,opt,name=jump" json:"jump,omitempty"`
+	xxx_hidden_Impulse     int32                  `protobuf:"varint,10,opt,name=impulse" json:"impulse,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *UsrCmd) Reset() {
@@ -67,112 +65,112 @@ func (x *UsrCmd) ProtoReflect() protoreflect.Message {
 
 func (x *UsrCmd) GetMessageTime() float32 {
 	if x != nil {
-		return x.MessageTime
+		return x.xxx_hidden_MessageTime
 	}
 	return 0
 }
 
 func (x *UsrCmd) GetPitch() float32 {
 	if x != nil {
-		return x.Pitch
+		return x.xxx_hidden_Pitch
 	}
 	return 0
 }
 
 func (x *UsrCmd) GetYaw() float32 {
 	if x != nil {
-		return x.Yaw
+		return x.xxx_hidden_Yaw
 	}
 	return 0
 }
 
 func (x *UsrCmd) GetRoll() float32 {
 	if x != nil {
-		return x.Roll
+		return x.xxx_hidden_Roll
 	}
 	return 0
 }
 
 func (x *UsrCmd) GetForward() float32 {
 	if x != nil {
-		return x.Forward
+		return x.xxx_hidden_Forward
 	}
 	return 0
 }
 
 func (x *UsrCmd) GetSide() float32 {
 	if x != nil {
-		return x.Side
+		return x.xxx_hidden_Side
 	}
 	return 0
 }
 
 func (x *UsrCmd) GetUp() float32 {
 	if x != nil {
-		return x.Up
+		return x.xxx_hidden_Up
 	}
 	return 0
 }
 
 func (x *UsrCmd) GetAttack() bool {
 	if x != nil {
-		return x.Attack
+		return x.xxx_hidden_Attack
 	}
 	return false
 }
 
 func (x *UsrCmd) GetJump() bool {
 	if x != nil {
-		return x.Jump
+		return x.xxx_hidden_Jump
 	}
 	return false
 }
 
 func (x *UsrCmd) GetImpulse() int32 {
 	if x != nil {
-		return x.Impulse
+		return x.xxx_hidden_Impulse
 	}
 	return 0
 }
 
 func (x *UsrCmd) SetMessageTime(v float32) {
-	x.MessageTime = v
+	x.xxx_hidden_MessageTime = v
 }
 
 func (x *UsrCmd) SetPitch(v float32) {
-	x.Pitch = v
+	x.xxx_hidden_Pitch = v
 }
 
 func (x *UsrCmd) SetYaw(v float32) {
-	x.Yaw = v
+	x.xxx_hidden_Yaw = v
 }
 
 func (x *UsrCmd) SetRoll(v float32) {
-	x.Roll = v
+	x.xxx_hidden_Roll = v
 }
 
 func (x *UsrCmd) SetForward(v float32) {
-	x.Forward = v
+	x.xxx_hidden_Forward = v
 }
 
 func (x *UsrCmd) SetSide(v float32) {
-	x.Side = v
+	x.xxx_hidden_Side = v
 }
 
 func (x *UsrCmd) SetUp(v float32) {
-	x.Up = v
+	x.xxx_hidden_Up = v
 }
 
 func (x *UsrCmd) SetAttack(v bool) {
-	x.Attack = v
+	x.xxx_hidden_Attack = v
 }
 
 func (x *UsrCmd) SetJump(v bool) {
-	x.Jump = v
+	x.xxx_hidden_Jump = v
 }
 
 func (x *UsrCmd) SetImpulse(v int32) {
-	x.Impulse = v
+	x.xxx_hidden_Impulse = v
 }
 
 type UsrCmd_builder struct {
@@ -194,29 +192,24 @@ func (b0 UsrCmd_builder) Build() *UsrCmd {
 	m0 := &UsrCmd{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.MessageTime = b.MessageTime
-	x.Pitch = b.Pitch
-	x.Yaw = b.Yaw
-	x.Roll = b.Roll
-	x.Forward = b.Forward
-	x.Side = b.Side
-	x.Up = b.Up
-	x.Attack = b.Attack
-	x.Jump = b.Jump
-	x.Impulse = b.Impulse
+	x.xxx_hidden_MessageTime = b.MessageTime
+	x.xxx_hidden_Pitch = b.Pitch
+	x.xxx_hidden_Yaw = b.Yaw
+	x.xxx_hidden_Roll = b.Roll
+	x.xxx_hidden_Forward = b.Forward
+	x.xxx_hidden_Side = b.Side
+	x.xxx_hidden_Up = b.Up
+	x.xxx_hidden_Attack = b.Attack
+	x.xxx_hidden_Jump = b.Jump
+	x.xxx_hidden_Impulse = b.Impulse
 	return m0
 }
 
 type Cmd struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Types that are valid to be assigned to Union:
-	//
-	//	*Cmd_Disconnect
-	//	*Cmd_StringCmd
-	//	*Cmd_MoveCmd
-	Union         isCmd_Union `protobuf_oneof:"union"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Union isCmd_Union            `protobuf_oneof:"union"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *Cmd) Reset() {
@@ -244,16 +237,9 @@ func (x *Cmd) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *Cmd) GetUnion() isCmd_Union {
-	if x != nil {
-		return x.Union
-	}
-	return nil
-}
-
 func (x *Cmd) GetDisconnect() bool {
 	if x != nil {
-		if x, ok := x.Union.(*Cmd_Disconnect); ok {
+		if x, ok := x.xxx_hidden_Union.(*cmd_Disconnect); ok {
 			return x.Disconnect
 		}
 	}
@@ -262,7 +248,7 @@ func (x *Cmd) GetDisconnect() bool {
 
 func (x *Cmd) GetStringCmd() string {
 	if x != nil {
-		if x, ok := x.Union.(*Cmd_StringCmd); ok {
+		if x, ok := x.xxx_hidden_Union.(*cmd_StringCmd); ok {
 			return x.StringCmd
 		}
 	}
@@ -271,7 +257,7 @@ func (x *Cmd) GetStringCmd() string {
 
 func (x *Cmd) GetMoveCmd() *UsrCmd {
 	if x != nil {
-		if x, ok := x.Union.(*Cmd_MoveCmd); ok {
+		if x, ok := x.xxx_hidden_Union.(*cmd_MoveCmd); ok {
 			return x.MoveCmd
 		}
 	}
@@ -279,33 +265,33 @@ func (x *Cmd) GetMoveCmd() *UsrCmd {
 }
 
 func (x *Cmd) SetDisconnect(v bool) {
-	x.Union = &Cmd_Disconnect{v}
+	x.xxx_hidden_Union = &cmd_Disconnect{v}
 }
 
 func (x *Cmd) SetStringCmd(v string) {
-	x.Union = &Cmd_StringCmd{v}
+	x.xxx_hidden_Union = &cmd_StringCmd{v}
 }
 
 func (x *Cmd) SetMoveCmd(v *UsrCmd) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &Cmd_MoveCmd{v}
+	x.xxx_hidden_Union = &cmd_MoveCmd{v}
 }
 
 func (x *Cmd) HasUnion() bool {
 	if x == nil {
 		return false
 	}
-	return x.Union != nil
+	return x.xxx_hidden_Union != nil
 }
 
 func (x *Cmd) HasDisconnect() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*Cmd_Disconnect)
+	_, ok := x.xxx_hidden_Union.(*cmd_Disconnect)
 	return ok
 }
 
@@ -313,7 +299,7 @@ func (x *Cmd) HasStringCmd() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*Cmd_StringCmd)
+	_, ok := x.xxx_hidden_Union.(*cmd_StringCmd)
 	return ok
 }
 
@@ -321,29 +307,29 @@ func (x *Cmd) HasMoveCmd() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*Cmd_MoveCmd)
+	_, ok := x.xxx_hidden_Union.(*cmd_MoveCmd)
 	return ok
 }
 
 func (x *Cmd) ClearUnion() {
-	x.Union = nil
+	x.xxx_hidden_Union = nil
 }
 
 func (x *Cmd) ClearDisconnect() {
-	if _, ok := x.Union.(*Cmd_Disconnect); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*cmd_Disconnect); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *Cmd) ClearStringCmd() {
-	if _, ok := x.Union.(*Cmd_StringCmd); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*cmd_StringCmd); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *Cmd) ClearMoveCmd() {
-	if _, ok := x.Union.(*Cmd_MoveCmd); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*cmd_MoveCmd); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
@@ -356,12 +342,12 @@ func (x *Cmd) WhichUnion() case_Cmd_Union {
 	if x == nil {
 		return Cmd_Union_not_set_case
 	}
-	switch x.Union.(type) {
-	case *Cmd_Disconnect:
+	switch x.xxx_hidden_Union.(type) {
+	case *cmd_Disconnect:
 		return Cmd_Disconnect_case
-	case *Cmd_StringCmd:
+	case *cmd_StringCmd:
 		return Cmd_StringCmd_case
-	case *Cmd_MoveCmd:
+	case *cmd_MoveCmd:
 		return Cmd_MoveCmd_case
 	default:
 		return Cmd_Union_not_set_case
@@ -371,11 +357,11 @@ func (x *Cmd) WhichUnion() case_Cmd_Union {
 type Cmd_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Fields of oneof Union:
+	// Fields of oneof xxx_hidden_Union:
 	Disconnect *bool
 	StringCmd  *string
 	MoveCmd    *UsrCmd
-	// -- end of Union
+	// -- end of xxx_hidden_Union
 }
 
 func (b0 Cmd_builder) Build() *Cmd {
@@ -383,13 +369,13 @@ func (b0 Cmd_builder) Build() *Cmd {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Disconnect != nil {
-		x.Union = &Cmd_Disconnect{*b.Disconnect}
+		x.xxx_hidden_Union = &cmd_Disconnect{*b.Disconnect}
 	}
 	if b.StringCmd != nil {
-		x.Union = &Cmd_StringCmd{*b.StringCmd}
+		x.xxx_hidden_Union = &cmd_StringCmd{*b.StringCmd}
 	}
 	if b.MoveCmd != nil {
-		x.Union = &Cmd_MoveCmd{b.MoveCmd}
+		x.xxx_hidden_Union = &cmd_MoveCmd{b.MoveCmd}
 	}
 	return m0
 }
@@ -408,29 +394,29 @@ type isCmd_Union interface {
 	isCmd_Union()
 }
 
-type Cmd_Disconnect struct {
+type cmd_Disconnect struct {
 	Disconnect bool `protobuf:"varint,1,opt,name=disconnect,oneof"`
 }
 
-type Cmd_StringCmd struct {
+type cmd_StringCmd struct {
 	StringCmd string `protobuf:"bytes,2,opt,name=string_cmd,json=stringCmd,oneof"`
 }
 
-type Cmd_MoveCmd struct {
+type cmd_MoveCmd struct {
 	MoveCmd *UsrCmd `protobuf:"bytes,3,opt,name=move_cmd,json=moveCmd,oneof"`
 }
 
-func (*Cmd_Disconnect) isCmd_Union() {}
+func (*cmd_Disconnect) isCmd_Union() {}
 
-func (*Cmd_StringCmd) isCmd_Union() {}
+func (*cmd_StringCmd) isCmd_Union() {}
 
-func (*Cmd_MoveCmd) isCmd_Union() {}
+func (*cmd_MoveCmd) isCmd_Union() {}
 
 type ClientMessage struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Cmds          []*Cmd                 `protobuf:"bytes,1,rep,name=cmds" json:"cmds,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Cmds *[]*Cmd                `protobuf:"bytes,1,rep,name=cmds" json:"cmds,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *ClientMessage) Reset() {
@@ -460,13 +446,15 @@ func (x *ClientMessage) ProtoReflect() protoreflect.Message {
 
 func (x *ClientMessage) GetCmds() []*Cmd {
 	if x != nil {
-		return x.Cmds
+		if x.xxx_hidden_Cmds != nil {
+			return *x.xxx_hidden_Cmds
+		}
 	}
 	return nil
 }
 
 func (x *ClientMessage) SetCmds(v []*Cmd) {
-	x.Cmds = v
+	x.xxx_hidden_Cmds = &v
 }
 
 type ClientMessage_builder struct {
@@ -479,7 +467,7 @@ func (b0 ClientMessage_builder) Build() *ClientMessage {
 	m0 := &ClientMessage{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Cmds = b.Cmds
+	x.xxx_hidden_Cmds = &b.Cmds
 	return m0
 }
 
@@ -518,7 +506,7 @@ var file_client_message_proto_rawDesc = []byte{
 	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x73, 0x2e, 0x43, 0x6d, 0x64, 0x52, 0x04, 0x63, 0x6d, 0x64,
 	0x73, 0x42, 0x33, 0x5a, 0x21, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f,
 	0x74, 0x68, 0x65, 0x72, 0x6a, 0x61, 0x6b, 0x2f, 0x67, 0x6f, 0x71, 0x75, 0x61, 0x6b, 0x65, 0x2f,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x73, 0x92, 0x03, 0x0d, 0xd2, 0x3e, 0x02, 0x10, 0x02, 0x08, 0x02,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x73, 0x92, 0x03, 0x0d, 0xd2, 0x3e, 0x02, 0x10, 0x03, 0x08, 0x02,
 	0x10, 0x01, 0x20, 0x02, 0x30, 0x01, 0x62, 0x08, 0x65, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73,
 	0x70, 0xe8, 0x07,
 }
@@ -545,9 +533,9 @@ func file_client_message_proto_init() {
 		return
 	}
 	file_client_message_proto_msgTypes[1].OneofWrappers = []any{
-		(*Cmd_Disconnect)(nil),
-		(*Cmd_StringCmd)(nil),
-		(*Cmd_MoveCmd)(nil),
+		(*cmd_Disconnect)(nil),
+		(*cmd_StringCmd)(nil),
+		(*cmd_MoveCmd)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

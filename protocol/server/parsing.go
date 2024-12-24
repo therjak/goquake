@@ -5,6 +5,7 @@ package server
 import (
 	"fmt"
 
+	"goquake/math/vec"
 	"goquake/net"
 	"goquake/protocol"
 	"goquake/protos"
@@ -651,28 +652,35 @@ func parseBaseline(msg *net.QReader, protocolFlags uint32, version int) (*protos
 		bl.SetSkin(int32(s))
 	}
 
-	o := &protos.Coord{}
-	a := &protos.Coord{}
-	if o.X, err = msg.ReadCoord(protocolFlags); err != nil {
+	var o, a vec.Vec3
+	if o[0], err = msg.ReadCoord(protocolFlags); err != nil {
 		return nil, err
 	}
-	if a.X, err = msg.ReadAngle(protocolFlags); err != nil {
+	if a[0], err = msg.ReadAngle(protocolFlags); err != nil {
 		return nil, err
 	}
-	if o.Y, err = msg.ReadCoord(protocolFlags); err != nil {
+	if o[1], err = msg.ReadCoord(protocolFlags); err != nil {
 		return nil, err
 	}
-	if a.Y, err = msg.ReadAngle(protocolFlags); err != nil {
+	if a[1], err = msg.ReadAngle(protocolFlags); err != nil {
 		return nil, err
 	}
-	if o.Z, err = msg.ReadCoord(protocolFlags); err != nil {
+	if o[2], err = msg.ReadCoord(protocolFlags); err != nil {
 		return nil, err
 	}
-	if a.Z, err = msg.ReadAngle(protocolFlags); err != nil {
+	if a[2], err = msg.ReadAngle(protocolFlags); err != nil {
 		return nil, err
 	}
-	bl.SetOrigin(o)
-	bl.SetAngles(a)
+	bl.SetOrigin(protos.Coord_builder{
+		X: o[0],
+		Y: o[1],
+		Z: o[2],
+	}.Build())
+	bl.SetAngles(protos.Coord_builder{
+		X: a[0],
+		Y: a[1],
+		Z: a[2],
+	}.Build())
 
 	if bits&EntityBaselineAlpha != 0 {
 		if a, err := msg.ReadByte(); err != nil {
@@ -689,9 +697,12 @@ func parseServerInfo(msg *net.QReader) (*protos.ServerInfo, error) {
 	si := &protos.ServerInfo{}
 	var err error
 
-	if si.Protocol, err = msg.ReadInt32(); err != nil {
+	v, err := msg.ReadInt32()
+	if err != nil {
 		return nil, err
 	}
+	si.SetProtocol(v)
+
 	switch si.GetProtocol() {
 	case protocol.NetQuake, protocol.FitzQuake, protocol.RMQ, protocol.GoQuake:
 	default:
@@ -719,9 +730,11 @@ func parseServerInfo(msg *net.QReader) (*protos.ServerInfo, error) {
 		si.SetGameType(int32(gt))
 	}
 
-	if si.LevelName, err = msg.ReadString(); err != nil {
+	lname, err := msg.ReadString()
+	if err != nil {
 		return nil, err
 	}
+	si.SetLevelName(lname)
 
 	var modelNames []string
 	for {

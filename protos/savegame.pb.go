@@ -6,8 +6,6 @@
 // 	protoc        v5.29.2
 // source: savegame.proto
 
-//go:build !protoopaque
-
 package protos
 
 import (
@@ -25,10 +23,10 @@ const (
 )
 
 type Vector struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	X             float32                `protobuf:"fixed32,1,opt,name=x" json:"x,omitempty"`
-	Y             float32                `protobuf:"fixed32,2,opt,name=y" json:"y,omitempty"`
-	Z             float32                `protobuf:"fixed32,3,opt,name=z" json:"z,omitempty"`
+	state         protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_X  float32                `protobuf:"fixed32,1,opt,name=x" json:"x,omitempty"`
+	xxx_hidden_Y  float32                `protobuf:"fixed32,2,opt,name=y" json:"y,omitempty"`
+	xxx_hidden_Z  float32                `protobuf:"fixed32,3,opt,name=z" json:"z,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -60,35 +58,35 @@ func (x *Vector) ProtoReflect() protoreflect.Message {
 
 func (x *Vector) GetX() float32 {
 	if x != nil {
-		return x.X
+		return x.xxx_hidden_X
 	}
 	return 0
 }
 
 func (x *Vector) GetY() float32 {
 	if x != nil {
-		return x.Y
+		return x.xxx_hidden_Y
 	}
 	return 0
 }
 
 func (x *Vector) GetZ() float32 {
 	if x != nil {
-		return x.Z
+		return x.xxx_hidden_Z
 	}
 	return 0
 }
 
 func (x *Vector) SetX(v float32) {
-	x.X = v
+	x.xxx_hidden_X = v
 }
 
 func (x *Vector) SetY(v float32) {
-	x.Y = v
+	x.xxx_hidden_Y = v
 }
 
 func (x *Vector) SetZ(v float32) {
-	x.Z = v
+	x.xxx_hidden_Z = v
 }
 
 type Vector_builder struct {
@@ -103,18 +101,18 @@ func (b0 Vector_builder) Build() *Vector {
 	m0 := &Vector{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.X = b.X
-	x.Y = b.Y
-	x.Z = b.Z
+	x.xxx_hidden_X = b.X
+	x.xxx_hidden_Y = b.Y
+	x.xxx_hidden_Z = b.Z
 	return m0
 }
 
 type StringDef struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"` // sname
-	Value         string                 `protobuf:"bytes,2,opt,name=value" json:"value,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Id    string                 `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
+	xxx_hidden_Value string                 `protobuf:"bytes,2,opt,name=value" json:"value,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *StringDef) Reset() {
@@ -144,24 +142,24 @@ func (x *StringDef) ProtoReflect() protoreflect.Message {
 
 func (x *StringDef) GetId() string {
 	if x != nil {
-		return x.Id
+		return x.xxx_hidden_Id
 	}
 	return ""
 }
 
 func (x *StringDef) GetValue() string {
 	if x != nil {
-		return x.Value
+		return x.xxx_hidden_Value
 	}
 	return ""
 }
 
 func (x *StringDef) SetId(v string) {
-	x.Id = v
+	x.xxx_hidden_Id = v
 }
 
 func (x *StringDef) SetValue(v string) {
-	x.Value = v
+	x.xxx_hidden_Value = v
 }
 
 type StringDef_builder struct {
@@ -175,17 +173,17 @@ func (b0 StringDef_builder) Build() *StringDef {
 	m0 := &StringDef{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Id = b.Id
-	x.Value = b.Value
+	x.xxx_hidden_Id = b.Id
+	x.xxx_hidden_Value = b.Value
 	return m0
 }
 
 type EntityDef struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"` // sname
-	Value         int32                  `protobuf:"varint,2,opt,name=value" json:"value,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Id    string                 `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
+	xxx_hidden_Value int32                  `protobuf:"varint,2,opt,name=value" json:"value,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *EntityDef) Reset() {
@@ -215,24 +213,24 @@ func (x *EntityDef) ProtoReflect() protoreflect.Message {
 
 func (x *EntityDef) GetId() string {
 	if x != nil {
-		return x.Id
+		return x.xxx_hidden_Id
 	}
 	return ""
 }
 
 func (x *EntityDef) GetValue() int32 {
 	if x != nil {
-		return x.Value
+		return x.xxx_hidden_Value
 	}
 	return 0
 }
 
 func (x *EntityDef) SetId(v string) {
-	x.Id = v
+	x.xxx_hidden_Id = v
 }
 
 func (x *EntityDef) SetValue(v int32) {
-	x.Value = v
+	x.xxx_hidden_Value = v
 }
 
 type EntityDef_builder struct {
@@ -246,17 +244,17 @@ func (b0 EntityDef_builder) Build() *EntityDef {
 	m0 := &EntityDef{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Id = b.Id
-	x.Value = b.Value
+	x.xxx_hidden_Id = b.Id
+	x.xxx_hidden_Value = b.Value
 	return m0
 }
 
 type FunctionDef struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"` // sname
-	Value         string                 `protobuf:"bytes,2,opt,name=value" json:"value,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Id    string                 `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
+	xxx_hidden_Value string                 `protobuf:"bytes,2,opt,name=value" json:"value,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *FunctionDef) Reset() {
@@ -286,24 +284,24 @@ func (x *FunctionDef) ProtoReflect() protoreflect.Message {
 
 func (x *FunctionDef) GetId() string {
 	if x != nil {
-		return x.Id
+		return x.xxx_hidden_Id
 	}
 	return ""
 }
 
 func (x *FunctionDef) GetValue() string {
 	if x != nil {
-		return x.Value
+		return x.xxx_hidden_Value
 	}
 	return ""
 }
 
 func (x *FunctionDef) SetId(v string) {
-	x.Id = v
+	x.xxx_hidden_Id = v
 }
 
 func (x *FunctionDef) SetValue(v string) {
-	x.Value = v
+	x.xxx_hidden_Value = v
 }
 
 type FunctionDef_builder struct {
@@ -317,17 +315,17 @@ func (b0 FunctionDef_builder) Build() *FunctionDef {
 	m0 := &FunctionDef{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Id = b.Id
-	x.Value = b.Value
+	x.xxx_hidden_Id = b.Id
+	x.xxx_hidden_Value = b.Value
 	return m0
 }
 
 type FieldDef struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"` // sname
-	Value         string                 `protobuf:"bytes,2,opt,name=value" json:"value,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Id    string                 `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
+	xxx_hidden_Value string                 `protobuf:"bytes,2,opt,name=value" json:"value,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *FieldDef) Reset() {
@@ -357,24 +355,24 @@ func (x *FieldDef) ProtoReflect() protoreflect.Message {
 
 func (x *FieldDef) GetId() string {
 	if x != nil {
-		return x.Id
+		return x.xxx_hidden_Id
 	}
 	return ""
 }
 
 func (x *FieldDef) GetValue() string {
 	if x != nil {
-		return x.Value
+		return x.xxx_hidden_Value
 	}
 	return ""
 }
 
 func (x *FieldDef) SetId(v string) {
-	x.Id = v
+	x.xxx_hidden_Id = v
 }
 
 func (x *FieldDef) SetValue(v string) {
-	x.Value = v
+	x.xxx_hidden_Value = v
 }
 
 type FieldDef_builder struct {
@@ -388,17 +386,17 @@ func (b0 FieldDef_builder) Build() *FieldDef {
 	m0 := &FieldDef{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Id = b.Id
-	x.Value = b.Value
+	x.xxx_hidden_Id = b.Id
+	x.xxx_hidden_Value = b.Value
 	return m0
 }
 
 type FloatDef struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"` // sname
-	Value         float32                `protobuf:"fixed32,2,opt,name=value" json:"value,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Id    string                 `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
+	xxx_hidden_Value float32                `protobuf:"fixed32,2,opt,name=value" json:"value,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *FloatDef) Reset() {
@@ -428,24 +426,24 @@ func (x *FloatDef) ProtoReflect() protoreflect.Message {
 
 func (x *FloatDef) GetId() string {
 	if x != nil {
-		return x.Id
+		return x.xxx_hidden_Id
 	}
 	return ""
 }
 
 func (x *FloatDef) GetValue() float32 {
 	if x != nil {
-		return x.Value
+		return x.xxx_hidden_Value
 	}
 	return 0
 }
 
 func (x *FloatDef) SetId(v string) {
-	x.Id = v
+	x.xxx_hidden_Id = v
 }
 
 func (x *FloatDef) SetValue(v float32) {
-	x.Value = v
+	x.xxx_hidden_Value = v
 }
 
 type FloatDef_builder struct {
@@ -459,17 +457,17 @@ func (b0 FloatDef_builder) Build() *FloatDef {
 	m0 := &FloatDef{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Id = b.Id
-	x.Value = b.Value
+	x.xxx_hidden_Id = b.Id
+	x.xxx_hidden_Value = b.Value
 	return m0
 }
 
 type VectorDef struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"` // sname
-	Value         *Vector                `protobuf:"bytes,2,opt,name=value" json:"value,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Id    string                 `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
+	xxx_hidden_Value *Vector                `protobuf:"bytes,2,opt,name=value" json:"value,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *VectorDef) Reset() {
@@ -499,35 +497,35 @@ func (x *VectorDef) ProtoReflect() protoreflect.Message {
 
 func (x *VectorDef) GetId() string {
 	if x != nil {
-		return x.Id
+		return x.xxx_hidden_Id
 	}
 	return ""
 }
 
 func (x *VectorDef) GetValue() *Vector {
 	if x != nil {
-		return x.Value
+		return x.xxx_hidden_Value
 	}
 	return nil
 }
 
 func (x *VectorDef) SetId(v string) {
-	x.Id = v
+	x.xxx_hidden_Id = v
 }
 
 func (x *VectorDef) SetValue(v *Vector) {
-	x.Value = v
+	x.xxx_hidden_Value = v
 }
 
 func (x *VectorDef) HasValue() bool {
 	if x == nil {
 		return false
 	}
-	return x.Value != nil
+	return x.xxx_hidden_Value != nil
 }
 
 func (x *VectorDef) ClearValue() {
-	x.Value = nil
+	x.xxx_hidden_Value = nil
 }
 
 type VectorDef_builder struct {
@@ -541,19 +539,18 @@ func (b0 VectorDef_builder) Build() *VectorDef {
 	m0 := &VectorDef{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Id = b.Id
-	x.Value = b.Value
+	x.xxx_hidden_Id = b.Id
+	x.xxx_hidden_Value = b.Value
 	return m0
 }
 
 type Globals struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// only globaldefs
-	Entities      []*EntityDef `protobuf:"bytes,1,rep,name=entities" json:"entities,omitempty"`
-	Floats        []*FloatDef  `protobuf:"bytes,2,rep,name=floats" json:"floats,omitempty"`
-	Strings       []*StringDef `protobuf:"bytes,3,rep,name=strings" json:"strings,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Entities *[]*EntityDef          `protobuf:"bytes,1,rep,name=entities" json:"entities,omitempty"`
+	xxx_hidden_Floats   *[]*FloatDef           `protobuf:"bytes,2,rep,name=floats" json:"floats,omitempty"`
+	xxx_hidden_Strings  *[]*StringDef          `protobuf:"bytes,3,rep,name=strings" json:"strings,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *Globals) Reset() {
@@ -583,35 +580,41 @@ func (x *Globals) ProtoReflect() protoreflect.Message {
 
 func (x *Globals) GetEntities() []*EntityDef {
 	if x != nil {
-		return x.Entities
+		if x.xxx_hidden_Entities != nil {
+			return *x.xxx_hidden_Entities
+		}
 	}
 	return nil
 }
 
 func (x *Globals) GetFloats() []*FloatDef {
 	if x != nil {
-		return x.Floats
+		if x.xxx_hidden_Floats != nil {
+			return *x.xxx_hidden_Floats
+		}
 	}
 	return nil
 }
 
 func (x *Globals) GetStrings() []*StringDef {
 	if x != nil {
-		return x.Strings
+		if x.xxx_hidden_Strings != nil {
+			return *x.xxx_hidden_Strings
+		}
 	}
 	return nil
 }
 
 func (x *Globals) SetEntities(v []*EntityDef) {
-	x.Entities = v
+	x.xxx_hidden_Entities = &v
 }
 
 func (x *Globals) SetFloats(v []*FloatDef) {
-	x.Floats = v
+	x.xxx_hidden_Floats = &v
 }
 
 func (x *Globals) SetStrings(v []*StringDef) {
-	x.Strings = v
+	x.xxx_hidden_Strings = &v
 }
 
 type Globals_builder struct {
@@ -627,24 +630,23 @@ func (b0 Globals_builder) Build() *Globals {
 	m0 := &Globals{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Entities = b.Entities
-	x.Floats = b.Floats
-	x.Strings = b.Strings
+	x.xxx_hidden_Entities = &b.Entities
+	x.xxx_hidden_Floats = &b.Floats
+	x.xxx_hidden_Strings = &b.Strings
 	return m0
 }
 
 type Edict struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// only fielddefs + alpha
-	Entities      []*EntityDef   `protobuf:"bytes,1,rep,name=entities" json:"entities,omitempty"`
-	Fields        []*FieldDef    `protobuf:"bytes,2,rep,name=fields" json:"fields,omitempty"`
-	Floats        []*FloatDef    `protobuf:"bytes,3,rep,name=floats" json:"floats,omitempty"`
-	Functions     []*FunctionDef `protobuf:"bytes,4,rep,name=functions" json:"functions,omitempty"`
-	Strings       []*StringDef   `protobuf:"bytes,5,rep,name=strings" json:"strings,omitempty"`
-	Vectors       []*VectorDef   `protobuf:"bytes,6,rep,name=vectors" json:"vectors,omitempty"`
-	Alpha         float32        `protobuf:"fixed32,8,opt,name=alpha" json:"alpha,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Entities  *[]*EntityDef          `protobuf:"bytes,1,rep,name=entities" json:"entities,omitempty"`
+	xxx_hidden_Fields    *[]*FieldDef           `protobuf:"bytes,2,rep,name=fields" json:"fields,omitempty"`
+	xxx_hidden_Floats    *[]*FloatDef           `protobuf:"bytes,3,rep,name=floats" json:"floats,omitempty"`
+	xxx_hidden_Functions *[]*FunctionDef        `protobuf:"bytes,4,rep,name=functions" json:"functions,omitempty"`
+	xxx_hidden_Strings   *[]*StringDef          `protobuf:"bytes,5,rep,name=strings" json:"strings,omitempty"`
+	xxx_hidden_Vectors   *[]*VectorDef          `protobuf:"bytes,6,rep,name=vectors" json:"vectors,omitempty"`
+	xxx_hidden_Alpha     float32                `protobuf:"fixed32,8,opt,name=alpha" json:"alpha,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *Edict) Reset() {
@@ -674,79 +676,91 @@ func (x *Edict) ProtoReflect() protoreflect.Message {
 
 func (x *Edict) GetEntities() []*EntityDef {
 	if x != nil {
-		return x.Entities
+		if x.xxx_hidden_Entities != nil {
+			return *x.xxx_hidden_Entities
+		}
 	}
 	return nil
 }
 
 func (x *Edict) GetFields() []*FieldDef {
 	if x != nil {
-		return x.Fields
+		if x.xxx_hidden_Fields != nil {
+			return *x.xxx_hidden_Fields
+		}
 	}
 	return nil
 }
 
 func (x *Edict) GetFloats() []*FloatDef {
 	if x != nil {
-		return x.Floats
+		if x.xxx_hidden_Floats != nil {
+			return *x.xxx_hidden_Floats
+		}
 	}
 	return nil
 }
 
 func (x *Edict) GetFunctions() []*FunctionDef {
 	if x != nil {
-		return x.Functions
+		if x.xxx_hidden_Functions != nil {
+			return *x.xxx_hidden_Functions
+		}
 	}
 	return nil
 }
 
 func (x *Edict) GetStrings() []*StringDef {
 	if x != nil {
-		return x.Strings
+		if x.xxx_hidden_Strings != nil {
+			return *x.xxx_hidden_Strings
+		}
 	}
 	return nil
 }
 
 func (x *Edict) GetVectors() []*VectorDef {
 	if x != nil {
-		return x.Vectors
+		if x.xxx_hidden_Vectors != nil {
+			return *x.xxx_hidden_Vectors
+		}
 	}
 	return nil
 }
 
 func (x *Edict) GetAlpha() float32 {
 	if x != nil {
-		return x.Alpha
+		return x.xxx_hidden_Alpha
 	}
 	return 0
 }
 
 func (x *Edict) SetEntities(v []*EntityDef) {
-	x.Entities = v
+	x.xxx_hidden_Entities = &v
 }
 
 func (x *Edict) SetFields(v []*FieldDef) {
-	x.Fields = v
+	x.xxx_hidden_Fields = &v
 }
 
 func (x *Edict) SetFloats(v []*FloatDef) {
-	x.Floats = v
+	x.xxx_hidden_Floats = &v
 }
 
 func (x *Edict) SetFunctions(v []*FunctionDef) {
-	x.Functions = v
+	x.xxx_hidden_Functions = &v
 }
 
 func (x *Edict) SetStrings(v []*StringDef) {
-	x.Strings = v
+	x.xxx_hidden_Strings = &v
 }
 
 func (x *Edict) SetVectors(v []*VectorDef) {
-	x.Vectors = v
+	x.xxx_hidden_Vectors = &v
 }
 
 func (x *Edict) SetAlpha(v float32) {
-	x.Alpha = v
+	x.xxx_hidden_Alpha = v
 }
 
 type Edict_builder struct {
@@ -766,28 +780,28 @@ func (b0 Edict_builder) Build() *Edict {
 	m0 := &Edict{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Entities = b.Entities
-	x.Fields = b.Fields
-	x.Floats = b.Floats
-	x.Functions = b.Functions
-	x.Strings = b.Strings
-	x.Vectors = b.Vectors
-	x.Alpha = b.Alpha
+	x.xxx_hidden_Entities = &b.Entities
+	x.xxx_hidden_Fields = &b.Fields
+	x.xxx_hidden_Floats = &b.Floats
+	x.xxx_hidden_Functions = &b.Functions
+	x.xxx_hidden_Strings = &b.Strings
+	x.xxx_hidden_Vectors = &b.Vectors
+	x.xxx_hidden_Alpha = b.Alpha
 	return m0
 }
 
 type SaveGame struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Comment       string                 `protobuf:"bytes,1,opt,name=comment" json:"comment,omitempty"`
-	SpawnParams   []float32              `protobuf:"fixed32,2,rep,packed,name=spawn_params,json=spawnParams" json:"spawn_params,omitempty"`
-	CurrentSkill  int32                  `protobuf:"varint,3,opt,name=current_skill,json=currentSkill" json:"current_skill,omitempty"`
-	MapName       string                 `protobuf:"bytes,4,opt,name=map_name,json=mapName" json:"map_name,omitempty"`
-	MapTime       float32                `protobuf:"fixed32,5,opt,name=map_time,json=mapTime" json:"map_time,omitempty"`
-	LightStyles   []string               `protobuf:"bytes,6,rep,name=light_styles,json=lightStyles" json:"light_styles,omitempty"`
-	Globals       *Globals               `protobuf:"bytes,7,opt,name=globals" json:"globals,omitempty"`
-	Edicts        []*Edict               `protobuf:"bytes,8,rep,name=edicts" json:"edicts,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                   protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Comment      string                 `protobuf:"bytes,1,opt,name=comment" json:"comment,omitempty"`
+	xxx_hidden_SpawnParams  []float32              `protobuf:"fixed32,2,rep,packed,name=spawn_params,json=spawnParams" json:"spawn_params,omitempty"`
+	xxx_hidden_CurrentSkill int32                  `protobuf:"varint,3,opt,name=current_skill,json=currentSkill" json:"current_skill,omitempty"`
+	xxx_hidden_MapName      string                 `protobuf:"bytes,4,opt,name=map_name,json=mapName" json:"map_name,omitempty"`
+	xxx_hidden_MapTime      float32                `protobuf:"fixed32,5,opt,name=map_time,json=mapTime" json:"map_time,omitempty"`
+	xxx_hidden_LightStyles  []string               `protobuf:"bytes,6,rep,name=light_styles,json=lightStyles" json:"light_styles,omitempty"`
+	xxx_hidden_Globals      *Globals               `protobuf:"bytes,7,opt,name=globals" json:"globals,omitempty"`
+	xxx_hidden_Edicts       *[]*Edict              `protobuf:"bytes,8,rep,name=edicts" json:"edicts,omitempty"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *SaveGame) Reset() {
@@ -817,101 +831,103 @@ func (x *SaveGame) ProtoReflect() protoreflect.Message {
 
 func (x *SaveGame) GetComment() string {
 	if x != nil {
-		return x.Comment
+		return x.xxx_hidden_Comment
 	}
 	return ""
 }
 
 func (x *SaveGame) GetSpawnParams() []float32 {
 	if x != nil {
-		return x.SpawnParams
+		return x.xxx_hidden_SpawnParams
 	}
 	return nil
 }
 
 func (x *SaveGame) GetCurrentSkill() int32 {
 	if x != nil {
-		return x.CurrentSkill
+		return x.xxx_hidden_CurrentSkill
 	}
 	return 0
 }
 
 func (x *SaveGame) GetMapName() string {
 	if x != nil {
-		return x.MapName
+		return x.xxx_hidden_MapName
 	}
 	return ""
 }
 
 func (x *SaveGame) GetMapTime() float32 {
 	if x != nil {
-		return x.MapTime
+		return x.xxx_hidden_MapTime
 	}
 	return 0
 }
 
 func (x *SaveGame) GetLightStyles() []string {
 	if x != nil {
-		return x.LightStyles
+		return x.xxx_hidden_LightStyles
 	}
 	return nil
 }
 
 func (x *SaveGame) GetGlobals() *Globals {
 	if x != nil {
-		return x.Globals
+		return x.xxx_hidden_Globals
 	}
 	return nil
 }
 
 func (x *SaveGame) GetEdicts() []*Edict {
 	if x != nil {
-		return x.Edicts
+		if x.xxx_hidden_Edicts != nil {
+			return *x.xxx_hidden_Edicts
+		}
 	}
 	return nil
 }
 
 func (x *SaveGame) SetComment(v string) {
-	x.Comment = v
+	x.xxx_hidden_Comment = v
 }
 
 func (x *SaveGame) SetSpawnParams(v []float32) {
-	x.SpawnParams = v
+	x.xxx_hidden_SpawnParams = v
 }
 
 func (x *SaveGame) SetCurrentSkill(v int32) {
-	x.CurrentSkill = v
+	x.xxx_hidden_CurrentSkill = v
 }
 
 func (x *SaveGame) SetMapName(v string) {
-	x.MapName = v
+	x.xxx_hidden_MapName = v
 }
 
 func (x *SaveGame) SetMapTime(v float32) {
-	x.MapTime = v
+	x.xxx_hidden_MapTime = v
 }
 
 func (x *SaveGame) SetLightStyles(v []string) {
-	x.LightStyles = v
+	x.xxx_hidden_LightStyles = v
 }
 
 func (x *SaveGame) SetGlobals(v *Globals) {
-	x.Globals = v
+	x.xxx_hidden_Globals = v
 }
 
 func (x *SaveGame) SetEdicts(v []*Edict) {
-	x.Edicts = v
+	x.xxx_hidden_Edicts = &v
 }
 
 func (x *SaveGame) HasGlobals() bool {
 	if x == nil {
 		return false
 	}
-	return x.Globals != nil
+	return x.xxx_hidden_Globals != nil
 }
 
 func (x *SaveGame) ClearGlobals() {
-	x.Globals = nil
+	x.xxx_hidden_Globals = nil
 }
 
 type SaveGame_builder struct {
@@ -931,14 +947,14 @@ func (b0 SaveGame_builder) Build() *SaveGame {
 	m0 := &SaveGame{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Comment = b.Comment
-	x.SpawnParams = b.SpawnParams
-	x.CurrentSkill = b.CurrentSkill
-	x.MapName = b.MapName
-	x.MapTime = b.MapTime
-	x.LightStyles = b.LightStyles
-	x.Globals = b.Globals
-	x.Edicts = b.Edicts
+	x.xxx_hidden_Comment = b.Comment
+	x.xxx_hidden_SpawnParams = b.SpawnParams
+	x.xxx_hidden_CurrentSkill = b.CurrentSkill
+	x.xxx_hidden_MapName = b.MapName
+	x.xxx_hidden_MapTime = b.MapTime
+	x.xxx_hidden_LightStyles = b.LightStyles
+	x.xxx_hidden_Globals = b.Globals
+	x.xxx_hidden_Edicts = &b.Edicts
 	return m0
 }
 
@@ -1020,7 +1036,7 @@ var file_savegame_proto_rawDesc = []byte{
 	0x45, 0x64, 0x69, 0x63, 0x74, 0x52, 0x06, 0x65, 0x64, 0x69, 0x63, 0x74, 0x73, 0x42, 0x33, 0x5a,
 	0x21, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x74, 0x68, 0x65, 0x72,
 	0x6a, 0x61, 0x6b, 0x2f, 0x67, 0x6f, 0x71, 0x75, 0x61, 0x6b, 0x65, 0x2f, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x73, 0x92, 0x03, 0x0d, 0xd2, 0x3e, 0x02, 0x10, 0x02, 0x08, 0x02, 0x10, 0x01, 0x20, 0x02,
+	0x6f, 0x73, 0x92, 0x03, 0x0d, 0xd2, 0x3e, 0x02, 0x10, 0x03, 0x08, 0x02, 0x10, 0x01, 0x20, 0x02,
 	0x30, 0x01, 0x62, 0x08, 0x65, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x70, 0xe8, 0x07,
 }
 

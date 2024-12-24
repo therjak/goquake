@@ -6,8 +6,6 @@
 // 	protoc        v5.29.2
 // source: server_message.proto
 
-//go:build !protoopaque
-
 package protos
 
 import (
@@ -25,10 +23,10 @@ const (
 )
 
 type Coord struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	X             float32                `protobuf:"fixed32,1,opt,name=x" json:"x,omitempty"`
-	Y             float32                `protobuf:"fixed32,2,opt,name=y" json:"y,omitempty"`
-	Z             float32                `protobuf:"fixed32,3,opt,name=z" json:"z,omitempty"`
+	state         protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_X  float32                `protobuf:"fixed32,1,opt,name=x" json:"x,omitempty"`
+	xxx_hidden_Y  float32                `protobuf:"fixed32,2,opt,name=y" json:"y,omitempty"`
+	xxx_hidden_Z  float32                `protobuf:"fixed32,3,opt,name=z" json:"z,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -60,35 +58,35 @@ func (x *Coord) ProtoReflect() protoreflect.Message {
 
 func (x *Coord) GetX() float32 {
 	if x != nil {
-		return x.X
+		return x.xxx_hidden_X
 	}
 	return 0
 }
 
 func (x *Coord) GetY() float32 {
 	if x != nil {
-		return x.Y
+		return x.xxx_hidden_Y
 	}
 	return 0
 }
 
 func (x *Coord) GetZ() float32 {
 	if x != nil {
-		return x.Z
+		return x.xxx_hidden_Z
 	}
 	return 0
 }
 
 func (x *Coord) SetX(v float32) {
-	x.X = v
+	x.xxx_hidden_X = v
 }
 
 func (x *Coord) SetY(v float32) {
-	x.Y = v
+	x.xxx_hidden_Y = v
 }
 
 func (x *Coord) SetZ(v float32) {
-	x.Z = v
+	x.xxx_hidden_Z = v
 }
 
 type Coord_builder struct {
@@ -103,17 +101,17 @@ func (b0 Coord_builder) Build() *Coord {
 	m0 := &Coord{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.X = b.X
-	x.Y = b.Y
-	x.Z = b.Z
+	x.xxx_hidden_X = b.X
+	x.xxx_hidden_Y = b.Y
+	x.xxx_hidden_Z = b.Z
 	return m0
 }
 
 type IntCoord struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	X             int32                  `protobuf:"varint,1,opt,name=x" json:"x,omitempty"`
-	Y             int32                  `protobuf:"varint,2,opt,name=y" json:"y,omitempty"`
-	Z             int32                  `protobuf:"varint,3,opt,name=z" json:"z,omitempty"`
+	state         protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_X  int32                  `protobuf:"varint,1,opt,name=x" json:"x,omitempty"`
+	xxx_hidden_Y  int32                  `protobuf:"varint,2,opt,name=y" json:"y,omitempty"`
+	xxx_hidden_Z  int32                  `protobuf:"varint,3,opt,name=z" json:"z,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -145,35 +143,35 @@ func (x *IntCoord) ProtoReflect() protoreflect.Message {
 
 func (x *IntCoord) GetX() int32 {
 	if x != nil {
-		return x.X
+		return x.xxx_hidden_X
 	}
 	return 0
 }
 
 func (x *IntCoord) GetY() int32 {
 	if x != nil {
-		return x.Y
+		return x.xxx_hidden_Y
 	}
 	return 0
 }
 
 func (x *IntCoord) GetZ() int32 {
 	if x != nil {
-		return x.Z
+		return x.xxx_hidden_Z
 	}
 	return 0
 }
 
 func (x *IntCoord) SetX(v int32) {
-	x.X = v
+	x.xxx_hidden_X = v
 }
 
 func (x *IntCoord) SetY(v int32) {
-	x.Y = v
+	x.xxx_hidden_Y = v
 }
 
 func (x *IntCoord) SetZ(v int32) {
-	x.Z = v
+	x.xxx_hidden_Z = v
 }
 
 type IntCoord_builder struct {
@@ -188,19 +186,19 @@ func (b0 IntCoord_builder) Build() *IntCoord {
 	m0 := &IntCoord{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.X = b.X
-	x.Y = b.Y
-	x.Z = b.Z
+	x.xxx_hidden_X = b.X
+	x.xxx_hidden_Y = b.Y
+	x.xxx_hidden_Z = b.Z
 	return m0
 }
 
 type Line struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Entity        int32                  `protobuf:"varint,1,opt,name=entity" json:"entity,omitempty"`
-	Start         *Coord                 `protobuf:"bytes,2,opt,name=start" json:"start,omitempty"`
-	End           *Coord                 `protobuf:"bytes,3,opt,name=end" json:"end,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Entity int32                  `protobuf:"varint,1,opt,name=entity" json:"entity,omitempty"`
+	xxx_hidden_Start  *Coord                 `protobuf:"bytes,2,opt,name=start" json:"start,omitempty"`
+	xxx_hidden_End    *Coord                 `protobuf:"bytes,3,opt,name=end" json:"end,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *Line) Reset() {
@@ -230,57 +228,57 @@ func (x *Line) ProtoReflect() protoreflect.Message {
 
 func (x *Line) GetEntity() int32 {
 	if x != nil {
-		return x.Entity
+		return x.xxx_hidden_Entity
 	}
 	return 0
 }
 
 func (x *Line) GetStart() *Coord {
 	if x != nil {
-		return x.Start
+		return x.xxx_hidden_Start
 	}
 	return nil
 }
 
 func (x *Line) GetEnd() *Coord {
 	if x != nil {
-		return x.End
+		return x.xxx_hidden_End
 	}
 	return nil
 }
 
 func (x *Line) SetEntity(v int32) {
-	x.Entity = v
+	x.xxx_hidden_Entity = v
 }
 
 func (x *Line) SetStart(v *Coord) {
-	x.Start = v
+	x.xxx_hidden_Start = v
 }
 
 func (x *Line) SetEnd(v *Coord) {
-	x.End = v
+	x.xxx_hidden_End = v
 }
 
 func (x *Line) HasStart() bool {
 	if x == nil {
 		return false
 	}
-	return x.Start != nil
+	return x.xxx_hidden_Start != nil
 }
 
 func (x *Line) HasEnd() bool {
 	if x == nil {
 		return false
 	}
-	return x.End != nil
+	return x.xxx_hidden_End != nil
 }
 
 func (x *Line) ClearStart() {
-	x.Start = nil
+	x.xxx_hidden_Start = nil
 }
 
 func (x *Line) ClearEnd() {
-	x.End = nil
+	x.xxx_hidden_End = nil
 }
 
 type Line_builder struct {
@@ -295,19 +293,19 @@ func (b0 Line_builder) Build() *Line {
 	m0 := &Line{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Entity = b.Entity
-	x.Start = b.Start
-	x.End = b.End
+	x.xxx_hidden_Entity = b.Entity
+	x.xxx_hidden_Start = b.Start
+	x.xxx_hidden_End = b.End
 	return m0
 }
 
 type Explosion2 struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Position      *Coord                 `protobuf:"bytes,1,opt,name=position" json:"position,omitempty"`
-	StartColor    int32                  `protobuf:"varint,2,opt,name=start_color,json=startColor" json:"start_color,omitempty"`
-	StopColor     int32                  `protobuf:"varint,3,opt,name=stop_color,json=stopColor" json:"stop_color,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Position   *Coord                 `protobuf:"bytes,1,opt,name=position" json:"position,omitempty"`
+	xxx_hidden_StartColor int32                  `protobuf:"varint,2,opt,name=start_color,json=startColor" json:"start_color,omitempty"`
+	xxx_hidden_StopColor  int32                  `protobuf:"varint,3,opt,name=stop_color,json=stopColor" json:"stop_color,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *Explosion2) Reset() {
@@ -337,46 +335,46 @@ func (x *Explosion2) ProtoReflect() protoreflect.Message {
 
 func (x *Explosion2) GetPosition() *Coord {
 	if x != nil {
-		return x.Position
+		return x.xxx_hidden_Position
 	}
 	return nil
 }
 
 func (x *Explosion2) GetStartColor() int32 {
 	if x != nil {
-		return x.StartColor
+		return x.xxx_hidden_StartColor
 	}
 	return 0
 }
 
 func (x *Explosion2) GetStopColor() int32 {
 	if x != nil {
-		return x.StopColor
+		return x.xxx_hidden_StopColor
 	}
 	return 0
 }
 
 func (x *Explosion2) SetPosition(v *Coord) {
-	x.Position = v
+	x.xxx_hidden_Position = v
 }
 
 func (x *Explosion2) SetStartColor(v int32) {
-	x.StartColor = v
+	x.xxx_hidden_StartColor = v
 }
 
 func (x *Explosion2) SetStopColor(v int32) {
-	x.StopColor = v
+	x.xxx_hidden_StopColor = v
 }
 
 func (x *Explosion2) HasPosition() bool {
 	if x == nil {
 		return false
 	}
-	return x.Position != nil
+	return x.xxx_hidden_Position != nil
 }
 
 func (x *Explosion2) ClearPosition() {
-	x.Position = nil
+	x.xxx_hidden_Position = nil
 }
 
 type Explosion2_builder struct {
@@ -391,14 +389,14 @@ func (b0 Explosion2_builder) Build() *Explosion2 {
 	m0 := &Explosion2{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Position = b.Position
-	x.StartColor = b.StartColor
-	x.StopColor = b.StopColor
+	x.xxx_hidden_Position = b.Position
+	x.xxx_hidden_StartColor = b.StartColor
+	x.xxx_hidden_StopColor = b.StopColor
 	return m0
 }
 
 type Empty struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
+	state         protoimpl.MessageState `protogen:"opaque.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -441,26 +439,10 @@ func (b0 Empty_builder) Build() *Empty {
 }
 
 type TempEntity struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Types that are valid to be assigned to Union:
-	//
-	//	*TempEntity_Spike
-	//	*TempEntity_SuperSpike
-	//	*TempEntity_Gunshot
-	//	*TempEntity_Explosion
-	//	*TempEntity_TarExplosion
-	//	*TempEntity_Lightning1
-	//	*TempEntity_Lightning2
-	//	*TempEntity_WizSpike
-	//	*TempEntity_KnightSpike
-	//	*TempEntity_Lightning3
-	//	*TempEntity_LavaSplash
-	//	*TempEntity_Teleport
-	//	*TempEntity_Explosion2
-	//	*TempEntity_Beam
-	Union         isTempEntity_Union `protobuf_oneof:"union"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Union isTempEntity_Union     `protobuf_oneof:"union"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *TempEntity) Reset() {
@@ -488,16 +470,9 @@ func (x *TempEntity) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *TempEntity) GetUnion() isTempEntity_Union {
-	if x != nil {
-		return x.Union
-	}
-	return nil
-}
-
 func (x *TempEntity) GetSpike() *Coord {
 	if x != nil {
-		if x, ok := x.Union.(*TempEntity_Spike); ok {
+		if x, ok := x.xxx_hidden_Union.(*tempEntity_Spike); ok {
 			return x.Spike
 		}
 	}
@@ -506,7 +481,7 @@ func (x *TempEntity) GetSpike() *Coord {
 
 func (x *TempEntity) GetSuperSpike() *Coord {
 	if x != nil {
-		if x, ok := x.Union.(*TempEntity_SuperSpike); ok {
+		if x, ok := x.xxx_hidden_Union.(*tempEntity_SuperSpike); ok {
 			return x.SuperSpike
 		}
 	}
@@ -515,7 +490,7 @@ func (x *TempEntity) GetSuperSpike() *Coord {
 
 func (x *TempEntity) GetGunshot() *Coord {
 	if x != nil {
-		if x, ok := x.Union.(*TempEntity_Gunshot); ok {
+		if x, ok := x.xxx_hidden_Union.(*tempEntity_Gunshot); ok {
 			return x.Gunshot
 		}
 	}
@@ -524,7 +499,7 @@ func (x *TempEntity) GetGunshot() *Coord {
 
 func (x *TempEntity) GetExplosion() *Coord {
 	if x != nil {
-		if x, ok := x.Union.(*TempEntity_Explosion); ok {
+		if x, ok := x.xxx_hidden_Union.(*tempEntity_Explosion); ok {
 			return x.Explosion
 		}
 	}
@@ -533,7 +508,7 @@ func (x *TempEntity) GetExplosion() *Coord {
 
 func (x *TempEntity) GetTarExplosion() *Coord {
 	if x != nil {
-		if x, ok := x.Union.(*TempEntity_TarExplosion); ok {
+		if x, ok := x.xxx_hidden_Union.(*tempEntity_TarExplosion); ok {
 			return x.TarExplosion
 		}
 	}
@@ -542,7 +517,7 @@ func (x *TempEntity) GetTarExplosion() *Coord {
 
 func (x *TempEntity) GetLightning1() *Line {
 	if x != nil {
-		if x, ok := x.Union.(*TempEntity_Lightning1); ok {
+		if x, ok := x.xxx_hidden_Union.(*tempEntity_Lightning1); ok {
 			return x.Lightning1
 		}
 	}
@@ -551,7 +526,7 @@ func (x *TempEntity) GetLightning1() *Line {
 
 func (x *TempEntity) GetLightning2() *Line {
 	if x != nil {
-		if x, ok := x.Union.(*TempEntity_Lightning2); ok {
+		if x, ok := x.xxx_hidden_Union.(*tempEntity_Lightning2); ok {
 			return x.Lightning2
 		}
 	}
@@ -560,7 +535,7 @@ func (x *TempEntity) GetLightning2() *Line {
 
 func (x *TempEntity) GetWizSpike() *Coord {
 	if x != nil {
-		if x, ok := x.Union.(*TempEntity_WizSpike); ok {
+		if x, ok := x.xxx_hidden_Union.(*tempEntity_WizSpike); ok {
 			return x.WizSpike
 		}
 	}
@@ -569,7 +544,7 @@ func (x *TempEntity) GetWizSpike() *Coord {
 
 func (x *TempEntity) GetKnightSpike() *Coord {
 	if x != nil {
-		if x, ok := x.Union.(*TempEntity_KnightSpike); ok {
+		if x, ok := x.xxx_hidden_Union.(*tempEntity_KnightSpike); ok {
 			return x.KnightSpike
 		}
 	}
@@ -578,7 +553,7 @@ func (x *TempEntity) GetKnightSpike() *Coord {
 
 func (x *TempEntity) GetLightning3() *Line {
 	if x != nil {
-		if x, ok := x.Union.(*TempEntity_Lightning3); ok {
+		if x, ok := x.xxx_hidden_Union.(*tempEntity_Lightning3); ok {
 			return x.Lightning3
 		}
 	}
@@ -587,7 +562,7 @@ func (x *TempEntity) GetLightning3() *Line {
 
 func (x *TempEntity) GetLavaSplash() *Coord {
 	if x != nil {
-		if x, ok := x.Union.(*TempEntity_LavaSplash); ok {
+		if x, ok := x.xxx_hidden_Union.(*tempEntity_LavaSplash); ok {
 			return x.LavaSplash
 		}
 	}
@@ -596,7 +571,7 @@ func (x *TempEntity) GetLavaSplash() *Coord {
 
 func (x *TempEntity) GetTeleport() *Coord {
 	if x != nil {
-		if x, ok := x.Union.(*TempEntity_Teleport); ok {
+		if x, ok := x.xxx_hidden_Union.(*tempEntity_Teleport); ok {
 			return x.Teleport
 		}
 	}
@@ -605,7 +580,7 @@ func (x *TempEntity) GetTeleport() *Coord {
 
 func (x *TempEntity) GetExplosion2() *Explosion2 {
 	if x != nil {
-		if x, ok := x.Union.(*TempEntity_Explosion2); ok {
+		if x, ok := x.xxx_hidden_Union.(*tempEntity_Explosion2); ok {
 			return x.Explosion2
 		}
 	}
@@ -614,7 +589,7 @@ func (x *TempEntity) GetExplosion2() *Explosion2 {
 
 func (x *TempEntity) GetBeam() *Line {
 	if x != nil {
-		if x, ok := x.Union.(*TempEntity_Beam); ok {
+		if x, ok := x.xxx_hidden_Union.(*tempEntity_Beam); ok {
 			return x.Beam
 		}
 	}
@@ -623,128 +598,128 @@ func (x *TempEntity) GetBeam() *Line {
 
 func (x *TempEntity) SetSpike(v *Coord) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &TempEntity_Spike{v}
+	x.xxx_hidden_Union = &tempEntity_Spike{v}
 }
 
 func (x *TempEntity) SetSuperSpike(v *Coord) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &TempEntity_SuperSpike{v}
+	x.xxx_hidden_Union = &tempEntity_SuperSpike{v}
 }
 
 func (x *TempEntity) SetGunshot(v *Coord) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &TempEntity_Gunshot{v}
+	x.xxx_hidden_Union = &tempEntity_Gunshot{v}
 }
 
 func (x *TempEntity) SetExplosion(v *Coord) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &TempEntity_Explosion{v}
+	x.xxx_hidden_Union = &tempEntity_Explosion{v}
 }
 
 func (x *TempEntity) SetTarExplosion(v *Coord) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &TempEntity_TarExplosion{v}
+	x.xxx_hidden_Union = &tempEntity_TarExplosion{v}
 }
 
 func (x *TempEntity) SetLightning1(v *Line) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &TempEntity_Lightning1{v}
+	x.xxx_hidden_Union = &tempEntity_Lightning1{v}
 }
 
 func (x *TempEntity) SetLightning2(v *Line) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &TempEntity_Lightning2{v}
+	x.xxx_hidden_Union = &tempEntity_Lightning2{v}
 }
 
 func (x *TempEntity) SetWizSpike(v *Coord) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &TempEntity_WizSpike{v}
+	x.xxx_hidden_Union = &tempEntity_WizSpike{v}
 }
 
 func (x *TempEntity) SetKnightSpike(v *Coord) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &TempEntity_KnightSpike{v}
+	x.xxx_hidden_Union = &tempEntity_KnightSpike{v}
 }
 
 func (x *TempEntity) SetLightning3(v *Line) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &TempEntity_Lightning3{v}
+	x.xxx_hidden_Union = &tempEntity_Lightning3{v}
 }
 
 func (x *TempEntity) SetLavaSplash(v *Coord) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &TempEntity_LavaSplash{v}
+	x.xxx_hidden_Union = &tempEntity_LavaSplash{v}
 }
 
 func (x *TempEntity) SetTeleport(v *Coord) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &TempEntity_Teleport{v}
+	x.xxx_hidden_Union = &tempEntity_Teleport{v}
 }
 
 func (x *TempEntity) SetExplosion2(v *Explosion2) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &TempEntity_Explosion2{v}
+	x.xxx_hidden_Union = &tempEntity_Explosion2{v}
 }
 
 func (x *TempEntity) SetBeam(v *Line) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &TempEntity_Beam{v}
+	x.xxx_hidden_Union = &tempEntity_Beam{v}
 }
 
 func (x *TempEntity) HasUnion() bool {
 	if x == nil {
 		return false
 	}
-	return x.Union != nil
+	return x.xxx_hidden_Union != nil
 }
 
 func (x *TempEntity) HasSpike() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*TempEntity_Spike)
+	_, ok := x.xxx_hidden_Union.(*tempEntity_Spike)
 	return ok
 }
 
@@ -752,7 +727,7 @@ func (x *TempEntity) HasSuperSpike() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*TempEntity_SuperSpike)
+	_, ok := x.xxx_hidden_Union.(*tempEntity_SuperSpike)
 	return ok
 }
 
@@ -760,7 +735,7 @@ func (x *TempEntity) HasGunshot() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*TempEntity_Gunshot)
+	_, ok := x.xxx_hidden_Union.(*tempEntity_Gunshot)
 	return ok
 }
 
@@ -768,7 +743,7 @@ func (x *TempEntity) HasExplosion() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*TempEntity_Explosion)
+	_, ok := x.xxx_hidden_Union.(*tempEntity_Explosion)
 	return ok
 }
 
@@ -776,7 +751,7 @@ func (x *TempEntity) HasTarExplosion() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*TempEntity_TarExplosion)
+	_, ok := x.xxx_hidden_Union.(*tempEntity_TarExplosion)
 	return ok
 }
 
@@ -784,7 +759,7 @@ func (x *TempEntity) HasLightning1() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*TempEntity_Lightning1)
+	_, ok := x.xxx_hidden_Union.(*tempEntity_Lightning1)
 	return ok
 }
 
@@ -792,7 +767,7 @@ func (x *TempEntity) HasLightning2() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*TempEntity_Lightning2)
+	_, ok := x.xxx_hidden_Union.(*tempEntity_Lightning2)
 	return ok
 }
 
@@ -800,7 +775,7 @@ func (x *TempEntity) HasWizSpike() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*TempEntity_WizSpike)
+	_, ok := x.xxx_hidden_Union.(*tempEntity_WizSpike)
 	return ok
 }
 
@@ -808,7 +783,7 @@ func (x *TempEntity) HasKnightSpike() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*TempEntity_KnightSpike)
+	_, ok := x.xxx_hidden_Union.(*tempEntity_KnightSpike)
 	return ok
 }
 
@@ -816,7 +791,7 @@ func (x *TempEntity) HasLightning3() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*TempEntity_Lightning3)
+	_, ok := x.xxx_hidden_Union.(*tempEntity_Lightning3)
 	return ok
 }
 
@@ -824,7 +799,7 @@ func (x *TempEntity) HasLavaSplash() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*TempEntity_LavaSplash)
+	_, ok := x.xxx_hidden_Union.(*tempEntity_LavaSplash)
 	return ok
 }
 
@@ -832,7 +807,7 @@ func (x *TempEntity) HasTeleport() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*TempEntity_Teleport)
+	_, ok := x.xxx_hidden_Union.(*tempEntity_Teleport)
 	return ok
 }
 
@@ -840,7 +815,7 @@ func (x *TempEntity) HasExplosion2() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*TempEntity_Explosion2)
+	_, ok := x.xxx_hidden_Union.(*tempEntity_Explosion2)
 	return ok
 }
 
@@ -848,95 +823,95 @@ func (x *TempEntity) HasBeam() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*TempEntity_Beam)
+	_, ok := x.xxx_hidden_Union.(*tempEntity_Beam)
 	return ok
 }
 
 func (x *TempEntity) ClearUnion() {
-	x.Union = nil
+	x.xxx_hidden_Union = nil
 }
 
 func (x *TempEntity) ClearSpike() {
-	if _, ok := x.Union.(*TempEntity_Spike); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*tempEntity_Spike); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *TempEntity) ClearSuperSpike() {
-	if _, ok := x.Union.(*TempEntity_SuperSpike); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*tempEntity_SuperSpike); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *TempEntity) ClearGunshot() {
-	if _, ok := x.Union.(*TempEntity_Gunshot); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*tempEntity_Gunshot); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *TempEntity) ClearExplosion() {
-	if _, ok := x.Union.(*TempEntity_Explosion); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*tempEntity_Explosion); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *TempEntity) ClearTarExplosion() {
-	if _, ok := x.Union.(*TempEntity_TarExplosion); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*tempEntity_TarExplosion); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *TempEntity) ClearLightning1() {
-	if _, ok := x.Union.(*TempEntity_Lightning1); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*tempEntity_Lightning1); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *TempEntity) ClearLightning2() {
-	if _, ok := x.Union.(*TempEntity_Lightning2); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*tempEntity_Lightning2); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *TempEntity) ClearWizSpike() {
-	if _, ok := x.Union.(*TempEntity_WizSpike); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*tempEntity_WizSpike); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *TempEntity) ClearKnightSpike() {
-	if _, ok := x.Union.(*TempEntity_KnightSpike); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*tempEntity_KnightSpike); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *TempEntity) ClearLightning3() {
-	if _, ok := x.Union.(*TempEntity_Lightning3); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*tempEntity_Lightning3); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *TempEntity) ClearLavaSplash() {
-	if _, ok := x.Union.(*TempEntity_LavaSplash); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*tempEntity_LavaSplash); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *TempEntity) ClearTeleport() {
-	if _, ok := x.Union.(*TempEntity_Teleport); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*tempEntity_Teleport); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *TempEntity) ClearExplosion2() {
-	if _, ok := x.Union.(*TempEntity_Explosion2); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*tempEntity_Explosion2); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *TempEntity) ClearBeam() {
-	if _, ok := x.Union.(*TempEntity_Beam); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*tempEntity_Beam); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
@@ -960,34 +935,34 @@ func (x *TempEntity) WhichUnion() case_TempEntity_Union {
 	if x == nil {
 		return TempEntity_Union_not_set_case
 	}
-	switch x.Union.(type) {
-	case *TempEntity_Spike:
+	switch x.xxx_hidden_Union.(type) {
+	case *tempEntity_Spike:
 		return TempEntity_Spike_case
-	case *TempEntity_SuperSpike:
+	case *tempEntity_SuperSpike:
 		return TempEntity_SuperSpike_case
-	case *TempEntity_Gunshot:
+	case *tempEntity_Gunshot:
 		return TempEntity_Gunshot_case
-	case *TempEntity_Explosion:
+	case *tempEntity_Explosion:
 		return TempEntity_Explosion_case
-	case *TempEntity_TarExplosion:
+	case *tempEntity_TarExplosion:
 		return TempEntity_TarExplosion_case
-	case *TempEntity_Lightning1:
+	case *tempEntity_Lightning1:
 		return TempEntity_Lightning1_case
-	case *TempEntity_Lightning2:
+	case *tempEntity_Lightning2:
 		return TempEntity_Lightning2_case
-	case *TempEntity_WizSpike:
+	case *tempEntity_WizSpike:
 		return TempEntity_WizSpike_case
-	case *TempEntity_KnightSpike:
+	case *tempEntity_KnightSpike:
 		return TempEntity_KnightSpike_case
-	case *TempEntity_Lightning3:
+	case *tempEntity_Lightning3:
 		return TempEntity_Lightning3_case
-	case *TempEntity_LavaSplash:
+	case *tempEntity_LavaSplash:
 		return TempEntity_LavaSplash_case
-	case *TempEntity_Teleport:
+	case *tempEntity_Teleport:
 		return TempEntity_Teleport_case
-	case *TempEntity_Explosion2:
+	case *tempEntity_Explosion2:
 		return TempEntity_Explosion2_case
-	case *TempEntity_Beam:
+	case *tempEntity_Beam:
 		return TempEntity_Beam_case
 	default:
 		return TempEntity_Union_not_set_case
@@ -997,7 +972,7 @@ func (x *TempEntity) WhichUnion() case_TempEntity_Union {
 type TempEntity_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Fields of oneof Union:
+	// Fields of oneof xxx_hidden_Union:
 	Spike        *Coord
 	SuperSpike   *Coord
 	Gunshot      *Coord
@@ -1012,7 +987,7 @@ type TempEntity_builder struct {
 	Teleport     *Coord
 	Explosion2   *Explosion2
 	Beam         *Line
-	// -- end of Union
+	// -- end of xxx_hidden_Union
 }
 
 func (b0 TempEntity_builder) Build() *TempEntity {
@@ -1020,46 +995,46 @@ func (b0 TempEntity_builder) Build() *TempEntity {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Spike != nil {
-		x.Union = &TempEntity_Spike{b.Spike}
+		x.xxx_hidden_Union = &tempEntity_Spike{b.Spike}
 	}
 	if b.SuperSpike != nil {
-		x.Union = &TempEntity_SuperSpike{b.SuperSpike}
+		x.xxx_hidden_Union = &tempEntity_SuperSpike{b.SuperSpike}
 	}
 	if b.Gunshot != nil {
-		x.Union = &TempEntity_Gunshot{b.Gunshot}
+		x.xxx_hidden_Union = &tempEntity_Gunshot{b.Gunshot}
 	}
 	if b.Explosion != nil {
-		x.Union = &TempEntity_Explosion{b.Explosion}
+		x.xxx_hidden_Union = &tempEntity_Explosion{b.Explosion}
 	}
 	if b.TarExplosion != nil {
-		x.Union = &TempEntity_TarExplosion{b.TarExplosion}
+		x.xxx_hidden_Union = &tempEntity_TarExplosion{b.TarExplosion}
 	}
 	if b.Lightning1 != nil {
-		x.Union = &TempEntity_Lightning1{b.Lightning1}
+		x.xxx_hidden_Union = &tempEntity_Lightning1{b.Lightning1}
 	}
 	if b.Lightning2 != nil {
-		x.Union = &TempEntity_Lightning2{b.Lightning2}
+		x.xxx_hidden_Union = &tempEntity_Lightning2{b.Lightning2}
 	}
 	if b.WizSpike != nil {
-		x.Union = &TempEntity_WizSpike{b.WizSpike}
+		x.xxx_hidden_Union = &tempEntity_WizSpike{b.WizSpike}
 	}
 	if b.KnightSpike != nil {
-		x.Union = &TempEntity_KnightSpike{b.KnightSpike}
+		x.xxx_hidden_Union = &tempEntity_KnightSpike{b.KnightSpike}
 	}
 	if b.Lightning3 != nil {
-		x.Union = &TempEntity_Lightning3{b.Lightning3}
+		x.xxx_hidden_Union = &tempEntity_Lightning3{b.Lightning3}
 	}
 	if b.LavaSplash != nil {
-		x.Union = &TempEntity_LavaSplash{b.LavaSplash}
+		x.xxx_hidden_Union = &tempEntity_LavaSplash{b.LavaSplash}
 	}
 	if b.Teleport != nil {
-		x.Union = &TempEntity_Teleport{b.Teleport}
+		x.xxx_hidden_Union = &tempEntity_Teleport{b.Teleport}
 	}
 	if b.Explosion2 != nil {
-		x.Union = &TempEntity_Explosion2{b.Explosion2}
+		x.xxx_hidden_Union = &tempEntity_Explosion2{b.Explosion2}
 	}
 	if b.Beam != nil {
-		x.Union = &TempEntity_Beam{b.Beam}
+		x.xxx_hidden_Union = &tempEntity_Beam{b.Beam}
 	}
 	return m0
 }
@@ -1078,96 +1053,96 @@ type isTempEntity_Union interface {
 	isTempEntity_Union()
 }
 
-type TempEntity_Spike struct {
+type tempEntity_Spike struct {
 	Spike *Coord `protobuf:"bytes,1,opt,name=spike,oneof"`
 }
 
-type TempEntity_SuperSpike struct {
+type tempEntity_SuperSpike struct {
 	SuperSpike *Coord `protobuf:"bytes,2,opt,name=super_spike,json=superSpike,oneof"`
 }
 
-type TempEntity_Gunshot struct {
+type tempEntity_Gunshot struct {
 	Gunshot *Coord `protobuf:"bytes,3,opt,name=gunshot,oneof"`
 }
 
-type TempEntity_Explosion struct {
+type tempEntity_Explosion struct {
 	Explosion *Coord `protobuf:"bytes,4,opt,name=explosion,oneof"`
 }
 
-type TempEntity_TarExplosion struct {
+type tempEntity_TarExplosion struct {
 	TarExplosion *Coord `protobuf:"bytes,5,opt,name=tar_explosion,json=tarExplosion,oneof"`
 }
 
-type TempEntity_Lightning1 struct {
+type tempEntity_Lightning1 struct {
 	Lightning1 *Line `protobuf:"bytes,6,opt,name=lightning1,oneof"`
 }
 
-type TempEntity_Lightning2 struct {
+type tempEntity_Lightning2 struct {
 	Lightning2 *Line `protobuf:"bytes,7,opt,name=lightning2,oneof"`
 }
 
-type TempEntity_WizSpike struct {
+type tempEntity_WizSpike struct {
 	WizSpike *Coord `protobuf:"bytes,8,opt,name=wiz_spike,json=wizSpike,oneof"`
 }
 
-type TempEntity_KnightSpike struct {
+type tempEntity_KnightSpike struct {
 	KnightSpike *Coord `protobuf:"bytes,9,opt,name=knight_spike,json=knightSpike,oneof"`
 }
 
-type TempEntity_Lightning3 struct {
+type tempEntity_Lightning3 struct {
 	Lightning3 *Line `protobuf:"bytes,10,opt,name=lightning3,oneof"`
 }
 
-type TempEntity_LavaSplash struct {
+type tempEntity_LavaSplash struct {
 	LavaSplash *Coord `protobuf:"bytes,11,opt,name=lava_splash,json=lavaSplash,oneof"`
 }
 
-type TempEntity_Teleport struct {
+type tempEntity_Teleport struct {
 	Teleport *Coord `protobuf:"bytes,12,opt,name=teleport,oneof"`
 }
 
-type TempEntity_Explosion2 struct {
+type tempEntity_Explosion2 struct {
 	Explosion2 *Explosion2 `protobuf:"bytes,13,opt,name=explosion2,oneof"`
 }
 
-type TempEntity_Beam struct {
+type tempEntity_Beam struct {
 	Beam *Line `protobuf:"bytes,14,opt,name=beam,oneof"`
 }
 
-func (*TempEntity_Spike) isTempEntity_Union() {}
+func (*tempEntity_Spike) isTempEntity_Union() {}
 
-func (*TempEntity_SuperSpike) isTempEntity_Union() {}
+func (*tempEntity_SuperSpike) isTempEntity_Union() {}
 
-func (*TempEntity_Gunshot) isTempEntity_Union() {}
+func (*tempEntity_Gunshot) isTempEntity_Union() {}
 
-func (*TempEntity_Explosion) isTempEntity_Union() {}
+func (*tempEntity_Explosion) isTempEntity_Union() {}
 
-func (*TempEntity_TarExplosion) isTempEntity_Union() {}
+func (*tempEntity_TarExplosion) isTempEntity_Union() {}
 
-func (*TempEntity_Lightning1) isTempEntity_Union() {}
+func (*tempEntity_Lightning1) isTempEntity_Union() {}
 
-func (*TempEntity_Lightning2) isTempEntity_Union() {}
+func (*tempEntity_Lightning2) isTempEntity_Union() {}
 
-func (*TempEntity_WizSpike) isTempEntity_Union() {}
+func (*tempEntity_WizSpike) isTempEntity_Union() {}
 
-func (*TempEntity_KnightSpike) isTempEntity_Union() {}
+func (*tempEntity_KnightSpike) isTempEntity_Union() {}
 
-func (*TempEntity_Lightning3) isTempEntity_Union() {}
+func (*tempEntity_Lightning3) isTempEntity_Union() {}
 
-func (*TempEntity_LavaSplash) isTempEntity_Union() {}
+func (*tempEntity_LavaSplash) isTempEntity_Union() {}
 
-func (*TempEntity_Teleport) isTempEntity_Union() {}
+func (*tempEntity_Teleport) isTempEntity_Union() {}
 
-func (*TempEntity_Explosion2) isTempEntity_Union() {}
+func (*tempEntity_Explosion2) isTempEntity_Union() {}
 
-func (*TempEntity_Beam) isTempEntity_Union() {}
+func (*tempEntity_Beam) isTempEntity_Union() {}
 
 type LightStyle struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Idx           int32                  `protobuf:"varint,1,opt,name=idx" json:"idx,omitempty"`
-	NewStyle      string                 `protobuf:"bytes,2,opt,name=new_style,json=newStyle" json:"new_style,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Idx      int32                  `protobuf:"varint,1,opt,name=idx" json:"idx,omitempty"`
+	xxx_hidden_NewStyle string                 `protobuf:"bytes,2,opt,name=new_style,json=newStyle" json:"new_style,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *LightStyle) Reset() {
@@ -1197,24 +1172,24 @@ func (x *LightStyle) ProtoReflect() protoreflect.Message {
 
 func (x *LightStyle) GetIdx() int32 {
 	if x != nil {
-		return x.Idx
+		return x.xxx_hidden_Idx
 	}
 	return 0
 }
 
 func (x *LightStyle) GetNewStyle() string {
 	if x != nil {
-		return x.NewStyle
+		return x.xxx_hidden_NewStyle
 	}
 	return ""
 }
 
 func (x *LightStyle) SetIdx(v int32) {
-	x.Idx = v
+	x.xxx_hidden_Idx = v
 }
 
 func (x *LightStyle) SetNewStyle(v string) {
-	x.NewStyle = v
+	x.xxx_hidden_NewStyle = v
 }
 
 type LightStyle_builder struct {
@@ -1228,21 +1203,23 @@ func (b0 LightStyle_builder) Build() *LightStyle {
 	m0 := &LightStyle{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Idx = b.Idx
-	x.NewStyle = b.NewStyle
+	x.xxx_hidden_Idx = b.Idx
+	x.xxx_hidden_NewStyle = b.NewStyle
 	return m0
 }
 
 type Sound struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Volume        *int32                 `protobuf:"varint,1,opt,name=volume" json:"volume,omitempty"`                     // byte - default 255
-	Attenuation   *int32                 `protobuf:"varint,2,opt,name=attenuation" json:"attenuation,omitempty"`           // byte - default 64
-	Entity        int32                  `protobuf:"varint,3,opt,name=entity" json:"entity,omitempty"`                     // int16
-	Channel       int32                  `protobuf:"varint,4,opt,name=channel" json:"channel,omitempty"`                   // byte
-	SoundNum      int32                  `protobuf:"varint,5,opt,name=sound_num,json=soundNum" json:"sound_num,omitempty"` // int16
-	Origin        *Coord                 `protobuf:"bytes,6,opt,name=origin" json:"origin,omitempty"`                      // float,float,float
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Volume      int32                  `protobuf:"varint,1,opt,name=volume" json:"volume,omitempty"`
+	xxx_hidden_Attenuation int32                  `protobuf:"varint,2,opt,name=attenuation" json:"attenuation,omitempty"`
+	xxx_hidden_Entity      int32                  `protobuf:"varint,3,opt,name=entity" json:"entity,omitempty"`
+	xxx_hidden_Channel     int32                  `protobuf:"varint,4,opt,name=channel" json:"channel,omitempty"`
+	xxx_hidden_SoundNum    int32                  `protobuf:"varint,5,opt,name=sound_num,json=soundNum" json:"sound_num,omitempty"`
+	xxx_hidden_Origin      *Coord                 `protobuf:"bytes,6,opt,name=origin" json:"origin,omitempty"`
+	XXX_raceDetectHookData protoimpl.RaceDetectHookData
+	XXX_presence           [1]uint32
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *Sound) Reset() {
@@ -1271,102 +1248,106 @@ func (x *Sound) ProtoReflect() protoreflect.Message {
 }
 
 func (x *Sound) GetVolume() int32 {
-	if x != nil && x.Volume != nil {
-		return *x.Volume
+	if x != nil {
+		return x.xxx_hidden_Volume
 	}
 	return 0
 }
 
 func (x *Sound) GetAttenuation() int32 {
-	if x != nil && x.Attenuation != nil {
-		return *x.Attenuation
+	if x != nil {
+		return x.xxx_hidden_Attenuation
 	}
 	return 0
 }
 
 func (x *Sound) GetEntity() int32 {
 	if x != nil {
-		return x.Entity
+		return x.xxx_hidden_Entity
 	}
 	return 0
 }
 
 func (x *Sound) GetChannel() int32 {
 	if x != nil {
-		return x.Channel
+		return x.xxx_hidden_Channel
 	}
 	return 0
 }
 
 func (x *Sound) GetSoundNum() int32 {
 	if x != nil {
-		return x.SoundNum
+		return x.xxx_hidden_SoundNum
 	}
 	return 0
 }
 
 func (x *Sound) GetOrigin() *Coord {
 	if x != nil {
-		return x.Origin
+		return x.xxx_hidden_Origin
 	}
 	return nil
 }
 
 func (x *Sound) SetVolume(v int32) {
-	x.Volume = &v
+	x.xxx_hidden_Volume = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 6)
 }
 
 func (x *Sound) SetAttenuation(v int32) {
-	x.Attenuation = &v
+	x.xxx_hidden_Attenuation = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 6)
 }
 
 func (x *Sound) SetEntity(v int32) {
-	x.Entity = v
+	x.xxx_hidden_Entity = v
 }
 
 func (x *Sound) SetChannel(v int32) {
-	x.Channel = v
+	x.xxx_hidden_Channel = v
 }
 
 func (x *Sound) SetSoundNum(v int32) {
-	x.SoundNum = v
+	x.xxx_hidden_SoundNum = v
 }
 
 func (x *Sound) SetOrigin(v *Coord) {
-	x.Origin = v
+	x.xxx_hidden_Origin = v
 }
 
 func (x *Sound) HasVolume() bool {
 	if x == nil {
 		return false
 	}
-	return x.Volume != nil
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
 }
 
 func (x *Sound) HasAttenuation() bool {
 	if x == nil {
 		return false
 	}
-	return x.Attenuation != nil
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
 }
 
 func (x *Sound) HasOrigin() bool {
 	if x == nil {
 		return false
 	}
-	return x.Origin != nil
+	return x.xxx_hidden_Origin != nil
 }
 
 func (x *Sound) ClearVolume() {
-	x.Volume = nil
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
+	x.xxx_hidden_Volume = 0
 }
 
 func (x *Sound) ClearAttenuation() {
-	x.Attenuation = nil
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	x.xxx_hidden_Attenuation = 0
 }
 
 func (x *Sound) ClearOrigin() {
-	x.Origin = nil
+	x.xxx_hidden_Origin = nil
 }
 
 type Sound_builder struct {
@@ -1384,21 +1365,27 @@ func (b0 Sound_builder) Build() *Sound {
 	m0 := &Sound{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Volume = b.Volume
-	x.Attenuation = b.Attenuation
-	x.Entity = b.Entity
-	x.Channel = b.Channel
-	x.SoundNum = b.SoundNum
-	x.Origin = b.Origin
+	if b.Volume != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 6)
+		x.xxx_hidden_Volume = *b.Volume
+	}
+	if b.Attenuation != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 6)
+		x.xxx_hidden_Attenuation = *b.Attenuation
+	}
+	x.xxx_hidden_Entity = b.Entity
+	x.xxx_hidden_Channel = b.Channel
+	x.xxx_hidden_SoundNum = b.SoundNum
+	x.xxx_hidden_Origin = b.Origin
 	return m0
 }
 
 type UpdateName struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Player        int32                  `protobuf:"varint,1,opt,name=player" json:"player,omitempty"`
-	NewName       string                 `protobuf:"bytes,2,opt,name=new_name,json=newName" json:"new_name,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Player  int32                  `protobuf:"varint,1,opt,name=player" json:"player,omitempty"`
+	xxx_hidden_NewName string                 `protobuf:"bytes,2,opt,name=new_name,json=newName" json:"new_name,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *UpdateName) Reset() {
@@ -1428,24 +1415,24 @@ func (x *UpdateName) ProtoReflect() protoreflect.Message {
 
 func (x *UpdateName) GetPlayer() int32 {
 	if x != nil {
-		return x.Player
+		return x.xxx_hidden_Player
 	}
 	return 0
 }
 
 func (x *UpdateName) GetNewName() string {
 	if x != nil {
-		return x.NewName
+		return x.xxx_hidden_NewName
 	}
 	return ""
 }
 
 func (x *UpdateName) SetPlayer(v int32) {
-	x.Player = v
+	x.xxx_hidden_Player = v
 }
 
 func (x *UpdateName) SetNewName(v string) {
-	x.NewName = v
+	x.xxx_hidden_NewName = v
 }
 
 type UpdateName_builder struct {
@@ -1459,17 +1446,17 @@ func (b0 UpdateName_builder) Build() *UpdateName {
 	m0 := &UpdateName{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Player = b.Player
-	x.NewName = b.NewName
+	x.xxx_hidden_Player = b.Player
+	x.xxx_hidden_NewName = b.NewName
 	return m0
 }
 
 type UpdateFrags struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Player        int32                  `protobuf:"varint,1,opt,name=player" json:"player,omitempty"`
-	NewFrags      int32                  `protobuf:"varint,2,opt,name=new_frags,json=newFrags" json:"new_frags,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Player   int32                  `protobuf:"varint,1,opt,name=player" json:"player,omitempty"`
+	xxx_hidden_NewFrags int32                  `protobuf:"varint,2,opt,name=new_frags,json=newFrags" json:"new_frags,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *UpdateFrags) Reset() {
@@ -1499,24 +1486,24 @@ func (x *UpdateFrags) ProtoReflect() protoreflect.Message {
 
 func (x *UpdateFrags) GetPlayer() int32 {
 	if x != nil {
-		return x.Player
+		return x.xxx_hidden_Player
 	}
 	return 0
 }
 
 func (x *UpdateFrags) GetNewFrags() int32 {
 	if x != nil {
-		return x.NewFrags
+		return x.xxx_hidden_NewFrags
 	}
 	return 0
 }
 
 func (x *UpdateFrags) SetPlayer(v int32) {
-	x.Player = v
+	x.xxx_hidden_Player = v
 }
 
 func (x *UpdateFrags) SetNewFrags(v int32) {
-	x.NewFrags = v
+	x.xxx_hidden_NewFrags = v
 }
 
 type UpdateFrags_builder struct {
@@ -1530,17 +1517,17 @@ func (b0 UpdateFrags_builder) Build() *UpdateFrags {
 	m0 := &UpdateFrags{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Player = b.Player
-	x.NewFrags = b.NewFrags
+	x.xxx_hidden_Player = b.Player
+	x.xxx_hidden_NewFrags = b.NewFrags
 	return m0
 }
 
 type UpdateColors struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Player        int32                  `protobuf:"varint,1,opt,name=player" json:"player,omitempty"`
-	NewColor      int32                  `protobuf:"varint,2,opt,name=new_color,json=newColor" json:"new_color,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Player   int32                  `protobuf:"varint,1,opt,name=player" json:"player,omitempty"`
+	xxx_hidden_NewColor int32                  `protobuf:"varint,2,opt,name=new_color,json=newColor" json:"new_color,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *UpdateColors) Reset() {
@@ -1570,24 +1557,24 @@ func (x *UpdateColors) ProtoReflect() protoreflect.Message {
 
 func (x *UpdateColors) GetPlayer() int32 {
 	if x != nil {
-		return x.Player
+		return x.xxx_hidden_Player
 	}
 	return 0
 }
 
 func (x *UpdateColors) GetNewColor() int32 {
 	if x != nil {
-		return x.NewColor
+		return x.xxx_hidden_NewColor
 	}
 	return 0
 }
 
 func (x *UpdateColors) SetPlayer(v int32) {
-	x.Player = v
+	x.xxx_hidden_Player = v
 }
 
 func (x *UpdateColors) SetNewColor(v int32) {
-	x.NewColor = v
+	x.xxx_hidden_NewColor = v
 }
 
 type UpdateColors_builder struct {
@@ -1601,33 +1588,35 @@ func (b0 UpdateColors_builder) Build() *UpdateColors {
 	m0 := &UpdateColors{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Player = b.Player
-	x.NewColor = b.NewColor
+	x.xxx_hidden_Player = b.Player
+	x.xxx_hidden_NewColor = b.NewColor
 	return m0
 }
 
 type ClientData struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	ViewHeight    *int32                 `protobuf:"varint,1,opt,name=view_height,json=viewHeight" json:"view_height,omitempty"` // byte, default 22
-	IdealPitch    int32                  `protobuf:"varint,2,opt,name=ideal_pitch,json=idealPitch" json:"ideal_pitch,omitempty"` // byte
-	PunchAngle    *IntCoord              `protobuf:"bytes,3,opt,name=punch_angle,json=punchAngle" json:"punch_angle,omitempty"`  // byte
-	Velocity      *IntCoord              `protobuf:"bytes,4,opt,name=velocity" json:"velocity,omitempty"`                        // byte
-	Items         uint32                 `protobuf:"fixed32,5,opt,name=items" json:"items,omitempty"`                            // uint32 bitfield
-	OnGround      bool                   `protobuf:"varint,6,opt,name=on_ground,json=onGround" json:"on_ground,omitempty"`
-	InWater       bool                   `protobuf:"varint,7,opt,name=in_water,json=inWater" json:"in_water,omitempty"`
-	WeaponFrame   int32                  `protobuf:"varint,8,opt,name=weapon_frame,json=weaponFrame" json:"weapon_frame,omitempty"`     // byte + byte
-	Armor         int32                  `protobuf:"varint,9,opt,name=armor" json:"armor,omitempty"`                                    // byte + byte
-	Weapon        int32                  `protobuf:"varint,10,opt,name=weapon" json:"weapon,omitempty"`                                 // byte + byte, idx of weapon model in model cache
-	Health        int32                  `protobuf:"varint,11,opt,name=health" json:"health,omitempty"`                                 // uint16
-	Ammo          int32                  `protobuf:"varint,12,opt,name=ammo" json:"ammo,omitempty"`                                     // byte + byte
-	Shells        int32                  `protobuf:"varint,13,opt,name=shells" json:"shells,omitempty"`                                 // byte + byte
-	Nails         int32                  `protobuf:"varint,14,opt,name=nails" json:"nails,omitempty"`                                   // byte + byte
-	Rockets       int32                  `protobuf:"varint,15,opt,name=rockets" json:"rockets,omitempty"`                               // byte + byte
-	Cells         int32                  `protobuf:"varint,16,opt,name=cells" json:"cells,omitempty"`                                   // byte + byte
-	ActiveWeapon  int32                  `protobuf:"varint,17,opt,name=active_weapon,json=activeWeapon" json:"active_weapon,omitempty"` // byte
-	WeaponAlpha   int32                  `protobuf:"varint,18,opt,name=weapon_alpha,json=weaponAlpha" json:"weapon_alpha,omitempty"`    // byte
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                   protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_ViewHeight   int32                  `protobuf:"varint,1,opt,name=view_height,json=viewHeight" json:"view_height,omitempty"`
+	xxx_hidden_IdealPitch   int32                  `protobuf:"varint,2,opt,name=ideal_pitch,json=idealPitch" json:"ideal_pitch,omitempty"`
+	xxx_hidden_PunchAngle   *IntCoord              `protobuf:"bytes,3,opt,name=punch_angle,json=punchAngle" json:"punch_angle,omitempty"`
+	xxx_hidden_Velocity     *IntCoord              `protobuf:"bytes,4,opt,name=velocity" json:"velocity,omitempty"`
+	xxx_hidden_Items        uint32                 `protobuf:"fixed32,5,opt,name=items" json:"items,omitempty"`
+	xxx_hidden_OnGround     bool                   `protobuf:"varint,6,opt,name=on_ground,json=onGround" json:"on_ground,omitempty"`
+	xxx_hidden_InWater      bool                   `protobuf:"varint,7,opt,name=in_water,json=inWater" json:"in_water,omitempty"`
+	xxx_hidden_WeaponFrame  int32                  `protobuf:"varint,8,opt,name=weapon_frame,json=weaponFrame" json:"weapon_frame,omitempty"`
+	xxx_hidden_Armor        int32                  `protobuf:"varint,9,opt,name=armor" json:"armor,omitempty"`
+	xxx_hidden_Weapon       int32                  `protobuf:"varint,10,opt,name=weapon" json:"weapon,omitempty"`
+	xxx_hidden_Health       int32                  `protobuf:"varint,11,opt,name=health" json:"health,omitempty"`
+	xxx_hidden_Ammo         int32                  `protobuf:"varint,12,opt,name=ammo" json:"ammo,omitempty"`
+	xxx_hidden_Shells       int32                  `protobuf:"varint,13,opt,name=shells" json:"shells,omitempty"`
+	xxx_hidden_Nails        int32                  `protobuf:"varint,14,opt,name=nails" json:"nails,omitempty"`
+	xxx_hidden_Rockets      int32                  `protobuf:"varint,15,opt,name=rockets" json:"rockets,omitempty"`
+	xxx_hidden_Cells        int32                  `protobuf:"varint,16,opt,name=cells" json:"cells,omitempty"`
+	xxx_hidden_ActiveWeapon int32                  `protobuf:"varint,17,opt,name=active_weapon,json=activeWeapon" json:"active_weapon,omitempty"`
+	xxx_hidden_WeaponAlpha  int32                  `protobuf:"varint,18,opt,name=weapon_alpha,json=weaponAlpha" json:"weapon_alpha,omitempty"`
+	XXX_raceDetectHookData  protoimpl.RaceDetectHookData
+	XXX_presence            [1]uint32
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *ClientData) Reset() {
@@ -1656,234 +1645,236 @@ func (x *ClientData) ProtoReflect() protoreflect.Message {
 }
 
 func (x *ClientData) GetViewHeight() int32 {
-	if x != nil && x.ViewHeight != nil {
-		return *x.ViewHeight
+	if x != nil {
+		return x.xxx_hidden_ViewHeight
 	}
 	return 0
 }
 
 func (x *ClientData) GetIdealPitch() int32 {
 	if x != nil {
-		return x.IdealPitch
+		return x.xxx_hidden_IdealPitch
 	}
 	return 0
 }
 
 func (x *ClientData) GetPunchAngle() *IntCoord {
 	if x != nil {
-		return x.PunchAngle
+		return x.xxx_hidden_PunchAngle
 	}
 	return nil
 }
 
 func (x *ClientData) GetVelocity() *IntCoord {
 	if x != nil {
-		return x.Velocity
+		return x.xxx_hidden_Velocity
 	}
 	return nil
 }
 
 func (x *ClientData) GetItems() uint32 {
 	if x != nil {
-		return x.Items
+		return x.xxx_hidden_Items
 	}
 	return 0
 }
 
 func (x *ClientData) GetOnGround() bool {
 	if x != nil {
-		return x.OnGround
+		return x.xxx_hidden_OnGround
 	}
 	return false
 }
 
 func (x *ClientData) GetInWater() bool {
 	if x != nil {
-		return x.InWater
+		return x.xxx_hidden_InWater
 	}
 	return false
 }
 
 func (x *ClientData) GetWeaponFrame() int32 {
 	if x != nil {
-		return x.WeaponFrame
+		return x.xxx_hidden_WeaponFrame
 	}
 	return 0
 }
 
 func (x *ClientData) GetArmor() int32 {
 	if x != nil {
-		return x.Armor
+		return x.xxx_hidden_Armor
 	}
 	return 0
 }
 
 func (x *ClientData) GetWeapon() int32 {
 	if x != nil {
-		return x.Weapon
+		return x.xxx_hidden_Weapon
 	}
 	return 0
 }
 
 func (x *ClientData) GetHealth() int32 {
 	if x != nil {
-		return x.Health
+		return x.xxx_hidden_Health
 	}
 	return 0
 }
 
 func (x *ClientData) GetAmmo() int32 {
 	if x != nil {
-		return x.Ammo
+		return x.xxx_hidden_Ammo
 	}
 	return 0
 }
 
 func (x *ClientData) GetShells() int32 {
 	if x != nil {
-		return x.Shells
+		return x.xxx_hidden_Shells
 	}
 	return 0
 }
 
 func (x *ClientData) GetNails() int32 {
 	if x != nil {
-		return x.Nails
+		return x.xxx_hidden_Nails
 	}
 	return 0
 }
 
 func (x *ClientData) GetRockets() int32 {
 	if x != nil {
-		return x.Rockets
+		return x.xxx_hidden_Rockets
 	}
 	return 0
 }
 
 func (x *ClientData) GetCells() int32 {
 	if x != nil {
-		return x.Cells
+		return x.xxx_hidden_Cells
 	}
 	return 0
 }
 
 func (x *ClientData) GetActiveWeapon() int32 {
 	if x != nil {
-		return x.ActiveWeapon
+		return x.xxx_hidden_ActiveWeapon
 	}
 	return 0
 }
 
 func (x *ClientData) GetWeaponAlpha() int32 {
 	if x != nil {
-		return x.WeaponAlpha
+		return x.xxx_hidden_WeaponAlpha
 	}
 	return 0
 }
 
 func (x *ClientData) SetViewHeight(v int32) {
-	x.ViewHeight = &v
+	x.xxx_hidden_ViewHeight = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 18)
 }
 
 func (x *ClientData) SetIdealPitch(v int32) {
-	x.IdealPitch = v
+	x.xxx_hidden_IdealPitch = v
 }
 
 func (x *ClientData) SetPunchAngle(v *IntCoord) {
-	x.PunchAngle = v
+	x.xxx_hidden_PunchAngle = v
 }
 
 func (x *ClientData) SetVelocity(v *IntCoord) {
-	x.Velocity = v
+	x.xxx_hidden_Velocity = v
 }
 
 func (x *ClientData) SetItems(v uint32) {
-	x.Items = v
+	x.xxx_hidden_Items = v
 }
 
 func (x *ClientData) SetOnGround(v bool) {
-	x.OnGround = v
+	x.xxx_hidden_OnGround = v
 }
 
 func (x *ClientData) SetInWater(v bool) {
-	x.InWater = v
+	x.xxx_hidden_InWater = v
 }
 
 func (x *ClientData) SetWeaponFrame(v int32) {
-	x.WeaponFrame = v
+	x.xxx_hidden_WeaponFrame = v
 }
 
 func (x *ClientData) SetArmor(v int32) {
-	x.Armor = v
+	x.xxx_hidden_Armor = v
 }
 
 func (x *ClientData) SetWeapon(v int32) {
-	x.Weapon = v
+	x.xxx_hidden_Weapon = v
 }
 
 func (x *ClientData) SetHealth(v int32) {
-	x.Health = v
+	x.xxx_hidden_Health = v
 }
 
 func (x *ClientData) SetAmmo(v int32) {
-	x.Ammo = v
+	x.xxx_hidden_Ammo = v
 }
 
 func (x *ClientData) SetShells(v int32) {
-	x.Shells = v
+	x.xxx_hidden_Shells = v
 }
 
 func (x *ClientData) SetNails(v int32) {
-	x.Nails = v
+	x.xxx_hidden_Nails = v
 }
 
 func (x *ClientData) SetRockets(v int32) {
-	x.Rockets = v
+	x.xxx_hidden_Rockets = v
 }
 
 func (x *ClientData) SetCells(v int32) {
-	x.Cells = v
+	x.xxx_hidden_Cells = v
 }
 
 func (x *ClientData) SetActiveWeapon(v int32) {
-	x.ActiveWeapon = v
+	x.xxx_hidden_ActiveWeapon = v
 }
 
 func (x *ClientData) SetWeaponAlpha(v int32) {
-	x.WeaponAlpha = v
+	x.xxx_hidden_WeaponAlpha = v
 }
 
 func (x *ClientData) HasViewHeight() bool {
 	if x == nil {
 		return false
 	}
-	return x.ViewHeight != nil
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
 }
 
 func (x *ClientData) HasPunchAngle() bool {
 	if x == nil {
 		return false
 	}
-	return x.PunchAngle != nil
+	return x.xxx_hidden_PunchAngle != nil
 }
 
 func (x *ClientData) HasVelocity() bool {
 	if x == nil {
 		return false
 	}
-	return x.Velocity != nil
+	return x.xxx_hidden_Velocity != nil
 }
 
 func (x *ClientData) ClearViewHeight() {
-	x.ViewHeight = nil
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
+	x.xxx_hidden_ViewHeight = 0
 }
 
 func (x *ClientData) ClearPunchAngle() {
-	x.PunchAngle = nil
+	x.xxx_hidden_PunchAngle = nil
 }
 
 func (x *ClientData) ClearVelocity() {
-	x.Velocity = nil
+	x.xxx_hidden_Velocity = nil
 }
 
 type ClientData_builder struct {
@@ -1913,38 +1904,41 @@ func (b0 ClientData_builder) Build() *ClientData {
 	m0 := &ClientData{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.ViewHeight = b.ViewHeight
-	x.IdealPitch = b.IdealPitch
-	x.PunchAngle = b.PunchAngle
-	x.Velocity = b.Velocity
-	x.Items = b.Items
-	x.OnGround = b.OnGround
-	x.InWater = b.InWater
-	x.WeaponFrame = b.WeaponFrame
-	x.Armor = b.Armor
-	x.Weapon = b.Weapon
-	x.Health = b.Health
-	x.Ammo = b.Ammo
-	x.Shells = b.Shells
-	x.Nails = b.Nails
-	x.Rockets = b.Rockets
-	x.Cells = b.Cells
-	x.ActiveWeapon = b.ActiveWeapon
-	x.WeaponAlpha = b.WeaponAlpha
+	if b.ViewHeight != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 18)
+		x.xxx_hidden_ViewHeight = *b.ViewHeight
+	}
+	x.xxx_hidden_IdealPitch = b.IdealPitch
+	x.xxx_hidden_PunchAngle = b.PunchAngle
+	x.xxx_hidden_Velocity = b.Velocity
+	x.xxx_hidden_Items = b.Items
+	x.xxx_hidden_OnGround = b.OnGround
+	x.xxx_hidden_InWater = b.InWater
+	x.xxx_hidden_WeaponFrame = b.WeaponFrame
+	x.xxx_hidden_Armor = b.Armor
+	x.xxx_hidden_Weapon = b.Weapon
+	x.xxx_hidden_Health = b.Health
+	x.xxx_hidden_Ammo = b.Ammo
+	x.xxx_hidden_Shells = b.Shells
+	x.xxx_hidden_Nails = b.Nails
+	x.xxx_hidden_Rockets = b.Rockets
+	x.xxx_hidden_Cells = b.Cells
+	x.xxx_hidden_ActiveWeapon = b.ActiveWeapon
+	x.xxx_hidden_WeaponAlpha = b.WeaponAlpha
 	return m0
 }
 
 type Baseline struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	ModelIndex    int32                  `protobuf:"varint,1,opt,name=model_index,json=modelIndex" json:"model_index,omitempty"` // byte/uint16
-	Frame         int32                  `protobuf:"varint,2,opt,name=frame" json:"frame,omitempty"`                             // byte/uint16
-	ColorMap      int32                  `protobuf:"varint,3,opt,name=color_map,json=colorMap" json:"color_map,omitempty"`       // byte, unused
-	Skin          int32                  `protobuf:"varint,4,opt,name=skin" json:"skin,omitempty"`                               // byte
-	Origin        *Coord                 `protobuf:"bytes,5,opt,name=origin" json:"origin,omitempty"`
-	Angles        *Coord                 `protobuf:"bytes,6,opt,name=angles" json:"angles,omitempty"`
-	Alpha         int32                  `protobuf:"varint,7,opt,name=alpha" json:"alpha,omitempty"` // byte
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_ModelIndex int32                  `protobuf:"varint,1,opt,name=model_index,json=modelIndex" json:"model_index,omitempty"`
+	xxx_hidden_Frame      int32                  `protobuf:"varint,2,opt,name=frame" json:"frame,omitempty"`
+	xxx_hidden_ColorMap   int32                  `protobuf:"varint,3,opt,name=color_map,json=colorMap" json:"color_map,omitempty"`
+	xxx_hidden_Skin       int32                  `protobuf:"varint,4,opt,name=skin" json:"skin,omitempty"`
+	xxx_hidden_Origin     *Coord                 `protobuf:"bytes,5,opt,name=origin" json:"origin,omitempty"`
+	xxx_hidden_Angles     *Coord                 `protobuf:"bytes,6,opt,name=angles" json:"angles,omitempty"`
+	xxx_hidden_Alpha      int32                  `protobuf:"varint,7,opt,name=alpha" json:"alpha,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *Baseline) Reset() {
@@ -1974,101 +1968,101 @@ func (x *Baseline) ProtoReflect() protoreflect.Message {
 
 func (x *Baseline) GetModelIndex() int32 {
 	if x != nil {
-		return x.ModelIndex
+		return x.xxx_hidden_ModelIndex
 	}
 	return 0
 }
 
 func (x *Baseline) GetFrame() int32 {
 	if x != nil {
-		return x.Frame
+		return x.xxx_hidden_Frame
 	}
 	return 0
 }
 
 func (x *Baseline) GetColorMap() int32 {
 	if x != nil {
-		return x.ColorMap
+		return x.xxx_hidden_ColorMap
 	}
 	return 0
 }
 
 func (x *Baseline) GetSkin() int32 {
 	if x != nil {
-		return x.Skin
+		return x.xxx_hidden_Skin
 	}
 	return 0
 }
 
 func (x *Baseline) GetOrigin() *Coord {
 	if x != nil {
-		return x.Origin
+		return x.xxx_hidden_Origin
 	}
 	return nil
 }
 
 func (x *Baseline) GetAngles() *Coord {
 	if x != nil {
-		return x.Angles
+		return x.xxx_hidden_Angles
 	}
 	return nil
 }
 
 func (x *Baseline) GetAlpha() int32 {
 	if x != nil {
-		return x.Alpha
+		return x.xxx_hidden_Alpha
 	}
 	return 0
 }
 
 func (x *Baseline) SetModelIndex(v int32) {
-	x.ModelIndex = v
+	x.xxx_hidden_ModelIndex = v
 }
 
 func (x *Baseline) SetFrame(v int32) {
-	x.Frame = v
+	x.xxx_hidden_Frame = v
 }
 
 func (x *Baseline) SetColorMap(v int32) {
-	x.ColorMap = v
+	x.xxx_hidden_ColorMap = v
 }
 
 func (x *Baseline) SetSkin(v int32) {
-	x.Skin = v
+	x.xxx_hidden_Skin = v
 }
 
 func (x *Baseline) SetOrigin(v *Coord) {
-	x.Origin = v
+	x.xxx_hidden_Origin = v
 }
 
 func (x *Baseline) SetAngles(v *Coord) {
-	x.Angles = v
+	x.xxx_hidden_Angles = v
 }
 
 func (x *Baseline) SetAlpha(v int32) {
-	x.Alpha = v
+	x.xxx_hidden_Alpha = v
 }
 
 func (x *Baseline) HasOrigin() bool {
 	if x == nil {
 		return false
 	}
-	return x.Origin != nil
+	return x.xxx_hidden_Origin != nil
 }
 
 func (x *Baseline) HasAngles() bool {
 	if x == nil {
 		return false
 	}
-	return x.Angles != nil
+	return x.xxx_hidden_Angles != nil
 }
 
 func (x *Baseline) ClearOrigin() {
-	x.Origin = nil
+	x.xxx_hidden_Origin = nil
 }
 
 func (x *Baseline) ClearAngles() {
-	x.Angles = nil
+	x.xxx_hidden_Angles = nil
 }
 
 type Baseline_builder struct {
@@ -2087,22 +2081,22 @@ func (b0 Baseline_builder) Build() *Baseline {
 	m0 := &Baseline{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.ModelIndex = b.ModelIndex
-	x.Frame = b.Frame
-	x.ColorMap = b.ColorMap
-	x.Skin = b.Skin
-	x.Origin = b.Origin
-	x.Angles = b.Angles
-	x.Alpha = b.Alpha
+	x.xxx_hidden_ModelIndex = b.ModelIndex
+	x.xxx_hidden_Frame = b.Frame
+	x.xxx_hidden_ColorMap = b.ColorMap
+	x.xxx_hidden_Skin = b.Skin
+	x.xxx_hidden_Origin = b.Origin
+	x.xxx_hidden_Angles = b.Angles
+	x.xxx_hidden_Alpha = b.Alpha
 	return m0
 }
 
 type EntityBaseline struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Index         int32                  `protobuf:"varint,1,opt,name=index" json:"index,omitempty"` // uint16
-	Baseline      *Baseline              `protobuf:"bytes,2,opt,name=baseline" json:"baseline,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Index    int32                  `protobuf:"varint,1,opt,name=index" json:"index,omitempty"`
+	xxx_hidden_Baseline *Baseline              `protobuf:"bytes,2,opt,name=baseline" json:"baseline,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *EntityBaseline) Reset() {
@@ -2132,35 +2126,35 @@ func (x *EntityBaseline) ProtoReflect() protoreflect.Message {
 
 func (x *EntityBaseline) GetIndex() int32 {
 	if x != nil {
-		return x.Index
+		return x.xxx_hidden_Index
 	}
 	return 0
 }
 
 func (x *EntityBaseline) GetBaseline() *Baseline {
 	if x != nil {
-		return x.Baseline
+		return x.xxx_hidden_Baseline
 	}
 	return nil
 }
 
 func (x *EntityBaseline) SetIndex(v int32) {
-	x.Index = v
+	x.xxx_hidden_Index = v
 }
 
 func (x *EntityBaseline) SetBaseline(v *Baseline) {
-	x.Baseline = v
+	x.xxx_hidden_Baseline = v
 }
 
 func (x *EntityBaseline) HasBaseline() bool {
 	if x == nil {
 		return false
 	}
-	return x.Baseline != nil
+	return x.xxx_hidden_Baseline != nil
 }
 
 func (x *EntityBaseline) ClearBaseline() {
-	x.Baseline = nil
+	x.xxx_hidden_Baseline = nil
 }
 
 type EntityBaseline_builder struct {
@@ -2174,22 +2168,22 @@ func (b0 EntityBaseline_builder) Build() *EntityBaseline {
 	m0 := &EntityBaseline{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Index = b.Index
-	x.Baseline = b.Baseline
+	x.xxx_hidden_Index = b.Index
+	x.xxx_hidden_Baseline = b.Baseline
 	return m0
 }
 
 type ServerInfo struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Protocol      int32                  `protobuf:"varint,1,opt,name=protocol" json:"protocol,omitempty"`                       // int32
-	Flags         int32                  `protobuf:"varint,2,opt,name=flags" json:"flags,omitempty"`                             // uint32
-	MaxClients    int32                  `protobuf:"varint,3,opt,name=max_clients,json=maxClients" json:"max_clients,omitempty"` // byte
-	GameType      int32                  `protobuf:"varint,4,opt,name=game_type,json=gameType" json:"game_type,omitempty"`       // byte
-	LevelName     string                 `protobuf:"bytes,5,opt,name=level_name,json=levelName" json:"level_name,omitempty"`
-	ModelPrecache []string               `protobuf:"bytes,6,rep,name=model_precache,json=modelPrecache" json:"model_precache,omitempty"`
-	SoundPrecache []string               `protobuf:"bytes,7,rep,name=sound_precache,json=soundPrecache" json:"sound_precache,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                    protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Protocol      int32                  `protobuf:"varint,1,opt,name=protocol" json:"protocol,omitempty"`
+	xxx_hidden_Flags         int32                  `protobuf:"varint,2,opt,name=flags" json:"flags,omitempty"`
+	xxx_hidden_MaxClients    int32                  `protobuf:"varint,3,opt,name=max_clients,json=maxClients" json:"max_clients,omitempty"`
+	xxx_hidden_GameType      int32                  `protobuf:"varint,4,opt,name=game_type,json=gameType" json:"game_type,omitempty"`
+	xxx_hidden_LevelName     string                 `protobuf:"bytes,5,opt,name=level_name,json=levelName" json:"level_name,omitempty"`
+	xxx_hidden_ModelPrecache []string               `protobuf:"bytes,6,rep,name=model_precache,json=modelPrecache" json:"model_precache,omitempty"`
+	xxx_hidden_SoundPrecache []string               `protobuf:"bytes,7,rep,name=sound_precache,json=soundPrecache" json:"sound_precache,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *ServerInfo) Reset() {
@@ -2219,79 +2213,79 @@ func (x *ServerInfo) ProtoReflect() protoreflect.Message {
 
 func (x *ServerInfo) GetProtocol() int32 {
 	if x != nil {
-		return x.Protocol
+		return x.xxx_hidden_Protocol
 	}
 	return 0
 }
 
 func (x *ServerInfo) GetFlags() int32 {
 	if x != nil {
-		return x.Flags
+		return x.xxx_hidden_Flags
 	}
 	return 0
 }
 
 func (x *ServerInfo) GetMaxClients() int32 {
 	if x != nil {
-		return x.MaxClients
+		return x.xxx_hidden_MaxClients
 	}
 	return 0
 }
 
 func (x *ServerInfo) GetGameType() int32 {
 	if x != nil {
-		return x.GameType
+		return x.xxx_hidden_GameType
 	}
 	return 0
 }
 
 func (x *ServerInfo) GetLevelName() string {
 	if x != nil {
-		return x.LevelName
+		return x.xxx_hidden_LevelName
 	}
 	return ""
 }
 
 func (x *ServerInfo) GetModelPrecache() []string {
 	if x != nil {
-		return x.ModelPrecache
+		return x.xxx_hidden_ModelPrecache
 	}
 	return nil
 }
 
 func (x *ServerInfo) GetSoundPrecache() []string {
 	if x != nil {
-		return x.SoundPrecache
+		return x.xxx_hidden_SoundPrecache
 	}
 	return nil
 }
 
 func (x *ServerInfo) SetProtocol(v int32) {
-	x.Protocol = v
+	x.xxx_hidden_Protocol = v
 }
 
 func (x *ServerInfo) SetFlags(v int32) {
-	x.Flags = v
+	x.xxx_hidden_Flags = v
 }
 
 func (x *ServerInfo) SetMaxClients(v int32) {
-	x.MaxClients = v
+	x.xxx_hidden_MaxClients = v
 }
 
 func (x *ServerInfo) SetGameType(v int32) {
-	x.GameType = v
+	x.xxx_hidden_GameType = v
 }
 
 func (x *ServerInfo) SetLevelName(v string) {
-	x.LevelName = v
+	x.xxx_hidden_LevelName = v
 }
 
 func (x *ServerInfo) SetModelPrecache(v []string) {
-	x.ModelPrecache = v
+	x.xxx_hidden_ModelPrecache = v
 }
 
 func (x *ServerInfo) SetSoundPrecache(v []string) {
-	x.SoundPrecache = v
+	x.xxx_hidden_SoundPrecache = v
 }
 
 type ServerInfo_builder struct {
@@ -2310,35 +2304,37 @@ func (b0 ServerInfo_builder) Build() *ServerInfo {
 	m0 := &ServerInfo{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Protocol = b.Protocol
-	x.Flags = b.Flags
-	x.MaxClients = b.MaxClients
-	x.GameType = b.GameType
-	x.LevelName = b.LevelName
-	x.ModelPrecache = b.ModelPrecache
-	x.SoundPrecache = b.SoundPrecache
+	x.xxx_hidden_Protocol = b.Protocol
+	x.xxx_hidden_Flags = b.Flags
+	x.xxx_hidden_MaxClients = b.MaxClients
+	x.xxx_hidden_GameType = b.GameType
+	x.xxx_hidden_LevelName = b.LevelName
+	x.xxx_hidden_ModelPrecache = b.ModelPrecache
+	x.xxx_hidden_SoundPrecache = b.SoundPrecache
 	return m0
 }
 
 type EntityUpdate struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Entity        int32                  `protobuf:"varint,1,opt,name=entity" json:"entity,omitempty"`
-	LerpMoveStep  bool                   `protobuf:"varint,2,opt,name=lerp_move_step,json=lerpMoveStep" json:"lerp_move_step,omitempty"` // -- need recheck
-	Model         *int32                 `protobuf:"varint,3,opt,name=model" json:"model,omitempty"`
-	Frame         *int32                 `protobuf:"varint,4,opt,name=frame" json:"frame,omitempty"`
-	ColorMap      *int32                 `protobuf:"varint,5,opt,name=color_map,json=colorMap" json:"color_map,omitempty"`
-	Skin          *int32                 `protobuf:"varint,6,opt,name=skin" json:"skin,omitempty"`
-	Effects       int32                  `protobuf:"varint,7,opt,name=effects" json:"effects,omitempty"`
-	OriginX       *float32               `protobuf:"fixed32,8,opt,name=origin_x,json=originX" json:"origin_x,omitempty"`
-	OriginY       *float32               `protobuf:"fixed32,9,opt,name=origin_y,json=originY" json:"origin_y,omitempty"`
-	OriginZ       *float32               `protobuf:"fixed32,10,opt,name=origin_z,json=originZ" json:"origin_z,omitempty"`
-	AngleX        *float32               `protobuf:"fixed32,11,opt,name=angle_x,json=angleX" json:"angle_x,omitempty"`
-	AngleY        *float32               `protobuf:"fixed32,12,opt,name=angle_y,json=angleY" json:"angle_y,omitempty"`
-	AngleZ        *float32               `protobuf:"fixed32,13,opt,name=angle_z,json=angleZ" json:"angle_z,omitempty"`
-	LerpFinish    *int32                 `protobuf:"varint,14,opt,name=lerp_finish,json=lerpFinish" json:"lerp_finish,omitempty"`
-	Alpha         *int32                 `protobuf:"varint,15,opt,name=alpha" json:"alpha,omitempty"` // optional int32 scale = 16; // not used
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                   protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Entity       int32                  `protobuf:"varint,1,opt,name=entity" json:"entity,omitempty"`
+	xxx_hidden_LerpMoveStep bool                   `protobuf:"varint,2,opt,name=lerp_move_step,json=lerpMoveStep" json:"lerp_move_step,omitempty"`
+	xxx_hidden_Model        int32                  `protobuf:"varint,3,opt,name=model" json:"model,omitempty"`
+	xxx_hidden_Frame        int32                  `protobuf:"varint,4,opt,name=frame" json:"frame,omitempty"`
+	xxx_hidden_ColorMap     int32                  `protobuf:"varint,5,opt,name=color_map,json=colorMap" json:"color_map,omitempty"`
+	xxx_hidden_Skin         int32                  `protobuf:"varint,6,opt,name=skin" json:"skin,omitempty"`
+	xxx_hidden_Effects      int32                  `protobuf:"varint,7,opt,name=effects" json:"effects,omitempty"`
+	xxx_hidden_OriginX      float32                `protobuf:"fixed32,8,opt,name=origin_x,json=originX" json:"origin_x,omitempty"`
+	xxx_hidden_OriginY      float32                `protobuf:"fixed32,9,opt,name=origin_y,json=originY" json:"origin_y,omitempty"`
+	xxx_hidden_OriginZ      float32                `protobuf:"fixed32,10,opt,name=origin_z,json=originZ" json:"origin_z,omitempty"`
+	xxx_hidden_AngleX       float32                `protobuf:"fixed32,11,opt,name=angle_x,json=angleX" json:"angle_x,omitempty"`
+	xxx_hidden_AngleY       float32                `protobuf:"fixed32,12,opt,name=angle_y,json=angleY" json:"angle_y,omitempty"`
+	xxx_hidden_AngleZ       float32                `protobuf:"fixed32,13,opt,name=angle_z,json=angleZ" json:"angle_z,omitempty"`
+	xxx_hidden_LerpFinish   int32                  `protobuf:"varint,14,opt,name=lerp_finish,json=lerpFinish" json:"lerp_finish,omitempty"`
+	xxx_hidden_Alpha        int32                  `protobuf:"varint,15,opt,name=alpha" json:"alpha,omitempty"`
+	XXX_raceDetectHookData  protoimpl.RaceDetectHookData
+	XXX_presence            [1]uint32
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *EntityUpdate) Reset() {
@@ -2368,299 +2364,323 @@ func (x *EntityUpdate) ProtoReflect() protoreflect.Message {
 
 func (x *EntityUpdate) GetEntity() int32 {
 	if x != nil {
-		return x.Entity
+		return x.xxx_hidden_Entity
 	}
 	return 0
 }
 
 func (x *EntityUpdate) GetLerpMoveStep() bool {
 	if x != nil {
-		return x.LerpMoveStep
+		return x.xxx_hidden_LerpMoveStep
 	}
 	return false
 }
 
 func (x *EntityUpdate) GetModel() int32 {
-	if x != nil && x.Model != nil {
-		return *x.Model
+	if x != nil {
+		return x.xxx_hidden_Model
 	}
 	return 0
 }
 
 func (x *EntityUpdate) GetFrame() int32 {
-	if x != nil && x.Frame != nil {
-		return *x.Frame
+	if x != nil {
+		return x.xxx_hidden_Frame
 	}
 	return 0
 }
 
 func (x *EntityUpdate) GetColorMap() int32 {
-	if x != nil && x.ColorMap != nil {
-		return *x.ColorMap
+	if x != nil {
+		return x.xxx_hidden_ColorMap
 	}
 	return 0
 }
 
 func (x *EntityUpdate) GetSkin() int32 {
-	if x != nil && x.Skin != nil {
-		return *x.Skin
+	if x != nil {
+		return x.xxx_hidden_Skin
 	}
 	return 0
 }
 
 func (x *EntityUpdate) GetEffects() int32 {
 	if x != nil {
-		return x.Effects
+		return x.xxx_hidden_Effects
 	}
 	return 0
 }
 
 func (x *EntityUpdate) GetOriginX() float32 {
-	if x != nil && x.OriginX != nil {
-		return *x.OriginX
+	if x != nil {
+		return x.xxx_hidden_OriginX
 	}
 	return 0
 }
 
 func (x *EntityUpdate) GetOriginY() float32 {
-	if x != nil && x.OriginY != nil {
-		return *x.OriginY
+	if x != nil {
+		return x.xxx_hidden_OriginY
 	}
 	return 0
 }
 
 func (x *EntityUpdate) GetOriginZ() float32 {
-	if x != nil && x.OriginZ != nil {
-		return *x.OriginZ
+	if x != nil {
+		return x.xxx_hidden_OriginZ
 	}
 	return 0
 }
 
 func (x *EntityUpdate) GetAngleX() float32 {
-	if x != nil && x.AngleX != nil {
-		return *x.AngleX
+	if x != nil {
+		return x.xxx_hidden_AngleX
 	}
 	return 0
 }
 
 func (x *EntityUpdate) GetAngleY() float32 {
-	if x != nil && x.AngleY != nil {
-		return *x.AngleY
+	if x != nil {
+		return x.xxx_hidden_AngleY
 	}
 	return 0
 }
 
 func (x *EntityUpdate) GetAngleZ() float32 {
-	if x != nil && x.AngleZ != nil {
-		return *x.AngleZ
+	if x != nil {
+		return x.xxx_hidden_AngleZ
 	}
 	return 0
 }
 
 func (x *EntityUpdate) GetLerpFinish() int32 {
-	if x != nil && x.LerpFinish != nil {
-		return *x.LerpFinish
+	if x != nil {
+		return x.xxx_hidden_LerpFinish
 	}
 	return 0
 }
 
 func (x *EntityUpdate) GetAlpha() int32 {
-	if x != nil && x.Alpha != nil {
-		return *x.Alpha
+	if x != nil {
+		return x.xxx_hidden_Alpha
 	}
 	return 0
 }
 
 func (x *EntityUpdate) SetEntity(v int32) {
-	x.Entity = v
+	x.xxx_hidden_Entity = v
 }
 
 func (x *EntityUpdate) SetLerpMoveStep(v bool) {
-	x.LerpMoveStep = v
+	x.xxx_hidden_LerpMoveStep = v
 }
 
 func (x *EntityUpdate) SetModel(v int32) {
-	x.Model = &v
+	x.xxx_hidden_Model = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 15)
 }
 
 func (x *EntityUpdate) SetFrame(v int32) {
-	x.Frame = &v
+	x.xxx_hidden_Frame = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 15)
 }
 
 func (x *EntityUpdate) SetColorMap(v int32) {
-	x.ColorMap = &v
+	x.xxx_hidden_ColorMap = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 15)
 }
 
 func (x *EntityUpdate) SetSkin(v int32) {
-	x.Skin = &v
+	x.xxx_hidden_Skin = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 15)
 }
 
 func (x *EntityUpdate) SetEffects(v int32) {
-	x.Effects = v
+	x.xxx_hidden_Effects = v
 }
 
 func (x *EntityUpdate) SetOriginX(v float32) {
-	x.OriginX = &v
+	x.xxx_hidden_OriginX = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 7, 15)
 }
 
 func (x *EntityUpdate) SetOriginY(v float32) {
-	x.OriginY = &v
+	x.xxx_hidden_OriginY = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 8, 15)
 }
 
 func (x *EntityUpdate) SetOriginZ(v float32) {
-	x.OriginZ = &v
+	x.xxx_hidden_OriginZ = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 9, 15)
 }
 
 func (x *EntityUpdate) SetAngleX(v float32) {
-	x.AngleX = &v
+	x.xxx_hidden_AngleX = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 10, 15)
 }
 
 func (x *EntityUpdate) SetAngleY(v float32) {
-	x.AngleY = &v
+	x.xxx_hidden_AngleY = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 11, 15)
 }
 
 func (x *EntityUpdate) SetAngleZ(v float32) {
-	x.AngleZ = &v
+	x.xxx_hidden_AngleZ = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 12, 15)
 }
 
 func (x *EntityUpdate) SetLerpFinish(v int32) {
-	x.LerpFinish = &v
+	x.xxx_hidden_LerpFinish = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 13, 15)
 }
 
 func (x *EntityUpdate) SetAlpha(v int32) {
-	x.Alpha = &v
+	x.xxx_hidden_Alpha = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 14, 15)
 }
 
 func (x *EntityUpdate) HasModel() bool {
 	if x == nil {
 		return false
 	}
-	return x.Model != nil
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
 }
 
 func (x *EntityUpdate) HasFrame() bool {
 	if x == nil {
 		return false
 	}
-	return x.Frame != nil
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 3)
 }
 
 func (x *EntityUpdate) HasColorMap() bool {
 	if x == nil {
 		return false
 	}
-	return x.ColorMap != nil
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 4)
 }
 
 func (x *EntityUpdate) HasSkin() bool {
 	if x == nil {
 		return false
 	}
-	return x.Skin != nil
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 5)
 }
 
 func (x *EntityUpdate) HasOriginX() bool {
 	if x == nil {
 		return false
 	}
-	return x.OriginX != nil
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 7)
 }
 
 func (x *EntityUpdate) HasOriginY() bool {
 	if x == nil {
 		return false
 	}
-	return x.OriginY != nil
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 8)
 }
 
 func (x *EntityUpdate) HasOriginZ() bool {
 	if x == nil {
 		return false
 	}
-	return x.OriginZ != nil
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 9)
 }
 
 func (x *EntityUpdate) HasAngleX() bool {
 	if x == nil {
 		return false
 	}
-	return x.AngleX != nil
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 10)
 }
 
 func (x *EntityUpdate) HasAngleY() bool {
 	if x == nil {
 		return false
 	}
-	return x.AngleY != nil
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 11)
 }
 
 func (x *EntityUpdate) HasAngleZ() bool {
 	if x == nil {
 		return false
 	}
-	return x.AngleZ != nil
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 12)
 }
 
 func (x *EntityUpdate) HasLerpFinish() bool {
 	if x == nil {
 		return false
 	}
-	return x.LerpFinish != nil
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 13)
 }
 
 func (x *EntityUpdate) HasAlpha() bool {
 	if x == nil {
 		return false
 	}
-	return x.Alpha != nil
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 14)
 }
 
 func (x *EntityUpdate) ClearModel() {
-	x.Model = nil
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
+	x.xxx_hidden_Model = 0
 }
 
 func (x *EntityUpdate) ClearFrame() {
-	x.Frame = nil
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 3)
+	x.xxx_hidden_Frame = 0
 }
 
 func (x *EntityUpdate) ClearColorMap() {
-	x.ColorMap = nil
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 4)
+	x.xxx_hidden_ColorMap = 0
 }
 
 func (x *EntityUpdate) ClearSkin() {
-	x.Skin = nil
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 5)
+	x.xxx_hidden_Skin = 0
 }
 
 func (x *EntityUpdate) ClearOriginX() {
-	x.OriginX = nil
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 7)
+	x.xxx_hidden_OriginX = 0
 }
 
 func (x *EntityUpdate) ClearOriginY() {
-	x.OriginY = nil
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 8)
+	x.xxx_hidden_OriginY = 0
 }
 
 func (x *EntityUpdate) ClearOriginZ() {
-	x.OriginZ = nil
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 9)
+	x.xxx_hidden_OriginZ = 0
 }
 
 func (x *EntityUpdate) ClearAngleX() {
-	x.AngleX = nil
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 10)
+	x.xxx_hidden_AngleX = 0
 }
 
 func (x *EntityUpdate) ClearAngleY() {
-	x.AngleY = nil
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 11)
+	x.xxx_hidden_AngleY = 0
 }
 
 func (x *EntityUpdate) ClearAngleZ() {
-	x.AngleZ = nil
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 12)
+	x.xxx_hidden_AngleZ = 0
 }
 
 func (x *EntityUpdate) ClearLerpFinish() {
-	x.LerpFinish = nil
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 13)
+	x.xxx_hidden_LerpFinish = 0
 }
 
 func (x *EntityUpdate) ClearAlpha() {
-	x.Alpha = nil
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 14)
+	x.xxx_hidden_Alpha = 0
 }
 
 type EntityUpdate_builder struct {
@@ -2687,32 +2707,68 @@ func (b0 EntityUpdate_builder) Build() *EntityUpdate {
 	m0 := &EntityUpdate{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Entity = b.Entity
-	x.LerpMoveStep = b.LerpMoveStep
-	x.Model = b.Model
-	x.Frame = b.Frame
-	x.ColorMap = b.ColorMap
-	x.Skin = b.Skin
-	x.Effects = b.Effects
-	x.OriginX = b.OriginX
-	x.OriginY = b.OriginY
-	x.OriginZ = b.OriginZ
-	x.AngleX = b.AngleX
-	x.AngleY = b.AngleY
-	x.AngleZ = b.AngleZ
-	x.LerpFinish = b.LerpFinish
-	x.Alpha = b.Alpha
+	x.xxx_hidden_Entity = b.Entity
+	x.xxx_hidden_LerpMoveStep = b.LerpMoveStep
+	if b.Model != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 15)
+		x.xxx_hidden_Model = *b.Model
+	}
+	if b.Frame != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 15)
+		x.xxx_hidden_Frame = *b.Frame
+	}
+	if b.ColorMap != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 15)
+		x.xxx_hidden_ColorMap = *b.ColorMap
+	}
+	if b.Skin != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 15)
+		x.xxx_hidden_Skin = *b.Skin
+	}
+	x.xxx_hidden_Effects = b.Effects
+	if b.OriginX != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 7, 15)
+		x.xxx_hidden_OriginX = *b.OriginX
+	}
+	if b.OriginY != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 8, 15)
+		x.xxx_hidden_OriginY = *b.OriginY
+	}
+	if b.OriginZ != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 9, 15)
+		x.xxx_hidden_OriginZ = *b.OriginZ
+	}
+	if b.AngleX != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 10, 15)
+		x.xxx_hidden_AngleX = *b.AngleX
+	}
+	if b.AngleY != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 11, 15)
+		x.xxx_hidden_AngleY = *b.AngleY
+	}
+	if b.AngleZ != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 12, 15)
+		x.xxx_hidden_AngleZ = *b.AngleZ
+	}
+	if b.LerpFinish != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 13, 15)
+		x.xxx_hidden_LerpFinish = *b.LerpFinish
+	}
+	if b.Alpha != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 14, 15)
+		x.xxx_hidden_Alpha = *b.Alpha
+	}
 	return m0
 }
 
 type StaticSound struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Origin        *Coord                 `protobuf:"bytes,1,opt,name=origin" json:"origin,omitempty"`
-	Index         int32                  `protobuf:"varint,2,opt,name=index" json:"index,omitempty"`
-	Volume        int32                  `protobuf:"varint,3,opt,name=volume" json:"volume,omitempty"`
-	Attenuation   int32                  `protobuf:"varint,4,opt,name=attenuation" json:"attenuation,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Origin      *Coord                 `protobuf:"bytes,1,opt,name=origin" json:"origin,omitempty"`
+	xxx_hidden_Index       int32                  `protobuf:"varint,2,opt,name=index" json:"index,omitempty"`
+	xxx_hidden_Volume      int32                  `protobuf:"varint,3,opt,name=volume" json:"volume,omitempty"`
+	xxx_hidden_Attenuation int32                  `protobuf:"varint,4,opt,name=attenuation" json:"attenuation,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *StaticSound) Reset() {
@@ -2742,57 +2798,57 @@ func (x *StaticSound) ProtoReflect() protoreflect.Message {
 
 func (x *StaticSound) GetOrigin() *Coord {
 	if x != nil {
-		return x.Origin
+		return x.xxx_hidden_Origin
 	}
 	return nil
 }
 
 func (x *StaticSound) GetIndex() int32 {
 	if x != nil {
-		return x.Index
+		return x.xxx_hidden_Index
 	}
 	return 0
 }
 
 func (x *StaticSound) GetVolume() int32 {
 	if x != nil {
-		return x.Volume
+		return x.xxx_hidden_Volume
 	}
 	return 0
 }
 
 func (x *StaticSound) GetAttenuation() int32 {
 	if x != nil {
-		return x.Attenuation
+		return x.xxx_hidden_Attenuation
 	}
 	return 0
 }
 
 func (x *StaticSound) SetOrigin(v *Coord) {
-	x.Origin = v
+	x.xxx_hidden_Origin = v
 }
 
 func (x *StaticSound) SetIndex(v int32) {
-	x.Index = v
+	x.xxx_hidden_Index = v
 }
 
 func (x *StaticSound) SetVolume(v int32) {
-	x.Volume = v
+	x.xxx_hidden_Volume = v
 }
 
 func (x *StaticSound) SetAttenuation(v int32) {
-	x.Attenuation = v
+	x.xxx_hidden_Attenuation = v
 }
 
 func (x *StaticSound) HasOrigin() bool {
 	if x == nil {
 		return false
 	}
-	return x.Origin != nil
+	return x.xxx_hidden_Origin != nil
 }
 
 func (x *StaticSound) ClearOrigin() {
-	x.Origin = nil
+	x.xxx_hidden_Origin = nil
 }
 
 type StaticSound_builder struct {
@@ -2808,20 +2864,20 @@ func (b0 StaticSound_builder) Build() *StaticSound {
 	m0 := &StaticSound{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Origin = b.Origin
-	x.Index = b.Index
-	x.Volume = b.Volume
-	x.Attenuation = b.Attenuation
+	x.xxx_hidden_Origin = b.Origin
+	x.xxx_hidden_Index = b.Index
+	x.xxx_hidden_Volume = b.Volume
+	x.xxx_hidden_Attenuation = b.Attenuation
 	return m0
 }
 
 type Damage struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Armor         int32                  `protobuf:"varint,1,opt,name=armor" json:"armor,omitempty"`
-	Blood         int32                  `protobuf:"varint,2,opt,name=blood" json:"blood,omitempty"`
-	Position      *Coord                 `protobuf:"bytes,3,opt,name=position" json:"position,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Armor    int32                  `protobuf:"varint,1,opt,name=armor" json:"armor,omitempty"`
+	xxx_hidden_Blood    int32                  `protobuf:"varint,2,opt,name=blood" json:"blood,omitempty"`
+	xxx_hidden_Position *Coord                 `protobuf:"bytes,3,opt,name=position" json:"position,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *Damage) Reset() {
@@ -2851,46 +2907,46 @@ func (x *Damage) ProtoReflect() protoreflect.Message {
 
 func (x *Damage) GetArmor() int32 {
 	if x != nil {
-		return x.Armor
+		return x.xxx_hidden_Armor
 	}
 	return 0
 }
 
 func (x *Damage) GetBlood() int32 {
 	if x != nil {
-		return x.Blood
+		return x.xxx_hidden_Blood
 	}
 	return 0
 }
 
 func (x *Damage) GetPosition() *Coord {
 	if x != nil {
-		return x.Position
+		return x.xxx_hidden_Position
 	}
 	return nil
 }
 
 func (x *Damage) SetArmor(v int32) {
-	x.Armor = v
+	x.xxx_hidden_Armor = v
 }
 
 func (x *Damage) SetBlood(v int32) {
-	x.Blood = v
+	x.xxx_hidden_Blood = v
 }
 
 func (x *Damage) SetPosition(v *Coord) {
-	x.Position = v
+	x.xxx_hidden_Position = v
 }
 
 func (x *Damage) HasPosition() bool {
 	if x == nil {
 		return false
 	}
-	return x.Position != nil
+	return x.xxx_hidden_Position != nil
 }
 
 func (x *Damage) ClearPosition() {
-	x.Position = nil
+	x.xxx_hidden_Position = nil
 }
 
 type Damage_builder struct {
@@ -2905,18 +2961,18 @@ func (b0 Damage_builder) Build() *Damage {
 	m0 := &Damage{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Armor = b.Armor
-	x.Blood = b.Blood
-	x.Position = b.Position
+	x.xxx_hidden_Armor = b.Armor
+	x.xxx_hidden_Blood = b.Blood
+	x.xxx_hidden_Position = b.Position
 	return m0
 }
 
 type CDTrack struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	TrackNumber   int32                  `protobuf:"varint,1,opt,name=track_number,json=trackNumber" json:"track_number,omitempty"`
-	LoopTrack     int32                  `protobuf:"varint,2,opt,name=loop_track,json=loopTrack" json:"loop_track,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_TrackNumber int32                  `protobuf:"varint,1,opt,name=track_number,json=trackNumber" json:"track_number,omitempty"`
+	xxx_hidden_LoopTrack   int32                  `protobuf:"varint,2,opt,name=loop_track,json=loopTrack" json:"loop_track,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *CDTrack) Reset() {
@@ -2946,24 +3002,24 @@ func (x *CDTrack) ProtoReflect() protoreflect.Message {
 
 func (x *CDTrack) GetTrackNumber() int32 {
 	if x != nil {
-		return x.TrackNumber
+		return x.xxx_hidden_TrackNumber
 	}
 	return 0
 }
 
 func (x *CDTrack) GetLoopTrack() int32 {
 	if x != nil {
-		return x.LoopTrack
+		return x.xxx_hidden_LoopTrack
 	}
 	return 0
 }
 
 func (x *CDTrack) SetTrackNumber(v int32) {
-	x.TrackNumber = v
+	x.xxx_hidden_TrackNumber = v
 }
 
 func (x *CDTrack) SetLoopTrack(v int32) {
-	x.LoopTrack = v
+	x.xxx_hidden_LoopTrack = v
 }
 
 type CDTrack_builder struct {
@@ -2977,17 +3033,17 @@ func (b0 CDTrack_builder) Build() *CDTrack {
 	m0 := &CDTrack{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.TrackNumber = b.TrackNumber
-	x.LoopTrack = b.LoopTrack
+	x.xxx_hidden_TrackNumber = b.TrackNumber
+	x.xxx_hidden_LoopTrack = b.LoopTrack
 	return m0
 }
 
 type UpdateStat struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Stat          int32                  `protobuf:"varint,1,opt,name=stat" json:"stat,omitempty"`
-	Value         int32                  `protobuf:"varint,2,opt,name=value" json:"value,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Stat  int32                  `protobuf:"varint,1,opt,name=stat" json:"stat,omitempty"`
+	xxx_hidden_Value int32                  `protobuf:"varint,2,opt,name=value" json:"value,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *UpdateStat) Reset() {
@@ -3017,24 +3073,24 @@ func (x *UpdateStat) ProtoReflect() protoreflect.Message {
 
 func (x *UpdateStat) GetStat() int32 {
 	if x != nil {
-		return x.Stat
+		return x.xxx_hidden_Stat
 	}
 	return 0
 }
 
 func (x *UpdateStat) GetValue() int32 {
 	if x != nil {
-		return x.Value
+		return x.xxx_hidden_Value
 	}
 	return 0
 }
 
 func (x *UpdateStat) SetStat(v int32) {
-	x.Stat = v
+	x.xxx_hidden_Stat = v
 }
 
 func (x *UpdateStat) SetValue(v int32) {
-	x.Value = v
+	x.xxx_hidden_Value = v
 }
 
 type UpdateStat_builder struct {
@@ -3048,19 +3104,19 @@ func (b0 UpdateStat_builder) Build() *UpdateStat {
 	m0 := &UpdateStat{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Stat = b.Stat
-	x.Value = b.Value
+	x.xxx_hidden_Stat = b.Stat
+	x.xxx_hidden_Value = b.Value
 	return m0
 }
 
 type Particle struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Origin        *Coord                 `protobuf:"bytes,1,opt,name=origin" json:"origin,omitempty"`
-	Direction     *Coord                 `protobuf:"bytes,2,opt,name=direction" json:"direction,omitempty"`
-	Count         int32                  `protobuf:"varint,3,opt,name=count" json:"count,omitempty"`
-	Color         int32                  `protobuf:"varint,4,opt,name=color" json:"color,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Origin    *Coord                 `protobuf:"bytes,1,opt,name=origin" json:"origin,omitempty"`
+	xxx_hidden_Direction *Coord                 `protobuf:"bytes,2,opt,name=direction" json:"direction,omitempty"`
+	xxx_hidden_Count     int32                  `protobuf:"varint,3,opt,name=count" json:"count,omitempty"`
+	xxx_hidden_Color     int32                  `protobuf:"varint,4,opt,name=color" json:"color,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *Particle) Reset() {
@@ -3090,68 +3146,68 @@ func (x *Particle) ProtoReflect() protoreflect.Message {
 
 func (x *Particle) GetOrigin() *Coord {
 	if x != nil {
-		return x.Origin
+		return x.xxx_hidden_Origin
 	}
 	return nil
 }
 
 func (x *Particle) GetDirection() *Coord {
 	if x != nil {
-		return x.Direction
+		return x.xxx_hidden_Direction
 	}
 	return nil
 }
 
 func (x *Particle) GetCount() int32 {
 	if x != nil {
-		return x.Count
+		return x.xxx_hidden_Count
 	}
 	return 0
 }
 
 func (x *Particle) GetColor() int32 {
 	if x != nil {
-		return x.Color
+		return x.xxx_hidden_Color
 	}
 	return 0
 }
 
 func (x *Particle) SetOrigin(v *Coord) {
-	x.Origin = v
+	x.xxx_hidden_Origin = v
 }
 
 func (x *Particle) SetDirection(v *Coord) {
-	x.Direction = v
+	x.xxx_hidden_Direction = v
 }
 
 func (x *Particle) SetCount(v int32) {
-	x.Count = v
+	x.xxx_hidden_Count = v
 }
 
 func (x *Particle) SetColor(v int32) {
-	x.Color = v
+	x.xxx_hidden_Color = v
 }
 
 func (x *Particle) HasOrigin() bool {
 	if x == nil {
 		return false
 	}
-	return x.Origin != nil
+	return x.xxx_hidden_Origin != nil
 }
 
 func (x *Particle) HasDirection() bool {
 	if x == nil {
 		return false
 	}
-	return x.Direction != nil
+	return x.xxx_hidden_Direction != nil
 }
 
 func (x *Particle) ClearOrigin() {
-	x.Origin = nil
+	x.xxx_hidden_Origin = nil
 }
 
 func (x *Particle) ClearDirection() {
-	x.Direction = nil
+	x.xxx_hidden_Direction = nil
 }
 
 type Particle_builder struct {
@@ -3167,22 +3223,22 @@ func (b0 Particle_builder) Build() *Particle {
 	m0 := &Particle{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Origin = b.Origin
-	x.Direction = b.Direction
-	x.Count = b.Count
-	x.Color = b.Color
+	x.xxx_hidden_Origin = b.Origin
+	x.xxx_hidden_Direction = b.Direction
+	x.xxx_hidden_Count = b.Count
+	x.xxx_hidden_Color = b.Color
 	return m0
 }
 
 type Fog struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Density       float32                `protobuf:"fixed32,1,opt,name=density" json:"density,omitempty"`
-	Red           float32                `protobuf:"fixed32,2,opt,name=red" json:"red,omitempty"`
-	Green         float32                `protobuf:"fixed32,3,opt,name=green" json:"green,omitempty"`
-	Blue          float32                `protobuf:"fixed32,4,opt,name=blue" json:"blue,omitempty"`
-	Time          float32                `protobuf:"fixed32,5,opt,name=time" json:"time,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Density float32                `protobuf:"fixed32,1,opt,name=density" json:"density,omitempty"`
+	xxx_hidden_Red     float32                `protobuf:"fixed32,2,opt,name=red" json:"red,omitempty"`
+	xxx_hidden_Green   float32                `protobuf:"fixed32,3,opt,name=green" json:"green,omitempty"`
+	xxx_hidden_Blue    float32                `protobuf:"fixed32,4,opt,name=blue" json:"blue,omitempty"`
+	xxx_hidden_Time    float32                `protobuf:"fixed32,5,opt,name=time" json:"time,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *Fog) Reset() {
@@ -3212,57 +3268,57 @@ func (x *Fog) ProtoReflect() protoreflect.Message {
 
 func (x *Fog) GetDensity() float32 {
 	if x != nil {
-		return x.Density
+		return x.xxx_hidden_Density
 	}
 	return 0
 }
 
 func (x *Fog) GetRed() float32 {
 	if x != nil {
-		return x.Red
+		return x.xxx_hidden_Red
 	}
 	return 0
 }
 
 func (x *Fog) GetGreen() float32 {
 	if x != nil {
-		return x.Green
+		return x.xxx_hidden_Green
 	}
 	return 0
 }
 
 func (x *Fog) GetBlue() float32 {
 	if x != nil {
-		return x.Blue
+		return x.xxx_hidden_Blue
 	}
 	return 0
 }
 
 func (x *Fog) GetTime() float32 {
 	if x != nil {
-		return x.Time
+		return x.xxx_hidden_Time
 	}
 	return 0
 }
 
 func (x *Fog) SetDensity(v float32) {
-	x.Density = v
+	x.xxx_hidden_Density = v
 }
 
 func (x *Fog) SetRed(v float32) {
-	x.Red = v
+	x.xxx_hidden_Red = v
 }
 
 func (x *Fog) SetGreen(v float32) {
-	x.Green = v
+	x.xxx_hidden_Green = v
 }
 
 func (x *Fog) SetBlue(v float32) {
-	x.Blue = v
+	x.xxx_hidden_Blue = v
 }
 
 func (x *Fog) SetTime(v float32) {
-	x.Time = v
+	x.xxx_hidden_Time = v
 }
 
 type Fog_builder struct {
@@ -3279,58 +3335,19 @@ func (b0 Fog_builder) Build() *Fog {
 	m0 := &Fog{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Density = b.Density
-	x.Red = b.Red
-	x.Green = b.Green
-	x.Blue = b.Blue
-	x.Time = b.Time
+	x.xxx_hidden_Density = b.Density
+	x.xxx_hidden_Red = b.Red
+	x.xxx_hidden_Green = b.Green
+	x.xxx_hidden_Blue = b.Blue
+	x.xxx_hidden_Time = b.Time
 	return m0
 }
 
 type SCmd struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Types that are valid to be assigned to Union:
-	//
-	//	*SCmd_Disconnect
-	//	*SCmd_EntityUpdate
-	//	*SCmd_UpdateStat
-	//	*SCmd_Version
-	//	*SCmd_SetViewEntity
-	//	*SCmd_Sound
-	//	*SCmd_Time
-	//	*SCmd_Print
-	//	*SCmd_StuffText
-	//	*SCmd_SetAngle
-	//	*SCmd_ServerInfo
-	//	*SCmd_LightStyle
-	//	*SCmd_UpdateName
-	//	*SCmd_UpdateFrags
-	//	*SCmd_ClientData
-	//	*SCmd_StopSound
-	//	*SCmd_UpdateColors
-	//	*SCmd_Particle
-	//	*SCmd_Damage
-	//	*SCmd_SpawnStatic
-	//	*SCmd_SpawnBaseline
-	//	*SCmd_TempEntity
-	//	*SCmd_SetPause
-	//	*SCmd_SignonNum
-	//	*SCmd_CenterPrint
-	//	*SCmd_KilledMonster
-	//	*SCmd_FoundSecret
-	//	*SCmd_SpawnStaticSound
-	//	*SCmd_Intermission
-	//	*SCmd_Finale
-	//	*SCmd_CdTrack
-	//	*SCmd_SellScreen
-	//	*SCmd_Cutscene
-	//	*SCmd_Skybox
-	//	*SCmd_BackgroundFlash
-	//	*SCmd_Fog
-	//	*SCmd_Achievement
-	Union         isSCmd_Union `protobuf_oneof:"union"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Union isSCmd_Union           `protobuf_oneof:"union"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *SCmd) Reset() {
@@ -3358,16 +3375,9 @@ func (x *SCmd) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *SCmd) GetUnion() isSCmd_Union {
-	if x != nil {
-		return x.Union
-	}
-	return nil
-}
-
 func (x *SCmd) GetDisconnect() bool {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_Disconnect); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_Disconnect); ok {
 			return x.Disconnect
 		}
 	}
@@ -3376,7 +3386,7 @@ func (x *SCmd) GetDisconnect() bool {
 
 func (x *SCmd) GetEntityUpdate() *EntityUpdate {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_EntityUpdate); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_EntityUpdate); ok {
 			return x.EntityUpdate
 		}
 	}
@@ -3385,7 +3395,7 @@ func (x *SCmd) GetEntityUpdate() *EntityUpdate {
 
 func (x *SCmd) GetUpdateStat() *UpdateStat {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_UpdateStat); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_UpdateStat); ok {
 			return x.UpdateStat
 		}
 	}
@@ -3394,7 +3404,7 @@ func (x *SCmd) GetUpdateStat() *UpdateStat {
 
 func (x *SCmd) GetVersion() int32 {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_Version); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_Version); ok {
 			return x.Version
 		}
 	}
@@ -3403,7 +3413,7 @@ func (x *SCmd) GetVersion() int32 {
 
 func (x *SCmd) GetSetViewEntity() int32 {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_SetViewEntity); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_SetViewEntity); ok {
 			return x.SetViewEntity
 		}
 	}
@@ -3412,7 +3422,7 @@ func (x *SCmd) GetSetViewEntity() int32 {
 
 func (x *SCmd) GetSound() *Sound {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_Sound); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_Sound); ok {
 			return x.Sound
 		}
 	}
@@ -3421,7 +3431,7 @@ func (x *SCmd) GetSound() *Sound {
 
 func (x *SCmd) GetTime() float32 {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_Time); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_Time); ok {
 			return x.Time
 		}
 	}
@@ -3430,7 +3440,7 @@ func (x *SCmd) GetTime() float32 {
 
 func (x *SCmd) GetPrint() string {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_Print); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_Print); ok {
 			return x.Print
 		}
 	}
@@ -3439,7 +3449,7 @@ func (x *SCmd) GetPrint() string {
 
 func (x *SCmd) GetStuffText() string {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_StuffText); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_StuffText); ok {
 			return x.StuffText
 		}
 	}
@@ -3448,7 +3458,7 @@ func (x *SCmd) GetStuffText() string {
 
 func (x *SCmd) GetSetAngle() *Coord {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_SetAngle); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_SetAngle); ok {
 			return x.SetAngle
 		}
 	}
@@ -3457,7 +3467,7 @@ func (x *SCmd) GetSetAngle() *Coord {
 
 func (x *SCmd) GetServerInfo() *ServerInfo {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_ServerInfo); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_ServerInfo); ok {
 			return x.ServerInfo
 		}
 	}
@@ -3466,7 +3476,7 @@ func (x *SCmd) GetServerInfo() *ServerInfo {
 
 func (x *SCmd) GetLightStyle() *LightStyle {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_LightStyle); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_LightStyle); ok {
 			return x.LightStyle
 		}
 	}
@@ -3475,7 +3485,7 @@ func (x *SCmd) GetLightStyle() *LightStyle {
 
 func (x *SCmd) GetUpdateName() *UpdateName {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_UpdateName); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_UpdateName); ok {
 			return x.UpdateName
 		}
 	}
@@ -3484,7 +3494,7 @@ func (x *SCmd) GetUpdateName() *UpdateName {
 
 func (x *SCmd) GetUpdateFrags() *UpdateFrags {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_UpdateFrags); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_UpdateFrags); ok {
 			return x.UpdateFrags
 		}
 	}
@@ -3493,7 +3503,7 @@ func (x *SCmd) GetUpdateFrags() *UpdateFrags {
 
 func (x *SCmd) GetClientData() *ClientData {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_ClientData); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_ClientData); ok {
 			return x.ClientData
 		}
 	}
@@ -3502,7 +3512,7 @@ func (x *SCmd) GetClientData() *ClientData {
 
 func (x *SCmd) GetStopSound() int32 {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_StopSound); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_StopSound); ok {
 			return x.StopSound
 		}
 	}
@@ -3511,7 +3521,7 @@ func (x *SCmd) GetStopSound() int32 {
 
 func (x *SCmd) GetUpdateColors() *UpdateColors {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_UpdateColors); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_UpdateColors); ok {
 			return x.UpdateColors
 		}
 	}
@@ -3520,7 +3530,7 @@ func (x *SCmd) GetUpdateColors() *UpdateColors {
 
 func (x *SCmd) GetParticle() *Particle {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_Particle); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_Particle); ok {
 			return x.Particle
 		}
 	}
@@ -3529,7 +3539,7 @@ func (x *SCmd) GetParticle() *Particle {
 
 func (x *SCmd) GetDamage() *Damage {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_Damage); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_Damage); ok {
 			return x.Damage
 		}
 	}
@@ -3538,7 +3548,7 @@ func (x *SCmd) GetDamage() *Damage {
 
 func (x *SCmd) GetSpawnStatic() *Baseline {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_SpawnStatic); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_SpawnStatic); ok {
 			return x.SpawnStatic
 		}
 	}
@@ -3547,7 +3557,7 @@ func (x *SCmd) GetSpawnStatic() *Baseline {
 
 func (x *SCmd) GetSpawnBaseline() *EntityBaseline {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_SpawnBaseline); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_SpawnBaseline); ok {
 			return x.SpawnBaseline
 		}
 	}
@@ -3556,7 +3566,7 @@ func (x *SCmd) GetSpawnBaseline() *EntityBaseline {
 
 func (x *SCmd) GetTempEntity() *TempEntity {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_TempEntity); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_TempEntity); ok {
 			return x.TempEntity
 		}
 	}
@@ -3565,7 +3575,7 @@ func (x *SCmd) GetTempEntity() *TempEntity {
 
 func (x *SCmd) GetSetPause() bool {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_SetPause); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_SetPause); ok {
 			return x.SetPause
 		}
 	}
@@ -3574,7 +3584,7 @@ func (x *SCmd) GetSetPause() bool {
 
 func (x *SCmd) GetSignonNum() int32 {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_SignonNum); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_SignonNum); ok {
 			return x.SignonNum
 		}
 	}
@@ -3583,7 +3593,7 @@ func (x *SCmd) GetSignonNum() int32 {
 
 func (x *SCmd) GetCenterPrint() string {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_CenterPrint); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_CenterPrint); ok {
 			return x.CenterPrint
 		}
 	}
@@ -3592,7 +3602,7 @@ func (x *SCmd) GetCenterPrint() string {
 
 func (x *SCmd) GetKilledMonster() *Empty {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_KilledMonster); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_KilledMonster); ok {
 			return x.KilledMonster
 		}
 	}
@@ -3601,7 +3611,7 @@ func (x *SCmd) GetKilledMonster() *Empty {
 
 func (x *SCmd) GetFoundSecret() *Empty {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_FoundSecret); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_FoundSecret); ok {
 			return x.FoundSecret
 		}
 	}
@@ -3610,7 +3620,7 @@ func (x *SCmd) GetFoundSecret() *Empty {
 
 func (x *SCmd) GetSpawnStaticSound() *StaticSound {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_SpawnStaticSound); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_SpawnStaticSound); ok {
 			return x.SpawnStaticSound
 		}
 	}
@@ -3619,7 +3629,7 @@ func (x *SCmd) GetSpawnStaticSound() *StaticSound {
 
 func (x *SCmd) GetIntermission() *Empty {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_Intermission); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_Intermission); ok {
 			return x.Intermission
 		}
 	}
@@ -3628,7 +3638,7 @@ func (x *SCmd) GetIntermission() *Empty {
 
 func (x *SCmd) GetFinale() string {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_Finale); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_Finale); ok {
 			return x.Finale
 		}
 	}
@@ -3637,7 +3647,7 @@ func (x *SCmd) GetFinale() string {
 
 func (x *SCmd) GetCdTrack() *CDTrack {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_CdTrack); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_CdTrack); ok {
 			return x.CdTrack
 		}
 	}
@@ -3646,7 +3656,7 @@ func (x *SCmd) GetCdTrack() *CDTrack {
 
 func (x *SCmd) GetSellScreen() *Empty {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_SellScreen); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_SellScreen); ok {
 			return x.SellScreen
 		}
 	}
@@ -3655,7 +3665,7 @@ func (x *SCmd) GetSellScreen() *Empty {
 
 func (x *SCmd) GetCutscene() string {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_Cutscene); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_Cutscene); ok {
 			return x.Cutscene
 		}
 	}
@@ -3664,7 +3674,7 @@ func (x *SCmd) GetCutscene() string {
 
 func (x *SCmd) GetSkybox() string {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_Skybox); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_Skybox); ok {
 			return x.Skybox
 		}
 	}
@@ -3673,7 +3683,7 @@ func (x *SCmd) GetSkybox() string {
 
 func (x *SCmd) GetBackgroundFlash() *Empty {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_BackgroundFlash); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_BackgroundFlash); ok {
 			return x.BackgroundFlash
 		}
 	}
@@ -3682,7 +3692,7 @@ func (x *SCmd) GetBackgroundFlash() *Empty {
 
 func (x *SCmd) GetFog() *Fog {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_Fog); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_Fog); ok {
 			return x.Fog
 		}
 	}
@@ -3691,7 +3701,7 @@ func (x *SCmd) GetFog() *Fog {
 
 func (x *SCmd) GetAchievement() string {
 	if x != nil {
-		if x, ok := x.Union.(*SCmd_Achievement); ok {
+		if x, ok := x.xxx_hidden_Union.(*sCmd_Achievement); ok {
 			return x.Achievement
 		}
 	}
@@ -3699,257 +3709,257 @@ func (x *SCmd) GetAchievement() string {
 }
 
 func (x *SCmd) SetDisconnect(v bool) {
-	x.Union = &SCmd_Disconnect{v}
+	x.xxx_hidden_Union = &sCmd_Disconnect{v}
 }
 
 func (x *SCmd) SetEntityUpdate(v *EntityUpdate) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &SCmd_EntityUpdate{v}
+	x.xxx_hidden_Union = &sCmd_EntityUpdate{v}
 }
 
 func (x *SCmd) SetUpdateStat(v *UpdateStat) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &SCmd_UpdateStat{v}
+	x.xxx_hidden_Union = &sCmd_UpdateStat{v}
 }
 
 func (x *SCmd) SetVersion(v int32) {
-	x.Union = &SCmd_Version{v}
+	x.xxx_hidden_Union = &sCmd_Version{v}
 }
 
 func (x *SCmd) SetSetViewEntity(v int32) {
-	x.Union = &SCmd_SetViewEntity{v}
+	x.xxx_hidden_Union = &sCmd_SetViewEntity{v}
 }
 
 func (x *SCmd) SetSound(v *Sound) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &SCmd_Sound{v}
+	x.xxx_hidden_Union = &sCmd_Sound{v}
 }
 
 func (x *SCmd) SetTime(v float32) {
-	x.Union = &SCmd_Time{v}
+	x.xxx_hidden_Union = &sCmd_Time{v}
 }
 
 func (x *SCmd) SetPrint(v string) {
-	x.Union = &SCmd_Print{v}
+	x.xxx_hidden_Union = &sCmd_Print{v}
 }
 
 func (x *SCmd) SetStuffText(v string) {
-	x.Union = &SCmd_StuffText{v}
+	x.xxx_hidden_Union = &sCmd_StuffText{v}
 }
 
 func (x *SCmd) SetSetAngle(v *Coord) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &SCmd_SetAngle{v}
+	x.xxx_hidden_Union = &sCmd_SetAngle{v}
 }
 
 func (x *SCmd) SetServerInfo(v *ServerInfo) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &SCmd_ServerInfo{v}
+	x.xxx_hidden_Union = &sCmd_ServerInfo{v}
 }
 
 func (x *SCmd) SetLightStyle(v *LightStyle) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &SCmd_LightStyle{v}
+	x.xxx_hidden_Union = &sCmd_LightStyle{v}
 }
 
 func (x *SCmd) SetUpdateName(v *UpdateName) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &SCmd_UpdateName{v}
+	x.xxx_hidden_Union = &sCmd_UpdateName{v}
 }
 
 func (x *SCmd) SetUpdateFrags(v *UpdateFrags) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &SCmd_UpdateFrags{v}
+	x.xxx_hidden_Union = &sCmd_UpdateFrags{v}
 }
 
 func (x *SCmd) SetClientData(v *ClientData) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &SCmd_ClientData{v}
+	x.xxx_hidden_Union = &sCmd_ClientData{v}
 }
 
 func (x *SCmd) SetStopSound(v int32) {
-	x.Union = &SCmd_StopSound{v}
+	x.xxx_hidden_Union = &sCmd_StopSound{v}
 }
 
 func (x *SCmd) SetUpdateColors(v *UpdateColors) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &SCmd_UpdateColors{v}
+	x.xxx_hidden_Union = &sCmd_UpdateColors{v}
 }
 
 func (x *SCmd) SetParticle(v *Particle) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &SCmd_Particle{v}
+	x.xxx_hidden_Union = &sCmd_Particle{v}
 }
 
 func (x *SCmd) SetDamage(v *Damage) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &SCmd_Damage{v}
+	x.xxx_hidden_Union = &sCmd_Damage{v}
 }
 
 func (x *SCmd) SetSpawnStatic(v *Baseline) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &SCmd_SpawnStatic{v}
+	x.xxx_hidden_Union = &sCmd_SpawnStatic{v}
 }
 
 func (x *SCmd) SetSpawnBaseline(v *EntityBaseline) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &SCmd_SpawnBaseline{v}
+	x.xxx_hidden_Union = &sCmd_SpawnBaseline{v}
 }
 
 func (x *SCmd) SetTempEntity(v *TempEntity) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &SCmd_TempEntity{v}
+	x.xxx_hidden_Union = &sCmd_TempEntity{v}
 }
 
 func (x *SCmd) SetSetPause(v bool) {
-	x.Union = &SCmd_SetPause{v}
+	x.xxx_hidden_Union = &sCmd_SetPause{v}
 }
 
 func (x *SCmd) SetSignonNum(v int32) {
-	x.Union = &SCmd_SignonNum{v}
+	x.xxx_hidden_Union = &sCmd_SignonNum{v}
 }
 
 func (x *SCmd) SetCenterPrint(v string) {
-	x.Union = &SCmd_CenterPrint{v}
+	x.xxx_hidden_Union = &sCmd_CenterPrint{v}
 }
 
 func (x *SCmd) SetKilledMonster(v *Empty) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &SCmd_KilledMonster{v}
+	x.xxx_hidden_Union = &sCmd_KilledMonster{v}
 }
 
 func (x *SCmd) SetFoundSecret(v *Empty) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &SCmd_FoundSecret{v}
+	x.xxx_hidden_Union = &sCmd_FoundSecret{v}
 }
 
 func (x *SCmd) SetSpawnStaticSound(v *StaticSound) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &SCmd_SpawnStaticSound{v}
+	x.xxx_hidden_Union = &sCmd_SpawnStaticSound{v}
 }
 
 func (x *SCmd) SetIntermission(v *Empty) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &SCmd_Intermission{v}
+	x.xxx_hidden_Union = &sCmd_Intermission{v}
 }
 
 func (x *SCmd) SetFinale(v string) {
-	x.Union = &SCmd_Finale{v}
+	x.xxx_hidden_Union = &sCmd_Finale{v}
 }
 
 func (x *SCmd) SetCdTrack(v *CDTrack) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &SCmd_CdTrack{v}
+	x.xxx_hidden_Union = &sCmd_CdTrack{v}
 }
 
 func (x *SCmd) SetSellScreen(v *Empty) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &SCmd_SellScreen{v}
+	x.xxx_hidden_Union = &sCmd_SellScreen{v}
 }
 
 func (x *SCmd) SetCutscene(v string) {
-	x.Union = &SCmd_Cutscene{v}
+	x.xxx_hidden_Union = &sCmd_Cutscene{v}
 }
 
 func (x *SCmd) SetSkybox(v string) {
-	x.Union = &SCmd_Skybox{v}
+	x.xxx_hidden_Union = &sCmd_Skybox{v}
 }
 
 func (x *SCmd) SetBackgroundFlash(v *Empty) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &SCmd_BackgroundFlash{v}
+	x.xxx_hidden_Union = &sCmd_BackgroundFlash{v}
 }
 
 func (x *SCmd) SetFog(v *Fog) {
 	if v == nil {
-		x.Union = nil
+		x.xxx_hidden_Union = nil
 		return
 	}
-	x.Union = &SCmd_Fog{v}
+	x.xxx_hidden_Union = &sCmd_Fog{v}
 }
 
 func (x *SCmd) SetAchievement(v string) {
-	x.Union = &SCmd_Achievement{v}
+	x.xxx_hidden_Union = &sCmd_Achievement{v}
 }
 
 func (x *SCmd) HasUnion() bool {
 	if x == nil {
 		return false
 	}
-	return x.Union != nil
+	return x.xxx_hidden_Union != nil
 }
 
 func (x *SCmd) HasDisconnect() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_Disconnect)
+	_, ok := x.xxx_hidden_Union.(*sCmd_Disconnect)
 	return ok
 }
 
@@ -3957,7 +3967,7 @@ func (x *SCmd) HasEntityUpdate() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_EntityUpdate)
+	_, ok := x.xxx_hidden_Union.(*sCmd_EntityUpdate)
 	return ok
 }
 
@@ -3965,7 +3975,7 @@ func (x *SCmd) HasUpdateStat() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_UpdateStat)
+	_, ok := x.xxx_hidden_Union.(*sCmd_UpdateStat)
 	return ok
 }
 
@@ -3973,7 +3983,7 @@ func (x *SCmd) HasVersion() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_Version)
+	_, ok := x.xxx_hidden_Union.(*sCmd_Version)
 	return ok
 }
 
@@ -3981,7 +3991,7 @@ func (x *SCmd) HasSetViewEntity() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_SetViewEntity)
+	_, ok := x.xxx_hidden_Union.(*sCmd_SetViewEntity)
 	return ok
 }
 
@@ -3989,7 +3999,7 @@ func (x *SCmd) HasSound() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_Sound)
+	_, ok := x.xxx_hidden_Union.(*sCmd_Sound)
 	return ok
 }
 
@@ -3997,7 +4007,7 @@ func (x *SCmd) HasTime() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_Time)
+	_, ok := x.xxx_hidden_Union.(*sCmd_Time)
 	return ok
 }
 
@@ -4005,7 +4015,7 @@ func (x *SCmd) HasPrint() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_Print)
+	_, ok := x.xxx_hidden_Union.(*sCmd_Print)
 	return ok
 }
 
@@ -4013,7 +4023,7 @@ func (x *SCmd) HasStuffText() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_StuffText)
+	_, ok := x.xxx_hidden_Union.(*sCmd_StuffText)
 	return ok
 }
 
@@ -4021,7 +4031,7 @@ func (x *SCmd) HasSetAngle() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_SetAngle)
+	_, ok := x.xxx_hidden_Union.(*sCmd_SetAngle)
 	return ok
 }
 
@@ -4029,7 +4039,7 @@ func (x *SCmd) HasServerInfo() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_ServerInfo)
+	_, ok := x.xxx_hidden_Union.(*sCmd_ServerInfo)
 	return ok
 }
 
@@ -4037,7 +4047,7 @@ func (x *SCmd) HasLightStyle() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_LightStyle)
+	_, ok := x.xxx_hidden_Union.(*sCmd_LightStyle)
 	return ok
 }
 
@@ -4045,7 +4055,7 @@ func (x *SCmd) HasUpdateName() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_UpdateName)
+	_, ok := x.xxx_hidden_Union.(*sCmd_UpdateName)
 	return ok
 }
 
@@ -4053,7 +4063,7 @@ func (x *SCmd) HasUpdateFrags() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_UpdateFrags)
+	_, ok := x.xxx_hidden_Union.(*sCmd_UpdateFrags)
 	return ok
 }
 
@@ -4061,7 +4071,7 @@ func (x *SCmd) HasClientData() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_ClientData)
+	_, ok := x.xxx_hidden_Union.(*sCmd_ClientData)
 	return ok
 }
 
@@ -4069,7 +4079,7 @@ func (x *SCmd) HasStopSound() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_StopSound)
+	_, ok := x.xxx_hidden_Union.(*sCmd_StopSound)
 	return ok
 }
 
@@ -4077,7 +4087,7 @@ func (x *SCmd) HasUpdateColors() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_UpdateColors)
+	_, ok := x.xxx_hidden_Union.(*sCmd_UpdateColors)
 	return ok
 }
 
@@ -4085,7 +4095,7 @@ func (x *SCmd) HasParticle() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_Particle)
+	_, ok := x.xxx_hidden_Union.(*sCmd_Particle)
 	return ok
 }
 
@@ -4093,7 +4103,7 @@ func (x *SCmd) HasDamage() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_Damage)
+	_, ok := x.xxx_hidden_Union.(*sCmd_Damage)
 	return ok
 }
 
@@ -4101,7 +4111,7 @@ func (x *SCmd) HasSpawnStatic() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_SpawnStatic)
+	_, ok := x.xxx_hidden_Union.(*sCmd_SpawnStatic)
 	return ok
 }
 
@@ -4109,7 +4119,7 @@ func (x *SCmd) HasSpawnBaseline() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_SpawnBaseline)
+	_, ok := x.xxx_hidden_Union.(*sCmd_SpawnBaseline)
 	return ok
 }
 
@@ -4117,7 +4127,7 @@ func (x *SCmd) HasTempEntity() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_TempEntity)
+	_, ok := x.xxx_hidden_Union.(*sCmd_TempEntity)
 	return ok
 }
 
@@ -4125,7 +4135,7 @@ func (x *SCmd) HasSetPause() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_SetPause)
+	_, ok := x.xxx_hidden_Union.(*sCmd_SetPause)
 	return ok
 }
 
@@ -4133,7 +4143,7 @@ func (x *SCmd) HasSignonNum() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_SignonNum)
+	_, ok := x.xxx_hidden_Union.(*sCmd_SignonNum)
 	return ok
 }
 
@@ -4141,7 +4151,7 @@ func (x *SCmd) HasCenterPrint() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_CenterPrint)
+	_, ok := x.xxx_hidden_Union.(*sCmd_CenterPrint)
 	return ok
 }
 
@@ -4149,7 +4159,7 @@ func (x *SCmd) HasKilledMonster() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_KilledMonster)
+	_, ok := x.xxx_hidden_Union.(*sCmd_KilledMonster)
 	return ok
 }
 
@@ -4157,7 +4167,7 @@ func (x *SCmd) HasFoundSecret() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_FoundSecret)
+	_, ok := x.xxx_hidden_Union.(*sCmd_FoundSecret)
 	return ok
 }
 
@@ -4165,7 +4175,7 @@ func (x *SCmd) HasSpawnStaticSound() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_SpawnStaticSound)
+	_, ok := x.xxx_hidden_Union.(*sCmd_SpawnStaticSound)
 	return ok
 }
 
@@ -4173,7 +4183,7 @@ func (x *SCmd) HasIntermission() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_Intermission)
+	_, ok := x.xxx_hidden_Union.(*sCmd_Intermission)
 	return ok
 }
 
@@ -4181,7 +4191,7 @@ func (x *SCmd) HasFinale() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_Finale)
+	_, ok := x.xxx_hidden_Union.(*sCmd_Finale)
 	return ok
 }
 
@@ -4189,7 +4199,7 @@ func (x *SCmd) HasCdTrack() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_CdTrack)
+	_, ok := x.xxx_hidden_Union.(*sCmd_CdTrack)
 	return ok
 }
 
@@ -4197,7 +4207,7 @@ func (x *SCmd) HasSellScreen() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_SellScreen)
+	_, ok := x.xxx_hidden_Union.(*sCmd_SellScreen)
 	return ok
 }
 
@@ -4205,7 +4215,7 @@ func (x *SCmd) HasCutscene() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_Cutscene)
+	_, ok := x.xxx_hidden_Union.(*sCmd_Cutscene)
 	return ok
 }
 
@@ -4213,7 +4223,7 @@ func (x *SCmd) HasSkybox() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_Skybox)
+	_, ok := x.xxx_hidden_Union.(*sCmd_Skybox)
 	return ok
 }
 
@@ -4221,7 +4231,7 @@ func (x *SCmd) HasBackgroundFlash() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_BackgroundFlash)
+	_, ok := x.xxx_hidden_Union.(*sCmd_BackgroundFlash)
 	return ok
 }
 
@@ -4229,7 +4239,7 @@ func (x *SCmd) HasFog() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_Fog)
+	_, ok := x.xxx_hidden_Union.(*sCmd_Fog)
 	return ok
 }
 
@@ -4237,233 +4247,233 @@ func (x *SCmd) HasAchievement() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Union.(*SCmd_Achievement)
+	_, ok := x.xxx_hidden_Union.(*sCmd_Achievement)
 	return ok
 }
 
 func (x *SCmd) ClearUnion() {
-	x.Union = nil
+	x.xxx_hidden_Union = nil
 }
 
 func (x *SCmd) ClearDisconnect() {
-	if _, ok := x.Union.(*SCmd_Disconnect); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_Disconnect); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearEntityUpdate() {
-	if _, ok := x.Union.(*SCmd_EntityUpdate); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_EntityUpdate); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearUpdateStat() {
-	if _, ok := x.Union.(*SCmd_UpdateStat); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_UpdateStat); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearVersion() {
-	if _, ok := x.Union.(*SCmd_Version); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_Version); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearSetViewEntity() {
-	if _, ok := x.Union.(*SCmd_SetViewEntity); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_SetViewEntity); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearSound() {
-	if _, ok := x.Union.(*SCmd_Sound); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_Sound); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearTime() {
-	if _, ok := x.Union.(*SCmd_Time); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_Time); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearPrint() {
-	if _, ok := x.Union.(*SCmd_Print); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_Print); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearStuffText() {
-	if _, ok := x.Union.(*SCmd_StuffText); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_StuffText); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearSetAngle() {
-	if _, ok := x.Union.(*SCmd_SetAngle); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_SetAngle); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearServerInfo() {
-	if _, ok := x.Union.(*SCmd_ServerInfo); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_ServerInfo); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearLightStyle() {
-	if _, ok := x.Union.(*SCmd_LightStyle); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_LightStyle); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearUpdateName() {
-	if _, ok := x.Union.(*SCmd_UpdateName); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_UpdateName); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearUpdateFrags() {
-	if _, ok := x.Union.(*SCmd_UpdateFrags); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_UpdateFrags); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearClientData() {
-	if _, ok := x.Union.(*SCmd_ClientData); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_ClientData); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearStopSound() {
-	if _, ok := x.Union.(*SCmd_StopSound); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_StopSound); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearUpdateColors() {
-	if _, ok := x.Union.(*SCmd_UpdateColors); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_UpdateColors); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearParticle() {
-	if _, ok := x.Union.(*SCmd_Particle); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_Particle); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearDamage() {
-	if _, ok := x.Union.(*SCmd_Damage); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_Damage); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearSpawnStatic() {
-	if _, ok := x.Union.(*SCmd_SpawnStatic); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_SpawnStatic); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearSpawnBaseline() {
-	if _, ok := x.Union.(*SCmd_SpawnBaseline); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_SpawnBaseline); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearTempEntity() {
-	if _, ok := x.Union.(*SCmd_TempEntity); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_TempEntity); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearSetPause() {
-	if _, ok := x.Union.(*SCmd_SetPause); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_SetPause); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearSignonNum() {
-	if _, ok := x.Union.(*SCmd_SignonNum); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_SignonNum); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearCenterPrint() {
-	if _, ok := x.Union.(*SCmd_CenterPrint); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_CenterPrint); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearKilledMonster() {
-	if _, ok := x.Union.(*SCmd_KilledMonster); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_KilledMonster); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearFoundSecret() {
-	if _, ok := x.Union.(*SCmd_FoundSecret); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_FoundSecret); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearSpawnStaticSound() {
-	if _, ok := x.Union.(*SCmd_SpawnStaticSound); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_SpawnStaticSound); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearIntermission() {
-	if _, ok := x.Union.(*SCmd_Intermission); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_Intermission); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearFinale() {
-	if _, ok := x.Union.(*SCmd_Finale); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_Finale); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearCdTrack() {
-	if _, ok := x.Union.(*SCmd_CdTrack); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_CdTrack); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearSellScreen() {
-	if _, ok := x.Union.(*SCmd_SellScreen); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_SellScreen); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearCutscene() {
-	if _, ok := x.Union.(*SCmd_Cutscene); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_Cutscene); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearSkybox() {
-	if _, ok := x.Union.(*SCmd_Skybox); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_Skybox); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearBackgroundFlash() {
-	if _, ok := x.Union.(*SCmd_BackgroundFlash); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_BackgroundFlash); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearFog() {
-	if _, ok := x.Union.(*SCmd_Fog); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_Fog); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
 func (x *SCmd) ClearAchievement() {
-	if _, ok := x.Union.(*SCmd_Achievement); ok {
-		x.Union = nil
+	if _, ok := x.xxx_hidden_Union.(*sCmd_Achievement); ok {
+		x.xxx_hidden_Union = nil
 	}
 }
 
@@ -4510,80 +4520,80 @@ func (x *SCmd) WhichUnion() case_SCmd_Union {
 	if x == nil {
 		return SCmd_Union_not_set_case
 	}
-	switch x.Union.(type) {
-	case *SCmd_Disconnect:
+	switch x.xxx_hidden_Union.(type) {
+	case *sCmd_Disconnect:
 		return SCmd_Disconnect_case
-	case *SCmd_EntityUpdate:
+	case *sCmd_EntityUpdate:
 		return SCmd_EntityUpdate_case
-	case *SCmd_UpdateStat:
+	case *sCmd_UpdateStat:
 		return SCmd_UpdateStat_case
-	case *SCmd_Version:
+	case *sCmd_Version:
 		return SCmd_Version_case
-	case *SCmd_SetViewEntity:
+	case *sCmd_SetViewEntity:
 		return SCmd_SetViewEntity_case
-	case *SCmd_Sound:
+	case *sCmd_Sound:
 		return SCmd_Sound_case
-	case *SCmd_Time:
+	case *sCmd_Time:
 		return SCmd_Time_case
-	case *SCmd_Print:
+	case *sCmd_Print:
 		return SCmd_Print_case
-	case *SCmd_StuffText:
+	case *sCmd_StuffText:
 		return SCmd_StuffText_case
-	case *SCmd_SetAngle:
+	case *sCmd_SetAngle:
 		return SCmd_SetAngle_case
-	case *SCmd_ServerInfo:
+	case *sCmd_ServerInfo:
 		return SCmd_ServerInfo_case
-	case *SCmd_LightStyle:
+	case *sCmd_LightStyle:
 		return SCmd_LightStyle_case
-	case *SCmd_UpdateName:
+	case *sCmd_UpdateName:
 		return SCmd_UpdateName_case
-	case *SCmd_UpdateFrags:
+	case *sCmd_UpdateFrags:
 		return SCmd_UpdateFrags_case
-	case *SCmd_ClientData:
+	case *sCmd_ClientData:
 		return SCmd_ClientData_case
-	case *SCmd_StopSound:
+	case *sCmd_StopSound:
 		return SCmd_StopSound_case
-	case *SCmd_UpdateColors:
+	case *sCmd_UpdateColors:
 		return SCmd_UpdateColors_case
-	case *SCmd_Particle:
+	case *sCmd_Particle:
 		return SCmd_Particle_case
-	case *SCmd_Damage:
+	case *sCmd_Damage:
 		return SCmd_Damage_case
-	case *SCmd_SpawnStatic:
+	case *sCmd_SpawnStatic:
 		return SCmd_SpawnStatic_case
-	case *SCmd_SpawnBaseline:
+	case *sCmd_SpawnBaseline:
 		return SCmd_SpawnBaseline_case
-	case *SCmd_TempEntity:
+	case *sCmd_TempEntity:
 		return SCmd_TempEntity_case
-	case *SCmd_SetPause:
+	case *sCmd_SetPause:
 		return SCmd_SetPause_case
-	case *SCmd_SignonNum:
+	case *sCmd_SignonNum:
 		return SCmd_SignonNum_case
-	case *SCmd_CenterPrint:
+	case *sCmd_CenterPrint:
 		return SCmd_CenterPrint_case
-	case *SCmd_KilledMonster:
+	case *sCmd_KilledMonster:
 		return SCmd_KilledMonster_case
-	case *SCmd_FoundSecret:
+	case *sCmd_FoundSecret:
 		return SCmd_FoundSecret_case
-	case *SCmd_SpawnStaticSound:
+	case *sCmd_SpawnStaticSound:
 		return SCmd_SpawnStaticSound_case
-	case *SCmd_Intermission:
+	case *sCmd_Intermission:
 		return SCmd_Intermission_case
-	case *SCmd_Finale:
+	case *sCmd_Finale:
 		return SCmd_Finale_case
-	case *SCmd_CdTrack:
+	case *sCmd_CdTrack:
 		return SCmd_CdTrack_case
-	case *SCmd_SellScreen:
+	case *sCmd_SellScreen:
 		return SCmd_SellScreen_case
-	case *SCmd_Cutscene:
+	case *sCmd_Cutscene:
 		return SCmd_Cutscene_case
-	case *SCmd_Skybox:
+	case *sCmd_Skybox:
 		return SCmd_Skybox_case
-	case *SCmd_BackgroundFlash:
+	case *sCmd_BackgroundFlash:
 		return SCmd_BackgroundFlash_case
-	case *SCmd_Fog:
+	case *sCmd_Fog:
 		return SCmd_Fog_case
-	case *SCmd_Achievement:
+	case *sCmd_Achievement:
 		return SCmd_Achievement_case
 	default:
 		return SCmd_Union_not_set_case
@@ -4593,7 +4603,7 @@ func (x *SCmd) WhichUnion() case_SCmd_Union {
 type SCmd_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Fields of oneof Union:
+	// Fields of oneof xxx_hidden_Union:
 	// Empty nop = 1;
 	Disconnect       *bool
 	EntityUpdate     *EntityUpdate
@@ -4635,7 +4645,7 @@ type SCmd_builder struct {
 	// Baseline spawn_static2 = 43; -- not needed, covered by spawn_static
 	// SpawnStaticSound2 spawn_static_sound2 = 44; -- not needed, covered by spawn_static_sound
 	Achievement *string
-	// -- end of Union
+	// -- end of xxx_hidden_Union
 }
 
 func (b0 SCmd_builder) Build() *SCmd {
@@ -4643,115 +4653,115 @@ func (b0 SCmd_builder) Build() *SCmd {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Disconnect != nil {
-		x.Union = &SCmd_Disconnect{*b.Disconnect}
+		x.xxx_hidden_Union = &sCmd_Disconnect{*b.Disconnect}
 	}
 	if b.EntityUpdate != nil {
-		x.Union = &SCmd_EntityUpdate{b.EntityUpdate}
+		x.xxx_hidden_Union = &sCmd_EntityUpdate{b.EntityUpdate}
 	}
 	if b.UpdateStat != nil {
-		x.Union = &SCmd_UpdateStat{b.UpdateStat}
+		x.xxx_hidden_Union = &sCmd_UpdateStat{b.UpdateStat}
 	}
 	if b.Version != nil {
-		x.Union = &SCmd_Version{*b.Version}
+		x.xxx_hidden_Union = &sCmd_Version{*b.Version}
 	}
 	if b.SetViewEntity != nil {
-		x.Union = &SCmd_SetViewEntity{*b.SetViewEntity}
+		x.xxx_hidden_Union = &sCmd_SetViewEntity{*b.SetViewEntity}
 	}
 	if b.Sound != nil {
-		x.Union = &SCmd_Sound{b.Sound}
+		x.xxx_hidden_Union = &sCmd_Sound{b.Sound}
 	}
 	if b.Time != nil {
-		x.Union = &SCmd_Time{*b.Time}
+		x.xxx_hidden_Union = &sCmd_Time{*b.Time}
 	}
 	if b.Print != nil {
-		x.Union = &SCmd_Print{*b.Print}
+		x.xxx_hidden_Union = &sCmd_Print{*b.Print}
 	}
 	if b.StuffText != nil {
-		x.Union = &SCmd_StuffText{*b.StuffText}
+		x.xxx_hidden_Union = &sCmd_StuffText{*b.StuffText}
 	}
 	if b.SetAngle != nil {
-		x.Union = &SCmd_SetAngle{b.SetAngle}
+		x.xxx_hidden_Union = &sCmd_SetAngle{b.SetAngle}
 	}
 	if b.ServerInfo != nil {
-		x.Union = &SCmd_ServerInfo{b.ServerInfo}
+		x.xxx_hidden_Union = &sCmd_ServerInfo{b.ServerInfo}
 	}
 	if b.LightStyle != nil {
-		x.Union = &SCmd_LightStyle{b.LightStyle}
+		x.xxx_hidden_Union = &sCmd_LightStyle{b.LightStyle}
 	}
 	if b.UpdateName != nil {
-		x.Union = &SCmd_UpdateName{b.UpdateName}
+		x.xxx_hidden_Union = &sCmd_UpdateName{b.UpdateName}
 	}
 	if b.UpdateFrags != nil {
-		x.Union = &SCmd_UpdateFrags{b.UpdateFrags}
+		x.xxx_hidden_Union = &sCmd_UpdateFrags{b.UpdateFrags}
 	}
 	if b.ClientData != nil {
-		x.Union = &SCmd_ClientData{b.ClientData}
+		x.xxx_hidden_Union = &sCmd_ClientData{b.ClientData}
 	}
 	if b.StopSound != nil {
-		x.Union = &SCmd_StopSound{*b.StopSound}
+		x.xxx_hidden_Union = &sCmd_StopSound{*b.StopSound}
 	}
 	if b.UpdateColors != nil {
-		x.Union = &SCmd_UpdateColors{b.UpdateColors}
+		x.xxx_hidden_Union = &sCmd_UpdateColors{b.UpdateColors}
 	}
 	if b.Particle != nil {
-		x.Union = &SCmd_Particle{b.Particle}
+		x.xxx_hidden_Union = &sCmd_Particle{b.Particle}
 	}
 	if b.Damage != nil {
-		x.Union = &SCmd_Damage{b.Damage}
+		x.xxx_hidden_Union = &sCmd_Damage{b.Damage}
 	}
 	if b.SpawnStatic != nil {
-		x.Union = &SCmd_SpawnStatic{b.SpawnStatic}
+		x.xxx_hidden_Union = &sCmd_SpawnStatic{b.SpawnStatic}
 	}
 	if b.SpawnBaseline != nil {
-		x.Union = &SCmd_SpawnBaseline{b.SpawnBaseline}
+		x.xxx_hidden_Union = &sCmd_SpawnBaseline{b.SpawnBaseline}
 	}
 	if b.TempEntity != nil {
-		x.Union = &SCmd_TempEntity{b.TempEntity}
+		x.xxx_hidden_Union = &sCmd_TempEntity{b.TempEntity}
 	}
 	if b.SetPause != nil {
-		x.Union = &SCmd_SetPause{*b.SetPause}
+		x.xxx_hidden_Union = &sCmd_SetPause{*b.SetPause}
 	}
 	if b.SignonNum != nil {
-		x.Union = &SCmd_SignonNum{*b.SignonNum}
+		x.xxx_hidden_Union = &sCmd_SignonNum{*b.SignonNum}
 	}
 	if b.CenterPrint != nil {
-		x.Union = &SCmd_CenterPrint{*b.CenterPrint}
+		x.xxx_hidden_Union = &sCmd_CenterPrint{*b.CenterPrint}
 	}
 	if b.KilledMonster != nil {
-		x.Union = &SCmd_KilledMonster{b.KilledMonster}
+		x.xxx_hidden_Union = &sCmd_KilledMonster{b.KilledMonster}
 	}
 	if b.FoundSecret != nil {
-		x.Union = &SCmd_FoundSecret{b.FoundSecret}
+		x.xxx_hidden_Union = &sCmd_FoundSecret{b.FoundSecret}
 	}
 	if b.SpawnStaticSound != nil {
-		x.Union = &SCmd_SpawnStaticSound{b.SpawnStaticSound}
+		x.xxx_hidden_Union = &sCmd_SpawnStaticSound{b.SpawnStaticSound}
 	}
 	if b.Intermission != nil {
-		x.Union = &SCmd_Intermission{b.Intermission}
+		x.xxx_hidden_Union = &sCmd_Intermission{b.Intermission}
 	}
 	if b.Finale != nil {
-		x.Union = &SCmd_Finale{*b.Finale}
+		x.xxx_hidden_Union = &sCmd_Finale{*b.Finale}
 	}
 	if b.CdTrack != nil {
-		x.Union = &SCmd_CdTrack{b.CdTrack}
+		x.xxx_hidden_Union = &sCmd_CdTrack{b.CdTrack}
 	}
 	if b.SellScreen != nil {
-		x.Union = &SCmd_SellScreen{b.SellScreen}
+		x.xxx_hidden_Union = &sCmd_SellScreen{b.SellScreen}
 	}
 	if b.Cutscene != nil {
-		x.Union = &SCmd_Cutscene{*b.Cutscene}
+		x.xxx_hidden_Union = &sCmd_Cutscene{*b.Cutscene}
 	}
 	if b.Skybox != nil {
-		x.Union = &SCmd_Skybox{*b.Skybox}
+		x.xxx_hidden_Union = &sCmd_Skybox{*b.Skybox}
 	}
 	if b.BackgroundFlash != nil {
-		x.Union = &SCmd_BackgroundFlash{b.BackgroundFlash}
+		x.xxx_hidden_Union = &sCmd_BackgroundFlash{b.BackgroundFlash}
 	}
 	if b.Fog != nil {
-		x.Union = &SCmd_Fog{b.Fog}
+		x.xxx_hidden_Union = &sCmd_Fog{b.Fog}
 	}
 	if b.Achievement != nil {
-		x.Union = &SCmd_Achievement{*b.Achievement}
+		x.xxx_hidden_Union = &sCmd_Achievement{*b.Achievement}
 	}
 	return m0
 }
@@ -4770,237 +4780,237 @@ type isSCmd_Union interface {
 	isSCmd_Union()
 }
 
-type SCmd_Disconnect struct {
+type sCmd_Disconnect struct {
 	// Empty nop = 1;
 	Disconnect bool `protobuf:"varint,2,opt,name=disconnect,oneof"`
 }
 
-type SCmd_EntityUpdate struct {
+type sCmd_EntityUpdate struct {
 	EntityUpdate *EntityUpdate `protobuf:"bytes,45,opt,name=entity_update,json=entityUpdate,oneof"`
 }
 
-type SCmd_UpdateStat struct {
+type sCmd_UpdateStat struct {
 	UpdateStat *UpdateStat `protobuf:"bytes,3,opt,name=update_stat,json=updateStat,oneof"` // -- int32, int32 (byte + int32)
 }
 
-type SCmd_Version struct {
+type sCmd_Version struct {
 	Version int32 `protobuf:"varint,4,opt,name=version,oneof"`
 }
 
-type SCmd_SetViewEntity struct {
+type sCmd_SetViewEntity struct {
 	SetViewEntity int32 `protobuf:"varint,5,opt,name=set_view_entity,json=setViewEntity,oneof"` // set_view
 }
 
-type SCmd_Sound struct {
+type sCmd_Sound struct {
 	Sound *Sound `protobuf:"bytes,6,opt,name=sound,oneof"`
 }
 
-type SCmd_Time struct {
+type sCmd_Time struct {
 	Time float32 `protobuf:"fixed32,7,opt,name=time,oneof"`
 }
 
-type SCmd_Print struct {
+type sCmd_Print struct {
 	Print string `protobuf:"bytes,8,opt,name=print,oneof"`
 }
 
-type SCmd_StuffText struct {
+type sCmd_StuffText struct {
 	StuffText string `protobuf:"bytes,9,opt,name=stuff_text,json=stuffText,oneof"`
 }
 
-type SCmd_SetAngle struct {
+type sCmd_SetAngle struct {
 	SetAngle *Coord `protobuf:"bytes,10,opt,name=set_angle,json=setAngle,oneof"`
 }
 
-type SCmd_ServerInfo struct {
+type sCmd_ServerInfo struct {
 	ServerInfo *ServerInfo `protobuf:"bytes,11,opt,name=server_info,json=serverInfo,oneof"`
 }
 
-type SCmd_LightStyle struct {
+type sCmd_LightStyle struct {
 	LightStyle *LightStyle `protobuf:"bytes,12,opt,name=light_style,json=lightStyle,oneof"`
 }
 
-type SCmd_UpdateName struct {
+type sCmd_UpdateName struct {
 	UpdateName *UpdateName `protobuf:"bytes,13,opt,name=update_name,json=updateName,oneof"`
 }
 
-type SCmd_UpdateFrags struct {
+type sCmd_UpdateFrags struct {
 	UpdateFrags *UpdateFrags `protobuf:"bytes,14,opt,name=update_frags,json=updateFrags,oneof"`
 }
 
-type SCmd_ClientData struct {
+type sCmd_ClientData struct {
 	ClientData *ClientData `protobuf:"bytes,15,opt,name=client_data,json=clientData,oneof"`
 }
 
-type SCmd_StopSound struct {
+type sCmd_StopSound struct {
 	StopSound int32 `protobuf:"varint,16,opt,name=stop_sound,json=stopSound,oneof"`
 }
 
-type SCmd_UpdateColors struct {
+type sCmd_UpdateColors struct {
 	UpdateColors *UpdateColors `protobuf:"bytes,17,opt,name=update_colors,json=updateColors,oneof"`
 }
 
-type SCmd_Particle struct {
+type sCmd_Particle struct {
 	Particle *Particle `protobuf:"bytes,18,opt,name=particle,oneof"` // -- Coord, Coord, int32, int32 ([3]float, [3]int8, int8, int8)
 }
 
-type SCmd_Damage struct {
+type sCmd_Damage struct {
 	Damage *Damage `protobuf:"bytes,19,opt,name=damage,oneof"`
 }
 
-type SCmd_SpawnStatic struct {
+type sCmd_SpawnStatic struct {
 	SpawnStatic *Baseline `protobuf:"bytes,20,opt,name=spawn_static,json=spawnStatic,oneof"`
 }
 
-type SCmd_SpawnBaseline struct {
+type sCmd_SpawnBaseline struct {
 	SpawnBaseline *EntityBaseline `protobuf:"bytes,22,opt,name=spawn_baseline,json=spawnBaseline,oneof"`
 }
 
-type SCmd_TempEntity struct {
+type sCmd_TempEntity struct {
 	TempEntity *TempEntity `protobuf:"bytes,23,opt,name=temp_entity,json=tempEntity,oneof"`
 }
 
-type SCmd_SetPause struct {
+type sCmd_SetPause struct {
 	SetPause bool `protobuf:"varint,24,opt,name=set_pause,json=setPause,oneof"`
 }
 
-type SCmd_SignonNum struct {
+type sCmd_SignonNum struct {
 	SignonNum int32 `protobuf:"varint,25,opt,name=signon_num,json=signonNum,oneof"`
 }
 
-type SCmd_CenterPrint struct {
+type sCmd_CenterPrint struct {
 	CenterPrint string `protobuf:"bytes,26,opt,name=center_print,json=centerPrint,oneof"`
 }
 
-type SCmd_KilledMonster struct {
+type sCmd_KilledMonster struct {
 	KilledMonster *Empty `protobuf:"bytes,27,opt,name=killed_monster,json=killedMonster,oneof"`
 }
 
-type SCmd_FoundSecret struct {
+type sCmd_FoundSecret struct {
 	FoundSecret *Empty `protobuf:"bytes,28,opt,name=found_secret,json=foundSecret,oneof"`
 }
 
-type SCmd_SpawnStaticSound struct {
+type sCmd_SpawnStaticSound struct {
 	SpawnStaticSound *StaticSound `protobuf:"bytes,29,opt,name=spawn_static_sound,json=spawnStaticSound,oneof"`
 }
 
-type SCmd_Intermission struct {
+type sCmd_Intermission struct {
 	Intermission *Empty `protobuf:"bytes,30,opt,name=intermission,oneof"`
 }
 
-type SCmd_Finale struct {
+type sCmd_Finale struct {
 	Finale string `protobuf:"bytes,31,opt,name=finale,oneof"`
 }
 
-type SCmd_CdTrack struct {
+type sCmd_CdTrack struct {
 	CdTrack *CDTrack `protobuf:"bytes,32,opt,name=cd_track,json=cdTrack,oneof"` // -- int32, int32 (uint8, uint8)
 }
 
-type SCmd_SellScreen struct {
+type sCmd_SellScreen struct {
 	SellScreen *Empty `protobuf:"bytes,33,opt,name=sell_screen,json=sellScreen,oneof"`
 }
 
-type SCmd_Cutscene struct {
+type sCmd_Cutscene struct {
 	Cutscene string `protobuf:"bytes,34,opt,name=cutscene,oneof"`
 }
 
-type SCmd_Skybox struct {
+type sCmd_Skybox struct {
 	Skybox string `protobuf:"bytes,37,opt,name=skybox,oneof"`
 }
 
-type SCmd_BackgroundFlash struct {
+type sCmd_BackgroundFlash struct {
 	BackgroundFlash *Empty `protobuf:"bytes,40,opt,name=background_flash,json=backgroundFlash,oneof"`
 }
 
-type SCmd_Fog struct {
+type sCmd_Fog struct {
 	Fog *Fog `protobuf:"bytes,41,opt,name=fog,oneof"`
 }
 
-type SCmd_Achievement struct {
+type sCmd_Achievement struct {
 	// EntityBaseline spawn_baseline2 = 42; -- not needed, covered by spawn_baseline
 	// Baseline spawn_static2 = 43; -- not needed, covered by spawn_static
 	// SpawnStaticSound2 spawn_static_sound2 = 44; -- not needed, covered by spawn_static_sound
 	Achievement string `protobuf:"bytes,42,opt,name=achievement,oneof"`
 }
 
-func (*SCmd_Disconnect) isSCmd_Union() {}
+func (*sCmd_Disconnect) isSCmd_Union() {}
 
-func (*SCmd_EntityUpdate) isSCmd_Union() {}
+func (*sCmd_EntityUpdate) isSCmd_Union() {}
 
-func (*SCmd_UpdateStat) isSCmd_Union() {}
+func (*sCmd_UpdateStat) isSCmd_Union() {}
 
-func (*SCmd_Version) isSCmd_Union() {}
+func (*sCmd_Version) isSCmd_Union() {}
 
-func (*SCmd_SetViewEntity) isSCmd_Union() {}
+func (*sCmd_SetViewEntity) isSCmd_Union() {}
 
-func (*SCmd_Sound) isSCmd_Union() {}
+func (*sCmd_Sound) isSCmd_Union() {}
 
-func (*SCmd_Time) isSCmd_Union() {}
+func (*sCmd_Time) isSCmd_Union() {}
 
-func (*SCmd_Print) isSCmd_Union() {}
+func (*sCmd_Print) isSCmd_Union() {}
 
-func (*SCmd_StuffText) isSCmd_Union() {}
+func (*sCmd_StuffText) isSCmd_Union() {}
 
-func (*SCmd_SetAngle) isSCmd_Union() {}
+func (*sCmd_SetAngle) isSCmd_Union() {}
 
-func (*SCmd_ServerInfo) isSCmd_Union() {}
+func (*sCmd_ServerInfo) isSCmd_Union() {}
 
-func (*SCmd_LightStyle) isSCmd_Union() {}
+func (*sCmd_LightStyle) isSCmd_Union() {}
 
-func (*SCmd_UpdateName) isSCmd_Union() {}
+func (*sCmd_UpdateName) isSCmd_Union() {}
 
-func (*SCmd_UpdateFrags) isSCmd_Union() {}
+func (*sCmd_UpdateFrags) isSCmd_Union() {}
 
-func (*SCmd_ClientData) isSCmd_Union() {}
+func (*sCmd_ClientData) isSCmd_Union() {}
 
-func (*SCmd_StopSound) isSCmd_Union() {}
+func (*sCmd_StopSound) isSCmd_Union() {}
 
-func (*SCmd_UpdateColors) isSCmd_Union() {}
+func (*sCmd_UpdateColors) isSCmd_Union() {}
 
-func (*SCmd_Particle) isSCmd_Union() {}
+func (*sCmd_Particle) isSCmd_Union() {}
 
-func (*SCmd_Damage) isSCmd_Union() {}
+func (*sCmd_Damage) isSCmd_Union() {}
 
-func (*SCmd_SpawnStatic) isSCmd_Union() {}
+func (*sCmd_SpawnStatic) isSCmd_Union() {}
 
-func (*SCmd_SpawnBaseline) isSCmd_Union() {}
+func (*sCmd_SpawnBaseline) isSCmd_Union() {}
 
-func (*SCmd_TempEntity) isSCmd_Union() {}
+func (*sCmd_TempEntity) isSCmd_Union() {}
 
-func (*SCmd_SetPause) isSCmd_Union() {}
+func (*sCmd_SetPause) isSCmd_Union() {}
 
-func (*SCmd_SignonNum) isSCmd_Union() {}
+func (*sCmd_SignonNum) isSCmd_Union() {}
 
-func (*SCmd_CenterPrint) isSCmd_Union() {}
+func (*sCmd_CenterPrint) isSCmd_Union() {}
 
-func (*SCmd_KilledMonster) isSCmd_Union() {}
+func (*sCmd_KilledMonster) isSCmd_Union() {}
 
-func (*SCmd_FoundSecret) isSCmd_Union() {}
+func (*sCmd_FoundSecret) isSCmd_Union() {}
 
-func (*SCmd_SpawnStaticSound) isSCmd_Union() {}
+func (*sCmd_SpawnStaticSound) isSCmd_Union() {}
 
-func (*SCmd_Intermission) isSCmd_Union() {}
+func (*sCmd_Intermission) isSCmd_Union() {}
 
-func (*SCmd_Finale) isSCmd_Union() {}
+func (*sCmd_Finale) isSCmd_Union() {}
 
-func (*SCmd_CdTrack) isSCmd_Union() {}
+func (*sCmd_CdTrack) isSCmd_Union() {}
 
-func (*SCmd_SellScreen) isSCmd_Union() {}
+func (*sCmd_SellScreen) isSCmd_Union() {}
 
-func (*SCmd_Cutscene) isSCmd_Union() {}
+func (*sCmd_Cutscene) isSCmd_Union() {}
 
-func (*SCmd_Skybox) isSCmd_Union() {}
+func (*sCmd_Skybox) isSCmd_Union() {}
 
-func (*SCmd_BackgroundFlash) isSCmd_Union() {}
+func (*sCmd_BackgroundFlash) isSCmd_Union() {}
 
-func (*SCmd_Fog) isSCmd_Union() {}
+func (*sCmd_Fog) isSCmd_Union() {}
 
-func (*SCmd_Achievement) isSCmd_Union() {}
+func (*sCmd_Achievement) isSCmd_Union() {}
 
 type ServerMessage struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Cmds          []*SCmd                `protobuf:"bytes,1,rep,name=cmds" json:"cmds,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Cmds *[]*SCmd               `protobuf:"bytes,1,rep,name=cmds" json:"cmds,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *ServerMessage) Reset() {
@@ -5030,13 +5040,15 @@ func (x *ServerMessage) ProtoReflect() protoreflect.Message {
 
 func (x *ServerMessage) GetCmds() []*SCmd {
 	if x != nil {
-		return x.Cmds
+		if x.xxx_hidden_Cmds != nil {
+			return *x.xxx_hidden_Cmds
+		}
 	}
 	return nil
 }
 
 func (x *ServerMessage) SetCmds(v []*SCmd) {
-	x.Cmds = v
+	x.xxx_hidden_Cmds = &v
 }
 
 type ServerMessage_builder struct {
@@ -5049,7 +5061,7 @@ func (b0 ServerMessage_builder) Build() *ServerMessage {
 	m0 := &ServerMessage{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Cmds = b.Cmds
+	x.xxx_hidden_Cmds = &b.Cmds
 	return m0
 }
 
@@ -5401,7 +5413,7 @@ var file_server_message_proto_rawDesc = []byte{
 	0x53, 0x43, 0x6d, 0x64, 0x52, 0x04, 0x63, 0x6d, 0x64, 0x73, 0x42, 0x33, 0x5a, 0x21, 0x67, 0x69,
 	0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x74, 0x68, 0x65, 0x72, 0x6a, 0x61, 0x6b,
 	0x2f, 0x67, 0x6f, 0x71, 0x75, 0x61, 0x6b, 0x65, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x73, 0x92,
-	0x03, 0x0d, 0xd2, 0x3e, 0x02, 0x10, 0x02, 0x08, 0x02, 0x10, 0x01, 0x20, 0x02, 0x30, 0x01, 0x62,
+	0x03, 0x0d, 0xd2, 0x3e, 0x02, 0x10, 0x03, 0x08, 0x02, 0x10, 0x01, 0x20, 0x02, 0x30, 0x01, 0x62,
 	0x08, 0x65, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x70, 0xe8, 0x07,
 }
 
@@ -5497,59 +5509,59 @@ func file_server_message_proto_init() {
 		return
 	}
 	file_server_message_proto_msgTypes[5].OneofWrappers = []any{
-		(*TempEntity_Spike)(nil),
-		(*TempEntity_SuperSpike)(nil),
-		(*TempEntity_Gunshot)(nil),
-		(*TempEntity_Explosion)(nil),
-		(*TempEntity_TarExplosion)(nil),
-		(*TempEntity_Lightning1)(nil),
-		(*TempEntity_Lightning2)(nil),
-		(*TempEntity_WizSpike)(nil),
-		(*TempEntity_KnightSpike)(nil),
-		(*TempEntity_Lightning3)(nil),
-		(*TempEntity_LavaSplash)(nil),
-		(*TempEntity_Teleport)(nil),
-		(*TempEntity_Explosion2)(nil),
-		(*TempEntity_Beam)(nil),
+		(*tempEntity_Spike)(nil),
+		(*tempEntity_SuperSpike)(nil),
+		(*tempEntity_Gunshot)(nil),
+		(*tempEntity_Explosion)(nil),
+		(*tempEntity_TarExplosion)(nil),
+		(*tempEntity_Lightning1)(nil),
+		(*tempEntity_Lightning2)(nil),
+		(*tempEntity_WizSpike)(nil),
+		(*tempEntity_KnightSpike)(nil),
+		(*tempEntity_Lightning3)(nil),
+		(*tempEntity_LavaSplash)(nil),
+		(*tempEntity_Teleport)(nil),
+		(*tempEntity_Explosion2)(nil),
+		(*tempEntity_Beam)(nil),
 	}
 	file_server_message_proto_msgTypes[22].OneofWrappers = []any{
-		(*SCmd_Disconnect)(nil),
-		(*SCmd_EntityUpdate)(nil),
-		(*SCmd_UpdateStat)(nil),
-		(*SCmd_Version)(nil),
-		(*SCmd_SetViewEntity)(nil),
-		(*SCmd_Sound)(nil),
-		(*SCmd_Time)(nil),
-		(*SCmd_Print)(nil),
-		(*SCmd_StuffText)(nil),
-		(*SCmd_SetAngle)(nil),
-		(*SCmd_ServerInfo)(nil),
-		(*SCmd_LightStyle)(nil),
-		(*SCmd_UpdateName)(nil),
-		(*SCmd_UpdateFrags)(nil),
-		(*SCmd_ClientData)(nil),
-		(*SCmd_StopSound)(nil),
-		(*SCmd_UpdateColors)(nil),
-		(*SCmd_Particle)(nil),
-		(*SCmd_Damage)(nil),
-		(*SCmd_SpawnStatic)(nil),
-		(*SCmd_SpawnBaseline)(nil),
-		(*SCmd_TempEntity)(nil),
-		(*SCmd_SetPause)(nil),
-		(*SCmd_SignonNum)(nil),
-		(*SCmd_CenterPrint)(nil),
-		(*SCmd_KilledMonster)(nil),
-		(*SCmd_FoundSecret)(nil),
-		(*SCmd_SpawnStaticSound)(nil),
-		(*SCmd_Intermission)(nil),
-		(*SCmd_Finale)(nil),
-		(*SCmd_CdTrack)(nil),
-		(*SCmd_SellScreen)(nil),
-		(*SCmd_Cutscene)(nil),
-		(*SCmd_Skybox)(nil),
-		(*SCmd_BackgroundFlash)(nil),
-		(*SCmd_Fog)(nil),
-		(*SCmd_Achievement)(nil),
+		(*sCmd_Disconnect)(nil),
+		(*sCmd_EntityUpdate)(nil),
+		(*sCmd_UpdateStat)(nil),
+		(*sCmd_Version)(nil),
+		(*sCmd_SetViewEntity)(nil),
+		(*sCmd_Sound)(nil),
+		(*sCmd_Time)(nil),
+		(*sCmd_Print)(nil),
+		(*sCmd_StuffText)(nil),
+		(*sCmd_SetAngle)(nil),
+		(*sCmd_ServerInfo)(nil),
+		(*sCmd_LightStyle)(nil),
+		(*sCmd_UpdateName)(nil),
+		(*sCmd_UpdateFrags)(nil),
+		(*sCmd_ClientData)(nil),
+		(*sCmd_StopSound)(nil),
+		(*sCmd_UpdateColors)(nil),
+		(*sCmd_Particle)(nil),
+		(*sCmd_Damage)(nil),
+		(*sCmd_SpawnStatic)(nil),
+		(*sCmd_SpawnBaseline)(nil),
+		(*sCmd_TempEntity)(nil),
+		(*sCmd_SetPause)(nil),
+		(*sCmd_SignonNum)(nil),
+		(*sCmd_CenterPrint)(nil),
+		(*sCmd_KilledMonster)(nil),
+		(*sCmd_FoundSecret)(nil),
+		(*sCmd_SpawnStaticSound)(nil),
+		(*sCmd_Intermission)(nil),
+		(*sCmd_Finale)(nil),
+		(*sCmd_CdTrack)(nil),
+		(*sCmd_SellScreen)(nil),
+		(*sCmd_Cutscene)(nil),
+		(*sCmd_Skybox)(nil),
+		(*sCmd_BackgroundFlash)(nil),
+		(*sCmd_Fog)(nil),
+		(*sCmd_Achievement)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
