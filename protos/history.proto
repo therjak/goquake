@@ -2,11 +2,13 @@
 edition = "2023";
 
 package protos;
+import "google/protobuf/go_features.proto";
 option go_package = "github.com/therjak/goquake/protos";
 option features.field_presence = IMPLICIT;
 option features.enum_type = OPEN;
 option features.json_format = ALLOW;
 option features.utf8_validation = VERIFY;
+option features.(pb.go).api_level = API_HYBRID;
 
 message History {
   repeated string entries = 1;
