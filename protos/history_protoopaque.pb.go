@@ -6,7 +6,7 @@
 // 	protoc        v5.29.2
 // source: history.proto
 
-//go:build !protoopaque
+//go:build protoopaque
 
 package protos
 
@@ -25,10 +25,10 @@ const (
 )
 
 type History struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Entries       []string               `protobuf:"bytes,1,rep,name=entries" json:"entries,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Entries []string               `protobuf:"bytes,1,rep,name=entries" json:"entries,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *History) Reset() {
@@ -58,13 +58,13 @@ func (x *History) ProtoReflect() protoreflect.Message {
 
 func (x *History) GetEntries() []string {
 	if x != nil {
-		return x.Entries
+		return x.xxx_hidden_Entries
 	}
 	return nil
 }
 
 func (x *History) SetEntries(v []string) {
-	x.Entries = v
+	x.xxx_hidden_Entries = v
 }
 
 type History_builder struct {
@@ -77,7 +77,7 @@ func (b0 History_builder) Build() *History {
 	m0 := &History{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Entries = b.Entries
+	x.xxx_hidden_Entries = b.Entries
 	return m0
 }
 
