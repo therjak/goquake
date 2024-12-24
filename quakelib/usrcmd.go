@@ -108,7 +108,7 @@ func (u *userMove) mouseMove() {
 
 // Send unreliable message (CL_SendMove)
 func send(v userView, m userMove) error {
-	cmd := &protos.UsrCmd{
+	cmd := protos.UsrCmd_builder{
 		MessageTime: float32(cl.messageTime),
 		Pitch:       v.pitch,
 		Yaw:         v.yaw,
@@ -119,12 +119,10 @@ func send(v userView, m userMove) error {
 		Attack:      input.Attack.WentDown(),
 		Jump:        input.Jump.WentDown(),
 		Impulse:     int32(in_impulse),
-	}
+	}.Build()
 	pb := &protos.ClientMessage{}
-	pb.Cmds = append(pb.Cmds, &protos.Cmd{
-		Union: &protos.Cmd_MoveCmd{
-			cmd,
-		}})
+	pb.SetCmds(append(pb.GetCmds(), &protos.Cmd{
+		Union: &protos.Cmd_MoveCmd{cmd}}))
 
 	cl.cmdForwardMove = m.forward
 	in_impulse = 0

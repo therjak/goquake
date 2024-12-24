@@ -118,7 +118,7 @@ func parseClientData(msg *net.QReader) (*protos.ClientData, error) {
 		if err != nil {
 			return nil, err
 		}
-		clientData.ViewHeight = proto.Int32(int32(m))
+		clientData.SetViewHeight(int32(m))
 	}
 
 	if has(SU_IDEALPITCH) {
@@ -126,53 +126,53 @@ func parseClientData(msg *net.QReader) (*protos.ClientData, error) {
 		if err != nil {
 			return nil, err
 		}
-		clientData.IdealPitch = int32(p)
+		clientData.SetIdealPitch(int32(p))
 	}
 
-	clientData.PunchAngle = &protos.IntCoord{}
-	clientData.Velocity = &protos.IntCoord{}
+	clientData.SetPunchAngle(&protos.IntCoord{})
+	clientData.SetVelocity(&protos.IntCoord{})
 
 	if has(SU_PUNCH1) {
 		v, err := msg.ReadInt8()
 		if err != nil {
 			return nil, err
 		}
-		clientData.PunchAngle.X = int32(v)
+		clientData.GetPunchAngle().SetX(int32(v))
 	}
 	if has(SU_VELOCITY1) {
 		v, err := msg.ReadInt8()
 		if err != nil {
 			return nil, err
 		}
-		clientData.Velocity.X = int32(v)
+		clientData.GetVelocity().SetX(int32(v))
 	}
 	if has(SU_PUNCH2) {
 		v, err := msg.ReadInt8()
 		if err != nil {
 			return nil, err
 		}
-		clientData.PunchAngle.Y = int32(v)
+		clientData.GetPunchAngle().SetY(int32(v))
 	}
 	if has(SU_VELOCITY2) {
 		v, err := msg.ReadInt8()
 		if err != nil {
 			return nil, err
 		}
-		clientData.Velocity.Y = int32(v)
+		clientData.GetVelocity().SetY(int32(v))
 	}
 	if has(SU_PUNCH3) {
 		v, err := msg.ReadInt8()
 		if err != nil {
 			return nil, err
 		}
-		clientData.PunchAngle.Z = int32(v)
+		clientData.GetPunchAngle().SetZ(int32(v))
 	}
 	if has(SU_VELOCITY3) {
 		v, err := msg.ReadInt8()
 		if err != nil {
 			return nil, err
 		}
-		clientData.Velocity.Z = int32(v)
+		clientData.GetVelocity().SetZ(int32(v))
 	}
 
 	// [always sent]	if (bits & SU_ITEMS) != 0
@@ -180,10 +180,10 @@ func parseClientData(msg *net.QReader) (*protos.ClientData, error) {
 	if err != nil {
 		return nil, err
 	}
-	clientData.Items = items
+	clientData.SetItems(items)
 
-	clientData.InWater = bits&SU_INWATER != 0
-	clientData.OnGround = bits&SU_ONGROUND != 0
+	clientData.SetInWater(bits&SU_INWATER != 0)
+	clientData.SetOnGround(bits&SU_ONGROUND != 0)
 
 	var weaponFrame int32
 	var armor int32
@@ -208,7 +208,7 @@ func parseClientData(msg *net.QReader) (*protos.ClientData, error) {
 	if err != nil {
 		return nil, err
 	}
-	clientData.Health = int32(health)
+	clientData.SetHealth(int32(health))
 
 	var ammo int32
 	var shells int32
@@ -234,7 +234,7 @@ func parseClientData(msg *net.QReader) (*protos.ClientData, error) {
 	if err != nil {
 		return nil, err
 	}
-	clientData.ActiveWeapon = int32(active)
+	clientData.SetActiveWeapon(int32(active))
 
 	if has(SU_WEAPON2) {
 		if err := readUpperByte(&weapon); err != nil {
@@ -281,21 +281,21 @@ func parseClientData(msg *net.QReader) (*protos.ClientData, error) {
 		if err != nil {
 			return nil, err
 		}
-		clientData.WeaponAlpha = int32(v)
+		clientData.SetWeaponAlpha(int32(v))
 	}
-	clientData.Ammo = ammo
-	clientData.Shells = shells
-	clientData.Nails = nails
-	clientData.Rockets = rockets
-	clientData.Cells = cells
+	clientData.SetAmmo(ammo)
+	clientData.SetShells(shells)
+	clientData.SetNails(nails)
+	clientData.SetRockets(rockets)
+	clientData.SetCells(cells)
 	if has(SU_WEAPONFRAME) || has(SU_WEAPONFRAME2) {
-		clientData.WeaponFrame = weaponFrame
+		clientData.SetWeaponFrame(weaponFrame)
 	}
 	if has(SU_ARMOR) || has(SU_ARMOR2) {
-		clientData.Armor = armor
+		clientData.SetArmor(armor)
 	}
 	if has(SU_WEAPON) || has(SU_WEAPON2) {
-		clientData.Weapon = weapon
+		clientData.SetWeapon(weapon)
 	}
 
 	return clientData, nil
@@ -314,11 +314,11 @@ func readCoord(msg *net.QReader, protocolFlags uint32) (*protos.Coord, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &protos.Coord{
+	return protos.Coord_builder{
 		X: x,
 		Y: y,
 		Z: z,
-	}, nil
+	}.Build(), nil
 }
 
 func readAngle(msg *net.QReader, protocolFlags uint32) (*protos.Coord, error) {
@@ -334,11 +334,11 @@ func readAngle(msg *net.QReader, protocolFlags uint32) (*protos.Coord, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &protos.Coord{
+	return protos.Coord_builder{
 		X: x,
 		Y: y,
 		Z: z,
-	}, nil
+	}.Build(), nil
 }
 
 func parseTempEntity(msg *net.QReader, protocolFlags uint32) (*protos.TempEntity, error) {
@@ -409,15 +409,13 @@ func parseTempEntity(msg *net.QReader, protocolFlags uint32) (*protos.TempEntity
 		if err != nil {
 			return nil, err
 		}
-		return &protos.TempEntity{
-			Union: &protos.TempEntity_Lightning1{
-				&protos.Line{
-					Entity: int32(ent),
-					Start:  s,
-					End:    e,
-				},
-			},
-		}, nil
+		return protos.TempEntity_builder{
+			Lightning1: protos.Line_builder{
+				Entity: int32(ent),
+				Start:  s,
+				End:    e,
+			}.Build(),
+		}.Build(), nil
 	case TE_LIGHTNING2:
 		// lightning bolts
 		ent, err := msg.ReadInt16()
@@ -432,15 +430,13 @@ func parseTempEntity(msg *net.QReader, protocolFlags uint32) (*protos.TempEntity
 		if err != nil {
 			return nil, err
 		}
-		return &protos.TempEntity{
-			Union: &protos.TempEntity_Lightning2{
-				&protos.Line{
-					Entity: int32(ent),
-					Start:  s,
-					End:    e,
-				},
-			},
-		}, nil
+		return protos.TempEntity_builder{
+			Lightning2: protos.Line_builder{
+				Entity: int32(ent),
+				Start:  s,
+				End:    e,
+			}.Build(),
+		}.Build(), nil
 	case TE_WIZSPIKE:
 		// spike hitting wall
 		pos, err := readCoordVec()
@@ -473,15 +469,13 @@ func parseTempEntity(msg *net.QReader, protocolFlags uint32) (*protos.TempEntity
 		if err != nil {
 			return nil, err
 		}
-		return &protos.TempEntity{
-			Union: &protos.TempEntity_Lightning3{
-				&protos.Line{
-					Entity: int32(ent),
-					Start:  s,
-					End:    e,
-				},
-			},
-		}, nil
+		return protos.TempEntity_builder{
+			Lightning3: protos.Line_builder{
+				Entity: int32(ent),
+				Start:  s,
+				End:    e,
+			}.Build(),
+		}.Build(), nil
 	case TE_LAVASPLASH:
 		pos, err := readCoordVec()
 		if err != nil {
@@ -511,15 +505,13 @@ func parseTempEntity(msg *net.QReader, protocolFlags uint32) (*protos.TempEntity
 		if err = msg.Read(&color); err != nil {
 			return nil, err
 		}
-		return &protos.TempEntity{
-			Union: &protos.TempEntity_Explosion2{
-				&protos.Explosion2{
-					Position:   pos,
-					StartColor: int32(color.start),
-					StopColor:  int32(color.end),
-				},
-			},
-		}, nil
+		return protos.TempEntity_builder{
+			Explosion2: protos.Explosion2_builder{
+				Position:   pos,
+				StartColor: int32(color.start),
+				StopColor:  int32(color.end),
+			}.Build(),
+		}.Build(), nil
 	case TE_BEAM:
 		// grappling hook beam
 		ent, err := msg.ReadInt16()
@@ -534,15 +526,13 @@ func parseTempEntity(msg *net.QReader, protocolFlags uint32) (*protos.TempEntity
 		if err != nil {
 			return nil, err
 		}
-		return &protos.TempEntity{
-			Union: &protos.TempEntity_Beam{
-				&protos.Line{
-					Entity: int32(ent),
-					Start:  s,
-					End:    e,
-				},
-			},
-		}, nil
+		return protos.TempEntity_builder{
+			Beam: protos.Line_builder{
+				Entity: int32(ent),
+				Start:  s,
+				End:    e,
+			}.Build(),
+		}.Build(), nil
 	}
 	return nil, fmt.Errorf("CL_ParseTEnt: bad type")
 }
@@ -560,7 +550,7 @@ func parseSoundMessage(msg *net.QReader, protocolFlags uint32) (*protos.Sound, e
 		if err != nil {
 			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
 		}
-		message.Volume = proto.Int32(int32(volume))
+		message.SetVolume(int32(volume))
 	}
 
 	if fieldMask&SoundAttenuation != 0 {
@@ -568,7 +558,7 @@ func parseSoundMessage(msg *net.QReader, protocolFlags uint32) (*protos.Sound, e
 		if err != nil {
 			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
 		}
-		message.Attenuation = proto.Int32(int32(a))
+		message.SetAttenuation(int32(a))
 	}
 
 	if fieldMask&SoundLargeEntity != 0 {
@@ -580,15 +570,15 @@ func parseSoundMessage(msg *net.QReader, protocolFlags uint32) (*protos.Sound, e
 		if err != nil {
 			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
 		}
-		message.Entity = int32(e)
-		message.Channel = int32(c)
+		message.SetEntity(int32(e))
+		message.SetChannel(int32(c))
 	} else {
 		s, err := msg.ReadInt16() // int16 + byte
 		if err != nil {
 			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
 		}
-		message.Entity = int32(s >> 3)
-		message.Channel = int32(s & 7)
+		message.SetEntity(int32(s >> 3))
+		message.SetChannel(int32(s & 7))
 	}
 
 	if fieldMask&SoundLargeSound != 0 {
@@ -596,19 +586,19 @@ func parseSoundMessage(msg *net.QReader, protocolFlags uint32) (*protos.Sound, e
 		if err != nil {
 			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
 		}
-		message.SoundNum = int32(n - 1)
+		message.SetSoundNum(int32(n - 1))
 	} else {
 		n, err := msg.ReadByte() // int16
 		if err != nil {
 			return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
 		}
-		message.SoundNum = int32(n - 1)
+		message.SetSoundNum(int32(n - 1))
 	}
 	cord, err := readCoord(msg, protocolFlags)
 	if err != nil {
 		return nil, fmt.Errorf("CL_ParseStartSoundPacket: %v", err)
 	}
-	message.Origin = cord
+	message.SetOrigin(cord)
 	return message, nil
 }
 
@@ -626,26 +616,26 @@ func parseBaseline(msg *net.QReader, protocolFlags uint32, version int) (*protos
 		if i, err := msg.ReadUint16(); err != nil {
 			return nil, err
 		} else {
-			bl.ModelIndex = int32(i)
+			bl.SetModelIndex(int32(i))
 		}
 	} else {
 		if i, err := msg.ReadByte(); err != nil {
 			return nil, err
 		} else {
-			bl.ModelIndex = int32(i)
+			bl.SetModelIndex(int32(i))
 		}
 	}
 	if bits&EntityBaselineLargeFrame != 0 {
 		if f, err := msg.ReadUint16(); err != nil {
 			return nil, err
 		} else {
-			bl.Frame = int32(f)
+			bl.SetFrame(int32(f))
 		}
 	} else {
 		if f, err := msg.ReadByte(); err != nil {
 			return nil, err
 		} else {
-			bl.Frame = int32(f)
+			bl.SetFrame(int32(f))
 		}
 	}
 
@@ -653,12 +643,12 @@ func parseBaseline(msg *net.QReader, protocolFlags uint32, version int) (*protos
 	if cm, err := msg.ReadByte(); err != nil {
 		return nil, err
 	} else {
-		bl.ColorMap = int32(cm)
+		bl.SetColorMap(int32(cm))
 	}
 	if s, err := msg.ReadByte(); err != nil {
 		return nil, err
 	} else {
-		bl.Skin = int32(s)
+		bl.SetSkin(int32(s))
 	}
 
 	o := &protos.Coord{}
@@ -681,14 +671,14 @@ func parseBaseline(msg *net.QReader, protocolFlags uint32, version int) (*protos
 	if a.Z, err = msg.ReadAngle(protocolFlags); err != nil {
 		return nil, err
 	}
-	bl.Origin = o
-	bl.Angles = a
+	bl.SetOrigin(o)
+	bl.SetAngles(a)
 
 	if bits&EntityBaselineAlpha != 0 {
 		if a, err := msg.ReadByte(); err != nil {
 			return nil, err
 		} else {
-			bl.Alpha = int32(a)
+			bl.SetAlpha(int32(a))
 		}
 	}
 
@@ -702,31 +692,31 @@ func parseServerInfo(msg *net.QReader) (*protos.ServerInfo, error) {
 	if si.Protocol, err = msg.ReadInt32(); err != nil {
 		return nil, err
 	}
-	switch si.Protocol {
+	switch si.GetProtocol() {
 	case protocol.NetQuake, protocol.FitzQuake, protocol.RMQ, protocol.GoQuake:
 	default:
-		return nil, fmt.Errorf("Server returned version %d, not %d or %d or %d or %d", si.Protocol,
+		return nil, fmt.Errorf("Server returned version %d, not %d or %d or %d or %d", si.GetProtocol(),
 			protocol.NetQuake, protocol.FitzQuake, protocol.RMQ, protocol.GoQuake)
 	}
 
-	if si.Protocol == protocol.RMQ {
+	if si.GetProtocol() == protocol.RMQ {
 		if flags, err := msg.ReadUint32(); err != nil {
 			return nil, err
 		} else {
-			si.Flags = int32(flags)
+			si.SetFlags(int32(flags))
 		}
 	}
 
 	if mc, err := msg.ReadByte(); err != nil {
 		return nil, err
 	} else {
-		si.MaxClients = int32(mc)
+		si.SetMaxClients(int32(mc))
 	}
 
 	if gt, err := msg.ReadByte(); err != nil {
 		return nil, err
 	} else {
-		si.GameType = int32(gt)
+		si.SetGameType(int32(gt))
 	}
 
 	if si.LevelName, err = msg.ReadString(); err != nil {
@@ -744,7 +734,7 @@ func parseServerInfo(msg *net.QReader) (*protos.ServerInfo, error) {
 		}
 		modelNames = append(modelNames, m)
 	}
-	si.ModelPrecache = modelNames
+	si.SetModelPrecache(modelNames)
 
 	var sounds []string
 	for {
@@ -757,7 +747,7 @@ func parseServerInfo(msg *net.QReader) (*protos.ServerInfo, error) {
 		}
 		sounds = append(sounds, s)
 	}
-	si.SoundPrecache = sounds
+	si.SetSoundPrecache(sounds)
 
 	return si, nil
 }
@@ -800,42 +790,42 @@ func parseEntityUpdate(msg *net.QReader, pcol int, protocolFlags uint32, cmd byt
 	if err != nil {
 		return nil, err
 	}
-	eu.Entity = num
-	eu.LerpMoveStep = bits&U_STEP != 0
+	eu.SetEntity(num)
+	eu.SetLerpMoveStep(bits&U_STEP != 0)
 
 	if bits&U_MODEL != 0 {
 		if v, err := msg.ReadByte(); err != nil {
 			return nil, err
 		} else {
-			eu.Model = proto.Int32(int32(v))
+			eu.SetModel(int32(v))
 		}
 	}
 	if bits&U_FRAME != 0 {
 		if v, err := msg.ReadByte(); err != nil {
 			return nil, err
 		} else {
-			eu.Frame = proto.Int32(int32(v))
+			eu.SetFrame(int32(v))
 		}
 	}
 	if bits&U_COLORMAP != 0 {
 		if v, err := msg.ReadByte(); err != nil {
 			return nil, err
 		} else {
-			eu.ColorMap = proto.Int32(int32(v))
+			eu.SetColorMap(int32(v))
 		}
 	}
 	if bits&U_SKIN != 0 {
 		if v, err := msg.ReadByte(); err != nil {
 			return nil, err
 		} else {
-			eu.Skin = proto.Int32(int32(v))
+			eu.SetSkin(int32(v))
 		}
 	}
 	if bits&U_EFFECTS != 0 {
 		if v, err := msg.ReadByte(); err != nil {
 			return nil, err
 		} else {
-			eu.Effects = int32(v)
+			eu.SetEffects(int32(v))
 		}
 	}
 
@@ -845,42 +835,42 @@ func parseEntityUpdate(msg *net.QReader, pcol int, protocolFlags uint32, cmd byt
 		if v, err := msg.ReadCoord(protocolFlags); err != nil {
 			return nil, err
 		} else {
-			eu.OriginX = &v
+			eu.SetOriginX(v)
 		}
 	}
 	if bits&U_ANGLE1 != 0 {
 		if v, err := msg.ReadAngle(protocolFlags); err != nil {
 			return nil, err
 		} else {
-			eu.AngleX = &v
+			eu.SetAngleX(v)
 		}
 	}
 	if bits&U_ORIGIN2 != 0 {
 		if v, err := msg.ReadCoord(protocolFlags); err != nil {
 			return nil, err
 		} else {
-			eu.OriginY = &v
+			eu.SetOriginY(v)
 		}
 	}
 	if bits&U_ANGLE2 != 0 {
 		if v, err := msg.ReadAngle(protocolFlags); err != nil {
 			return nil, err
 		} else {
-			eu.AngleY = &v
+			eu.SetAngleY(v)
 		}
 	}
 	if bits&U_ORIGIN3 != 0 {
 		if v, err := msg.ReadCoord(protocolFlags); err != nil {
 			return nil, err
 		} else {
-			eu.OriginZ = &v
+			eu.SetOriginZ(v)
 		}
 	}
 	if bits&U_ANGLE3 != 0 {
 		if v, err := msg.ReadAngle(protocolFlags); err != nil {
 			return nil, err
 		} else {
-			eu.AngleZ = &v
+			eu.SetAngleZ(v)
 		}
 	}
 
@@ -890,7 +880,7 @@ func parseEntityUpdate(msg *net.QReader, pcol int, protocolFlags uint32, cmd byt
 			if v, err := msg.ReadByte(); err != nil {
 				return nil, err
 			} else {
-				eu.Alpha = proto.Int32(int32(v))
+				eu.SetAlpha(int32(v))
 			}
 		}
 		if bits&U_SCALE != 0 {
@@ -904,7 +894,7 @@ func parseEntityUpdate(msg *net.QReader, pcol int, protocolFlags uint32, cmd byt
 			if v, err := msg.ReadByte(); err != nil {
 				return nil, err
 			} else {
-				*eu.Frame |= int32(v) << 8
+				eu.SetFrame(eu.GetFrame() | int32(v)<<8)
 			}
 		}
 		if bits&U_MODEL2 != 0 {
@@ -912,14 +902,14 @@ func parseEntityUpdate(msg *net.QReader, pcol int, protocolFlags uint32, cmd byt
 			if v, err := msg.ReadByte(); err != nil {
 				return nil, err
 			} else {
-				*eu.Model |= int32(v) << 8
+				eu.SetModel(eu.GetModel() | int32(v)<<8)
 			}
 		}
 		if bits&U_LERPFINISH != 0 {
 			if v, err := msg.ReadByte(); err != nil {
 				return nil, err
 			} else {
-				eu.LerpFinish = proto.Int32(int32(v))
+				eu.SetLerpFinish(int32(v))
 			}
 		}
 	case protocol.NetQuake:
@@ -943,11 +933,11 @@ func parseEntityUpdate(msg *net.QReader, pcol int, protocolFlags uint32, cmd byt
 			b *= 255
 			switch {
 			case b < 0:
-				eu.Alpha = proto.Int32(0)
+				eu.SetAlpha(0)
 			case b == 0, b >= 255:
-				eu.Alpha = proto.Int32(255)
+				eu.SetAlpha(255)
 			default:
-				eu.Alpha = proto.Int32(int32(b))
+				eu.SetAlpha(int32(b))
 			}
 		}
 	}
@@ -970,9 +960,9 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 			if eu, err := parseEntityUpdate(msg, protocol, protocolFlags, cmd&127); err != nil {
 				return nil, err
 			} else {
-				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+				sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
 					Union: &protos.SCmd_EntityUpdate{eu},
-				})
+				}))
 			}
 			continue
 		}
@@ -982,58 +972,58 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 			return nil, fmt.Errorf("Illegible server message, previous was %s", svc_strings[lastcmd])
 
 		case Nop:
-			sm.Cmds = append(sm.Cmds, &protos.SCmd{})
+			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{}))
 		case Time:
 			if t, err := msg.ReadFloat32(); err != nil {
 				return nil, err
 			} else {
-				sm.Cmds = append(sm.Cmds, &protos.SCmd{
-					Union: &protos.SCmd_Time{t},
-				})
+				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+					Time: proto.Float32(t),
+				}.Build()))
 			}
 		case ClientData:
 			if cdp, err := parseClientData(msg); err != nil {
 				return nil, err
 			} else {
-				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+				sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
 					Union: &protos.SCmd_ClientData{cdp},
-				})
+				}))
 			}
 		case Version:
 			if i, err := msg.ReadInt32(); err != nil {
 				return nil, err
 			} else {
-				sm.Cmds = append(sm.Cmds, &protos.SCmd{
-					Union: &protos.SCmd_Version{int32(i)},
-				})
+				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+					Version: proto.Int32(int32(i)),
+				}.Build()))
 			}
 		case Disconnect:
-			sm.Cmds = append(sm.Cmds, &protos.SCmd{
-				Union: &protos.SCmd_Disconnect{true},
-			})
+			sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+				Disconnect: proto.Bool(true),
+			}.Build()))
 		case Print:
 			if s, err := msg.ReadString(); err != nil {
 				return nil, err
 			} else {
-				sm.Cmds = append(sm.Cmds, &protos.SCmd{
-					Union: &protos.SCmd_Print{s},
-				})
+				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+					Print: proto.String(s),
+				}.Build()))
 			}
 		case CenterPrint:
 			if s, err := msg.ReadString(); err != nil {
 				return nil, err
 			} else {
-				sm.Cmds = append(sm.Cmds, &protos.SCmd{
-					Union: &protos.SCmd_CenterPrint{s},
-				})
+				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+					CenterPrint: proto.String(s),
+				}.Build()))
 			}
 		case StuffText:
 			if s, err := msg.ReadString(); err != nil {
 				return nil, err
 			} else {
-				sm.Cmds = append(sm.Cmds, &protos.SCmd{
-					Union: &protos.SCmd_StuffText{s},
-				})
+				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+					StuffText: proto.String(s),
+				}.Build()))
 			}
 		case Damage:
 			var data struct {
@@ -1046,84 +1036,84 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 			if pos, err := readCoord(msg, protocolFlags); err != nil {
 				return nil, err
 			} else {
-				sm.Cmds = append(sm.Cmds, &protos.SCmd{
-					Union: &protos.SCmd_Damage{&protos.Damage{
+				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+					Damage: protos.Damage_builder{
 						Armor:    int32(data.Armor),
 						Blood:    int32(data.Blood),
 						Position: pos,
-					}},
-				})
+					}.Build(),
+				}.Build()))
 			}
 		case ServerInfo:
 			if si, err := parseServerInfo(msg); err != nil {
 				return nil, err
 			} else {
-				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+				sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
 					Union: &protos.SCmd_ServerInfo{si},
-				})
+				}))
 			}
 		case SetAngle:
 			if a, err := readAngle(msg, protocolFlags); err != nil {
 				return nil, err
 			} else {
-				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+				sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
 					Union: &protos.SCmd_SetAngle{a},
-				})
+				}))
 			}
 		case SetView:
 			if ve, err := msg.ReadUint16(); err != nil {
 				return nil, err
 			} else {
-				sm.Cmds = append(sm.Cmds, &protos.SCmd{
-					Union: &protos.SCmd_SetViewEntity{int32(ve)},
-				})
+				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+					SetViewEntity: proto.Int32(int32(ve)),
+				}.Build()))
 			}
 		case LightStyle:
 			cmd := &protos.LightStyle{}
 			if idx, err := msg.ReadByte(); err != nil {
 				return nil, err
 			} else {
-				cmd.Idx = int32(idx)
+				cmd.SetIdx(int32(idx))
 			}
 			if str, err := msg.ReadString(); err != nil {
 				return nil, err
 			} else {
-				cmd.NewStyle = str
+				cmd.SetNewStyle(str)
 			}
-			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
 				Union: &protos.SCmd_LightStyle{cmd},
-			})
+			}))
 		case Sound:
 			if spp, err := parseSoundMessage(msg, protocolFlags); err != nil {
 				return nil, err
 			} else {
-				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+				sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
 					Union: &protos.SCmd_Sound{spp},
-				})
+				}))
 			}
 		case StopSound:
 			if i, err := msg.ReadInt16(); err != nil {
 				return nil, err
 			} else {
-				sm.Cmds = append(sm.Cmds, &protos.SCmd{
-					Union: &protos.SCmd_StopSound{int32(i)},
-				})
+				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+					StopSound: proto.Int32(int32(i)),
+				}.Build()))
 			}
 		case UpdateName:
 			un := &protos.UpdateName{}
 			if i, err := msg.ReadByte(); err != nil {
 				return nil, err
 			} else {
-				un.Player = int32(i)
+				un.SetPlayer(int32(i))
 			}
 			if s, err := msg.ReadString(); err != nil {
 				return nil, err
 			} else {
-				un.NewName = s
+				un.SetNewName(s)
 			}
-			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
 				Union: &protos.SCmd_UpdateName{un},
-			})
+			}))
 		case UpdateFrags:
 			var data struct {
 				Player   byte
@@ -1132,13 +1122,13 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 			if err := msg.Read(&data); err != nil {
 				return nil, err
 			}
-			uf := &protos.UpdateFrags{
+			uf := protos.UpdateFrags_builder{
 				Player:   int32(data.Player),
 				NewFrags: int32(data.NewFrags),
-			}
-			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+			}.Build()
+			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
 				Union: &protos.SCmd_UpdateFrags{uf},
-			})
+			}))
 		case UpdateColors:
 			var data struct {
 				Player   byte
@@ -1147,13 +1137,13 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 			if err := msg.Read(&data); err != nil {
 				return nil, err
 			}
-			uc := &protos.UpdateColors{
+			uc := protos.UpdateColors_builder{
 				Player:   int32(data.Player),
 				NewColor: int32(data.NewColor),
-			}
-			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+			}.Build()
+			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
 				Union: &protos.SCmd_UpdateColors{uc},
-			})
+			}))
 		case Particle:
 			org, err := readCoord(msg, protocolFlags)
 			if err != nil {
@@ -1172,76 +1162,76 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 				// there is no size difference in protos between 255 and 1024 so just keep the logic here
 				count = 1024
 			}
-			sm.Cmds = append(sm.Cmds, &protos.SCmd{
-				Union: &protos.SCmd_Particle{&protos.Particle{
+			sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+				Particle: protos.Particle_builder{
 					Origin: org,
-					Direction: &protos.Coord{
+					Direction: protos.Coord_builder{
 						X: float32(data.Dir[0]) * (1.0 / 16),
 						Y: float32(data.Dir[1]) * (1.0 / 16),
 						Z: float32(data.Dir[2]) * (1.0 / 16),
-					},
+					}.Build(),
 					Count: count,
 					Color: int32(data.Color),
-				}},
-			})
+				}.Build(),
+			}.Build()))
 		case SpawnBaseline:
 			eb := &protos.EntityBaseline{}
 			if i, err := msg.ReadInt16(); err != nil {
 				return nil, err
 			} else {
-				eb.Index = int32(i)
+				eb.SetIndex(int32(i))
 			}
 			if pb, err := parseBaseline(msg, protocolFlags, 1); err != nil {
 				return nil, err
 			} else {
-				eb.Baseline = pb
+				eb.SetBaseline(pb)
 			}
-			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
 				Union: &protos.SCmd_SpawnBaseline{eb},
-			})
+			}))
 
 		case SpawnStatic:
 			if pb, err := parseBaseline(msg, protocolFlags, 1); err != nil {
 				return nil, err
 			} else {
-				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+				sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
 					Union: &protos.SCmd_SpawnStatic{pb},
-				})
+				}))
 			}
 
 		case TempEntity:
 			if tep, err := parseTempEntity(msg, protocolFlags); err != nil {
 				return nil, err
 			} else {
-				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+				sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
 					Union: &protos.SCmd_TempEntity{tep},
-				})
+				}))
 			}
 		case SetPause:
 			// this byte was used to pause cd audio, other pause as well?
 			if i, err := msg.ReadByte(); err != nil {
 				return nil, err
 			} else {
-				sm.Cmds = append(sm.Cmds, &protos.SCmd{
-					Union: &protos.SCmd_SetPause{i != 0},
-				})
+				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+					SetPause: proto.Bool(i != 0),
+				}.Build()))
 			}
 		case SignonNum:
 			if i, err := msg.ReadByte(); err != nil {
 				return nil, err
 			} else {
-				sm.Cmds = append(sm.Cmds, &protos.SCmd{
-					Union: &protos.SCmd_SignonNum{int32(i)},
-				})
+				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+					SignonNum: proto.Int32(int32(i)),
+				}.Build()))
 			}
 		case KilledMonster:
-			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
 				Union: &protos.SCmd_KilledMonster{},
-			})
+			}))
 		case FoundSecret:
-			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
 				Union: &protos.SCmd_FoundSecret{},
-			})
+			}))
 		case UpdateStat:
 			var data struct {
 				Stat byte
@@ -1250,18 +1240,18 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 			if err := msg.Read(&data); err != nil {
 				return nil, err
 			}
-			sm.Cmds = append(sm.Cmds, &protos.SCmd{
-				Union: &protos.SCmd_UpdateStat{&protos.UpdateStat{
+			sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+				UpdateStat: protos.UpdateStat_builder{
 					Stat:  int32(data.Stat),
 					Value: int32(data.Val),
-				}},
-			})
+				}.Build(),
+			}.Build()))
 		case SpawnStaticSound:
 			ss := &protos.StaticSound{}
 			if org, err := readCoord(msg, protocolFlags); err != nil {
 				return nil, err
 			} else {
-				ss.Origin = org
+				ss.SetOrigin(org)
 			}
 			var data struct {
 				Num uint8
@@ -1271,12 +1261,12 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 			if err := msg.Read(&data); err != nil {
 				return nil, err
 			}
-			ss.Index = int32(data.Num)
-			ss.Volume = int32(data.Vol)
-			ss.Attenuation = int32(data.Att)
-			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+			ss.SetIndex(int32(data.Num))
+			ss.SetVolume(int32(data.Vol))
+			ss.SetAttenuation(int32(data.Att))
+			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
 				Union: &protos.SCmd_SpawnStaticSound{ss},
-			})
+			}))
 		case CDTrack:
 			var data struct {
 				TrackNumber uint8
@@ -1285,48 +1275,48 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 			if err := msg.Read(&data); err != nil {
 				return nil, err
 			}
-			sm.Cmds = append(sm.Cmds, &protos.SCmd{
-				Union: &protos.SCmd_CdTrack{&protos.CDTrack{
+			sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+				CdTrack: protos.CDTrack_builder{
 					TrackNumber: int32(data.TrackNumber),
 					LoopTrack:   int32(data.Loop),
-				}},
-			})
+				}.Build(),
+			}.Build()))
 		case Intermission:
-			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
 				Union: &protos.SCmd_Intermission{},
-			})
+			}))
 		case Finale:
 			if s, err := msg.ReadString(); err != nil {
 				return nil, err
 			} else {
-				sm.Cmds = append(sm.Cmds, &protos.SCmd{
-					Union: &protos.SCmd_Finale{s},
-				})
+				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+					Finale: proto.String(s),
+				}.Build()))
 			}
 		case Cutscene:
 			if s, err := msg.ReadString(); err != nil {
 				return nil, err
 			} else {
-				sm.Cmds = append(sm.Cmds, &protos.SCmd{
-					Union: &protos.SCmd_Cutscene{s},
-				})
+				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+					Cutscene: proto.String(s),
+				}.Build()))
 			}
 		case SellScreen:
-			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
 				Union: &protos.SCmd_SellScreen{},
-			})
+			}))
 		case Skybox:
 			if s, err := msg.ReadString(); err != nil {
 				return nil, err
 			} else {
-				sm.Cmds = append(sm.Cmds, &protos.SCmd{
-					Union: &protos.SCmd_Skybox{s},
-				})
+				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+					Skybox: proto.String(s),
+				}.Build()))
 			}
 		case BF:
-			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
 				Union: &protos.SCmd_BackgroundFlash{},
-			})
+			}))
 		case Fog:
 			var data struct {
 				Density uint8
@@ -1338,45 +1328,45 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 			if err := msg.Read(&data); err != nil {
 				return nil, err
 			}
-			sm.Cmds = append(sm.Cmds, &protos.SCmd{
-				Union: &protos.SCmd_Fog{&protos.Fog{
+			sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+				Fog: protos.Fog_builder{
 					Density: float32(data.Density) / 255.0,
 					Red:     float32(data.Red) / 255.0,
 					Green:   float32(data.Green) / 255.0,
 					Blue:    float32(data.Blue) / 255.0,
 					Time:    float32(data.Time) / 100.0,
-				}},
-			})
+				}.Build(),
+			}.Build()))
 		case SpawnBaseline2:
 			sb := &protos.EntityBaseline{}
 			if i, err := msg.ReadInt16(); err != nil {
 				return nil, err
 			} else {
-				sb.Index = int32(i)
+				sb.SetIndex(int32(i))
 			}
 			if pb, err := parseBaseline(msg, protocolFlags, 2); err != nil {
 				return nil, err
 			} else {
-				sb.Baseline = pb
+				sb.SetBaseline(pb)
 			}
-			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
 				Union: &protos.SCmd_SpawnBaseline{sb},
-			})
+			}))
 
 		case SpawnStatic2:
 			if pb, err := parseBaseline(msg, protocolFlags, 2); err != nil {
 				return nil, err
 			} else {
-				sm.Cmds = append(sm.Cmds, &protos.SCmd{
+				sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
 					Union: &protos.SCmd_SpawnStatic{pb},
-				})
+				}))
 			}
 		case SpawnStaticSound2:
 			ss := &protos.StaticSound{}
 			if org, err := readCoord(msg, protocolFlags); err != nil {
 				return nil, err
 			} else {
-				ss.Origin = org
+				ss.SetOrigin(org)
 			}
 			var data struct {
 				Num uint16
@@ -1386,19 +1376,19 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 			if err := msg.Read(&data); err != nil {
 				return nil, err
 			}
-			ss.Index = int32(data.Num)
-			ss.Volume = int32(data.Vol)
-			ss.Attenuation = int32(data.Att)
-			sm.Cmds = append(sm.Cmds, &protos.SCmd{
+			ss.SetIndex(int32(data.Num))
+			ss.SetVolume(int32(data.Vol))
+			ss.SetAttenuation(int32(data.Att))
+			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
 				Union: &protos.SCmd_SpawnStaticSound{ss},
-			})
+			}))
 		case Achievement:
 			if s, err := msg.ReadString(); err != nil {
 				return nil, err
 			} else {
-				sm.Cmds = append(sm.Cmds, &protos.SCmd{
-					Union: &protos.SCmd_Achievement{s},
-				})
+				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+					Achievement: proto.String(s),
+				}.Build()))
 			}
 		}
 		lastcmd = cmd
@@ -1406,20 +1396,20 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 }
 
 func writeCoord(c *protos.Coord, protocolFlags uint32, m *net.Message) {
-	m.WriteCoord(c.X, protocolFlags)
-	m.WriteCoord(c.Y, protocolFlags)
-	m.WriteCoord(c.Z, protocolFlags)
+	m.WriteCoord(c.GetX(), protocolFlags)
+	m.WriteCoord(c.GetY(), protocolFlags)
+	m.WriteCoord(c.GetZ(), protocolFlags)
 }
 
 func writeAngle(a *protos.Coord, protocolFlags uint32, m *net.Message) {
-	m.WriteAngle(a.X, protocolFlags)
-	m.WriteAngle(a.Y, protocolFlags)
-	m.WriteAngle(a.Z, protocolFlags)
+	m.WriteAngle(a.GetX(), protocolFlags)
+	m.WriteAngle(a.GetY(), protocolFlags)
+	m.WriteAngle(a.GetZ(), protocolFlags)
 }
 
 func WriteParticle(p *protos.Particle, protocolFlags uint32, m *net.Message) {
 	m.WriteByte(Particle)
-	writeCoord(p.Origin, protocolFlags, m)
+	writeCoord(p.GetOrigin(), protocolFlags, m)
 	df := func(d float32) int {
 		v := d * 16
 		if v > 127 {
@@ -1430,22 +1420,22 @@ func WriteParticle(p *protos.Particle, protocolFlags uint32, m *net.Message) {
 		}
 		return int(v)
 	}
-	m.WriteChar(df(p.Direction.X))
-	m.WriteChar(df(p.Direction.Y))
-	m.WriteChar(df(p.Direction.Z))
-	m.WriteByte(int(p.Count))
-	m.WriteByte(int(p.Color))
+	m.WriteChar(df(p.GetDirection().GetX()))
+	m.WriteChar(df(p.GetDirection().GetY()))
+	m.WriteChar(df(p.GetDirection().GetZ()))
+	m.WriteByte(int(p.GetCount()))
+	m.WriteByte(int(p.GetColor()))
 }
 
 func WriteSound(s *protos.Sound, pcol int, flags uint32, m *net.Message) {
 	fieldMask := 0
-	if s.Entity >= 8192 {
+	if s.GetEntity() >= 8192 {
 		if pcol == protocol.NetQuake {
 			return
 		}
 		fieldMask |= SoundLargeEntity
 	}
-	if s.SoundNum >= 256 || s.Channel >= 8 {
+	if s.GetSoundNum() >= 256 || s.GetChannel() >= 8 {
 		if pcol == protocol.NetQuake {
 			return
 		}
@@ -1468,24 +1458,24 @@ func WriteSound(s *protos.Sound, pcol int, flags uint32, m *net.Message) {
 		m.WriteByte(int(*a))
 	}
 	if fieldMask&SoundLargeEntity != 0 {
-		m.WriteShort(int(s.Entity))
-		m.WriteByte(int(s.Channel))
+		m.WriteShort(int(s.GetEntity()))
+		m.WriteByte(int(s.GetChannel()))
 	} else {
-		m.WriteShort(int(s.Entity<<3 | s.Channel))
+		m.WriteShort(int(s.GetEntity()<<3 | s.GetChannel()))
 	}
 	if fieldMask&SoundLargeSound != 0 {
-		m.WriteShort(int(s.SoundNum))
+		m.WriteShort(int(s.GetSoundNum()))
 	} else {
-		m.WriteByte(int(s.SoundNum))
+		m.WriteByte(int(s.GetSoundNum()))
 	}
-	writeCoord(s.Origin, flags, m)
+	writeCoord(s.GetOrigin(), flags, m)
 }
 
 func WriteDamage(d *protos.Damage, pcol int, flags uint32, m *net.Message) {
 	m.WriteByte(Damage)
-	m.WriteByte(int(d.Armor))
-	m.WriteByte(int(d.Blood))
-	writeCoord(d.Position, flags, m)
+	m.WriteByte(int(d.GetArmor()))
+	m.WriteByte(int(d.GetBlood()))
+	writeCoord(d.GetPosition(), flags, m)
 }
 
 func WriteSetAngle(a *protos.Coord, pcol int, flags uint32, m *net.Message) {
@@ -1495,72 +1485,72 @@ func WriteSetAngle(a *protos.Coord, pcol int, flags uint32, m *net.Message) {
 
 func WriteClientData(cd *protos.ClientData, pcol int, flags uint32, m *net.Message) {
 	bits := 0
-	if cd.ViewHeight != nil {
+	if cd.HasViewHeight() {
 		bits |= SU_VIEWHEIGHT
 	}
-	if cd.IdealPitch != 0 {
+	if cd.GetIdealPitch() != 0 {
 		bits |= SU_IDEALPITCH
 	}
 	bits |= SU_ITEMS
 	bits |= SU_WEAPON
-	if cd.OnGround {
+	if cd.GetOnGround() {
 		bits |= SU_ONGROUND
 	}
-	if cd.InWater {
+	if cd.GetInWater() {
 		bits |= SU_INWATER
 	}
-	if cd.PunchAngle.X != 0 {
+	if cd.GetPunchAngle().GetX() != 0 {
 		bits |= SU_PUNCH1
 	}
-	if cd.PunchAngle.Y != 0 {
+	if cd.GetPunchAngle().GetY() != 0 {
 		bits |= SU_PUNCH2
 	}
-	if cd.PunchAngle.Z != 0 {
+	if cd.GetPunchAngle().GetZ() != 0 {
 		bits |= SU_PUNCH3
 	}
-	if cd.Velocity.X != 0 {
+	if cd.GetVelocity().GetX() != 0 {
 		bits |= SU_VELOCITY1
 	}
-	if cd.Velocity.Y != 0 {
+	if cd.GetVelocity().GetY() != 0 {
 		bits |= SU_VELOCITY2
 	}
-	if cd.Velocity.Z != 0 {
+	if cd.GetVelocity().GetZ() != 0 {
 		bits |= SU_VELOCITY3
 	}
-	if cd.WeaponFrame != 0 {
+	if cd.GetWeaponFrame() != 0 {
 		bits |= SU_WEAPONFRAME
 	}
-	if cd.Armor != 0 {
+	if cd.GetArmor() != 0 {
 		bits |= SU_ARMOR
 	}
 
 	if pcol != protocol.NetQuake {
-		if (cd.Weapon & 0xFF00) != 0 {
+		if (cd.GetWeapon() & 0xFF00) != 0 {
 			bits |= SU_WEAPON2
 		}
-		if (cd.Armor & 0xFF00) != 0 {
+		if (cd.GetArmor() & 0xFF00) != 0 {
 			bits |= SU_ARMOR2
 		}
-		if (cd.Ammo & 0xFF00) != 0 {
+		if (cd.GetAmmo() & 0xFF00) != 0 {
 			bits |= SU_AMMO2
 		}
-		if (cd.Shells & 0xFF00) != 0 {
+		if (cd.GetShells() & 0xFF00) != 0 {
 			bits |= SU_SHELLS2
 		}
-		if (cd.Nails & 0xFF00) != 0 {
+		if (cd.GetNails() & 0xFF00) != 0 {
 			bits |= SU_NAILS2
 		}
-		if (cd.Rockets & 0xFF00) != 0 {
+		if (cd.GetRockets() & 0xFF00) != 0 {
 			bits |= SU_ROCKETS2
 		}
-		if (cd.Cells & 0xFF00) != 0 {
+		if (cd.GetCells() & 0xFF00) != 0 {
 			bits |= SU_CELLS2
 		}
 		if (bits&SU_WEAPONFRAME != 0) &&
-			(cd.WeaponFrame&0xFF00) != 0 {
+			(cd.GetWeaponFrame()&0xFF00) != 0 {
 			bits |= SU_WEAPONFRAME2
 		}
-		if cd.WeaponAlpha != 0 {
+		if cd.GetWeaponAlpha() != 0 {
 			bits |= SU_WEAPONALPHA
 		}
 		if bits >= 65536 {
@@ -1579,72 +1569,72 @@ func WriteClientData(cd *protos.ClientData, pcol int, flags uint32, m *net.Messa
 		m.WriteByte(bits >> 24)
 	}
 	if (bits & SU_VIEWHEIGHT) != 0 {
-		m.WriteChar(int(*cd.ViewHeight))
+		m.WriteChar(int(cd.GetViewHeight()))
 	}
 	if (bits & SU_IDEALPITCH) != 0 {
-		m.WriteChar(int(cd.IdealPitch))
+		m.WriteChar(int(cd.GetIdealPitch()))
 	}
 	if (bits & SU_PUNCH1) != 0 {
-		m.WriteChar(int(cd.PunchAngle.X))
+		m.WriteChar(int(cd.GetPunchAngle().GetX()))
 	}
 	if (bits & SU_VELOCITY1) != 0 {
-		m.WriteChar(int(cd.Velocity.X))
+		m.WriteChar(int(cd.GetVelocity().GetX()))
 	}
 	if (bits & SU_PUNCH2) != 0 {
-		m.WriteChar(int(cd.PunchAngle.Y))
+		m.WriteChar(int(cd.GetPunchAngle().GetY()))
 	}
 	if (bits & SU_VELOCITY2) != 0 {
-		m.WriteChar(int(cd.Velocity.Y))
+		m.WriteChar(int(cd.GetVelocity().GetY()))
 	}
 	if (bits & SU_PUNCH3) != 0 {
-		m.WriteChar(int(cd.PunchAngle.Z))
+		m.WriteChar(int(cd.GetPunchAngle().GetZ()))
 	}
 	if (bits & SU_VELOCITY3) != 0 {
-		m.WriteChar(int(cd.Velocity.Z))
+		m.WriteChar(int(cd.GetVelocity().GetZ()))
 	}
-	m.WriteLong(int(cd.Items))
+	m.WriteLong(int(cd.GetItems()))
 
 	if (bits & SU_WEAPONFRAME) != 0 {
-		m.WriteByte(int(cd.WeaponFrame))
+		m.WriteByte(int(cd.GetWeaponFrame()))
 	}
 	if (bits & SU_ARMOR) != 0 {
-		m.WriteByte(int(cd.Armor))
+		m.WriteByte(int(cd.GetArmor()))
 	}
-	m.WriteByte(int(cd.Weapon))
-	m.WriteShort(int(cd.Health))
-	m.WriteByte(int(cd.Ammo))
-	m.WriteByte(int(cd.Shells))
-	m.WriteByte(int(cd.Nails))
-	m.WriteByte(int(cd.Rockets))
-	m.WriteByte(int(cd.Cells))
-	m.WriteByte(int(cd.ActiveWeapon))
+	m.WriteByte(int(cd.GetWeapon()))
+	m.WriteShort(int(cd.GetHealth()))
+	m.WriteByte(int(cd.GetAmmo()))
+	m.WriteByte(int(cd.GetShells()))
+	m.WriteByte(int(cd.GetNails()))
+	m.WriteByte(int(cd.GetRockets()))
+	m.WriteByte(int(cd.GetCells()))
+	m.WriteByte(int(cd.GetActiveWeapon()))
 
 	if (bits & SU_WEAPON2) != 0 {
-		m.WriteByte(int(cd.Weapon >> 8))
+		m.WriteByte(int(cd.GetWeapon() >> 8))
 	}
 	if (bits & SU_ARMOR2) != 0 {
-		m.WriteByte(int(cd.Armor) >> 8)
+		m.WriteByte(int(cd.GetArmor()) >> 8)
 	}
 	if (bits & SU_AMMO2) != 0 {
-		m.WriteByte(int(cd.Ammo) >> 8)
+		m.WriteByte(int(cd.GetAmmo()) >> 8)
 	}
 	if (bits & SU_SHELLS2) != 0 {
-		m.WriteByte(int(cd.Shells) >> 8)
+		m.WriteByte(int(cd.GetShells()) >> 8)
 	}
 	if (bits & SU_NAILS2) != 0 {
-		m.WriteByte(int(cd.Nails) >> 8)
+		m.WriteByte(int(cd.GetNails()) >> 8)
 	}
 	if (bits & SU_ROCKETS2) != 0 {
-		m.WriteByte(int(cd.Rockets) >> 8)
+		m.WriteByte(int(cd.GetRockets()) >> 8)
 	}
 	if (bits & SU_CELLS2) != 0 {
-		m.WriteByte(int(cd.Cells) >> 8)
+		m.WriteByte(int(cd.GetCells()) >> 8)
 	}
 	if (bits & SU_WEAPONFRAME2) != 0 {
-		m.WriteByte(int(cd.WeaponFrame) >> 8)
+		m.WriteByte(int(cd.GetWeaponFrame()) >> 8)
 	}
 	if (bits & SU_WEAPONALPHA) != 0 {
-		m.WriteByte(int(cd.WeaponAlpha))
+		m.WriteByte(int(cd.GetWeaponAlpha()))
 	}
 }
 
@@ -1655,62 +1645,62 @@ func WriteTime(t float32, pcol int, flags uint32, m *net.Message) {
 
 func WriteUpdateFrags(uf *protos.UpdateFrags, pcol int, flags uint32, m *net.Message) {
 	m.WriteByte(UpdateFrags)
-	m.WriteByte(int(uf.Player))
-	m.WriteShort(int(uf.NewFrags))
+	m.WriteByte(int(uf.GetPlayer()))
+	m.WriteShort(int(uf.GetNewFrags()))
 }
 
 func WriteEntityUpdate(eu *protos.EntityUpdate, pcol int, flags uint32, m *net.Message) {
 	bits := 0
-	if eu.OriginX != nil {
+	if eu.HasOriginX() {
 		bits |= U_ORIGIN1
 	}
-	if eu.OriginY != nil {
+	if eu.HasOriginY() {
 		bits |= U_ORIGIN2
 	}
-	if eu.OriginZ != nil {
+	if eu.HasOriginZ() {
 		bits |= U_ORIGIN3
 	}
-	if eu.AngleX != nil {
+	if eu.HasAngleX() {
 		bits |= U_ANGLE1
 	}
-	if eu.AngleY != nil {
+	if eu.HasAngleY() {
 		bits |= U_ANGLE2
 	}
-	if eu.AngleZ != nil {
+	if eu.HasAngleZ() {
 		bits |= U_ANGLE3
 	}
-	if eu.LerpMoveStep {
+	if eu.GetLerpMoveStep() {
 		bits |= U_STEP // don't mess up the step animation
 	}
-	if eu.ColorMap != nil {
+	if eu.HasColorMap() {
 		bits |= U_COLORMAP
 	}
-	if eu.Skin != nil {
+	if eu.HasSkin() {
 		bits |= U_SKIN
 	}
-	if eu.Frame != nil {
+	if eu.HasFrame() {
 		bits |= U_FRAME
 	}
-	if eu.Effects != 0 {
+	if eu.GetEffects() != 0 {
 		bits |= U_EFFECTS
 	}
-	if eu.Model != nil {
+	if eu.HasModel() {
 		bits |= U_MODEL
 	}
 
 	if pcol != protocol.NetQuake {
-		if eu.Alpha != nil {
+		if eu.HasAlpha() {
 			bits |= U_ALPHA
 		}
-		if eu.Frame != nil &&
-			*eu.Frame&0xFF00 != 0 {
+		if eu.HasFrame() &&
+			eu.GetFrame()&0xFF00 != 0 {
 			bits |= U_FRAME2
 		}
-		if eu.Model != nil &&
-			*eu.Model&0xFF00 != 0 {
+		if eu.HasModel() &&
+			eu.GetModel()&0xFF00 != 0 {
 			bits |= U_MODEL2
 		}
-		if eu.LerpFinish != nil {
+		if eu.HasLerpFinish() {
 			bits |= U_LERPFINISH
 		}
 		if bits >= 65536 {
@@ -1721,7 +1711,7 @@ func WriteEntityUpdate(eu *protos.EntityUpdate, pcol int, flags uint32, m *net.M
 		}
 	}
 
-	if eu.Entity >= 256 {
+	if eu.GetEntity() >= 256 {
 		bits |= U_LONGENTITY
 	}
 
@@ -1743,69 +1733,69 @@ func WriteEntityUpdate(eu *protos.EntityUpdate, pcol int, flags uint32, m *net.M
 	}
 
 	if bits&U_LONGENTITY != 0 {
-		m.WriteShort(int(eu.Entity))
+		m.WriteShort(int(eu.GetEntity()))
 	} else {
-		m.WriteByte(int(eu.Entity))
+		m.WriteByte(int(eu.GetEntity()))
 	}
 
-	if eu.Model != nil {
-		m.WriteByte(int(*eu.Model))
+	if eu.HasModel() {
+		m.WriteByte(int(eu.GetModel()))
 	}
-	if eu.Frame != nil {
-		m.WriteByte(int(*eu.Frame))
+	if eu.HasFrame() {
+		m.WriteByte(int(eu.GetFrame()))
 	}
-	if eu.ColorMap != nil {
-		m.WriteByte(int(*eu.ColorMap))
+	if eu.HasColorMap() {
+		m.WriteByte(int(eu.GetColorMap()))
 	}
-	if eu.Skin != nil {
-		m.WriteByte(int(*eu.Skin))
+	if eu.HasSkin() {
+		m.WriteByte(int(eu.GetSkin()))
 	}
-	if eu.Effects != 0 {
-		m.WriteByte(int(eu.Effects))
+	if eu.GetEffects() != 0 {
+		m.WriteByte(int(eu.GetEffects()))
 	}
-	if eu.OriginX != nil {
-		m.WriteCoord(*eu.OriginX, flags)
+	if eu.HasOriginX() {
+		m.WriteCoord(eu.GetOriginX(), flags)
 	}
-	if eu.AngleX != nil {
-		m.WriteAngle(*eu.AngleX, flags)
+	if eu.HasAngleX() {
+		m.WriteAngle(eu.GetAngleX(), flags)
 	}
-	if eu.OriginY != nil {
-		m.WriteCoord(*eu.OriginY, flags)
+	if eu.HasOriginY() {
+		m.WriteCoord(eu.GetOriginY(), flags)
 	}
-	if eu.AngleY != nil {
-		m.WriteAngle(*eu.AngleY, flags)
+	if eu.HasAngleY() {
+		m.WriteAngle(eu.GetAngleY(), flags)
 	}
-	if eu.OriginZ != nil {
-		m.WriteCoord(*eu.OriginZ, flags)
+	if eu.HasOriginZ() {
+		m.WriteCoord(eu.GetOriginZ(), flags)
 	}
-	if eu.AngleZ != nil {
-		m.WriteAngle(*eu.AngleZ, flags)
+	if eu.HasAngleZ() {
+		m.WriteAngle(eu.GetAngleZ(), flags)
 	}
 
 	if bits&U_ALPHA != 0 {
-		m.WriteByte(int(*eu.Alpha))
+		m.WriteByte(int(eu.GetAlpha()))
 	}
 	if bits&U_FRAME2 != 0 {
-		m.WriteByte(int(*eu.Frame) >> 8)
+		m.WriteByte(int(eu.GetFrame()) >> 8)
 	}
 	if bits&U_MODEL2 != 0 {
-		m.WriteByte(int(*eu.Model) >> 8)
+		m.WriteByte(int(eu.GetModel()) >> 8)
 	}
 	if bits&U_LERPFINISH != 0 {
-		m.WriteByte(int(*eu.LerpFinish))
+		m.WriteByte(int(eu.GetLerpFinish()))
 	}
 }
 
 func WriteUpdateColors(uc *protos.UpdateColors, pcol int, flags uint32, m *net.Message) {
 	m.WriteByte(UpdateColors)
-	m.WriteByte(int(uc.Player))
-	m.WriteByte(int(uc.NewColor))
+	m.WriteByte(int(uc.GetPlayer()))
+	m.WriteByte(int(uc.GetNewColor()))
 }
 
 func WriteUpdateName(un *protos.UpdateName, pcol int, flags uint32, m *net.Message) {
 	m.WriteByte(UpdateName)
-	m.WriteByte(int(un.Player))
-	m.WriteString(un.NewName)
+	m.WriteByte(int(un.GetPlayer()))
+	m.WriteString(un.GetNewName())
 }
 
 func WriteSetPause(p bool, pcol int, flags uint32, m *net.Message) {

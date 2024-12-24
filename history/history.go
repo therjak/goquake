@@ -62,7 +62,7 @@ func (h *History) Load() error {
 	if err := proto.Unmarshal(in, data); err != nil {
 		return fmt.Errorf("failed to decode history")
 	}
-	h.txt = data.Entries
+	h.txt = data.GetEntries()
 	h.idx = len(h.txt)
 	return nil
 }
@@ -70,9 +70,9 @@ func (h *History) Load() error {
 func (h *History) Save() error {
 	fullname := filepath.Join(filesystem.BaseDir(), historyFilename)
 	l := min(len(h.txt), maxHistory)
-	data := &protos.History{
+	data := protos.History_builder{
 		Entries: h.txt[:l],
-	}
+	}.Build()
 	out, err := proto.Marshal(data)
 	if err != nil {
 		return fmt.Errorf("failed to encode history")

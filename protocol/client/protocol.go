@@ -9,6 +9,8 @@ import (
 	ptcl "goquake/protocol"
 	"goquake/protos"
 	"goquake/qmsg"
+
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -27,17 +29,17 @@ const (
 func ToBytes(pb *protos.ClientMessage, protocol int, protocolFlags uint32) []byte {
 	b := qmsg.NewClientWriter(uint16(protocolFlags))
 	for _, c := range pb.GetCmds() {
-		switch c.Union.(type) {
+		switch c.WhichUnion() {
 		default:
 			b.WriteByte(Nop)
-		case *protos.Cmd_Disconnect:
+		case protos.Cmd_Disconnect_case:
 			b.WriteByte(Disconnect)
-		case *protos.Cmd_StringCmd:
+		case protos.Cmd_StringCmd_case:
 			sc := c.GetStringCmd()
 			b.WriteByte(StringCmd)
 			b.WriteString(sc)
 			b.WriteByte(0)
-		case *protos.Cmd_MoveCmd:
+		case protos.Cmd_MoveCmd_case:
 			mc := c.GetMoveCmd()
 			b.WriteByte(Move)
 			b.WriteFloat(mc.GetMessageTime())
@@ -84,11 +86,11 @@ func FromBytes(data []byte, protocol int, flags uint32) (*protos.ClientMessage, 
 		default:
 			return nil, fmt.Errorf("SV_ReadClientMessage: unknown command char %v\n", ccmd)
 		case Nop:
-			pb.Cmds = append(pb.Cmds, &protos.Cmd{})
+			pb.SetCmds(append(pb.GetCmds(), &protos.Cmd{}))
 		case Disconnect:
-			pb.Cmds = append(pb.Cmds, &protos.Cmd{
-				Union: &protos.Cmd_Disconnect{true},
-			})
+			pb.SetCmds(append(pb.GetCmds(), protos.Cmd_builder{
+				Disconnect: proto.Bool(true),
+			}.Build()))
 		case Move:
 			cmd := &protos.UsrCmd{}
 			cmd.MessageTime, err = netMessage.ReadFloat32()
@@ -121,34 +123,34 @@ func FromBytes(data []byte, protocol int, flags uint32) (*protos.ClientMessage, 
 			if err != nil {
 				return nil, fmt.Errorf("SV_ReadClientMessage: badread %v\n", err)
 			}
-			cmd.Forward = float32(forward)
-			cmd.Side = float32(side)
-			cmd.Up = float32(upward)
+			cmd.SetForward(float32(forward))
+			cmd.SetSide(float32(side))
+			cmd.SetUp(float32(upward))
 
 			bits, err := netMessage.ReadByte()
 			if err != nil {
 				return nil, fmt.Errorf("SV_ReadClientMessage: badread %v\n", err)
 			}
-			cmd.Attack = (bits & 1) != 0
-			cmd.Jump = (bits & 2) != 0
+			cmd.SetAttack((bits & 1) != 0)
+			cmd.SetJump((bits & 2) != 0)
 
 			impulse, err := netMessage.ReadByte()
 			if err != nil {
 				return nil, fmt.Errorf("SV_ReadClientMessage: badread %v\n", err)
 			}
-			cmd.Impulse = int32(impulse)
+			cmd.SetImpulse(int32(impulse))
 
-			pb.Cmds = append(pb.Cmds, &protos.Cmd{
+			pb.SetCmds(append(pb.GetCmds(), &protos.Cmd{
 				Union: &protos.Cmd_MoveCmd{cmd},
-			})
+			}))
 		case StringCmd:
 			s, err := netMessage.ReadString()
 			if err != nil {
 				return nil, fmt.Errorf("SV_ReadClientMessage: badread %v\n", err)
 			}
-			pb.Cmds = append(pb.Cmds, &protos.Cmd{
-				Union: &protos.Cmd_StringCmd{s},
-			})
+			pb.SetCmds(append(pb.GetCmds(), protos.Cmd_builder{
+				StringCmd: proto.String(s),
+			}.Build()))
 		}
 	}
 	return pb, nil

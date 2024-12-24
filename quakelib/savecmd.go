@@ -61,7 +61,7 @@ func (c *SVClient) saveCmd(a cbuf.Arguments) {
 
 	c.Printf("Saving game to %s...\n", fullname)
 
-	data := &protos.SaveGame{
+	data := protos.SaveGame_builder{
 		Comment:      saveGameComment(),
 		SpawnParams:  c.spawnParams[:], //[]float32
 		CurrentSkill: int32(cvars.Skill.Value()),
@@ -70,7 +70,7 @@ func (c *SVClient) saveCmd(a cbuf.Arguments) {
 		LightStyles:  sv.lightStyles[:],    //[]string
 		Globals:      vm.SaveGameGlobals(), // protos.Globals
 		Edicts:       sv.saveGameEdicts(),  // []protos.Edict
-	}
+	}.Build()
 
 	out, err := proto.Marshal(data)
 	if err != nil {

@@ -35,6 +35,7 @@ import (
 	"goquake/stat"
 
 	"github.com/chewxy/math32"
+	"google.golang.org/protobuf/proto"
 )
 
 type sfx int
@@ -348,9 +349,9 @@ func executeOnServer(a cbuf.Arguments) error {
 	}
 	args := a.Args()
 	if len(args) > 1 {
-		cls.outProto.Cmds = append(cls.outProto.Cmds, &protos.Cmd{
-			Union: &protos.Cmd_StringCmd{a.ArgumentString()},
-		})
+		cls.outProto.SetCmds(append(cls.outProto.GetCmds(), protos.Cmd_builder{
+			StringCmd: proto.String(a.ArgumentString()),
+		}.Build()))
 	}
 	return nil
 }
@@ -364,9 +365,9 @@ func forwardToServer(a cbuf.Arguments) {
 	if cls.demoPlayback {
 		return
 	}
-	cls.outProto.Cmds = append(cls.outProto.Cmds, &protos.Cmd{
-		Union: &protos.Cmd_StringCmd{a.Full()},
-	})
+	cls.outProto.SetCmds(append(cls.outProto.GetCmds(), protos.Cmd_builder{
+		StringCmd: proto.String(a.Full()),
+	}.Build()))
 }
 
 func init() {
@@ -509,9 +510,9 @@ func (c *ClientStatic) Disconnect() error {
 
 		conlog.DPrintf("Sending clc_disconnect\n")
 
-		cls.outProto.Cmds = append(cls.outProto.Cmds[:0], &protos.Cmd{
-			Union: &protos.Cmd_Disconnect{true},
-		})
+		cls.outProto.SetCmds(append(cls.outProto.GetCmds()[:0], protos.Cmd_builder{
+			Disconnect: proto.Bool(true),
+		}.Build()))
 		b := clc.ToBytes(&cls.outProto, cl.protocol, cl.protocolFlags)
 		c.connection.SendUnreliableMessage(b)
 		cls.outProto.Reset()
@@ -585,7 +586,7 @@ func clEstablishConnection(host string) error {
 	cls.state = ca_connected
 	// need all the signon messages before playing
 	cls.signon = 0
-	cls.outProto.Cmds = append(cls.outProto.Cmds, &protos.Cmd{})
+	cls.outProto.SetCmds(append(cls.outProto.GetCmds(), &protos.Cmd{}))
 	return nil
 }
 
@@ -595,28 +596,28 @@ func CL_SignonReply() {
 
 	switch cls.signon {
 	case 1:
-		cls.outProto.Cmds = append(cls.outProto.Cmds, &protos.Cmd{
-			Union: &protos.Cmd_StringCmd{"prespawn"},
-		})
+		cls.outProto.SetCmds(append(cls.outProto.GetCmds(), protos.Cmd_builder{
+			StringCmd: proto.String("prespawn"),
+		}.Build()))
 
 	case 2:
 		color := int(cvars.ClientColor.Value())
-		cls.outProto.Cmds = append(cls.outProto.Cmds,
-			&protos.Cmd{
-				Union: &protos.Cmd_StringCmd{fmt.Sprintf("name \"%s\"", cvars.ClientName.String())},
-			},
-			&protos.Cmd{
-				Union: &protos.Cmd_StringCmd{fmt.Sprintf("color %d %d", color>>4, color&15)},
-			},
-			&protos.Cmd{
-				Union: &protos.Cmd_StringCmd{"spawn"},
-			},
-		)
+		cls.outProto.SetCmds(append(cls.outProto.GetCmds(),
+			protos.Cmd_builder{
+				StringCmd: proto.String(fmt.Sprintf("name \"%s\"", cvars.ClientName.String())),
+			}.Build(),
+			protos.Cmd_builder{
+				StringCmd: proto.String(fmt.Sprintf("color %d %d", color>>4, color&15)),
+			}.Build(),
+			protos.Cmd_builder{
+				StringCmd: proto.String("spawn"),
+			}.Build(),
+		))
 
 	case 3:
-		cls.outProto.Cmds = append(cls.outProto.Cmds, &protos.Cmd{
-			Union: &protos.Cmd_StringCmd{"begin"},
-		})
+		cls.outProto.SetCmds(append(cls.outProto.GetCmds(), protos.Cmd_builder{
+			StringCmd: proto.String("begin"),
+		}.Build()))
 
 	case 4:
 		screen.EndLoadingPlaque() // allow normal screen updates
@@ -640,7 +641,7 @@ func CL_SendCmd() error {
 		return nil
 	}
 
-	if len(cls.outProto.Cmds) == 0 {
+	if len(cls.outProto.GetCmds()) == 0 {
 		return nil // no message at all
 	}
 
@@ -662,22 +663,22 @@ func CL_ParseStartSoundPacket(m *protos.Sound) error {
 	const (
 		maxSounds = 2048
 	)
-	if m.SoundNum > maxSounds {
-		return fmt.Errorf("CL_ParseStartSoundPacket: %d > MAX_SOUNDS", m.SoundNum)
+	if m.GetSoundNum() > maxSounds {
+		return fmt.Errorf("CL_ParseStartSoundPacket: %d > MAX_SOUNDS", m.GetSoundNum())
 	}
-	if m.Entity > int32(cap(cl.entities)) {
-		return fmt.Errorf("CL_ParseStartSoundPacket: ent = %d", m.Entity)
+	if m.GetEntity() > int32(cap(cl.entities)) {
+		return fmt.Errorf("CL_ParseStartSoundPacket: ent = %d", m.GetEntity())
 	}
 	volume := float32(1.0)
-	if m.Volume != nil {
-		volume = float32(*m.Volume) / 255
+	if m.HasVolume() {
+		volume = float32(m.GetVolume()) / 255
 	}
 	attenuation := float32(1.0)
-	if m.Attenuation != nil {
-		attenuation = float32(*m.Attenuation) / 64.0
+	if m.HasAttenuation() {
+		attenuation = float32(m.GetAttenuation()) / 64.0
 	}
-	origin := vec.Vec3{m.Origin.X, m.Origin.Y, m.Origin.Z}
-	snd.Start(int(m.Entity), int(m.Channel), cl.soundPrecache[m.SoundNum], origin, volume, attenuation, !loopingSound)
+	origin := vec.Vec3{m.GetOrigin().GetX(), m.GetOrigin().GetY(), m.GetOrigin().GetZ()}
+	snd.Start(int(m.GetEntity()), int(m.GetChannel()), cl.soundPrecache[m.GetSoundNum()], origin, volume, attenuation, !loopingSound)
 	return nil
 }
 
@@ -732,7 +733,7 @@ Outer:
 	// write out a nop
 	conlog.Printf("--> client to server keepalive\n")
 
-	cls.outProto.Cmds = append(cls.outProto.Cmds, &protos.Cmd{})
+	cls.outProto.SetCmds(append(cls.outProto.GetCmds(), &protos.Cmd{}))
 	b := clc.ToBytes(&cls.outProto, cl.protocol, cl.protocolFlags)
 	cls.connection.SendMessage(b)
 	cls.outProto.Reset()
@@ -1272,17 +1273,17 @@ func tracePosition(args cbuf.Arguments) error {
 
 // Server information pertaining to this client only
 func (c *Client) parseClientData(cdp *protos.ClientData) {
-	if cdp.ViewHeight != nil {
-		c.viewHeight = float32(*cdp.ViewHeight)
+	if cdp.HasViewHeight() {
+		c.viewHeight = float32(cdp.GetViewHeight())
 	} else {
 		c.viewHeight = svc.DEFAULT_VIEWHEIGHT
 	}
-	c.idealPitch = float32(cdp.IdealPitch)
+	c.idealPitch = float32(cdp.GetIdealPitch())
 
 	punchAngle := vec.Vec3{
-		float32(cdp.PunchAngle.X),
-		float32(cdp.PunchAngle.Y),
-		float32(cdp.PunchAngle.Z),
+		float32(cdp.GetPunchAngle().GetX()),
+		float32(cdp.GetPunchAngle().GetY()),
+		float32(cdp.GetPunchAngle().GetZ()),
 	}
 	if c.punchAngle[0] != punchAngle {
 		c.punchAngle[1] = c.punchAngle[0]
@@ -1290,12 +1291,12 @@ func (c *Client) parseClientData(cdp *protos.ClientData) {
 	}
 	c.mVelocity[1] = c.mVelocity[0]
 	c.mVelocity[0] = vec.Vec3{
-		float32(cdp.Velocity.X) * 16,
-		float32(cdp.Velocity.Y) * 16,
-		float32(cdp.Velocity.Z) * 16,
+		float32(cdp.GetVelocity().GetX()) * 16,
+		float32(cdp.GetVelocity().GetY()) * 16,
+		float32(cdp.GetVelocity().GetZ()) * 16,
 	}
 
-	items := cdp.Items
+	items := cdp.GetItems()
 	if c.items != items {
 		// set flash times
 		statusbar.MarkChanged()
@@ -1309,28 +1310,28 @@ func (c *Client) parseClientData(cdp *protos.ClientData) {
 		c.items = items
 	}
 
-	c.onGround = cdp.OnGround
+	c.onGround = cdp.GetOnGround()
 
-	c.stats.weaponFrame = int(cdp.WeaponFrame)
+	c.stats.weaponFrame = int(cdp.GetWeaponFrame())
 	statusBarFlash := int(0)
 	set := func(v *int, nv int32) {
 		// skip some branching
 		statusBarFlash |= *v ^ int(nv)
 		*v = int(nv)
 	}
-	set(&c.stats.armor, cdp.Armor)
-	set(&c.stats.weapon, cdp.Weapon)
-	set(&c.stats.health, cdp.Health)
-	set(&c.stats.ammo, cdp.Ammo)
-	set(&c.stats.shells, cdp.Shells)
-	set(&c.stats.nails, cdp.Nails)
-	set(&c.stats.rockets, cdp.Rockets)
-	set(&c.stats.cells, cdp.Cells)
+	set(&c.stats.armor, cdp.GetArmor())
+	set(&c.stats.weapon, cdp.GetWeapon())
+	set(&c.stats.health, cdp.GetHealth())
+	set(&c.stats.ammo, cdp.GetAmmo())
+	set(&c.stats.shells, cdp.GetShells())
+	set(&c.stats.nails, cdp.GetNails())
+	set(&c.stats.rockets, cdp.GetRockets())
+	set(&c.stats.cells, cdp.GetCells())
 	if statusBarFlash != 0 {
 		statusbar.MarkChanged()
 	}
 
-	activeWeapon := cdp.ActiveWeapon
+	activeWeapon := cdp.GetActiveWeapon()
 	if cmdl.Quoth() || cmdl.Rogue() || cmdl.Hipnotic() {
 		//TODO(therjak): why is a command line setting responsible for how the server
 		// message is interpreted?
@@ -1346,7 +1347,7 @@ func (c *Client) parseClientData(cdp *protos.ClientData) {
 		}
 	}
 	weaponE := c.WeaponEntity()
-	weaponE.Alpha = byte(cdp.WeaponAlpha)
+	weaponE.Alpha = byte(cdp.GetWeaponAlpha())
 	// this was done before the upper 8 bits of cl.stats[STAT_WEAPON]
 	// were filled in, breaking on large maps like zendar.bsp
 	if weaponE.Model != c.modelPrecache[c.stats.weapon] {
@@ -1743,10 +1744,10 @@ func v3FC(c *protos.Coord) vec.Vec3 {
 }
 
 func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) {
-	switch te := tep.Union.(type) {
-	case *protos.TempEntity_Spike:
+	switch tep.WhichUnion() {
+	case protos.TempEntity_Spike_case:
 		// spike hitting wall
-		pos := v3FC(te.Spike)
+		pos := v3FC(tep.GetSpike())
 		particlesRunEffect(pos, vec.Vec3{}, 0, 10, float32(cl.time))
 		s := func() sfx {
 			if cRand.Uint32n(5) != 0 {
@@ -1760,9 +1761,9 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) {
 			}
 		}()
 		snd.Start(-1, 0, clSounds[s], pos, 1, 1, !loopingSound)
-	case *protos.TempEntity_SuperSpike:
+	case protos.TempEntity_SuperSpike_case:
 		// spike hitting wall
-		pos := v3FC(te.SuperSpike)
+		pos := v3FC(tep.GetSuperSpike())
 		particlesRunEffect(pos, vec.Vec3{}, 0, 20, float32(cl.time))
 		s := func() sfx {
 			if cRand.Uint32n(5) != 0 {
@@ -1778,13 +1779,13 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) {
 			}
 		}()
 		snd.Start(-1, 0, clSounds[s], pos, 1, 1, !loopingSound)
-	case *protos.TempEntity_Gunshot:
+	case protos.TempEntity_Gunshot_case:
 		// bullet hitting wall
-		pos := v3FC(te.Gunshot)
+		pos := v3FC(tep.GetGunshot())
 		particlesRunEffect(pos, vec.Vec3{}, 0, 20, float32(cl.time))
-	case *protos.TempEntity_Explosion:
+	case protos.TempEntity_Explosion_case:
 		// rocket explosion
-		pos := v3FC(te.Explosion)
+		pos := v3FC(tep.GetExplosion())
 		particlesAddExplosion(pos, float32(cl.time))
 		l := cl.GetFreeDynamicLight()
 		*l = DynamicLight{
@@ -1795,48 +1796,48 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) {
 			color:   vec.Vec3{1, 1, 1},
 		}
 		snd.Start(-1, 0, clSounds[RExp3], pos, 1, 1, !loopingSound)
-	case *protos.TempEntity_TarExplosion:
+	case protos.TempEntity_TarExplosion_case:
 		// tarbaby explosion
-		pos := v3FC(te.TarExplosion)
+		pos := v3FC(tep.GetTarExplosion())
 		particlesAddBlobExplosion(pos, float32(cl.time))
 		snd.Start(-1, 0, clSounds[RExp3], pos, 1, 1, !loopingSound)
-	case *protos.TempEntity_Lightning1:
+	case protos.TempEntity_Lightning1_case:
 		// lightning bolts
-		l := te.Lightning1
+		l := tep.GetLightning1()
 		s := v3FC(l.GetStart())
 		e := v3FC(l.GetEnd())
 		parseBeam(mdlBolt1, l.GetEntity(), s, e)
-	case *protos.TempEntity_Lightning2:
+	case protos.TempEntity_Lightning2_case:
 		// lightning bolts
-		l := te.Lightning2
+		l := tep.GetLightning2()
 		s := v3FC(l.GetStart())
 		e := v3FC(l.GetEnd())
 		parseBeam(mdlBolt2, l.GetEntity(), s, e)
-	case *protos.TempEntity_WizSpike:
+	case protos.TempEntity_WizSpike_case:
 		// spike hitting wall
-		pos := v3FC(te.WizSpike)
+		pos := v3FC(tep.GetWizSpike())
 		particlesRunEffect(pos, vec.Vec3{}, 20, 30, float32(cl.time))
 		snd.Start(-1, 0, clSounds[WizHit], pos, 1, 1, !loopingSound)
-	case *protos.TempEntity_KnightSpike:
+	case protos.TempEntity_KnightSpike_case:
 		// spike hitting wall
-		pos := v3FC(te.KnightSpike)
+		pos := v3FC(tep.GetKnightSpike())
 		particlesRunEffect(pos, vec.Vec3{}, 226, 20, float32(cl.time))
 		snd.Start(-1, 0, clSounds[KnightHit], pos, 1, 1, !loopingSound)
-	case *protos.TempEntity_Lightning3:
+	case protos.TempEntity_Lightning3_case:
 		// lightning bolts
-		l := te.Lightning3
+		l := tep.GetLightning3()
 		s := v3FC(l.GetStart())
 		e := v3FC(l.GetEnd())
 		parseBeam(mdlBolt3, l.GetEntity(), s, e)
-	case *protos.TempEntity_LavaSplash:
-		pos := v3FC(te.LavaSplash)
+	case protos.TempEntity_LavaSplash_case:
+		pos := v3FC(tep.GetLavaSplash())
 		particlesAddLavaSplash(pos, float32(cl.time))
-	case *protos.TempEntity_Teleport:
-		pos := v3FC(te.Teleport)
+	case protos.TempEntity_Teleport_case:
+		pos := v3FC(tep.GetTeleport())
 		particlesAddTeleportSplash(pos, float32(cl.time))
-	case *protos.TempEntity_Explosion2:
+	case protos.TempEntity_Explosion2_case:
 		// color mapped explosion
-		e := te.Explosion2
+		e := tep.GetExplosion2()
 		pos := v3FC(e.GetPosition())
 		particlesAddExplosion2(pos, int(e.GetStartColor()), int(e.GetStopColor()), float32(cl.time))
 		l := cl.GetFreeDynamicLight()
@@ -1848,9 +1849,9 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) {
 			color:   vec.Vec3{1, 1, 1},
 		}
 		snd.Start(-1, 0, clSounds[RExp3], pos, 1, 1, !loopingSound)
-	case *protos.TempEntity_Beam:
+	case protos.TempEntity_Beam_case:
 		// grappling hook beam
-		l := te.Beam
+		l := tep.GetBeam()
 		s := v3FC(l.GetStart())
 		e := v3FC(l.GetEnd())
 		parseBeam(mdlBeam, l.GetEntity(), s, e)

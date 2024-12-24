@@ -39,105 +39,105 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) (serverState, error) {
 	}
 
 	for _, scmd := range pb.GetCmds() {
-		switch cmd := scmd.Union.(type) {
+		switch scmd.WhichUnion() {
 		default:
 			// nop
-		case *protos.SCmd_EntityUpdate:
-			cl.ParseEntityUpdate(cmd.EntityUpdate)
-		case *protos.SCmd_Time:
+		case protos.SCmd_EntityUpdate_case:
+			cl.ParseEntityUpdate(scmd.GetEntityUpdate())
+		case protos.SCmd_Time_case:
 			cl.messageTimeOld = cl.messageTime
-			cl.messageTime = float64(cmd.Time)
-		case *protos.SCmd_ClientData:
-			cl.parseClientData(cmd.ClientData)
-		case *protos.SCmd_Version:
-			switch cmd.Version {
+			cl.messageTime = float64(scmd.GetTime())
+		case protos.SCmd_ClientData_case:
+			cl.parseClientData(scmd.GetClientData())
+		case protos.SCmd_Version_case:
+			switch scmd.GetVersion() {
 			case protocol.NetQuake, protocol.FitzQuake, protocol.RMQ, protocol.GoQuake:
-				cl.protocol = int(cmd.Version)
+				cl.protocol = int(scmd.GetVersion())
 			default:
-				return serverRunning, fmt.Errorf("Server returned version %d, not %d or %d or %d or %d", cmd.Version,
+				return serverRunning, fmt.Errorf("Server returned version %d, not %d or %d or %d or %d", scmd.GetVersion(),
 					protocol.NetQuake, protocol.FitzQuake, protocol.RMQ, protocol.GoQuake)
 			}
-		case *protos.SCmd_Disconnect:
+		case protos.SCmd_Disconnect_case:
 			if err := handleServerDisconnected("Server disconnected\n"); err != nil {
 				return serverDisconnected, err
 			}
 			return serverDisconnected, nil
-		case *protos.SCmd_Print:
-			conlog.Printf("%s", cmd.Print)
-		case *protos.SCmd_CenterPrint:
-			screen.CenterPrint(cmd.CenterPrint)
-			console.CenterPrint(cmd.CenterPrint)
-		case *protos.SCmd_StuffText:
-			cbuf.AddText(cmd.StuffText)
-		case *protos.SCmd_Damage:
-			d := cmd.Damage
-			pos := d.Position
+		case protos.SCmd_Print_case:
+			conlog.Printf("%s", scmd.GetPrint())
+		case protos.SCmd_CenterPrint_case:
+			screen.CenterPrint(scmd.GetCenterPrint())
+			console.CenterPrint(scmd.GetCenterPrint())
+		case protos.SCmd_StuffText_case:
+			cbuf.AddText(scmd.GetStuffText())
+		case protos.SCmd_Damage_case:
+			d := scmd.GetDamage()
+			pos := d.GetPosition()
 			cl.parseDamage(int(d.GetArmor()), int(d.GetBlood()), vec.Vec3{
 				pos.GetX(), pos.GetY(), pos.GetZ(),
 			})
-		case *protos.SCmd_ServerInfo:
-			if err := CL_ParseServerInfo(cmd.ServerInfo); err != nil {
+		case protos.SCmd_ServerInfo_case:
+			if err := CL_ParseServerInfo(scmd.GetServerInfo()); err != nil {
 				return serverRunning, err
 			}
 			screen.recalcViewRect = true // leave intermission full screen
-		case *protos.SCmd_SetAngle:
-			cl.pitch = cmd.SetAngle.GetX()
-			cl.yaw = cmd.SetAngle.GetY()
-			cl.roll = cmd.SetAngle.GetZ()
-		case *protos.SCmd_SetViewEntity:
-			cl.viewentity = int(cmd.SetViewEntity)
-		case *protos.SCmd_LightStyle:
-			if err := readLightStyle(cmd.LightStyle.GetIdx(), cmd.LightStyle.GetNewStyle()); err != nil {
+		case protos.SCmd_SetAngle_case:
+			cl.pitch = scmd.GetSetAngle().GetX()
+			cl.yaw = scmd.GetSetAngle().GetY()
+			cl.roll = scmd.GetSetAngle().GetZ()
+		case protos.SCmd_SetViewEntity_case:
+			cl.viewentity = int(scmd.GetSetViewEntity())
+		case protos.SCmd_LightStyle_case:
+			if err := readLightStyle(scmd.GetLightStyle().GetIdx(), scmd.GetLightStyle().GetNewStyle()); err != nil {
 				Error("svc_lightstyle: %v", err)
 			}
-		case *protos.SCmd_Sound:
-			if err := CL_ParseStartSoundPacket(cmd.Sound); err != nil {
+		case protos.SCmd_Sound_case:
+			if err := CL_ParseStartSoundPacket(scmd.GetSound()); err != nil {
 				return serverRunning, err
 			}
-		case *protos.SCmd_StopSound:
-			snd.Stop(int(cmd.StopSound)>>3, int(cmd.StopSound)&7)
-		case *protos.SCmd_UpdateName:
-			player := int(cmd.UpdateName.GetPlayer())
+		case protos.SCmd_StopSound_case:
+			snd.Stop(int(scmd.GetStopSound())>>3, int(scmd.GetStopSound())&7)
+		case protos.SCmd_UpdateName_case:
+			player := int(scmd.GetUpdateName().GetPlayer())
 			if player >= cl.maxClients {
 				return serverRunning, fmt.Errorf("CL_ParseServerMessage: svc_updatename > MAX_SCOREBOARD")
 			}
-			cl.scores[player].name = cmd.UpdateName.GetNewName()
-		case *protos.SCmd_UpdateFrags:
-			player := int(cmd.UpdateFrags.GetPlayer())
+			cl.scores[player].name = scmd.GetUpdateName().GetNewName()
+		case protos.SCmd_UpdateFrags_case:
+			player := int(scmd.GetUpdateFrags().GetPlayer())
 			if player >= cl.maxClients {
 				return serverRunning, fmt.Errorf("CL_ParseServerMessage: svc_updatefrags > MAX_SCOREBOARD")
 			}
-			cl.scores[player].frags = int(cmd.UpdateFrags.GetNewFrags())
-		case *protos.SCmd_UpdateColors:
-			player := int(cmd.UpdateColors.GetPlayer())
+			cl.scores[player].frags = int(scmd.GetUpdateFrags().GetNewFrags())
+		case protos.SCmd_UpdateColors_case:
+			player := int(scmd.GetUpdateColors().GetPlayer())
 			if player >= cl.maxClients {
 				return serverRunning, fmt.Errorf("CL_ParseServerMessage: svc_updatecolors > MAX_SCOREBOARD")
 			}
-			c := cmd.UpdateColors.GetNewColor()
+			c := scmd.GetUpdateColors().GetNewColor()
 			cl.scores[player].topColor = int((c & 0xf0) >> 4)
 			cl.scores[player].bottomColor = int(c & 0x0f)
 			updatePlayerSkin(player)
-		case *protos.SCmd_Particle:
-			org := cmd.Particle.GetOrigin()
-			dir := cmd.Particle.GetDirection()
+		case protos.SCmd_Particle_case:
+			org := scmd.GetParticle().GetOrigin()
+			dir := scmd.GetParticle().GetDirection()
 			particlesRunEffect(
 				vec.Vec3{org.GetX(), org.GetY(), org.GetZ()},
 				vec.Vec3{dir.GetX(), dir.GetY(), dir.GetZ()},
-				int(cmd.Particle.GetColor()), int(cmd.Particle.GetCount()), float32(cl.time))
-		case *protos.SCmd_SpawnBaseline:
-			i := cmd.SpawnBaseline.GetIndex()
+				int(scmd.GetParticle().GetColor()), int(scmd.GetParticle().GetCount()), float32(cl.time))
+		case protos.SCmd_SpawnBaseline_case:
+			i := scmd.GetSpawnBaseline().GetIndex()
 			// force cl.num_entities up
 			e := cl.GetOrCreateEntity(int(i))
-			parseBaseline(cmd.SpawnBaseline.GetBaseline(), e)
-		case *protos.SCmd_SpawnStatic:
-			cl.parseStatic(cmd.SpawnStatic)
-		case *protos.SCmd_TempEntity:
-			cls.parseTempEntity(cmd.TempEntity)
-		case *protos.SCmd_SetPause:
+			parseBaseline(scmd.GetSpawnBaseline().GetBaseline(), e)
+		case protos.SCmd_SpawnStatic_case:
+			cl.parseStatic(scmd.GetSpawnStatic())
+		case protos.SCmd_TempEntity_case:
+			cls.parseTempEntity(scmd.GetTempEntity())
+		case protos.SCmd_SetPause_case:
 			// this was used to pause cd audio, other pause as well?
-			cl.paused = cmd.SetPause
-		case *protos.SCmd_SignonNum:
-			i := int(cmd.SignonNum)
+			cl.paused = scmd.GetSetPause()
+		case protos.SCmd_SignonNum_case:
+			i := int(scmd.GetSignonNum())
 			if i <= cls.signon {
 				return serverRunning, fmt.Errorf("Received signon %d when at %d", i, cls.signon)
 			}
@@ -151,54 +151,54 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) (serverState, error) {
 				}
 			}
 			CL_SignonReply()
-		case *protos.SCmd_KilledMonster:
+		case protos.SCmd_KilledMonster_case:
 			cl.stats.monsters++
-		case *protos.SCmd_FoundSecret:
+		case protos.SCmd_FoundSecret_case:
 			cl.stats.secrets++
-		case *protos.SCmd_UpdateStat:
+		case protos.SCmd_UpdateStat_case:
 			// Only used for STAT_TOTALSECRETS, STAT_TOTALMONSTERS, STAT_SECRETS,
 			// STAT_MONSTERS
-			cl_setStats(int(cmd.UpdateStat.GetStat()), int(cmd.UpdateStat.GetValue()))
-		case *protos.SCmd_SpawnStaticSound:
-			s := cmd.SpawnStaticSound
+			cl_setStats(int(scmd.GetUpdateStat().GetStat()), int(scmd.GetUpdateStat().GetValue()))
+		case protos.SCmd_SpawnStaticSound_case:
+			s := scmd.GetSpawnStaticSound()
 			org := s.GetOrigin()
 			snd.Start(0, 0, cl.soundPrecache[s.GetIndex()-1],
 				vec.Vec3{org.GetX(), org.GetY(), org.GetZ()},
 				float32(s.GetVolume())/255, float32(s.GetAttenuation())/64, loopingSound)
-		case *protos.SCmd_CdTrack:
+		case protos.SCmd_CdTrack_case:
 			// We do not play cds
-		case *protos.SCmd_Intermission:
+		case protos.SCmd_Intermission_case:
 			cl.intermission = 1
 			cl.intermissionTime = int(cl.time)
 			screen.recalcViewRect = true // go to full screen
 			restoreViewAngles()
-		case *protos.SCmd_Finale:
+		case protos.SCmd_Finale_case:
 			cl.intermission = 2
 			cl.intermissionTime = int(cl.time)
 			screen.recalcViewRect = true // go to full screen
-			screen.CenterPrint(cmd.Finale)
-			console.CenterPrint(cmd.Finale)
+			screen.CenterPrint(scmd.GetFinale())
+			console.CenterPrint(scmd.GetFinale())
 			restoreViewAngles()
-		case *protos.SCmd_Cutscene:
+		case protos.SCmd_Cutscene_case:
 			cl.intermission = 3
 			cl.intermissionTime = int(cl.time)
 			screen.recalcViewRect = true // go to full screen
-			screen.CenterPrint(cmd.Cutscene)
-			console.CenterPrint(cmd.Cutscene)
+			screen.CenterPrint(scmd.GetCutscene())
+			console.CenterPrint(scmd.GetCutscene())
 			restoreViewAngles()
-		case *protos.SCmd_SellScreen:
+		case protos.SCmd_SellScreen_case:
 			// Origin seems to be progs.dat
 			enterMenuHelp()
-		case *protos.SCmd_Skybox:
-			sky.LoadBox(cmd.Skybox)
-		case *protos.SCmd_BackgroundFlash:
+		case protos.SCmd_Skybox_case:
+			sky.LoadBox(scmd.GetSkybox())
+		case protos.SCmd_BackgroundFlash_case:
 			// Origin seems to be progs.dat
 			cl.bonusFlash()
-		case *protos.SCmd_Fog:
-			f := cmd.Fog
+		case protos.SCmd_Fog_case:
+			f := scmd.GetFog()
 			fog.Update(f.GetDensity(), f.GetRed(), f.GetGreen(), f.GetBlue(), float64(f.GetTime()))
-		case *protos.SCmd_Achievement:
-			conlog.DPrintf("Ignoring svc_achievement (%s)\n", cmd.Achievement)
+		case protos.SCmd_Achievement_case:
+			conlog.DPrintf("Ignoring svc_achievement (%s)\n", scmd.GetAchievement())
 		}
 	}
 	return serverRunning, nil
@@ -220,8 +220,8 @@ func CL_ParseServerInfo(si *protos.ServerInfo) error {
 
 	cl.ClearState()
 
-	cl.protocol = int(si.Protocol)
-	cl.protocolFlags = uint32(si.Flags)
+	cl.protocol = int(si.GetProtocol())
+	cl.protocolFlags = uint32(si.GetFlags())
 
 	if cl.protocol == protocol.RMQ {
 		const supportedflags uint32 = protocol.PRFL_SHORTANGLE |
@@ -236,13 +236,13 @@ func CL_ParseServerInfo(si *protos.ServerInfo) error {
 		}
 	}
 
-	if si.MaxClients < 1 || si.MaxClients > 16 {
-		return fmt.Errorf("Bad maxclients (%d) from server", si.MaxClients)
+	if si.GetMaxClients() < 1 || si.GetMaxClients() > 16 {
+		return fmt.Errorf("Bad maxclients (%d) from server", si.GetMaxClients())
 	}
-	cl.maxClients = int(si.MaxClients)
+	cl.maxClients = int(si.GetMaxClients())
 	cl.scores = make([]score, cl.maxClients)
-	cl.gameType = int(si.GameType)
-	cl.levelName = si.LevelName
+	cl.gameType = int(si.GetGameType())
+	cl.levelName = si.GetLevelName()
 
 	// separate the printfs so the server message can have a color
 	console.printBar()
@@ -251,26 +251,26 @@ func CL_ParseServerInfo(si *protos.ServerInfo) error {
 	conlog.Printf("Using protocol %d\n", cl.protocol)
 
 	cl.modelPrecache = cl.modelPrecache[:0]
-	if len(si.ModelPrecache) >= 2048 {
+	if len(si.GetModelPrecache()) >= 2048 {
 		return fmt.Errorf("Server sent too many model precaches")
 	}
-	if len(si.ModelPrecache) >= 256 {
-		conlog.DWarning("%d models exceeds standard limit of 256.\n", len(si.ModelPrecache))
+	if len(si.GetModelPrecache()) >= 256 {
+		conlog.DWarning("%d models exceeds standard limit of 256.\n", len(si.GetModelPrecache()))
 	}
 
 	cl.soundPrecache = cl.soundPrecache[:0]
-	if len(si.SoundPrecache) >= 2048 {
+	if len(si.GetSoundPrecache()) >= 2048 {
 		return fmt.Errorf("Server sent too many sound precaches")
 	}
-	if len(si.SoundPrecache) >= 256 {
-		conlog.DWarning("%d sounds exceeds standard limit of 256.\n", len(si.SoundPrecache))
+	if len(si.GetSoundPrecache()) >= 256 {
+		conlog.DWarning("%d sounds exceeds standard limit of 256.\n", len(si.GetSoundPrecache()))
 	}
 
-	mapName := si.ModelPrecache[0]
+	mapName := si.GetModelPrecache()[0]
 	// now we try to load everything else until a cache allocation fails
 	cl.mapName = strings.TrimSuffix(filepath.Base(mapName), filepath.Ext(mapName))
 
-	for _, mn := range si.ModelPrecache {
+	for _, mn := range si.GetModelPrecache() {
 		m, ok := models[mn]
 		if !ok {
 			loadModel(mn)
@@ -285,7 +285,7 @@ func CL_ParseServerInfo(si *protos.ServerInfo) error {
 		}
 	}
 
-	for _, s := range si.SoundPrecache {
+	for _, s := range si.GetSoundPrecache() {
 		sfx := snd.PrecacheSound(s)
 		cl.soundPrecache = append(cl.soundPrecache, sfx)
 		if err := CL_KeepaliveMessage(); err != nil {
@@ -350,7 +350,7 @@ func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) {
 		cls.signon = 4
 		CL_SignonReply()
 	}
-	num := int(eu.Entity)
+	num := int(eu.GetEntity())
 	e := c.GetOrCreateEntity(num)
 	forceLink := e.MsgTime != c.messageTimeOld
 
@@ -358,7 +358,7 @@ func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) {
 		// most entities think every 0.1s, if we missed one we would be lerping from the wrong frame
 		e.LerpFlags |= lerpResetAnim
 	}
-	if eu.LerpMoveStep {
+	if eu.GetLerpMoveStep() {
 		e.ForceLink = true
 		e.LerpFlags |= lerpMoveStep
 	} else {
@@ -378,48 +378,48 @@ func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) {
 	e.SyncBase = 0
 
 	modNum := e.Baseline.ModelIndex
-	if eu.Model != nil {
-		modNum = int(*eu.Model)
+	if eu.HasModel() {
+		modNum = int(eu.GetModel())
 	}
 	if modNum >= model.MAX_MODELS {
 		Error("CL_ParseModel: mad modnum")
 	}
-	if eu.Frame != nil {
-		e.Frame = int(*eu.Frame)
+	if eu.HasFrame() {
+		e.Frame = int(eu.GetFrame())
 	}
-	if eu.Skin != nil {
-		e.SkinNum = int(*eu.Skin)
+	if eu.HasSkin() {
+		e.SkinNum = int(eu.GetSkin())
 	}
 	if e.SkinNum != oldSkinNum {
 		if num > 0 && num <= cl.maxClients {
 			createPlayerSkin(num, e)
 		}
 	}
-	e.Effects = int(eu.Effects)
-	if eu.OriginX != nil {
-		e.MsgOrigin[0][0] = *eu.OriginX
+	e.Effects = int(eu.GetEffects())
+	if eu.HasOriginX() {
+		e.MsgOrigin[0][0] = eu.GetOriginX()
 	}
-	if eu.OriginY != nil {
-		e.MsgOrigin[0][1] = *eu.OriginY
+	if eu.HasOriginY() {
+		e.MsgOrigin[0][1] = eu.GetOriginY()
 	}
-	if eu.OriginZ != nil {
-		e.MsgOrigin[0][2] = *eu.OriginZ
+	if eu.HasOriginZ() {
+		e.MsgOrigin[0][2] = eu.GetOriginZ()
 	}
-	if eu.AngleX != nil {
-		e.MsgAngles[0][0] = *eu.AngleX
+	if eu.HasAngleX() {
+		e.MsgAngles[0][0] = eu.GetAngleX()
 	}
-	if eu.AngleY != nil {
-		e.MsgAngles[0][1] = *eu.AngleY
+	if eu.HasAngleY() {
+		e.MsgAngles[0][1] = eu.GetAngleY()
 	}
-	if eu.AngleZ != nil {
-		e.MsgAngles[0][2] = *eu.AngleZ
+	if eu.HasAngleZ() {
+		e.MsgAngles[0][2] = eu.GetAngleZ()
 	}
 
-	if eu.Alpha != nil {
-		e.Alpha = byte(*eu.Alpha)
+	if eu.HasAlpha() {
+		e.Alpha = byte(eu.GetAlpha())
 	}
-	if eu.LerpFinish != nil {
-		e.LerpFinish = e.MsgTime + float64(*eu.LerpFinish)/255
+	if eu.HasLerpFinish() {
+		e.LerpFinish = e.MsgTime + float64(eu.GetLerpFinish())/255
 		e.LerpFlags |= lerpFinish
 	} else {
 		e.LerpFlags &^= lerpFinish
