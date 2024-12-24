@@ -356,45 +356,45 @@ func parseTempEntity(msg *net.QReader, protocolFlags uint32) (*protos.TempEntity
 		if err != nil {
 			return nil, err
 		}
-		return &protos.TempEntity{
-			Union: &protos.TempEntity_Spike{pos},
-		}, nil
+		return protos.TempEntity_builder{
+			Spike: pos,
+		}.Build(), nil
 	case TE_SUPERSPIKE:
 		// spike hitting wall
 		pos, err := readCoordVec()
 		if err != nil {
 			return nil, err
 		}
-		return &protos.TempEntity{
-			Union: &protos.TempEntity_SuperSpike{pos},
-		}, nil
+		return protos.TempEntity_builder{
+			SuperSpike: pos,
+		}.Build(), nil
 	case TE_GUNSHOT:
 		// bullet hitting wall
 		pos, err := readCoordVec()
 		if err != nil {
 			return nil, err
 		}
-		return &protos.TempEntity{
-			Union: &protos.TempEntity_Gunshot{pos},
-		}, nil
+		return protos.TempEntity_builder{
+			Gunshot: pos,
+		}.Build(), nil
 	case TE_EXPLOSION:
 		// rocket explosion
 		pos, err := readCoordVec()
 		if err != nil {
 			return nil, err
 		}
-		return &protos.TempEntity{
-			Union: &protos.TempEntity_Explosion{pos},
-		}, nil
+		return protos.TempEntity_builder{
+			Explosion: pos,
+		}.Build(), nil
 	case TE_TAREXPLOSION:
 		// tarbaby explosion
 		pos, err := readCoordVec()
 		if err != nil {
 			return nil, err
 		}
-		return &protos.TempEntity{
-			Union: &protos.TempEntity_TarExplosion{pos},
-		}, nil
+		return protos.TempEntity_builder{
+			TarExplosion: pos,
+		}.Build(), nil
 	case TE_LIGHTNING1:
 		// lightning bolts
 		ent, err := msg.ReadInt16()
@@ -443,18 +443,18 @@ func parseTempEntity(msg *net.QReader, protocolFlags uint32) (*protos.TempEntity
 		if err != nil {
 			return nil, err
 		}
-		return &protos.TempEntity{
-			Union: &protos.TempEntity_WizSpike{pos},
-		}, nil
+		return protos.TempEntity_builder{
+			WizSpike: pos,
+		}.Build(), nil
 	case TE_KNIGHTSPIKE:
 		// spike hitting wall
 		pos, err := readCoordVec()
 		if err != nil {
 			return nil, err
 		}
-		return &protos.TempEntity{
-			Union: &protos.TempEntity_KnightSpike{pos},
-		}, nil
+		return protos.TempEntity_builder{
+			KnightSpike: pos,
+		}.Build(), nil
 	case TE_LIGHTNING3:
 		// lightning bolts
 		ent, err := msg.ReadInt16()
@@ -481,17 +481,17 @@ func parseTempEntity(msg *net.QReader, protocolFlags uint32) (*protos.TempEntity
 		if err != nil {
 			return nil, err
 		}
-		return &protos.TempEntity{
-			Union: &protos.TempEntity_LavaSplash{pos},
-		}, nil
+		return protos.TempEntity_builder{
+			LavaSplash: pos,
+		}.Build(), nil
 	case TE_TELEPORT:
 		pos, err := readCoordVec()
 		if err != nil {
 			return nil, err
 		}
-		return &protos.TempEntity{
-			Union: &protos.TempEntity_Teleport{pos},
-		}, nil
+		return protos.TempEntity_builder{
+			Teleport: pos,
+		}.Build(), nil
 	case TE_EXPLOSION2:
 		// color mapped explosion
 		pos, err := readCoordVec()
@@ -763,7 +763,7 @@ func parseEntityUpdate(msg *net.QReader, pcol int, protocolFlags uint32, cmd byt
 		}
 	}
 	switch pcol {
-	case protocol.FitzQuake, protocol.RMQ:
+	case protocol.FitzQuake, protocol.RMQ, protocol.GoQuake:
 		if bits&U_EXTEND1 != 0 {
 			if b, err := msg.ReadByte(); err != nil {
 				return nil, err
@@ -875,7 +875,7 @@ func parseEntityUpdate(msg *net.QReader, pcol int, protocolFlags uint32, cmd byt
 	}
 
 	switch pcol {
-	case protocol.FitzQuake, protocol.RMQ:
+	case protocol.FitzQuake, protocol.RMQ, protocol.GoQuake:
 		if bits&U_ALPHA != 0 {
 			if v, err := msg.ReadByte(); err != nil {
 				return nil, err
@@ -960,9 +960,9 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 			if eu, err := parseEntityUpdate(msg, protocol, protocolFlags, cmd&127); err != nil {
 				return nil, err
 			} else {
-				sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
-					Union: &protos.SCmd_EntityUpdate{eu},
-				}))
+				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+					EntityUpdate: eu,
+				}.Build()))
 			}
 			continue
 		}
@@ -985,9 +985,9 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 			if cdp, err := parseClientData(msg); err != nil {
 				return nil, err
 			} else {
-				sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
-					Union: &protos.SCmd_ClientData{cdp},
-				}))
+				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+					ClientData: cdp,
+				}.Build()))
 			}
 		case Version:
 			if i, err := msg.ReadInt32(); err != nil {
@@ -1048,17 +1048,17 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 			if si, err := parseServerInfo(msg); err != nil {
 				return nil, err
 			} else {
-				sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
-					Union: &protos.SCmd_ServerInfo{si},
-				}))
+				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+					ServerInfo: si,
+				}.Build()))
 			}
 		case SetAngle:
 			if a, err := readAngle(msg, protocolFlags); err != nil {
 				return nil, err
 			} else {
-				sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
-					Union: &protos.SCmd_SetAngle{a},
-				}))
+				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+					SetAngle: a,
+				}.Build()))
 			}
 		case SetView:
 			if ve, err := msg.ReadUint16(); err != nil {
@@ -1080,16 +1080,16 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 			} else {
 				cmd.SetNewStyle(str)
 			}
-			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
-				Union: &protos.SCmd_LightStyle{cmd},
-			}))
+			sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+				LightStyle: cmd,
+			}.Build()))
 		case Sound:
 			if spp, err := parseSoundMessage(msg, protocolFlags); err != nil {
 				return nil, err
 			} else {
-				sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
-					Union: &protos.SCmd_Sound{spp},
-				}))
+				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+					Sound: spp,
+				}.Build()))
 			}
 		case StopSound:
 			if i, err := msg.ReadInt16(); err != nil {
@@ -1111,9 +1111,9 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 			} else {
 				un.SetNewName(s)
 			}
-			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
-				Union: &protos.SCmd_UpdateName{un},
-			}))
+			sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+				UpdateName: un,
+			}.Build()))
 		case UpdateFrags:
 			var data struct {
 				Player   byte
@@ -1126,9 +1126,9 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 				Player:   int32(data.Player),
 				NewFrags: int32(data.NewFrags),
 			}.Build()
-			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
-				Union: &protos.SCmd_UpdateFrags{uf},
-			}))
+			sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+				UpdateFrags: uf,
+			}.Build()))
 		case UpdateColors:
 			var data struct {
 				Player   byte
@@ -1141,9 +1141,9 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 				Player:   int32(data.Player),
 				NewColor: int32(data.NewColor),
 			}.Build()
-			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
-				Union: &protos.SCmd_UpdateColors{uc},
-			}))
+			sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+				UpdateColors: uc,
+			}.Build()))
 		case Particle:
 			org, err := readCoord(msg, protocolFlags)
 			if err != nil {
@@ -1186,26 +1186,26 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 			} else {
 				eb.SetBaseline(pb)
 			}
-			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
-				Union: &protos.SCmd_SpawnBaseline{eb},
-			}))
+			sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+				SpawnBaseline: eb,
+			}.Build()))
 
 		case SpawnStatic:
 			if pb, err := parseBaseline(msg, protocolFlags, 1); err != nil {
 				return nil, err
 			} else {
-				sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
-					Union: &protos.SCmd_SpawnStatic{pb},
-				}))
+				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+					SpawnStatic: pb,
+				}.Build()))
 			}
 
 		case TempEntity:
 			if tep, err := parseTempEntity(msg, protocolFlags); err != nil {
 				return nil, err
 			} else {
-				sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
-					Union: &protos.SCmd_TempEntity{tep},
-				}))
+				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+					TempEntity: tep,
+				}.Build()))
 			}
 		case SetPause:
 			// this byte was used to pause cd audio, other pause as well?
@@ -1225,13 +1225,13 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 				}.Build()))
 			}
 		case KilledMonster:
-			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
-				Union: &protos.SCmd_KilledMonster{},
-			}))
+			sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+				KilledMonster: &protos.Empty{},
+			}.Build()))
 		case FoundSecret:
-			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
-				Union: &protos.SCmd_FoundSecret{},
-			}))
+			sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+				FoundSecret: &protos.Empty{},
+			}.Build()))
 		case UpdateStat:
 			var data struct {
 				Stat byte
@@ -1264,9 +1264,9 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 			ss.SetIndex(int32(data.Num))
 			ss.SetVolume(int32(data.Vol))
 			ss.SetAttenuation(int32(data.Att))
-			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
-				Union: &protos.SCmd_SpawnStaticSound{ss},
-			}))
+			sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+				SpawnStaticSound: ss,
+			}.Build()))
 		case CDTrack:
 			var data struct {
 				TrackNumber uint8
@@ -1282,9 +1282,9 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 				}.Build(),
 			}.Build()))
 		case Intermission:
-			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
-				Union: &protos.SCmd_Intermission{},
-			}))
+			sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+				Intermission: &protos.Empty{},
+			}.Build()))
 		case Finale:
 			if s, err := msg.ReadString(); err != nil {
 				return nil, err
@@ -1302,9 +1302,9 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 				}.Build()))
 			}
 		case SellScreen:
-			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
-				Union: &protos.SCmd_SellScreen{},
-			}))
+			sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+				SellScreen: &protos.Empty{},
+			}.Build()))
 		case Skybox:
 			if s, err := msg.ReadString(); err != nil {
 				return nil, err
@@ -1314,9 +1314,9 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 				}.Build()))
 			}
 		case BF:
-			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
-				Union: &protos.SCmd_BackgroundFlash{},
-			}))
+			sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+				BackgroundFlash: &protos.Empty{},
+			}.Build()))
 		case Fog:
 			var data struct {
 				Density uint8
@@ -1349,17 +1349,17 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 			} else {
 				sb.SetBaseline(pb)
 			}
-			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
-				Union: &protos.SCmd_SpawnBaseline{sb},
-			}))
+			sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+				SpawnBaseline: sb,
+			}.Build()))
 
 		case SpawnStatic2:
 			if pb, err := parseBaseline(msg, protocolFlags, 2); err != nil {
 				return nil, err
 			} else {
-				sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
-					Union: &protos.SCmd_SpawnStatic{pb},
-				}))
+				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+					SpawnStatic: pb,
+				}.Build()))
 			}
 		case SpawnStaticSound2:
 			ss := &protos.StaticSound{}
@@ -1379,9 +1379,9 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 			ss.SetIndex(int32(data.Num))
 			ss.SetVolume(int32(data.Vol))
 			ss.SetAttenuation(int32(data.Att))
-			sm.SetCmds(append(sm.GetCmds(), &protos.SCmd{
-				Union: &protos.SCmd_SpawnStaticSound{ss},
-			}))
+			sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
+				SpawnStaticSound: ss,
+			}.Build()))
 		case Achievement:
 			if s, err := msg.ReadString(); err != nil {
 				return nil, err
@@ -1441,21 +1441,19 @@ func WriteSound(s *protos.Sound, pcol int, flags uint32, m *net.Message) {
 		}
 		fieldMask |= SoundLargeSound
 	}
-	v := s.Volume
-	if v != nil {
+	if s.HasVolume() {
 		fieldMask |= SoundVolume
 	}
-	a := s.Attenuation
-	if a != nil {
+	if s.HasAttenuation() {
 		fieldMask |= SoundAttenuation
 	}
 	m.WriteByte(Sound)
 	m.WriteByte(fieldMask)
-	if v != nil {
-		m.WriteByte(int(*v))
+	if s.HasVolume() {
+		m.WriteByte(int(s.GetVolume()))
 	}
-	if a != nil {
-		m.WriteByte(int(*a))
+	if s.HasAttenuation() {
+		m.WriteByte(int(s.GetAttenuation()))
 	}
 	if fieldMask&SoundLargeEntity != 0 {
 		m.WriteShort(int(s.GetEntity()))

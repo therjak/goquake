@@ -121,8 +121,9 @@ func send(v userView, m userMove) error {
 		Impulse:     int32(in_impulse),
 	}.Build()
 	pb := &protos.ClientMessage{}
-	pb.SetCmds(append(pb.GetCmds(), &protos.Cmd{
-		Union: &protos.Cmd_MoveCmd{cmd}}))
+	pb.SetCmds(append(pb.GetCmds(), protos.Cmd_builder{
+		MoveCmd: cmd,
+	}.Build()))
 
 	cl.cmdForwardMove = m.forward
 	in_impulse = 0
@@ -136,7 +137,11 @@ func send(v userView, m userMove) error {
 		return nil
 	}
 
-	if cls.connection.SendUnreliableMessage(clc.ToBytes(pb, cl.protocol, cl.protocolFlags)) == -1 {
+	b, err := clc.ToBytes(pb, cl.protocol, cl.protocolFlags)
+	if err != nil {
+		return err
+	}
+	if cls.connection.SendUnreliableMessage(b) == -1 {
 		conlog.Printf("CL_SendMove: lost server connection\n")
 		if err := cls.Disconnect(); err != nil {
 			return err

@@ -26,7 +26,10 @@ const (
 	StringCmd = 4
 )
 
-func ToBytes(pb *protos.ClientMessage, protocol int, protocolFlags uint32) []byte {
+func ToBytes(pb *protos.ClientMessage, protocol int, protocolFlags uint32) ([]byte, error) {
+	if protocol == ptcl.GoQuake {
+		return proto.Marshal(pb)
+	}
 	b := qmsg.NewClientWriter(uint16(protocolFlags))
 	for _, c := range pb.GetCmds() {
 		switch c.WhichUnion() {
@@ -69,16 +72,20 @@ func ToBytes(pb *protos.ClientMessage, protocol int, protocolFlags uint32) []byt
 			b.WriteByte(byte(mc.GetImpulse()))
 		}
 	}
-	return b.Bytes()
+	return b.Bytes(), nil
 }
 
 func FromBytes(data []byte, protocol int, flags uint32) (*protos.ClientMessage, error) {
+	pb := &protos.ClientMessage{}
+	if protocol == ptcl.GoQuake {
+		err := proto.Unmarshal(data, pb)
+		return pb, err
+	}
 	netMessage := net.NewQReader(data)
 	readAngle := netMessage.ReadAngle16
 	if protocol == ptcl.NetQuake {
 		readAngle = netMessage.ReadAngle
 	}
-	pb := &protos.ClientMessage{}
 	var err error
 	for netMessage.Len() != 0 {
 		ccmd, _ := netMessage.ReadInt8()
@@ -140,9 +147,9 @@ func FromBytes(data []byte, protocol int, flags uint32) (*protos.ClientMessage, 
 			}
 			cmd.SetImpulse(int32(impulse))
 
-			pb.SetCmds(append(pb.GetCmds(), &protos.Cmd{
-				Union: &protos.Cmd_MoveCmd{cmd},
-			}))
+			pb.SetCmds(append(pb.GetCmds(), protos.Cmd_builder{
+				MoveCmd: cmd,
+			}.Build()))
 		case StringCmd:
 			s, err := netMessage.ReadString()
 			if err != nil {
