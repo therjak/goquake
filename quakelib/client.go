@@ -146,7 +146,7 @@ type ClientStatic struct {
 	signon             int
 	connection         *net.Connection
 	inMessage          *net.QReader
-	outProto           protos.ClientMessage
+	outProto           *protos.ClientMessage
 	timeDemoLastFrame  int
 	timeDemoStartFrame int
 	timeDemoStartTime  float64
@@ -391,7 +391,7 @@ func (c *Client) ReadFromServer() (serverState, error) {
 		c.lastReceivedMessageTime = host.Time()
 		pb, err := svc.ParseServerMessage(cls.inMessage, c.protocol, c.protocolFlags)
 		if err != nil {
-			fmt.Printf("Bad server message\n %v", err)
+			log.Printf("Bad server message\n %v", err)
 			return serverDisconnected, fmt.Errorf("CL_ParseServerMessage: Bad server message")
 		}
 		if serverState, err := CL_ParseServerMessage(pb); err != nil {
@@ -513,7 +513,10 @@ func (c *ClientStatic) Disconnect() error {
 		cls.outProto.SetCmds(append(cls.outProto.GetCmds()[:0], protos.Cmd_builder{
 			Disconnect: proto.Bool(true),
 		}.Build()))
-		b := clc.ToBytes(&cls.outProto, cl.protocol, cl.protocolFlags)
+		b, err := clc.ToBytes(cls.outProto, cl.protocol, cl.protocolFlags)
+		if err != nil {
+			return err
+		}
 		c.connection.SendUnreliableMessage(b)
 		cls.outProto.Reset()
 		cls.connection.Close()
@@ -650,7 +653,10 @@ func CL_SendCmd() error {
 		return nil
 	}
 
-	b := clc.ToBytes(&cls.outProto, cl.protocol, cl.protocolFlags)
+	b, err := clc.ToBytes(cls.outProto, cl.protocol, cl.protocolFlags)
+	if err != nil {
+		return err
+	}
 	i := cls.connection.SendMessage(b)
 	if i == -1 {
 		return fmt.Errorf("CL_SendCmd: lost server connection")
@@ -734,22 +740,25 @@ Outer:
 	conlog.Printf("--> client to server keepalive\n")
 
 	cls.outProto.SetCmds(append(cls.outProto.GetCmds(), &protos.Cmd{}))
-	b := clc.ToBytes(&cls.outProto, cl.protocol, cl.protocolFlags)
+	b, err := clc.ToBytes(cls.outProto, cl.protocol, cl.protocolFlags)
+	if err != nil {
+		return err
+	}
 	cls.connection.SendMessage(b)
 	cls.outProto.Reset()
 	return nil
 }
 
 func clientInit() {
-	cls.outProto.Reset()
-	CL_InitSounds()
+	cls.outProto = &protos.ClientMessage{}
+	initSounds()
 }
 
 var (
 	clSounds map[sfx]int
 )
 
-func CL_InitSounds() {
+func initSounds() {
 	clSounds = make(map[sfx]int)
 	clSounds[WizHit] = snd.PrecacheSound("wizard/hit.wav")
 	clSounds[KnightHit] = snd.PrecacheSound("hknight/hit.wav")
