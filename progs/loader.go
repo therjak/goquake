@@ -31,7 +31,7 @@ type prog struct {
 
 func loadProgs() (*prog, error) {
 	var crcVal uint16
-	b, err := filesystem.GetFileContents("progs.dat")
+	b, err := filesystem.ReadFile("progs.dat")
 	if err != nil {
 		return nil, fmt.Errorf("Could not load progs.dat, %v", err)
 	}

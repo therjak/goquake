@@ -4,6 +4,7 @@ package bsp
 
 import (
 	"bytes"
+	"io"
 )
 
 type Entity struct {
@@ -62,7 +63,11 @@ func (e *Entity) PropertyNames() []string {
 	return n
 }
 
-func ParseEntities(data []byte) []*Entity {
+func ParseEntities(buf io.Reader) []*Entity {
+	data, err := io.ReadAll(buf)
+	if err != nil {
+		return nil
+	}
 	/*
 		The data looks like:
 		{

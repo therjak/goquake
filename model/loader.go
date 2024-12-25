@@ -3,7 +3,6 @@
 package model
 
 import (
-	"bytes"
 	"encoding/binary"
 	"fmt"
 
@@ -21,14 +20,14 @@ func init() {
 func Load(name string) ([]Model, error) {
 	// TODO: move the cache
 
-	b, err := filesystem.GetFileContents(name)
+	file, err := filesystem.Open(name)
 	if err != nil {
 		return nil, err
 	}
+	defer file.Close()
 
-	buf := bytes.NewReader(b)
 	var magic uint32
-	err = binary.Read(buf, binary.LittleEndian, &magic)
+	err = binary.Read(file, binary.LittleEndian, &magic)
 	if err != nil {
 		return nil, err
 	}
@@ -37,10 +36,13 @@ func Load(name string) ([]Model, error) {
 	if !ok {
 		return nil, fmt.Errorf("File %s has an unknown file format", name)
 	}
-	return f(name, b)
+	if _, err := file.Seek(0, 0); err != nil {
+		return nil, err
+	}
+	return f(name, file)
 }
 
-type LoadFunc func(string, []byte) ([]Model, error)
+type LoadFunc func(string, filesystem.File) ([]Model, error)
 
 func Register(magic uint32, f LoadFunc) {
 	loaders[magic] = f

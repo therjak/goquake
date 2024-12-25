@@ -347,7 +347,7 @@ func hostChangelevel(a cbuf.Arguments) error {
 		return nil
 	}
 	level := args[0].String()
-	if _, err := filesystem.GetFile(fmt.Sprintf("maps/%s.bsp", level)); err != nil {
+	if _, err := filesystem.Stat(fmt.Sprintf("maps/%s.bsp", level)); err != nil {
 		return fmt.Errorf("cannot find map %s", level)
 	}
 	if err := sv.ChangeLevel(level, sv_protocol); err != nil {

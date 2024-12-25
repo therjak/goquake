@@ -1710,7 +1710,7 @@ func (c *ClientStatic) playDemo(name string) error {
 	if !strings.HasSuffix(name, ".dem") {
 		name += ".dem"
 	}
-	b, err := filesystem.GetFileContents(name)
+	b, err := filesystem.ReadFile(name)
 	if err != nil {
 		c.demoNum = -1 // stop demo loop
 		return err
