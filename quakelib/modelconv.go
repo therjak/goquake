@@ -91,7 +91,11 @@ func loadTextures(m model.Model) {
 		}
 		mt.UploadBuffer()
 	case *bsp.Model:
-		for _, t := range mt.Textures {
+		for i, t := range mt.Textures {
+			if t == nil {
+				log.Printf("Nil Texture at %d, %s", i, m.Name())
+				continue
+			}
 			if t.SolidSky != nil {
 				textureManager.addActiveTexture(t.SolidSky)
 				textureManager.loadIndexed(t.SolidSky, t.SolidSky.Data)
