@@ -34,15 +34,16 @@ const (
 )
 
 func Load(name string) ([]*Model, error) {
-	b, err := filesystem.GetFileContents(name)
+	f, err := filesystem.Open(name)
 	if err != nil {
 		return nil, err
 	}
-	return load(name, b)
+	defer f.Close()
+	return load(name, f)
 }
 
-func loadM(name string, data []byte) ([]qm.Model, error) {
-	mods, err := load(name, data)
+func loadM(name string, file filesystem.File) ([]qm.Model, error) {
+	mods, err := load(name, file)
 	if err != nil {
 		return nil, err
 	}
@@ -53,55 +54,54 @@ func loadM(name string, data []byte) ([]qm.Model, error) {
 	return ret, nil
 }
 
-func load(name string, data []byte) ([]*Model, error) {
+func load(name string, file filesystem.File) ([]*Model, error) {
 	var ret []*Model
 	mod := &Model{
 		name: name,
 	}
 
-	buf := bytes.NewReader(data)
 	h := header{}
-	err := binary.Read(buf, binary.LittleEndian, &h)
+	err := binary.Read(file, binary.LittleEndian, &h)
 	if err != nil {
 		return nil, err
 	}
-	fs := func(d directory, data []byte) []byte {
-		return data[d.Offset : d.Offset+d.Size]
+	fs := func(d directory, f filesystem.File) *io.SectionReader {
+		return io.NewSectionReader(f, int64(d.Offset), int64(d.Size))
 	}
 	switch h.Version {
 	case bspVersion:
-		vertexes, err := loadVertexes(fs(h.Vertexes, data))
+		vertexes, err := loadVertexes(fs(h.Vertexes, file))
 		if err != nil {
 			return nil, err
 		}
 		mod.Vertexes = vertexes
-		edges, err := loadEdgesV0(fs(h.Edges, data))
+		edges, err := loadEdgesV0(fs(h.Edges, file))
 		if err != nil {
 			return nil, err
 		}
 		mod.Edges = edges
-		surfaceEdges, err := loadSurfaceEdges(fs(h.SurfaceEdges, data))
+		surfaceEdges, err := loadSurfaceEdges(fs(h.SurfaceEdges, file))
 		if err != nil {
 			return nil, err
 		}
 		mod.SurfaceEdges = surfaceEdges
-		textures, err := loadTextures(fs(h.Textures, data), name)
+		textures, err := loadTextures(fs(h.Textures, file), name)
 		if err != nil {
 			return nil, err
 		}
 		mod.Textures = textures
-		mod.lightData = loadLighting(fs(h.Lighting, data), name)
-		splanes, err := loadPlanes(fs(h.Planes, data))
+		mod.lightData = loadLighting(fs(h.Lighting, file), name)
+		splanes, err := loadPlanes(fs(h.Planes, file))
 		if err != nil {
 			return nil, err
 		}
 		mod.Planes = buildPlanes(splanes)
-		texInfo, err := loadTexInfo(fs(h.Texinfo, data), mod.Textures)
+		texInfo, err := loadTexInfo(fs(h.Texinfo, file), mod.Textures)
 		if err != nil {
 			return nil, err
 		}
 		mod.TexInfos = texInfo
-		sfaces, err := loadFacesV0(fs(h.Faces, data))
+		sfaces, err := loadFacesV0(fs(h.Faces, file))
 		if err != nil {
 			return nil, err
 		}
@@ -113,7 +113,7 @@ func load(name string, data []byte) ([]*Model, error) {
 			return nil, err
 		}
 		mod.Surfaces = msurfaces
-		msurf, err := loadMarkSurfacesV0(fs(h.MarkSurfaces, data))
+		msurf, err := loadMarkSurfacesV0(fs(h.MarkSurfaces, file))
 		if err != nil {
 			return nil, err
 		}
@@ -123,8 +123,11 @@ func load(name string, data []byte) ([]*Model, error) {
 		}
 		mod.MarkSurfaces = mms
 
-		mod.VisData = fs(h.Visibility, data)
-		leafs, err := loadLeafsV0(fs(h.Leafs, data))
+		mod.VisData, err = io.ReadAll(fs(h.Visibility, file))
+		if err != nil {
+			return nil, err
+		}
+		leafs, err := loadLeafsV0(fs(h.Leafs, file))
 		if err != nil {
 			return nil, err
 		}
@@ -133,7 +136,7 @@ func load(name string, data []byte) ([]*Model, error) {
 			return nil, err
 		}
 		mod.Leafs = ml
-		nodes, err := loadNodesV0(fs(h.Nodes, data))
+		nodes, err := loadNodesV0(fs(h.Nodes, file))
 		if err != nil {
 			return nil, err
 		}
@@ -143,7 +146,7 @@ func load(name string, data []byte) ([]*Model, error) {
 		}
 		mod.Nodes = mn
 
-		scn, err := loadClipNodesV0(fs(h.ClipNodes, data))
+		scn, err := loadClipNodesV0(fs(h.ClipNodes, file))
 		if err != nil {
 			return nil, err
 		}
@@ -153,9 +156,9 @@ func load(name string, data []byte) ([]*Model, error) {
 		}
 		mod.ClipNodes = mcn
 
-		mod.Entities = ParseEntities(fs(h.Entities, data))
+		mod.Entities = ParseEntities(fs(h.Entities, file))
 
-		submod, err := loadSubmodels(fs(h.Models, data))
+		submod, err := loadSubmodels(fs(h.Models, file))
 		if err != nil {
 			return nil, err
 		}
@@ -252,9 +255,8 @@ func (m *Model) calcRadius() {
 	m.Radius = corner.Length()
 }
 
-func loadPlanes(data []byte) ([]*plane, error) {
+func loadPlanes(buf io.Reader) ([]*plane, error) {
 	ret := []*plane{}
-	buf := bytes.NewReader(data)
 	for {
 		val := &plane{}
 		err := binary.Read(buf, binary.LittleEndian, val)
@@ -274,23 +276,23 @@ const (
 	texMissing
 )
 
-func loadTexInfo(data []byte, textures []*Texture) ([]*TexInfo, error) {
+func loadTexInfo(buf *io.SectionReader, textures []*Texture) ([]*TexInfo, error) {
 	type texInfo struct {
 		V      [2]TexInfoPos
 		MipTex uint32
 		Flags  uint32
 	}
 	const texInfoSize = 40
-	if len(data)%texInfoSize != 0 {
+	size := buf.Size()
+	if size%texInfoSize != 0 {
 		return nil, fmt.Errorf("MOD_LoadBmodel: funny lump size")
 	}
-	buf := bytes.NewReader(data)
-	count := len(data) / texInfoSize
+	count := size / texInfoSize
 	t := make([]*TexInfo, count)
 
 	missing := 0
 	var ti texInfo
-	for i := 0; i < count; i++ {
+	for i := int64(0); i < count; i++ {
 		err := binary.Read(buf, binary.LittleEndian, &ti)
 		if err != nil {
 			return nil, fmt.Errorf("loadTexInfo: %v", err)
@@ -330,9 +332,8 @@ func buildMarkSurfacesV0(marks []int, surfaces []*Surface) ([]*Surface, error) {
 	return ret, nil
 }
 
-func loadFacesV0(data []byte) ([]*faceV0, error) {
+func loadFacesV0(buf io.Reader) ([]*faceV0, error) {
 	ret := []*faceV0{}
-	buf := bytes.NewReader(data)
 	for {
 		val := &faceV0{}
 		err := binary.Read(buf, binary.LittleEndian, val)
@@ -526,9 +527,8 @@ func buildSurfacesV0(f []*faceV0, plane []*Plane, texinfo []*TexInfo, modelName 
 	return ret, nil
 }
 
-func loadMarkSurfacesV0(data []byte) ([]int, error) {
+func loadMarkSurfacesV0(buf io.Reader) ([]int, error) {
 	ret := []int{}
-	buf := bytes.NewReader(data)
 	for {
 		var val int16
 		err := binary.Read(buf, binary.LittleEndian, &val)
@@ -565,9 +565,8 @@ func buildLeafsV0(ls []*leafV0, ms []*Surface, vd []byte) ([]*MLeaf, error) {
 	return ret, nil
 }
 
-func loadLeafsV0(data []byte) ([]*leafV0, error) {
+func loadLeafsV0(buf io.Reader) ([]*leafV0, error) {
 	ret := []*leafV0{}
-	buf := bytes.NewReader(data)
 	for {
 		l := &leafV0{}
 		err := binary.Read(buf, binary.LittleEndian, l)
@@ -614,9 +613,8 @@ func buildNodesV0(nd []*nodeV0, leafs []*MLeaf, planes []*Plane, surfaces []*Sur
 	return ret, nil
 }
 
-func loadNodesV0(data []byte) ([]*nodeV0, error) {
+func loadNodesV0(buf io.Reader) ([]*nodeV0, error) {
 	ret := []*nodeV0{}
-	buf := bytes.NewReader(data)
 	for {
 		n := &nodeV0{}
 		err := binary.Read(buf, binary.LittleEndian, n)
@@ -652,9 +650,8 @@ func buildClipNodesV0(scns []*clipNodeV0, pls []*Plane) ([]*ClipNode, error) {
 	return ret, nil
 }
 
-func loadClipNodesV0(data []byte) ([]*clipNodeV0, error) {
+func loadClipNodesV0(buf io.Reader) ([]*clipNodeV0, error) {
 	ret := []*clipNodeV0{}
-	buf := bytes.NewReader(data)
 	for {
 		n := &clipNodeV0{}
 		err := binary.Read(buf, binary.LittleEndian, n)
@@ -716,9 +713,8 @@ func makeHulls(hs *[4]Hull, cns []*ClipNode, pns []*Plane, ns []*MNode) {
 	hs[2].Planes = pns
 }
 
-func loadSubmodels(data []byte) ([]*model, error) {
+func loadSubmodels(buf io.Reader) ([]*model, error) {
 	ret := []*model{}
-	buf := bytes.NewReader(data)
 	for {
 		m := &model{}
 		err := binary.Read(buf, binary.LittleEndian, m)
@@ -775,7 +771,7 @@ var (
 	}
 )
 
-func loadTextures(data []byte, modelName string) ([]*Texture, error) {
+func loadTextures(buf *io.SectionReader, modelName string) ([]*Texture, error) {
 	type mipTex struct {
 		Name    [16]byte
 		Width   uint32
@@ -783,7 +779,6 @@ func loadTextures(data []byte, modelName string) ([]*Texture, error) {
 		Offsets [4]uint32
 	}
 	var numTex int32
-	buf := bytes.NewReader(data)
 	err := binary.Read(buf, binary.LittleEndian, &numTex)
 	if err != nil || numTex == 0 {
 		return nil, nil
@@ -832,7 +827,6 @@ func loadTextures(data []byte, modelName string) ([]*Texture, error) {
 			}
 			t[i].loadBspTexture(td, name, modelName)
 		}
-		// TODO(therjak): warpimage
 	}
 	t[len(t)-1] = noTextureMip  // lightmapped surfs
 	t[len(t)-2] = noTextureMip2 // SURF_DRAWTILED surfs
@@ -842,19 +836,19 @@ func loadTextures(data []byte, modelName string) ([]*Texture, error) {
 	return t, nil
 }
 
-func loadEdgesV0(data []byte) ([]*MEdge, error) {
+func loadEdgesV0(buf *io.SectionReader) ([]*MEdge, error) {
 	type dsedge struct {
 		V [2]uint16
 	}
 	const dsedgeSize = 4
-	if len(data)%dsedgeSize != 0 {
+	size := buf.Size()
+	if size%dsedgeSize != 0 {
 		return nil, fmt.Errorf("MOD_LoadBmodel: funny lump size")
 	}
-	buf := bytes.NewReader(data)
-	count := len(data) / dsedgeSize
+	count := size / dsedgeSize
 	t := make([]*MEdge, count)
 	var dedge dsedge
-	for i := 0; i < count; i++ {
+	for i := int64(0); i < count; i++ {
 		err := binary.Read(buf, binary.LittleEndian, &dedge)
 		if err != nil {
 			return nil, fmt.Errorf("loadEdgesV0: %v", err)
@@ -867,19 +861,19 @@ func loadEdgesV0(data []byte) ([]*MEdge, error) {
 	return t, nil
 }
 
-func loadEdgesV2(data []byte) ([]*MEdge, error) {
+func loadEdgesV2(buf *io.SectionReader) ([]*MEdge, error) {
 	type dledge struct {
 		V [2]uint32
 	}
 	const dledgeSize = 8
-	if len(data)%dledgeSize != 0 {
+	size := buf.Size()
+	if size%dledgeSize != 0 {
 		return nil, fmt.Errorf("MOD_LoadBmodel: funny lump size")
 	}
-	buf := bytes.NewReader(data)
-	count := len(data) / dledgeSize
+	count := size / dledgeSize
 	t := make([]*MEdge, count)
 	var dedge dledge
-	for i := 0; i < count; i++ {
+	for i := int64(0); i < count; i++ {
 		err := binary.Read(buf, binary.LittleEndian, &dedge)
 		if err != nil {
 			return nil, fmt.Errorf("loadEdgesV2: %v", err)
@@ -892,19 +886,19 @@ func loadEdgesV2(data []byte) ([]*MEdge, error) {
 	return t, nil
 }
 
-func loadVertexes(data []byte) ([]*MVertex, error) {
+func loadVertexes(buf *io.SectionReader) ([]*MVertex, error) {
 	type dvertex struct {
 		Point [3]float32
 	}
 	const dvertexSize = 12
-	if len(data)%dvertexSize != 0 {
+	size := buf.Size()
+	if size%dvertexSize != 0 {
 		return nil, fmt.Errorf("MOD_LoadBmodel: funny lump size")
 	}
-	buf := bytes.NewReader(data)
-	count := len(data) / dvertexSize
+	count := size / dvertexSize
 	t := make([]*MVertex, count)
 	var dv dvertex
-	for i := 0; i < count; i++ {
+	for i := int64(0); i < count; i++ {
 		err := binary.Read(buf, binary.LittleEndian, &dv)
 		if err != nil {
 			return nil, fmt.Errorf("loadVertexes: %v", err)
@@ -919,13 +913,13 @@ func loadVertexes(data []byte) ([]*MVertex, error) {
 
 }
 
-func loadSurfaceEdges(data []byte) ([]int32, error) {
+func loadSurfaceEdges(buf *io.SectionReader) ([]int32, error) {
 	const sizeofInt32 = 4
-	if len(data)%sizeofInt32 != 0 {
+	size := buf.Size()
+	if size%sizeofInt32 != 0 {
 		return nil, fmt.Errorf("MOD_LoadBmodel: funny lump size")
 	}
-	buf := bytes.NewReader(data)
-	count := len(data) / sizeofInt32
+	count := size / sizeofInt32
 	out := make([]int32, count)
 	err := binary.Read(buf, binary.LittleEndian, &out)
 	if err != nil {
@@ -934,20 +928,31 @@ func loadSurfaceEdges(data []byte) ([]int32, error) {
 	return out, nil
 }
 
-func loadLighting(data []byte, name string) []byte {
+func loadLighting(buf *io.SectionReader, name string) []byte {
 	litName := filesystem.StripExt(name) + ".lit"
-	litData, err := filesystem.GetFileContents(litName)
-	if err != nil && len(litData) > 8 {
-		buf := bytes.NewReader(litData)
-		var magic uint32
-		var version int32
-		binary.Read(buf, binary.LittleEndian, &magic)
-		binary.Read(buf, binary.LittleEndian, &version)
-		if magic == qlit && version == 1 {
-			return litData[8:]
+	litFile, err := filesystem.Open(litName)
+	if err == nil {
+		defer litFile.Close()
+		if ok := func() bool {
+			var magic uint32
+			var version int32
+			if err := binary.Read(litFile, binary.LittleEndian, &magic); err != nil {
+				return false
+			}
+			if err := binary.Read(litFile, binary.LittleEndian, &version); err != nil {
+				return false
+			}
+			return magic == qlit && version == 1
+		}(); ok {
+			out, err := io.ReadAll(litFile)
+			if err == nil {
+				return out
+			}
+			log.Printf("read lit: %v", err)
 		}
 	}
-	if len(data) == 0 {
+	data, err := io.ReadAll(buf)
+	if err != nil || len(data) == 0 {
 		return nil
 	}
 	out := make([]byte, 0, len(data)*3)

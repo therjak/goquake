@@ -96,7 +96,7 @@ type chunk struct {
 }
 
 func loadSFX(filename string) (*pcmSound, error) {
-	mem, err := filesystem.GetFileContents(filename)
+	mem, err := filesystem.ReadFile(filename)
 	if err != nil {
 		return nil, fmt.Errorf("Could not load file %v: %v", filename, err)
 	}

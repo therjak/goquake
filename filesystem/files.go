@@ -7,15 +7,26 @@ package filesystem
 import (
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"goquake/pack"
 
 	"golang.org/x/tools/godoc/vfs"
 )
+
+// vfs:
+// vfs.OS
+// vfs.BindBefore
+// vfs.NameSpace
+// -- NameSpace.Bind
+// -- NameSpace.Stat
+// -- NameSpace.Open
+// vfs.NewNameSpace
 
 var (
 	baseDir string
@@ -25,33 +36,69 @@ var (
 	mutex   sync.RWMutex
 )
 
-type QFile interface {
-	io.Seeker
-	// io.ReaderAt
-	io.Reader
-	io.Closer
+type File interface {
+	io.ReadSeekCloser
+	io.ReaderAt
 }
 
 type packFileSystem struct {
 	p *pack.Pack
 }
 
+// To satisfy vfs interface, unused
 func (p packFileSystem) RootType(path string) vfs.RootType {
 	return ""
+}
+
+type closer struct {
+	*io.SectionReader
+}
+
+func (*closer) Close() error {
+	return nil
+}
+
+type fileInfo struct {
+	name string // base name of the file
+	size int64  // length in bytes for regular files; system-dependent for others
+}
+
+func (f *fileInfo) Name() string {
+	return f.name
+}
+func (f *fileInfo) Size() int64 {
+	return f.size
+}
+func (f *fileInfo) Mode() fs.FileMode {
+	return 0
+}
+func (f *fileInfo) ModTime() time.Time {
+	return time.Time{}
+}
+func (f *fileInfo) IsDir() bool {
+	return false
+}
+func (f *fileInfo) Sys() any {
+	return nil
 }
 
 func (p packFileSystem) Open(path string) (vfs.ReadSeekCloser, error) {
 	// inside a pack file there is no 'root'. all files are relative to '.'
 	path = strings.TrimPrefix(path, "/")
-	f := p.p.GetFile(path)
-	if f != nil {
-		return f, nil
-	}
-	return nil, os.ErrNotExist
+	f, err := p.p.Open(path)
+	return &closer{f}, err
 }
 
 func (p packFileSystem) stat(path string) (os.FileInfo, error) {
-	return nil, fmt.Errorf("Not implemented")
+	path = strings.TrimPrefix(path, "/")
+	f, err := p.p.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	return &fileInfo{
+		name: path,
+		size: f.Size(),
+	}, nil
 }
 
 func (p packFileSystem) Lstat(path string) (os.FileInfo, error) {
@@ -127,14 +174,23 @@ func Stat(path string) (os.FileInfo, error) {
 	return gameNS.Stat(path)
 }
 
-func GetFile(name string) (QFile, error) {
+func Open(name string) (File, error) {
 	mutex.RLock()
 	defer mutex.RUnlock()
-	return gameNS.Open(filepath.Join("/", name))
+	nf, err := gameNS.Open(filepath.Join("/", name))
+	if err != nil {
+		return nil, err
+	}
+	f, ok := nf.(File)
+	if !ok {
+		f.Close()
+		return nil, os.ErrNotExist
+	}
+	return f, nil
 }
 
-func GetFileContents(name string) ([]byte, error) {
-	file, err := GetFile(name)
+func ReadFile(name string) ([]byte, error) {
+	file, err := Open(name)
 	if err != nil {
 		return nil, err
 	}

@@ -80,7 +80,7 @@ type tgaHeader struct {
 }
 
 func loadTGA(name string) (*image.NRGBA, error) {
-	f, err := filesystem.GetFile(name)
+	f, err := filesystem.Open(name)
 	if err != nil {
 		return nil, err
 	}

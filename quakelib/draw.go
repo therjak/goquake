@@ -528,7 +528,7 @@ func GetCachedPicture(name string) *QPic {
 }
 
 func loadPicFromFile(name string) (*QPic, error) {
-	b, err := filesystem.GetFileContents(name)
+	b, err := filesystem.ReadFile(name)
 	if err != nil {
 		return nil, err
 	}

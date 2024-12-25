@@ -16,11 +16,12 @@ func TestPak(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not open %s: %v", pakFile, err)
 	}
+	defer p.Close()
 	if p.String() != pakFile {
 		t.Errorf("pack String error: want %v got %v", pakFile, p.String())
 	}
-	f1 := p.GetFile("doc1.txt")
-	if f1 == nil {
+	f1, err := p.Open("doc1.txt")
+	if err != nil {
 		t.Error("Got no file 'doc1.txt")
 	}
 	b1, err := io.ReadAll(f1)
@@ -30,12 +31,12 @@ func TestPak(t *testing.T) {
 	if string(b1) != "this is the first doc 2. version\r\n" {
 		t.Errorf("f1 contents is '%v'", b1)
 	}
-	f4 := p.GetFile("doc4.txt")
-	if f4 == nil {
+	_, err = p.Open("doc4.txt")
+	if err != nil {
 		t.Error("Got no file 'doc4.txt")
 	}
-	f5 := p.GetFile("testdir/doc4.txt")
-	if f5 == nil {
+	f5, err := p.Open("testdir/doc4.txt")
+	if err != nil {
 		t.Error("Got no file 'testdir/doc4.txt")
 	}
 	b5, err := io.ReadAll(f5)

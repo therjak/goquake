@@ -3,11 +3,12 @@
 package spr
 
 import (
-	"bytes"
 	"encoding/binary"
 	"fmt"
+	"io"
 	"math"
 
+	"goquake/filesystem"
 	"goquake/math/vec"
 	qm "goquake/model"
 	"goquake/palette"
@@ -45,8 +46,8 @@ func (q *Model) Flags() int {
 	return 0
 }
 
-func loadM(name string, data []byte) ([]qm.Model, error) {
-	mod, err := load(name, data)
+func loadM(name string, file filesystem.File) ([]qm.Model, error) {
+	mod, err := load(name, file)
 	if err != nil {
 		return nil, err
 	}
@@ -105,11 +106,10 @@ type Frame struct {
 	Texture  *texture.Texture
 }
 
-func load(name string, data []byte) (*Model, error) {
+func load(name string, buf io.Reader) (*Model, error) {
 	mod := &Model{
 		name: name,
 	}
-	buf := bytes.NewReader(data)
 	h := header{}
 	err := binary.Read(buf, binary.LittleEndian, &h)
 	if err != nil {
@@ -164,7 +164,7 @@ func load(name string, data []byte) (*Model, error) {
 	return mod, nil
 }
 
-func readSingleFrame(buf *bytes.Reader, name string, index int) (*RawFrame, error) {
+func readSingleFrame(buf io.Reader, name string, index int) (*RawFrame, error) {
 	f, err := readFrame(buf, name, index)
 	if err != nil {
 		return nil, err
@@ -175,7 +175,7 @@ func readSingleFrame(buf *bytes.Reader, name string, index int) (*RawFrame, erro
 	return r, nil
 }
 
-func readFrameGroup(buf *bytes.Reader, name string, index int) (*RawFrame, error) {
+func readFrameGroup(buf io.Reader, name string, index int) (*RawFrame, error) {
 	// See: Mod_LoadSpriteGroup
 	// read int32 as numframes
 	// read [numframes]float32 as intervals
@@ -187,7 +187,7 @@ func readFrameGroup(buf *bytes.Reader, name string, index int) (*RawFrame, error
 	return nil, fmt.Errorf("readFrameGroup: not implemented")
 }
 
-func readFrame(buf *bytes.Reader, modName string, index int) (*Frame, error) {
+func readFrame(buf io.Reader, modName string, index int) (*Frame, error) {
 	var f frame
 	err := binary.Read(buf, binary.LittleEndian, &f)
 	if err != nil {

@@ -29,18 +29,19 @@ type Pack struct {
 }
 
 type qfile struct {
-	io.SectionReader
+	offset int64
+	size   int64
 }
 
-func (q *qfile) Close() error {
-	_, err := q.Seek(0, io.SeekStart)
-	return err
-}
-
-// GetFile returns a io.SectionReader or nil if the pak has no entry with the
+// Open returns a io.SectionReader or nil if the pak has no entry with the
 // provided name.
-func (p *Pack) GetFile(name string) *qfile {
-	return p.files[name]
+func (p *Pack) Open(name string) (*io.SectionReader, error) {
+	q, ok := p.files[name]
+	if !ok {
+		return nil, os.ErrNotExist
+	}
+
+	return io.NewSectionReader(p.f, q.offset, q.size), nil
 }
 
 func (p *Pack) String() string {
@@ -87,7 +88,10 @@ func (p *Pack) init() error {
 		if p.files[name] != nil {
 			return errors.New("files in pack are not unique")
 		}
-		p.files[name] = &qfile{*io.NewSectionReader(p.f, int64(e.Offset), int64(e.Size))}
+		p.files[name] = &qfile{
+			offset: int64(e.Offset),
+			size:   int64(e.Size),
+		}
 	}
 	return nil
 }

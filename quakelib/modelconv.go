@@ -40,10 +40,12 @@ func loadModel(name string) (model.Model, error) {
 		log.Printf("LoadModel err: %v", err)
 		return nil, err
 	}
-	for _, m := range mods {
+	for i, m := range mods {
 		models[m.Name()] = m
 		setExtraFlags(m)
-		loadTextures(m)
+		if i == 0 {
+			loadTextures(m)
+		}
 	}
 	m, ok = models[name]
 	if ok {

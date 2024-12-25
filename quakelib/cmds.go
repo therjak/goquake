@@ -89,7 +89,7 @@ func execFile(a cbuf.Arguments) error {
 		conlog.Printf("exec <filename> : execute a script file\n")
 		return nil
 	}
-	b, err := filesystem.GetFileContents(args[1].String())
+	b, err := filesystem.ReadFile(args[1].String())
 	if err != nil {
 		if args[1].String() == "default.cfg" {
 			conlog.Printf("execing %v\n", args[1])

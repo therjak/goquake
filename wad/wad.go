@@ -45,7 +45,7 @@ type QPic struct {
 }
 
 func getWad() ([]byte, error) {
-	file, err := filesystem.GetFile("gfx.wad")
+	file, err := filesystem.Open("gfx.wad")
 	if err != nil {
 		return nil, err
 	}

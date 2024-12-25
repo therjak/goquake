@@ -12,6 +12,7 @@ import (
 	"unsafe"
 
 	"goquake/conlog"
+	"goquake/filesystem"
 	"goquake/glh"
 	"goquake/math/vec"
 	qm "goquake/model"
@@ -107,8 +108,8 @@ func (q *Model) AddFlag(f int) {
 	q.flags |= f
 }
 
-func loadM(name string, data []byte) ([]qm.Model, error) {
-	mod, err := load(name, data)
+func loadM(name string, file filesystem.File) ([]qm.Model, error) {
+	mod, err := load(name, file)
 	if err != nil {
 		return nil, err
 	}
@@ -153,12 +154,11 @@ type Triangle struct {
 	Indices    [3]int
 }
 
-func load(name string, data []byte) (*Model, error) {
+func load(name string, buf io.ReadSeeker) (*Model, error) {
 	mod := &Model{
 		name: name,
 	}
 
-	buf := bytes.NewReader(data)
 	h := header{}
 	err := binary.Read(buf, binary.LittleEndian, &h)
 	if err != nil {
