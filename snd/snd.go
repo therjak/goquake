@@ -274,7 +274,7 @@ func (s *SndSys) start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3,
 	}()
 	chunk, err := newSDLSound(pres)
 	if err != nil {
-		log.Println(err)
+		// log.Println(err)
 		return
 	}
 	schan, err := chunk.Play(ps.channel, loop)
@@ -326,15 +326,14 @@ func (s *SndSys) unblock() {
 }
 
 func newSDLSound(s *pcmSound) (*mix.Chunk, error) {
-	if s.sampleRate != mustSampleRate {
+	if s.sampleRate != uint32(mustSampleRate) {
 		return nil, fmt.Errorf("Not desired sample rate. %v, %v", s.sampleRate, s.name)
 	}
-	l := s.samples * (s.bitrate / 8) * s.channelNum
-	if l > len(s.pcm) {
-		log.Printf("Bad sdlLoad")
+	l := s.samples * uint32(s.bitsPerSample/8) * uint32(s.numChans)
+	if l > uint32(len(s.pcm)) {
 		return nil, fmt.Errorf("Bad sdlLoad")
 	}
-	return mix.QuickLoadRAW(&s.pcm[0], uint32(l))
+	return mix.QuickLoadRAW(&s.pcm[0], l)
 }
 
 func (s *SndSys) precacheSound(n string) int {

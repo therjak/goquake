@@ -3,10 +3,13 @@
 package snd
 
 import (
-	"bytes"
 	"encoding/binary"
 	"fmt"
+	"io"
 	"log"
+	"math"
+	"os"
+	"time"
 
 	"goquake/filesystem"
 )
@@ -17,27 +20,106 @@ const (
 )
 
 type pcmSound struct {
-	name       string
-	samples    int // number of samples
-	bitrate    int
-	channelNum int
-	loopStart  int // in samples, length/bitrate
-	sampleRate int
-	pcm        []byte
+	name          string
+	samples       uint32 // number of samples
+	numChans      uint16
+	loopStart     uint32 // in samples, length/bitrate
+	loopSamples   uint32
+	sampleRate    uint32
+	byteRate      uint32
+	bytesPerFrame uint16
+	bitsPerSample uint16
+	pcm           []byte
+	reader        *io.SectionReader
+	dataSize      uint32
+	pos           uint32
+	err           error
+	file          filesystem.File
+}
+
+func (p *pcmSound) Close() error {
+	return p.file.Close()
+}
+
+func (p *pcmSound) Len() int {
+	numBytes := time.Duration(p.dataSize)
+	perFrame := time.Duration(p.bytesPerFrame)
+	return int(numBytes / perFrame)
+}
+
+func (p *pcmSound) Seek(newPos int) error {
+	if newPos < 0 || p.Len() < newPos {
+		return fmt.Errorf("seek position %d is out of range [%d,%d]", newPos, 0, p.Len())
+	}
+	pos := uint32(newPos) * uint32(p.bytesPerFrame)
+	if _, err := p.reader.Seek(int64(pos), io.SeekStart); err != nil {
+		return fmt.Errorf("seek error: %w", err)
+	}
+	p.pos = pos
+	return nil
+}
+
+func (p *pcmSound) Position() int {
+	return int(p.pos / uint32(p.bytesPerFrame))
+}
+
+func (p *pcmSound) Err() error {
+	return p.err
+}
+
+func (p *pcmSound) Stream(samples [][2]float64) (n int, ok bool) {
+	if p.err != nil || p.pos >= p.dataSize {
+		return 0, false
+	}
+	bytesPerFrame := int(p.bytesPerFrame)
+	wantBytes := len(samples) * bytesPerFrame
+	availableBytes := int(p.dataSize - p.pos)
+	numBytes := min(wantBytes, availableBytes)
+	d := make([]byte, numBytes)
+	n, err := p.reader.Read(d)
+	if err != nil && err != io.EOF {
+		p.err = err
+	}
+	switch {
+	case p.bitsPerSample == 8 && p.numChans == 1:
+		for i, j := 0, 0; i <= n-bytesPerFrame; i, j = i+bytesPerFrame, j+1 {
+			val := float64(d[i])/(1<<8)*2 - 1
+			samples[j][0] = val
+			samples[j][1] = val
+		}
+	case p.bitsPerSample == 8 && p.numChans == 2:
+		for i, j := 0, 0; i <= n-bytesPerFrame; i, j = i+bytesPerFrame, j+1 {
+			samples[j][0] = float64(d[i+0])/(1<<8)*2 - 1
+			samples[j][1] = float64(d[i+1])/(1<<8)*2 - 1
+		}
+	case p.bitsPerSample == 16 && p.numChans == 1:
+		for i, j := 0, 0; i <= n-bytesPerFrame; i, j = i+bytesPerFrame, j+1 {
+			val := float64(int16(d[i+0])+int16(d[i+1])*(1<<8)) / (1 << 15)
+			samples[j][0] = val
+			samples[j][1] = val
+		}
+	case p.bitsPerSample == 16 && p.numChans == 2:
+		for i, j := 0, 0; i <= n-bytesPerFrame; i, j = i+bytesPerFrame, j+1 {
+			samples[j][0] = float64(int16(d[i+0])+int16(d[i+1])*(1<<8)) / (1 << 15)
+			samples[j][1] = float64(int16(d[i+2])+int16(d[i+3])*(1<<8)) / (1 << 15)
+		}
+	}
+	p.pos += uint32(n)
+	return n / bytesPerFrame, true
 }
 
 // Resample converts to 16bit stereo
 func (s *pcmSound) resample() error {
-	if s.bitrate == 16 && s.channelNum == 2 {
+	if s.bitsPerSample == 16 && s.numChans == 2 {
 		return nil
 	}
-	if s.bitrate == 16 && s.channelNum == 1 {
+	if s.bitsPerSample == 16 && s.numChans == 1 {
 		return s.resample16Mono()
 	}
-	if s.bitrate == 8 && s.channelNum == 2 {
+	if s.bitsPerSample == 8 && s.numChans == 2 {
 		return s.resample8Stereo()
 	}
-	if s.bitrate == 8 && s.channelNum == 1 {
+	if s.bitsPerSample == 8 && s.numChans == 1 {
 		return s.resample8Mono()
 	}
 	return fmt.Errorf("Unsupported sound format: %v", s.name)
@@ -52,7 +134,7 @@ func (s *pcmSound) resample16Mono() error {
 		newPCM[i*2+3] = s.pcm[i+1]
 	}
 	s.pcm = newPCM
-	s.channelNum = 2
+	s.numChans = 2
 	return nil
 }
 
@@ -64,7 +146,7 @@ func (s *pcmSound) resample8Stereo() error {
 		newPCM[i*2+1] = byte(v)
 	}
 	s.pcm = newPCM
-	s.bitrate = 16
+	s.bitsPerSample = 16
 	return nil
 }
 
@@ -78,9 +160,14 @@ func (s *pcmSound) resample8Mono() error {
 		newPCM[i*4+3] = byte(v)
 	}
 	s.pcm = newPCM
-	s.channelNum = 2
-	s.bitrate = 16
+	s.numChans = 2
+	s.bitsPerSample = 16
 	return nil
+}
+
+type header struct {
+	ID   [4]byte
+	Size uint32
 }
 
 type waveHeader struct {
@@ -90,57 +177,63 @@ type waveHeader struct {
 }
 
 type chunk struct {
-	ID   [4]byte
-	Size int
-	Body []byte
+	header
+	//Body []byte
+	Data *io.SectionReader
 }
 
-func loadSFX(filename string) (*pcmSound, error) {
-	mem, err := filesystem.ReadFile(filename)
+// http://www.piclist.com/techref/io/serial/midi/wave.html
+
+func loadSFX(filename string) (sound *pcmSound, err error) {
+	file, err := filesystem.Open(filename)
 	if err != nil {
 		return nil, fmt.Errorf("Could not load file %v: %v", filename, err)
 	}
-	// 12 would be enough for the header, but the file would contain no data
-	// we need 12 + 8 for the next chunk
-	if len(mem) < 20 {
-		return nil, fmt.Errorf("file with length < 20, %v", filename)
+	defer func() {
+		if err != nil {
+			log.Printf("loadSFX err")
+			file.Close()
+		}
+	}()
+
+	wh := waveHeader{} // 12 byte
+	if err := binary.Read(file, binary.LittleEndian, &wh); err != nil {
+		return nil, fmt.Errorf("failed to read header: %v", err)
 	}
 
-	header := getHeader(mem)
-	if header.ID != [4]byte{'R', 'I', 'F', 'F'} ||
-		header.RiffType != [4]byte{'W', 'A', 'V', 'E'} {
+	if wh.ID != [4]byte{'R', 'I', 'F', 'F'} ||
+		wh.RiffType != [4]byte{'W', 'A', 'V', 'E'} {
 		return nil, fmt.Errorf("file is not a RIFF wave file")
 	}
-	if int(header.Size) != len(mem)-8 {
-		log.Println("wave file length in header seems off")
-	}
 
-	chunks := []chunk{}
-	chunkSize := 12 // last read chunk has size of...
-	chunkMem := mem
-	for len(chunkMem) >= chunkSize+8 { // we have at least one chunk left to read
-		chunkMem = chunkMem[chunkSize:] // we know we have at least 8 byte available
-		var id [4]byte
-		copy(id[:], chunkMem)
-		// size of the chunk without id (4byte) and length (4byte) info will come now
-		size := int(binary.LittleEndian.Uint32(chunkMem[4:]))
-		chunkSize = size + 8
-		if chunkSize > len(chunkMem) {
-			//			fmt.Printf("Got broken chunk in file %v, %v, %v, %v, %v\n",
-			//				filename, chunkSize, len(chunkMem), string(id[:]), string(chunkMem[8:12]))
-			continue
+	chunks := []*chunk{}
+	nextChunkStart := int64(12)
+	for { // we have at least one chunk left to read
+		c := &chunk{}
+		if err := binary.Read(file, binary.LittleEndian, &c.header); err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, fmt.Errorf("failed to read chunk header: %v", err)
 		}
-		chunks = append(chunks, chunk{
-			ID:   id,
-			Size: size,
-			Body: chunkMem[8:chunkSize],
-		})
-		if chunkSize%2 != 0 {
-			// spec says chunks are WORD aligned (2,4,6,8,10,...) with 0 padding but 'size' does not include padding.
-			chunkSize = chunkSize + 1 // (size + 1 ) &^ 1
+		nextChunkStart += 8
+		size := int64(c.Size)
+		if size%2 != 0 {
+			// spec says chunks are WORD aligned (2,4,6,8,10,...) with 0 padding
+			// but 'size' does not include padding.
+			size = size + 1
 		}
+		c.Data = io.NewSectionReader(file, nextChunkStart, size)
+		nextChunkStart, err = file.Seek(size, os.SEEK_CUR)
+		if err != nil {
+			return nil, fmt.Errorf("Seek error: %v", err)
+		}
+		chunks = append(chunks, c)
 	}
-	output := &pcmSound{name: filename}
+	output := &pcmSound{
+		name: filename,
+		file: file,
+	}
 
 	gotFMT := 0
 	for _, c := range chunks {
@@ -155,31 +248,36 @@ func loadSFX(filename string) (*pcmSound, error) {
 			if f.ChannelNum != mono && f.ChannelNum != stereo {
 				return nil, fmt.Errorf("Invalid number of sound channels: %v, %v", f.ChannelNum, filename)
 			}
-			output.channelNum = int(f.ChannelNum)
-			if f.SignificantBitsPerSample != 8 && f.SignificantBitsPerSample != 16 {
-				return nil, fmt.Errorf("Invalid sound bitrate: %v", f.SignificantBitsPerSample)
+			if f.BitsPerSample != 8 && f.BitsPerSample != 16 {
+				return nil, fmt.Errorf("Invalid sound bitrate: %v", f.BitsPerSample)
 			}
-			output.bitrate = int(f.SignificantBitsPerSample)
-			output.sampleRate = int(f.SampleRate)
+			output.numChans = f.ChannelNum
+			output.sampleRate = f.SampleRate
+			output.byteRate = f.ByteRate
+			output.bytesPerFrame = f.BytesPerFrame
+			output.bitsPerSample = f.BitsPerSample
 			gotFMT += 1
 		}
 	}
 	if gotFMT != 1 {
 		return nil, fmt.Errorf("Invalid number of fmt blocks: %v", gotFMT)
 	}
+	output.loopStart = math.MaxUint32
 
-	for _, c := range chunks {
-		if c.ID == [4]byte{'d', 'a', 't', 'a'} {
-			output.samples = c.Size / (output.bitrate / 8)
-			output.pcm = c.Body
-			break // We only support a single data chunk, so reading the first is enough
-		}
-	}
+	cueIdx := -1
+	for idx, c := range chunks {
+		id := string(c.ID[:])
+		switch id {
+		default:
+			log.Printf("unknown chunk: %q", string(c.ID[:]))
+		case "fmt ":
+			// already parsed
+		case "data":
+			output.dataSize = c.Size
+			output.samples = c.Size / uint32(output.bitsPerSample/8)
+			output.reader = c.Data
 
-	output.loopStart = -1
-	for i, c := range chunks {
-		if c.ID == [4]byte{'c', 'u', 'e', ' '} {
-			// https://sites.google.com/site/musicgapi/technical-documents/wav-file-format#cue
+		case "cue ":
 			// off 0x00: 4byte 'cue '
 			// off 0x04: 4byte chunk data size
 			// off 0x08: 4byte num cue points
@@ -191,68 +289,91 @@ func loadSFX(filename string) (*pcmSound, error) {
 			// off 0x0c: 4byte Chunk start
 			// off 0x10: 4byte Block start
 			// off 0x14: 4byte Sample Offset
+			cueIdx = idx
+			var numCuePoints uint32
+			if err := binary.Read(c.Data, binary.LittleEndian, &numCuePoints); err != nil {
+				return nil, fmt.Errorf("Invalid CuePoints: %v", err)
+			}
+			var cuePoint struct {
+				ID           uint32
+				Pos          uint32
+				DataChunkID  [4]byte
+				ChunkStart   uint32
+				BlockStart   uint32
+				SampleOffset uint32
+			}
+			if numCuePoints != 1 {
+				log.Printf("NumCuePoints != 1")
+			}
+			for i := uint32(0); i < numCuePoints; i++ {
+				if err := binary.Read(c.Data, binary.LittleEndian, &cuePoint); err != nil {
+					return nil, fmt.Errorf("Invalid CuePoint: %v", err)
+				}
+				output.loopStart = cuePoint.SampleOffset
+				break
+			}
+		case "LIST":
+			if cueIdx+1 != idx {
+				// the original code expects this 'LIST' to follow the 'cue ' to be
+				// a valid 'mark' entry for the loopSample number
+				continue
+			}
+			// off 0x00: 4byte 'LIST'
+			// off 0x04: 4byte chunk data size
+			// off 0x08: 4byte list type id, probably 'adtl' but not directly checked
+			// off 0x0c: data, depending on list type id
+			// adtl data:
+			// off 0x00: 4byte sub chunk id
+			// off 0x04: 4byte size
+			// off 0x08: 4byte id of the relevant cue point
+			// off 0x0c: 4byte sample length
+			// off 0x10: 4byte purpose id
+			// purpose id = (chunk start + 28) should be 'mark'
+			// sample length = (chunk start + 24) is wanted nr as Uint32
 
-			// It would be correct to first check if the number of cue points is at least 1
-			// but this check was not done in the original, so only check for the length.
-			const sampleOffsetOffset = 0x14 + 4
-			if c.Size < sampleOffsetOffset+4 {
-				// offset Sample Offset + length +  length of num cue points size
-				return nil, fmt.Errorf("Got faulty cue chunk")
+			// the first 8 bytes are still part of the chunk metadata, so just add
+			// the list type id length to adtl data
+			var listType [4]byte
+			if err := binary.Read(c.Data, binary.LittleEndian, &listType); err != nil {
+				return nil, fmt.Errorf("Invalid CuePoint: %v", err)
 			}
-			loopStart := binary.LittleEndian.Uint32(c.Body[sampleOffsetOffset:])
-			if int(loopStart) >= output.samples {
-				// check here as well, we might not get a LIST chunk
-				return nil, fmt.Errorf("Got loop start beyond the sound end")
-			}
-			output.loopStart = int(loopStart)
-			if output.loopStart < 0 {
-				log.Printf("negative loop start")
-			}
-			if len(chunks) >= i+1 {
-				next := chunks[i+1]
-				if next.ID == [4]byte{'L', 'I', 'S', 'T'} {
-					// off 0x00: 4byte 'LIST'
-					// off 0x04: 4byte chunk data size
-					// off 0x08: 4byte list type id, probably 'adtl' but not directly checked
-					// off 0x0c: data, depending on list type id
-					// adtl data:
-					// off 0x00: 4byte sub chunk id
-					// off 0x04: 4byte size
-					// off 0x08: 4byte id of the relevant cue point
-					// off 0x0c: 4byte sample length
-					// off 0x10: 4byte purpose id
-					// purpose id = (chunk start + 28) should be 'mark'
-					// sample length = (chunk start + 24) is wanted nr as Uint32
-
-					// the first 8 bytes are still part of the chunk metadata, so just add
-					// the list type id length to adtl data
-					const purposeOffset = 0x10 + 4
-					if next.Size >= purposeOffset+4 {
-						if string(next.Body[purposeOffset:][:4]) == "mark" {
-							const sampleLengthOffset = 0x0c + 4
-							loopSamples := binary.LittleEndian.Uint32(next.Body[sampleLengthOffset:][:4])
-							samples := int(loopStart + loopSamples) // sample length + cue point sample offset
-							if samples > output.samples {
-								return nil, fmt.Errorf("Sound %v has bad loop length, samples: %v, loop: %v", filename, output.samples, samples)
-							}
-							output.samples = samples
-						}
-					}
+			t := string(listType[:])
+			switch t {
+			default:
+				log.Printf("Wave file with LIST Type: %q", t)
+			case "adtl":
+				var adtlHeader header
+				if err := binary.Read(c.Data, binary.LittleEndian, &adtlHeader); err != nil {
+					return nil, fmt.Errorf("Invalid adtlHeader: %v", err)
+				}
+				if string(adtlHeader.ID[:]) != "ltxt" {
+					log.Printf("invalid adtl type %q", string(adtlHeader.ID[:]))
+					break
+				}
+				var adtl struct {
+					CuePointID   [4]byte
+					SampleLength uint32
+					PurposeID    [4]byte
+					/*
+						A full ltxt would also have
+						County uint16
+						Language uint16
+						Dialect uint16
+						CodePage uint16
+						Text []byte
+						but we do not care about this data
+					*/
+				}
+				if err := binary.Read(c.Data, binary.LittleEndian, &adtl); err != nil {
+					return nil, fmt.Errorf("Invalid adtl: %v", err)
+				}
+				if string(adtl.PurposeID[:]) == "mark" {
+					output.loopSamples = adtl.SampleLength
 				}
 			}
-			// There should be only one 'cue ' chunk, at least the orig does not read more
-			break
 		}
 	}
 	return output, nil
-}
-
-func getHeader(data []byte) waveHeader {
-	header := waveHeader{}
-	copy(header.ID[:], data)
-	header.Size = binary.LittleEndian.Uint32(data[4:])
-	copy(header.RiffType[:], data[8:])
-	return header
 }
 
 type waveFmt struct {
@@ -271,18 +392,17 @@ type waveFmt struct {
 	// The first two are already read as part of the chunk
 	// ID                       [4]byte // better be fmt
 	// Size                     uint32  // 16 + extra format
-	CompressionCode          uint16 // better be PCM (0x0001)
-	ChannelNum               uint16 // expect 1 or 2
-	SampleRate               uint32
-	AvgBytePSec              uint32
-	BlockAlign               uint16
-	SignificantBitsPerSample uint16
+	CompressionCode uint16 // better be PCM (0x0001)
+	ChannelNum      uint16 // expect 1 or 2
+	SampleRate      uint32
+	ByteRate        uint32
+	BytesPerFrame   uint16
+	BitsPerSample   uint16
 }
 
-func readFMT(c chunk) waveFmt {
+func readFMT(c *chunk) waveFmt {
 	f := waveFmt{}
-	br := bytes.NewReader(c.Body)
-	err := binary.Read(br, binary.LittleEndian, &f)
+	err := binary.Read(c.Data, binary.LittleEndian, &f)
 	if err != nil {
 		log.Printf("could not read fmt chunk")
 	}
