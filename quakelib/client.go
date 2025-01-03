@@ -130,8 +130,8 @@ func (c *Client) adjustAngles() {
 		c.stopPitchDrift()
 	}
 
-	c.pitch = math.Clamp32(cvars.ClientMinPitch.Value(), c.pitch, cvars.ClientMaxPitch.Value())
-	c.roll = math.Clamp32(-50, c.roll, 50)
+	c.pitch = math.Clamp(cvars.ClientMinPitch.Value(), c.pitch, cvars.ClientMaxPitch.Value())
+	c.roll = math.Clamp(-50, c.roll, 50)
 }
 
 // this is persistent through an arbitrary number of server connections
@@ -928,7 +928,7 @@ func (c *Client) calcBlend() Color {
 			color.B = math.Lerp(color.B, cs.B, a)
 		}
 	}
-	color.A = math.Clamp32(0, color.A, 1)
+	color.A = math.Clamp(0, color.A, 1)
 	return color
 }
 
@@ -983,7 +983,7 @@ func (c *Client) parseDamage(armor, blood int, from vec.Vec3) {
 	cs := &c.colorShifts[ColorShiftDamage]
 
 	cs.A += 3 * count
-	cs.A = math.Clamp32(0, cs.A, 150/255.0)
+	cs.A = math.Clamp(0, cs.A, 150/255.0)
 	switch {
 	case armor > blood:
 		cs.R = 200 / 255.0
@@ -1033,9 +1033,9 @@ func (c *Client) boundOffsets() {
 	// absolutely bound refresh relative to entity clipping hull
 	// so the view can never be inside a solid wall
 	o := ent.Origin
-	qRefreshRect.viewOrg[0] = math.Clamp32(o[0]-14, qRefreshRect.viewOrg[0], o[0]+14)
-	qRefreshRect.viewOrg[1] = math.Clamp32(o[1]-14, qRefreshRect.viewOrg[1], o[1]+14)
-	qRefreshRect.viewOrg[2] = math.Clamp32(o[2]-22, qRefreshRect.viewOrg[2], o[2]+30)
+	qRefreshRect.viewOrg[0] = math.Clamp(o[0]-14, qRefreshRect.viewOrg[0], o[0]+14)
+	qRefreshRect.viewOrg[1] = math.Clamp(o[1]-14, qRefreshRect.viewOrg[1], o[1]+14)
+	qRefreshRect.viewOrg[2] = math.Clamp(o[2]-22, qRefreshRect.viewOrg[2], o[2]+30)
 }
 
 func (c *Client) calcWeaponAngle() {

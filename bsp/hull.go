@@ -106,7 +106,7 @@ func (h *Hull) RecursiveCheck(num int, p1f, p2f float32, p1, p2 vec.Vec3, trace 
 		}
 		return (t1 - epsilon) / d
 	}()
-	frac = math.Clamp32(0, frac, 1)
+	frac = math.Clamp(0, frac, 1)
 	midf := math.Lerp(p1f, p2f, frac)
 	mid := vec.Lerp(p1, p2, frac)
 	side := func() int {

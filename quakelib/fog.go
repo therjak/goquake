@@ -33,10 +33,10 @@ var (
 )
 
 func (f *QFog) Update(density, red, green, blue float32, time float64) {
-	density = math.Clamp32(0, density, 1)
-	red = math.Clamp32(0, red, 1)
-	green = math.Clamp32(0, green, 1)
-	blue = math.Clamp32(0, blue, 1)
+	density = math.Clamp(0, density, 1)
+	red = math.Clamp(0, red, 1)
+	green = math.Clamp(0, green, 1)
+	blue = math.Clamp(0, blue, 1)
 	// save previous settings for fade
 	if time > 0 {
 		// check for a fade in progress

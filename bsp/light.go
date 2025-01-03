@@ -133,5 +133,5 @@ func (s *Surface) LightImpactCenter(impact vec.Vec3, st ST) float32 {
 	v := s.TexInfo.Vecs[st]
 	// clamp center of light to corner and check brightness
 	l := vec.Dot(impact, v.Pos) + v.Offset - float32(s.textureMins[st])
-	return l - math.Clamp32(0, l+0.5, float32(s.extents[st]))
+	return l - math.Clamp(0, l+0.5, float32(s.extents[st]))
 }

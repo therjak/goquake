@@ -117,7 +117,7 @@ func (m *MenuItemScale) Right() {
 }
 func (m *MenuItemScale) change(f float32) {
 	l := float32((screen.Width()+31)/32) / 10.0
-	v := math.Clamp32(1, f, l)
+	v := math.Clamp(1, f, l)
 	cvars.ScreenConsoleScale.SetValue(v)
 	cvars.ScreenMenuScale.SetValue(v)
 	cvars.ScreenStatusbarScale.SetValue(v)
@@ -140,7 +140,7 @@ func (m *MenuItemScreenSize) Right() {
 	m.change(cvars.ViewSize.Value() + 10)
 }
 func (m *MenuItemScreenSize) change(f float32) {
-	v := math.Clamp32(30, f, 120)
+	v := math.Clamp(30, f, 120)
 	cvars.ViewSize.SetValue(v)
 	// TODO: there is some bug in interaction between ViewSize and ScreenSize
 }
@@ -162,7 +162,7 @@ func (m *MenuItemBrightness) Right() {
 	m.change(cvars.Gamma.Value() - 0.05)
 }
 func (m *MenuItemBrightness) change(f float32) {
-	v := math.Clamp32(0.5, f, 1)
+	v := math.Clamp(0.5, f, 1)
 	cvars.Gamma.SetValue(v)
 }
 
@@ -183,7 +183,7 @@ func (m *MenuItemContrast) Right() {
 	m.change(cvars.Contrast.Value() + 0.1)
 }
 func (m *MenuItemContrast) change(f float32) {
-	v := math.Clamp32(1, f, 2)
+	v := math.Clamp(1, f, 2)
 	cvars.Contrast.SetValue(v)
 }
 
@@ -204,7 +204,7 @@ func (m *MenuItemMouseSpeed) Right() {
 	m.change(cvars.Sensitivity.Value() + 0.5)
 }
 func (m *MenuItemMouseSpeed) change(f float32) {
-	v := math.Clamp32(1, f, 11)
+	v := math.Clamp(1, f, 11)
 	cvars.Sensitivity.SetValue(v)
 }
 
@@ -226,7 +226,7 @@ func (m *MenuItemStatusbarAlpha) Right() {
 	m.change(cvars.ScreenStatusbarAlpha.Value() - 0.05)
 }
 func (m *MenuItemStatusbarAlpha) change(f float32) {
-	v := math.Clamp32(0, f, 1)
+	v := math.Clamp(0, f, 1)
 	cvars.ScreenStatusbarAlpha.SetValue(v)
 }
 
@@ -247,7 +247,7 @@ func (m *MenuItemSoundVolume) Right() {
 	m.change(cvars.Volume.Value() + 0.1)
 }
 func (m *MenuItemSoundVolume) change(f float32) {
-	v := math.Clamp32(0, f, 1)
+	v := math.Clamp(0, f, 1)
 	cvars.Volume.SetValue(v)
 }
 

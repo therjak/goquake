@@ -72,7 +72,7 @@ func (c *qconsole) UpdateSize(width, height int) {
 		}
 		return width
 	}()
-	w = math.ClampI(320, w, width)
+	w = math.Clamp(320, w, width)
 	w &= 0xFFFFFFF8
 
 	c.width = w
@@ -146,7 +146,7 @@ func (c *qconsole) maxBackScroll() int {
 }
 
 func (c *qconsole) clampBackScroll() {
-	c.backScroll = math.ClampI(0, c.backScroll, c.maxBackScroll())
+	c.backScroll = math.Clamp(0, c.backScroll, c.maxBackScroll())
 }
 
 func (c *qconsole) BackScrollUp(page bool) {
