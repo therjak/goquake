@@ -90,7 +90,7 @@ func init() {
 
 func (s *qstatusbar) UpdateSize(w, h int) {
 	scale := cvars.ScreenStatusbarScale.Value()
-	s.scale = math.Clamp32(1.0, scale, float32(w)/320.0)
+	s.scale = math.Clamp(1.0, scale, float32(w)/320.0)
 	s.MarkChanged()
 }
 
@@ -495,7 +495,7 @@ func (s *qstatusbar) drawInventory() {
 
 	// ammo counts
 	drawAmmo := func(num int, pos int) {
-		val := math.ClampI(0, num, 999)
+		val := math.Clamp(0, num, 999)
 		v := val / 100
 		val -= v * 100
 		p := v != 0
@@ -595,7 +595,7 @@ func (s *qstatusbar) drawFace() {
 		case cl.items&progs.ItemInvulnerability != 0:
 			return s.face_invuln
 		default:
-			f := math.ClampI(0, cl.stats.health/20, 4)
+			f := math.Clamp(0, cl.stats.health/20, 4)
 			if cl.CheckFaceAnimTime() {
 				s.MarkChanged() // this is an animation so force update
 				return s.faces[f][1]
@@ -830,7 +830,7 @@ func (s *qstatusbar) miniDeathmatchOverlay() {
 	}()
 	// move the window to have the player centered
 	i -= numLines / 2
-	i = math.ClampI(0, i, len(s.sortByFrags)-numLines)
+	i = math.Clamp(0, i, len(s.sortByFrags)-numLines)
 	for i < len(s.sortByFrags) && y <= 48 {
 		score := &cl.scores[s.sortByFrags[i]]
 
@@ -899,7 +899,7 @@ func (s *qstatusbar) Draw() {
 	lines := s.Lines()
 	vw := screen.Width()
 	vh := screen.Height()
-	w := math.ClampI(320, int(cvars.ScreenStatusbarScale.Value()*320), vw)
+	w := math.Clamp(320, int(cvars.ScreenStatusbarScale.Value()*320), vw)
 	if lines != 0 && vw > w {
 		if alpha < 1 {
 			// #############

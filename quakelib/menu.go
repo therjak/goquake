@@ -94,7 +94,7 @@ func drawCheckbox(x, y int, checked bool) {
 }
 
 func drawSlider(x, y int, r float32) {
-	r = math.Clamp32(0, r, 1)
+	r = math.Clamp(0, r, 1)
 	DrawCharacterWhite(x-8, y, 128)
 	for i := 0; i < 10; i++ {
 		DrawCharacterWhite(x+i*8, y, 129)

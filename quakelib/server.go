@@ -867,7 +867,7 @@ func init() {
 	//if (Cvar_GetValue(&coop)) Cvar_Set("deathmatch", "0");
 	cvars.Skill.SetCallback(func(cv *cvar.Cvar) {
 		cs := float32(int(cv.Value() + 0.5))
-		cs = math.Clamp32(0, cs, 3)
+		cs = math.Clamp(0, cs, 3)
 		if cv.Value() != cs { // Break recursion
 			cv.SetValue(cs)
 		}
@@ -1150,7 +1150,7 @@ func (s *Server) loadGameEdicts(es []*protos.Edict) error {
 		readA := e.GetAlpha()
 		if readA != 0 {
 			ta := (readA * 254) + 1
-			ta = math.Clamp32(1, ta, 255)
+			ta = math.Clamp(1, ta, 255)
 			a = byte(ta)
 		}
 		s.edicts[i] = Edict{

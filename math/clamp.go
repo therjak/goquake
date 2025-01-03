@@ -2,25 +2,11 @@
 
 package math
 
-func Clamp(min, val, max float64) float64 {
-	if min > val {
-		return min
-	} else if max < val {
-		return max
-	}
-	return val
+type Number interface {
+	int64 | float64 | float32 | int
 }
 
-func Clamp32(min, val, max float32) float32 {
-	if min > val {
-		return min
-	} else if max < val {
-		return max
-	}
-	return val
-}
-
-func ClampI(min, val, max int) int {
+func Clamp[K Number](min, val, max K) K {
 	if min > val {
 		return min
 	} else if max < val {

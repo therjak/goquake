@@ -84,7 +84,7 @@ func init() {
 
 	cvars.MaxEdicts.SetCallback(func(cv *cvar.Cvar) {
 		v := int(cv.Value())
-		c := math.ClampI(MIN_EDICTS, v, MAX_EDICTS)
+		c := math.Clamp(MIN_EDICTS, v, MAX_EDICTS)
 		if v != c {
 			cv.SetValue(float32(c))
 		} else {

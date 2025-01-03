@@ -585,7 +585,7 @@ func (s *qSky) processPoly(p *bsp.Poly, c Color) {
 func (s *qSky) drawBox() {
 	log.Printf("Drawing sky box: %v", s.boxName)
 	r, g, b, _ := fog.GetColor()
-	a := math.Clamp32(0, s.fog, 1)
+	a := math.Clamp(0, s.fog, 1)
 	fogColor := Color{r, g, b, a}
 	s.boxDrawer.draw(fogColor)
 }

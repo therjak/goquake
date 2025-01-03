@@ -100,6 +100,6 @@ func (p *postProcess) Draw(gamma, contrast float32) {
 }
 
 func postProcessGammaContrast(gamma, contrast float32) {
-	contrast = math.Clamp32(1, contrast, 2)
+	contrast = math.Clamp(1, contrast, 2)
 	pprocess.Draw(gamma, contrast)
 }

@@ -123,7 +123,7 @@ func entAlphaEncode(a float32) byte {
 	if a == 0 {
 		return 0 //ENTALPHA_DEFAULT
 	}
-	return byte(math.Clamp32(1, math.Round(a*254.0+1), 255))
+	return byte(math.Clamp(1, math.Round(a*254.0+1), 255))
 }
 
 func UpdateEdictAlpha(ent int) {
