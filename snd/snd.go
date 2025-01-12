@@ -2,38 +2,29 @@
 
 package snd
 
-// This uses sdl2 mixer. This is not sufficient for the kind of stuff quake does.
-// probably should do this with something along
-// github.com/gopxl/beep/v2
-// github.com/ebitengine/oto/v3
-
 import (
-	"fmt"
 	"log"
 	"path/filepath"
 	"time"
 
+	"goquake/math"
 	"goquake/math/vec"
+	"goquake/snd/speaker"
 
-	// github.com/ebitengine/oto/v3
-
-	"github.com/veandco/go-sdl2/mix"
-	"github.com/veandco/go-sdl2/sdl"
+	"github.com/gopxl/beep/v2"
 )
 
 const (
-	clipDistance       = 1000.0
-	desiredSampleRate  = 11025
-	desiredBitdepth    = 16
-	desiredAudioFormat = uint16(sdl.AUDIO_S16SYS)
-	desiredChannelNum  = 2
+	clipDistance      = 1000.0
+	desiredSampleRate = 11025
+	desiredBitdepth   = 16
+	desiredChannelNum = 2
 )
 
 var (
-	mustSampleRate  = desiredSampleRate
-	mustChannelNum  = desiredChannelNum
-	mustAudioFormat = uint16(desiredAudioFormat)
-	activeSounds    = newASounds()
+	mustSampleRate = desiredSampleRate
+	mustChannelNum = desiredChannelNum
+	activeSounds   = newASounds()
 )
 
 type playingSound struct {
@@ -52,77 +43,17 @@ type playingSound struct {
 	masterVolume       float32
 	origin             vec.Vec3
 	done               bool // if done it must no longer be updated
-	right              uint8
-	left               uint8
+	right              float64
+	left               float64
 	startTime          time.Time
-	sound              *pcmSound
+	sound              *sound
+	paused             bool
 }
-
-// beep interface:
-// Len() int
-// Position() int
-// Seek(p int) error
-// Close() error
-// Error() error
-// Stream(samples [][2]float64) (n int, ok bool)
-//
-
-/*
-type Player struct {
-	player *oto.Player
-}
-
-// NewPlayer(sampleRate,channelNum,bytesPerSample,bufferSize) (*Player, error)
-// player.Close() error
-// player.Write(data []byte) (int,error)
-
-func NewPlayer() (*Player, error) {
-	bufferSize := func() int {
-		if desiredSampleRate <= 11025 {
-			return 256
-		} else if desiredSampleRate <= 22050 {
-			return 512
-		} else if desiredSampleRate <= 44100 {
-			return 1024
-		} else if desiredSampleRate <= 56000 {
-			return 2048 // for 48 kHz
-		}
-		return 4096 // for 96 kHz
-	}()
-
-	p, err := oto.NewPlayer(desiredSampleRate, desiredChannelNum, desiredBitdepth, bufferSize)
-	if err != nil {
-		return nil, err
-	}
-	return &Player{p}, nil
-}
-
-func (p *Player) SetPanning(channel int, left float32, right float32) {
-	// Panning for channel 'channel'
-}
-
-func (p *Player) SetVolume(v float32) {
-	// Volume over all channels
-}
-
-func (p *Player) Play(s *Sound, entity int, origin vec.Vec3) int {
-	// Returns playing channel id
-	// is the input playingSound correct?
-	return 0
-}
-
-func (p *Player) UpdateListenerPos(listener int, listenerPos, listenerRight vec.Vec3) {
-}
-
-func (p *Player) Close() error {
-	return p.Close()
-}
-*/
 
 func (s *playingSound) spatialize(listener int, listenerPos, listenerRight vec.Vec3) {
 	if listener == s.entnum {
-		s.right = uint8(s.masterVolume)
-		s.left = uint8(s.masterVolume)
+		s.right = 1
+		s.left = 1
 	} else {
 		v := vec.Sub(s.origin, listenerPos)
 		dist := v.Length() * s.distanceMultiplier
@@ -131,21 +62,32 @@ func (s *playingSound) spatialize(listener int, listenerPos, listenerRight vec.V
 		dist = 1.0 - dist
 		lscale := (1.0 - dot) * dist
 		rscale := (1.0 + dot) * dist
-		l := s.masterVolume * lscale
-		if l < 0 {
-			l = 0
-		} else if l > 254 {
-			l = 254
-		}
-		s.left = uint8(l)
-		r := s.masterVolume * rscale
-		if r < 0 {
-			r = 0
-		} else if r > 254 {
-			r = 254
-		}
-		s.right = uint8(r)
+		s.left = math.Clamp(0, float64(lscale), 1)
+		s.right = math.Clamp(0, float64(rscale), 1)
 	}
+}
+
+func (s *playingSound) Stream(samples [][2]float64) (int, bool) {
+	if s.sound == nil {
+		return 0, false
+	}
+	if s.paused {
+		clear(samples)
+		return len(samples), true
+	}
+	n, ok := s.sound.Stream(samples)
+	for i := range samples[:n] {
+		samples[i][0] *= s.left
+		samples[i][1] *= s.right
+	}
+	return n, ok
+}
+
+func (s *playingSound) Err() error {
+	if s.sound == nil {
+		return nil
+	}
+	return s.sound.Err()
 }
 
 type aSounds struct {
@@ -156,87 +98,51 @@ func newASounds() *aSounds {
 	return &aSounds{make(map[int]*playingSound)}
 }
 
-func (a *aSounds) soundCleanup(channel int) {
-	delete(a.sounds, channel)
-}
-
 func (a *aSounds) add(p *playingSound) {
 	a.sounds[p.channel] = p
 }
 
 func (a *aSounds) stop(entnum, entchannel int) {
-	for _, s := range a.sounds {
-		if s.entnum == int(entnum) && s.entchannel == int(entchannel) {
-			mix.HaltChannel(s.channel)
+	for id, s := range a.sounds {
+		if s.entnum == entnum && s.entchannel == entchannel {
+			s.paused = true
+			s.sound = nil
 		}
+		delete(a.sounds, id)
 	}
-}
-
-func (a *aSounds) stopAll() {
-	mix.HaltChannel(-1)
 }
 
 func (a *aSounds) update(listener int, listenerOrigin, listenerRight vec.Vec3) {
 	for _, s := range a.sounds {
 		s.spatialize(listener, listenerOrigin, listenerRight)
-		if err := mix.SetPanning(s.channel, s.left, s.right); err != nil {
-			log.Println(err)
-		}
 	}
 	// TODO(therjak): start sounds which became audible
 	//                stop sounds which are unaudible
 	// ambientsounds to ambient_levels
 }
 
-func soundCleanup(channel int) {
-	activeSounds.soundCleanup(channel)
+func chunkSize() int {
+	if desiredSampleRate <= 11025 {
+		return 256
+	} else if desiredSampleRate <= 22050 {
+		return 512
+	} else if desiredSampleRate <= 44100 {
+		return 1024
+	} else if desiredSampleRate <= 56000 {
+		return 2048 /* for 48 kHz */
+	}
+	return 4096 /* for 96 kHz */
 }
 
 func initSound() error {
-	if err := sdl.InitSubSystem(sdl.INIT_AUDIO); err != nil {
-		return err
-	}
+	sr := beep.SampleRate(desiredSampleRate)
+	speaker.Init(sr, chunkSize())
 
-	chunkSize := func() int {
-		if desiredSampleRate <= 11025 {
-			return 256
-		} else if desiredSampleRate <= 22050 {
-			return 512
-		} else if desiredSampleRate <= 44100 {
-			return 1024
-		} else if desiredSampleRate <= 56000 {
-			return 2048 /* for 48 kHz */
-		}
-		return 4096 /* for 96 kHz */
-	}()
-
-	if err := mix.OpenAudio(desiredSampleRate, desiredAudioFormat, desiredChannelNum, chunkSize); err != nil {
-		return err
-	}
-	frequency, format, channels, _ /*open*/, err := mix.QuerySpec()
-	if err != nil {
-		return err
-	}
-	mustSampleRate = frequency
-	mustChannelNum = channels
-	mustAudioFormat = format
-	// TODO: I guess the chunkSize should be updated if anything changed
-
-	// TODO: until there is correct conversion code reject everything if not the desired format
-	if mustSampleRate != desiredSampleRate ||
-		mustChannelNum != desiredChannelNum ||
-		mustAudioFormat != desiredAudioFormat {
-		log.Println(err)
-		return fmt.Errorf("Wrong samplerate")
-	}
-
-	mix.AllocateChannels(128) // Observed are maps with more than 64 sounds
-	mix.ChannelFinished(soundCleanup)
 	return nil
 }
 
 func (s *SndSys) shutdown() {
-	mix.CloseAudio()
+	speaker.Close()
 }
 
 func (s *SndSys) start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3,
@@ -247,47 +153,24 @@ func (s *SndSys) start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3,
 		return
 	}
 
-	// TODO(therjak): how to remove this allocation?
 	ps := &playingSound{
-		masterVolume:       fvol * mix.MAX_VOLUME,
+		masterVolume:       fvol,
 		origin:             sndOrigin,
 		entnum:             entnum,
 		entchannel:         entchannel,
 		distanceMultiplier: attenuation / clipDistance,
 		startTime:          time.Now(),
 		channel:            -1,
-		sound:              pres,
+		sound:              newSound(pres),
 	}
+	// TODO: we need to check the samplerate of the sound to match the speeker
+	// TODO: Looping
 
 	ps.spatialize(s.listener.ID, s.listener.Origin, s.listener.Right) // update panning
-	if ps.left != 0 || ps.right != 0 {
-		// ignore this sound
-	}
+	speaker.Play(ps)
 
-	loop := func() int {
-		if !looping {
-			return 0 // do not loop
-		}
-		// BUG: This produces loops but ignores that the 2. loop
-		// should start at loopstart.
-		return -1 // loop infinite
-	}()
-	chunk, err := newSDLSound(pres)
-	if err != nil {
-		// log.Println(err)
-		return
-	}
-	schan, err := chunk.Play(ps.channel, loop)
-	if err != nil {
-		log.Printf("Playing Channels are %v", mix.Playing(-1))
-		log.Println(err)
-		return
-	}
-	ps.channel = schan
-	if err := mix.SetPanning(ps.channel, ps.left, ps.right); err != nil {
-		log.Println(err)
-	}
 	activeSounds.add(ps)
+	// TODO: how/when to remove sounds from activeSounds?
 }
 
 func (s *SndSys) stop(entnum, entchannel int) {
@@ -296,7 +179,8 @@ func (s *SndSys) stop(entnum, entchannel int) {
 }
 
 func (s *SndSys) stopAll() {
-	activeSounds.stopAll()
+	speaker.Clear()
+	activeSounds = newASounds()
 }
 
 type listener struct {
@@ -317,23 +201,12 @@ func (s *SndSys) update(id int, origin vec.Vec3, right vec.Vec3) {
 
 // gets called when window looses focus
 func (s *SndSys) block() {
-	mix.Volume(-1, 0)
+	speaker.Suspend()
 }
 
 // gets called when window gains focus
 func (s *SndSys) unblock() {
-	mix.Volume(-1, int(s.volume*mix.MAX_VOLUME))
-}
-
-func newSDLSound(s *pcmSound) (*mix.Chunk, error) {
-	if s.sampleRate != uint32(mustSampleRate) {
-		return nil, fmt.Errorf("Not desired sample rate. %v, %v", s.sampleRate, s.name)
-	}
-	l := s.samples * uint32(s.bitsPerSample/8) * uint32(s.numChans)
-	if l > uint32(len(s.pcm)) {
-		return nil, fmt.Errorf("Bad sdlLoad")
-	}
-	return mix.QuickLoadRAW(&s.pcm[0], l)
+	speaker.Resume()
 }
 
 func (s *SndSys) precacheSound(n string) int {
@@ -346,18 +219,11 @@ func (s *SndSys) precacheSound(n string) int {
 		log.Println(err)
 		return -1
 	}
-	if err := sfx.resample(); err != nil {
-		log.Println(err)
-		return -1
-	}
 	return s.cache.Add(sfx)
 }
 
 func (s *SndSys) setVolume(v float32) {
-	s.volume = v
-	// this needs some init to work,
-	// can only be called between mix.OpenAudio and mix.CloseAudio
-	mix.Volume(-1, int(s.volume*mix.MAX_VOLUME))
+	speaker.SetVolume(float64(v))
 }
 
 // The API
@@ -374,8 +240,7 @@ func InitSoundSystem(active bool) *SndSys {
 }
 
 type SndSys struct {
-	cache    cache
-	volume   float32
+	cache    cache[*pcmSound]
 	listener listener
 }
 
