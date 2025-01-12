@@ -3,6 +3,7 @@
 package snd
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -21,7 +22,6 @@ const (
 
 type pcmSound struct {
 	name          string
-	samples       uint32 // number of samples
 	numChans      uint16
 	loopStart     uint32 // in samples, length/bitrate
 	loopSamples   uint32
@@ -29,25 +29,35 @@ type pcmSound struct {
 	byteRate      uint32
 	bytesPerFrame uint16
 	bitsPerSample uint16
-	pcm           []byte
-	reader        *io.SectionReader
+	data          []byte
 	dataSize      uint32
-	pos           uint32
-	err           error
-	file          filesystem.File
 }
 
-func (p *pcmSound) Close() error {
-	return p.file.Close()
+func (p *pcmSound) Name() string {
+	return p.name
 }
 
-func (p *pcmSound) Len() int {
+type sound struct {
+	*pcmSound
+	reader *bytes.Reader
+	pos    uint32
+	err    error
+}
+
+func newSound(p *pcmSound) *sound {
+	return &sound{
+		pcmSound: p,
+		reader:   bytes.NewReader(p.data),
+	}
+}
+
+func (p *sound) Len() int {
 	numBytes := time.Duration(p.dataSize)
 	perFrame := time.Duration(p.bytesPerFrame)
 	return int(numBytes / perFrame)
 }
 
-func (p *pcmSound) Seek(newPos int) error {
+func (p *sound) Seek(newPos int) error {
 	if newPos < 0 || p.Len() < newPos {
 		return fmt.Errorf("seek position %d is out of range [%d,%d]", newPos, 0, p.Len())
 	}
@@ -59,15 +69,15 @@ func (p *pcmSound) Seek(newPos int) error {
 	return nil
 }
 
-func (p *pcmSound) Position() int {
+func (p *sound) Position() int {
 	return int(p.pos / uint32(p.bytesPerFrame))
 }
 
-func (p *pcmSound) Err() error {
+func (p *sound) Err() error {
 	return p.err
 }
 
-func (p *pcmSound) Stream(samples [][2]float64) (n int, ok bool) {
+func (p *sound) Stream(samples [][2]float64) (n int, ok bool) {
 	if p.err != nil || p.pos >= p.dataSize {
 		return 0, false
 	}
@@ -108,63 +118,6 @@ func (p *pcmSound) Stream(samples [][2]float64) (n int, ok bool) {
 	return n / bytesPerFrame, true
 }
 
-// Resample converts to 16bit stereo
-func (s *pcmSound) resample() error {
-	if s.bitsPerSample == 16 && s.numChans == 2 {
-		return nil
-	}
-	if s.bitsPerSample == 16 && s.numChans == 1 {
-		return s.resample16Mono()
-	}
-	if s.bitsPerSample == 8 && s.numChans == 2 {
-		return s.resample8Stereo()
-	}
-	if s.bitsPerSample == 8 && s.numChans == 1 {
-		return s.resample8Mono()
-	}
-	return fmt.Errorf("Unsupported sound format: %v", s.name)
-}
-
-func (s *pcmSound) resample16Mono() error {
-	newPCM := make([]byte, len(s.pcm)*2)
-	for i := 0; i < len(s.pcm); i += 2 {
-		newPCM[i*2] = s.pcm[i]
-		newPCM[i*2+1] = s.pcm[i+1]
-		newPCM[i*2+2] = s.pcm[i]
-		newPCM[i*2+3] = s.pcm[i+1]
-	}
-	s.pcm = newPCM
-	s.numChans = 2
-	return nil
-}
-
-func (s *pcmSound) resample8Stereo() error {
-	newPCM := make([]byte, len(s.pcm)*2)
-	for i := 0; i < len(s.pcm); i++ {
-		v := (int16(s.pcm[i]) - 128)
-		newPCM[i*2] = 0
-		newPCM[i*2+1] = byte(v)
-	}
-	s.pcm = newPCM
-	s.bitsPerSample = 16
-	return nil
-}
-
-func (s *pcmSound) resample8Mono() error {
-	newPCM := make([]byte, len(s.pcm)*4)
-	for i := 0; i < len(s.pcm); i++ {
-		v := (int16(s.pcm[i]) - 128)
-		newPCM[i*4] = 0
-		newPCM[i*4+1] = byte(v)
-		newPCM[i*4+2] = 0
-		newPCM[i*4+3] = byte(v)
-	}
-	s.pcm = newPCM
-	s.numChans = 2
-	s.bitsPerSample = 16
-	return nil
-}
-
 type header struct {
 	ID   [4]byte
 	Size uint32
@@ -178,7 +131,6 @@ type waveHeader struct {
 
 type chunk struct {
 	header
-	//Body []byte
 	Data *io.SectionReader
 }
 
@@ -189,12 +141,7 @@ func loadSFX(filename string) (sound *pcmSound, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("Could not load file %v: %v", filename, err)
 	}
-	defer func() {
-		if err != nil {
-			log.Printf("loadSFX err")
-			file.Close()
-		}
-	}()
+	defer file.Close()
 
 	wh := waveHeader{} // 12 byte
 	if err := binary.Read(file, binary.LittleEndian, &wh); err != nil {
@@ -232,7 +179,6 @@ func loadSFX(filename string) (sound *pcmSound, err error) {
 	}
 	output := &pcmSound{
 		name: filename,
-		file: file,
 	}
 
 	gotFMT := 0
@@ -274,8 +220,11 @@ func loadSFX(filename string) (sound *pcmSound, err error) {
 			// already parsed
 		case "data":
 			output.dataSize = c.Size
-			output.samples = c.Size / uint32(output.bitsPerSample/8)
-			output.reader = c.Data
+			data, err := io.ReadAll(c.Data)
+			if err != nil {
+				return nil, fmt.Errorf("Failed to read pcm: %w", err)
+			}
+			output.data = data
 
 		case "cue ":
 			// off 0x00: 4byte 'cue '
