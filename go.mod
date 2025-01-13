@@ -2,7 +2,7 @@ module goquake
 
 require (
 	github.com/chewxy/math32 v1.11.1
-	github.com/ebitengine/oto/v3 v3.2.0
+	github.com/ebitengine/oto/v3 v3.3.2
 	github.com/go-gl/gl v0.0.0-20231021071112-07e5d0ea2e71
 	github.com/google/uuid v1.6.0
 	github.com/gopxl/beep/v2 v2.1.0
@@ -14,7 +14,7 @@ require (
 )
 
 require (
-	github.com/ebitengine/purego v0.7.1 // indirect
+	github.com/ebitengine/purego v0.8.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 )
 
