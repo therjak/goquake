@@ -26,6 +26,8 @@ type soundsystem interface {
 	Unblock()
 	Block()
 	SetVolume(v float32)
+	NewPrecache() *qsnd.SoundPrecache
+	LocalSound(entnum int, n string)
 }
 
 var snd soundsystem
@@ -59,9 +61,7 @@ func soundInit() {
 }
 
 func localSound(name string) {
-	// This is mostly for the menu sounds
-	sfx := snd.PrecacheSound(name)
-	snd.Start(cl.viewentity, -1, sfx, vec.Vec3{}, 1, 1, !loopingSound)
+	snd.LocalSound(cl.viewentity, name)
 }
 
 func init() {

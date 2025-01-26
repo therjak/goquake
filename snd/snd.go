@@ -5,7 +5,6 @@ package snd
 import (
 	"log"
 	"path/filepath"
-	"time"
 
 	"goquake/math"
 	"goquake/math/vec"
@@ -28,7 +27,6 @@ var (
 )
 
 type playingSound struct {
-	channel    int // playing on channel
 	entchannel int // entchannel
 	// TODO:
 	// entchannel. 0 willingly overrides, 1-7 always overrides
@@ -40,13 +38,12 @@ type playingSound struct {
 	// 8 no phys add
 	entnum             int // entnum
 	distanceMultiplier float32
-	masterVolume       float32
+	masterVolume       float64
 	origin             vec.Vec3
 	done               bool // if done it must no longer be updated
 	right              float64
 	left               float64
-	startTime          time.Time
-	sound              *sound
+	sound              beep.Streamer
 	paused             bool
 }
 
@@ -77,8 +74,8 @@ func (s *playingSound) Stream(samples [][2]float64) (int, bool) {
 	}
 	n, ok := s.sound.Stream(samples)
 	for i := range samples[:n] {
-		samples[i][0] *= s.left
-		samples[i][1] *= s.right
+		samples[i][0] *= s.left * s.masterVolume
+		samples[i][1] *= s.right * s.masterVolume
 	}
 	return n, ok
 }
@@ -90,31 +87,65 @@ func (s *playingSound) Err() error {
 	return s.sound.Err()
 }
 
+type channel [8]*playingSound
+
 type aSounds struct {
-	sounds map[int]*playingSound
+	// entchannel 0-7
+	// 0 is ambient
+	ambient []*playingSound
+	sounds  map[int]channel
+	local   *playingSound
 }
 
 func newASounds() *aSounds {
-	return &aSounds{make(map[int]*playingSound)}
-}
-
-func (a *aSounds) add(p *playingSound) {
-	a.sounds[p.channel] = p
-}
-
-func (a *aSounds) stop(entnum, entchannel int) {
-	for id, s := range a.sounds {
-		if s.entnum == entnum && s.entchannel == entchannel {
-			s.paused = true
-			s.sound = nil
-		}
-		delete(a.sounds, id)
+	return &aSounds{
+		ambient: make([]*playingSound, 0),
+		sounds:  make(map[int]channel),
 	}
 }
 
+func (a *aSounds) add(entnum, entchannel int, p *playingSound) {
+	if entchannel < 0 {
+		a.local = p
+		return
+	}
+	if entnum == 0 {
+		a.ambient = append(a.ambient, p)
+		return
+	}
+	c, ok := a.sounds[entnum]
+	if !ok {
+		c = channel{}
+	}
+	c[entchannel] = p
+	a.sounds[entnum] = c
+}
+
+func (a *aSounds) stop(entnum, entchannel int) {
+	c, ok := a.sounds[entnum]
+	if !ok {
+		return
+	}
+	ps := c[entchannel]
+	if ps != nil {
+		ps.paused = true
+		ps.sound = nil
+	}
+	c[entchannel] = nil
+	a.sounds[entnum] = c
+}
+
 func (a *aSounds) update(listener int, listenerOrigin, listenerRight vec.Vec3) {
-	for _, s := range a.sounds {
-		s.spatialize(listener, listenerOrigin, listenerRight)
+	for _, c := range a.sounds {
+		for i := range c {
+			s := c[i]
+			if s != nil {
+				s.spatialize(listener, listenerOrigin, listenerRight)
+			}
+		}
+	}
+	for _, a := range a.ambient {
+		a.spatialize(listener, listenerOrigin, listenerRight)
 	}
 	// TODO(therjak): start sounds which became audible
 	//                stop sounds which are unaudible
@@ -153,23 +184,35 @@ func (s *SndSys) start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3,
 		return
 	}
 
+	var ns beep.Streamer
+	nss := newSound(pres)
+	ns = nss
+	if looping {
+		begin := int(pres.loopStart)
+		end := int(pres.loopStart + pres.loopSamples)
+
+		var err error
+		ns, err = beep.Loop2(nss, beep.LoopBetween(begin, end))
+		if err != nil {
+			log.Printf("%d: %v", sfx, err)
+			return
+		}
+	}
+
 	ps := &playingSound{
-		masterVolume:       fvol,
+		masterVolume:       float64(fvol),
 		origin:             sndOrigin,
 		entnum:             entnum,
 		entchannel:         entchannel,
 		distanceMultiplier: attenuation / clipDistance,
-		startTime:          time.Now(),
-		channel:            -1,
-		sound:              newSound(pres),
+		sound:              ns,
 	}
 	// TODO: we need to check the samplerate of the sound to match the speeker
-	// TODO: Looping
 
 	ps.spatialize(s.listener.ID, s.listener.Origin, s.listener.Right) // update panning
+	activeSounds.add(entnum, entchannel, ps)
 	speaker.Play(ps)
 
-	activeSounds.add(ps)
 	// TODO: how/when to remove sounds from activeSounds?
 }
 
@@ -298,4 +341,9 @@ func (s *SndSys) SetVolume(v float32) {
 		return
 	}
 	s.setVolume(v)
+}
+
+func (s *SndSys) LocalSound(entnum int, n string) {
+	sfx := s.PrecacheSound(n)
+	s.Start(entnum, -1, sfx, vec.Vec3{}, 1, 1, false)
 }
