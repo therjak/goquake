@@ -343,7 +343,7 @@ func (s *SndSys) SetVolume(v float32) {
 	s.setVolume(v)
 }
 
-func (s *SndSys) LocalSound(entnum int, n string) {
+func (s *SndSys) LocalSound(n string) {
 	sfx := s.PrecacheSound(n)
-	s.Start(entnum, -1, sfx, vec.Vec3{}, 1, 1, false)
+	s.Start(-1, -1, sfx, vec.Vec3{}, 1, 1, false)
 }

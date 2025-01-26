@@ -27,7 +27,7 @@ type soundsystem interface {
 	Block()
 	SetVolume(v float32)
 	NewPrecache() *qsnd.SoundPrecache
-	LocalSound(entnum int, n string)
+	LocalSound(n string)
 }
 
 var snd soundsystem
@@ -61,7 +61,7 @@ func soundInit() {
 }
 
 func localSound(name string) {
-	snd.LocalSound(cl.viewentity, name)
+	snd.LocalSound(name)
 }
 
 func init() {
