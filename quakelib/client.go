@@ -32,6 +32,7 @@ import (
 	svc "goquake/protocol/server"
 	"goquake/protos"
 	"goquake/rand"
+	qsnd "goquake/snd"
 	"goquake/stat"
 
 	"github.com/chewxy/math32"
@@ -222,7 +223,7 @@ type Client struct {
 	// the server sends first a name and afterwards just the index of the name
 	// the int represents the sfx num within snd. Result of Precache and sfx input of Start
 	// TODO: change the int to a sfx type
-	soundPrecache []int
+	sound *qsnd.SoundPrecache
 
 	stats        ClientStats
 	items        uint32      // 32bit bit field
@@ -684,7 +685,7 @@ func CL_ParseStartSoundPacket(m *protos.Sound) error {
 		attenuation = float32(m.GetAttenuation()) / 64.0
 	}
 	origin := vec.Vec3{m.GetOrigin().GetX(), m.GetOrigin().GetY(), m.GetOrigin().GetZ()}
-	snd.Start(int(m.GetEntity()), int(m.GetChannel()), cl.soundPrecache[m.GetSoundNum()], origin, volume, attenuation, !loopingSound)
+	cl.sound.Start(int(m.GetEntity()), int(m.GetChannel()), int(m.GetSoundNum()), origin, volume, attenuation, !loopingSound)
 	return nil
 }
 

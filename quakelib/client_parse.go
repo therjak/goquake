@@ -162,7 +162,7 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) (serverState, error) {
 		case protos.SCmd_SpawnStaticSound_case:
 			s := scmd.GetSpawnStaticSound()
 			org := s.GetOrigin()
-			snd.Start(0, 0, cl.soundPrecache[s.GetIndex()-1],
+			cl.sound.Start(0, 0, int(s.GetIndex()-1),
 				vec.Vec3{org.GetX(), org.GetY(), org.GetZ()},
 				float32(s.GetVolume())/255, float32(s.GetAttenuation())/64, loopingSound)
 		case protos.SCmd_CdTrack_case:
@@ -258,7 +258,7 @@ func CL_ParseServerInfo(si *protos.ServerInfo) error {
 		conlog.DWarning("%d models exceeds standard limit of 256.\n", len(si.GetModelPrecache()))
 	}
 
-	cl.soundPrecache = cl.soundPrecache[:0]
+	cl.sound = snd.NewPrecache()
 	if len(si.GetSoundPrecache()) >= 2048 {
 		return fmt.Errorf("Server sent too many sound precaches")
 	}
@@ -286,8 +286,7 @@ func CL_ParseServerInfo(si *protos.ServerInfo) error {
 	}
 
 	for _, s := range si.GetSoundPrecache() {
-		sfx := snd.PrecacheSound(s)
-		cl.soundPrecache = append(cl.soundPrecache, sfx)
+		cl.sound.Add(s)
 		if err := CL_KeepaliveMessage(); err != nil {
 			return err
 		}
