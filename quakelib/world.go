@@ -3,13 +3,13 @@
 package quakelib
 
 import (
-	"container/ring"
 	"log"
 	"runtime/debug"
 
 	"goquake/bsp"
 	"goquake/math/vec"
 	"goquake/progs"
+	"goquake/ring"
 )
 
 const (
@@ -18,22 +18,24 @@ const (
 	MOVE_MISSILE
 )
 
+type qring ring.Ring[int]
+
 type areaNode struct {
 	axis          int
 	dist          float32
 	children      [2]*areaNode
-	triggerEdicts *ring.Ring
-	solidEdicts   *ring.Ring
+	triggerEdicts *ring.Ring[int]
+	solidEdicts   *ring.Ring[int]
 }
 
 var (
-	edictToRing map[int]*ring.Ring
+	edictToRing map[int]*ring.Ring[int]
 	gArea       *areaNode
 )
 
 // called after the world model has been loaded, before linking any entities
 func clearWorld() {
-	edictToRing = make(map[int]*ring.Ring)
+	edictToRing = make(map[int]*ring.Ring[int])
 	initBoxHull()
 	gArea = createAreaNode(0, sv.worldModel.Mins(), sv.worldModel.Maxs())
 }
@@ -43,13 +45,13 @@ func createAreaNode(depth int, mins, maxs vec.Vec3) *areaNode {
 		return &areaNode{
 			axis: -1,
 			// We need a 'root' ring to be able to use Prev()
-			triggerEdicts: &ring.Ring{},
-			solidEdicts:   &ring.Ring{},
+			triggerEdicts: &ring.Ring[int]{},
+			solidEdicts:   &ring.Ring[int]{},
 		}
 	}
 	an := &areaNode{
-		triggerEdicts: &ring.Ring{},
-		solidEdicts:   &ring.Ring{},
+		triggerEdicts: &ring.Ring[int]{},
+		solidEdicts:   &ring.Ring[int]{},
 	}
 	s := vec.Sub(maxs, mins)
 	an.axis = func() int {
@@ -105,7 +107,7 @@ func triggerEdicts(e int, a *areaNode) []int {
 			log.Printf("triggerEdicts: encountered NULL link!\n")
 			break
 		}
-		touch := l.Value.(int)
+		touch := l.Value
 		if touch == e {
 			continue
 		}
@@ -238,7 +240,7 @@ func (v *virtualMachine) LinkEdict(e int, touchTriggers bool) error {
 		}
 	}
 
-	r := &ring.Ring{Value: e}
+	r := &ring.Ring[int]{Value: e}
 	edictToRing[e] = r
 	if ev.Solid == SOLID_TRIGGER {
 		node.triggerEdicts.Prev().Link(r)
@@ -361,7 +363,7 @@ type moveClip struct {
 
 func clipToLinks(a *areaNode, clip *moveClip) {
 	for l := a.solidEdicts.Next(); l != a.solidEdicts; l = l.Next() {
-		touch := l.Value.(int)
+		touch := l.Value
 		tv := entvars.Get(touch)
 		if tv.Solid == SOLID_NOT {
 			continue
