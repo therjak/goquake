@@ -18,6 +18,8 @@ const (
 	MOVE_MISSILE
 )
 
+type qring ring.Ring[int]
+
 type areaNode struct {
 	axis          int
 	dist          float32
