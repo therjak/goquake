@@ -149,13 +149,13 @@ func (m *qLoadMenu) HandleKey(k kc.KeyCode) {
 	case kc.ESCAPE, kc.BBUTTON:
 		enterSinglePlayerMenu()
 	case kc.ENTER, kc.KP_ENTER, kc.ABUTTON:
-		localSound("misc/menu2.wav")
+		localSound(lsMenu2)
 		m.items[m.selectedIndex].Load()
 	case kc.DOWNARROW:
-		localSound("misc/menu1.wav")
+		localSound(lsMenu1)
 		m.selectedIndex = (m.selectedIndex + 1) % len(m.items)
 	case kc.UPARROW:
-		localSound("misc/menu1.wav")
+		localSound(lsMenu1)
 		m.selectedIndex = (m.selectedIndex + len(m.items) - 1) % len(m.items)
 	}
 }
@@ -167,10 +167,10 @@ func (m *qSaveMenu) HandleKey(k kc.KeyCode) {
 	case kc.ENTER, kc.KP_ENTER, kc.ABUTTON:
 		m.items[m.selectedIndex].Save()
 	case kc.DOWNARROW:
-		localSound("misc/menu1.wav")
+		localSound(lsMenu1)
 		m.selectedIndex = (m.selectedIndex + 1) % len(m.items)
 	case kc.UPARROW:
-		localSound("misc/menu1.wav")
+		localSound(lsMenu1)
 		m.selectedIndex = (m.selectedIndex + len(m.items) - 1) % len(m.items)
 	}
 }

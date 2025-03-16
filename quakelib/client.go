@@ -39,16 +39,14 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type sfx int
-
 const (
-	WizHit    sfx = 0
-	KnightHit sfx = 1
-	Tink1     sfx = 2
-	Ric1      sfx = 3
-	Ric2      sfx = 4
-	Ric3      sfx = 5
-	RExp3     sfx = 6
+	WizHit = iota
+	KnightHit
+	Tink1
+	Ric1
+	Ric2
+	Ric3
+	RExp3
 )
 
 const (
@@ -706,7 +704,7 @@ func CL_KeepaliveMessage() error {
 
 	msgBackup := cls.inMessage
 
-	// read messages from server, should just be nops
+	// read messages from server, should just be noops
 Outer:
 	for {
 		switch ret := cls.getMessage(); ret {
@@ -756,11 +754,10 @@ func clientInit() {
 }
 
 var (
-	clSounds map[sfx]int
+	clSounds [7]int
 )
 
 func initSounds() {
-	clSounds = make(map[sfx]int)
 	clSounds[WizHit] = snd.PrecacheSound("wizard/hit.wav")
 	clSounds[KnightHit] = snd.PrecacheSound("hknight/hit.wav")
 	clSounds[Tink1] = snd.PrecacheSound("weapons/tink1.wav")
@@ -1759,7 +1756,7 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) {
 		// spike hitting wall
 		pos := v3FC(tep.GetSpike())
 		particlesRunEffect(pos, vec.Vec3{}, 0, 10, float32(cl.time))
-		s := func() sfx {
+		s := func() int {
 			if cRand.Uint32n(5) != 0 {
 				return Tink1
 			}
@@ -1775,7 +1772,7 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) {
 		// spike hitting wall
 		pos := v3FC(tep.GetSuperSpike())
 		particlesRunEffect(pos, vec.Vec3{}, 0, 20, float32(cl.time))
-		s := func() sfx {
+		s := func() int {
 			if cRand.Uint32n(5) != 0 {
 				return Tink1
 			}

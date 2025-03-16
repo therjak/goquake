@@ -62,10 +62,10 @@ func (m *qMainMenu) HandleKey(key kc.KeyCode) {
 			nextDemo()
 		}
 	case kc.UPARROW:
-		localSound("misc/menu1.wav")
+		localSound(lsMenu1)
 		m.selectedIndex = (m.selectedIndex + len(m.items) - 1) % len(m.items)
 	case kc.DOWNARROW:
-		localSound("misc/menu1.wav")
+		localSound(lsMenu1)
 		m.selectedIndex = (m.selectedIndex + 1) % len(m.items)
 	case kc.ENTER, kc.KP_ENTER, kc.ABUTTON:
 		qmenu.playEnterSound = true

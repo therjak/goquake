@@ -69,10 +69,10 @@ func (m *qNetSetupMenu) HandleKey(key kc.KeyCode) {
 	case kc.ESCAPE, kc.BBUTTON:
 		enterMultiPlayerMenu()
 	case kc.UPARROW:
-		localSound("misc/menu1.wav")
+		localSound(lsMenu1)
 		m.selectedIndex = (m.selectedIndex + len(m.items) - 1) % len(m.items)
 	case kc.DOWNARROW:
-		localSound("misc/menu1.wav")
+		localSound(lsMenu1)
 		m.selectedIndex = (m.selectedIndex + 1) % len(m.items)
 	case kc.LEFTARROW:
 		m.items[m.selectedIndex].Left()
@@ -162,11 +162,11 @@ func (m *topColorMenuItem) Draw() {
 	drawString(64, m.Y, "Shirt color")
 }
 func (m *topColorMenuItem) Left() {
-	localSound("misc/menu3.wav")
+	localSound(lsMenu3)
 	netSetupMenu.topColor = (netSetupMenu.topColor + 14 - 1) % 14
 }
 func (m *topColorMenuItem) Right() {
-	localSound("misc/menu3.wav")
+	localSound(lsMenu3)
 	netSetupMenu.topColor = (netSetupMenu.topColor + 1) % 14
 }
 
@@ -178,11 +178,11 @@ func (m *bottomColorMenuItem) Draw() {
 	drawString(64, m.Y, "Pants color")
 }
 func (m *bottomColorMenuItem) Left() {
-	localSound("misc/menu3.wav")
+	localSound(lsMenu3)
 	netSetupMenu.bottomColor = (netSetupMenu.bottomColor + 14 - 1) % 14
 }
 func (m *bottomColorMenuItem) Right() {
-	localSound("misc/menu3.wav")
+	localSound(lsMenu3)
 	netSetupMenu.bottomColor = (netSetupMenu.bottomColor + 1) % 14
 }
 

@@ -25,16 +25,16 @@ func (m *qOptionsMenu) HandleKey(key kc.KeyCode) {
 		qmenu.playEnterSound = true
 		m.items[m.selectedIndex].Enter()
 	case kc.UPARROW:
-		localSound("misc/menu1.wav")
+		localSound(lsMenu1)
 		m.selectedIndex = (m.selectedIndex + len(m.items) - 1) % len(m.items)
 	case kc.DOWNARROW:
-		localSound("misc/menu1.wav")
+		localSound(lsMenu1)
 		m.selectedIndex = (m.selectedIndex + 1) % len(m.items)
 	case kc.LEFTARROW:
-		localSound("misc/menu3.wav")
+		localSound(lsMenu3)
 		m.items[m.selectedIndex].Left()
 	case kc.RIGHTARROW:
-		localSound("misc/menu3.wav")
+		localSound(lsMenu3)
 		m.items[m.selectedIndex].Right()
 	}
 }
