@@ -264,10 +264,10 @@ func (m *qGameOptionsMenu) HandleKey(key kc.KeyCode) {
 	case kc.ESCAPE, kc.BBUTTON:
 		enterNetSetupMenu()
 	case kc.UPARROW:
-		localSound("misc/menu1.wav")
+		localSound(lsMenu1)
 		m.selectedIndex = (m.selectedIndex + len(m.items) - 1) % len(m.items)
 	case kc.DOWNARROW:
-		localSound("misc/menu1.wav")
+		localSound(lsMenu1)
 		m.selectedIndex = (m.selectedIndex + 1) % len(m.items)
 	case kc.LEFTARROW:
 		m.items[m.selectedIndex].Left()
@@ -283,7 +283,7 @@ func (m *beginGameMenuItem) Enter() {
 }
 
 func (m *qGameOptionsMenu) Accept() {
-	localSound("misc/menu2.wav")
+	localSound(lsMenu2)
 	if ServerActive() {
 		cbuf.AddText("disconnect\n")
 	}
@@ -325,7 +325,7 @@ func (m *qGameOptionsMenu) Draw() {
 }
 
 func (m *maxPlayersMenuItem) Left() {
-	localSound("misc/menu3.wav")
+	localSound(lsMenu3)
 	if m.maxPlayers <= 2 {
 		m.maxPlayers = 2
 		return
@@ -334,7 +334,7 @@ func (m *maxPlayersMenuItem) Left() {
 }
 
 func (m *maxPlayersMenuItem) Right() {
-	localSound("misc/menu3.wav")
+	localSound(lsMenu3)
 	if m.maxPlayers >= svs.maxClientsLimit {
 		m.maxPlayers = svs.maxClientsLimit
 		return
@@ -343,11 +343,11 @@ func (m *maxPlayersMenuItem) Right() {
 }
 
 func (m *gameTypeMenuItem) Left() {
-	localSound("misc/menu3.wav")
+	localSound(lsMenu3)
 	cvars.Coop.Toggle()
 }
 func (m *gameTypeMenuItem) Right() {
-	localSound("misc/menu3.wav")
+	localSound(lsMenu3)
 	cvars.Coop.Toggle()
 }
 
@@ -359,7 +359,7 @@ func maxTeamPlayItems() int {
 }
 
 func (m *teamPlayMenuItem) Left() {
-	localSound("misc/menu3.wav")
+	localSound(lsMenu3)
 	max := maxTeamPlayItems()
 	v := int(cvars.TeamPlay.Value())
 	v = (v + max - 1) % max
@@ -367,7 +367,7 @@ func (m *teamPlayMenuItem) Left() {
 }
 
 func (m *teamPlayMenuItem) Right() {
-	localSound("misc/menu3.wav")
+	localSound(lsMenu3)
 	max := maxTeamPlayItems()
 	v := int(cvars.TeamPlay.Value())
 	v = (v + 1) % max
@@ -375,28 +375,28 @@ func (m *teamPlayMenuItem) Right() {
 }
 
 func (m *skillMenuItem) Left() {
-	localSound("misc/menu3.wav")
+	localSound(lsMenu3)
 	max := 3
 	v := int(cvars.Skill.Value())
 	v = (v + max - 1) % max
 	cvars.Skill.SetValue(float32(v))
 }
 func (m *skillMenuItem) Right() {
-	localSound("misc/menu3.wav")
+	localSound(lsMenu3)
 	max := 3
 	v := int(cvars.Skill.Value())
 	v = (v + 1) % max
 	cvars.Skill.SetValue(float32(v))
 }
 func (m *fragLimitMenuItem) Left() {
-	localSound("misc/menu3.wav")
+	localSound(lsMenu3)
 	max := 11
 	v := int(cvars.FragLimit.Value()) / 10
 	v = ((v + max - 1) % max) * 10
 	cvars.FragLimit.SetValue(float32(v))
 }
 func (m *fragLimitMenuItem) Right() {
-	localSound("misc/menu3.wav")
+	localSound(lsMenu3)
 	max := 11
 	v := int(cvars.FragLimit.Value()) / 10
 	v = ((v + 1) % max) * 10
@@ -404,14 +404,14 @@ func (m *fragLimitMenuItem) Right() {
 }
 func (m *timeLimitMenuItem) Left() {
 	// 0-60 in steps of 5
-	localSound("misc/menu3.wav")
+	localSound(lsMenu3)
 	max := 13
 	v := int(cvars.TimeLimit.Value()) / 5
 	v = ((v + max - 1) % max) * 5
 	cvars.TimeLimit.SetValue(float32(v))
 }
 func (m *timeLimitMenuItem) Right() {
-	localSound("misc/menu3.wav")
+	localSound(lsMenu3)
 	max := 13
 	v := int(cvars.TimeLimit.Value()) / 5
 	v = ((v + 1) % max) * 5
@@ -419,21 +419,21 @@ func (m *timeLimitMenuItem) Right() {
 }
 
 func (m *episodeMenuItem) Left() {
-	localSound("misc/menu3.wav")
+	localSound(lsMenu3)
 	m.selector.PreviousEpisode()
 }
 
 func (m *episodeMenuItem) Right() {
-	localSound("misc/menu3.wav")
+	localSound(lsMenu3)
 	m.selector.NextEpisode()
 }
 
 func (m *levelMenuItem) Left() {
-	localSound("misc/menu3.wav")
+	localSound(lsMenu3)
 	m.selector.PreviousLevel()
 }
 
 func (m *levelMenuItem) Right() {
-	localSound("misc/menu3.wav")
+	localSound(lsMenu3)
 	m.selector.NextLevel()
 }

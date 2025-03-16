@@ -309,7 +309,7 @@ func (m *qMenu) Draw() {
 		*/
 	}
 	if m.playEnterSound {
-		localSound("misc/menu2.wav")
+		localSound(lsMenu2)
 		m.playEnterSound = false
 	}
 }

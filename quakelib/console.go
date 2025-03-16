@@ -394,7 +394,7 @@ func (q *qconsole) print(txt string) {
 	}
 	switch txt[0] {
 	case 1:
-		localSound("misc/talk.wav")
+		localSound(lsTalk)
 		fallthrough
 	case 2:
 		// make the string copper color

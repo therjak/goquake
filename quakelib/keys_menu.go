@@ -60,7 +60,7 @@ type qKeysMenu struct {
 
 func (m *qKeysMenu) HandleKey(key kc.KeyCode) {
 	if m.grabbed {
-		localSound("misc/menu1.wav")
+		localSound(lsMenu1)
 		if (key != kc.ESCAPE) && (key != '`') {
 			m.items[m.selectedIndex].Change(key)
 		}
@@ -72,10 +72,10 @@ func (m *qKeysMenu) HandleKey(key kc.KeyCode) {
 	case kc.ESCAPE, kc.BBUTTON:
 		enterMenuOptions()
 	case kc.LEFTARROW, kc.UPARROW:
-		localSound("misc/menu1.wav")
+		localSound(lsMenu1)
 		m.selectedIndex = (m.selectedIndex + len(m.items) - 1) % len(m.items)
 	case kc.DOWNARROW, kc.RIGHTARROW:
-		localSound("misc/menu1.wav")
+		localSound(lsMenu1)
 		m.selectedIndex = (m.selectedIndex + 1) % len(m.items)
 	case kc.ENTER, kc.KP_ENTER, kc.ABUTTON:
 		m.items[m.selectedIndex].Enter()
@@ -141,7 +141,7 @@ func (m *keysMenuItem) Draw(s, grab bool) {
 	}
 }
 func (m *keysMenuItem) Enter() {
-	localSound("misc/menu2.wav")
+	localSound(lsMenu2)
 	_, _, k2 := getKeysForCommand(m.bind)
 	if k2 != -1 {
 		unbindCommand(m.bind)
@@ -149,7 +149,7 @@ func (m *keysMenuItem) Enter() {
 }
 
 func (m *keysMenuItem) Backspace() {
-	localSound("misc/menu2.wav")
+	localSound(lsMenu2)
 	unbindCommand(m.bind)
 }
 

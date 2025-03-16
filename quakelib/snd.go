@@ -27,7 +27,6 @@ type soundsystem interface {
 	Block()
 	SetVolume(v float32)
 	NewPrecache() *qsnd.SoundPrecache
-	LocalSound(n string)
 }
 
 var snd soundsystem
@@ -55,13 +54,28 @@ func onVolumeChange(cv *cvar.Cvar) {
 	snd.SetVolume(v)
 }
 
+type lSound int
+
+var localSounds [4]int
+
+const (
+	lsMenu1 lSound = iota
+	lsMenu2
+	lsMenu3
+	lsTalk
+)
+
 func soundInit() {
 	snd = qsnd.InitSoundSystem(commandline.Sound() && !cvars.NoSound.Bool())
 	onVolumeChange(cvars.Volume)
+	localSounds[lsMenu1] = snd.PrecacheSound("misc/menu1.wav")
+	localSounds[lsMenu2] = snd.PrecacheSound("misc/menu2.wav")
+	localSounds[lsMenu3] = snd.PrecacheSound("misc/menu3.wav")
+	localSounds[lsTalk] = snd.PrecacheSound("misc/talk.wav")
 }
 
-func localSound(name string) {
-	snd.LocalSound(name)
+func localSound(sfx lSound) {
+	snd.Start(-1, -1, localSounds[sfx], vec.Vec3{}, 1, 1, false)
 }
 
 func init() {

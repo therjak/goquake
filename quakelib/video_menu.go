@@ -21,19 +21,19 @@ func (m *qVideoMenu) HandleKey(key kc.KeyCode) {
 	case kc.ESCAPE, kc.BBUTTON:
 		// FIXME: there are other ways to leave menu
 		syncVideoCvars()
-		localSound("misc/menu1.wav")
+		localSound(lsMenu1)
 		enterMenuOptions()
 	case kc.UPARROW:
-		localSound("misc/menu1.wav")
+		localSound(lsMenu1)
 		m.selectedIndex = (m.selectedIndex + len(m.items) - 1) % len(m.items)
 	case kc.DOWNARROW:
-		localSound("misc/menu1.wav")
+		localSound(lsMenu1)
 		m.selectedIndex = (m.selectedIndex + 1) % len(m.items)
 	case kc.LEFTARROW:
-		localSound("misc/menu3.wav")
+		localSound(lsMenu3)
 		m.items[m.selectedIndex].Left()
 	case kc.RIGHTARROW:
-		localSound("misc/menu3.wav")
+		localSound(lsMenu3)
 		m.items[m.selectedIndex].Right()
 	case kc.ENTER, kc.KP_ENTER, kc.ABUTTON:
 		qmenu.playEnterSound = true
