@@ -40,16 +40,6 @@ import (
 )
 
 const (
-	WizHit = iota
-	KnightHit
-	Tink1
-	Ric1
-	Ric2
-	Ric3
-	RExp3
-)
-
-const (
 	ColorShiftContents = iota
 	ColorShiftDamage
 	ColorShiftBonus
@@ -750,21 +740,32 @@ Outer:
 
 func clientInit() {
 	cls.outProto = &protos.ClientMessage{}
-	initSounds()
 }
 
 var (
-	clSounds [7]int
+	clSoundPrecache *qsnd.SoundPrecache
 )
 
-func initSounds() {
-	clSounds[WizHit] = snd.PrecacheSound("wizard/hit.wav")
-	clSounds[KnightHit] = snd.PrecacheSound("hknight/hit.wav")
-	clSounds[Tink1] = snd.PrecacheSound("weapons/tink1.wav")
-	clSounds[Ric1] = snd.PrecacheSound("weapons/ric1.wav")
-	clSounds[Ric2] = snd.PrecacheSound("weapons/ric2.wav")
-	clSounds[Ric3] = snd.PrecacheSound("weapons/ric3.wav")
-	clSounds[RExp3] = snd.PrecacheSound("weapons/r_exp3.wav")
+const (
+	WizHit = iota
+	KnightHit
+	Tink1
+	Ric1
+	Ric2
+	Ric3
+	RExp3
+)
+
+func initClientSounds() {
+	clSoundPrecache = snd.NewPrecache()
+	clSoundPrecache.Set(
+		"wizard/hit.wav",
+		"hknight/hit.wav",
+		"weapons/tink1.wav",
+		"weapons/ric1.wav",
+		"weapons/ric2.wav",
+		"weapons/ric3.wav",
+		"weapons/r_exp3.wav")
 }
 
 // Determines the fraction between the last two messages that the objects
@@ -1767,7 +1768,7 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) {
 				return Ric1
 			}
 		}()
-		snd.Start(-1, 0, clSounds[s], pos, 1, 1, !loopingSound)
+		clSoundPrecache.Start(-1, 0, s, pos, 1, 1, !loopingSound)
 	case protos.TempEntity_SuperSpike_case:
 		// spike hitting wall
 		pos := v3FC(tep.GetSuperSpike())
@@ -1785,7 +1786,7 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) {
 				return Ric3
 			}
 		}()
-		snd.Start(-1, 0, clSounds[s], pos, 1, 1, !loopingSound)
+		clSoundPrecache.Start(-1, 0, s, pos, 1, 1, !loopingSound)
 	case protos.TempEntity_Gunshot_case:
 		// bullet hitting wall
 		pos := v3FC(tep.GetGunshot())
@@ -1802,12 +1803,12 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) {
 			decay:   300,
 			color:   vec.Vec3{1, 1, 1},
 		}
-		snd.Start(-1, 0, clSounds[RExp3], pos, 1, 1, !loopingSound)
+		clSoundPrecache.Start(-1, 0, RExp3, pos, 1, 1, !loopingSound)
 	case protos.TempEntity_TarExplosion_case:
 		// tarbaby explosion
 		pos := v3FC(tep.GetTarExplosion())
 		particlesAddBlobExplosion(pos, float32(cl.time))
-		snd.Start(-1, 0, clSounds[RExp3], pos, 1, 1, !loopingSound)
+		clSoundPrecache.Start(-1, 0, RExp3, pos, 1, 1, !loopingSound)
 	case protos.TempEntity_Lightning1_case:
 		// lightning bolts
 		l := tep.GetLightning1()
@@ -1824,12 +1825,12 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) {
 		// spike hitting wall
 		pos := v3FC(tep.GetWizSpike())
 		particlesRunEffect(pos, vec.Vec3{}, 20, 30, float32(cl.time))
-		snd.Start(-1, 0, clSounds[WizHit], pos, 1, 1, !loopingSound)
+		clSoundPrecache.Start(-1, 0, WizHit, pos, 1, 1, !loopingSound)
 	case protos.TempEntity_KnightSpike_case:
 		// spike hitting wall
 		pos := v3FC(tep.GetKnightSpike())
 		particlesRunEffect(pos, vec.Vec3{}, 226, 20, float32(cl.time))
-		snd.Start(-1, 0, clSounds[KnightHit], pos, 1, 1, !loopingSound)
+		clSoundPrecache.Start(-1, 0, KnightHit, pos, 1, 1, !loopingSound)
 	case protos.TempEntity_Lightning3_case:
 		// lightning bolts
 		l := tep.GetLightning3()
@@ -1855,7 +1856,7 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) {
 			decay:   300,
 			color:   vec.Vec3{1, 1, 1},
 		}
-		snd.Start(-1, 0, clSounds[RExp3], pos, 1, 1, !loopingSound)
+		clSoundPrecache.Start(-1, 0, RExp3, pos, 1, 1, !loopingSound)
 	case protos.TempEntity_Beam_case:
 		// grappling hook beam
 		l := tep.GetBeam()

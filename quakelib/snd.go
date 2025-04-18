@@ -17,10 +17,8 @@ import (
 // there are 4 ambient sound channel
 
 type soundsystem interface {
-	Start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3, fvol float32, attenuation float32, looping bool)
 	Stop(entnum, entchannel int)
 	StopAll()
-	PrecacheSound(n string) int
 	Update(id int, origin vec.Vec3, right vec.Vec3)
 	Shutdown()
 	Unblock()
@@ -29,11 +27,38 @@ type soundsystem interface {
 	NewPrecache() *qsnd.SoundPrecache
 }
 
-var snd soundsystem
+var (
+	snd              soundsystem
+	sysSoundPrecache *qsnd.SoundPrecache
+)
 
 const (
 	loopingSound = true
 )
+
+type lSound int
+
+const (
+	lsMenu1 lSound = iota
+	lsMenu2
+	lsMenu3
+	lsTalk
+)
+
+func soundInit() {
+	snd = qsnd.InitSoundSystem(commandline.Sound() && !cvars.NoSound.Bool())
+	onVolumeChange(cvars.Volume)
+	sysSoundPrecache = snd.NewPrecache()
+	sysSoundPrecache.Set(
+		"misc/menu1.wav",
+		"misc/menu2.wav",
+		"misc/menu3.wav",
+		"misc/talk.wav")
+}
+
+func localSound(sfx lSound) {
+	sysSoundPrecache.Start(-1, -1, int(sfx), vec.Vec3{}, 1, 1, false)
+}
 
 func init() {
 	cvars.Volume.SetCallback(onVolumeChange)
@@ -52,30 +77,6 @@ func onVolumeChange(cv *cvar.Cvar) {
 		return
 	}
 	snd.SetVolume(v)
-}
-
-type lSound int
-
-var localSounds [4]int
-
-const (
-	lsMenu1 lSound = iota
-	lsMenu2
-	lsMenu3
-	lsTalk
-)
-
-func soundInit() {
-	snd = qsnd.InitSoundSystem(commandline.Sound() && !cvars.NoSound.Bool())
-	onVolumeChange(cvars.Volume)
-	localSounds[lsMenu1] = snd.PrecacheSound("misc/menu1.wav")
-	localSounds[lsMenu2] = snd.PrecacheSound("misc/menu2.wav")
-	localSounds[lsMenu3] = snd.PrecacheSound("misc/menu3.wav")
-	localSounds[lsTalk] = snd.PrecacheSound("misc/talk.wav")
-}
-
-func localSound(sfx lSound) {
-	snd.Start(-1, -1, localSounds[sfx], vec.Vec3{}, 1, 1, false)
 }
 
 func init() {

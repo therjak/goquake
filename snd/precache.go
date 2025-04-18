@@ -20,9 +20,17 @@ func (sp *SoundPrecache) Start(entnum int, entchannel int, sfx int, sndOrigin ve
 
 func (sp *SoundPrecache) Clear() {
 	sp.c = sp.c[:0]
+	// TODO: actually clear the precache in sys
 }
 
 func (sp *SoundPrecache) Add(s string) {
 	sfx := sp.sys.PrecacheSound(s)
 	sp.c = append(sp.c, sfx)
+}
+
+func (sp *SoundPrecache) Set(snds ...string) {
+	sp.Clear()
+	for _, s := range snds {
+		sp.Add(s)
+	}
 }

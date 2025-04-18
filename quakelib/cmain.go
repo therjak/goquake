@@ -112,6 +112,7 @@ func CallCMain() error {
 		particlesInit()
 		setClearColor(cvars.RClearColor)
 		soundInit()
+		initClientSounds()
 		statusbar.LoadPictures()
 		clientInit()
 	}
