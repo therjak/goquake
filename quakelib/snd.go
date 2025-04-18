@@ -52,8 +52,11 @@ const (
 	RExp3
 )
 
-func soundInit() {
-	snd = qsnd.InitSoundSystem(commandline.Sound() && !cvars.NoSound.Bool())
+func soundInit(stop chan struct{}) {
+	if !commandline.Sound() || cvars.NoSound.Bool() {
+		return
+	}
+	snd = qsnd.InitSoundSystem(stop)
 	onVolumeChange(cvars.Volume)
 	defaultSounds = snd.NewPrecache()
 	// Order must match lSound constants

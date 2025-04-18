@@ -81,6 +81,9 @@ func ServerActive() bool {
 }
 
 func CallCMain() error {
+	stop := make(chan struct{})
+	defer close(stop)
+
 	vm = NewVirtualMachine()
 
 	filesystemInit()
@@ -111,7 +114,7 @@ func CallCMain() error {
 		screen.initialized = true
 		particlesInit()
 		setClearColor(cvars.RClearColor)
-		soundInit()
+		soundInit(stop)
 		statusbar.LoadPictures()
 		clientInit()
 	}
