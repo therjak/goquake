@@ -1731,7 +1731,7 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) {
 		// spike hitting wall
 		pos := v3FC(tep.GetSpike())
 		particlesRunEffect(pos, vec.Vec3{}, 0, 10, float32(cl.time))
-		s := func() int {
+		s := func() lSound {
 			if cRand.Uint32n(5) != 0 {
 				return Tink1
 			}
@@ -1747,7 +1747,7 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) {
 		// spike hitting wall
 		pos := v3FC(tep.GetSuperSpike())
 		particlesRunEffect(pos, vec.Vec3{}, 0, 20, float32(cl.time))
-		s := func() int {
+		s := func() lSound {
 			if cRand.Uint32n(5) != 0 {
 				return Tink1
 			}
