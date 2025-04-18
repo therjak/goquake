@@ -28,9 +28,8 @@ type soundsystem interface {
 }
 
 var (
-	snd              soundsystem
-	sysSoundPrecache *qsnd.SoundPrecache
-	clSoundPrecache  *qsnd.SoundPrecache
+	snd           soundsystem
+	defaultSounds *qsnd.SoundPrecache
 )
 
 const (
@@ -44,29 +43,7 @@ const (
 	lsMenu2
 	lsMenu3
 	lsTalk
-)
-
-func soundInit() {
-	snd = qsnd.InitSoundSystem(commandline.Sound() && !cvars.NoSound.Bool())
-	onVolumeChange(cvars.Volume)
-	sysSoundPrecache = snd.NewPrecache()
-	sysSoundPrecache.Set(
-		"misc/menu1.wav",
-		"misc/menu2.wav",
-		"misc/menu3.wav",
-		"misc/talk.wav")
-}
-
-func localSound(sfx lSound) {
-	sysSoundPrecache.Start(-1, -1, int(sfx), vec.Vec3{}, 1, 1, false)
-}
-
-func clientSound(sfx int, pos vec.Vec3) {
-	clSoundPrecache.Start(-1, 0, sfx, pos, 1, 1, false)
-}
-
-const (
-	WizHit = iota
+	WizHit
 	KnightHit
 	Tink1
 	Ric1
@@ -75,9 +52,16 @@ const (
 	RExp3
 )
 
-func initClientSounds() {
-	clSoundPrecache = snd.NewPrecache()
-	clSoundPrecache.Set(
+func soundInit() {
+	snd = qsnd.InitSoundSystem(commandline.Sound() && !cvars.NoSound.Bool())
+	onVolumeChange(cvars.Volume)
+	defaultSounds = snd.NewPrecache()
+	// Order must match lSound constants
+	defaultSounds.Set(
+		"misc/menu1.wav",
+		"misc/menu2.wav",
+		"misc/menu3.wav",
+		"misc/talk.wav",
 		"wizard/hit.wav",
 		"hknight/hit.wav",
 		"weapons/tink1.wav",
@@ -85,6 +69,14 @@ func initClientSounds() {
 		"weapons/ric2.wav",
 		"weapons/ric3.wav",
 		"weapons/r_exp3.wav")
+}
+
+func localSound(sfx lSound) {
+	defaultSounds.Start(-1, -1, int(sfx), vec.Vec3{}, 1, 1, false)
+}
+
+func clientSound(sfx lSound, pos vec.Vec3) {
+	defaultSounds.Start(-1, 0, int(sfx), pos, 1, 1, false)
 }
 
 func init() {
