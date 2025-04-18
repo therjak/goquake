@@ -48,7 +48,7 @@ type playingSound struct {
 }
 
 func (s *playingSound) spatialize(listener int, listenerPos, listenerRight vec.Vec3) {
-	if listener == s.entnum {
+	if listener == s.entnum || s.entnum == -1 {
 		s.right = 1
 		s.left = 1
 	} else {
