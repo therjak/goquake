@@ -30,6 +30,7 @@ type soundsystem interface {
 var (
 	snd              soundsystem
 	sysSoundPrecache *qsnd.SoundPrecache
+	clSoundPrecache  *qsnd.SoundPrecache
 )
 
 const (
@@ -58,6 +59,32 @@ func soundInit() {
 
 func localSound(sfx lSound) {
 	sysSoundPrecache.Start(-1, -1, int(sfx), vec.Vec3{}, 1, 1, false)
+}
+
+func clientSound(sfx int, pos vec.Vec3) {
+	clSoundPrecache.Start(-1, 0, sfx, pos, 1, 1, false)
+}
+
+const (
+	WizHit = iota
+	KnightHit
+	Tink1
+	Ric1
+	Ric2
+	Ric3
+	RExp3
+)
+
+func initClientSounds() {
+	clSoundPrecache = snd.NewPrecache()
+	clSoundPrecache.Set(
+		"wizard/hit.wav",
+		"hknight/hit.wav",
+		"weapons/tink1.wav",
+		"weapons/ric1.wav",
+		"weapons/ric2.wav",
+		"weapons/ric3.wav",
+		"weapons/r_exp3.wav")
 }
 
 func init() {
