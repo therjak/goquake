@@ -172,11 +172,11 @@ func initSound() error {
 	return nil
 }
 
-func (s *SndSys) shutdown() {
+func (s *SndSys) doShutdown() {
 	speaker.Close()
 }
 
-func (s *SndSys) start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3,
+func (s *SndSys) startSound(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3,
 	fvol float32, attenuation float32, looping bool) {
 	pres := s.cache.Get(sfx)
 	if pres == nil {
@@ -216,12 +216,12 @@ func (s *SndSys) start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3,
 	// TODO: how/when to remove sounds from activeSounds?
 }
 
-func (s *SndSys) stop(entnum, entchannel int) {
+func (s *SndSys) stopSound(entnum, entchannel int) {
 	// why does the server know which channel to stop
 	activeSounds.stop(entnum, entchannel)
 }
 
-func (s *SndSys) stopAll() {
+func (s *SndSys) stopAllSound() {
 	speaker.Clear()
 	activeSounds = newASounds()
 }
@@ -232,23 +232,19 @@ type listener struct {
 	ID     int
 }
 
-func (s *SndSys) update(id int, origin vec.Vec3, right vec.Vec3) {
+func (s *SndSys) updateListener(l listener) {
 	// update the direction and distance to all sound sources
-	s.listener = listener{
-		Origin: origin,
-		Right:  right,
-		ID:     id,
-	}
-	activeSounds.update(id, origin, right)
+	s.listener = l
+	activeSounds.update(s.listener.ID, s.listener.Origin, s.listener.Right)
 }
 
 // gets called when window looses focus
-func (s *SndSys) block() {
+func (s *SndSys) suspend() {
 	speaker.Suspend()
 }
 
 // gets called when window gains focus
-func (s *SndSys) unblock() {
+func (s *SndSys) resume() {
 	speaker.Resume()
 }
 
@@ -271,74 +267,126 @@ func (s *SndSys) setVolume(v float32) {
 
 // The API
 
-func InitSoundSystem(active bool) *SndSys {
-	if !active {
-		return nil
-	}
+func InitSoundSystem(stop chan struct{}) *SndSys {
 	if err := initSound(); err != nil {
 		log.Println(err)
 		return nil
 	}
-	return &SndSys{}
+	s := &SndSys{
+		shutdown: stop,
+		block:    make(chan bool),
+		volume:   make(chan float32),
+		stop:     make(chan Stop),
+		stopAll:  make(chan bool),
+		update:   make(chan listener),
+		start:    make(chan Start),
+	}
+	go s.run()
+	return s
 }
 
 type SndSys struct {
 	cache    cache[*pcmSound]
 	listener listener
+	shutdown chan struct{}
+	block    chan bool
+	volume   chan float32
+	stop     chan Stop
+	stopAll  chan bool
+	update   chan listener
+	start    chan Start
 }
 
-func (s *SndSys) Start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3, fvol float32, attenuation float32, looping bool) {
-	if s == nil {
-		return
+type Stop struct {
+	entityNum  int
+	entityChan int
+}
+
+type Start struct {
+	entityNum   int
+	entityChan  int
+	sfx         int
+	origin      vec.Vec3
+	volume      float32
+	attenuation float32
+	looping     bool
+}
+
+func (s *SndSys) run() {
+	for {
+		select {
+		case <-s.shutdown:
+			s.doShutdown()
+			return
+		case b := <-s.block:
+			if b {
+				s.suspend()
+			} else {
+				s.resume()
+			}
+		case v := <-s.volume:
+			s.setVolume(v)
+		case stop := <-s.stop:
+			s.stopSound(stop.entityNum, stop.entityChan)
+		case <-s.stopAll:
+			s.stopAllSound()
+		case l := <-s.update:
+			s.updateListener(l)
+		case start := <-s.start:
+			s.startSound(start.entityNum, start.entityChan, start.sfx, start.origin, start.volume, start.attenuation, start.looping)
+		}
 	}
-	s.start(entnum, entchannel, sfx, sndOrigin, fvol, attenuation, looping)
 }
 
 func (s *SndSys) Stop(entnum, entchannel int) {
 	if s == nil {
 		return
 	}
-	s.stop(entnum, entchannel)
+	s.stop <- Stop{
+		entityNum:  entnum,
+		entityChan: entchannel,
+	}
 }
 func (s *SndSys) StopAll() {
 	if s == nil {
 		return
 	}
-	s.stopAll()
+	s.stopAll <- true
 }
-func (s *SndSys) PrecacheSound(n string) int {
-	if s == nil {
-		return -1
-	}
-	return s.precacheSound(n)
-}
+
 func (s *SndSys) Update(id int, origin vec.Vec3, right vec.Vec3) {
 	if s == nil {
 		return
 	}
-	s.update(id, origin, right)
+	s.update <- listener{
+		ID:     id,
+		Origin: origin,
+		Right:  right,
+	}
 }
+
+// This should not exist but overall shutdown is to broken
 func (s *SndSys) Shutdown() {
 	if s == nil {
 		return
 	}
-	s.shutdown()
+	s.doShutdown()
 }
 func (s *SndSys) Unblock() {
 	if s == nil {
 		return
 	}
-	s.unblock()
+	s.block <- false
 }
 func (s *SndSys) Block() {
 	if s == nil {
 		return
 	}
-	s.block()
+	s.block <- true
 }
 func (s *SndSys) SetVolume(v float32) {
 	if s == nil {
 		return
 	}
-	s.setVolume(v)
+	s.volume <- v
 }

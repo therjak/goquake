@@ -15,7 +15,18 @@ func (sys *SndSys) NewPrecache() *SoundPrecache {
 }
 
 func (sp *SoundPrecache) Start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3, fvol float32, attenuation float32, looping bool) {
-	sp.sys.Start(entnum, entchannel, sp.c[sfx], sndOrigin, fvol, attenuation, looping)
+	if sp.sys == nil {
+		return
+	}
+	sp.sys.start <- Start{
+		entityNum:   entnum,
+		entityChan:  entchannel,
+		sfx:         sp.c[sfx],
+		origin:      sndOrigin,
+		volume:      fvol,
+		attenuation: attenuation,
+		looping:     looping,
+	}
 }
 
 func (sp *SoundPrecache) Clear() {
@@ -24,7 +35,10 @@ func (sp *SoundPrecache) Clear() {
 }
 
 func (sp *SoundPrecache) Add(s string) {
-	sfx := sp.sys.PrecacheSound(s)
+	if sp.sys == nil {
+		return
+	}
+	sfx := sp.sys.precacheSound(s)
 	sp.c = append(sp.c, sfx)
 }
 
