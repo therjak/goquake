@@ -17,6 +17,7 @@ import (
 	"goquake/model"
 	"goquake/protocol"
 	"goquake/protos"
+	qsnd "goquake/snd"
 	"goquake/spr"
 )
 
@@ -258,7 +259,6 @@ func CL_ParseServerInfo(si *protos.ServerInfo) error {
 		conlog.DWarning("%d models exceeds standard limit of 256.\n", len(si.GetModelPrecache()))
 	}
 
-	cl.sound = snd.NewPrecache()
 	if len(si.GetSoundPrecache()) >= 2048 {
 		return fmt.Errorf("Server sent too many sound precaches")
 	}
@@ -285,12 +285,11 @@ func CL_ParseServerInfo(si *protos.ServerInfo) error {
 		}
 	}
 
-	for _, s := range si.GetSoundPrecache() {
-		cl.sound.Add(s)
-		if err := CL_KeepaliveMessage(); err != nil {
-			return err
-		}
+	var snds []qsnd.Sound
+	for i, s := range si.GetSoundPrecache() {
+		snds = append(snds, qsnd.Sound{i, s})
 	}
+	cl.sound = snd.NewPrecache(snds...)
 
 	// TODO: clean this stuff up
 	cl.worldModel, _ = cl.modelPrecache[0].(*bsp.Model)
