@@ -7,11 +7,13 @@ type SoundPrecache struct {
 	c   []int
 }
 
-func (sys *SndSys) NewPrecache() *SoundPrecache {
-	return &SoundPrecache{
+func (sys *SndSys) NewPrecache(snds ...Sound) *SoundPrecache {
+	s := &SoundPrecache{
 		sys: sys,
 		c:   make([]int, 0),
 	}
+	s.set(snds...)
+	return s
 }
 
 func (sp *SoundPrecache) Start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3, fvol float32, attenuation float32, looping bool) {
@@ -29,22 +31,27 @@ func (sp *SoundPrecache) Start(entnum int, entchannel int, sfx int, sndOrigin ve
 	}
 }
 
-func (sp *SoundPrecache) Clear() {
+func (sp *SoundPrecache) clear() {
 	sp.c = sp.c[:0]
 	// TODO: actually clear the precache in sys
 }
 
-func (sp *SoundPrecache) Add(s string) {
+type Sound struct {
+	ID   int
+	Name string
+}
+
+func (sp *SoundPrecache) add(s Sound) {
 	if sp.sys == nil {
 		return
 	}
-	sfx := sp.sys.precacheSound(s)
+	sfx := sp.sys.precacheSound(s.Name)
 	sp.c = append(sp.c, sfx)
 }
 
-func (sp *SoundPrecache) Set(snds ...string) {
-	sp.Clear()
+func (sp *SoundPrecache) set(snds ...Sound) {
+	sp.clear()
 	for _, s := range snds {
-		sp.Add(s)
+		sp.add(s)
 	}
 }

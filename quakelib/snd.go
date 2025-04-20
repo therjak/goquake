@@ -24,7 +24,7 @@ type soundsystem interface {
 	Unblock()
 	Block()
 	SetVolume(v float32)
-	NewPrecache() *qsnd.SoundPrecache
+	NewPrecache(snds ...qsnd.Sound) *qsnd.SoundPrecache
 }
 
 var (
@@ -58,20 +58,19 @@ func soundInit(stop chan struct{}) {
 	}
 	snd = qsnd.InitSoundSystem(stop)
 	onVolumeChange(cvars.Volume)
-	defaultSounds = snd.NewPrecache()
-	// Order must match lSound constants
-	defaultSounds.Set(
-		"misc/menu1.wav",
-		"misc/menu2.wav",
-		"misc/menu3.wav",
-		"misc/talk.wav",
-		"wizard/hit.wav",
-		"hknight/hit.wav",
-		"weapons/tink1.wav",
-		"weapons/ric1.wav",
-		"weapons/ric2.wav",
-		"weapons/ric3.wav",
-		"weapons/r_exp3.wav")
+	defaultSounds = snd.NewPrecache(
+		qsnd.Sound{int(lsMenu1), "misc/menu1.wav"},
+		qsnd.Sound{int(lsMenu2), "misc/menu2.wav"},
+		qsnd.Sound{int(lsMenu3), "misc/menu3.wav"},
+		qsnd.Sound{int(lsTalk), "misc/talk.wav"},
+		qsnd.Sound{int(WizHit), "wizard/hit.wav"},
+		qsnd.Sound{int(KnightHit), "hknight/hit.wav"},
+		qsnd.Sound{int(Tink1), "weapons/tink1.wav"},
+		qsnd.Sound{int(Ric1), "weapons/ric1.wav"},
+		qsnd.Sound{int(Ric2), "weapons/ric2.wav"},
+		qsnd.Sound{int(Ric3), "weapons/ric3.wav"},
+		qsnd.Sound{int(RExp3), "weapons/r_exp3.wav"},
+	)
 }
 
 func localSound(sfx lSound) {
