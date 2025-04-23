@@ -74,11 +74,11 @@ func soundInit(stop chan struct{}) {
 }
 
 func localSound(sfx lSound) {
-	defaultSounds.Start(-1, -1, int(sfx), vec.Vec3{}, 1, 1, false)
+	defaultSounds.Start(qsnd.Local, -1, int(sfx), vec.Vec3{}, 1, 1)
 }
 
 func clientSound(sfx lSound, pos vec.Vec3) {
-	defaultSounds.Start(-1, 0, int(sfx), pos, 1, 1, false)
+	defaultSounds.Start(qsnd.Local, 0, int(sfx), pos, 1, 1)
 }
 
 func init() {

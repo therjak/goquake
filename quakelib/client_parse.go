@@ -163,9 +163,9 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) (serverState, error) {
 		case protos.SCmd_SpawnStaticSound_case:
 			s := scmd.GetSpawnStaticSound()
 			org := s.GetOrigin()
-			cl.sound.Start(0, 0, int(s.GetIndex()-1),
+			cl.sound.StartAmbient(int(s.GetIndex()-1),
 				vec.Vec3{org.GetX(), org.GetY(), org.GetZ()},
-				float32(s.GetVolume())/255, float32(s.GetAttenuation())/64, loopingSound)
+				float32(s.GetVolume())/255, float32(s.GetAttenuation())/64)
 		case protos.SCmd_CdTrack_case:
 			// We do not play cds
 		case protos.SCmd_Intermission_case:

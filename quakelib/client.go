@@ -673,7 +673,7 @@ func CL_ParseStartSoundPacket(m *protos.Sound) error {
 		attenuation = float32(m.GetAttenuation()) / 64.0
 	}
 	origin := vec.Vec3{m.GetOrigin().GetX(), m.GetOrigin().GetY(), m.GetOrigin().GetZ()}
-	cl.sound.Start(int(m.GetEntity()), int(m.GetChannel()), int(m.GetSoundNum()), origin, volume, attenuation, !loopingSound)
+	cl.sound.Start(int(m.GetEntity()), int(m.GetChannel()), int(m.GetSoundNum()), origin, volume, attenuation)
 	return nil
 }
 
