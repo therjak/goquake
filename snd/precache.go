@@ -1,39 +1,62 @@
 package snd
 
-import "goquake/math/vec"
+import (
+	"goquake/math/vec"
+	"log/slog"
+)
 
 type SoundPrecache struct {
 	sys *SndSys
-	c   []int
+	c   map[int]int
 }
 
 func (sys *SndSys) NewPrecache(snds ...Sound) *SoundPrecache {
 	s := &SoundPrecache{
 		sys: sys,
-		c:   make([]int, 0),
+		c:   make(map[int]int),
 	}
 	s.set(snds...)
 	return s
 }
 
-func (sp *SoundPrecache) Start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3, fvol float32, attenuation float32, looping bool) {
+func (sp *SoundPrecache) Start(entnum int, entchannel int, id int, sndOrigin vec.Vec3, fvol float32, attenuation float32) {
 	if sp.sys == nil {
+		return
+	}
+	sfx, ok := sp.c[id]
+	if !ok {
+		slog.Error("unknown sound started", slog.Int("sfx", id))
 		return
 	}
 	sp.sys.start <- Start{
 		entityNum:   entnum,
 		entityChan:  entchannel,
-		sfx:         sp.c[sfx],
+		sfx:         sfx,
 		origin:      sndOrigin,
 		volume:      fvol,
 		attenuation: attenuation,
-		looping:     looping,
+		looping:     false,
 	}
 }
 
-func (sp *SoundPrecache) clear() {
-	sp.c = sp.c[:0]
-	// TODO: actually clear the precache in sys
+func (sp *SoundPrecache) StartAmbient(id int, sndOrigin vec.Vec3, fvol float32, attenuation float32) {
+	if sp.sys == nil {
+		return
+	}
+	sfx, ok := sp.c[id]
+	if !ok {
+		slog.Error("unknown sound started", slog.Int("sfx", id))
+		return
+	}
+	sp.sys.start <- Start{
+		entityNum:   0,
+		entityChan:  0,
+		sfx:         sfx,
+		origin:      sndOrigin,
+		volume:      fvol,
+		attenuation: attenuation,
+		looping:     true,
+	}
 }
 
 type Sound struct {
@@ -41,17 +64,9 @@ type Sound struct {
 	Name string
 }
 
-func (sp *SoundPrecache) add(s Sound) {
-	if sp.sys == nil {
-		return
-	}
-	sfx := sp.sys.precacheSound(s.Name)
-	sp.c = append(sp.c, sfx)
-}
-
 func (sp *SoundPrecache) set(snds ...Sound) {
-	sp.clear()
 	for _, s := range snds {
-		sp.add(s)
+		sfx := sp.sys.precacheSound(s.Name)
+		sp.c[s.ID] = sfx
 	}
 }

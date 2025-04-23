@@ -25,70 +25,7 @@ var (
 	activeSounds   = newASounds()
 )
 
-type channel [8]*playingSound
-
-type aSounds struct {
-	// entchannel 0-7
-	// 0 is ambient
-	ambient []*playingSound
-	sounds  map[int]channel
-	local   *playingSound
-}
-
-func newASounds() *aSounds {
-	return &aSounds{
-		ambient: make([]*playingSound, 0),
-		sounds:  make(map[int]channel),
-	}
-}
-
-func (a *aSounds) add(entnum, entchannel int, p *playingSound) {
-	if entchannel < 0 {
-		a.local = p
-		return
-	}
-	if entnum == 0 {
-		a.ambient = append(a.ambient, p)
-		return
-	}
-	c, ok := a.sounds[entnum]
-	if !ok {
-		c = channel{}
-	}
-	c[entchannel] = p
-	a.sounds[entnum] = c
-}
-
-func (a *aSounds) stop(entnum, entchannel int) {
-	c, ok := a.sounds[entnum]
-	if !ok {
-		return
-	}
-	ps := c[entchannel]
-	if ps != nil {
-		ps.paused = true
-		ps.sound = nil
-	}
-	c[entchannel] = nil
-	a.sounds[entnum] = c
-}
-
-func (a *aSounds) update(listener int, listenerOrigin, listenerRight vec.Vec3) {
-	for _, c := range a.sounds {
-		for i := range c {
-			s := c[i]
-			if s != nil {
-				s.spatialize(listener, listenerOrigin, listenerRight)
-			}
-		}
-	}
-	for _, a := range a.ambient {
-		a.spatialize(listener, listenerOrigin, listenerRight)
-	}
-	// TODO(therjak): start sounds which became audible
-	//                stop sounds which are unaudible
-	// ambientsounds to ambient_levels
-}
+const Local = -1
 
 func chunkSize() int {
 	if desiredSampleRate <= 11025 {
@@ -108,10 +45,6 @@ func initSound() error {
 	speaker.Init(sr, chunkSize())
 
 	return nil
-}
-
-func (s *SndSys) doShutdown() {
-	speaker.Close()
 }
 
 func (s *SndSys) startSound(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3,
@@ -145,7 +78,7 @@ func (s *SndSys) startSound(entnum int, entchannel int, sfx int, sndOrigin vec.V
 		distanceMultiplier: attenuation / clipDistance,
 		sound:              ns,
 	}
-	// TODO: we need to check the samplerate of the sound to match the speeker
+	// TODO: we need to check the samplerate of the sound to match the speaker
 
 	ps.spatialize(s.listener.ID, s.listener.Origin, s.listener.Right) // update panning
 	activeSounds.add(entnum, entchannel, ps)
@@ -176,16 +109,6 @@ func (s *SndSys) updateListener(l listener) {
 	activeSounds.update(s.listener.ID, s.listener.Origin, s.listener.Right)
 }
 
-// gets called when window looses focus
-func (s *SndSys) suspend() {
-	speaker.Suspend()
-}
-
-// gets called when window gains focus
-func (s *SndSys) resume() {
-	speaker.Resume()
-}
-
 func (s *SndSys) precacheSound(n string) int {
 	name := filepath.Join("sound", n)
 	if i, ok := s.cache.Has(name); ok {
@@ -197,10 +120,6 @@ func (s *SndSys) precacheSound(n string) int {
 		return -1
 	}
 	return s.cache.Add(sfx)
-}
-
-func (s *SndSys) setVolume(v float32) {
-	speaker.SetVolume(float64(v))
 }
 
 // The API
@@ -254,16 +173,16 @@ func (s *SndSys) run() {
 	for {
 		select {
 		case <-s.shutdown:
-			s.doShutdown()
+			speaker.Close()
 			return
 		case b := <-s.block:
 			if b {
-				s.suspend()
+				speaker.Suspend()
 			} else {
-				s.resume()
+				speaker.Resume()
 			}
 		case v := <-s.volume:
-			s.setVolume(v)
+			speaker.SetVolume(float64(v))
 		case stop := <-s.stop:
 			s.stopSound(stop.entityNum, stop.entityChan)
 		case <-s.stopAll:
@@ -308,7 +227,7 @@ func (s *SndSys) Shutdown() {
 	if s == nil {
 		return
 	}
-	s.doShutdown()
+	speaker.Close()
 }
 func (s *SndSys) Unblock() {
 	if s == nil {
