@@ -38,7 +38,7 @@ func NewProgram(vertex, fragment string) (*Program, error) {
 	gl.LinkProgram(p.prog)
 	gl.DeleteShader(vert)
 	gl.DeleteShader(frag)
-	runtime.SetFinalizer(p, (*Program).delete)
+	runtime.AddCleanup(p, deleteProgram, p.prog)
 	return p, nil
 }
 
@@ -65,13 +65,13 @@ func NewProgramWithGeometry(vertex, geometry, fragment string) (*Program, error)
 	gl.DeleteShader(vert)
 	gl.DeleteShader(geo)
 	gl.DeleteShader(frag)
-	runtime.SetFinalizer(p, (*Program).delete)
+	runtime.AddCleanup(p, deleteProgram, p.prog)
 	return p, nil
 }
 
-func (p *Program) delete() {
+func deleteProgram(p uint32) {
 	mainthread.CallNonBlock(func() {
-		gl.DeleteProgram(p.prog)
+		gl.DeleteProgram(p)
 	})
 }
 
@@ -97,13 +97,13 @@ func NewBuffer(target uint32) *Buffer {
 		target: target,
 	}
 	gl.GenBuffers(1, &b.buf)
-	runtime.SetFinalizer(b, (*Buffer).delete)
+	runtime.AddCleanup(b, deleteBuffer, b.buf)
 	return b
 }
 
-func (b *Buffer) delete() {
+func deleteBuffer(buf uint32) {
 	mainthread.CallNonBlock(func() {
-		gl.DeleteBuffers(1, &b.buf)
+		gl.DeleteBuffers(1, &buf)
 	})
 }
 
@@ -129,13 +129,13 @@ type VertexArray struct {
 func NewVertexArray() *VertexArray {
 	va := &VertexArray{}
 	gl.GenVertexArrays(1, &va.a)
-	runtime.SetFinalizer(va, (*VertexArray).delete)
+	runtime.AddCleanup(va, deleteVertexArray, va.a)
 	return va
 }
 
-func (va *VertexArray) delete() {
+func deleteVertexArray(va uint32) {
 	mainthread.CallNonBlock(func() {
-		gl.DeleteVertexArrays(1, &va.a)
+		gl.DeleteVertexArrays(1, &va)
 	})
 }
 
