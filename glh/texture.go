@@ -26,15 +26,15 @@ type textureCube struct {
 	texture
 }
 
-func (t *texture) delete() {
+func deleteTexture(id uint32) {
 	mainthread.CallNonBlock(func() {
-		gl.DeleteTextures(1, &t.id)
+		gl.DeleteTextures(1, &id)
 	})
 }
 
 func (t *texture) new() {
 	gl.GenTextures(1, &t.id)
-	runtime.SetFinalizer(t, (*texture).delete)
+	runtime.AddCleanup(t, deleteTexture, t.id)
 }
 
 func NewTexture2D() *texture2D {
