@@ -9,13 +9,13 @@ require (
 	github.com/gopxl/mainthread/v2 v2.1.1
 	github.com/pkg/errors v0.9.1
 	github.com/veandco/go-sdl2 v0.4.40
-	golang.org/x/tools v0.32.0
+	golang.org/x/tools v0.33.0
 	google.golang.org/protobuf v1.36.6
 )
 
 require (
 	github.com/ebitengine/purego v0.8.0 // indirect
-	golang.org/x/sys v0.32.0 // indirect
+	golang.org/x/sys v0.33.0 // indirect
 )
 
 go 1.24.2
