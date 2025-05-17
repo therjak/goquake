@@ -9,6 +9,7 @@ import (
 	"goquake/math/vec"
 	"goquake/snd/speaker"
 
+	"github.com/google/uuid"
 	"github.com/gopxl/beep/v2"
 )
 
@@ -47,41 +48,49 @@ func initSound() error {
 	return nil
 }
 
-func (s *SndSys) startSound(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3,
-	fvol float32, attenuation float32, looping bool) {
-	pres := s.cache.Get(sfx)
+func (s *SndSys) startSound(start Start) {
+	list, ok := s.cache[start.cache]
+	if !ok {
+		log.Printf("snd cache not found: %v", start.cache)
+		return
+	}
+	if start.sfx < 0 || start.sfx >= len(list) {
+		log.Printf("snd out of bounds: %v, %v", start.cache, start.sfx)
+		return
+	}
+	pres := list[start.sfx]
 	if pres == nil {
-		log.Printf("asked found sound out of range %v", sfx)
+		log.Printf("snd is nil: %v", start.sfx)
 		return
 	}
 
 	var ns beep.Streamer
 	nss := newSound(pres)
 	ns = nss
-	if looping {
+	if start.looping {
 		begin := int(pres.loopStart)
 		end := int(pres.loopStart + pres.loopSamples)
 
 		var err error
 		ns, err = beep.Loop2(nss, beep.LoopBetween(begin, end))
 		if err != nil {
-			log.Printf("%d: %v", sfx, err)
+			log.Printf("%d: %v", start.sfx, err)
 			return
 		}
 	}
 
 	ps := &playingSound{
-		masterVolume:       float64(fvol),
-		origin:             sndOrigin,
-		entnum:             entnum,
-		entchannel:         entchannel,
-		distanceMultiplier: attenuation / clipDistance,
+		masterVolume:       float64(start.volume),
+		origin:             start.origin,
+		entnum:             start.entityNum,
+		entchannel:         start.entityChan,
+		distanceMultiplier: start.attenuation / clipDistance,
 		sound:              ns,
 	}
 	// TODO: we need to check the samplerate of the sound to match the speaker
 
 	ps.spatialize(s.listener.ID, s.listener.Origin, s.listener.Right) // update panning
-	activeSounds.add(entnum, entchannel, ps)
+	activeSounds.add(ps)
 	speaker.Play(ps)
 
 	// TODO: how/when to remove sounds from activeSounds?
@@ -109,17 +118,29 @@ func (s *SndSys) updateListener(l listener) {
 	activeSounds.update(s.listener.ID, s.listener.Origin, s.listener.Right)
 }
 
-func (s *SndSys) precacheSound(n string) int {
-	name := filepath.Join("sound", n)
-	if i, ok := s.cache.Has(name); ok {
-		return i
+func (s *SndSys) createCache(cr cacheRequest) {
+	for i, s := range cr.snds {
+		if i != s.ID {
+			log.Printf("cache request out of order: %d, %d", i, s.ID)
+			return
+		}
 	}
-	sfx, err := loadSFX(name)
-	if err != nil {
-		log.Println(err)
-		return -1
+
+	list := make([]*pcmSound, len(cr.snds))
+	for i, s := range cr.snds {
+		name := filepath.Join("sound", s.Name)
+		s, err := loadSFX(name)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		list[i] = s
 	}
-	return s.cache.Add(sfx)
+	s.cache[cr.id] = list
+}
+
+func (s *SndSys) deleteCache(id uuid.UUID) {
+	delete(s.cache, id)
 }
 
 // The API
@@ -130,28 +151,38 @@ func InitSoundSystem(stop chan struct{}) *SndSys {
 		return nil
 	}
 	s := &SndSys{
-		shutdown: stop,
-		block:    make(chan bool),
-		volume:   make(chan float32),
-		stop:     make(chan Stop),
-		stopAll:  make(chan bool),
-		update:   make(chan listener),
-		start:    make(chan Start),
+		cache:       make(map[uuid.UUID][]*pcmSound),
+		shutdown:    stop,
+		block:       make(chan bool),
+		volume:      make(chan float32),
+		stop:        make(chan Stop),
+		stopAll:     make(chan bool),
+		update:      make(chan listener),
+		start:       make(chan Start),
+		removeCache: make(chan uuid.UUID),
+		addCache:    make(chan cacheRequest),
 	}
 	go s.run()
 	return s
 }
 
 type SndSys struct {
-	cache    cache[*pcmSound]
-	listener listener
-	shutdown chan struct{}
-	block    chan bool
-	volume   chan float32
-	stop     chan Stop
-	stopAll  chan bool
-	update   chan listener
-	start    chan Start
+	cache       map[uuid.UUID][]*pcmSound
+	listener    listener
+	shutdown    chan struct{}
+	block       chan bool
+	volume      chan float32
+	stop        chan Stop
+	stopAll     chan bool
+	update      chan listener
+	start       chan Start
+	removeCache chan uuid.UUID
+	addCache    chan cacheRequest
+}
+
+type cacheRequest struct {
+	id   uuid.UUID
+	snds []Sound
 }
 
 type Stop struct {
@@ -162,11 +193,17 @@ type Stop struct {
 type Start struct {
 	entityNum   int
 	entityChan  int
+	cache       uuid.UUID
 	sfx         int
 	origin      vec.Vec3
 	volume      float32
 	attenuation float32
 	looping     bool
+}
+
+type Sound struct {
+	ID   int
+	Name string
 }
 
 func (s *SndSys) run() {
@@ -189,8 +226,12 @@ func (s *SndSys) run() {
 			s.stopAllSound()
 		case l := <-s.update:
 			s.updateListener(l)
+		case dc := <-s.removeCache:
+			s.deleteCache(dc)
+		case ac := <-s.addCache:
+			s.createCache(ac)
 		case start := <-s.start:
-			s.startSound(start.entityNum, start.entityChan, start.sfx, start.origin, start.volume, start.attenuation, start.looping)
+			s.startSound(start)
 		}
 	}
 }

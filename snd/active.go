@@ -23,21 +23,21 @@ func newASounds() *aSounds {
 	}
 }
 
-func (a *aSounds) add(entnum, entchannel int, p *playingSound) {
-	if entchannel < 0 {
+func (a *aSounds) add(p *playingSound) {
+	if p.entchannel < 0 {
 		a.local = p
 		return
 	}
-	if entnum == 0 {
+	if p.entnum == 0 {
 		a.ambient = append(a.ambient, p)
 		return
 	}
-	c, ok := a.sounds[entnum]
+	c, ok := a.sounds[p.entnum]
 	if !ok {
 		c = channel{}
 	}
-	c[entchannel] = p
-	a.sounds[entnum] = c
+	c[p.entchannel] = p
+	a.sounds[p.entnum] = c
 }
 
 func (a *aSounds) stop(entnum, entchannel int) {
