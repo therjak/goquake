@@ -331,7 +331,7 @@ func vidUnlock(_ cbuf.Arguments) error {
 }
 
 func videoShutdown() {
-	inputDeactivate(true) // frow IN_Shutdown
+	inputDeactivate(true) // from IN_Shutdown
 	if videoInitialized {
 		sdl.QuitSubSystem(sdl.INIT_VIDEO)
 		window.Shutdown()

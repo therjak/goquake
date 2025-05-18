@@ -503,7 +503,10 @@ func (scr *qScreen) Update() {
 
 	scr.setupToDrawConsole()
 
-	view.Render()
+	if err := view.Render(); err != nil {
+		Error(err.Error())
+	}
+
 	qCanvas.Set(CANVAS_DEFAULT)
 	gl.Disable(gl.DEPTH_TEST)
 	gl.Disable(gl.CULL_FACE)

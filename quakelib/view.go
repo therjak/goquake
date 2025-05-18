@@ -2,6 +2,7 @@
 package quakelib
 
 import (
+	"fmt"
 	"goquake/bsp"
 	"goquake/cvars"
 	"goquake/glh"
@@ -37,9 +38,9 @@ func (v *qView) addLightBlend(r, g, b, a2 float32) {
 
 // The player's clipping box goes from (-16 -16 -24) to (16 16 32) from
 // the entity origin, so any view position inside that will be valid
-func (v *qView) Render() {
+func (v *qView) Render() error {
 	if console.forceDuplication {
-		return
+		return nil
 	}
 	if cl.intermission != 0 {
 		cl.calcIntermissionRefreshRect()
@@ -49,7 +50,7 @@ func (v *qView) Render() {
 
 	if !cvars.RNoRefresh.Bool() {
 		if cl.worldModel == nil {
-			Error("R_RenderView: NULL worldmodel")
+			return fmt.Errorf("R_RenderView: NULL worldmodel")
 		}
 		if cvars.GlFinish.Bool() {
 			gl.Finish()
@@ -62,6 +63,7 @@ func (v *qView) Render() {
 	}
 
 	v.polyBlend()
+	return nil
 }
 
 func (v *qView) setup() {

@@ -69,7 +69,7 @@ func newBrushDrawProgram() (*glh.Program, error) {
 	return glh.NewProgram(vertexSourceBrushDrawer, fragmentSourceBrushDrawer)
 }
 
-func newBrushDrawer() *qBrushDrawer {
+func newBrushDrawer() (*qBrushDrawer, error) {
 	d := &qBrushDrawer{startTime: time.Now()}
 	d.vao = glh.NewVertexArray()
 	d.ebo = glh.NewBuffer(glh.ElementArrayBuffer)
@@ -77,7 +77,7 @@ func newBrushDrawer() *qBrushDrawer {
 	var err error
 	d.prog, err = newBrushDrawProgram()
 	if err != nil {
-		Error(err.Error())
+		return nil, err
 	}
 	d.projection = d.prog.GetUniformLocation("projection")
 	d.modelview = d.prog.GetUniformLocation("modelview")
@@ -93,7 +93,7 @@ func newBrushDrawer() *qBrushDrawer {
 	d.turb = d.prog.GetUniformLocation("Turb")
 	d.time = d.prog.GetUniformLocation("Time")
 	d.vbo_indices = make([]uint32, 0, 4096)
-	return d
+	return d, nil
 }
 
 var (
@@ -101,8 +101,10 @@ var (
 	brushDrawer *qBrushDrawer
 )
 
-func CreateBrushDrawer() {
-	brushDrawer = newBrushDrawer()
+func CreateBrushDrawer() error {
+	var err error
+	brushDrawer, err = newBrushDrawer()
+	return err
 }
 
 func (d *qBrushDrawer) buildVertexBuffer() {
