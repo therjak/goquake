@@ -156,8 +156,10 @@ func (r *qRenderer) DrawWeaponModel() {
 
 var coneDrawer *qConeDrawer
 
-func CreateConeDrawer() {
-	coneDrawer = newConeDrawer()
+func CreateConeDrawer() error {
+	var err error
+	coneDrawer, err = newConeDrawer()
+	return err
 }
 
 type qConeDrawer struct {
@@ -179,18 +181,18 @@ func newConeDrawProgram() (*glh.Program, error) {
 	return glh.NewProgramWithGeometry(vertexConeSource, geometryConeSource, fragmentConeSource)
 }
 
-func newConeDrawer() *qConeDrawer {
+func newConeDrawer() (*qConeDrawer, error) {
 	d := &qConeDrawer{}
 	d.vao = glh.NewVertexArray()
 	d.vbo = glh.NewBuffer(glh.ArrayBuffer)
 	var err error
 	d.prog, err = newConeDrawProgram()
 	if err != nil {
-		Error(err.Error())
+		return nil, err
 	}
 	d.projection = d.prog.GetUniformLocation("projection")
 	d.modelview = d.prog.GetUniformLocation("modelview")
-	return d
+	return d, nil
 }
 
 func (cd *qConeDrawer) Draw(cs []qCone) {

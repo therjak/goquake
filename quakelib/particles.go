@@ -53,14 +53,14 @@ func newParticleDrawProgram() (*glh.Program, error) {
 	return glh.NewProgram(vertexSourceParticleDrawer, fragmentSourceParticleDrawer)
 }
 
-func newParticleDrawer() *qParticleDrawer {
+func newParticleDrawer() (*qParticleDrawer, error) {
 	d := &qParticleDrawer{}
 	d.vao = glh.NewVertexArray()
 	d.vbo = glh.NewBuffer(glh.ArrayBuffer)
 	var err error
 	d.prog, err = newParticleDrawProgram()
 	if err != nil {
-		Error(err.Error())
+		return nil, err
 	}
 	d.projection = d.prog.GetUniformLocation("projection")
 	d.modelview = d.prog.GetUniformLocation("modelview")
@@ -83,7 +83,7 @@ func newParticleDrawer() *qParticleDrawer {
 
 	d.texture = d.textures[0]
 	d.textureScaleFactor = float32(1.27)
-	return d
+	return d, nil
 }
 
 func (d *qParticleDrawer) Draw(ps []particle) {
@@ -258,8 +258,10 @@ func particlesInit() {
 
 }
 
-func CreateParticleDrawer() {
-	particleDrawer = newParticleDrawer()
+func CreateParticleDrawer() error {
+	var err error
+	particleDrawer, err = newParticleDrawer()
+	return err
 }
 
 func init() {

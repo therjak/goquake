@@ -25,11 +25,13 @@ type postProcess struct {
 
 var pprocess *postProcess
 
-func CreatePostProcess() {
-	pprocess = newPostProcessor()
+func CreatePostProcess() error {
+	var err error
+	pprocess, err = newPostProcessor()
+	return err
 }
 
-func newPostProcessor() *postProcess {
+func newPostProcessor() (*postProcess, error) {
 	p := &postProcess{}
 	elements := []uint32{
 		0, 1, 2,
@@ -52,11 +54,11 @@ func newPostProcessor() *postProcess {
 	var err error
 	p.prog, err = glh.NewProgram(vertexTextureSource, postProcessFragment)
 	if err != nil {
-		Error(err.Error())
+		return nil, err
 	}
 	p.gamma = p.prog.GetUniformLocation("gamma")
 	p.contrast = p.prog.GetUniformLocation("contrast")
-	return p
+	return p, nil
 }
 
 func (p *postProcess) Draw(gamma, contrast float32) {

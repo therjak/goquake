@@ -133,7 +133,10 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) (serverState, error) {
 		case protos.SCmd_SpawnStatic_case:
 			cl.parseStatic(scmd.GetSpawnStatic())
 		case protos.SCmd_TempEntity_case:
-			cls.parseTempEntity(scmd.GetTempEntity())
+			err := cls.parseTempEntity(scmd.GetTempEntity())
+			if err != nil {
+				Error(err.Error())
+			}
 		case protos.SCmd_SetPause_case:
 			// this was used to pause cd audio, other pause as well?
 			cl.paused = scmd.GetSetPause()
@@ -273,7 +276,9 @@ func CL_ParseServerInfo(si *protos.ServerInfo) error {
 	for _, mn := range si.GetModelPrecache() {
 		m, ok := models[mn]
 		if !ok {
-			loadModel(mn)
+			if _, err := loadModel(mn); err != nil {
+				return fmt.Errorf("Model %s not found: %v", mn, err)
+			}
 			m, ok = models[mn]
 			if !ok {
 				return fmt.Errorf("Model %s not found", mn)

@@ -1403,7 +1403,10 @@ func clientStartDemos(a cbuf.Arguments) error {
 			cbuf.InsertText("menu_main\n")
 			return nil
 		}
-		CL_NextDemo()
+		if err := CL_NextDemo(); err != nil {
+			fmt.Printf("CL_NextDemo: %v", err)
+		}
+
 	} else {
 		cls.demoNum = -1
 	}
@@ -1597,8 +1600,12 @@ func (c *ClientStatic) stopDemoRecording() {
 		return
 	}
 
-	c.writeDemoMessage([]byte{svc.Disconnect})
-	c.demoWriter.Close()
+	if err := c.writeDemoMessage([]byte{svc.Disconnect}); err != nil {
+		conlog.Printf("Failed to finish demo: %v", err)
+	}
+	if err := c.demoWriter.Close(); err != nil {
+		conlog.Printf("Failed to finish demo: %v", err)
+	}
 	c.demoWriter = nil
 
 	conlog.Printf("Completed demo\n")
@@ -1615,8 +1622,8 @@ func (c *ClientStatic) createDemoFile(filename string, cdtrack int) error {
 		return fmt.Errorf("ERROR: couldn't create %s\n", path)
 	}
 	c.demoWriter = f
-	fmt.Fprintf(c.demoWriter, "%d\n", cdtrack)
-	return nil
+	_, err = fmt.Fprintf(c.demoWriter, "%d\n", cdtrack)
+	return err
 }
 
 func (c *ClientStatic) getDemoMessage() int {
@@ -1725,7 +1732,7 @@ func v3FC(c *protos.Coord) vec.Vec3 {
 	return vec.Vec3{c.GetX(), c.GetY(), c.GetZ()}
 }
 
-func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) {
+func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) error {
 	switch tep.WhichUnion() {
 	case protos.TempEntity_Spike_case:
 		// spike hitting wall
@@ -1838,8 +1845,9 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) {
 		e := v3FC(l.GetEnd())
 		parseBeam(mdlBeam, l.GetEntity(), s, e)
 	default:
-		Error("CL_ParseTEnt: bad type")
+		return fmt.Errorf("CL_ParseTEnt: bad type")
 	}
+	return nil
 }
 
 func (c *Client) ColorForEntity(e *Entity) vec.Vec3 {

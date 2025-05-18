@@ -388,6 +388,7 @@ func (c *SVClient) ReadClientMessage() (bool, error) {
 					c.noTargetCmd(a)
 				case "god":
 					c.godCmd(a)
+
 				case "pause":
 					c.pauseCmd(a)
 				case "ping":
@@ -422,7 +423,9 @@ func (c *SVClient) ReadClientMessage() (bool, error) {
 				case "tell":
 					c.tellCmd(a)
 				case "kick":
-					c.kickCmd(a)
+					if err := c.kickCmd(a); err != nil {
+						fmt.Printf("Drop error: %v", err)
+					}
 				case "name":
 					c.nameCmd(a)
 				case "save":
@@ -1000,11 +1003,11 @@ func (c *SVClient) giveCmd(a cbuf.Arguments) {
 	}
 }
 
-func (c *SVClient) tellCmd(a cbuf.Arguments) error {
+func (c *SVClient) tellCmd(a cbuf.Arguments) {
 	args := a.Args()
 	if len(args) < 3 {
 		// need at least destination and message
-		return nil
+		return
 	}
 	text := fmt.Sprintf("%s: %s\n", c.name, a.Message())
 	for _, ac := range sv_clients {
@@ -1017,7 +1020,6 @@ func (c *SVClient) tellCmd(a cbuf.Arguments) error {
 		// TODO: We check without case check. Are names unique ignoring the case?
 		ac.Printf(text)
 	}
-	return nil
 }
 
 // Kicks a user off of the server

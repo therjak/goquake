@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"runtime/debug"
 	"time"
 
 	"goquake/cbuf"
@@ -57,7 +56,7 @@ func init() {
 	addCommand("sv_protocol", svProtocol)
 }
 
-func serverInit() {
+func serverInit() error {
 	sv_protocol = cmdl.Protocol()
 	switch sv_protocol {
 	case protocol.NetQuake:
@@ -69,11 +68,10 @@ func serverInit() {
 	case protocol.GoQuake:
 		log.Printf("Server using protocol %v (GoQuake)\n", sv_protocol)
 	default:
-		debug.PrintStack()
-		shutdown()
-		log.Fatalf("Bad protocol version request %v. Accepted values: %v, %v, %v.",
+		return fmt.Errorf("Bad protocol version request %v. Accepted values: %v, %v, %v.",
 			sv_protocol, protocol.NetQuake, protocol.FitzQuake, protocol.RMQ)
 	}
+	return nil
 }
 
 func ServerActive() bool {
@@ -93,13 +91,26 @@ func CallCMain() error {
 	}
 	if !cmdl.Dedicated() {
 		if err := history.Load(); err != nil {
-			// BUG? console is not ready
-			conlog.Printf("%v\n", err)
+			log.Printf("%v\n", err)
 		}
 		consoleInit()
 	}
-	networkInit()
-	serverInit()
+
+	net.SetPort(cmdl.Port())
+	clients := svs.maxClientsLimit
+	if !cmdl.Dedicated() {
+		clients++
+	}
+	if cmdl.Listen() || cmdl.Dedicated() {
+		log.Printf("Listening to network")
+		net.Listen(clients)
+		defer net.StopListen()
+	}
+	net.SetTime()
+
+	if err := serverInit(); err != nil {
+		return err
+	}
 
 	if !cmdl.Dedicated() {
 		// ExtraMaps_Init();
@@ -108,7 +119,9 @@ func CallCMain() error {
 		if err := videoInit(); err != nil {
 			return err
 		}
-		shaderInit()
+		if err := shaderInit(); err != nil {
+			return err
+		}
 		textureManagerInit()
 		drawInit()
 		screen.initialized = true
@@ -142,16 +155,27 @@ func CallCMain() error {
 	return nil
 }
 
-func shaderInit() {
+func shaderInit() error {
 	// All our shaders:
 	CreateAliasDrawer()
-	CreateBrushDrawer()
-	CreateSpriteDrawer()
+	if err := CreateBrushDrawer(); err != nil {
+		return err
+	}
+	if err := CreateSpriteDrawer(); err != nil {
+		return err
+	}
 	CreateSkyDrawer()
-	CreateParticleDrawer()
-	CreatePostProcess()
-	CreateConeDrawer()
+	if err := CreateParticleDrawer(); err != nil {
+		return err
+	}
+	if err := CreatePostProcess(); err != nil {
+		return err
+	}
+	if err := CreateConeDrawer(); err != nil {
+		return err
+	}
 	CreateUiDrawer()
+	return nil
 }
 
 var (

@@ -25,7 +25,7 @@ type qSpriteDrawer struct {
 	modelview  int32
 }
 
-func NewSpriteDrawer() *qSpriteDrawer {
+func NewSpriteDrawer() (*qSpriteDrawer, error) {
 	d := &qSpriteDrawer{}
 	elements := []uint32{
 		0, 1, 2,
@@ -39,20 +39,22 @@ func NewSpriteDrawer() *qSpriteDrawer {
 	var err error
 	d.prog, err = newSpriteDrawProgram()
 	if err != nil {
-		Error(err.Error())
+		return nil, err
 	}
 
 	d.projection = d.prog.GetUniformLocation("projection")
 	d.modelview = d.prog.GetUniformLocation("modelview")
-	return d
+	return d, nil
 }
 
 var (
 	spriteDrawer *qSpriteDrawer
 )
 
-func CreateSpriteDrawer() {
-	spriteDrawer = NewSpriteDrawer()
+func CreateSpriteDrawer() error {
+	var err error
+	spriteDrawer, err = NewSpriteDrawer()
+	return err
 }
 
 func (r *qRenderer) DrawSpriteModel(e *Entity, m *spr.Model) {
