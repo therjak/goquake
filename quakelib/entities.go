@@ -54,14 +54,6 @@ func printEntities(_ cbuf.Arguments) error {
 	return nil
 }
 
-func updatePlayerSkin(i int) {
-	if i < 0 || i >= cl.maxClients {
-		Error("CL_NewTranslation: slot > cl.maxClients: %d", i)
-	}
-	e := cl.Entities(i + 1)
-	translatePlayerSkin(e)
-}
-
 func translatePlayerSkin(e *Entity) {
 	if cvars.GlNoColors.Bool() {
 		return
@@ -302,23 +294,23 @@ func (c *Client) WeaponEntity() *Entity {
 	return &clientWeapon
 }
 
-func (c *Client) CreateStaticEntity() *Entity {
+func (c *Client) CreateStaticEntity() (*Entity, error) {
 	if len(c.staticEntities) == cap(c.staticEntities) {
-		Error("Too many static entities")
+		return nil, fmt.Errorf("Too many static entities")
 	}
 	i := len(c.staticEntities)
 	c.staticEntities = append(c.staticEntities, Entity{})
-	return &c.staticEntities[i]
+	return &c.staticEntities[i], nil
 }
 
 // GetOrCreateEntity returns cl.entities[num] and extends cl.entities if not long enough.
-func (c *Client) GetOrCreateEntity(num int) *Entity {
+func (c *Client) GetOrCreateEntity(num int) (*Entity, error) {
 	if num < 0 {
-		Error("CL_EntityNum: %d is an invalid number", num)
+		return nil, fmt.Errorf("CL_EntityNum: %d is an invalid number", num)
 	}
 	if num >= len(cl.entities) {
 		if num >= cap(cl.entities) {
-			Error("CL_EntityNum: %d is an invalid number", num)
+			return nil, fmt.Errorf("CL_EntityNum: %d is an invalid number", num)
 		}
 		for i := len(cl.entities); i <= num; i++ {
 			e := &Entity{}
@@ -326,7 +318,7 @@ func (c *Client) GetOrCreateEntity(num int) *Entity {
 			cl.entities = append(cl.entities, e)
 		}
 	}
-	return cl.entities[num]
+	return cl.entities[num], nil
 }
 
 // Entity return the player entity

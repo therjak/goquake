@@ -123,7 +123,9 @@ func CallCMain() error {
 			return err
 		}
 		textureManagerInit()
-		drawInit()
+		if err := drawInit(); err != nil {
+			return err
+		}
 		screen.initialized = true
 		particlesInit()
 		setClearColor(cvars.RClearColor)
@@ -157,7 +159,9 @@ func CallCMain() error {
 
 func shaderInit() error {
 	// All our shaders:
-	CreateAliasDrawer()
+	if err := CreateAliasDrawer(); err != nil {
+		return err
+	}
 	if err := CreateBrushDrawer(); err != nil {
 		return err
 	}
@@ -313,7 +317,10 @@ func executeFrame() {
 		time1 = time.Now()
 	}
 
-	screen.Update()
+	// THERJAK: screenUpdate
+	if err := screen.Update(); err != nil {
+		QError(err.Error())
+	}
 
 	particlesRun(float32(cl.time), float32(cl.oldTime)) // separated from rendering
 

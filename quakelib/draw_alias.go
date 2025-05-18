@@ -37,13 +37,13 @@ type qAliasDrawer struct {
 	fogColor      int32
 }
 
-func newAliasDrawer() *qAliasDrawer {
+func newAliasDrawer() (*qAliasDrawer, error) {
 	d := &qAliasDrawer{}
 	d.vao = glh.NewVertexArray()
 	var err error
 	d.prog, err = newAliasDrawProgram()
 	if err != nil {
-		Error(err.Error())
+		return nil, err
 	}
 	d.projection = d.prog.GetUniformLocation("projection")
 	d.modelview = d.prog.GetUniformLocation("modelview")
@@ -57,7 +57,7 @@ func newAliasDrawer() *qAliasDrawer {
 	d.fogDensity = d.prog.GetUniformLocation("FogDensity")
 	d.fogColor = d.prog.GetUniformLocation("FogColor")
 
-	return d
+	return d, nil
 }
 
 type lerpData struct {
@@ -318,6 +318,8 @@ func drawAliasFrame(m *mdl.Model, ld *lerpData, tx, fb *texture.Texture, e *Enti
 
 var aliasDrawer *qAliasDrawer
 
-func CreateAliasDrawer() {
-	aliasDrawer = newAliasDrawer()
+func CreateAliasDrawer() error {
+	var err error
+	aliasDrawer, err = newAliasDrawer()
+	return err
 }

@@ -229,19 +229,22 @@ func (scr *qScreen) drawNotifyString() {
 	}
 }
 
-func (scr *qScreen) ModalMessage(msg string, timeout time.Duration) bool {
+func (scr *qScreen) ModalMessage(msg string, timeout time.Duration) (bool, error) {
 	if cmdl.Dedicated() {
-		return true
+		return true, nil
 	}
 	scr.modalMsg = strings.Split(msg, "\n")
 
 	scr.dialog = true
-	scr.Update()
+	// THERJAK: screenUpdate
+	if err := scr.Update(); err != nil {
+		return false, err
+	}
 	scr.dialog = false
 
 	// S_ClearBuffer // stop sounds
 
-	return modalResult(timeout)
+	return modalResult(timeout), nil
 }
 
 func (scr *qScreen) drawNet() {
@@ -398,7 +401,10 @@ func (scr *qScreen) BeginLoadingPlaque() {
 
 	scr.loading = true
 	statusbar.MarkChanged()
-	scr.Update()
+	// THERJAK: screenUpdate
+	if err := scr.Update(); err != nil {
+		QError(err.Error())
+	}
 	scr.loading = false
 
 	scr.disabled = true
@@ -478,7 +484,7 @@ func (scr *qScreen) calcViewRect() {
 	qRefreshRect.viewRect = scr.vrect
 }
 
-func (scr *qScreen) Update() {
+func (scr *qScreen) Update() error {
 	scr.numPages = 2
 	if cvars.GlTripleBuffer.Bool() {
 		scr.numPages = 3
@@ -489,12 +495,12 @@ func (scr *qScreen) Update() {
 			scr.disabled = false
 			conlog.Printf("load failed.\n")
 		} else {
-			return
+			return nil
 		}
 	}
 
 	if !scr.initialized || !console.initialized {
-		return
+		return nil
 	}
 
 	if scr.recalcViewRect {
@@ -504,7 +510,7 @@ func (scr *qScreen) Update() {
 	scr.setupToDrawConsole()
 
 	if err := view.Render(); err != nil {
-		Error(err.Error())
+		return err
 	}
 
 	qCanvas.Set(CANVAS_DEFAULT)
@@ -556,6 +562,7 @@ func (scr *qScreen) Update() {
 	gl.UseProgram(0) // enable fixed function pipeline
 
 	window.EndRendering()
+	return nil
 }
 
 func init() {

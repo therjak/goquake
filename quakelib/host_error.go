@@ -14,7 +14,7 @@ func HostError(e error) {
 	s := e.Error()
 
 	if hostRecursionCheck {
-		Error("Host_Error: recursively entered")
+		QError("Host_Error: recursively entered")
 	}
 	hostRecursionCheck = true
 
@@ -31,7 +31,7 @@ func HostError(e error) {
 
 	if cmdl.Dedicated() {
 		// dedicated servers exit
-		Error("Host_Error: %s\n", s)
+		QError("Host_Error: %s\n", s)
 	}
 
 	if err := cls.Disconnect(); err != nil {

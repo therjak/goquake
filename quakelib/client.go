@@ -248,10 +248,11 @@ var (
 	}
 )
 
-func (c *Client) setMaxEdicts(num int) {
+func (c *Client) setMaxEdicts(num int) error {
 	cl.entities = make([]*Entity, 0, num)
 	// ensure at least a world entity at the start
-	cl.GetOrCreateEntity(0)
+	_, err := cl.GetOrCreateEntity(0)
+	return err
 }
 
 func (c *Client) UpdateFaceAnimTime() {
@@ -1895,12 +1896,12 @@ func (c *Client) ColorForEntity(e *Entity) vec.Vec3 {
 	return lightColor
 }
 
-func (c *Client) ClearState() {
+func (c *Client) ClearState() error {
 	cls.signon = 0
 	clientClear()
 	cls.outProto.Reset()
 	c.clearDLights()
 
 	maxEdicts := int(cvars.MaxEdicts.Value())
-	c.setMaxEdicts(maxEdicts)
+	return c.setMaxEdicts(maxEdicts)
 }
