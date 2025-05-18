@@ -67,9 +67,14 @@ func makeSinglePlayerMenuItems() []MenuItem {
 type MenuItemPlay struct{ qDotMenuItem }
 
 func (m *MenuItemPlay) Enter() {
-	if ServerActive() &&
-		!screen.ModalMessage("Are you sure you want to\nstart a new game?\n", 0) {
-		return
+	if ServerActive() {
+		ok, err := screen.ModalMessage("Are you sure you want to\nstart a new game?\n", 0)
+		if err != nil {
+			QError(err.Error())
+		}
+		if !ok {
+			return
+		}
 	}
 
 	inputActivate()

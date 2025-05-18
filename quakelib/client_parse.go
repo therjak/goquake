@@ -44,7 +44,9 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) (serverState, error) {
 		default:
 			// nop
 		case protos.SCmd_EntityUpdate_case:
-			cl.ParseEntityUpdate(scmd.GetEntityUpdate())
+			if err := cl.ParseEntityUpdate(scmd.GetEntityUpdate()); err != nil {
+				return serverDisconnected, err
+			}
 		case protos.SCmd_Time_case:
 			cl.messageTimeOld = cl.messageTime
 			cl.messageTime = float64(scmd.GetTime())
@@ -89,7 +91,7 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) (serverState, error) {
 			cl.viewentity = int(scmd.GetSetViewEntity())
 		case protos.SCmd_LightStyle_case:
 			if err := readLightStyle(scmd.GetLightStyle().GetIdx(), scmd.GetLightStyle().GetNewStyle()); err != nil {
-				Error("svc_lightstyle: %v", err)
+				return serverDisconnected, err
 			}
 		case protos.SCmd_Sound_case:
 			if err := CL_ParseStartSoundPacket(scmd.GetSound()); err != nil {
@@ -111,13 +113,14 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) (serverState, error) {
 			cl.scores[player].frags = int(scmd.GetUpdateFrags().GetNewFrags())
 		case protos.SCmd_UpdateColors_case:
 			player := int(scmd.GetUpdateColors().GetPlayer())
-			if player >= cl.maxClients {
+			if player < 0 || player >= cl.maxClients {
 				return serverRunning, fmt.Errorf("CL_ParseServerMessage: svc_updatecolors > MAX_SCOREBOARD")
 			}
 			c := scmd.GetUpdateColors().GetNewColor()
 			cl.scores[player].topColor = int((c & 0xf0) >> 4)
 			cl.scores[player].bottomColor = int(c & 0x0f)
-			updatePlayerSkin(player)
+			e := cl.Entities(player + 1)
+			translatePlayerSkin(e)
 		case protos.SCmd_Particle_case:
 			org := scmd.GetParticle().GetOrigin()
 			dir := scmd.GetParticle().GetDirection()
@@ -128,14 +131,20 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) (serverState, error) {
 		case protos.SCmd_SpawnBaseline_case:
 			i := scmd.GetSpawnBaseline().GetIndex()
 			// force cl.num_entities up
-			e := cl.GetOrCreateEntity(int(i))
+			e, err := cl.GetOrCreateEntity(int(i))
+			if err != nil {
+				return serverDisconnected, err
+			}
 			parseBaseline(scmd.GetSpawnBaseline().GetBaseline(), e)
 		case protos.SCmd_SpawnStatic_case:
-			cl.parseStatic(scmd.GetSpawnStatic())
+			err := cl.parseStatic(scmd.GetSpawnStatic())
+			if err != nil {
+				return serverDisconnected, err
+			}
 		case protos.SCmd_TempEntity_case:
 			err := cls.parseTempEntity(scmd.GetTempEntity())
 			if err != nil {
-				Error(err.Error())
+				return serverDisconnected, err
 			}
 		case protos.SCmd_SetPause_case:
 			// this was used to pause cd audio, other pause as well?
@@ -222,7 +231,9 @@ func CL_ParseServerInfo(si *protos.ServerInfo) error {
 		screen.BeginLoadingPlaque()
 	}
 
-	cl.ClearState()
+	if err := cl.ClearState(); err != nil {
+		return err
+	}
 
 	cl.protocol = int(si.GetProtocol())
 	cl.protocolFlags = uint32(si.GetFlags())
@@ -347,14 +358,17 @@ func newMap(m *bsp.Model) error {
 // ParseEntityUpdate parses an entity update message from the server
 // If an entities model or origin changes from frame to frame, it must be
 // relinked. Other attributes can change without relinking.
-func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) {
+func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) error {
 	if cls.signon == 3 {
 		// first update is the final signon stage
 		cls.signon = 4
 		CL_SignonReply()
 	}
 	num := int(eu.GetEntity())
-	e := c.GetOrCreateEntity(num)
+	e, err := c.GetOrCreateEntity(num)
+	if err != nil {
+		return err
+	}
 	forceLink := e.MsgTime != c.messageTimeOld
 
 	if e.MsgTime+0.2 < c.messageTime {
@@ -385,7 +399,7 @@ func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) {
 		modNum = int(eu.GetModel())
 	}
 	if modNum >= model.MAX_MODELS {
-		Error("CL_ParseModel: mad modnum")
+		return fmt.Errorf("CL_ParseModel: mad modnum")
 	}
 	if eu.HasFrame() {
 		e.Frame = int(eu.GetFrame())
@@ -473,6 +487,7 @@ func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) {
 		e.Angles = e.MsgAngles[0]
 		e.ForceLink = true
 	}
+	return nil
 }
 
 func handleServerDisconnected(msg string) error {
@@ -486,7 +501,7 @@ func handleServerDisconnected(msg string) error {
 
 	if cmdl.Dedicated() {
 		// dedicated servers exit
-		Error("Host_EndGame: %s\n", msg)
+		QError("Host_EndGame: %s\n", msg)
 	}
 
 	if cls.demoNum != -1 {
@@ -501,8 +516,11 @@ func handleServerDisconnected(msg string) error {
 	return nil
 }
 
-func (c *Client) parseStatic(pb *protos.Baseline) {
-	ent := c.CreateStaticEntity()
+func (c *Client) parseStatic(pb *protos.Baseline) error {
+	ent, err := c.CreateStaticEntity()
+	if err != nil {
+		return err
+	}
 	parseBaseline(pb, ent)
 	// copy it to the current state
 
@@ -516,4 +534,5 @@ func (c *Client) parseStatic(pb *protos.Baseline) {
 	ent.Angles = ent.Baseline.Angles
 
 	ent.R_AddEfrags() // clean up after removal of c-efrags
+	return nil
 }

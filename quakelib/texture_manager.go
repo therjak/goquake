@@ -97,18 +97,17 @@ func (tm *texMgr) Init() {
 	gl.GetFloatv(gl.MAX_TEXTURE_MAX_ANISOTROPY, &tm.maxAnisotropy)
 }
 
-func (tm *texMgr) LoadConsoleChars() *texture.Texture {
+func (tm *texMgr) LoadConsoleChars() (*texture.Texture, error) {
 	data := wad.GetConsoleChars()
 	if len(data) != 128*128*4 {
-		Error("ConsoleChars not found")
-		return nil
+		return nil, fmt.Errorf("ConsoleChars not found")
 	}
 	t := texture.NewTexture(128, 128,
 		texture.TexPrefAlpha|texture.TexPrefNearest|texture.TexPrefNoPicMip|texture.TexPrefConChars,
 		"gfx.wad:conchars", texture.ColorTypeRGBA, data)
 	tm.addActiveTexture(t)
 	tm.loadRGBA(t, data)
-	return t
+	return t, nil
 }
 
 func (tm *texMgr) LoadNoTex(name string, w, h int, data []byte) *texture.Texture {
@@ -147,14 +146,13 @@ func (tm *texMgr) loadIndexdTex(name string, w, h int, flags texture.TexPref, da
 	return t
 }
 
-func (tm *texMgr) LoadBacktile() *texture.Texture {
+func (tm *texMgr) LoadBacktile() (*texture.Texture, error) {
 	name := "backtile"
 	p := wad.GetPic(name)
 	if p == nil {
-		Error("Draw_LoadPics: couldn't load backtile")
-		return nil
+		return nil, fmt.Errorf("Draw_LoadPics: couldn't load backtile")
 	}
-	return tm.LoadWadTex(name, p.Width, p.Height, p.Data)
+	return tm.LoadWadTex(name, p.Width, p.Height, p.Data), nil
 }
 
 func (tm *texMgr) loadParticleImage(name string, width, height int32, data []byte) *texture.Texture {

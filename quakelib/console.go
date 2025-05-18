@@ -300,7 +300,10 @@ func (c *qconsole) Print(txt string) {
 	if cls.signon != 4 && !screen.disabled {
 		if !printRecursionProtection {
 			printRecursionProtection = true
-			screen.Update()
+			// THERJAK: screenUpdate
+			if err := screen.Update(); err != nil {
+				QError(err.Error())
+			}
 			printRecursionProtection = false
 		}
 	}

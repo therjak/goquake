@@ -12,7 +12,7 @@ func init() {
 }
 */
 
-func Error(format string, v ...interface{}) {
+func QError(format string, v ...interface{}) {
 	debug.PrintStack()
 	shutdown()
 	log.Fatalf(format, v...)

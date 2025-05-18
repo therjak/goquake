@@ -309,7 +309,11 @@ func vidTest(_ cbuf.Arguments) error {
 		return err
 	}
 
-	if !screen.ModalMessage("Would you like to keep this\nvideo mode? (y/n)\n", time.Second*5) {
+	ok, err := screen.ModalMessage("Would you like to keep this\nvideo mode? (y/n)\n", time.Second*5)
+	if err != nil {
+		QError(err.Error())
+	}
+	if !ok {
 		cvars.VideoWidth.SetValue(float32(oldWidth))
 		cvars.VideoHeight.SetValue(float32(oldHeight))
 		if oldFullscreen {

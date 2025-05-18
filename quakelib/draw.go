@@ -218,10 +218,19 @@ func CreateUiDrawer() {
 	qRecDrawer = NewRecDrawer()
 }
 
-func drawInit() {
+func drawInit() error {
+	var err error
 	textureManager.Init()
-	consoleTexture = textureManager.LoadConsoleChars()
-	backtileTexture = textureManager.LoadBacktile()
+
+	consoleTexture, err = textureManager.LoadConsoleChars()
+	if err != nil {
+		return err
+	}
+	backtileTexture, err = textureManager.LoadBacktile()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 type box interface {
@@ -521,7 +530,7 @@ func GetCachedPicture(name string) *QPic {
 	}
 	p, err := loadPicFromFile(name)
 	if err != nil {
-		Error("GetCachedPicture: failed to load %s", name)
+		QError("GetCachedPicture: failed to load %s", name)
 	}
 	cachePics[name] = p
 	return p

@@ -85,9 +85,13 @@ func (m *MenuItemResetConfig) Draw() {
 }
 
 func (m *MenuItemResetConfig) Enter() {
-	if screen.ModalMessage(
+	ok, err := screen.ModalMessage(
 		"This will reset all controls\nand stored cvars. Continue? (y/n)\n",
-		time.Second*15) {
+		time.Second*15)
+	if err != nil {
+		QError(err.Error())
+	}
+	if ok {
 		cbuf.AddText("resetcfg\n")
 		cbuf.AddText("exec default.cfg\n")
 	}
