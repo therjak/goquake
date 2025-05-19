@@ -296,17 +296,6 @@ func (c *qconsole) Print(txt string) {
 	}
 
 	c.print(txt)
-
-	if cls.signon != 4 && !screen.disabled {
-		if !printRecursionProtection {
-			printRecursionProtection = true
-			// THERJAK: screenUpdate
-			if err := screen.Update(); err != nil {
-				QError(err.Error())
-			}
-			printRecursionProtection = false
-		}
-	}
 }
 
 func (c *qconsole) DrawNotify() {

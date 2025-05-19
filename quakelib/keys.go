@@ -57,13 +57,6 @@ func (k *qKeyInput) consoleKeyEvent(key kc.KeyCode) {
 		conlog.Printf(t)
 		k.buf = make([]byte, 0, 40)
 		k.cursorXPos = 0
-		if cls.state == ca_disconnected {
-			// force an update, because the command may take some time
-			// THERJAK: screenUpdate
-			if err := screen.Update(); err != nil {
-				QError(err.Error())
-			}
-		}
 	case kc.TAB:
 		// TODO(therjak): tap completion
 	case kc.BACKSPACE:
