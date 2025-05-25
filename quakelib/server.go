@@ -5,6 +5,7 @@ package quakelib
 import (
 	"fmt"
 	"log"
+	"log/slog"
 	"runtime/debug"
 	"time"
 
@@ -940,7 +941,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 		cvars.HostName.SetByString("UNNAMED")
 	}
 
-	conlog.DPrintf("SpawnServer: %s\n", mapName)
+	conlog.DPrint("SpawnServer", slog.String("mapname", mapName))
 	// now safe to issue another
 	svs.changeLevelIssued = false
 
@@ -1053,7 +1054,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 	if s.signon.Len() > 8000-2 {
 		// max size that will fit into 8000-sized client->message buffer
 		// with 2 extra bytes on the end
-		conlog.DWarning("%d byte signon buffer exceeds standard limit of 7998.\n", s.signon.Len())
+		conlog.DWarning("byte signon buffer exceeds standard limit of 7998.", slog.Int("Count", s.signon.Len()))
 	}
 
 	// send serverinfo to all connected clients
@@ -1063,7 +1064,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 		}
 	}
 
-	conlog.DPrintf("Server spawned.\n")
+	conlog.DPrint("Server spawned.")
 	return nil
 }
 
