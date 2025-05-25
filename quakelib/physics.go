@@ -226,7 +226,7 @@ func (q *qphysics) tryUnstick(ent int, oldvel vec.Vec3) (int, error) {
 		}
 		if math32.Abs(oldorg[1]-ev.Origin[1]) > 4 ||
 			math32.Abs(oldorg[0]-ev.Origin[0]) > 4 {
-			conlog.DPrintf("unstuck!\n")
+			conlog.DPrint("unstuck!")
 			return clip, nil
 		}
 		// go back to the original pos and try again
