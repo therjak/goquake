@@ -3,23 +3,25 @@ package quakelib
 
 import (
 	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 
 	"goquake/cbuf"
 	cmdl "goquake/commandline"
-	"goquake/conlog"
 	"goquake/cvar"
 	"goquake/cvars"
 	"goquake/filesystem"
 )
+
+var programLevel = new(slog.LevelVar)
 
 func init() {
 	addCommand("path", CmdPath)
 	addCommand("game", CmdGame)
 
 	cvars.Developer.SetCallback(func(cv *cvar.Cvar) {
-		conlog.SetDeveloper(cv.Value())
+		programLevel.Set(slog.Level(cv.Value()))
 	})
 }
 

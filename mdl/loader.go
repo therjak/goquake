@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"log/slog"
 	"math"
 	"unsafe"
 
@@ -168,7 +169,7 @@ func load(name string, buf io.ReadSeeker) (*Model, error) {
 		return nil, fmt.Errorf("%s has wrong version number (%d should be %d)", name, h.Version, aliasVersion)
 	}
 	if h.SkinHeight > 480 {
-		conlog.DWarning("model %s has a skin taller than %d", name, 480)
+		conlog.DWarning("model has a skin taller than 480", slog.String("name", name))
 	}
 	if h.VerticeCount <= 0 {
 		return nil, fmt.Errorf("model %s has no vertices", name)
