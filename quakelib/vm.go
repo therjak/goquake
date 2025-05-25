@@ -4,6 +4,7 @@ package quakelib
 
 import (
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"goquake/conlog"
@@ -133,13 +134,13 @@ func (v *virtualMachine) varString(first int) string {
 		idx := v.prog.RawGlobalsI[progs.OffsetParm0+i*3]
 		s, err := v.prog.String(idx)
 		if err != nil {
-			conlog.DWarning("PF_VarString: nil string.\n")
+			conlog.DWarning("PF_VarString: nil string.")
 			break
 		}
 		b.WriteString(s)
 	}
 	if b.Len() > 255 {
-		conlog.DWarning("PF_VarString: %d characters exceeds standard limit of 255.\n", b.Len())
+		conlog.DWarning("PF_VarString: characters exceeds standard limit of 255.", slog.Int("Len", b.Len()))
 	}
 	return b.String()
 }

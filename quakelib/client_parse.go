@@ -4,6 +4,7 @@ package quakelib
 
 import (
 	"fmt"
+	"log/slog"
 	"path/filepath"
 	"strings"
 
@@ -159,8 +160,8 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) (serverState, error) {
 			// check for excessive static entities and entity fragments
 			if i == 2 {
 				if len(cl.staticEntities) > 128 {
-					conlog.DWarning("%d static entities exceeds standard limit of 128.\n",
-						len(cl.staticEntities))
+					conlog.DWarning("static entities exceeds standard limit of 128.", slog.Int("Count",
+						len(cl.staticEntities)))
 				}
 			}
 			CL_SignonReply()
@@ -211,7 +212,7 @@ func CL_ParseServerMessage(pb *protos.ServerMessage) (serverState, error) {
 			f := scmd.GetFog()
 			fog.Update(f.GetDensity(), f.GetRed(), f.GetGreen(), f.GetBlue(), float64(f.GetTime()))
 		case protos.SCmd_Achievement_case:
-			conlog.DPrintf("Ignoring svc_achievement (%s)\n", scmd.GetAchievement())
+			conlog.DPrint("Ignoring svc_achievement", slog.String("Archievement", scmd.GetAchievement()))
 		}
 	}
 	return serverRunning, nil
@@ -223,7 +224,7 @@ func restoreViewAngles() {
 }
 
 func CL_ParseServerInfo(si *protos.ServerInfo) error {
-	conlog.DPrintf("Serverinfo packet received.\n")
+	conlog.DPrint("Serverinfo packet received.")
 
 	// bring up loading plaque for map changes within a demo.
 	// it will be hidden in CL_SignonReply.
@@ -270,14 +271,14 @@ func CL_ParseServerInfo(si *protos.ServerInfo) error {
 		return fmt.Errorf("Server sent too many model precaches")
 	}
 	if len(si.GetModelPrecache()) >= 256 {
-		conlog.DWarning("%d models exceeds standard limit of 256.\n", len(si.GetModelPrecache()))
+		conlog.DWarning("models exceeds standard limit of 256.", slog.Int("Count", len(si.GetModelPrecache())))
 	}
 
 	if len(si.GetSoundPrecache()) >= 2048 {
 		return fmt.Errorf("Server sent too many sound precaches")
 	}
 	if len(si.GetSoundPrecache()) >= 256 {
-		conlog.DWarning("%d sounds exceeds standard limit of 256.\n", len(si.GetSoundPrecache()))
+		conlog.DWarning("sounds exceeds standard limit of 256.", slog.Int("Count", len(si.GetSoundPrecache())))
 	}
 
 	mapName := si.GetModelPrecache()[0]
@@ -491,7 +492,7 @@ func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) error {
 }
 
 func handleServerDisconnected(msg string) error {
-	conlog.DPrintf("Host_EndGame: %s\n", msg)
+	conlog.DPrint("Host_EndGame", slog.String("msg", msg))
 
 	if ServerActive() {
 		if err := hostShutdownServer(false); err != nil {

@@ -4,7 +4,7 @@ package quakelib
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 
 	"goquake/bsp"
 	"goquake/conlog"
@@ -152,8 +152,7 @@ func parse(ed int, data *bsp.Entity) {
 		def, err := progsdat.FindFieldDef(n)
 		if err != nil {
 			if n != "sky" && n != "fog" && n != "alpha" {
-				log.Printf("Can't find field %s\n", n)
-				conlog.DPrintf("Can't find field %s\n", n)
+				conlog.DPrint("Can't find field", slog.String("field", n))
 			}
 			continue
 		}
@@ -240,6 +239,6 @@ func loadEntities(data []*bsp.Entity) error {
 		}
 	}
 
-	conlog.DPrintf("%d entities inhibited\n", inhibit)
+	conlog.DPrint("entities inhibited", slog.Int("count", inhibit))
 	return nil
 }

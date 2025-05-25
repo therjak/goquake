@@ -336,7 +336,7 @@ func (v *virtualMachine) terminalError() error {
 
 func (v *virtualMachine) dprint() error {
 	s := v.varString(0)
-	conlog.DPrintf(s)
+	conlog.DPrint(s)
 	return nil
 }
 
@@ -399,7 +399,7 @@ func (v *virtualMachine) setOrigin() error {
 // TODO
 func setMinMaxSize(ev *progs.EntVars, min, max vec.Vec3) {
 	if min[0] > max[0] || min[1] > max[1] || min[2] > max[2] {
-		conlog.DPrintf("backwards mins/maxs")
+		conlog.DPrint("backwards mins/maxs")
 	}
 	ev.Mins = min
 	ev.Maxs = max

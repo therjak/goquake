@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"time"
@@ -81,6 +82,9 @@ func ServerActive() bool {
 func CallCMain() error {
 	stop := make(chan struct{})
 	defer close(stop)
+
+	h := slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: programLevel})
+	slog.SetDefault(slog.New(h))
 
 	vm = NewVirtualMachine()
 

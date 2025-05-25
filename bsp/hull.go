@@ -139,7 +139,7 @@ func (h *Hull) RecursiveCheck(num int, p1f, p2f float32, p1, p2 vec.Vec3, trace 
 		if frac < 0 {
 			trace.Fraction = midf
 			trace.EndPos = mid
-			conlog.DPrintf("backup past 0\n")
+			conlog.DPrint("backup past 0\n")
 			return false
 		}
 		midf = math.Lerp(p1f, p2f, frac)
