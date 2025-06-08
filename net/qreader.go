@@ -30,10 +30,6 @@ func (q *QReader) ReadInt8() (int8, error) {
 	return r, err
 }
 
-func (q *QReader) UnreadByte() {
-	q.r.UnreadByte()
-}
-
 func (q *QReader) ReadByte() (byte, error) {
 	var r byte
 	err := binary.Read(q.r, binary.LittleEndian, &r)

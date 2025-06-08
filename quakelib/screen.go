@@ -559,7 +559,6 @@ func (scr *qScreen) Update() error {
 		qCanvas.Set(CANVAS_DEFAULT)
 		postProcessGammaContrast(gamma, contrast)
 	}
-	gl.UseProgram(0) // enable fixed function pipeline
 
 	window.EndRendering()
 	return nil

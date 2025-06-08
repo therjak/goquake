@@ -10,7 +10,6 @@ import (
 	"unsafe"
 
 	"goquake/cbuf"
-	cmdl "goquake/commandline"
 	"goquake/conlog"
 	"goquake/cvars"
 	qhistory "goquake/history"
@@ -337,10 +336,6 @@ var (
 )
 
 func updateKeyDest() {
-	if cmdl.Dedicated() {
-		return
-	}
-
 	switch keyDestination {
 	case keys.Console:
 		if updateKeyDestForced && cls.state == ca_connected {

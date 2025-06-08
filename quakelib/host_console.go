@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"goquake/cbuf"
-	cmdl "goquake/commandline"
 )
 
 var (
@@ -32,10 +31,6 @@ func newConsoleReader() *consoleReader {
 
 // Add them exactly as if they had been typed at the console
 func hostGetConsoleCommands() {
-	if !cmdl.Dedicated() {
-		// no stdin necessary in graphical mode
-		return
-	}
 	if conReader == nil {
 		conReader = newConsoleReader()
 	}

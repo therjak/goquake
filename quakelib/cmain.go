@@ -268,7 +268,9 @@ func executeFrame() {
 	}
 
 	// get new key events
-	updateKeyDest()
+	if !cmdl.Dedicated() {
+		updateKeyDest()
+	}
 	updateInputMode()
 	sendKeyEvents()
 
@@ -287,7 +289,9 @@ func executeFrame() {
 	// server operations
 
 	// check for commands typed to the host
-	hostGetConsoleCommands()
+	if cmdl.Dedicated() {
+		hostGetConsoleCommands()
+	}
 
 	if sv.Active() {
 		if err := serverFrame(); err != nil {
