@@ -3,10 +3,10 @@
 package bsp
 
 import (
-	"goquake/conlog"
 	"goquake/math"
 	"goquake/math/vec"
 	"log"
+	"log/slog"
 	"runtime/debug"
 )
 
@@ -139,7 +139,7 @@ func (h *Hull) RecursiveCheck(num int, p1f, p2f float32, p1, p2 vec.Vec3, trace 
 		if frac < 0 {
 			trace.Fraction = midf
 			trace.EndPos = mid
-			conlog.DPrint("backup past 0\n")
+			slog.Debug("backup past 0")
 			return false
 		}
 		midf = math.Lerp(p1f, p2f, frac)

@@ -7,12 +7,10 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"log"
 	"log/slog"
 	"math"
 	"unsafe"
 
-	"goquake/conlog"
 	"goquake/filesystem"
 	"goquake/glh"
 	"goquake/math/vec"
@@ -169,7 +167,7 @@ func load(name string, buf io.ReadSeeker) (*Model, error) {
 		return nil, fmt.Errorf("%s has wrong version number (%d should be %d)", name, h.Version, aliasVersion)
 	}
 	if h.SkinHeight > 480 {
-		conlog.DWarning("model has a skin taller than 480", slog.String("name", name))
+		slog.Debug("model has a skin taller than 480", slog.String("name", name))
 	}
 	if h.VerticeCount <= 0 {
 		return nil, fmt.Errorf("model %s has no vertices", name)
@@ -222,7 +220,7 @@ func load(name string, buf io.ReadSeeker) (*Model, error) {
 				mod.FBTextures = append(mod.FBTextures, []*texture.Texture{})
 			}
 		} else {
-			log.Printf("TODO: ALIAS_SKIN_GROUP")
+			slog.Warn("TODO: ALIAS_SKIN_GROUP")
 			skinCount := int32(1)
 			err = binary.Read(buf, binary.LittleEndian, &skinCount)
 			if err != nil {
@@ -269,22 +267,22 @@ func load(name string, buf io.ReadSeeker) (*Model, error) {
 	for i := int32(0); i < h.FrameCount; i++ {
 		frameType := int32(0)
 		if err := binary.Read(buf, binary.LittleEndian, &frameType); err != nil {
-			log.Printf("TODO: ERR")
+			slog.Warn("TODO: ERR")
 			return nil, err
 		}
 		groupFrames := int32(1)
 		fs[i].interval = 0.1
 		if frameType != ALIAS_SINGLE {
-			log.Printf("FrameType: %v, %s", frameType, name)
+			slog.Debug("FrameType: %v, %s", frameType, name)
 			fg := aliasFrameGroup{}
 			if err := binary.Read(buf, binary.LittleEndian, &fg); err != nil {
-				log.Printf("TODO: ERR")
+				slog.Warn("TODO: ERR")
 				return nil, err
 			}
 			groupFrames = fg.FrameCount
 			intervals := make([]float32, fg.FrameCount)
 			if err := binary.Read(buf, binary.LittleEndian, intervals); err != nil {
-				log.Printf("TODO: ERR")
+				slog.Warn("TODO: ERR")
 				return nil, err
 			}
 			// This should be able to support variable frame rates. It does not look
@@ -296,12 +294,12 @@ func load(name string, buf io.ReadSeeker) (*Model, error) {
 		for fgi := range fs[i].fg {
 			fg := &fs[i].fg[fgi]
 			if err := binary.Read(buf, binary.LittleEndian, &(fg.af)); err != nil {
-				log.Printf("TODO: ERR")
+				slog.Warn("TODO: ERR")
 				return nil, err
 			}
 			fg.fv = make([]frameVertex, h.VerticeCount)
 			if err := binary.Read(buf, binary.LittleEndian, fg.fv); err != nil {
-				log.Printf("TODO: ERR, %v, %v", fgi, groupFrames)
+				slog.Warn("TODO: ERR", slog.Any("fgi", fgi), slog.Any("groupFrames", groupFrames))
 				return nil, err
 			}
 			for _, v := range fg.fv {

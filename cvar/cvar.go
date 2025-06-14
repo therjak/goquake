@@ -4,7 +4,7 @@ package cvar
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"sort"
 	"strconv"
 
@@ -172,7 +172,7 @@ func (c *Cvars) Execute() func(cb *cbuf.CommandBuffer, a cbuf.Arguments) (bool, 
 		}
 		if len(args) == 1 {
 			conlog.Printf("\"%s\" is \"%s\"\n", cv.Name(), cv.String())
-			log.Printf("shown cvar")
+			slog.Info("shown cvar")
 			return true, nil
 		}
 		cv.SetByString(args[1].String())
@@ -240,7 +240,7 @@ func (c *Cvars) toggle() func(a cbuf.Arguments) error {
 			if cv, ok := (*c)[arg]; ok {
 				cv.Toggle()
 			} else {
-				log.Printf("toggle: Cvar not found %v", arg)
+				slog.Debug("toggle: Cvar not found", slog.String("cvar", arg))
 				conlog.Printf("toggle: variable %v not found\n", arg)
 			}
 		default:
@@ -254,7 +254,7 @@ func (c *Cvars) incr(n string, v float32) {
 	if cv, ok := (*c)[n]; ok {
 		cv.SetValue(cv.Value() + v)
 	} else {
-		log.Printf("Cvar not found %v", n)
+		slog.Debug("Incr: Cvar not found", slog.String("cvar", n))
 		conlog.Printf("Cvar_SetValue: variable %v not found\n", n)
 	}
 }
@@ -285,7 +285,7 @@ func (c *Cvars) reset() func(a cbuf.Arguments) error {
 			if cv, ok := (*c)[arg]; ok {
 				cv.Reset()
 			} else {
-				log.Printf("Cvar not found %v", arg)
+				slog.Debug("Reset: Cvar not found", slog.String("cvar", arg))
 				conlog.Printf("Cvar_Reset: variable %v not found\n", arg)
 			}
 		default:
@@ -354,7 +354,7 @@ func (c *Cvars) fullList() {
 }
 
 func (c *Cvars) partialList(p cbuf.QArg) {
-	log.Printf("TODO")
+	conlog.Printf("TODO")
 	// if beginning of name == p
 	// same as ListFull
 	// in length print add ("beginning with \"%s\"", p)
