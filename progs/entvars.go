@@ -4,10 +4,9 @@ package progs
 
 import (
 	"fmt"
+	"log/slog"
 	"strings"
 	"unsafe"
-
-	"goquake/conlog"
 )
 
 // TODO: rename to Vars?
@@ -148,14 +147,14 @@ func (e *EntityVars) ParsePair(idx int, key Def, val string) {
 		var v float32
 		_, err := fmt.Sscanf(val, "%f", &v)
 		if err != nil {
-			conlog.Printf("Can't convert to float32 %s\n", val)
+			slog.Debug("Can't convert to float32", slog.String("val", val))
 		}
 		*(*float32)(unsafe.Pointer(vp)) = v
 	case EV_Vector:
 		var v [3]float32
 		n, err := fmt.Sscanf(val, "%f %f %f", &v[0], &v[1], &v[2])
 		if err != nil {
-			conlog.Printf("Can't convert to [3]float32 %s\n", val)
+			slog.Debug("Can't convert to [3]float32", slog.String("val", val))
 		}
 		for ; n < 3; n++ {
 			v[n] = 0
@@ -166,21 +165,21 @@ func (e *EntityVars) ParsePair(idx int, key Def, val string) {
 		val = strings.TrimPrefix(val, "entity ") // fix for eto
 		_, err := fmt.Sscanf(val, "%d", &v)
 		if err != nil {
-			conlog.Printf("Can't convert to entity %s\n", val)
+			slog.Debug("Can't convert to entity", slog.String("val", val))
 			return
 		}
 		*vp = v
 	case EV_Field:
 		d, err := e.progsdat.FindFieldDef(val)
 		if err != nil {
-			conlog.Printf("Can't find field %s\n", val)
+			slog.Debug("Can't find field", slog.String("val", val))
 			return
 		}
 		*vp = e.progsdat.RawGlobalsI[d.Offset]
 	case EV_Function:
 		f, err := e.progsdat.FindFunction(val)
 		if err != nil {
-			conlog.Printf("Can't find function %s\n", val)
+			slog.Debug("Can't find function", slog.String("val", val))
 			return
 		}
 		*vp = int32(f)
