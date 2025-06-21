@@ -11,7 +11,6 @@ import (
 
 	"goquake/bsp"
 	cmdl "goquake/commandline"
-	"goquake/conlog"
 	"goquake/cvar"
 	"goquake/cvars"
 	"goquake/math"
@@ -203,7 +202,7 @@ func (s *Server) StartSound(entity, channel, volume int, sample string, attenuat
 			return nil
 		}
 	}
-	conlog.Printf("SV_StartSound: %s not precacheed\n", sample)
+	slog.Warn("SV_StartSound: sound not precacheed", slog.String("sound", sample))
 	return nil
 }
 
@@ -431,12 +430,12 @@ func CheckVelocity(ent *progs.EntVars) {
 	for i := 0; i < 3; i++ {
 		if ent.Velocity[i] != ent.Velocity[i] {
 			s, _ := progsdat.String(ent.ClassName)
-			conlog.Printf("Got a NaN velocity on %s\n", s)
+			slog.Warn("Got a NaN velocity", slog.String("class", s))
 			ent.Velocity[i] = 0
 		}
 		if ent.Origin[i] != ent.Origin[i] {
 			s, _ := progsdat.String(ent.ClassName)
-			conlog.Printf("Got a NaN origin on %s\n", s)
+			slog.Warn("Got a NaN origin", slog.String("class", s))
 			ent.Origin[i] = 0
 		}
 		if ent.Velocity[i] > maxVelocity {
@@ -811,7 +810,7 @@ func (s *Server) WriteEntitiesToClient(clent int) {
 		// max size for protocol 15 is 18 bytes.
 		// for protocol 85 the max size is 24 bytes.
 		if msgBuf.Len()+24 > msgBufMaxLen {
-			conlog.Printf("Packet overflow!\n")
+			slog.Warn("Packet overflow!")
 		}
 
 		// send an update
@@ -941,7 +940,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 		cvars.HostName.SetByString("UNNAMED")
 	}
 
-	conlog.DPrint("SpawnServer", slog.String("mapname", mapName))
+	slog.Debug("SpawnServer", slog.String("mapname", mapName))
 	// now safe to issue another
 	svs.changeLevelIssued = false
 
@@ -995,7 +994,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 	s.models = s.models[:1]
 	mods, err := bsp.Load(s.modelName)
 	if err != nil || len(mods) < 1 {
-		conlog.Printf("Couldn't spawn server %s\n", s.modelName)
+		slog.Warn("Couldn't spawn server", slog.String("modelname", s.modelName))
 		return nil
 	}
 	s.worldModel = mods[0]
@@ -1027,7 +1026,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 	// serverflags are for cross level information (sigils)
 	progsdat.Globals.ServerFlags = svs.serverFlags
 
-	if err := loadEntities(sv.worldModel.Entities); err != nil {
+	if err := loadEntities(sv.worldModel.Entities, mapName); err != nil {
 		return err
 	}
 
@@ -1054,7 +1053,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 	if s.signon.Len() > 8000-2 {
 		// max size that will fit into 8000-sized client->message buffer
 		// with 2 extra bytes on the end
-		conlog.DWarning("byte signon buffer exceeds standard limit of 7998.", slog.Int("Count", s.signon.Len()))
+		slog.Debug("byte signon buffer exceeds standard limit of 7998.", slog.Int("Count", s.signon.Len()))
 	}
 
 	// send serverinfo to all connected clients
@@ -1064,7 +1063,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 		}
 	}
 
-	conlog.DPrint("Server spawned.")
+	slog.Debug("Server spawned.")
 	return nil
 }
 

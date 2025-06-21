@@ -3,14 +3,16 @@
 package quakelib
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
 
-	"goquake/conlog"
 	"goquake/math/vec"
 	"goquake/progs"
 )
+
+var errProgram = errors.New("Program error")
 
 const (
 	operatorDONE = iota
@@ -134,13 +136,13 @@ func (v *virtualMachine) varString(first int) string {
 		idx := v.prog.RawGlobalsI[progs.OffsetParm0+i*3]
 		s, err := v.prog.String(idx)
 		if err != nil {
-			conlog.DWarning("PF_VarString: nil string.")
+			slog.Debug("PF_VarString: nil string")
 			break
 		}
 		b.WriteString(s)
 	}
 	if b.Len() > 255 {
-		conlog.DWarning("PF_VarString: characters exceeds standard limit of 255.", slog.Int("Len", b.Len()))
+		slog.Debug("PF_VarString: characters exceeds standard limit of 255.", slog.Int("Len", b.Len()))
 	}
 	return b.String()
 }
@@ -251,45 +253,50 @@ func NewVirtualMachine() *virtualMachine {
 }
 
 func (v *virtualMachine) printStatement(s progs.Statement) {
+	name := "unknown"
 	if int(s.Operator) < len(operationNames) {
-		conlog.Printf("%10s ", operationNames[s.Operator])
+		name = operationNames[s.Operator]
 	}
 
 	if s.Operator == operatorIF || s.Operator == operatorIFNOT {
-		conlog.Printf("%sbranch %d", v.prog.GlobalString(s.A), s.A)
+		slog.Info(name,
+			slog.String("branch", v.prog.GlobalString(s.A)),
+			slog.Int("B", int(s.B)))
 	} else if s.Operator == operatorGOTO {
-		conlog.Printf("branch %d", s.A)
+		slog.Info(name, slog.Int("branch", int(s.A)))
 	} else if d := s.Operator - operatorSTORE_F; d < 6 {
-		conlog.Printf("%s", v.prog.GlobalString(s.A))
-		conlog.Printf("%s", v.prog.GlobalStringNoContents(s.B))
+		slog.Info(name,
+			slog.String("A", v.prog.GlobalString(s.A)),
+			slog.String("B", v.prog.GlobalStringNoContents(s.B)))
 	} else {
+		a, b, c := "", "", ""
 		if s.A != 0 {
-			conlog.Printf("%s", v.prog.GlobalString(s.B))
+			a = v.prog.GlobalString(s.A)
 		}
 		if s.B != 0 {
-			conlog.Printf("%s", v.prog.GlobalString(s.B))
+			b = v.prog.GlobalString(s.B)
 		}
 		if s.C != 0 {
-			conlog.Printf("%s", v.prog.GlobalStringNoContents(s.C))
+			c = v.prog.GlobalStringNoContents(s.C)
 		}
+		slog.Info(name, slog.String("A", a), slog.String("B", b), slog.String("C", c))
 	}
-	conlog.Printf("\n")
 }
 
 func (v *virtualMachine) printFunction(f *progs.Function) {
 	if f == nil {
-		conlog.Printf("<NO FUNCTION>\n")
+		slog.Warn("<NO FUNCTION>")
 	} else {
 		file, _ := v.prog.String(f.SFile)
 		name, _ := v.prog.String(f.SName)
-		conlog.Printf("%12s : %s\n", file, name)
+		slog.Info("FUNCTION", slog.String("file", file), slog.String("name", name))
 	}
 }
 
 func (v *virtualMachine) stackTrace() {
 	v.printFunction(v.xfunction)
 	if len(v.stack) == 0 {
-		conlog.Printf("<NO STACK>\n")
+		slog.Warn("<NO STACK>")
 		return
 	}
 	for i := len(v.stack) - 1; i >= 0; i-- {
@@ -297,23 +304,20 @@ func (v *virtualMachine) stackTrace() {
 	}
 }
 
-// Aborts the currently executing function
-func (v *virtualMachine) runError(format string, a ...interface{}) error {
+func (v *virtualMachine) abort() {
 	v.printStatement(v.prog.Statements[v.statement])
 	v.stackTrace()
 
-	conlog.Printf(format, a...)
-
 	// dump the stack so host_error can shutdown functions
 	v.stack = v.stack[:0]
-
-	return fmt.Errorf("Program error")
 }
 
 // Returns the new program statement counter
 func (v *virtualMachine) enterFunction(f *progs.Function) (int32, error) {
 	if len(v.stack) == cap(v.stack) {
-		return 0, v.runError("stack overflow")
+		slog.Error("stack overflow")
+		v.abort()
+		return 0, errProgram
 	}
 	v.stack = append(v.stack, stackElem{
 		statement: v.statement,
@@ -323,7 +327,9 @@ func (v *virtualMachine) enterFunction(f *progs.Function) (int32, error) {
 	// save off any locals that the new function steps on
 	c := f.Locals
 	if len(v.localStack)+int(c) > cap(v.localStack) {
-		return 0, v.runError("PR_ExecuteProgram: locals stack overflow\n")
+		slog.Error("PR_ExecuteProgram: locals stack overflow")
+		v.abort()
+		return 0, errProgram
 	}
 	for i := int32(0); i < c; i++ {
 		v.localStack = append(v.localStack, v.prog.RawGlobalsI[f.ParmStart+i])
@@ -350,7 +356,9 @@ func (v *virtualMachine) leaveFunction() (int32, error) {
 	// Restore locals from the stack
 	c := int(v.xfunction.Locals)
 	if len(v.localStack) < c {
-		return 0, v.runError("PR_ExecuteProgram: locals stack underflow")
+		slog.Error("PR_ExecuteProgram: locals stack underflow")
+		v.abort()
+		return 0, errProgram
 	}
 
 	nl := len(v.localStack) - c
@@ -576,7 +584,9 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) error {
 			ed := OPAI()
 			if ed == 0 && sv.state == ServerStateActive {
 				v.statement = currentStatement
-				return v.runError("assignment to world entity")
+				slog.Error("assignment to world entity")
+				v.abort()
+				return errProgram
 			}
 			setOPCI(entvars.Address(OPAI(), OPBI()))
 
@@ -621,14 +631,18 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) error {
 			v.statement = currentStatement
 			v.argc = int(st().Operator) - operatorCALL0
 			if OPAI() == 0 {
-				return v.runError("NULL function")
+				slog.Error("NULL function")
+				v.abort()
+				return errProgram
 			}
 			newf := &v.prog.Functions[OPAI()]
 			if newf.FirstStatement < 0 {
 				// Built-in function
 				i := int(-newf.FirstStatement)
 				if i >= len(v.builtins) {
-					return v.runError("Bad builtin call number %d", i)
+					slog.Error("Bad builtin call number", slog.Int("num", i))
+					v.abort()
+					return errProgram
 				}
 				if err := v.builtins[i](); err != nil {
 					return err
@@ -662,7 +676,9 @@ func (v *virtualMachine) ExecuteProgram(fnum int32) error {
 
 		default:
 			v.statement = currentStatement
-			return v.runError("Bad opcode %d", v.prog.Statements[currentStatement].Operator)
+			slog.Error("Bad opcode", slog.Int("opcode", int(v.prog.Statements[currentStatement].Operator)))
+			v.abort()
+			return errProgram
 		}
 	}
 	return nil

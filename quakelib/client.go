@@ -499,7 +499,7 @@ func (c *ClientStatic) Disconnect() error {
 	} else if c.state == ca_connected {
 		c.stopDemoRecording()
 
-		conlog.DPrint("Sending clc_disconnect")
+		slog.Debug("Sending clc_disconnect")
 
 		cls.outProto.SetCmds(append(cls.outProto.GetCmds()[:0], protos.Cmd_builder{
 			Disconnect: proto.Bool(true),
@@ -573,7 +573,7 @@ func clEstablishConnection(host string) error {
 		return fmt.Errorf("CLS_Connect: connect failed\n")
 	}
 	cls.connection = c
-	conlog.DPrint("CL_EstablishConnectionconnected", slog.String("Host", host))
+	slog.Debug("CL_EstablishConnectionconnected", slog.String("Host", host))
 
 	// not in the demo loop now
 	cls.demoNum = -1
@@ -586,7 +586,7 @@ func clEstablishConnection(host string) error {
 
 // An svc_signonnum has been received, perform a client side setup
 func CL_SignonReply() {
-	conlog.DPrint("CL_SignonReply", slog.Int("signon", cls.signon))
+	slog.Debug("CL_SignonReply", slog.Int("signon", cls.signon))
 
 	switch cls.signon {
 	case 1:
@@ -640,7 +640,7 @@ func CL_SendCmd() error {
 	}
 
 	if !cls.connection.CanSendMessage() {
-		conlog.DPrint("CL_SendCmd: can't send")
+		slog.Debug("CL_SendCmd: can't send")
 		return nil
 	}
 

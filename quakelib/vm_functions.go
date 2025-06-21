@@ -4,14 +4,13 @@ package quakelib
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	gmath "math"
 	"runtime"
 	"strings"
 
 	"goquake/bsp"
 	"goquake/cbuf"
-	"goquake/conlog"
 	"goquake/cvars"
 	"goquake/math"
 	"goquake/math/vec"
@@ -117,7 +116,7 @@ func (v *virtualMachine) loadGameEntVars(idx int, e *protos.Edict) {
 	for _, st := range e.GetStrings() {
 		def, err := v.prog.FindFieldDef(st.GetId())
 		if err != nil {
-			log.Printf("No string %s", st.GetId())
+			slog.Warn("No string", slog.String("ID", st.GetId()))
 			continue
 		}
 		id := v.prog.NewString(st.GetValue())
@@ -126,7 +125,7 @@ func (v *virtualMachine) loadGameEntVars(idx int, e *protos.Edict) {
 	for _, fl := range e.GetFloats() {
 		def, err := v.prog.FindFieldDef(fl.GetId())
 		if err != nil {
-			log.Printf("No float %s", fl.GetId())
+			slog.Warn("No float", slog.String("ID", fl.GetId()))
 			continue
 		}
 		entvars.SetRawF(int32(idx), int32(def.Offset), fl.GetValue())
@@ -134,7 +133,7 @@ func (v *virtualMachine) loadGameEntVars(idx int, e *protos.Edict) {
 	for _, ent := range e.GetEntities() {
 		def, err := v.prog.FindFieldDef(ent.GetId())
 		if err != nil {
-			log.Printf("No field %s", ent.GetId())
+			slog.Warn("No field", slog.String("ID", ent.GetId()))
 			continue
 		}
 		entvars.SetRawI(int32(idx), int32(def.Offset), ent.GetValue())
@@ -317,7 +316,7 @@ func (v *virtualMachine) saveGameEntVars(idx int) *protos.Edict {
 func (v *virtualMachine) objError() error {
 	s := v.varString(0)
 	fs := v.funcName()
-	conlog.Printf("======OBJECT ERROR in %s:\n%s\n", fs, s)
+	slog.Error("======OBJECT ERROR======", slog.String("function", fs), slog.String("var", s))
 	ed := int(v.prog.Globals.Self)
 	edictPrint(ed)
 	v.edictFree(ed)
@@ -329,14 +328,14 @@ func (v *virtualMachine) objError() error {
 func (v *virtualMachine) terminalError() error {
 	s := v.varString(0)
 	fs := v.funcName()
-	conlog.Printf("======SERVER ERROR in %s:\n%s\n", fs, s)
+	slog.Error("======SERVER ERROR======", slog.String("function", fs), slog.String("var", s))
 	edictPrint(int(v.prog.Globals.Self))
 	return fmt.Errorf("Program error")
 }
 
 func (v *virtualMachine) dprint() error {
 	s := v.varString(0)
-	conlog.DPrint(s)
+	slog.Debug(s)
 	return nil
 }
 
@@ -352,7 +351,7 @@ func (v *virtualMachine) sprint() error {
 	e := int(v.prog.Globals.Parm0[0])
 	s := v.varString(1)
 	if e < 1 || e > svs.maxClients {
-		conlog.Printf("tried to sprint to a non-client\n")
+		slog.Error("tried to sprint to a non-client", slog.Int("client", e))
 		return nil
 	}
 	e--
@@ -367,7 +366,7 @@ func (v *virtualMachine) centerPrint() error {
 	e := int(v.prog.Globals.Parm0[0])
 	s := v.varString(1)
 	if e < 1 || e > svs.maxClients {
-		conlog.Printf("tried to sprint to a non-client\n")
+		slog.Error("tried to sprint to a non-client", slog.Int("client", e))
 		return nil
 	}
 	e--
@@ -399,7 +398,7 @@ func (v *virtualMachine) setOrigin() error {
 // TODO
 func setMinMaxSize(ev *progs.EntVars, min, max vec.Vec3) {
 	if min[0] > max[0] || min[1] > max[1] || min[2] > max[2] {
-		conlog.DPrint("backwards mins/maxs")
+		slog.Warn("backwards mins/maxs")
 	}
 	ev.Mins = min
 	ev.Maxs = max
@@ -422,7 +421,9 @@ func (v *virtualMachine) setModel() error {
 	mi := v.prog.Globals.Parm1[0]
 	m, err := v.prog.String(mi)
 	if err != nil {
-		return v.runError("no precache: %d", mi)
+		slog.Error("no precache", slog.Int("model", int(mi)))
+		v.abort()
+		return errProgram
 	}
 
 	idx := -1
@@ -433,7 +434,9 @@ func (v *virtualMachine) setModel() error {
 		}
 	}
 	if idx == -1 {
-		return v.runError("no precache: %s", m)
+		slog.Error("no precache", slog.String("model", m))
+		v.abort()
+		return errProgram
 	}
 
 	ev := entvars.Get(e)
@@ -551,7 +554,7 @@ func (v *virtualMachine) ambientSound() error {
 	pos := vec.VFromA(*v.prog.Globals.Parm0f())
 	sample, err := v.prog.String(v.prog.Globals.Parm1[0])
 	if err != nil {
-		conlog.Printf("no precache: %v\n", pos)
+		slog.Error("ambientSound: no precache", slog.Any("pos", pos))
 		return nil
 	}
 	volume := v.prog.RawGlobalsF[progs.OffsetParm2] * 255
@@ -568,7 +571,7 @@ func (v *virtualMachine) ambientSound() error {
 	}()
 
 	if soundnum == -1 {
-		conlog.Printf("no precache: %v\n", sample)
+		slog.Error("ambientSound: no precache", slog.Any("pos", pos), slog.String("sample", sample))
 		return nil
 	}
 
@@ -613,7 +616,9 @@ func (v *virtualMachine) sound() error {
 	channel := v.prog.RawGlobalsF[progs.OffsetParm1]
 	sample, err := v.prog.String(v.prog.Globals.Parm2[0])
 	if err != nil {
-		return v.runError("PF_sound: no sample")
+		slog.Error("PF_sound: no sample")
+		v.abort()
+		return errProgram
 	}
 	volume := v.prog.RawGlobalsF[progs.OffsetParm3] * 255
 	attenuation := v.prog.RawGlobalsF[progs.OffsetParm4]
@@ -636,7 +641,7 @@ func (v *virtualMachine) sound() error {
 }
 
 func (v *virtualMachine) doBreak() error {
-	conlog.Printf("break statement\n")
+	slog.Info("break statement")
 	runtime.Breakpoint()
 	return nil
 }
@@ -653,8 +658,10 @@ func (v *virtualMachine) traceline() error {
 	// FIXME FIXME FIXME: Why do we hit this with certain progs.dat ??
 	if cvars.Developer.Bool() {
 		if v1 != v1 || v2 != v2 {
-			conlog.Printf("NAN in traceline:\nv1(%v %v %v) v2(%v %v %v)\nentity %v\n",
-				v1[0], v1[1], v1[2], v2[0], v2[1], v2[2], ent)
+			slog.Error("NAN in traceline",
+				slog.Any("v1", v1),
+				slog.Any("v2", v2),
+				slog.Int("entity", ent))
 		}
 	}
 
@@ -781,7 +788,7 @@ func (v *virtualMachine) checkClient() error {
 		}
 	}
 	if leafNum == -2 {
-		log.Printf("checkclient: Got leafnum -2, len(leafs)= %d", len(sv.worldModel.Leafs))
+		slog.Warn("checkclient: Got leafnum -2", slog.Int("len(leafs)", len(sv.worldModel.Leafs)))
 	}
 
 	if (leafNum < 0) || (checkpvs[leafNum/8]&(1<<(uint(leafNum)&7)) == 0) {
@@ -798,11 +805,15 @@ func (v *virtualMachine) checkClient() error {
 func (v *virtualMachine) stuffCmd() error {
 	entnum := int(v.prog.Globals.Parm0[0])
 	if entnum < 1 || entnum > svs.maxClients {
-		return v.runError("Parm 0 not a client")
+		slog.Error("Parm 0 not a client")
+		v.abort()
+		return errProgram
 	}
 	str, err := v.prog.String(v.prog.Globals.Parm1[0])
 	if err != nil {
-		return v.runError("stuffcmd: no string")
+		slog.Error("stuffcmd: no string")
+		v.abort()
+		return errProgram
 	}
 
 	c := sv_clients[entnum-1]
@@ -815,7 +826,9 @@ func (v *virtualMachine) stuffCmd() error {
 func (v *virtualMachine) localCmd() error {
 	str, err := v.prog.String(v.prog.Globals.Parm0[0])
 	if err != nil {
-		return v.runError("localcmd: no string")
+		slog.Error("localcmd: no string")
+		v.abort()
+		return errProgram
 	}
 	cbuf.AddText(str)
 	return nil
@@ -824,7 +837,9 @@ func (v *virtualMachine) localCmd() error {
 func (v *virtualMachine) cvar() error {
 	str, err := v.prog.String(v.prog.Globals.Parm0[0])
 	if err != nil {
-		return v.runError("PF_cvar: no string")
+		slog.Error("PF_cvar: no string")
+		v.abort()
+		return errProgram
 	}
 	f := func(n string) float32 {
 		if cv, ok := (*commandVars)[n]; ok {
@@ -839,17 +854,20 @@ func (v *virtualMachine) cvar() error {
 func (v *virtualMachine) cvarSet() error {
 	name, err := v.prog.String(v.prog.Globals.Parm0[0])
 	if err != nil {
-		return v.runError("PF_cvar_set: no name string")
+		slog.Error("PF_cvar_set: no name string")
+		v.abort()
+		return errProgram
 	}
 	val, err := v.prog.String(v.prog.Globals.Parm1[0])
 	if err != nil {
-		return v.runError("PF_cvar_set: no val string")
+		slog.Error("PF_cvar_set: no val string")
+		v.abort()
+		return errProgram
 	}
 	if cv, ok := (*commandVars)[name]; ok {
 		cv.SetByString(val)
 	} else {
-		log.Printf("Cvar not found %v", name)
-		conlog.Printf("Cvar_Set: variable %v not found\n", name)
+		slog.Warn("Cvar_Set: variable not found", slog.String("name", name))
 	}
 	return nil
 }
@@ -933,7 +951,9 @@ func (v *virtualMachine) find() error {
 	f := v.prog.Globals.Parm1[0]
 	s, err := v.prog.String(v.prog.Globals.Parm2[0])
 	if err != nil {
-		return v.runError("PF_Find: bad search string")
+		slog.Error("PF_Find: bad search string")
+		v.abort()
+		return errProgram
 	}
 	for e++; int(e) < sv.numEdicts; e++ {
 		if edictNum(int(e)).Free {
@@ -968,14 +988,18 @@ func (v *virtualMachine) precacheFile() error {
 
 func (v *virtualMachine) precacheSound() error {
 	if sv.state != ServerStateLoading {
-		return v.runError("PF_Precache_*: Precache can only be done in spawn functions")
+		slog.Error("PF_Precache_*: Precache can only be done in spawn functions")
+		v.abort()
+		return errProgram
 	}
 
 	si := v.prog.Globals.Parm0[0]
 	v.prog.Globals.Return[0] = si
 	s, err := v.prog.String(si)
 	if err != nil {
-		return v.runError("precacheSound: Bad string, %v", err)
+		slog.Error("precacheSound: Bad string", slog.Any("err", err))
+		v.abort()
+		return errProgram
 	}
 
 	exist := func(s string) bool {
@@ -990,7 +1014,9 @@ func (v *virtualMachine) precacheSound() error {
 		return nil
 	}
 	if len(sv.soundPrecache) >= 2048 {
-		return v.runError("PF_precache_sound: overflow")
+		slog.Error("PF_precache_sound: overflow")
+		v.abort()
+		return errProgram
 	}
 	sv.soundPrecache = append(sv.soundPrecache, s)
 	return nil
@@ -998,14 +1024,18 @@ func (v *virtualMachine) precacheSound() error {
 
 func (v *virtualMachine) precacheModel() error {
 	if sv.state != ServerStateLoading {
-		return v.runError("PF_Precache_*: Precache can only be done in spawn functions")
+		slog.Error("PF_Precache_*: Precache can only be done in spawn functions")
+		v.abort()
+		return errProgram
 	}
 
 	si := v.prog.Globals.Parm0[0]
 	v.prog.Globals.Return[0] = si
 	s, err := v.prog.String(si)
 	if err != nil {
-		return v.runError("precacheModel: Bad string, %v", err)
+		slog.Error("precacheModel: Bad string", slog.Any("err", err))
+		v.abort()
+		return errProgram
 	}
 
 	exist := func(s string) bool {
@@ -1020,13 +1050,15 @@ func (v *virtualMachine) precacheModel() error {
 		return nil
 	}
 	if len(sv.modelPrecache) >= 2048 {
-		return v.runError("PF_precache_sound: overflow")
+		slog.Error("PF_precache_sound: overflow")
+		v.abort()
+		return errProgram
 	}
 	sv.modelPrecache = append(sv.modelPrecache, s)
 
 	m, err := svLoadModel(s)
 	if err != nil {
-		log.Printf("Model %q could not be loaded: %v", s, err)
+		slog.Error("Model could not be loaded", slog.String("model", s), slog.Any("err", err))
 		return nil
 	}
 	sv.models = append(sv.models, m)
@@ -1141,7 +1173,7 @@ func (v *virtualMachine) lightStyle() error {
 	vi := v.prog.Globals.Parm1[0]
 	val, err := v.prog.String(vi)
 	if err != nil {
-		log.Printf("Invalid light style: %v", err)
+		slog.Warn("Invalid light style", slog.Any("err", err))
 		return nil
 	}
 
@@ -1322,7 +1354,9 @@ const (
 func (v *virtualMachine) writeClient() (int, error) {
 	entnum := int(v.prog.Globals.MsgEntity)
 	if entnum < 1 || entnum > svs.maxClients {
-		return 0, v.runError("WriteDest: not a client")
+		slog.Error("WriteDest: not a client")
+		v.abort()
+		return 0, errProgram
 	}
 	return entnum - 1, nil
 }
@@ -1344,7 +1378,9 @@ func (v *virtualMachine) writeByte() error {
 	case MSG_ALL:
 		sv.reliableDatagram.WriteByte(int(msg))
 	default:
-		return v.runError("WriteDest: bad destination")
+		slog.Error("WriteDest: bad destination")
+		v.abort()
+		return errProgram
 	}
 	return nil
 }
@@ -1366,7 +1402,9 @@ func (v *virtualMachine) writeChar() error {
 	case MSG_ALL:
 		sv.reliableDatagram.WriteChar(int(msg))
 	default:
-		return v.runError("WriteDest: bad destination")
+		slog.Error("WriteDest: bad destination")
+		v.abort()
+		return errProgram
 	}
 	return nil
 }
@@ -1388,7 +1426,9 @@ func (v *virtualMachine) writeShort() error {
 	case MSG_ALL:
 		sv.reliableDatagram.WriteShort(int(msg))
 	default:
-		return v.runError("WriteDest: bad destination")
+		slog.Error("WriteDest: bad destination")
+		v.abort()
+		return errProgram
 	}
 	return nil
 }
@@ -1410,7 +1450,9 @@ func (v *virtualMachine) writeLong() error {
 	case MSG_ALL:
 		sv.reliableDatagram.WriteLong(int(msg))
 	default:
-		return v.runError("WriteDest: bad destination")
+		slog.Error("WriteDest: bad destination")
+		v.abort()
+		return errProgram
 	}
 	return nil
 }
@@ -1432,7 +1474,9 @@ func (v *virtualMachine) writeAngle() error {
 	case MSG_ALL:
 		sv.reliableDatagram.WriteAngle(msg, sv.protocolFlags)
 	default:
-		return v.runError("WriteDest: bad destination")
+		slog.Error("WriteDest: bad destination")
+		v.abort()
+		return errProgram
 	}
 	return nil
 }
@@ -1454,7 +1498,9 @@ func (v *virtualMachine) writeCoord() error {
 	case MSG_ALL:
 		sv.reliableDatagram.WriteCoord(msg, sv.protocolFlags)
 	default:
-		return v.runError("WriteDest: bad destination")
+		slog.Error("WriteDest: bad destination")
+		v.abort()
+		return errProgram
 	}
 	return nil
 }
@@ -1464,7 +1510,9 @@ func (v *virtualMachine) writeString() error {
 	i := v.prog.Globals.Parm1[0]
 	msg, err := v.prog.String(i)
 	if err != nil {
-		return v.runError("PF_WriteString: bad string")
+		slog.Error("PF_WriteString: bad string")
+		v.abort()
+		return errProgram
 	}
 	switch dest {
 	case MSG_ONE:
@@ -1480,7 +1528,9 @@ func (v *virtualMachine) writeString() error {
 	case MSG_ALL:
 		sv.reliableDatagram.WriteString(msg)
 	default:
-		return v.runError("WriteDest: bad destination")
+		slog.Error("WriteDest: bad destination")
+		v.abort()
+		return errProgram
 	}
 	return nil
 }
@@ -1502,7 +1552,9 @@ func (v *virtualMachine) writeEntity() error {
 	case MSG_ALL:
 		sv.reliableDatagram.WriteShort(int(msg))
 	default:
-		return v.runError("WriteDest: bad destination")
+		slog.Error("WriteDest: bad destination")
+		v.abort()
+		return errProgram
 	}
 	return nil
 }
@@ -1522,7 +1574,7 @@ func (v *virtualMachine) makeStatic() error {
 
 	m, err := v.prog.String(ev.Model)
 	if err != nil {
-		log.Printf("Error in PF_makstatic: %v", err)
+		slog.Warn("Error in PF_makstatic", slog.Any("err", err))
 		return nil
 	}
 	mi := sv.ModelIndex(m)
@@ -1584,7 +1636,9 @@ func (v *virtualMachine) makeStatic() error {
 func (v *virtualMachine) setSpawnParms() error {
 	i := int(v.prog.Globals.Parm0[0])
 	if i < 1 || i > svs.maxClients {
-		return v.runError("Entity is not a client")
+		slog.Error("Entity is not a client")
+		v.abort()
+		return errProgram
 	}
 
 	// copy spawn parms out of the client_t
@@ -1597,7 +1651,9 @@ func (v *virtualMachine) setSpawnParms() error {
 }
 
 func (v *virtualMachine) fixme() error {
-	return v.runError("unimplemented builtin")
+	slog.Error("unimplemented builtin")
+	v.abort()
+	return errProgram
 }
 
 func (v *virtualMachine) changeLevel() error {
@@ -1610,7 +1666,9 @@ func (v *virtualMachine) changeLevel() error {
 	i := v.prog.Globals.Parm0[0]
 	s, err := v.prog.String(i)
 	if err != nil {
-		return v.runError("PF_changelevel: bad level name")
+		slog.Error("PF_changelevel: bad level name")
+		v.abort()
+		return errProgram
 	}
 	cbuf.AddText(fmt.Sprintf("changelevel %s\n", s))
 	return nil

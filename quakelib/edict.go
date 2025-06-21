@@ -7,7 +7,6 @@ import (
 	"log/slog"
 
 	"goquake/bsp"
-	"goquake/conlog"
 	"goquake/cvars"
 	"goquake/math"
 	"goquake/math/vec"
@@ -152,7 +151,7 @@ func parse(ed int, data *bsp.Entity) {
 		def, err := progsdat.FindFieldDef(n)
 		if err != nil {
 			if n != "sky" && n != "fog" && n != "alpha" {
-				conlog.DPrint("Can't find field", slog.String("field", n))
+				slog.Debug("Can't find field", slog.String("field", n))
 			}
 			continue
 		}
@@ -180,7 +179,7 @@ const (
 //
 // Used for both fresh maps and savegame loads.  A fresh map would also need
 // to call ED_CallSpawnFunctions () to let the objects initialize themselves.
-func loadEntities(data []*bsp.Entity) error {
+func loadEntities(data []*bsp.Entity, mapName string) error {
 	progsdat.Globals.Time = sv.time
 	inhibit := 0
 	eNr := -1
@@ -217,7 +216,7 @@ func loadEntities(data []*bsp.Entity) error {
 		}
 
 		if ev.ClassName == 0 {
-			conlog.SafePrintf("No classname for:\n")
+			slog.Warn("No classname", slog.String("map", mapName))
 			edictPrint(eNr)
 			vm.edictFree(eNr)
 			continue
@@ -227,7 +226,7 @@ func loadEntities(data []*bsp.Entity) error {
 		fidx, err := progsdat.FindFunction(fname)
 
 		if err != nil {
-			conlog.SafePrintf("No spawn function for:\n")
+			slog.Warn("No spawn function", slog.String("map", mapName))
 			edictPrint(eNr)
 			vm.edictFree(eNr)
 			continue
@@ -239,6 +238,6 @@ func loadEntities(data []*bsp.Entity) error {
 		}
 	}
 
-	conlog.DPrint("entities inhibited", slog.Int("count", inhibit))
+	slog.Debug("entities inhibited", slog.Int("count", inhibit))
 	return nil
 }
