@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"log/slog"
 	"runtime/debug"
 	"strings"
 	"time"
@@ -13,7 +14,6 @@ import (
 
 	"goquake/cbuf"
 	cmdl "goquake/commandline"
-	"goquake/conlog"
 	"goquake/cvars"
 	"goquake/net"
 	"goquake/progs"
@@ -371,7 +371,7 @@ func (c *SVClient) ReadClientMessage() (bool, error) {
 				}
 				switch strings.ToLower(a.Args()[0].String()) {
 				default:
-					conlog.Printf("%s tried to %s\n", c.name, s)
+					slog.Warn("player tried something", slog.String("player", c.name), slog.String("action", s))
 				case "begin":
 					c.spawned = true
 				case "color":
@@ -643,7 +643,7 @@ func (c *SVClient) pingCmd(a cbuf.Arguments) {
 
 func (c *SVClient) preSpawnCmd() {
 	if c.spawned {
-		conlog.Printf("prespawn not valid -- already spawned\n")
+		slog.Warn("prespawn not valid -- already spawned")
 		return
 	}
 	c.msg.WriteBytes(sv.signon.Bytes())
@@ -697,7 +697,7 @@ func (c *SVClient) setPosCmd(a cbuf.Arguments) error {
 
 func (c *SVClient) spawnCmd() error {
 	if c.spawned {
-		conlog.Printf("Spawn not valid -- already spawned\n")
+		slog.Warn("Spawn not valid -- already spawned")
 		return nil
 	}
 	// run the entrance script

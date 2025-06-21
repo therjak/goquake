@@ -3,7 +3,7 @@ package quakelib
 
 import (
 	cmdl "goquake/commandline"
-	"goquake/conlog"
+	"log/slog"
 )
 
 var (
@@ -20,7 +20,7 @@ func HostError(e error) {
 
 	screen.EndLoadingPlaque() // reenable screen updates
 
-	conlog.Printf("Host_Error: %s\n", s)
+	slog.Error("Host_Error", slog.String("err", s))
 
 	if sv.Active() {
 		if err := hostShutdownServer(false); err != nil {

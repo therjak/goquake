@@ -4,11 +4,11 @@ package quakelib
 
 import (
 	"goquake/bsp"
-	"goquake/conlog"
 	"goquake/cvars"
 	"goquake/math/vec"
 	"goquake/progs"
 	"log"
+	"log/slog"
 	"runtime/debug"
 
 	"github.com/chewxy/math32"
@@ -226,7 +226,7 @@ func (q *qphysics) tryUnstick(ent int, oldvel vec.Vec3) (int, error) {
 		}
 		if math32.Abs(oldorg[1]-ev.Origin[1]) > 4 ||
 			math32.Abs(oldorg[0]-ev.Origin[0]) > 4 {
-			conlog.DPrint("unstuck!")
+			slog.Debug("unstuck!")
 			return clip, nil
 		}
 		// go back to the original pos and try again
@@ -556,7 +556,7 @@ func (q *qphysics) checkStuck(ent int) error {
 	org := ev.Origin
 	ev.Origin = ev.OldOrigin
 	if !testEntityPosition(ent) {
-		conlog.Printf("Unstuck.\n") // debug
+		slog.Debug("Unstuck.") // debug
 		if err := vm.LinkEdict(ent, true); err != nil {
 			return err
 		}
@@ -570,7 +570,7 @@ func (q *qphysics) checkStuck(ent int) error {
 				ev.Origin[1] = org[1] + j
 				ev.Origin[2] = org[2] + z
 				if !testEntityPosition(ent) {
-					conlog.Printf("Unstuck.\n")
+					slog.Debug("Unstuck.")
 					if err := vm.LinkEdict(ent, true); err != nil {
 						return err
 					}
@@ -581,7 +581,7 @@ func (q *qphysics) checkStuck(ent int) error {
 	}
 
 	ev.Origin = org
-	conlog.Printf("player is stuck.\n")
+	slog.Warn("player is stuck.")
 	return nil
 }
 
@@ -694,7 +694,7 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *bsp.Trace) (int, er
 			ev.Velocity = new_velocity
 		} else { // go along the crease
 			if numplanes != 2 {
-				//	conlog.Printf ("clip velocity, numplanes == %i\n",numplanes)
+				//	fmt.Printf("clip velocity, numplanes == %i\n",numplanes)
 				ev.Velocity = [3]float32{0, 0, 0}
 				return 7, nil
 			}
