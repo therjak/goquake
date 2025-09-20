@@ -9,12 +9,12 @@ require (
 	github.com/gopxl/mainthread/v2 v2.1.1
 	github.com/pkg/errors v0.9.1
 	github.com/veandco/go-sdl2 v0.4.40
-	golang.org/x/tools v0.36.0
 	google.golang.org/protobuf v1.36.9
 )
 
 require (
 	github.com/ebitengine/purego v0.8.0 // indirect
+	github.com/google/go-cmp v0.6.0 // indirect
 	golang.org/x/sys v0.35.0 // indirect
 )
 

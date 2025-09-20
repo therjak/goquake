@@ -14,9 +14,8 @@ import (
 	"sync"
 	"time"
 
+	"goquake/filesystem/vfs"
 	"goquake/pack"
-
-	"golang.org/x/tools/godoc/vfs"
 )
 
 // vfs:
@@ -43,11 +42,6 @@ type File interface {
 
 type packFileSystem struct {
 	p *pack.Pack
-}
-
-// To satisfy vfs interface, unused
-func (p packFileSystem) RootType(path string) vfs.RootType {
-	return ""
 }
 
 type closer struct {
@@ -82,7 +76,7 @@ func (f *fileInfo) Sys() any {
 	return nil
 }
 
-func (p packFileSystem) Open(path string) (vfs.ReadSeekCloser, error) {
+func (p packFileSystem) Open(path string) (io.ReadSeekCloser, error) {
 	// inside a pack file there is no 'root'. all files are relative to '.'
 	path = strings.TrimPrefix(path, "/")
 	f, err := p.p.Open(path)
@@ -101,16 +95,8 @@ func (p packFileSystem) stat(path string) (os.FileInfo, error) {
 	}, nil
 }
 
-func (p packFileSystem) Lstat(path string) (os.FileInfo, error) {
-	return p.stat(path)
-}
-
 func (p packFileSystem) Stat(path string) (os.FileInfo, error) {
 	return p.stat(path)
-}
-
-func (p packFileSystem) ReadDir(path string) ([]os.FileInfo, error) {
-	return nil, fmt.Errorf("Not implemented")
 }
 
 func (p packFileSystem) String() string {
@@ -133,25 +119,28 @@ func UseBaseDir(dir string) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	baseDir = dir
-	gameDir = filepath.Join(baseDir, "id1")
-	gameNS = vfs.NewNameSpace()
-	useDir(&gameNS, gameDir)
+	root := filepath.Join(baseDir, "id1")
+	gameDir = root
+	gameNS = vfs.NameSpace{}
+	gameNS.Bind("/", vfs.OS(root), "/", vfs.BindReplace)
+	useDir(&gameNS, root)
 }
 
 func UseGameDir(dir string) {
 	mutex.Lock()
 	defer mutex.Unlock()
-	gameNS = vfs.NewNameSpace()
-	useDir(&gameNS, filepath.Join(baseDir, "id1"))
+	gameNS = vfs.NameSpace{}
+	root := filepath.Join(baseDir, "id1")
+	gameNS.Bind("/", vfs.OS(root), "/", vfs.BindReplace)
+	useDir(&gameNS, root)
 	gameDir = filepath.Join(baseDir, dir)
+	gameNS.Bind("/", vfs.OS(dir), "/", vfs.BindBefore)
 	useDir(&gameNS, gameDir)
 }
 
 func useDir(ns *vfs.NameSpace, dir string) {
-	// 1) add path to the beginning of the search paths list
-	// 2) Add pak[i].pak files to the beginning order high number to low number
-	// 3) add quakespasm.pak to the beginning
-	ns.Bind("/", vfs.OS(dir), "/", vfs.BindBefore)
+	// 1) Add pak[i].pak files to the beginning order high number to low number
+	// 2) add quakespasm.pak to the beginning
 	for i := 0; ; i++ {
 		pfn := fmt.Sprintf("pak%d.pak", i)
 		pfp := filepath.Join(dir, pfn)
