@@ -2,6 +2,8 @@
 package speaker
 
 import (
+	"errors"
+	"fmt"
 	"io"
 	"sync"
 	"time"
@@ -10,7 +12,6 @@ import (
 
 	"github.com/ebitengine/oto/v3"
 	"github.com/gopxl/beep/v2"
-	"github.com/pkg/errors"
 )
 
 const channelCount = 2
@@ -56,7 +57,7 @@ func Init(sampleRate beep.SampleRate, bufferSize int) error {
 		BufferSize:   sampleRate.D(driverBufferSize),
 	})
 	if err != nil {
-		return errors.Wrap(err, "failed to initialize speaker")
+		return fmt.Errorf("failed to initialize speaker: %w", err)
 	}
 	<-readyChan
 
@@ -138,7 +139,7 @@ func PlayAndWait(s ...beep.Streamer) {
 func Suspend() error {
 	err := context.Suspend()
 	if err != nil {
-		return errors.Wrap(err, "failed to suspend the speaker")
+		return fmt.Errorf("failed to suspend the speaker: %w", err)
 	}
 	return nil
 }
@@ -147,7 +148,7 @@ func Suspend() error {
 func Resume() error {
 	err := context.Resume()
 	if err != nil {
-		return errors.Wrap(err, "failed to resume the speaker")
+		return fmt.Errorf("failed to resume the speaker: %w", err)
 	}
 	return nil
 }
@@ -187,7 +188,7 @@ func (s *sampleReader) Read(buf []byte) (n int, err error) {
 	ns, ok := s.stream(s.buf[:ns])
 	if !ok {
 		if s.s.Err() != nil {
-			return 0, errors.Wrap(s.s.Err(), "streamer returned error when requesting samples")
+			return 0, fmt.Errorf("streamer returned error when requesting samples: %w", s.s.Err())
 		}
 		if ns == 0 {
 			return 0, io.EOF
