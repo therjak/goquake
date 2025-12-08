@@ -101,26 +101,26 @@ func HostClient() *SVClient {
 	return sv_clients[host_client]
 }
 
-func (c *SVClient) Printf(format string, v ...interface{}) {
-	c.print(fmt.Sprintf(format, v...))
+func (sc *SVClient) Printf(format string, v ...interface{}) {
+	sc.print(fmt.Sprintf(format, v...))
 }
 
-func (c *SVClient) print(msg string) {
-	c.msg.WriteByte(svc.Print)
-	c.msg.WriteString(msg)
+func (sc *SVClient) print(msg string) {
+	sc.msg.WriteByte(svc.Print)
+	sc.msg.WriteString(msg)
 }
 
-func (c *SVClient) ClientCommands(msg string) {
-	c.msg.WriteByte(svc.StuffText)
-	c.msg.WriteString(msg)
+func (sc *SVClient) ClientCommands(msg string) {
+	sc.msg.WriteByte(svc.StuffText)
+	sc.msg.WriteString(msg)
 }
 
-func (c *SVClient) PingTime() float32 {
+func (sc *SVClient) PingTime() float32 {
 	r := float32(0)
-	for _, p := range c.pingTimes {
+	for _, p := range sc.pingTimes {
 		r += p
 	}
-	return r / float32(len(c.pingTimes))
+	return r / float32(len(sc.pingTimes))
 }
 
 func CheckForNewClients() error {
@@ -149,64 +149,64 @@ func CheckForNewClients() error {
 	}
 }
 
-func (cl *SVClient) CanSendMessage() bool {
-	return cl.netConnection.CanSendMessage()
+func (sc *SVClient) CanSendMessage() bool {
+	return sc.netConnection.CanSendMessage()
 }
 
-func (cl *SVClient) Close() {
-	cl.netConnection.Close()
-	cl.netConnection = nil
-	cl.admin = false
-	cl.active = false
-	cl.name = ""
-	cl.oldFrags = -999999
+func (sc *SVClient) Close() {
+	sc.netConnection.Close()
+	sc.netConnection = nil
+	sc.admin = false
+	sc.active = false
+	sc.name = ""
+	sc.oldFrags = -999999
 }
 
-func (cl *SVClient) ConnectTime() time.Time {
-	return cl.netConnection.ConnectTime()
+func (sc *SVClient) ConnectTime() time.Time {
+	return sc.netConnection.ConnectTime()
 }
 
-func (cl *SVClient) Address() string {
-	return cl.netConnection.Address()
+func (sc *SVClient) Address() string {
+	return sc.netConnection.Address()
 }
 
-func (cl *SVClient) SendMessage() int {
-	return cl.netConnection.SendMessage(cl.msg.Bytes())
+func (sc *SVClient) SendMessage() int {
+	return sc.netConnection.SendMessage(sc.msg.Bytes())
 }
 
-func (cl *SVClient) SendNop() error {
-	if cl.netConnection.SendUnreliableMessage([]byte{svc.Nop}) == -1 {
-		if err := cl.Drop(true); err != nil {
+func (sc *SVClient) SendNop() error {
+	if sc.netConnection.SendUnreliableMessage([]byte{svc.Nop}) == -1 {
+		if err := sc.Drop(true); err != nil {
 			return err
 		}
 	}
-	cl.lastMessage = host.Time()
+	sc.lastMessage = host.Time()
 	return nil
 }
 
-func (cl *SVClient) Drop(crash bool) error {
+func (sc *SVClient) Drop(crash bool) error {
 	if !crash {
 		// send any final messages (don't check for errors)
-		if cl.CanSendMessage() {
-			cl.msg.WriteByte(svc.Disconnect)
-			cl.SendMessage()
+		if sc.CanSendMessage() {
+			sc.msg.WriteByte(svc.Disconnect)
+			sc.SendMessage()
 		}
 
-		if cl.spawned {
+		if sc.spawned {
 			// call the prog function for removing a client
 			// this will set the body to a dead frame, among other things
 			saveSelf := progsdat.Globals.Self
-			progsdat.Globals.Self = int32(cl.edictId)
+			progsdat.Globals.Self = int32(sc.edictId)
 			if err := vm.ExecuteProgram(progsdat.Globals.ClientDisconnect); err != nil {
 				return err
 			}
 			progsdat.Globals.Self = saveSelf
 		}
-		log.Printf("Client %s removed", cl.name)
+		log.Printf("Client %s removed", sc.name)
 	}
 
 	// break the net connection
-	cl.Close()
+	sc.Close()
 
 	// send notification to all clients
 	for _, c := range sv_clients {
@@ -214,13 +214,13 @@ func (cl *SVClient) Drop(crash bool) error {
 			continue
 		}
 		c.msg.WriteByte(svc.UpdateName)
-		c.msg.WriteByte(cl.id)
+		c.msg.WriteByte(sc.id)
 		c.msg.WriteString("")
 		c.msg.WriteByte(svc.UpdateFrags)
-		c.msg.WriteByte(cl.id)
+		c.msg.WriteByte(sc.id)
 		c.msg.WriteShort(0)
 		c.msg.WriteByte(svc.UpdateColors)
-		c.msg.WriteByte(cl.id)
+		c.msg.WriteByte(sc.id)
 		c.msg.WriteByte(0)
 	}
 	return nil
@@ -269,13 +269,13 @@ TimeoutLoop:
 	}
 }
 
-func (cl *SVClient) GetMessage() error {
-	_, err := cl.netConnection.GetMessage()
+func (sc *SVClient) GetMessage() error {
+	_, err := sc.netConnection.GetMessage()
 	return err
 }
 
-func (c *SVClient) SendServerinfo() {
-	m := &c.msg
+func (sc *SVClient) SendServerinfo() {
+	m := &sc.msg
 	m.WriteByte(svc.Print)
 	m.WriteString(
 		fmt.Sprintf("%s\nGOQUAKE %1.2f SERVER (%d CRC)\n",
@@ -288,7 +288,7 @@ func (c *SVClient) SendServerinfo() {
 		m.WriteLong(int(sv.protocolFlags))
 	}
 
-	c.msg.WriteByte(svs.maxClients)
+	sc.msg.WriteByte(svs.maxClients)
 
 	if !cvars.Coop.Bool() && cvars.DeathMatch.Bool() {
 		m.WriteByte(svc.GameDeathmatch)
@@ -323,19 +323,19 @@ func (c *SVClient) SendServerinfo() {
 	m.WriteByte(int(entvars.Get(0).Sounds))
 
 	m.WriteByte(svc.SetView)
-	m.WriteShort(c.edictId)
+	m.WriteShort(sc.edictId)
 
 	m.WriteByte(svc.SignonNum)
 	m.WriteByte(1)
 
-	c.sendSignon = true
-	c.spawned = false
+	sc.sendSignon = true
+	sc.spawned = false
 }
 
 // Returns false if the client should be killed
-func (c *SVClient) ReadClientMessage() (bool, error) {
+func (sc *SVClient) ReadClientMessage() (bool, error) {
 	for {
-		data, err := c.netConnection.GetMessage()
+		data, err := sc.netConnection.GetMessage()
 		if err != nil {
 			log.Printf("SV_ReadClientMessage: ClientGetMessage failed\n")
 			return false, nil
@@ -351,7 +351,7 @@ func (c *SVClient) ReadClientMessage() (bool, error) {
 			return false, nil
 		}
 		for _, cmd := range pb.GetCmds() {
-			if !c.active {
+			if !sc.active {
 				// a command caused an error
 				return false, nil
 			}
@@ -361,7 +361,7 @@ func (c *SVClient) ReadClientMessage() (bool, error) {
 			case protos.Cmd_Disconnect_case:
 				return false, nil
 			case protos.Cmd_StringCmd_case:
-				if c != HostClient() {
+				if sc != HostClient() {
 					log.Fatalf("HostClient differs")
 				}
 				s := cmd.GetStringCmd()
@@ -371,40 +371,40 @@ func (c *SVClient) ReadClientMessage() (bool, error) {
 				}
 				switch strings.ToLower(a.Args()[0].String()) {
 				default:
-					slog.Warn("player tried something", slog.String("player", c.name), slog.String("action", s))
+					slog.Warn("player tried something", slog.String("player", sc.name), slog.String("action", s))
 				case "begin":
-					c.spawned = true
+					sc.spawned = true
 				case "color":
-					c.colorCmd(a)
+					sc.colorCmd(a)
 				case "fly":
-					c.flyCmd(a)
+					sc.flyCmd(a)
 				case "kill":
-					if err := c.killCmd(a); err != nil {
+					if err := sc.killCmd(a); err != nil {
 						return false, err
 					}
 				case "noclip":
-					c.noClipCmd(a)
+					sc.noClipCmd(a)
 				case "notarget":
-					c.noTargetCmd(a)
+					sc.noTargetCmd(a)
 				case "god":
-					c.godCmd(a)
+					sc.godCmd(a)
 
 				case "pause":
-					c.pauseCmd(a)
+					sc.pauseCmd(a)
 				case "ping":
-					c.pingCmd(a)
+					sc.pingCmd(a)
 				case "prespawn":
-					c.preSpawnCmd()
+					sc.preSpawnCmd()
 				case "setpos":
-					if err := c.setPosCmd(a); err != nil {
+					if err := sc.setPosCmd(a); err != nil {
 						return false, err
 					}
 				case "spawn":
-					if err := c.spawnCmd(); err != nil {
+					if err := sc.spawnCmd(); err != nil {
 						return false, err
 					}
 				case "give":
-					c.giveCmd(a)
+					sc.giveCmd(a)
 				case "mapname":
 					// this is for a dedicated server
 					if sv.Active() {
@@ -421,34 +421,34 @@ func (c *SVClient) ReadClientMessage() (bool, error) {
 				case "edict":
 					edictPrintEdictFunc(a)
 				case "tell":
-					c.tellCmd(a)
+					sc.tellCmd(a)
 				case "kick":
-					if err := c.kickCmd(a); err != nil {
+					if err := sc.kickCmd(a); err != nil {
 						fmt.Printf("Drop error: %v", err)
 					}
 				case "name":
-					c.nameCmd(a)
+					sc.nameCmd(a)
 				case "save":
-					c.saveCmd(a)
+					sc.saveCmd(a)
 				case "status":
-					c.statusCmd()
+					sc.statusCmd()
 				case "say_team":
-					c.sayCmd(true && cvars.TeamPlay.Bool(), a)
+					sc.sayCmd(true && cvars.TeamPlay.Bool(), a)
 				case "say":
-					c.sayCmd(false, a)
+					sc.sayCmd(false, a)
 				}
 			case protos.Cmd_MoveCmd_case:
 				mc := cmd.GetMoveCmd()
-				c.pingTimes[c.numPings%len(c.pingTimes)] = sv.time - mc.GetMessageTime()
-				c.numPings++
-				c.numPings %= len(c.pingTimes)
-				ev := entvars.Get(c.edictId)
+				sc.pingTimes[sc.numPings%len(sc.pingTimes)] = sv.time - mc.GetMessageTime()
+				sc.numPings++
+				sc.numPings %= len(sc.pingTimes)
+				ev := entvars.Get(sc.edictId)
 				ev.VAngle[0] = mc.GetPitch()
 				ev.VAngle[1] = mc.GetYaw()
 				ev.VAngle[2] = mc.GetRoll()
-				c.cmd.forwardmove = mc.GetForward()
-				c.cmd.sidemove = mc.GetSide()
-				c.cmd.upmove = mc.GetUp()
+				sc.cmd.forwardmove = mc.GetForward()
+				sc.cmd.sidemove = mc.GetSide()
+				sc.cmd.upmove = mc.GetUp()
 				ev.Button0 = 0
 				ev.Button2 = 0
 				if mc.GetAttack() {
@@ -465,7 +465,7 @@ func (c *SVClient) ReadClientMessage() (bool, error) {
 	}
 }
 
-func (c *SVClient) colorCmd(a cbuf.Arguments) {
+func (sc *SVClient) colorCmd(a cbuf.Arguments) {
 	args := a.Args()[1:]
 	t := args[0].Int()
 	b := t
@@ -481,20 +481,20 @@ func (c *SVClient) colorCmd(a cbuf.Arguments) {
 		b = 13
 	}
 	color := t*16 + b
-	c.colors = color
-	entvars.Get(c.edictId).Team = float32(b + 1)
+	sc.colors = color
+	entvars.Get(sc.edictId).Team = float32(b + 1)
 	uc := protos.UpdateColors_builder{
-		Player:   int32(c.id),
+		Player:   int32(sc.id),
 		NewColor: int32(color),
 	}.Build()
 	svc.WriteUpdateColors(uc, sv.protocol, sv.protocolFlags, &sv.reliableDatagram)
 }
 
-func (c *SVClient) flyCmd(a cbuf.Arguments) {
+func (sc *SVClient) flyCmd(a cbuf.Arguments) {
 	if progsdat.Globals.DeathMatch != 0 {
 		return
 	}
-	ev := entvars.Get(c.edictId)
+	ev := entvars.Get(sc.edictId)
 	m := int32(ev.MoveType)
 	args := a.Args()
 	switch len(args) {
@@ -515,18 +515,18 @@ func (c *SVClient) flyCmd(a cbuf.Arguments) {
 	}
 	ev.MoveType = float32(m)
 	if m == progs.MoveTypeFly {
-		c.Printf("flymode %v\n", qFormatI(1))
+		sc.Printf("flymode %v\n", qFormatI(1))
 	} else {
-		c.Printf("flymode %v\n", qFormatI(0))
+		sc.Printf("flymode %v\n", qFormatI(0))
 	}
 }
 
-func (c *SVClient) godCmd(a cbuf.Arguments) {
+func (sc *SVClient) godCmd(a cbuf.Arguments) {
 	args := a.Args()[1:]
 	if progsdat.Globals.DeathMatch != 0 {
 		return
 	}
-	ev := entvars.Get(c.edictId)
+	ev := entvars.Get(sc.edictId)
 	f := int32(ev.Flags)
 	const flag = progs.FlagGodMode
 	switch len(args) {
@@ -542,30 +542,30 @@ func (c *SVClient) godCmd(a cbuf.Arguments) {
 		}
 	}
 	ev.Flags = float32(f)
-	c.Printf("godmode %v\n", qFormatI(f&flag))
+	sc.Printf("godmode %v\n", qFormatI(f&flag))
 }
 
-func (c *SVClient) killCmd(a cbuf.Arguments) error {
-	ev := entvars.Get(c.edictId)
+func (sc *SVClient) killCmd(a cbuf.Arguments) error {
+	ev := entvars.Get(sc.edictId)
 
 	if ev.Health <= 0 {
-		c.Printf("Can't suicide -- already dead!\n")
+		sc.Printf("Can't suicide -- already dead!\n")
 		return nil
 	}
 
 	progsdat.Globals.Time = sv.time
-	progsdat.Globals.Self = int32(c.edictId)
+	progsdat.Globals.Self = int32(sc.edictId)
 	if err := vm.ExecuteProgram(progsdat.Globals.ClientKill); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *SVClient) noClipCmd(a cbuf.Arguments) {
+func (sc *SVClient) noClipCmd(a cbuf.Arguments) {
 	if progsdat.Globals.DeathMatch != 0 {
 		return
 	}
-	ev := entvars.Get(c.edictId)
+	ev := entvars.Get(sc.edictId)
 	m := int32(ev.MoveType)
 	args := a.Args()[1:]
 	switch len(args) {
@@ -585,14 +585,14 @@ func (c *SVClient) noClipCmd(a cbuf.Arguments) {
 		}
 	}
 	ev.MoveType = float32(m)
-	c.Printf("noclip %v\n", qFormatI(m&progs.MoveTypeNoClip))
+	sc.Printf("noclip %v\n", qFormatI(m&progs.MoveTypeNoClip))
 }
 
-func (c *SVClient) noTargetCmd(a cbuf.Arguments) {
+func (sc *SVClient) noTargetCmd(a cbuf.Arguments) {
 	if progsdat.Globals.DeathMatch != 0 {
 		return
 	}
-	ev := entvars.Get(c.edictId)
+	ev := entvars.Get(sc.edictId)
 	f := int32(ev.Flags)
 	const flag = progs.FlagNoTarget
 	args := a.Args()[1:]
@@ -609,17 +609,17 @@ func (c *SVClient) noTargetCmd(a cbuf.Arguments) {
 		}
 	}
 	ev.Flags = float32(f)
-	c.Printf("notarget %v\n", qFormatI(f&flag))
+	sc.Printf("notarget %v\n", qFormatI(f&flag))
 }
 
-func (c *SVClient) pauseCmd(a cbuf.Arguments) {
+func (sc *SVClient) pauseCmd(a cbuf.Arguments) {
 	if cvars.Pausable.String() != "1" {
-		c.Printf("Pause not allowed.\n")
+		sc.Printf("Pause not allowed.\n")
 		return
 	}
 	sv.paused = !sv.paused
 
-	ev := entvars.Get(c.edictId)
+	ev := entvars.Get(sc.edictId)
 	playerName, _ := progsdat.String(ev.NetName)
 	SV_BroadcastPrintf("%s %s the game\n", playerName, func() string {
 		if sv.paused {
@@ -631,32 +631,32 @@ func (c *SVClient) pauseCmd(a cbuf.Arguments) {
 	svc.WriteSetPause(sv.paused, sv.protocol, sv.protocolFlags, &sv.reliableDatagram)
 }
 
-func (c *SVClient) pingCmd(a cbuf.Arguments) {
-	c.Printf("Client ping times:\n")
+func (sc *SVClient) pingCmd(a cbuf.Arguments) {
+	sc.Printf("Client ping times:\n")
 	for _, ac := range sv_clients {
 		if !ac.active {
 			continue
 		}
-		c.Printf("%4d %s\n", int(ac.PingTime()*1000), ac.name)
+		sc.Printf("%4d %s\n", int(ac.PingTime()*1000), ac.name)
 	}
 }
 
-func (c *SVClient) preSpawnCmd() {
-	if c.spawned {
+func (sc *SVClient) preSpawnCmd() {
+	if sc.spawned {
 		slog.Warn("prespawn not valid -- already spawned")
 		return
 	}
-	c.msg.WriteBytes(sv.signon.Bytes())
-	c.msg.WriteByte(svc.SignonNum)
-	c.msg.WriteByte(2)
-	c.sendSignon = true
+	sc.msg.WriteBytes(sv.signon.Bytes())
+	sc.msg.WriteByte(svc.SignonNum)
+	sc.msg.WriteByte(2)
+	sc.sendSignon = true
 }
 
-func (c *SVClient) setPosCmd(a cbuf.Arguments) error {
+func (sc *SVClient) setPosCmd(a cbuf.Arguments) error {
 	if progsdat.Globals.DeathMatch != 0 {
 		return nil
 	}
-	ev := entvars.Get(c.edictId)
+	ev := entvars.Get(sc.edictId)
 	args := a.Args()
 	switch len(args) {
 	case 7:
@@ -670,7 +670,7 @@ func (c *SVClient) setPosCmd(a cbuf.Arguments) error {
 	case 4:
 		if ev.MoveType != progs.MoveTypeNoClip {
 			ev.MoveType = progs.MoveTypeNoClip
-			c.Printf("noclip ON\n")
+			sc.Printf("noclip ON\n")
 		}
 		// make sure they're not going to whizz away from it
 		ev.Velocity = [3]float32{0, 0, 0}
@@ -679,24 +679,24 @@ func (c *SVClient) setPosCmd(a cbuf.Arguments) error {
 			args[2].Float32(),
 			args[3].Float32(),
 		}
-		if err := vm.LinkEdict(c.edictId, false); err != nil {
+		if err := vm.LinkEdict(sc.edictId, false); err != nil {
 			return err
 		}
 		return nil
 	default:
-		c.Printf("usage:\n")
-		c.Printf("   setpos <x> <y> <z>\n")
-		c.Printf("   setpos <x> <y> <z> <pitch> <yaw> <roll>\n")
-		c.Printf("current values:\n")
-		c.Printf("   %d %d %d %d %d %d\n",
+		sc.Printf("usage:\n")
+		sc.Printf("   setpos <x> <y> <z>\n")
+		sc.Printf("   setpos <x> <y> <z> <pitch> <yaw> <roll>\n")
+		sc.Printf("current values:\n")
+		sc.Printf("   %d %d %d %d %d %d\n",
 			int(ev.Origin[0]), int(ev.Origin[1]), int(ev.Origin[2]),
 			int(ev.VAngle[0]), int(ev.VAngle[1]), int(ev.VAngle[2]))
 		return nil
 	}
 }
 
-func (c *SVClient) spawnCmd() error {
-	if c.spawned {
+func (sc *SVClient) spawnCmd() error {
+	if sc.spawned {
 		slog.Warn("Spawn not valid -- already spawned")
 		return nil
 	}
@@ -706,19 +706,19 @@ func (c *SVClient) spawnCmd() error {
 		// if this is the last client to be connected, unpause
 		sv.paused = false
 	} else {
-		entvars.Clear(c.edictId)
-		ev := entvars.Get(c.edictId)
-		ev.ColorMap = float32(c.edictId)
-		ev.Team = float32((c.colors & 15) + 1)
-		ev.NetName = progsdat.AddString(c.name)
-		progsdat.Globals.Parm = c.spawnParams
+		entvars.Clear(sc.edictId)
+		ev := entvars.Get(sc.edictId)
+		ev.ColorMap = float32(sc.edictId)
+		ev.Team = float32((sc.colors & 15) + 1)
+		ev.NetName = progsdat.AddString(sc.name)
+		progsdat.Globals.Parm = sc.spawnParams
 		progsdat.Globals.Time = sv.time
-		progsdat.Globals.Self = int32(c.edictId)
+		progsdat.Globals.Self = int32(sc.edictId)
 		if err := vm.ExecuteProgram(progsdat.Globals.ClientConnect); err != nil {
 			return err
 		}
-		if time.Since(c.ConnectTime()).Seconds() <= float64(sv.time) {
-			log.Printf("%v entered the game\n", c.name)
+		if time.Since(sc.ConnectTime()).Seconds() <= float64(sv.time) {
+			log.Printf("%v entered the game\n", sc.name)
 		}
 		if err := vm.ExecuteProgram(progsdat.Globals.PutClientInServer); err != nil {
 			return err
@@ -726,55 +726,55 @@ func (c *SVClient) spawnCmd() error {
 	}
 
 	// send all current names, colors, and frag counts
-	c.msg.ClearMessage()
+	sc.msg.ClearMessage()
 
 	// send time of update
-	svc.WriteTime(sv.time, sv.protocol, sv.protocolFlags, &c.msg)
+	svc.WriteTime(sv.time, sv.protocol, sv.protocolFlags, &sc.msg)
 
-	for i, sc := range sv_clients {
+	for i, scs := range sv_clients {
 		if i >= svs.maxClients {
 			// TODO: figure out why it ever makes sense to have len(sv_clients) svs.maxClients
 			break
 		}
 		un := protos.UpdateName_builder{
 			Player:  int32(i),
-			NewName: sc.name,
+			NewName: scs.name,
 		}.Build()
-		svc.WriteUpdateName(un, sv.protocol, sv.protocolFlags, &c.msg)
+		svc.WriteUpdateName(un, sv.protocol, sv.protocolFlags, &sc.msg)
 		uf := protos.UpdateFrags_builder{
 			Player:   int32(i),
-			NewFrags: int32(sc.oldFrags),
+			NewFrags: int32(scs.oldFrags),
 		}.Build()
-		svc.WriteUpdateFrags(uf, sv.protocol, sv.protocolFlags, &c.msg)
+		svc.WriteUpdateFrags(uf, sv.protocol, sv.protocolFlags, &sc.msg)
 		uc := protos.UpdateColors_builder{
 			Player:   int32(i),
-			NewColor: int32(sc.colors),
+			NewColor: int32(scs.colors),
 		}.Build()
-		svc.WriteUpdateColors(uc, sv.protocol, sv.protocolFlags, &c.msg)
+		svc.WriteUpdateColors(uc, sv.protocol, sv.protocolFlags, &sc.msg)
 	}
 
 	// send all current light styles
 	for i, ls := range sv.lightStyles {
-		c.msg.WriteByte(svc.LightStyle)
-		c.msg.WriteByte(i)
-		c.msg.WriteString(ls)
+		sc.msg.WriteByte(svc.LightStyle)
+		sc.msg.WriteByte(i)
+		sc.msg.WriteString(ls)
 	}
 
-	c.msg.WriteByte(svc.UpdateStat)
-	c.msg.WriteByte(svc.StatTotalSecrets)
-	c.msg.WriteLong(int(progsdat.Globals.TotalSecrets))
+	sc.msg.WriteByte(svc.UpdateStat)
+	sc.msg.WriteByte(svc.StatTotalSecrets)
+	sc.msg.WriteLong(int(progsdat.Globals.TotalSecrets))
 
-	c.msg.WriteByte(svc.UpdateStat)
-	c.msg.WriteByte(svc.StatTotalMonsters)
-	c.msg.WriteLong(int(progsdat.Globals.TotalMonsters))
+	sc.msg.WriteByte(svc.UpdateStat)
+	sc.msg.WriteByte(svc.StatTotalMonsters)
+	sc.msg.WriteLong(int(progsdat.Globals.TotalMonsters))
 
-	c.msg.WriteByte(svc.UpdateStat)
-	c.msg.WriteByte(svc.StatSecrets)
-	c.msg.WriteLong(int(progsdat.Globals.FoundSecrets))
+	sc.msg.WriteByte(svc.UpdateStat)
+	sc.msg.WriteByte(svc.StatSecrets)
+	sc.msg.WriteLong(int(progsdat.Globals.FoundSecrets))
 
-	c.msg.WriteByte(svc.UpdateStat)
-	c.msg.WriteByte(svc.StatMonsters)
-	c.msg.WriteLong(int(progsdat.Globals.KilledMonsters))
+	sc.msg.WriteByte(svc.UpdateStat)
+	sc.msg.WriteByte(svc.StatMonsters)
+	sc.msg.WriteLong(int(progsdat.Globals.KilledMonsters))
 
 	// send a fixangle
 	// Never send a roll angle, because savegames can catch the server
@@ -782,28 +782,28 @@ func (c *SVClient) spawnCmd() error {
 	// and it won't happen if the game was just loaded, so you wind up
 	// with a permanent head tilt
 	sa := protos.Coord_builder{
-		X: entvars.Get(c.edictId).Angles[0],
-		Y: entvars.Get(c.edictId).Angles[1],
+		X: entvars.Get(sc.edictId).Angles[0],
+		Y: entvars.Get(sc.edictId).Angles[1],
 		Z: 0,
 	}.Build()
-	svc.WriteSetAngle(sa, sv.protocol, sv.protocolFlags, &c.msg)
+	svc.WriteSetAngle(sa, sv.protocol, sv.protocolFlags, &sc.msg)
 
 	msgBuf.ClearMessage()
 	msgBufMaxLen = protocol.MaxDatagram
-	sv.WriteClientdataToMessage(c.edictId)
-	c.msg.WriteBytes(msgBuf.Bytes())
+	sv.WriteClientdataToMessage(sc.edictId)
+	sc.msg.WriteBytes(msgBuf.Bytes())
 
-	c.msg.WriteByte(svc.SignonNum)
-	c.msg.WriteByte(3)
-	c.sendSignon = true
+	sc.msg.WriteByte(svc.SignonNum)
+	sc.msg.WriteByte(3)
+	sc.sendSignon = true
 	return nil
 }
 
-func (c *SVClient) giveCmd(a cbuf.Arguments) {
+func (sc *SVClient) giveCmd(a cbuf.Arguments) {
 	if progsdat.Globals.DeathMatch != 0 {
 		return
 	}
-	ev := entvars.Get(c.edictId)
+	ev := entvars.Get(sc.edictId)
 	args := a.Args()
 	if len(args) == 1 {
 		return
@@ -1003,13 +1003,13 @@ func (c *SVClient) giveCmd(a cbuf.Arguments) {
 	}
 }
 
-func (c *SVClient) tellCmd(a cbuf.Arguments) {
+func (sc *SVClient) tellCmd(a cbuf.Arguments) {
 	args := a.Args()
 	if len(args) < 3 {
 		// need at least destination and message
 		return
 	}
-	text := fmt.Sprintf("%s: %s\n", c.name, a.Message())
+	text := fmt.Sprintf("%s: %s\n", sc.name, a.Message())
 	for _, ac := range sv_clients {
 		if !ac.active || !ac.spawned {
 			continue
@@ -1023,13 +1023,13 @@ func (c *SVClient) tellCmd(a cbuf.Arguments) {
 }
 
 // Kicks a user off of the server
-func (c *SVClient) kickCmd(a cbuf.Arguments) error {
+func (sc *SVClient) kickCmd(a cbuf.Arguments) error {
 	args := a.Args()[1:]
 	if len(args) == 0 {
 		return nil
 	}
 	// TODO(therjak): admin mode
-	if !c.admin && progsdat.Globals.DeathMatch != 0 {
+	if !sc.admin && progsdat.Globals.DeathMatch != 0 {
 		return nil
 	}
 
@@ -1061,11 +1061,11 @@ func (c *SVClient) kickCmd(a cbuf.Arguments) error {
 	if toKick == nil {
 		return nil
 	}
-	if c.edictId == toKick.edictId {
+	if sc.edictId == toKick.edictId {
 		// can't kick yourself!
 		return nil
 	}
-	who := c.name
+	who := sc.name
 	if message != "" {
 		toKick.Printf("Kicked by %s: %s\n", who, message)
 	} else {
@@ -1077,7 +1077,7 @@ func (c *SVClient) kickCmd(a cbuf.Arguments) error {
 	return nil
 }
 
-func (c *SVClient) nameCmd(a cbuf.Arguments) {
+func (sc *SVClient) nameCmd(a cbuf.Arguments) {
 	args := a.Args()
 	if len(args) < 2 {
 		return
@@ -1087,33 +1087,33 @@ func (c *SVClient) nameCmd(a cbuf.Arguments) {
 		newName = newName[:15]
 	}
 
-	if len(c.name) != 0 && c.name != "unconnected" && c.name != newName {
-		log.Printf("%s renamed to %s\n", c.name, newName)
+	if len(sc.name) != 0 && sc.name != "unconnected" && sc.name != newName {
+		log.Printf("%s renamed to %s\n", sc.name, newName)
 	}
-	c.name = newName
-	entvars.Get(c.edictId).NetName = progsdat.AddString(newName)
+	sc.name = newName
+	entvars.Get(sc.edictId).NetName = progsdat.AddString(newName)
 
 	// send notification to all clients
 	un := protos.UpdateName_builder{
-		Player:  int32(c.id),
+		Player:  int32(sc.id),
 		NewName: newName,
 	}.Build()
 	svc.WriteUpdateName(un, sv.protocol, sv.protocolFlags, &sv.reliableDatagram)
 }
 
-func (c *SVClient) statusCmd() {
+func (sc *SVClient) statusCmd() {
 	const baseVersion = 1.09
-	c.Printf("host:    %s\n", cvars.HostName.String())
-	c.Printf("version: %4.2f\n", baseVersion)
-	c.Printf("tcp/ip:  %s\n", net.Address())
-	c.Printf("map:     %s\n", sv.name)
+	sc.Printf("host:    %s\n", cvars.HostName.String())
+	sc.Printf("version: %4.2f\n", baseVersion)
+	sc.Printf("tcp/ip:  %s\n", net.Address())
+	sc.Printf("map:     %s\n", sv.name)
 	active := 0
 	for _, ac := range sv_clients {
 		if ac.active {
 			active++
 		}
 	}
-	c.Printf("players: %d active (%d max)\n\n", active, svs.maxClients)
+	sc.Printf("players: %d active (%d max)\n\n", active, svs.maxClients)
 	ntime := net.Time()
 	for i, ac := range sv_clients {
 		if !ac.active {
@@ -1121,23 +1121,23 @@ func (c *SVClient) statusCmd() {
 		}
 		d := ntime.Sub(ac.ConnectTime())
 		d = d.Truncate(time.Second)
-		ev := entvars.Get(c.edictId)
-		c.Printf("#%-2d %-16.16s  %3d  %9s\n", i+1, ac.name, int(ev.Frags), d.String())
-		c.Printf("   %s\n", ac.Address())
+		ev := entvars.Get(sc.edictId)
+		sc.Printf("#%-2d %-16.16s  %3d  %9s\n", i+1, ac.name, int(ev.Frags), d.String())
+		sc.Printf("   %s\n", ac.Address())
 	}
 }
 
-func (c *SVClient) sayCmd(team bool, a cbuf.Arguments) {
+func (sc *SVClient) sayCmd(team bool, a cbuf.Arguments) {
 	if len(a.Args()) < 2 {
 		return
 	}
-	text := fmt.Sprintf("\001%s: %s\n", c.name, a.ArgumentString())
+	text := fmt.Sprintf("\001%s: %s\n", sc.name, a.ArgumentString())
 	for _, ac := range sv_clients {
 		if !ac.active || !ac.spawned {
 			continue
 		}
 		if team &&
-			entvars.Get(ac.edictId).Team != entvars.Get(c.edictId).Team {
+			entvars.Get(ac.edictId).Team != entvars.Get(sc.edictId).Team {
 			continue
 		}
 		ac.Printf(text)

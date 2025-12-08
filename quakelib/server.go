@@ -144,14 +144,14 @@ func (s *Server) StartParticle(org, dir vec.Vec3, color, count int) {
 	server.WriteParticle(p, s.protocolFlags, &s.datagram)
 }
 
-func (s *Server) SendDatagram(c *SVClient) (bool, error) {
+func (s *Server) SendDatagram(sc *SVClient) (bool, error) {
 	b := msgBuf.Bytes()
 	// If there is space add the server datagram
 	if len(b)+s.datagram.Len() < protocol.MaxDatagram {
 		b = append(b, s.datagram.Bytes()...)
 	}
-	if c.netConnection.SendUnreliableMessage(b) == -1 {
-		if err := c.Drop(true); err != nil {
+	if sc.netConnection.SendUnreliableMessage(b) == -1 {
+		if err := sc.Drop(true); err != nil {
 			return false, err
 		}
 		return false, nil
@@ -360,38 +360,38 @@ func ConnectClient(n int) error {
 	return nil
 }
 
-func (s *Server) SendClientDatagram(c *SVClient) (bool, error) {
+func (s *Server) SendClientDatagram(sc *SVClient) (bool, error) {
 	msgBuf.ClearMessage()
 	msgBufMaxLen = protocol.MaxDatagram
-	if c.Address() != net.LocalAddress {
+	if sc.Address() != net.LocalAddress {
 		msgBufMaxLen = net.DATAGRAM_MTU
 	}
 	svc.WriteTime(s.time, s.protocol, s.protocolFlags, &msgBuf)
 
-	s.WriteClientdataToMessage(c.edictId)
+	s.WriteClientdataToMessage(sc.edictId)
 
-	s.WriteEntitiesToClient(c.edictId)
+	s.WriteEntitiesToClient(sc.edictId)
 
-	return s.SendDatagram(c)
+	return s.SendDatagram(sc)
 }
 
 func (s *Server) UpdateToReliableMessages() {
 	b := s.reliableDatagram.Bytes()
-	for _, cl := range sv_clients {
-		newFrags := entvars.Get(cl.edictId).Frags
-		if cl.active {
+	for _, sc := range sv_clients {
+		newFrags := entvars.Get(sc.edictId).Frags
+		if sc.active {
 			// Does it actually matter to compare as float32?
 			// These subtle C things...
-			if float32(cl.oldFrags) != newFrags {
+			if float32(sc.oldFrags) != newFrags {
 				uf := protos.UpdateFrags_builder{
-					Player:   int32(cl.id),
+					Player:   int32(sc.id),
 					NewFrags: int32(newFrags),
 				}.Build()
-				svc.WriteUpdateFrags(uf, s.protocol, s.protocolFlags, &cl.msg)
+				svc.WriteUpdateFrags(uf, s.protocol, s.protocolFlags, &sc.msg)
 			}
-			cl.msg.WriteBytes(b)
+			sc.msg.WriteBytes(b)
 		}
-		cl.oldFrags = int(newFrags)
+		sc.oldFrags = int(newFrags)
 	}
 	s.reliableDatagram.ClearMessage()
 }

@@ -30,19 +30,19 @@ func saveGameComment() string {
 	return fmt.Sprintf("%-22s kills:%3d/%3d", levelName, int(km), int(tm))
 }
 
-func (c *SVClient) saveCmd(a cbuf.Arguments) {
+func (sc *SVClient) saveCmd(a cbuf.Arguments) {
 	args := a.Args()
 	if len(args) != 2 {
 		return
 	}
 
-	if svs.maxClients != 1 || !c.admin {
-		c.Printf("Can't save multiplayer games.\n")
+	if svs.maxClients != 1 || !sc.admin {
+		sc.Printf("Can't save multiplayer games.\n")
 		return
 	}
 
-	if entvars.Get(c.edictId).Health <= 0 {
-		c.Printf("Can't savegame with a dead player\n")
+	if entvars.Get(sc.edictId).Health <= 0 {
+		sc.Printf("Can't savegame with a dead player\n")
 		return
 	}
 
@@ -50,7 +50,7 @@ func (c *SVClient) saveCmd(a cbuf.Arguments) {
 	filename = filepath.Clean(filename)
 	if strings.Contains(filename, "..") {
 		// We will add filename to the gamedir so we with this we are always inside the gamedir
-		c.Printf("Relative pathnames are not allowed.\n")
+		sc.Printf("Relative pathnames are not allowed.\n")
 		return
 	}
 
@@ -59,11 +59,11 @@ func (c *SVClient) saveCmd(a cbuf.Arguments) {
 		fullname = fullname + ".sav"
 	}
 
-	c.Printf("Saving game to %s...\n", fullname)
+	sc.Printf("Saving game to %s...\n", fullname)
 
 	data := protos.SaveGame_builder{
 		Comment:      saveGameComment(),
-		SpawnParams:  c.spawnParams[:], //[]float32
+		SpawnParams:  sc.spawnParams[:], //[]float32
 		CurrentSkill: int32(cvars.Skill.Value()),
 		MapName:      sv.name,
 		MapTime:      sv.time,
@@ -74,13 +74,13 @@ func (c *SVClient) saveCmd(a cbuf.Arguments) {
 
 	out, err := proto.Marshal(data)
 	if err != nil {
-		c.Printf("failed to encode savegame.\n")
+		sc.Printf("failed to encode savegame.\n")
 		return
 	}
 
 	if err := ioutil.WriteFile(fullname, out, 0660); err != nil {
-		c.Printf("ERROR: couldn't write file.\n")
+		sc.Printf("ERROR: couldn't write file.\n")
 		return
 	}
-	c.Printf("done.\n")
+	sc.Printf("done.\n")
 }

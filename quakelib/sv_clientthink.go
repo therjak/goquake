@@ -10,8 +10,8 @@ import (
 	"github.com/chewxy/math32"
 )
 
-func (c *SVClient) accelerate(wishspeed float32, wishdir vec.Vec3) {
-	ev := entvars.Get(c.edictId)
+func (sc *SVClient) accelerate(wishspeed float32, wishdir vec.Vec3) {
+	ev := entvars.Get(sc.edictId)
 	velocity := vec.VFromA(ev.Velocity)
 	currentspeed := vec.Dot(velocity, wishdir)
 	addspeed := wishspeed - currentspeed
@@ -25,8 +25,8 @@ func (c *SVClient) accelerate(wishspeed float32, wishdir vec.Vec3) {
 	ev.Velocity = vec.Add(velocity, vec.Scale(accelspeed, wishdir))
 }
 
-func (c *SVClient) airAccelerate(wishspeed float32, wishveloc vec.Vec3) {
-	ev := entvars.Get(c.edictId)
+func (sc *SVClient) airAccelerate(wishspeed float32, wishveloc vec.Vec3) {
+	ev := entvars.Get(sc.edictId)
 	velocity := vec.VFromA(ev.Velocity)
 
 	wishspd := wishveloc.Length()
@@ -48,14 +48,14 @@ func (c *SVClient) airAccelerate(wishspeed float32, wishveloc vec.Vec3) {
 	ev.Velocity = vec.Add(velocity, vec.Scale(accelspeed, wishveloc))
 }
 
-func (c *SVClient) noclipMove() {
-	ev := entvars.Get(c.edictId)
+func (sc *SVClient) noclipMove() {
+	ev := entvars.Get(sc.edictId)
 	vangle := vec.VFromA(ev.VAngle)
 	forward, right, _ := vec.AngleVectors(vangle)
 
-	fmove := float32(c.cmd.forwardmove)
-	smove := float32(c.cmd.sidemove)
-	umove := float32(c.cmd.upmove)
+	fmove := float32(sc.cmd.forwardmove)
+	smove := float32(sc.cmd.sidemove)
+	umove := float32(sc.cmd.upmove)
 
 	velocity := vec.Vec3{
 		forward[0]*fmove + right[0]*smove,
@@ -72,15 +72,15 @@ func (c *SVClient) noclipMove() {
 	ev.Velocity = velocity
 }
 
-func (c *SVClient) waterMove() {
-	ev := entvars.Get(c.edictId)
+func (sc *SVClient) waterMove() {
+	ev := entvars.Get(sc.edictId)
 	// user intentions
 	vangle := vec.VFromA(ev.VAngle)
 	forward, right, _ := vec.AngleVectors(vangle)
 
-	fmove := float32(c.cmd.forwardmove)
-	smove := float32(c.cmd.sidemove)
-	umove := float32(c.cmd.upmove)
+	fmove := float32(sc.cmd.forwardmove)
+	smove := float32(sc.cmd.sidemove)
+	umove := float32(sc.cmd.upmove)
 
 	wishvel := vec.Vec3{
 		forward[0]*fmove + right[0]*smove,
@@ -132,8 +132,8 @@ func (c *SVClient) waterMove() {
 	ev.Velocity = vec.Add(velocity, vec.Scale(accelspeed, wishvel))
 }
 
-func (c *SVClient) userFriction() {
-	ev := entvars.Get(c.edictId)
+func (sc *SVClient) userFriction() {
+	ev := entvars.Get(sc.edictId)
 	velocity := vec.VFromA(ev.Velocity)
 	speed2 := velocity[0]*velocity[0] + velocity[1]*velocity[1]
 	if speed2 == 0 {
@@ -151,7 +151,7 @@ func (c *SVClient) userFriction() {
 	stop := start
 	stop[2] -= 34
 
-	t := svMove(start, vec.Vec3{}, vec.Vec3{}, stop, 1, c.edictId)
+	t := svMove(start, vec.Vec3{}, vec.Vec3{}, stop, 1, sc.edictId)
 
 	friction := cvars.ServerFriction.Value()
 	if t.Fraction == 1.0 {
@@ -175,12 +175,12 @@ func (c *SVClient) userFriction() {
 	ev.Velocity = vec.Scale(newspeed, velocity)
 }
 
-func (c *SVClient) airMove() {
-	ev := entvars.Get(c.edictId)
+func (sc *SVClient) airMove() {
+	ev := entvars.Get(sc.edictId)
 	forward, right, _ := vec.AngleVectors(vec.VFromA(ev.Angles))
-	fmove := float32(c.cmd.forwardmove)
-	smove := float32(c.cmd.sidemove)
-	umove := float32(c.cmd.upmove)
+	fmove := float32(sc.cmd.forwardmove)
+	smove := float32(sc.cmd.sidemove)
+	umove := float32(sc.cmd.upmove)
 
 	// hack to not let you back into teleporter
 	if sv.time < ev.TeleportTime && fmove < 0 {
@@ -215,16 +215,16 @@ func (c *SVClient) airMove() {
 	if ev.MoveType == progs.MoveTypeNoClip {
 		ev.Velocity = wishvel
 	} else if onground {
-		c.userFriction()
-		c.accelerate(wishspeed, wishdir)
+		sc.userFriction()
+		sc.accelerate(wishspeed, wishdir)
 	} else {
 		// not on ground, so little effect on velocity
-		c.airAccelerate(wishspeed, wishvel)
+		sc.airAccelerate(wishspeed, wishvel)
 	}
 }
 
-func (c *SVClient) DropPunchAngle() {
-	ev := entvars.Get(c.edictId)
+func (sc *SVClient) DropPunchAngle() {
+	ev := entvars.Get(sc.edictId)
 	pa := vec.VFromA(ev.PunchAngle)
 	len := pa.Length()
 	if len == 0 {
@@ -237,8 +237,8 @@ func (c *SVClient) DropPunchAngle() {
 	ev.PunchAngle = vec.Scale(len2, pa)
 }
 
-func (c *SVClient) WaterJump() {
-	ev := entvars.Get(c.edictId)
+func (sc *SVClient) WaterJump() {
+	ev := entvars.Get(sc.edictId)
 	if sv.time > ev.TeleportTime || ev.WaterLevel == 0 {
 		ev.Flags = float32(int(ev.Flags) &^ FL_WATERJUMP)
 		ev.TeleportTime = 0
@@ -249,13 +249,13 @@ func (c *SVClient) WaterJump() {
 
 // the move fields specify an intended velocity in pix/sec
 // the angle fields specify an exact angular motion in degrees
-func (c *SVClient) Think() {
-	ev := entvars.Get(c.edictId)
+func (sc *SVClient) Think() {
+	ev := entvars.Get(sc.edictId)
 
 	if ev.MoveType == progs.MoveTypeNone {
 		return
 	}
-	c.DropPunchAngle()
+	sc.DropPunchAngle()
 	if ev.Health <= 0 {
 		// if dead, behave differently
 		return
@@ -276,15 +276,15 @@ func (c *SVClient) Think() {
 	ev.Angles = angles
 
 	if int(ev.Flags)&FL_WATERJUMP != 0 {
-		c.WaterJump()
+		sc.WaterJump()
 		return
 	}
 	// walk
 	if ev.MoveType == progs.MoveTypeNoClip && cvars.ServerAltNoClip.Bool() {
-		c.noclipMove()
+		sc.noclipMove()
 	} else if ev.WaterLevel >= 2 && ev.MoveType != progs.MoveTypeNoClip {
-		c.waterMove()
+		sc.waterMove()
 	} else {
-		c.airMove()
+		sc.airMove()
 	}
 }
