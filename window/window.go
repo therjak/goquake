@@ -6,8 +6,6 @@ import (
 	"log"
 	"unsafe"
 
-	"goquake/cvars"
-
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -95,46 +93,53 @@ func findDisplayMode(width, height int32) *sdl.DisplayMode {
 	return nil
 }
 
-func SetMode(width, height int32, fullscreen bool) {
+type Mode struct {
+	Width             int32
+	Height            int32
+	Fullscreen        bool
+	FSAA              int
+	Borderless        bool
+	DesktopFullscreen bool
+}
+
+func SetMode(m Mode) {
 	sdl.GLSetAttribute(sdl.GL_DEPTH_SIZE, 24)
 	sdl.GLSetAttribute(sdl.GL_STENCIL_SIZE, 8)
 
-	fsaa := int(cvars.VideoFsaa.Value())
-
 	sdl.GLSetAttribute(sdl.GL_MULTISAMPLEBUFFERS, func() int {
-		if fsaa > 0 {
+		if m.FSAA > 0 {
 			return 1
 		}
 		return 0
 	}())
-	sdl.GLSetAttribute(sdl.GL_MULTISAMPLESAMPLES, fsaa)
+	sdl.GLSetAttribute(sdl.GL_MULTISAMPLESAMPLES, m.FSAA)
 
 	if window == nil {
 		flags := uint32(sdl.WINDOW_OPENGL | sdl.WINDOW_HIDDEN)
-		if cvars.VideoBorderLess.Value() != 0 {
+		if m.Borderless {
 			flags |= sdl.WINDOW_BORDERLESS
 		}
 		sdl.GLSetAttribute(sdl.GL_CONTEXT_MAJOR_VERSION, 3)
 		sdl.GLSetAttribute(sdl.GL_CONTEXT_MINOR_VERSION, 3)
 		sdl.GLSetAttribute(sdl.GL_CONTEXT_PROFILE_MASK, sdl.GL_CONTEXT_PROFILE_CORE)
 		window = func() *sdl.Window {
-			w, err := sdl.CreateWindow("GoQuake", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, width, height, flags)
+			w, err := sdl.CreateWindow("GoQuake", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, m.Width, m.Height, flags)
 			if err == nil {
 				return w
 			}
 			sdl.GLSetAttribute(sdl.GL_MULTISAMPLEBUFFERS, 0)
 			sdl.GLSetAttribute(sdl.GL_MULTISAMPLESAMPLES, 0)
-			w, err = sdl.CreateWindow("GoQuake", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, width, height, flags)
+			w, err = sdl.CreateWindow("GoQuake", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, m.Width, m.Height, flags)
 			if err == nil {
 				return w
 			}
 			sdl.GLSetAttribute(sdl.GL_DEPTH_SIZE, 16)
-			w, err = sdl.CreateWindow("GoQuake", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, width, height, flags)
+			w, err = sdl.CreateWindow("GoQuake", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, m.Width, m.Height, flags)
 			if err == nil {
 				return w
 			}
 			sdl.GLSetAttribute(sdl.GL_STENCIL_SIZE, 0)
-			w, err = sdl.CreateWindow("GoQuake", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, width, height, flags)
+			w, err = sdl.CreateWindow("GoQuake", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, m.Width, m.Height, flags)
 			if err == nil {
 				return w
 			}
@@ -147,13 +152,13 @@ func SetMode(width, height int32, fullscreen bool) {
 			log.Fatalf("Couln't set fullscreen state mode")
 		}
 	}
-	window.SetSize(width, height)
+	window.SetSize(m.Width, m.Height)
 	window.SetPosition(sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED)
-	window.SetDisplayMode(findDisplayMode(width, height))
-	window.SetBordered(cvars.VideoBorderLess.Value() == 0)
-	if fullscreen {
+	window.SetDisplayMode(findDisplayMode(m.Width, m.Height))
+	window.SetBordered(!m.Borderless)
+	if m.Fullscreen {
 		flags := func() uint32 {
-			if cvars.VideoDesktopFullscreen.Value() != 0 {
+			if m.DesktopFullscreen {
 				return sdl.WINDOW_FULLSCREEN_DESKTOP
 			}
 			return sdl.WINDOW_FULLSCREEN
