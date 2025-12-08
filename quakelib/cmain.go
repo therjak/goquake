@@ -17,6 +17,7 @@ import (
 	"goquake/cvar"
 	"goquake/cvars"
 	"goquake/filesystem"
+	"goquake/gametime"
 	"goquake/input"
 	"goquake/math/vec"
 	"goquake/net"
@@ -263,7 +264,12 @@ func executeFrame() {
 	sRand.NewSeed(uint32(time.Now().UnixNano()))
 
 	// decide the simulation time
-	if !host.UpdateTime(cls.timeDemo) {
+	if !host.UpdateTime(gametime.Update{
+		TimeDemo:  cls.timeDemo,
+		TimeScale: float64(cvars.HostTimeScale.Value()),
+		FrameRate: float64(cvars.HostFrameRate.Value()),
+		MaxFPS:    float64(cvars.HostMaxFps.Value()),
+	}) {
 		return // don't run too fast, or packets will flood out
 	}
 

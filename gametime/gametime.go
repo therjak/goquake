@@ -3,7 +3,6 @@
 package gametime
 
 import (
-	"goquake/cvars"
 	"goquake/math"
 	"time"
 )
@@ -29,21 +28,28 @@ func (h *GameTime) FrameTime() float64 { return h.frameTime }
 func (h *GameTime) FrameCount() int    { return h.frameCount }
 func (h *GameTime) FrameIncrease()     { h.frameCount++ }
 
+type Update struct {
+	TimeDemo  bool
+	TimeScale float64
+	FrameRate float64
+	MaxFPS    float64
+}
+
 // UpdateTime updates the host time.
 // Returns false if it would exceed max fps
-func (h *GameTime) UpdateTime(timedemo bool) bool {
+func (h *GameTime) UpdateTime(u Update) bool {
 	h.time = time.Since(startTime).Seconds()
-	maxFPS := math.Clamp(10.0, float64(cvars.HostMaxFps.Value()), 1000.0)
-	if !timedemo && (h.time-h.oldTime < 1/maxFPS) {
+	maxFPS := math.Clamp(10.0, u.MaxFPS, 1000.0)
+	if !u.TimeDemo && (h.time-h.oldTime < 1/maxFPS) {
 		return false
 	}
 	h.frameTime = h.time - h.oldTime
 	h.oldTime = h.time
 
-	if cvars.HostTimeScale.Value() > 0 {
-		h.frameTime *= float64(cvars.HostTimeScale.Value())
-	} else if cvars.HostFrameRate.Value() > 0 {
-		h.frameTime = float64(cvars.HostFrameRate.Value())
+	if u.TimeScale > 0 {
+		h.frameTime *= u.TimeScale
+	} else if u.FrameRate > 0 {
+		h.frameTime = u.FrameRate
 	} else {
 		h.frameTime = math.Clamp(0.001, h.frameTime, 0.1)
 	}
