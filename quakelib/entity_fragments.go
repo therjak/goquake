@@ -91,24 +91,25 @@ func (e *EntityFragmentAdder) Do() {
 func (e *EntityFragmentAdder) splitOnNode(node bsp.Node) {
 	switch n := node.(type) {
 	case *bsp.MLeaf:
-		ef := freeEfrags
-		if ef == nil {
+		newEFrag := freeEfrags
+		if newEFrag == nil {
 			// no free fragments
 			return
 		}
-		freeEfrags = ef.entNext
-		ef.entity = e.entity
+		freeEfrags = newEFrag.entNext
+
+		newEFrag.entity = e.entity
 
 		// add entityFragment to entity
-		*e.lastLink = ef
-		e.lastLink = &ef.entNext
-		ef.entNext = nil
+		*e.lastLink = newEFrag
+		e.lastLink = &newEFrag.entNext
+		newEFrag.entNext = nil
 
 		// add entityFragment to leaf
-		ef.leaf = n
+		newEFrag.leaf = n
 		// *entityFragment and nil are both ok
-		ef.leafNext, _ = n.Temporary.(*entityFragment)
-		n.Temporary = ef
+		newEFrag.leafNext, _ = n.Temporary.(*entityFragment)
+		n.Temporary = newEFrag
 
 	case *bsp.MNode:
 		sides := boxOnPlaneSide(e.mins, e.maxs, n.Plane)

@@ -150,7 +150,7 @@ func (c *Client) WorldEntity() *Entity {
 func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
 	if e.Model == nil { // empty slot
 		if e.ForceLink { // just became empty
-			e.R_RemoveEfrags()
+			RemoveEntityFragments(e)
 		}
 		return
 	}
@@ -205,7 +205,7 @@ func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
 	}
 
 	if e.Effects&model.EntityEffectBrightField != 0 {
-		particlesAddEntity(e.Origin, float32(cl.time))
+		particlesAddEntity(e.Origin, cl.time)
 	}
 
 	if e.Effects&model.EntityEffectMuzzleFlash != 0 {
@@ -254,15 +254,15 @@ func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
 
 	switch f := e.Model.Flags(); {
 	case f&model.EntityEffectGib != 0:
-		particlesAddRocketTrail(oldOrigin, e.Origin, 2, float32(cl.time))
+		particlesAddRocketTrail(oldOrigin, e.Origin, 2, cl.time)
 	case f&model.EntityEffectZomGib != 0:
-		particlesAddRocketTrail(oldOrigin, e.Origin, 4, float32(cl.time))
+		particlesAddRocketTrail(oldOrigin, e.Origin, 4, cl.time)
 	case f&model.EntityEffectTracer != 0:
-		particlesAddRocketTrail(oldOrigin, e.Origin, 3, float32(cl.time))
+		particlesAddRocketTrail(oldOrigin, e.Origin, 3, cl.time)
 	case f&model.EntityEffectTracer2 != 0:
-		particlesAddRocketTrail(oldOrigin, e.Origin, 5, float32(cl.time))
+		particlesAddRocketTrail(oldOrigin, e.Origin, 5, cl.time)
 	case f&model.EntityEffectRocket != 0:
-		particlesAddRocketTrail(oldOrigin, e.Origin, 0, float32(cl.time))
+		particlesAddRocketTrail(oldOrigin, e.Origin, 0, cl.time)
 		dl := cl.GetDynamicLightByKey(idx)
 		dl.key = idx
 		dl.color = vec.Vec3{1, 1, 1}
@@ -270,9 +270,9 @@ func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
 		dl.radius = 200
 		dl.dieTime = cl.time + 0.01
 	case f&model.EntityEffectGrenade != 0:
-		particlesAddRocketTrail(oldOrigin, e.Origin, 1, float32(cl.time))
+		particlesAddRocketTrail(oldOrigin, e.Origin, 1, cl.time)
 	case f&model.EntityEffectTracer3 != 0:
-		particlesAddRocketTrail(oldOrigin, e.Origin, 6, float32(cl.time))
+		particlesAddRocketTrail(oldOrigin, e.Origin, 6, cl.time)
 	}
 	e.ForceLink = false
 	if idx == cl.viewentity && !cvars.ChaseActive.Bool() {
@@ -324,15 +324,6 @@ func (c *Client) GetOrCreateEntity(num int) (*Entity, error) {
 // Entity return the player entity
 func (c *Client) Entity() *Entity {
 	return c.Entities(c.viewentity)
-}
-
-func (e *Entity) R_RemoveEfrags() {
-	RemoveEntityFragments(e)
-}
-
-func (e *Entity) R_AddEfrags() {
-	ef := EntityFragmentAdder{entity: e, world: cl.worldModel}
-	ef.Do()
 }
 
 // TODO(therjak): should this go into renderer?

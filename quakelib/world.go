@@ -29,6 +29,8 @@ type areaNode struct {
 var (
 	edictToRing map[int]*ring.Ring[int]
 	gArea       *areaNode
+
+	boxHull bsp.Hull
 )
 
 // called after the world model has been loaded, before linking any entities
@@ -430,10 +432,6 @@ func clipToLinks(a *areaNode, clip *moveClip) {
 		clipToLinks(a.children[1], clip)
 	}
 }
-
-var (
-	boxHull bsp.Hull
-)
 
 func initBoxHull() {
 	boxHull.ClipNodes = make([]*bsp.ClipNode, 6)

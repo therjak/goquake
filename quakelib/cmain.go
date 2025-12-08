@@ -336,7 +336,7 @@ func executeFrame() {
 		QError(err.Error())
 	}
 
-	particlesRun(float32(cl.time), float32(cl.oldTime)) // separated from rendering
+	particlesRun(cl.time, cl.oldTime) // separated from rendering
 
 	if cvars.HostSpeeds.Bool() {
 		time2 = time.Now()
