@@ -327,8 +327,8 @@ func (r *qRenderer) backFaceCull(s *bsp.Surface) bool {
 	return false
 }
 
-func (r *qRenderer) cullSurfaces(world *bsp.Model) {
-	for _, tx := range world.Textures {
+func (r *qRenderer) cullSurfaces(textures []*bsp.Texture) {
+	for _, tx := range textures {
 		if tx == nil || tx.TextureChains[chainWorld] == nil {
 			continue
 		}

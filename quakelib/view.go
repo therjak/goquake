@@ -105,8 +105,8 @@ func (v *qView) setup() {
 	v.modelView.RotateZ(-qRefreshRect.viewAngles[1])
 	v.modelView.Translate(-qRefreshRect.viewOrg[0], -qRefreshRect.viewOrg[1], -qRefreshRect.viewOrg[2])
 
-	MarkSurfaces()
-	renderer.cullSurfaces(cl.worldModel)
+	MarkSurfaces(cl.worldModel)
+	renderer.cullSurfaces(cl.worldModel.Textures)
 
 	qCanvas.Set(CANVAS_DEFAULT)
 	statusbar.MarkChanged()

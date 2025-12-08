@@ -10,6 +10,7 @@ import (
 	"goquake/cvars"
 	"goquake/glh"
 	"goquake/math/vec"
+	"goquake/model"
 	"goquake/texture"
 	"time"
 
@@ -24,6 +25,7 @@ const (
 	LIGHTMAP_FORMAT = gl.RGBA
 )
 
+/*
 type glRect struct {
 	l, t, w, h uint16
 }
@@ -38,10 +40,9 @@ type lightmap struct {
 }
 
 var (
-	lightmaps             [MAX_LIGHTMAPS]lightmap
-	lastLightmapAllocated int
-	blockLights           [BLOCK_WIDTH * BLOCK_HEIGHT * 3]uint
+ lightmaps [MAX_LIGHTMAPS]lightmap
 )
+*/
 
 type qBrushDrawer struct {
 	vao           *glh.VertexArray
@@ -97,7 +98,6 @@ func newBrushDrawer() (*qBrushDrawer, error) {
 }
 
 var (
-	// brushDrawer *qBrushDrawer
 	brushDrawer *qBrushDrawer
 )
 
@@ -107,11 +107,11 @@ func CreateBrushDrawer() error {
 	return err
 }
 
-func (d *qBrushDrawer) buildVertexBuffer() {
+func (d *qBrushDrawer) buildVertexBuffer(models []model.Model) {
 	// Gets called once per map
 	idx := 0
 	var buf []float32
-	for _, m := range cl.modelPrecache {
+	for _, m := range models {
 		switch w := m.(type) {
 		case *bsp.Model:
 			for _, s := range w.Surfaces {

@@ -23,7 +23,6 @@ const (
 )
 
 func (vl *qViewLeaf) Update(world *bsp.Model, viewOrg vec.Vec3) {
-	// TODO: it feels like there is a 'bug' if two places update viewLeaf.old
 	vl.old = vl.current
 	c, err := world.PointInLeaf(viewOrg)
 	if err != nil {
@@ -43,7 +42,7 @@ func init() {
 	cvars.ROldSkyLeaf.SetCallback(f)
 }
 
-func MarkSurfaces() {
+func MarkSurfaces(model *bsp.Model) {
 	// check for water portals
 	nearWaterPortal := false
 	for _, mark := range viewLeaf.current.MarkSurfaces {
@@ -59,13 +58,13 @@ func MarkSurfaces() {
 		viewLeaf.current.Contents() == bsp.CONTENTS_SKY {
 		markSurfacesVis = bsp.NoVis
 	} else if nearWaterPortal {
-		markSurfacesVis = cl.worldModel.FatPVS(qRefreshRect.viewOrg)
+		markSurfacesVis = model.FatPVS(qRefreshRect.viewOrg)
 	} else {
-		markSurfacesVis = cl.worldModel.LeafPVS(viewLeaf.current)
+		markSurfacesVis = model.LeafPVS(viewLeaf.current)
 	}
 
 	if viewLeaf.old == viewLeaf.current && !markSurfacesVisChanged && !nearWaterPortal {
-		for i, leaf := range cl.worldModel.Leafs[1:] {
+		for i, leaf := range model.Leafs[1:] {
 			if markSurfacesVis[i>>3]&(1<<(i&7)) != 0 {
 				MakeEntitiesVisible(leaf)
 			}
@@ -74,11 +73,10 @@ func MarkSurfaces() {
 	}
 	markSurfacesVisChanged = false
 	renderer.visFrameCount++
-	// TODO: I am quite sure this is the one that is not needed.
 	viewLeaf.old = viewLeaf.current
 
 	// iterate through leaves, marking surfaces
-	for i, leaf := range cl.worldModel.Leafs[1:] {
+	for i, leaf := range model.Leafs[1:] {
 		if markSurfacesVis[i>>3]&(1<<(i&7)) != 0 {
 			if cvars.ROldSkyLeaf.Bool() || leaf.Contents() != bsp.CONTENTS_SKY {
 				for _, ms := range leaf.MarkSurfaces {
@@ -91,12 +89,12 @@ func MarkSurfaces() {
 	}
 
 	// clear and rebuild texture chains
-	for _, t := range cl.worldModel.Textures {
+	for _, t := range model.Textures {
 		if t != nil {
 			t.TextureChains[chainWorld] = nil
 		}
 	}
-	for _, n := range cl.worldModel.Nodes {
+	for _, n := range model.Nodes {
 		for _, s := range n.Surfaces {
 			if s.VisFrame == renderer.visFrameCount {
 				s.TextureChain = s.TexInfo.Texture.TextureChains[chainWorld]

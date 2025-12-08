@@ -172,7 +172,7 @@ type particle struct {
 	color    int
 	velocity vec.Vec3
 	ramp     float32
-	dieTime  float32 // if dieTime < now => dead, needs to be server controlled
+	dieTime  float64 // if dieTime < now => dead, needs to be server controlled
 	typ      particleType
 	used     bool
 }
@@ -283,7 +283,7 @@ func particlesDeinit() {
 	particleDrawer = nil
 }
 
-func particlesAddEntity(origin vec.Vec3, now float32) {
+func particlesAddEntity(origin vec.Vec3, now float64) {
 	for i := 0; i < 162; i++ {
 		l := len(freeParticles)
 		if l == 0 {
@@ -293,10 +293,11 @@ func particlesAddEntity(origin vec.Vec3, now float32) {
 		p.used = true
 		freeParticles = freeParticles[:l-1]
 
-		angle := now * angleVelocities[i][0]
+		fnow := float32(now)
+		angle := fnow * angleVelocities[i][0]
 		sy := math32.Sin(angle)
 		cy := math32.Cos(angle)
-		angle = now * angleVelocities[i][1]
+		angle = fnow * angleVelocities[i][1]
 		sp := math32.Sin(angle)
 		cp := math32.Cos(angle)
 		forward := vec.Vec3{
@@ -397,7 +398,7 @@ func randVec(r int) vec.Vec3 {
 	}
 }
 
-func particlesAddExplosion(origin vec.Vec3, now float32) {
+func particlesAddExplosion(origin vec.Vec3, now float64) {
 	for i := 0; i < 1024; i++ {
 		l := len(freeParticles)
 		if l == 0 {
@@ -420,7 +421,7 @@ func particlesAddExplosion(origin vec.Vec3, now float32) {
 	}
 }
 
-func particlesAddExplosion2(origin vec.Vec3, colorStart, colorLength int, now float32) {
+func particlesAddExplosion2(origin vec.Vec3, colorStart, colorLength int, now float64) {
 	for i := 0; i < 512; i++ {
 		l := len(freeParticles)
 		if l == 0 {
@@ -439,7 +440,7 @@ func particlesAddExplosion2(origin vec.Vec3, colorStart, colorLength int, now fl
 	}
 }
 
-func particlesAddBlobExplosion(origin vec.Vec3, now float32) {
+func particlesAddBlobExplosion(origin vec.Vec3, now float64) {
 	for i := 0; i < 1024; i++ {
 		l := len(freeParticles)
 		if l == 0 {
@@ -449,7 +450,7 @@ func particlesAddBlobExplosion(origin vec.Vec3, now float32) {
 		p.used = true
 		freeParticles = freeParticles[:l-1]
 
-		p.dieTime = now + 1 + float32(cRand.Uint32n(8))*0.5
+		p.dieTime = now + 1 + float64(cRand.Uint32n(8))*0.5
 
 		p.ramp = float32(cRand.Uint32n(4))
 		p.origin = vec.Add(origin, randVec(16))
@@ -464,7 +465,7 @@ func particlesAddBlobExplosion(origin vec.Vec3, now float32) {
 	}
 }
 
-func particlesRunEffect(origin, dir vec.Vec3, color, count int, now float32) {
+func particlesRunEffect(origin, dir vec.Vec3, color, count int, now float64) {
 	for i := 0; i < count; i++ {
 		l := len(freeParticles)
 		if l == 0 {
@@ -486,7 +487,7 @@ func particlesRunEffect(origin, dir vec.Vec3, color, count int, now float32) {
 				p.typ = ParticleTypeExplode2
 			}
 		} else {
-			p.dieTime = now + 0.1*float32((cRand.Uint32n(5)))
+			p.dieTime = now + 0.1*float64((cRand.Uint32n(5)))
 			p.color = (color &^ 7) + cRand.Intn(8)
 			p.typ = ParticleTypeSlowGrav
 			p.origin = vec.Add(origin, randVec(8))
@@ -495,7 +496,7 @@ func particlesRunEffect(origin, dir vec.Vec3, color, count int, now float32) {
 	}
 }
 
-func particlesAddLavaSplash(origin vec.Vec3, now float32) {
+func particlesAddLavaSplash(origin vec.Vec3, now float64) {
 	for i := -16; i < 16; i++ {
 		for j := -16; j < 16; j++ {
 			l := len(freeParticles)
@@ -506,7 +507,7 @@ func particlesAddLavaSplash(origin vec.Vec3, now float32) {
 			p.used = true
 			freeParticles = freeParticles[:l-1]
 
-			p.dieTime = now + 2 + float32(cRand.Uint32n(32))*0.02
+			p.dieTime = now + 2 + float64(cRand.Uint32n(32))*0.02
 			p.color = 224 + cRand.Intn(8)
 			p.typ = ParticleTypeSlowGrav
 
@@ -534,7 +535,7 @@ var (
 	teleportSplashKs = []int{-24, -20, -16, -12, -8, -4, 0, 4, 8, 12, 16, 20, 24, 28, 32}
 )
 
-func particlesAddTeleportSplash(origin vec.Vec3, now float32) {
+func particlesAddTeleportSplash(origin vec.Vec3, now float64) {
 	for _, i := range teleportSplashIs {
 		for _, j := range teleportSplashJs {
 			for _, k := range teleportSplashKs {
@@ -547,7 +548,7 @@ func particlesAddTeleportSplash(origin vec.Vec3, now float32) {
 				p.used = true
 				freeParticles = freeParticles[:l-1]
 
-				p.dieTime = now + 0.2 + float32(cRand.Uint32n(8))*0.02
+				p.dieTime = now + 0.2 + float64(cRand.Uint32n(8))*0.02
 				p.color = 7 + cRand.Intn(8)
 				p.typ = ParticleTypeSlowGrav
 
@@ -574,7 +575,7 @@ var (
 	rocketTrailTraceCount = 0
 )
 
-func particlesAddRocketTrail(start, end vec.Vec3, typ int, now float32) {
+func particlesAddRocketTrail(start, end vec.Vec3, typ int, now float64) {
 	v := vec.Sub(end, start)
 	vl := v.Length()
 	if vl != 0 {
@@ -651,8 +652,8 @@ func particlesAddRocketTrail(start, end vec.Vec3, typ int, now float32) {
 	}
 }
 
-func particlesRun(now float32, lastFrame float32) {
-	frameTime := now - lastFrame
+func particlesRun(now float64, lastFrame float64) {
+	frameTime := float32(now - lastFrame)
 	t3 := frameTime * 15
 	t2 := frameTime * 10
 	t1 := frameTime * 5

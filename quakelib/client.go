@@ -49,6 +49,21 @@ const (
 
 var (
 	cRand = rand.New(0)
+
+	cls = ClientStatic{}
+	cl  = Client{
+		staticEntities: make([]Entity, 0, 512),
+	}
+
+	clientKeepAliveTime time.Time
+
+	cshiftEmpty = intColor(130, 80, 50, 0)
+	cshiftLava  = intColor(255, 80, 0, 150)
+	cshiftSlime = intColor(0, 25, 5, 150)
+	cshiftWater = intColor(130, 80, 50, 128)
+
+	calcRefreshRectOldZ  = float32(0)
+	calcRefreshRectPunch vec.Vec3
 )
 
 func init() {
@@ -125,7 +140,6 @@ func (c *Client) adjustAngles() {
 }
 
 // this is persistent through an arbitrary number of server connections
-// TODO(therjak): merge with Client
 type ClientStatic struct {
 	state              clientConnected
 	demoNum            int
@@ -242,13 +256,6 @@ type ClientStats struct {
 	// cs16, cs17, cs18, cs19, cs20, cs21, cs22, cs23, cs24, cs25, cs26, cs27, cs28, cs29, cs30, cs31, cs32 int
 }
 
-var (
-	cls = ClientStatic{}
-	cl  = Client{
-		staticEntities: make([]Entity, 0, 512),
-	}
-)
-
 func (c *Client) setMaxEdicts(num int) error {
 	cl.entities = make([]*Entity, 0, num)
 	// ensure at least a world entity at the start
@@ -303,15 +310,6 @@ func cl_setStats(s, v int) {
 	default:
 		log.Printf("Unknown cl set stat %v", s)
 	}
-}
-
-func clientClear() {
-	cl = Client{
-		staticEntities: make([]Entity, 0, 512),
-	}
-	clearLightStyles()
-	clearBeams()
-	clearEntityFragments()
 }
 
 func viewPositionCommand(args cbuf.Arguments) error {
@@ -385,7 +383,7 @@ func (c *Client) ReadFromServer() (serverState, error) {
 			log.Printf("Bad server message\n %v", err)
 			return serverDisconnected, fmt.Errorf("CL_ParseServerMessage: Bad server message")
 		}
-		if serverState, err := CL_ParseServerMessage(pb); err != nil {
+		if serverState, err := c.ParseServerMessage(pb); err != nil {
 			return serverDisconnected, err
 		} else if serverState == serverDisconnected {
 			return serverDisconnected, nil
@@ -678,10 +676,6 @@ func CL_ParseStartSoundPacket(m *protos.Sound) error {
 	cl.sound.Start(int(m.GetEntity()), int(m.GetChannel()), int(m.GetSoundNum()), origin, volume, attenuation)
 	return nil
 }
-
-var (
-	clientKeepAliveTime time.Time
-)
 
 // When the client is taking a long time to load stuff, send keepalive messages
 // so the server doesn't disconnect.
@@ -1054,13 +1048,6 @@ func intColor(r, g, b, a float32) Color {
 	return Color{r / f, g / f, b / f, a / f}
 }
 
-var (
-	cshiftEmpty = intColor(130, 80, 50, 0)
-	cshiftLava  = intColor(255, 80, 0, 150)
-	cshiftSlime = intColor(0, 25, 5, 150)
-	cshiftWater = intColor(130, 80, 50, 128)
-)
-
 func (c *Client) setContentsColor(con int) {
 	switch con {
 	case bsp.CONTENTS_EMPTY, bsp.CONTENTS_SOLID, bsp.CONTENTS_SKY:
@@ -1106,11 +1093,6 @@ func init() {
 		return nil
 	})
 }
-
-var (
-	calcRefreshRectOldZ  = float32(0)
-	calcRefreshRectPunch vec.Vec3
-)
 
 func (c *Client) calcRefreshRect() {
 	c.driftPitch()
@@ -1734,12 +1716,12 @@ func v3FC(c *protos.Coord) vec.Vec3 {
 	return vec.Vec3{c.GetX(), c.GetY(), c.GetZ()}
 }
 
-func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) error {
+func (c *Client) parseTempEntity(tep *protos.TempEntity) error {
 	switch tep.WhichUnion() {
 	case protos.TempEntity_Spike_case:
 		// spike hitting wall
 		pos := v3FC(tep.GetSpike())
-		particlesRunEffect(pos, vec.Vec3{}, 0, 10, float32(cl.time))
+		particlesRunEffect(pos, vec.Vec3{}, 0, 10, c.time)
 		s := func() lSound {
 			if cRand.Uint32n(5) != 0 {
 				return Tink1
@@ -1755,7 +1737,7 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) error {
 	case protos.TempEntity_SuperSpike_case:
 		// spike hitting wall
 		pos := v3FC(tep.GetSuperSpike())
-		particlesRunEffect(pos, vec.Vec3{}, 0, 20, float32(cl.time))
+		particlesRunEffect(pos, vec.Vec3{}, 0, 20, c.time)
 		s := func() lSound {
 			if cRand.Uint32n(5) != 0 {
 				return Tink1
@@ -1773,11 +1755,11 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) error {
 	case protos.TempEntity_Gunshot_case:
 		// bullet hitting wall
 		pos := v3FC(tep.GetGunshot())
-		particlesRunEffect(pos, vec.Vec3{}, 0, 20, float32(cl.time))
+		particlesRunEffect(pos, vec.Vec3{}, 0, 20, c.time)
 	case protos.TempEntity_Explosion_case:
 		// rocket explosion
 		pos := v3FC(tep.GetExplosion())
-		particlesAddExplosion(pos, float32(cl.time))
+		particlesAddExplosion(pos, c.time)
 		l := cl.GetFreeDynamicLight()
 		*l = DynamicLight{
 			origin:  pos,
@@ -1790,7 +1772,7 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) error {
 	case protos.TempEntity_TarExplosion_case:
 		// tarbaby explosion
 		pos := v3FC(tep.GetTarExplosion())
-		particlesAddBlobExplosion(pos, float32(cl.time))
+		particlesAddBlobExplosion(pos, c.time)
 		clientSound(RExp3, pos)
 	case protos.TempEntity_Lightning1_case:
 		// lightning bolts
@@ -1807,12 +1789,12 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) error {
 	case protos.TempEntity_WizSpike_case:
 		// spike hitting wall
 		pos := v3FC(tep.GetWizSpike())
-		particlesRunEffect(pos, vec.Vec3{}, 20, 30, float32(cl.time))
+		particlesRunEffect(pos, vec.Vec3{}, 20, 30, c.time)
 		clientSound(WizHit, pos)
 	case protos.TempEntity_KnightSpike_case:
 		// spike hitting wall
 		pos := v3FC(tep.GetKnightSpike())
-		particlesRunEffect(pos, vec.Vec3{}, 226, 20, float32(cl.time))
+		particlesRunEffect(pos, vec.Vec3{}, 226, 20, c.time)
 		clientSound(KnightHit, pos)
 	case protos.TempEntity_Lightning3_case:
 		// lightning bolts
@@ -1822,15 +1804,15 @@ func (c *ClientStatic) parseTempEntity(tep *protos.TempEntity) error {
 		parseBeam(mdlBolt3, l.GetEntity(), s, e)
 	case protos.TempEntity_LavaSplash_case:
 		pos := v3FC(tep.GetLavaSplash())
-		particlesAddLavaSplash(pos, float32(cl.time))
+		particlesAddLavaSplash(pos, c.time)
 	case protos.TempEntity_Teleport_case:
 		pos := v3FC(tep.GetTeleport())
-		particlesAddTeleportSplash(pos, float32(cl.time))
+		particlesAddTeleportSplash(pos, c.time)
 	case protos.TempEntity_Explosion2_case:
 		// color mapped explosion
 		e := tep.GetExplosion2()
 		pos := v3FC(e.GetPosition())
-		particlesAddExplosion2(pos, int(e.GetStartColor()), int(e.GetStopColor()), float32(cl.time))
+		particlesAddExplosion2(pos, int(e.GetStartColor()), int(e.GetStopColor()), c.time)
 		l := cl.GetFreeDynamicLight()
 		*l = DynamicLight{
 			origin:  pos,
@@ -1899,7 +1881,12 @@ func (c *Client) ColorForEntity(e *Entity) vec.Vec3 {
 
 func (c *Client) ClearState() error {
 	cls.signon = 0
-	clientClear()
+	cl = Client{
+		staticEntities: make([]Entity, 0, 512),
+	}
+	clearLightStyles()
+	clearBeams()
+	clearEntityFragments()
 	cls.outProto.Reset()
 	c.clearDLights()
 
