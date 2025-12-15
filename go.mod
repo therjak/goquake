@@ -8,7 +8,7 @@ require (
 	github.com/gopxl/beep/v2 v2.1.1
 	github.com/gopxl/mainthread/v2 v2.1.1
 	github.com/veandco/go-sdl2 v0.4.40
-	google.golang.org/protobuf v1.36.10
+	google.golang.org/protobuf v1.36.11
 )
 
 require (
