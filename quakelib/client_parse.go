@@ -497,7 +497,7 @@ func handleServerDisconnected(msg string) error {
 	slog.Debug("Host_EndGame", slog.String("msg", msg))
 
 	if ServerActive() {
-		if err := hostShutdownServer(false); err != nil {
+		if err := hostShutdownServer(); err != nil {
 			return err
 		}
 	}
