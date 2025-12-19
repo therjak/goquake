@@ -113,7 +113,7 @@ func (s *Server) ServerFrame() error {
 		// TODO(therjak): is this pause stuff really needed?
 		// always pause in single player if in console or menus
 		//if svs.maxClients > 1 || keyDestination == keys.Game {
-		if err := RunPhysics(); err != nil {
+		if err := RunPhysics(s.time); err != nil {
 			return err
 		}
 		//}

@@ -1043,11 +1043,11 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 
 	// run two frames to allow everything to settle
 	host.Reset()
-	if err := RunPhysics(); err != nil {
+	if err := RunPhysics(s.time); err != nil {
 		s.active = false
 		return err
 	}
-	if err := RunPhysics(); err != nil {
+	if err := RunPhysics(s.time); err != nil {
 		s.active = false
 		return err
 	}

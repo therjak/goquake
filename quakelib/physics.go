@@ -157,7 +157,7 @@ func (q *qphysics) addGravity(ent int) {
 	entvars.Get(ent).Velocity[2] -= val * cvars.ServerGravity.Value() * float32(host.FrameTime())
 }
 
-func (q *qphysics) pusher(ent int) error {
+func (q *qphysics) pusher(ent int, time float32) error {
 	ev := entvars.Get(ent)
 	oldltime := float64(ev.LTime)
 	thinktime := float64(ev.NextThink)
@@ -182,7 +182,7 @@ func (q *qphysics) pusher(ent int) error {
 
 	if thinktime > oldltime && thinktime <= float64(ev.LTime) {
 		ev.NextThink = 0
-		progsdat.Globals.Time = sv.time
+		progsdat.Globals.Time = time
 		progsdat.Globals.Self = int32(ent)
 		progsdat.Globals.Other = 0
 		if err := vm.ExecuteProgram(ev.Think); err != nil {
@@ -777,13 +777,13 @@ func (q *qphysics) clipVelocity(in, normal vec.Vec3, overbounce float32) (int, v
 }
 
 // Player character actions
-func (q *qphysics) playerActions(ent, num int) error {
+func (q *qphysics) playerActions(ent, num int, time float32) error {
 	if !sv_clients[num-1].active {
 		// unconnected slot
 		return nil
 	}
 
-	progsdat.Globals.Time = sv.time
+	progsdat.Globals.Time = time
 	progsdat.Globals.Self = int32(ent)
 	if err := vm.ExecuteProgram(progsdat.Globals.PlayerPreThink); err != nil {
 		return err
@@ -851,14 +851,14 @@ func (q *qphysics) playerActions(ent, num int) error {
 		return err
 	}
 
-	progsdat.Globals.Time = sv.time
+	progsdat.Globals.Time = time
 	progsdat.Globals.Self = int32(ent)
 	return vm.ExecuteProgram(progsdat.Globals.PlayerPostThink)
 }
 
-func RunPhysics() error {
+func RunPhysics(time float32) error {
 	// let the progs know that a new frame has started
-	progsdat.Globals.Time = sv.time
+	progsdat.Globals.Time = time
 	progsdat.Globals.Self = 0
 	progsdat.Globals.Other = 0
 	if err := vm.ExecuteProgram(progsdat.Globals.PlayerPostThink); err != nil {
@@ -886,14 +886,14 @@ func RunPhysics() error {
 		}
 		q := qphysics{}
 		if i > 0 && i <= svs.maxClients {
-			if err := q.playerActions(i, i); err != nil {
+			if err := q.playerActions(i, i, time); err != nil {
 				return err
 			}
 		} else {
 			mt := entvars.Get(i).MoveType
 			switch mt {
 			case progs.MoveTypePush:
-				if err := q.pusher(i); err != nil {
+				if err := q.pusher(i, time); err != nil {
 					return err
 				}
 			case progs.MoveTypeNone:
