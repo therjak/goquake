@@ -1173,7 +1173,7 @@ func (s *Server) runClients() error {
 			continue
 		}
 
-		if !sv.paused {
+		if !s.paused {
 			// TODO(therjak): is this pause stuff really needed?
 			// always pause in single player if in console or menus
 			//if svs.maxClients > 1 || keyDestination == keys.Game {
