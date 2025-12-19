@@ -1658,10 +1658,10 @@ func (v *virtualMachine) fixme() error {
 
 func (v *virtualMachine) changeLevel() error {
 	// make sure we don't issue two changelevels
-	if svs.changeLevelIssued {
+	if v.changeLevelIssued {
 		return nil
 	}
-	svs.changeLevelIssued = true
+	v.changeLevelIssued = true
 
 	i := v.prog.Globals.Parm0[0]
 	s, err := v.prog.String(i)

@@ -61,8 +61,7 @@ type ServerStatic struct {
 	// stores data between map changes, while actually flags (aka as int) it is
 	// only modified to anything but 0 inside qc. So no point in matching the
 	// flag intent but better to match the use as qc number which is a float.
-	serverFlags       float32
-	changeLevelIssued bool
+	serverFlags float32
 }
 
 type ServerState bool
@@ -943,7 +942,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 
 	slog.Debug("SpawnServer", slog.String("mapname", mapName))
 	// now safe to issue another
-	svs.changeLevelIssued = false
+	vm.changeLevelIssued = false
 
 	// tell all connected clients that we are going to a new level
 	if s.Active() {
