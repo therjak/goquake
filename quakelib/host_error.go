@@ -23,7 +23,7 @@ func HostError(e error) {
 	slog.Error("Host_Error", slog.String("err", s))
 
 	if sv.Active() {
-		if err := hostShutdownServer(false); err != nil {
+		if err := hostShutdownServer(); err != nil {
 			// FIXME: this is recursion
 			HostError(err)
 		}

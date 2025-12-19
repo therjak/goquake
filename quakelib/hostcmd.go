@@ -93,7 +93,7 @@ func hostQuit() error {
 		return err
 	}
 
-	if err := hostShutdownServer(false); err != nil {
+	if err := hostShutdownServer(); err != nil {
 		return err
 	}
 
@@ -237,14 +237,14 @@ func hostMapName(a cbuf.Arguments) error {
 }
 
 // This only happens at the end of a game, not between levels
-func hostShutdownServer(crash bool) error {
+func hostShutdownServer() error {
 	// stop all client sounds immediately
 	if cls.state == ca_connected {
 		if err := cls.Disconnect(); err != nil {
 			return err
 		}
 	}
-	return ShutdownServer(crash)
+	return ShutdownServer(false)
 }
 
 // Kicks a user off of the server
@@ -305,7 +305,7 @@ func hostMap(a cbuf.Arguments) error {
 	if err := cls.Disconnect(); err != nil {
 		return err
 	}
-	if err := hostShutdownServer(false); err != nil {
+	if err := hostShutdownServer(); err != nil {
 		return err
 	}
 

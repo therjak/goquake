@@ -512,7 +512,7 @@ func (c *ClientStatic) Disconnect() error {
 
 		c.state = ca_disconnected
 		if ServerActive() {
-			if err := hostShutdownServer(false); err != nil {
+			if err := hostShutdownServer(); err != nil {
 				return err
 			}
 		}
@@ -531,7 +531,7 @@ func clientDisconnect() error {
 		return err
 	}
 	if ServerActive() {
-		if err := hostShutdownServer(false); err != nil {
+		if err := hostShutdownServer(); err != nil {
 			return err
 		}
 	}
