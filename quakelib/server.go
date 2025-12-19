@@ -117,6 +117,7 @@ var (
 		models: make([]model.Model, 1),
 	}
 	host_client int
+	progsdat    *progs.LoadedProg
 )
 
 var (
@@ -965,7 +966,13 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 	}
 
 	// load progs to get entity field count
-	LoadProgs()
+	slog.Info("LOADING PROGS")
+	p, err := progs.LoadProgs()
+	if err != nil {
+		log.Fatalf("Failed to load progs.dat: %v", err)
+	}
+	progsdat = p
+	vm.prog = p
 
 	// allocate server memory
 	s.maxEdicts = int(cvars.MaxEdicts.Value())
