@@ -123,7 +123,7 @@ func (sc *SVClient) PingTime() float32 {
 	return r / float32(len(sc.pingTimes))
 }
 
-func CheckForNewClients() error {
+func (s *Server) checkForNewClients() error {
 	for {
 		con := net.CheckNewConnections()
 		if con == nil {
@@ -137,7 +137,7 @@ func CheckForNewClients() error {
 			foundFree = true
 			c.netConnection = con
 			c.admin = con.Address() == net.LocalAddress
-			if err := ConnectClient(c.id); err != nil {
+			if err := s.connectClient(c.id); err != nil {
 				return err
 			}
 			break
@@ -1147,7 +1147,7 @@ func (sc *SVClient) sayCmd(team bool, a cbuf.Arguments) {
 	}
 }
 
-func SV_RunClients() error {
+func (s *Server) runClients() error {
 	for i := 0; i < svs.maxClients; i++ {
 		host_client = i
 

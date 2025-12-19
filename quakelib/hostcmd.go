@@ -244,7 +244,7 @@ func hostShutdownServer() error {
 			return err
 		}
 	}
-	return ShutdownServer(false)
+	return sv.Shutdown()
 }
 
 // Kicks a user off of the server

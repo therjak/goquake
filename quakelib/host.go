@@ -91,25 +91,25 @@ func init() {
 	})
 }
 
-func serverFrame() error {
+func (s *Server) ServerFrame() error {
 	// run the world state
 	progsdat.Globals.FrameTime = float32(host.FrameTime())
 
 	// set the time and clear the general datagram
-	sv.datagram.ClearMessage()
+	s.datagram.ClearMessage()
 
 	// check for new clients
-	if err := CheckForNewClients(); err != nil {
+	if err := s.checkForNewClients(); err != nil {
 		return err
 	}
 
 	// read client messages
-	if err := SV_RunClients(); err != nil {
+	if err := s.runClients(); err != nil {
 		return err
 	}
 
 	// move things around and think
-	if !sv.paused {
+	if !s.paused {
 		// TODO(therjak): is this pause stuff really needed?
 		// always pause in single player if in console or menus
 		//if svs.maxClients > 1 || keyDestination == keys.Game {
@@ -119,7 +119,7 @@ func serverFrame() error {
 		//}
 	}
 	// send all messages to the clients
-	if err := sv.SendClientMessages(); err != nil {
+	if err := s.SendClientMessages(); err != nil {
 		return err
 	}
 	return nil

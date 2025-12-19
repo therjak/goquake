@@ -50,14 +50,14 @@ func edictNum(i int) *Edict {
 
 var entvars *progs.EntityVars
 
-func AllocEdicts() {
-	entvars = progs.AllocEntvars(sv.maxEdicts, progsdat.EdictSize, progsdat)
-	sv.edicts = make([]Edict, sv.maxEdicts)
+func (s *Server) allocEdicts() {
+	entvars = progs.AllocEntvars(s.maxEdicts, progsdat.EdictSize, progsdat)
+	s.edicts = make([]Edict, s.maxEdicts)
 }
 
-func freeEdicts() {
+func (s *Server) freeEdicts() {
 	entvars.Free()
-	sv.edicts = sv.edicts[:0]
+	s.edicts = s.edicts[:0]
 }
 
 // Marks the edict as free
@@ -179,8 +179,8 @@ const (
 //
 // Used for both fresh maps and savegame loads.  A fresh map would also need
 // to call ED_CallSpawnFunctions () to let the objects initialize themselves.
-func loadEntities(data []*bsp.Entity, mapName string) error {
-	progsdat.Globals.Time = sv.time
+func (s *Server) loadEntities(data []*bsp.Entity, mapName string) error {
+	progsdat.Globals.Time = s.time
 	inhibit := 0
 	eNr := -1
 
