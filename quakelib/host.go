@@ -3,8 +3,6 @@
 package quakelib
 
 import (
-	"fmt"
-	"io"
 	"log"
 	"runtime/debug"
 
@@ -123,22 +121,6 @@ func serverFrame() error {
 	// send all messages to the clients
 	if err := sv.SendClientMessages(); err != nil {
 		return err
-	}
-	return nil
-}
-
-func writeCvarVariables(w io.Writer) error {
-	for _, c := range commandVars.All() {
-		if c.Archive() {
-			if c.UserDefined() || c.SetA() {
-				if _, err := w.Write([]byte("seta ")); err != nil {
-					return err
-				}
-			}
-			if _, err := w.Write([]byte(fmt.Sprintf("%s \"%s\"\n", c.Name(), c.String()))); err != nil {
-				return err
-			}
-		}
 	}
 	return nil
 }
