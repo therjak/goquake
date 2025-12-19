@@ -337,7 +337,7 @@ func (s *Server) WriteClientdataToMessage(player int) {
 
 // Initializes a client_t for a new net connection.  This will only be called
 // once for a player each game, not once for each level change.
-func ConnectClient(n int) error {
+func (s *Server) connectClient(n int) error {
 	old := sv_clients[n]
 	newC := &SVClient{
 		netConnection: old.netConnection,
@@ -877,7 +877,7 @@ func init() {
 
 // Grabs the current state of each client for saving across the
 // transition to another level
-func SV_SaveSpawnparms() error {
+func (s *Server) saveSpawnparms() error {
 	svs.serverFlags = progsdat.Globals.ServerFlags
 
 	for _, c := range sv_clients {
@@ -895,7 +895,7 @@ func SV_SaveSpawnparms() error {
 }
 
 func (s *Server) ChangeLevel(mapName string, pcl int) error {
-	if err := SV_SaveSpawnparms(); err != nil {
+	if err := s.saveSpawnparms(); err != nil {
 		return err
 	}
 	if err := s.SpawnServer(mapName, pcl); err != nil {
@@ -951,7 +951,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 	}
 
 	// set up the new server
-	freeEdicts()
+	s.freeEdicts()
 	sv = Server{
 		models:   make([]model.Model, 1),
 		name:     mapName,
@@ -976,7 +976,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 
 	// allocate server memory
 	s.maxEdicts = int(cvars.MaxEdicts.Value())
-	AllocEdicts()
+	s.allocEdicts()
 
 	// leave slots at start for clients only
 	s.numEdicts = svs.maxClients + 1
@@ -1033,7 +1033,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 	// serverflags are for cross level information (sigils)
 	progsdat.Globals.ServerFlags = svs.serverFlags
 
-	if err := loadEntities(sv.worldModel.Entities, mapName); err != nil {
+	if err := s.loadEntities(s.worldModel.Entities, mapName); err != nil {
 		return err
 	}
 
@@ -1075,7 +1075,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 }
 
 // This only happens at the end of a game, not between levels
-func ShutdownServer(crash bool) error {
+func (s *Server) Shutdown() error {
 	if !sv.Active() {
 		return nil
 	}
@@ -1110,7 +1110,7 @@ func ShutdownServer(crash bool) error {
 
 	for _, c := range sv_clients {
 		if c.active {
-			if err := c.Drop(crash); err != nil {
+			if err := c.Drop(false); err != nil {
 				return nil
 			}
 		}

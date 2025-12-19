@@ -301,7 +301,7 @@ func executeFrame() {
 	}
 
 	if sv.Active() {
-		if err := serverFrame(); err != nil {
+		if err := sv.ServerFrame(); err != nil {
 			HostError(err)
 		}
 	}
