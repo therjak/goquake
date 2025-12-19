@@ -161,6 +161,9 @@ type virtualMachine struct {
 	prog       *progs.LoadedProg
 	argc       int
 	builtins   []func() error
+
+	// only to prevent recursion
+	changeLevelIssued bool
 }
 
 const (
