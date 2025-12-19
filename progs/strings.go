@@ -4,7 +4,7 @@ package progs
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"strings"
 )
 
@@ -47,7 +47,7 @@ func (p *LoadedProg) AddString(s string) int32 {
 // Returns a string with a description and the contents of a global,
 // padded to 20 field width
 func (p *LoadedProg) GlobalString(n int16) string {
-	log.Printf("TODO: GlobalString called %d", n)
+	slog.Error("TODO: GlobalString called", slog.Int("n", int(n)))
 	// TODO
 	/*
 			static char line[512];
@@ -78,7 +78,7 @@ func (p *LoadedProg) GlobalString(n int16) string {
 }
 
 func (p *LoadedProg) GlobalStringNoContents(n int16) string {
-	log.Printf("TODO: GlobalStringNoContents called %d", n)
+	slog.Error("TODO: GlobalStringNoContents called", slog.Int("n", int(n)))
 	// TODO
 	/*
 			static char line[512];
