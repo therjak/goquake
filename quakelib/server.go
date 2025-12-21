@@ -356,7 +356,7 @@ func (s *Server) connectClient(n int) error {
 		newC.spawnParams = progsdat.Globals.Parm
 	}
 	sv_clients[n] = newC
-	newC.SendServerinfo()
+	newC.SendServerinfo(s)
 	return nil
 }
 
@@ -1065,7 +1065,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 	// send serverinfo to all connected clients
 	for i := 0; i < svs.maxClients; i++ {
 		if sv_clients[i].active {
-			sv_clients[i].SendServerinfo()
+			sv_clients[i].SendServerinfo(s)
 		}
 	}
 

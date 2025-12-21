@@ -274,7 +274,7 @@ func (sc *SVClient) GetMessage() error {
 	return err
 }
 
-func (sc *SVClient) SendServerinfo() {
+func (sc *SVClient) SendServerinfo(s *Server) {
 	m := &sc.msg
 	m.WriteByte(svc.Print)
 	m.WriteString(
@@ -282,10 +282,10 @@ func (sc *SVClient) SendServerinfo() {
 			[]byte{2}, version.Base, progsdat.CRC))
 
 	m.WriteByte(int(svc.ServerInfo))
-	m.WriteLong(int(sv.protocol))
+	m.WriteLong(int(s.protocol))
 
-	if sv.protocol == protocol.RMQ {
-		m.WriteLong(int(sv.protocolFlags))
+	if s.protocol == protocol.RMQ {
+		m.WriteLong(int(s.protocolFlags))
 	}
 
 	sc.msg.WriteByte(svs.maxClients)
@@ -296,22 +296,22 @@ func (sc *SVClient) SendServerinfo() {
 		m.WriteByte(svc.GameCoop)
 	}
 
-	s, err := progsdat.String(entvars.Get(0).Message)
+	sm, err := progsdat.String(entvars.Get(0).Message)
 	if err != nil {
-		s = ""
+		sm = ""
 	}
-	m.WriteString(s)
+	m.WriteString(sm)
 
-	for i, mn := range sv.modelPrecache[1:] {
-		if sv.protocol == protocol.NetQuake && i >= 256 {
+	for i, mn := range s.modelPrecache[1:] {
+		if s.protocol == protocol.NetQuake && i >= 256 {
 			break
 		}
 		m.WriteString(mn)
 	}
 	m.WriteByte(0)
 
-	for i, sn := range sv.soundPrecache[1:] {
-		if sv.protocol == protocol.NetQuake && i >= 256 {
+	for i, sn := range s.soundPrecache[1:] {
+		if s.protocol == protocol.NetQuake && i >= 256 {
 			break
 		}
 		m.WriteString(sn)
@@ -333,7 +333,7 @@ func (sc *SVClient) SendServerinfo() {
 }
 
 // Returns false if the client should be killed
-func (sc *SVClient) ReadClientMessage() (bool, error) {
+func (sc *SVClient) ReadClientMessage(s *Server) (bool, error) {
 	for {
 		data, err := sc.netConnection.GetMessage()
 		if err != nil {
@@ -345,7 +345,7 @@ func (sc *SVClient) ReadClientMessage() (bool, error) {
 		}
 		// we do not care about the first byte as it only indicates if it was
 		// send reliably (1) or not (2)
-		pb, err := clc.FromBytes(data[1:], sv.protocol, sv.protocolFlags)
+		pb, err := clc.FromBytes(data[1:], s.protocol, s.protocolFlags)
 		if err != nil {
 			log.Printf("SV_ReadClientMessage: %v", err)
 			return false, nil
@@ -364,22 +364,23 @@ func (sc *SVClient) ReadClientMessage() (bool, error) {
 				if sc != HostClient() {
 					log.Fatalf("HostClient differs")
 				}
-				s := cmd.GetStringCmd()
-				a := cbuf.Parse(s)
+				scmd := cmd.GetStringCmd()
+				a := cbuf.Parse(scmd)
 				if len(a.Args()) == 0 {
 					continue
 				}
 				switch strings.ToLower(a.Args()[0].String()) {
 				default:
-					slog.Warn("player tried something", slog.String("player", sc.name), slog.String("action", s))
+					slog.Warn("player tried something", slog.String("player", sc.name), slog.String("action", scmd))
 				case "begin":
 					sc.spawned = true
 				case "color":
-					sc.colorCmd(a)
+					color := sc.colorCmd(a)
+					svc.WriteUpdateColors(color, s.protocol, s.protocolFlags, &s.reliableDatagram)
 				case "fly":
 					sc.flyCmd(a)
 				case "kill":
-					if err := sc.killCmd(a); err != nil {
+					if err := sc.killCmd(s.time, a); err != nil {
 						return false, err
 					}
 				case "noclip":
@@ -390,34 +391,47 @@ func (sc *SVClient) ReadClientMessage() (bool, error) {
 					sc.godCmd(a)
 
 				case "pause":
-					sc.pauseCmd(a)
+					if cvars.Pausable.String() != "1" {
+						sc.Printf("Pause not allowed.\n")
+						continue
+					}
+					s.paused = !s.paused
+					SV_BroadcastPrintf("%s %s the game\n", sc.playerName(), func() string {
+						if s.paused {
+							return "paused"
+						}
+						return "unpaused"
+					}())
+					svc.WriteSetPause(s.paused, s.protocol, s.protocolFlags, &s.reliableDatagram)
 				case "ping":
 					sc.pingCmd(a)
 				case "prespawn":
-					sc.preSpawnCmd()
+					sc.preSpawnCmd(s.signon.Bytes())
 				case "setpos":
 					if err := sc.setPosCmd(a); err != nil {
 						return false, err
 					}
 				case "spawn":
-					if err := sc.spawnCmd(); err != nil {
+					if err := sc.spawnCmd(s); err != nil {
 						return false, err
 					}
 				case "give":
 					sc.giveCmd(a)
 				case "mapname":
 					// this is for a dedicated server
-					if sv.Active() {
-						fmt.Printf("\"mapname\" is %q", sv.name)
+					if s.Active() {
+						fmt.Printf("\"mapname\" is %q", s.name)
 					} else {
 						fmt.Printf("no map loaded")
 					}
-					// TODO(therjak):
-					// case hasPrefix(s, "map"):
+				//case "map":
+				// TODO(therjak):
+				// see Host_Map_f in orig
+				// in case of hostFwd
 				case "edicts":
 					edictPrintEdicts()
 				case "edictcount":
-					edictCount()
+					s.edictCount()
 				case "edict":
 					edictPrintEdictFunc(a)
 				case "tell":
@@ -427,11 +441,16 @@ func (sc *SVClient) ReadClientMessage() (bool, error) {
 						fmt.Printf("Drop error: %v", err)
 					}
 				case "name":
-					sc.nameCmd(a)
+					args := a.Args()
+					if len(args) < 2 {
+						continue
+					}
+					nn := sc.nameCmd(a)
+					svc.WriteUpdateName(nn, s.protocol, s.protocolFlags, &s.reliableDatagram)
 				case "save":
 					sc.saveCmd(a)
 				case "status":
-					sc.statusCmd()
+					sc.statusCmd(s.name)
 				case "say_team":
 					sc.sayCmd(true && cvars.TeamPlay.Bool(), a)
 				case "say":
@@ -439,7 +458,7 @@ func (sc *SVClient) ReadClientMessage() (bool, error) {
 				}
 			case protos.Cmd_MoveCmd_case:
 				mc := cmd.GetMoveCmd()
-				sc.pingTimes[sc.numPings%len(sc.pingTimes)] = sv.time - mc.GetMessageTime()
+				sc.pingTimes[sc.numPings%len(sc.pingTimes)] = s.time - mc.GetMessageTime()
 				sc.numPings++
 				sc.numPings %= len(sc.pingTimes)
 				ev := entvars.Get(sc.edictId)
@@ -465,7 +484,7 @@ func (sc *SVClient) ReadClientMessage() (bool, error) {
 	}
 }
 
-func (sc *SVClient) colorCmd(a cbuf.Arguments) {
+func (sc *SVClient) colorCmd(a cbuf.Arguments) *protos.UpdateColors {
 	args := a.Args()[1:]
 	t := args[0].Int()
 	b := t
@@ -483,11 +502,10 @@ func (sc *SVClient) colorCmd(a cbuf.Arguments) {
 	color := t*16 + b
 	sc.colors = color
 	entvars.Get(sc.edictId).Team = float32(b + 1)
-	uc := protos.UpdateColors_builder{
+	return protos.UpdateColors_builder{
 		Player:   int32(sc.id),
 		NewColor: int32(color),
 	}.Build()
-	svc.WriteUpdateColors(uc, sv.protocol, sv.protocolFlags, &sv.reliableDatagram)
 }
 
 func (sc *SVClient) flyCmd(a cbuf.Arguments) {
@@ -545,7 +563,7 @@ func (sc *SVClient) godCmd(a cbuf.Arguments) {
 	sc.Printf("godmode %v\n", qFormatI(f&flag))
 }
 
-func (sc *SVClient) killCmd(a cbuf.Arguments) error {
+func (sc *SVClient) killCmd(time float32, a cbuf.Arguments) error {
 	ev := entvars.Get(sc.edictId)
 
 	if ev.Health <= 0 {
@@ -553,7 +571,7 @@ func (sc *SVClient) killCmd(a cbuf.Arguments) error {
 		return nil
 	}
 
-	progsdat.Globals.Time = sv.time
+	progsdat.Globals.Time = time
 	progsdat.Globals.Self = int32(sc.edictId)
 	if err := vm.ExecuteProgram(progsdat.Globals.ClientKill); err != nil {
 		return err
@@ -612,23 +630,10 @@ func (sc *SVClient) noTargetCmd(a cbuf.Arguments) {
 	sc.Printf("notarget %v\n", qFormatI(f&flag))
 }
 
-func (sc *SVClient) pauseCmd(a cbuf.Arguments) {
-	if cvars.Pausable.String() != "1" {
-		sc.Printf("Pause not allowed.\n")
-		return
-	}
-	sv.paused = !sv.paused
-
+func (sc *SVClient) playerName() string {
 	ev := entvars.Get(sc.edictId)
-	playerName, _ := progsdat.String(ev.NetName)
-	SV_BroadcastPrintf("%s %s the game\n", playerName, func() string {
-		if sv.paused {
-			return "paused"
-		}
-		return "unpaused"
-	}())
-
-	svc.WriteSetPause(sv.paused, sv.protocol, sv.protocolFlags, &sv.reliableDatagram)
+	name, _ := progsdat.String(ev.NetName)
+	return name
 }
 
 func (sc *SVClient) pingCmd(a cbuf.Arguments) {
@@ -641,12 +646,12 @@ func (sc *SVClient) pingCmd(a cbuf.Arguments) {
 	}
 }
 
-func (sc *SVClient) preSpawnCmd() {
+func (sc *SVClient) preSpawnCmd(signon []byte) {
 	if sc.spawned {
 		slog.Warn("prespawn not valid -- already spawned")
 		return
 	}
-	sc.msg.WriteBytes(sv.signon.Bytes())
+	sc.msg.WriteBytes(signon)
 	sc.msg.WriteByte(svc.SignonNum)
 	sc.msg.WriteByte(2)
 	sc.sendSignon = true
@@ -695,16 +700,16 @@ func (sc *SVClient) setPosCmd(a cbuf.Arguments) error {
 	}
 }
 
-func (sc *SVClient) spawnCmd() error {
+func (sc *SVClient) spawnCmd(s *Server) error {
 	if sc.spawned {
 		slog.Warn("Spawn not valid -- already spawned")
 		return nil
 	}
 	// run the entrance script
-	if sv.loadGame {
+	if s.loadGame {
 		// loaded games are fully inited already
 		// if this is the last client to be connected, unpause
-		sv.paused = false
+		s.paused = false
 	} else {
 		entvars.Clear(sc.edictId)
 		ev := entvars.Get(sc.edictId)
@@ -712,12 +717,12 @@ func (sc *SVClient) spawnCmd() error {
 		ev.Team = float32((sc.colors & 15) + 1)
 		ev.NetName = progsdat.AddString(sc.name)
 		progsdat.Globals.Parm = sc.spawnParams
-		progsdat.Globals.Time = sv.time
+		progsdat.Globals.Time = s.time
 		progsdat.Globals.Self = int32(sc.edictId)
 		if err := vm.ExecuteProgram(progsdat.Globals.ClientConnect); err != nil {
 			return err
 		}
-		if time.Since(sc.ConnectTime()).Seconds() <= float64(sv.time) {
+		if time.Since(sc.ConnectTime()).Seconds() <= float64(s.time) {
 			log.Printf("%v entered the game\n", sc.name)
 		}
 		if err := vm.ExecuteProgram(progsdat.Globals.PutClientInServer); err != nil {
@@ -726,10 +731,10 @@ func (sc *SVClient) spawnCmd() error {
 	}
 
 	// send all current names, colors, and frag counts
-	sc.msg.ClearMessage()
+	sc.msg.Reset()
 
 	// send time of update
-	svc.WriteTime(sv.time, sv.protocol, sv.protocolFlags, &sc.msg)
+	svc.WriteTime(s.time, s.protocol, s.protocolFlags, &sc.msg)
 
 	for i, scs := range sv_clients {
 		if i >= svs.maxClients {
@@ -740,21 +745,21 @@ func (sc *SVClient) spawnCmd() error {
 			Player:  int32(i),
 			NewName: scs.name,
 		}.Build()
-		svc.WriteUpdateName(un, sv.protocol, sv.protocolFlags, &sc.msg)
+		svc.WriteUpdateName(un, s.protocol, s.protocolFlags, &sc.msg)
 		uf := protos.UpdateFrags_builder{
 			Player:   int32(i),
 			NewFrags: int32(scs.oldFrags),
 		}.Build()
-		svc.WriteUpdateFrags(uf, sv.protocol, sv.protocolFlags, &sc.msg)
+		svc.WriteUpdateFrags(uf, s.protocol, s.protocolFlags, &sc.msg)
 		uc := protos.UpdateColors_builder{
 			Player:   int32(i),
 			NewColor: int32(scs.colors),
 		}.Build()
-		svc.WriteUpdateColors(uc, sv.protocol, sv.protocolFlags, &sc.msg)
+		svc.WriteUpdateColors(uc, s.protocol, s.protocolFlags, &sc.msg)
 	}
 
 	// send all current light styles
-	for i, ls := range sv.lightStyles {
+	for i, ls := range s.lightStyles {
 		sc.msg.WriteByte(svc.LightStyle)
 		sc.msg.WriteByte(i)
 		sc.msg.WriteString(ls)
@@ -786,11 +791,11 @@ func (sc *SVClient) spawnCmd() error {
 		Y: entvars.Get(sc.edictId).Angles[1],
 		Z: 0,
 	}.Build()
-	svc.WriteSetAngle(sa, sv.protocol, sv.protocolFlags, &sc.msg)
+	svc.WriteSetAngle(sa, s.protocol, s.protocolFlags, &sc.msg)
 
-	msgBuf.ClearMessage()
+	msgBuf.Reset()
 	msgBufMaxLen = protocol.MaxDatagram
-	sv.WriteClientdataToMessage(sc.edictId)
+	s.WriteClientdataToMessage(sc.edictId)
 	sc.msg.WriteBytes(msgBuf.Bytes())
 
 	sc.msg.WriteByte(svc.SignonNum)
@@ -1077,11 +1082,7 @@ func (sc *SVClient) kickCmd(a cbuf.Arguments) error {
 	return nil
 }
 
-func (sc *SVClient) nameCmd(a cbuf.Arguments) {
-	args := a.Args()
-	if len(args) < 2 {
-		return
-	}
+func (sc *SVClient) nameCmd(a cbuf.Arguments) *protos.UpdateName {
 	newName := a.ArgumentString()
 	if len(newName) > 15 {
 		newName = newName[:15]
@@ -1094,19 +1095,18 @@ func (sc *SVClient) nameCmd(a cbuf.Arguments) {
 	entvars.Get(sc.edictId).NetName = progsdat.AddString(newName)
 
 	// send notification to all clients
-	un := protos.UpdateName_builder{
+	return protos.UpdateName_builder{
 		Player:  int32(sc.id),
 		NewName: newName,
 	}.Build()
-	svc.WriteUpdateName(un, sv.protocol, sv.protocolFlags, &sv.reliableDatagram)
 }
 
-func (sc *SVClient) statusCmd() {
+func (sc *SVClient) statusCmd(mapname string) {
 	const baseVersion = 1.09
 	sc.Printf("host:    %s\n", cvars.HostName.String())
 	sc.Printf("version: %4.2f\n", baseVersion)
 	sc.Printf("tcp/ip:  %s\n", net.Address())
-	sc.Printf("map:     %s\n", sv.name)
+	sc.Printf("map:     %s\n", mapname)
 	active := 0
 	for _, ac := range sv_clients {
 		if ac.active {
@@ -1156,7 +1156,7 @@ func (s *Server) runClients() error {
 			continue
 		}
 
-		ok, err := hc.ReadClientMessage()
+		ok, err := hc.ReadClientMessage(s)
 		if err != nil {
 			return err
 		}
@@ -1235,8 +1235,8 @@ func edictPrintEdictFunc(a cbuf.Arguments) {
 }
 
 // For debugging
-func edictCount() {
-	if !sv.Active() {
+func (s *Server) edictCount() {
+	if !s.Active() {
 		return
 	}
 
@@ -1244,7 +1244,7 @@ func edictCount() {
 	models := 0
 	solid := 0
 	step := 0
-	for i := 0; i < sv.numEdicts; i++ {
+	for i := 0; i < s.numEdicts; i++ {
 		if edictNum(i).Free {
 			continue
 		}
@@ -1260,7 +1260,7 @@ func edictCount() {
 		}
 	}
 
-	fmt.Printf("num_edicts:%3d\n", sv.numEdicts)
+	fmt.Printf("num_edicts:%3d\n", s.numEdicts)
 	fmt.Printf("active    :%3d\n", active)
 	fmt.Printf("view      :%3d\n", models)
 	fmt.Printf("touch     :%3d\n", solid)
