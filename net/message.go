@@ -122,6 +122,11 @@ func (m *Message) HasMessage() bool {
 	return m.buf.Len() > 0
 }
 
+// Deprecated: use Reset()
 func (m *Message) ClearMessage() {
+	m.buf.Reset()
+}
+
+func (m *Message) Reset() {
 	m.buf.Reset()
 }
