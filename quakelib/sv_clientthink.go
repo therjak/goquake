@@ -175,7 +175,7 @@ func (sc *SVClient) userFriction() {
 	ev.Velocity = vec.Scale(newspeed, velocity)
 }
 
-func (sc *SVClient) airMove() {
+func (sc *SVClient) airMove(time float32) {
 	ev := entvars.Get(sc.edictId)
 	forward, right, _ := vec.AngleVectors(vec.VFromA(ev.Angles))
 	fmove := float32(sc.cmd.forwardmove)
@@ -183,7 +183,7 @@ func (sc *SVClient) airMove() {
 	umove := float32(sc.cmd.upmove)
 
 	// hack to not let you back into teleporter
-	if sv.time < ev.TeleportTime && fmove < 0 {
+	if time < ev.TeleportTime && fmove < 0 {
 		fmove = 0
 	}
 
@@ -237,9 +237,9 @@ func (sc *SVClient) DropPunchAngle() {
 	ev.PunchAngle = vec.Scale(len2, pa)
 }
 
-func (sc *SVClient) WaterJump() {
+func (sc *SVClient) waterJump(time float32) {
 	ev := entvars.Get(sc.edictId)
-	if sv.time > ev.TeleportTime || ev.WaterLevel == 0 {
+	if time > ev.TeleportTime || ev.WaterLevel == 0 {
 		ev.Flags = float32(int(ev.Flags) &^ FL_WATERJUMP)
 		ev.TeleportTime = 0
 	}
@@ -249,7 +249,7 @@ func (sc *SVClient) WaterJump() {
 
 // the move fields specify an intended velocity in pix/sec
 // the angle fields specify an exact angular motion in degrees
-func (sc *SVClient) Think() {
+func (sc *SVClient) Think(time float32) {
 	ev := entvars.Get(sc.edictId)
 
 	if ev.MoveType == progs.MoveTypeNone {
@@ -276,7 +276,7 @@ func (sc *SVClient) Think() {
 	ev.Angles = angles
 
 	if int(ev.Flags)&FL_WATERJUMP != 0 {
-		sc.WaterJump()
+		sc.waterJump(time)
 		return
 	}
 	// walk
@@ -285,6 +285,6 @@ func (sc *SVClient) Think() {
 	} else if ev.WaterLevel >= 2 && ev.MoveType != progs.MoveTypeNoClip {
 		sc.waterMove()
 	} else {
-		sc.airMove()
+		sc.airMove(time)
 	}
 }
