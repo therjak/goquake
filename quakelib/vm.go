@@ -381,7 +381,7 @@ func (v *virtualMachine) leaveFunction() (int32, error) {
 func (v *virtualMachine) ExecuteProgram(fnum int32) error {
 	if fnum == 0 || int(fnum) >= len(v.prog.Functions) {
 		if v.prog.Globals.Self != 0 {
-			edictPrint(int(v.prog.Globals.Self))
+			sv.edictPrint(int(v.prog.Globals.Self))
 		}
 		return fmt.Errorf("PR_ExecuteProgram: NULL function, %d", fnum)
 	}

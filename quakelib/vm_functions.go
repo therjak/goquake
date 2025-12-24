@@ -318,7 +318,7 @@ func (v *virtualMachine) objError() error {
 	fs := v.funcName()
 	slog.Error("======OBJECT ERROR======", slog.String("function", fs), slog.String("var", s))
 	ed := int(v.prog.Globals.Self)
-	edictPrint(ed)
+	sv.edictPrint(ed)
 	v.edictFree(ed)
 	return nil
 }
@@ -329,7 +329,7 @@ func (v *virtualMachine) terminalError() error {
 	s := v.varString(0)
 	fs := v.funcName()
 	slog.Error("======SERVER ERROR======", slog.String("function", fs), slog.String("var", s))
-	edictPrint(int(v.prog.Globals.Self))
+	sv.edictPrint(int(v.prog.Globals.Self))
 	return fmt.Errorf("Program error")
 }
 
@@ -342,7 +342,7 @@ func (v *virtualMachine) dprint() error {
 // broadcast print to everyone on server
 func (v *virtualMachine) bprint() error {
 	s := v.varString(0)
-	SV_BroadcastPrint(s)
+	sv.BroadcastPrint(s)
 	return nil
 }
 
@@ -1088,12 +1088,12 @@ func svLoadModel(name string) (model.Model, error) {
 }
 
 func (v *virtualMachine) coredump() error {
-	edictPrintEdicts()
+	sv.edictPrintEdicts()
 	return nil
 }
 
 func (v *virtualMachine) eprint() error {
-	edictPrint(int(v.prog.Globals.Parm0[0]))
+	sv.edictPrint(int(v.prog.Globals.Parm0[0]))
 	return nil
 }
 

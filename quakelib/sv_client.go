@@ -83,11 +83,11 @@ func CreateSVClients() {
 	}
 }
 
-func SV_BroadcastPrintf(format string, v ...interface{}) {
-	SV_BroadcastPrint(fmt.Sprintf(format, v...))
+func (s *Server) BroadcastPrintf(format string, v ...interface{}) {
+	s.BroadcastPrint(fmt.Sprintf(format, v...))
 }
 
-func SV_BroadcastPrint(m string) {
+func (s *Server) BroadcastPrint(m string) {
 	for _, c := range sv_clients {
 		if c.active && c.spawned {
 			c.Printf(m)
@@ -396,7 +396,7 @@ func (sc *SVClient) ReadClientMessage(s *Server) (bool, error) {
 						continue
 					}
 					s.paused = !s.paused
-					SV_BroadcastPrintf("%s %s the game\n", sc.playerName(), func() string {
+					s.BroadcastPrintf("%s %s the game\n", sc.playerName(), func() string {
 						if s.paused {
 							return "paused"
 						}
@@ -429,11 +429,11 @@ func (sc *SVClient) ReadClientMessage(s *Server) (bool, error) {
 				// see Host_Map_f in orig
 				// in case of hostFwd
 				case "edicts":
-					edictPrintEdicts()
+					s.edictPrintEdicts()
 				case "edictcount":
 					s.edictCount()
 				case "edict":
-					edictPrintEdictFunc(a)
+					s.edictPrintEdictFunc(a)
 				case "tell":
 					sc.tellCmd(a)
 				case "kick":
@@ -1185,7 +1185,7 @@ func (s *Server) runClients() error {
 }
 
 // For debugging
-func edictPrint(ed int) {
+func (s *Server) edictPrint(ed int) {
 	if edictNum(ed).Free {
 		fmt.Printf("FREE\n")
 		return
@@ -1208,30 +1208,30 @@ func edictPrint(ed int) {
 }
 
 // For debugging, prints all the entities in the current server
-func edictPrintEdicts() {
-	if !sv.Active() {
+func (s *Server) edictPrintEdicts() {
+	if !s.Active() {
 		return
 	}
 
-	fmt.Printf("%d entities\n", sv.numEdicts)
-	for i := 0; i < sv.numEdicts; i++ {
-		edictPrint(i)
+	fmt.Printf("%d entities\n", s.numEdicts)
+	for i := 0; i < s.numEdicts; i++ {
+		s.edictPrint(i)
 	}
 }
 
 // For debugging, prints a single edict
-func edictPrintEdictFunc(a cbuf.Arguments) {
+func (s *Server) edictPrintEdictFunc(a cbuf.Arguments) {
 	args := a.Args()
-	if !sv.Active() || len(args) < 2 {
+	if !s.Active() || len(args) < 2 {
 		return
 	}
 
 	i := args[1].Int()
-	if i < 0 || i >= sv.numEdicts {
+	if i < 0 || i >= s.numEdicts {
 		fmt.Printf("Bad edict number\n")
 		return
 	}
-	edictPrint(i)
+	s.edictPrint(i)
 }
 
 // For debugging
