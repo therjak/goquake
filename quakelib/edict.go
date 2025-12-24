@@ -217,7 +217,7 @@ func (s *Server) loadEntities(data []*bsp.Entity, mapName string) error {
 
 		if ev.ClassName == 0 {
 			slog.Warn("No classname", slog.String("map", mapName))
-			edictPrint(eNr)
+			s.edictPrint(eNr)
 			vm.edictFree(eNr)
 			continue
 		}
@@ -227,7 +227,7 @@ func (s *Server) loadEntities(data []*bsp.Entity, mapName string) error {
 
 		if err != nil {
 			slog.Warn("No spawn function", slog.String("map", mapName))
-			edictPrint(eNr)
+			s.edictPrint(eNr)
 			vm.edictFree(eNr)
 			continue
 		}

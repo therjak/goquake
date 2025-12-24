@@ -55,7 +55,7 @@ func hostCallbackNotify(cv *cvar.Cvar) {
 	if !sv.Active() {
 		return
 	}
-	SV_BroadcastPrintf("\"%s\" changed to \"%s\"\n", cv.Name(), cv.String())
+	sv.BroadcastPrintf("\"%s\" changed to \"%s\"\n", cv.Name(), cv.String())
 }
 
 func init() {
