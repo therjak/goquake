@@ -980,7 +980,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 	// leave slots at start for clients only
 	s.numEdicts = svs.maxClients + 1
 	for i := 0; i < s.numEdicts; i++ {
-		ClearEdict(i)
+		s.clearEdict(i)
 	}
 	for i := 0; i < svs.maxClients; i++ {
 		sv_clients[i].edictId = i + 1

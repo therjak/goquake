@@ -84,7 +84,7 @@ func (v *virtualMachine) edictFree(i int) {
 	ev.Solid = 0
 }
 
-func ClearEdict(e int) {
+func (s *Server) clearEdict(e int) {
 	ent := edictNum(e)
 	*ent = Edict{}
 	entvars.Clear(e)
@@ -95,25 +95,25 @@ func ClearEdict(e int) {
 // can cause the client to think the entity morphed into something else
 // instead of being removed and recreated, which can cause interpolated
 // angles and bad trails.
-func edictAlloc() (int, error) {
+func (s *Server) edictAlloc() (int, error) {
 	i := svs.maxClients + 1
-	for ; i < sv.numEdicts; i++ {
+	for ; i < s.numEdicts; i++ {
 		e := edictNum(i)
 		// the first couple seconds of server time can involve a lot of
 		// freeing and allocating, so relax the replacement policy
-		if e.Free && (e.FreeTime < 2 || sv.time-e.FreeTime > 0.5) {
+		if e.Free && (e.FreeTime < 2 || s.time-e.FreeTime > 0.5) {
 			entvars.Clear(i)
 			edictNum(i).Free = false
 			return i, nil
 		}
 	}
 
-	if i == sv.maxEdicts {
-		return 0, fmt.Errorf("ED_Alloc: no free edicts (max_edicts is %d)", sv.maxEdicts)
+	if i == s.maxEdicts {
+		return 0, fmt.Errorf("ED_Alloc: no free edicts (max_edicts is %d)", s.maxEdicts)
 	}
 
-	sv.numEdicts++
-	ClearEdict(i)
+	s.numEdicts++
+	s.clearEdict(i)
 
 	return i, nil
 }
@@ -190,7 +190,7 @@ func (s *Server) loadEntities(data []*bsp.Entity, mapName string) error {
 		if eNr < 0 {
 			eNr = 0
 		} else {
-			n, err := edictAlloc()
+			n, err := s.edictAlloc()
 			if err != nil {
 				return err
 			}

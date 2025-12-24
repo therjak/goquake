@@ -932,7 +932,7 @@ func (v *virtualMachine) vtos() error {
 }
 
 func (v *virtualMachine) spawn() error {
-	ed, err := edictAlloc()
+	ed, err := sv.edictAlloc()
 	if err != nil {
 		return err
 	}
