@@ -1186,7 +1186,7 @@ func (s *Server) runClients() error {
 
 // For debugging
 func (s *Server) edictPrint(ed int) {
-	if edictNum(ed).Free {
+	if s.edicts[ed].Free {
 		fmt.Printf("FREE\n")
 		return
 	}
@@ -1245,7 +1245,7 @@ func (s *Server) edictCount() {
 	solid := 0
 	step := 0
 	for i := 0; i < s.numEdicts; i++ {
-		if edictNum(i).Free {
+		if s.edicts[i].Free {
 			continue
 		}
 		active++

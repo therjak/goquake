@@ -799,7 +799,7 @@ func (s *Server) WriteEntitiesToClient(clent int) {
 
 		// if (pr_alpha_supported) {
 		// TODO: find a cleaner place to put this code
-		//   UpdateEdictAlpha(ent);
+		//   s.updateEdictAlpha(ent);
 		// }
 
 		// don't send invisible entities unless they have effects
