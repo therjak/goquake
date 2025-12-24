@@ -85,8 +85,7 @@ func (v *virtualMachine) edictFree(i int) {
 }
 
 func (s *Server) clearEdict(e int) {
-	ent := edictNum(e)
-	*ent = Edict{}
+	s.edicts[e] = Edict{}
 	entvars.Clear(e)
 }
 
@@ -98,12 +97,12 @@ func (s *Server) clearEdict(e int) {
 func (s *Server) edictAlloc() (int, error) {
 	i := svs.maxClients + 1
 	for ; i < s.numEdicts; i++ {
-		e := edictNum(i)
+		e := &sv.edicts[i]
 		// the first couple seconds of server time can involve a lot of
 		// freeing and allocating, so relax the replacement policy
 		if e.Free && (e.FreeTime < 2 || s.time-e.FreeTime > 0.5) {
 			entvars.Clear(i)
-			edictNum(i).Free = false
+			e.Free = false
 			return i, nil
 		}
 	}
@@ -125,12 +124,12 @@ func entAlphaEncode(a float32) byte {
 	return byte(math.Clamp(1, math.Round(a*254.0+1), 255))
 }
 
-func UpdateEdictAlpha(ent int) {
+func (s *Server) updateEdictAlpha(ent int) {
 	v, err := entvars.FieldValue(ent, "alpha")
 	if err != nil {
 		return
 	}
-	edictNum(ent).Alpha = entAlphaEncode(v)
+	s.edicts[ent].Alpha = entAlphaEncode(v)
 }
 
 func parse(ed int, data *bsp.Entity) {
