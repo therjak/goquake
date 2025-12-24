@@ -96,7 +96,7 @@ func (q *qphysics) pushMove(pusher int, movetime float32) error {
 
 		// try moving the contacted entity
 		pev.Solid = SOLID_NOT
-		if _, err := pushEntity(c, move); err != nil {
+		if _, err := sv.pushEntity(c, move); err != nil {
 			return err
 		}
 		pev.Solid = SOLID_BSP
@@ -213,7 +213,7 @@ func (q *qphysics) tryUnstick(ent int, oldvel vec.Vec3) (int, error) {
 		{2, -2, 0},
 		{-2, -2, 0},
 	} {
-		if _, err := pushEntity(ent, dir); err != nil {
+		if _, err := sv.pushEntity(ent, dir); err != nil {
 			return 0, err
 		}
 		// retry the original move
@@ -313,7 +313,7 @@ func (q *qphysics) walkMove(ent int) error {
 	downMove := vec.Vec3{0, 0, -STEPSIZE + oldVelocity[2]*time}
 
 	// move up
-	if _, err := pushEntity(ent, upMove); err != nil { // FIXME: don't link?
+	if _, err := sv.pushEntity(ent, upMove); err != nil { // FIXME: don't link?
 		return err
 	}
 
@@ -346,7 +346,7 @@ func (q *qphysics) walkMove(ent int) error {
 	}
 
 	// move down
-	downTrace, err := pushEntity(ent, downMove) // FIXME: don't link?
+	downTrace, err := sv.pushEntity(ent, downMove) // FIXME: don't link?
 	if err != nil {
 		return err
 	}
@@ -369,7 +369,7 @@ func (q *qphysics) walkMove(ent int) error {
 
 // Non moving objects can only think
 func (q *qphysics) none(ent int) error {
-	if _, err := runThink(ent); err != nil {
+	if _, err := sv.runThink(ent); err != nil {
 		return err
 	}
 	return nil
@@ -377,7 +377,7 @@ func (q *qphysics) none(ent int) error {
 
 // A moving object that doesn't obey physics
 func (q *qphysics) noClip(ent int) error {
-	if ok, err := runThink(ent); err != nil {
+	if ok, err := sv.runThink(ent); err != nil {
 		return err
 	} else if !ok {
 		return nil
@@ -437,7 +437,7 @@ func (q *qphysics) checkWaterTransition(ent int) error {
 
 // Toss, bounce, and fly movement.  When onground, do nothing.
 func (q *qphysics) toss(ent int) error {
-	if ok, err := runThink(ent); err != nil {
+	if ok, err := sv.runThink(ent); err != nil {
 		return err
 	} else if !ok {
 		return nil
@@ -461,7 +461,7 @@ func (q *qphysics) toss(ent int) error {
 
 	velocity := ev.Velocity
 	move := vec.Scale(time, velocity)
-	t, err := pushEntity(ent, move)
+	t, err := sv.pushEntity(ent, move)
 	if err != nil {
 		return err
 	}
@@ -532,7 +532,7 @@ func (q *qphysics) step(ent int) error {
 		}
 	}
 
-	if ok, err := runThink(ent); err != nil {
+	if ok, err := sv.runThink(ent); err != nil {
 		return err
 	} else if !ok {
 		return nil
@@ -653,7 +653,7 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *bsp.Trace) (int, er
 				*steptrace = t // save for player extrafriction
 			}
 		}
-		if err := sv.Impact(ent, t.EntNumber); err != nil {
+		if err := sv.impact(ent, t.EntNumber); err != nil {
 			return 0, err
 		}
 		if edictNum(ent).Free {
@@ -794,14 +794,14 @@ func (q *qphysics) playerActions(ent, num int, time float32) error {
 
 	switch int(ev.MoveType) {
 	case progs.MoveTypeNone:
-		if ok, err := runThink(ent); err != nil {
+		if ok, err := sv.runThink(ent); err != nil {
 			return err
 		} else if !ok {
 			return nil
 		}
 
 	case progs.MoveTypeWalk:
-		if ok, err := runThink(ent); err != nil {
+		if ok, err := sv.runThink(ent); err != nil {
 			return err
 		} else if !ok {
 			return nil
@@ -822,7 +822,7 @@ func (q *qphysics) playerActions(ent, num int, time float32) error {
 		}
 
 	case progs.MoveTypeFly:
-		if ok, err := runThink(ent); err != nil {
+		if ok, err := sv.runThink(ent); err != nil {
 			return err
 		} else if !ok {
 			return nil
@@ -833,7 +833,7 @@ func (q *qphysics) playerActions(ent, num int, time float32) error {
 		}
 
 	case progs.MoveTypeNoClip:
-		if ok, err := runThink(ent); err != nil {
+		if ok, err := sv.runThink(ent); err != nil {
 			return err
 		} else if !ok {
 			return nil

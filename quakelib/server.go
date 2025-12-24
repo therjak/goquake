@@ -347,7 +347,7 @@ func (s *Server) connectClient(n int) error {
 		active:        true,
 		spawned:       false,
 	}
-	if sv.loadGame {
+	if s.loadGame {
 		newC.spawnParams = old.spawnParams
 	} else {
 		if err := vm.ExecuteProgram(progsdat.Globals.SetNewParms); err != nil {
@@ -396,7 +396,7 @@ func (s *Server) UpdateToReliableMessages() {
 	s.reliableDatagram.ClearMessage()
 }
 
-func (s *Server) Impact(e1, e2 int) error {
+func (s *Server) impact(e1, e2 int) error {
 	oldSelf := progsdat.Globals.Self
 	oldOther := progsdat.Globals.Other
 
@@ -607,17 +607,17 @@ func (s *Server) SendClientMessages() error {
 // function will be called, because it is called before any movement is done
 // in a frame.  Not used for pushmove objects, because they must be exact.
 // Returns false if the entity removed itself.
-func runThink(e int) (bool, error) {
+func (s *Server) runThink(e int) (bool, error) {
 	thinktime := entvars.Get(e).NextThink
-	if thinktime <= 0 || thinktime > sv.time+float32(host.FrameTime()) {
+	if thinktime <= 0 || thinktime > s.time+float32(host.FrameTime()) {
 		return true, nil
 	}
 
-	if thinktime < sv.time {
+	if thinktime < s.time {
 		// don't let things stay in the past.
 		// it is possible to start that way
 		// by a trigger with a local time.
-		thinktime = sv.time
+		thinktime = s.time
 	}
 
 	oldframe := entvars.Get(e).Frame
@@ -633,7 +633,7 @@ func runThink(e int) (bool, error) {
 
 	// capture interval to nextthink here and send it to client for better
 	// lerp timing, but only if interval is not 0.1 (which client assumes)
-	ed := &sv.edicts[e]
+	ed := &s.edicts[e]
 	ed.SendInterval = false
 	if !ed.Free && ev.NextThink != 0 &&
 		(ev.MoveType == progs.MoveTypeStep || ev.Frame != oldframe) {
@@ -648,7 +648,7 @@ func runThink(e int) (bool, error) {
 }
 
 // Does not change the entities velocity at all
-func pushEntity(e int, push vec.Vec3) (bsp.Trace, error) {
+func (s *Server) pushEntity(e int, push vec.Vec3) (bsp.Trace, error) {
 	ev := entvars.Get(e)
 	origin := ev.Origin
 	mins := ev.Mins
@@ -673,7 +673,7 @@ func pushEntity(e int, push vec.Vec3) (bsp.Trace, error) {
 	}
 
 	if tr.EntPointer {
-		if err := sv.Impact(e, tr.EntNumber); err != nil {
+		if err := s.impact(e, tr.EntNumber); err != nil {
 			return bsp.Trace{}, err
 		}
 	}
@@ -857,7 +857,7 @@ func (s *Server) WriteEntitiesToClient(clent int) {
 			eu.SetAlpha(int32(edict.Alpha))
 		}
 		if edict.SendInterval {
-			eu.SetLerpFinish(int32(math.Round((ev.NextThink - sv.time) * 255)))
+			eu.SetLerpFinish(int32(math.Round((ev.NextThink - s.time) * 255)))
 		}
 		svc.WriteEntityUpdate(eu, s.protocol, s.protocolFlags, &msgBuf)
 	}
@@ -1015,7 +1015,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 
 	// load the rest of the entities
 	entvars.Clear(0)
-	sv.edicts[0].Free = false
+	s.edicts[0].Free = false
 	ev := entvars.Get(0)
 	ev.Model = progsdat.AddString(s.modelName)
 	ev.ModelIndex = 1 // world model
@@ -1075,11 +1075,11 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 
 // This only happens at the end of a game, not between levels
 func (s *Server) Shutdown() error {
-	if !sv.Active() {
+	if !s.Active() {
 		return nil
 	}
 
-	sv.active = false
+	s.active = false
 
 	// flush any pending messages - like the score!!!
 	end := time.Now().Add(3 * time.Second)
@@ -1115,7 +1115,7 @@ func (s *Server) Shutdown() error {
 		}
 	}
 
-	sv.worldModel = nil
+	s.worldModel = nil
 
 	CreateSVClients()
 	return nil
