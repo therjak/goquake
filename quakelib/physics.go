@@ -61,7 +61,7 @@ func (q *qphysics) pushMove(pusher int, movetime float32) error {
 
 	// see if any solid entities are inside the final position
 	for c := 1; c < sv.numEdicts; c++ {
-		if edictNum(c).Free {
+		if sv.edicts[c].Free {
 			continue
 		}
 		cev := entvars.Get(c)
@@ -469,7 +469,7 @@ func (q *qphysics) toss(ent int) error {
 	if t.Fraction == 1 {
 		return nil
 	}
-	if edictNum(ent).Free {
+	if sv.edicts[ent].Free {
 		return nil
 	}
 
@@ -656,7 +656,7 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *bsp.Trace) (int, er
 		if err := sv.impact(ent, t.EntNumber); err != nil {
 			return 0, err
 		}
-		if edictNum(ent).Free {
+		if sv.edicts[ent].Free {
 			// removed by the impact function
 			break
 		}
@@ -876,7 +876,7 @@ func RunPhysics(time float32) error {
 	}()
 
 	for i := 0; i < entityCap; i++ {
-		if edictNum(i).Free {
+		if sv.edicts[i].Free {
 			continue
 		}
 		if progsdat.Globals.ForceRetouch != 0 {

@@ -731,7 +731,7 @@ func (v *virtualMachine) newcheckclient(check int) int {
 			break
 		}
 
-		if edictNum(ent).Free {
+		if sv.edicts[ent].Free {
 			continue
 		}
 		ev := entvars.Get(ent)
@@ -771,7 +771,7 @@ func (v *virtualMachine) checkClient() error {
 
 	// return check if it might be visible
 	ent := sv.lastCheck
-	if edictNum(ent).Free || entvars.Get(ent).Health <= 0 {
+	if sv.edicts[ent].Free || entvars.Get(ent).Health <= 0 {
 		v.prog.Globals.Return[0] = 0
 		return nil
 	}
@@ -879,7 +879,7 @@ func (v *virtualMachine) findRadius() error {
 	rad := v.prog.RawGlobalsF[progs.OffsetParm1]
 
 	for ent := 1; ent < sv.numEdicts; ent++ {
-		if edictNum(ent).Free {
+		if sv.edicts[ent].Free {
 			continue
 		}
 		ev := entvars.Get(ent)
@@ -956,7 +956,7 @@ func (v *virtualMachine) find() error {
 		return errProgram
 	}
 	for e++; int(e) < sv.numEdicts; e++ {
-		if edictNum(int(e)).Free {
+		if sv.edicts[e].Free {
 			continue
 		}
 		ti := entvars.RawI(e, f)
@@ -1251,7 +1251,7 @@ func (v *virtualMachine) nextEnt() error {
 			v.prog.Globals.Return[0] = 0
 			return nil
 		}
-		if edictNum(int(i)).Free {
+		if sv.edicts[i].Free {
 			v.prog.Globals.Return[0] = i
 			return nil
 		}
@@ -1563,7 +1563,7 @@ func (v *virtualMachine) makeStatic() error {
 	bits := 0
 
 	ent := int(v.prog.Globals.Parm0[0])
-	e := edictNum(ent)
+	e := &sv.edicts[ent]
 
 	// don't send invisible static entities
 	if e.Alpha == svc.EntityAlphaZero {

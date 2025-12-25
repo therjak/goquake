@@ -185,7 +185,7 @@ func (v *virtualMachine) LinkEdict(e int, touchTriggers bool) error {
 	if e == 0 {
 		return nil // don't add the world
 	}
-	ed := edictNum(e)
+	ed := &sv.edicts[e]
 	if ed.Free {
 		return nil
 	}
@@ -262,7 +262,7 @@ func findTouchedLeafs(e int, node bsp.Node, world *bsp.Model) {
 	}
 	if node.Contents() < 0 {
 		// This is a leaf
-		ed := edictNum(e)
+		ed := &sv.edicts[e]
 		if ed.num_leafs == MAX_ENT_LEAFS {
 			return
 		}
