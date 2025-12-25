@@ -1351,14 +1351,14 @@ const (
 	MSG_INIT             // write to the init string
 )
 
-func (v *virtualMachine) writeClient() (int, error) {
+func (v *virtualMachine) writeClient() (*SVClient, error) {
 	entnum := int(v.prog.Globals.MsgEntity)
 	if entnum < 1 || entnum > svs.maxClients {
 		slog.Error("WriteDest: not a client")
 		v.abort()
-		return 0, errProgram
+		return nil, errProgram
 	}
-	return entnum - 1, nil
+	return sv_clients[entnum-1], nil
 }
 
 func (v *virtualMachine) writeByte() error {
@@ -1369,7 +1369,7 @@ func (v *virtualMachine) writeByte() error {
 		if c, err := v.writeClient(); err != nil {
 			return err
 		} else {
-			sv_clients[c].msg.WriteByte(int(msg))
+			c.msg.WriteByte(int(msg))
 		}
 	case MSG_INIT:
 		sv.signon.WriteByte(int(msg))
@@ -1393,7 +1393,7 @@ func (v *virtualMachine) writeChar() error {
 		if c, err := v.writeClient(); err != nil {
 			return err
 		} else {
-			sv_clients[c].msg.WriteChar(int(msg))
+			c.msg.WriteChar(int(msg))
 		}
 	case MSG_INIT:
 		sv.signon.WriteChar(int(msg))
@@ -1417,7 +1417,7 @@ func (v *virtualMachine) writeShort() error {
 		if c, err := v.writeClient(); err != nil {
 			return err
 		} else {
-			sv_clients[c].msg.WriteShort(int(msg))
+			c.msg.WriteShort(int(msg))
 		}
 	case MSG_INIT:
 		sv.signon.WriteShort(int(msg))
@@ -1441,7 +1441,7 @@ func (v *virtualMachine) writeLong() error {
 		if c, err := v.writeClient(); err != nil {
 			return err
 		} else {
-			sv_clients[c].msg.WriteLong(int(msg))
+			c.msg.WriteLong(int(msg))
 		}
 	case MSG_INIT:
 		sv.signon.WriteLong(int(msg))
@@ -1465,7 +1465,7 @@ func (v *virtualMachine) writeAngle() error {
 		if c, err := v.writeClient(); err != nil {
 			return err
 		} else {
-			sv_clients[c].msg.WriteAngle(msg, sv.protocolFlags)
+			c.msg.WriteAngle(msg, sv.protocolFlags)
 		}
 	case MSG_INIT:
 		sv.signon.WriteAngle(msg, sv.protocolFlags)
@@ -1489,7 +1489,7 @@ func (v *virtualMachine) writeCoord() error {
 		if c, err := v.writeClient(); err != nil {
 			return err
 		} else {
-			sv_clients[c].msg.WriteCoord(msg, sv.protocolFlags)
+			c.msg.WriteCoord(msg, sv.protocolFlags)
 		}
 	case MSG_INIT:
 		sv.signon.WriteCoord(msg, sv.protocolFlags)
@@ -1519,7 +1519,7 @@ func (v *virtualMachine) writeString() error {
 		if c, err := v.writeClient(); err != nil {
 			return err
 		} else {
-			sv_clients[c].msg.WriteString(msg)
+			c.msg.WriteString(msg)
 		}
 	case MSG_INIT:
 		sv.signon.WriteString(msg)
@@ -1543,7 +1543,7 @@ func (v *virtualMachine) writeEntity() error {
 		if c, err := v.writeClient(); err != nil {
 			return err
 		} else {
-			sv_clients[c].msg.WriteShort(int(msg))
+			c.msg.WriteShort(int(msg))
 		}
 	case MSG_INIT:
 		sv.signon.WriteShort(int(msg))

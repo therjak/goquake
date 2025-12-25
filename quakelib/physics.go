@@ -857,6 +857,7 @@ func (q *qphysics) playerActions(ent, num int, time float32) error {
 }
 
 func RunPhysics(time float32) error {
+	q := qphysics{}
 	// let the progs know that a new frame has started
 	progsdat.Globals.Time = time
 	progsdat.Globals.Self = 0
@@ -884,7 +885,6 @@ func RunPhysics(time float32) error {
 				return err
 			}
 		}
-		q := qphysics{}
 		if i > 0 && i <= svs.maxClients {
 			if err := q.playerActions(i, i, time); err != nil {
 				return err
