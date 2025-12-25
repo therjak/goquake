@@ -44,10 +44,6 @@ type Edict struct {
 	FreeTime float32 // sv.time when the object was freed
 }
 
-func edictNum(i int) *Edict {
-	return &sv.edicts[i]
-}
-
 var entvars *progs.EntityVars
 
 func (s *Server) allocEdicts() {
@@ -66,7 +62,7 @@ func (v *virtualMachine) edictFree(i int) {
 	// unlink from world bsp
 	v.UnlinkEdict(i)
 
-	e := edictNum(i)
+	e := &sv.edicts[i]
 	e.Free = true
 	e.Alpha = 0
 	e.FreeTime = sv.time
