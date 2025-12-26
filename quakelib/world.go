@@ -166,7 +166,7 @@ func (v *virtualMachine) touchLinks(e int, a *areaNode) error {
 		progsdat.Globals.Self = int32(touch)
 		progsdat.Globals.Other = int32(e)
 		progsdat.Globals.Time = sv.time
-		if err := v.ExecuteProgram(tv.Touch); err != nil {
+		if err := v.ExecuteProgram(tv.Touch, &sv); err != nil {
 			return err
 		}
 
