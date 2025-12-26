@@ -78,7 +78,7 @@ func (s *Server) pushMove(pusher int, movetime float32) error {
 				continue
 			}
 			// see if the ent's bbox is inside the pusher's final position
-			if !testEntityPosition(c) {
+			if !testEntityPosition(c, s) {
 				continue
 			}
 		}
@@ -99,7 +99,7 @@ func (s *Server) pushMove(pusher int, movetime float32) error {
 		pev.Solid = SOLID_BSP
 
 		// if it is still inside the pusher, block
-		if testEntityPosition(c) {
+		if testEntityPosition(c, s) {
 			// fail the move
 			if cev.Mins[0] == cev.Maxs[0] {
 				continue
@@ -400,7 +400,7 @@ func (s *Server) noClip(ent int) error {
 func (s *Server) checkWaterTransition(ent int) error {
 	ev := entvars.Get(ent)
 
-	cont := pointContents(ev.Origin)
+	cont := pointContents(ev.Origin, s.worldModel)
 
 	if ev.WaterType == 0 {
 		// just spawned here
@@ -545,14 +545,14 @@ func (s *Server) step(ent int) error {
 // clipping hull.
 func (s *Server) checkStuck(ent int) error {
 	ev := entvars.Get(ent)
-	if !testEntityPosition(ent) {
+	if !testEntityPosition(ent, s) {
 		ev.OldOrigin = ev.Origin
 		return nil
 	}
 
 	org := ev.Origin
 	ev.Origin = ev.OldOrigin
-	if !testEntityPosition(ent) {
+	if !testEntityPosition(ent, s) {
 		slog.Debug("Unstuck.") // debug
 		if err := vm.LinkEdict(ent, true, s); err != nil {
 			return err
@@ -566,7 +566,7 @@ func (s *Server) checkStuck(ent int) error {
 				ev.Origin[0] = org[0] + i
 				ev.Origin[1] = org[1] + j
 				ev.Origin[2] = org[2] + z
-				if !testEntityPosition(ent) {
+				if !testEntityPosition(ent, s) {
 					slog.Debug("Unstuck.")
 					if err := vm.LinkEdict(ent, true, s); err != nil {
 						return err
@@ -615,7 +615,7 @@ func (s *Server) flyMove(ent int, time float32, steptrace *bsp.Trace) (int, erro
 			origin[2] + time_left*velocity[2],
 		}
 
-		t := svMove(origin, ev.Mins, ev.Maxs, end, MOVE_NORMAL, ent)
+		t := svMove(origin, ev.Mins, ev.Maxs, end, MOVE_NORMAL, ent, s)
 
 		if t.AllSolid {
 			// entity is trapped in another solid
@@ -721,16 +721,16 @@ func (s *Server) checkWater(ent int) bool {
 	ev.WaterLevel = 0
 	ev.WaterType = bsp.CONTENTS_EMPTY
 
-	cont := pointContents(point)
+	cont := pointContents(point, s.worldModel)
 	if cont <= bsp.CONTENTS_WATER {
 		ev.WaterType = float32(cont)
 		ev.WaterLevel = 1
 		point[2] = ev.Origin[2] + (ev.Mins[2]+ev.Maxs[2])*0.5
-		cont = pointContents(point)
+		cont = pointContents(point, s.worldModel)
 		if cont <= bsp.CONTENTS_WATER {
 			ev.WaterLevel = 2
 			point[2] = ev.Origin[2] + ev.ViewOfs[2]
-			cont = pointContents(point)
+			cont = pointContents(point, s.worldModel)
 			if cont <= bsp.CONTENTS_WATER {
 				ev.WaterLevel = 3
 			}

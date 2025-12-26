@@ -8,6 +8,7 @@ import (
 
 	"goquake/bsp"
 	"goquake/math/vec"
+	"goquake/model"
 	"goquake/progs"
 	"goquake/ring"
 )
@@ -219,7 +220,7 @@ func (v *virtualMachine) LinkEdict(e int, touchTriggers bool, s *Server) error {
 
 	ed.num_leafs = 0
 	if ev.ModelIndex != 0 {
-		findTouchedLeafs(e, s.worldModel.Node, s.worldModel)
+		findTouchedLeafs(e, s.worldModel.Node, s.worldModel, ed)
 	}
 
 	if ev.Solid == SOLID_NOT {
@@ -256,13 +257,12 @@ func (v *virtualMachine) LinkEdict(e int, touchTriggers bool, s *Server) error {
 	return nil
 }
 
-func findTouchedLeafs(e int, node bsp.Node, world *bsp.Model) {
+func findTouchedLeafs(e int, node bsp.Node, world *bsp.Model, ed *Edict) {
 	if node.Contents() == bsp.CONTENTS_SOLID {
 		return
 	}
 	if node.Contents() < 0 {
 		// This is a leaf
-		ed := &sv.edicts[e]
 		if ed.num_leafs == MAX_ENT_LEAFS {
 			return
 		}
@@ -287,10 +287,10 @@ func findTouchedLeafs(e int, node bsp.Node, world *bsp.Model) {
 	ev := entvars.Get(e)
 	sides := boxOnPlaneSide(vec.VFromA(ev.AbsMin), vec.VFromA(ev.AbsMax), splitplane)
 	if sides&1 != 0 {
-		findTouchedLeafs(e, n.Children[0], world)
+		findTouchedLeafs(e, n.Children[0], world, ed)
 	}
 	if sides&2 != 0 {
-		findTouchedLeafs(e, n.Children[1], world)
+		findTouchedLeafs(e, n.Children[1], world, ed)
 	}
 }
 
@@ -361,7 +361,7 @@ type moveClip struct {
 	typ, edict                                             int
 }
 
-func clipToLinks(a *areaNode, clip *moveClip) {
+func clipToLinks(a *areaNode, clip *moveClip, s *Server) {
 	for l := a.solidEdicts.Next(); l != a.solidEdicts; l = l.Next() {
 		touch := l.Value
 		tv := entvars.Get(touch)
@@ -406,9 +406,9 @@ func clipToLinks(a *areaNode, clip *moveClip) {
 		t := func() bsp.Trace {
 			if (int(tv.Flags) & FL_MONSTER) != 0 {
 				// this just makes monstern easier to hit with missiles
-				return clipMoveToEntity(touch, clip.start, clip.mins2, clip.maxs2, clip.end)
+				return clipMoveToEntity(touch, clip.start, clip.mins2, clip.maxs2, clip.end, s)
 			}
-			return clipMoveToEntity(touch, clip.start, clip.mins, clip.maxs, clip.end)
+			return clipMoveToEntity(touch, clip.start, clip.mins, clip.maxs, clip.end, s)
 		}()
 		if t.AllSolid || t.StartSolid || t.Fraction < clip.trace.Fraction {
 			t.EntNumber = touch
@@ -426,10 +426,10 @@ func clipToLinks(a *areaNode, clip *moveClip) {
 		return
 	}
 	if clip.boxmaxs[a.axis] > a.dist {
-		clipToLinks(a.children[0], clip)
+		clipToLinks(a.children[0], clip, s)
 	}
 	if clip.boxmins[a.axis] < a.dist {
-		clipToLinks(a.children[1], clip)
+		clipToLinks(a.children[1], clip, s)
 	}
 }
 
@@ -471,13 +471,12 @@ func hullForBox(mins, maxs vec.Vec3) *bsp.Hull {
 	return &boxHull
 }
 
-func hullForEntity(ent *progs.EntVars, mins, maxs vec.Vec3) (*bsp.Hull, vec.Vec3) {
+func hullForEntity(ent *progs.EntVars, mins, maxs vec.Vec3, m model.Model) (*bsp.Hull, vec.Vec3) {
 	if ent.Solid == SOLID_BSP {
 		if ent.MoveType != progs.MoveTypePush {
 			debug.PrintStack()
 			log.Fatalf("SOLID_BSP without MOVETYPE_PUSH")
 		}
-		m := sv.models[int(ent.ModelIndex)]
 		switch qm := m.(type) {
 		default:
 			debug.PrintStack()
@@ -502,16 +501,18 @@ func hullForEntity(ent *progs.EntVars, mins, maxs vec.Vec3) (*bsp.Hull, vec.Vec3
 	return hullForBox(hullmins, hullmaxs), origin
 }
 
-func pointContents(p vec.Vec3) int {
-	return sv.worldModel.Hulls[0].PointContents(0, p)
+func pointContents(p vec.Vec3, m *bsp.Model) int {
+	return m.Hulls[0].PointContents(0, p)
 }
 
-func clipMoveToEntity(ent int, start, mins, maxs, end vec.Vec3) bsp.Trace {
+func clipMoveToEntity(e int, start, mins, maxs, end vec.Vec3, s *Server) bsp.Trace {
 	var t bsp.Trace
 	t.Fraction = 1
 	t.AllSolid = true
 	t.EndPos = end
-	hull, offset := hullForEntity(entvars.Get(ent), mins, maxs)
+	ent := entvars.Get(e)
+	m := s.models[int(ent.ModelIndex)]
+	hull, offset := hullForEntity(ent, mins, maxs, m)
 	startL := vec.Sub(start, offset)
 	endL := vec.Sub(end, offset)
 	hull.RecursiveCheck(hull.FirstClipNode, 0, 1, startL, endL, &t)
@@ -522,7 +523,7 @@ func clipMoveToEntity(ent int, start, mins, maxs, end vec.Vec3) bsp.Trace {
 		t.EndPos[2] += offset[2]
 	}
 	if t.Fraction < 1 || t.StartSolid {
-		t.EntNumber = ent
+		t.EntNumber = e
 		t.EntPointer = true
 	}
 	return t
@@ -534,9 +535,9 @@ func (c *moveClip) moveBounds(s, e vec.Vec3) {
 	c.boxmaxs = vec.Add(vec.Add(max, c.maxs2), vec.Vec3{1, 1, 1})
 }
 
-func testEntityPosition(ent int) bool {
+func testEntityPosition(ent int, s *Server) bool {
 	ev := entvars.Get(ent)
-	t := svMove(ev.Origin, ev.Mins, ev.Maxs, ev.Origin, MOVE_NORMAL, ent)
+	t := svMove(ev.Origin, ev.Mins, ev.Maxs, ev.Origin, MOVE_NORMAL, ent, s)
 	return t.StartSolid
 }
 
@@ -547,9 +548,9 @@ func testEntityPosition(ent int) bool {
 // nomonsters is used for line of sight or edge testing where monsters
 // shouldn't be considered solid objects
 // passedict is explicitly excluded from clipping checks (normally NULL)
-func svMove(start, mins, maxs, end vec.Vec3, typ, ed int) bsp.Trace {
+func svMove(start, mins, maxs, end vec.Vec3, typ, ed int, s *Server) bsp.Trace {
 	clip := moveClip{
-		trace: clipMoveToEntity(0, start, mins, maxs, end),
+		trace: clipMoveToEntity(0, start, mins, maxs, end, s),
 		start: start,
 		end:   end,
 		mins:  mins,
@@ -567,7 +568,7 @@ func svMove(start, mins, maxs, end vec.Vec3, typ, ed int) bsp.Trace {
 	// create the bounding box of the entire move
 	clip.moveBounds(start, end)
 
-	clipToLinks(gArea, &clip)
+	clipToLinks(gArea, &clip, s)
 
 	return clip.trace
 }
@@ -578,7 +579,7 @@ const (
 
 // Returns false if any part of the bottom of the entity is off an edge that
 // is not a staircase.
-func checkBottom(ent int) bool {
+func checkBottom(ent int, s *Server) bool {
 	ev := entvars.Get(ent)
 	o := ev.Origin
 	mins := vec.Add(o, ev.Mins)
@@ -593,14 +594,14 @@ func checkBottom(ent int) bool {
 		{maxs[0], maxs[1], mins[2] - 1},
 	}
 	for _, start := range d {
-		if pointContents(start) != bsp.CONTENTS_SOLID {
-			return expensiveCheckBottom(ent, mins, maxs)
+		if pointContents(start, s.worldModel) != bsp.CONTENTS_SOLID {
+			return expensiveCheckBottom(ent, mins, maxs, s)
 		}
 	}
 	return true
 }
 
-func expensiveCheckBottom(ent int, mins, maxs vec.Vec3) bool {
+func expensiveCheckBottom(ent int, mins, maxs vec.Vec3, s *Server) bool {
 	level := mins[2]
 	below := mins[2] - 2*kStepSize
 	start := vec.Vec3{
@@ -609,7 +610,7 @@ func expensiveCheckBottom(ent int, mins, maxs vec.Vec3) bool {
 		level,
 	}
 	stop := vec.Vec3{start[0], start[1], below}
-	t := svMove(start, vec.Vec3{}, vec.Vec3{}, stop, MOVE_NOMONSTERS, ent)
+	t := svMove(start, vec.Vec3{}, vec.Vec3{}, stop, MOVE_NOMONSTERS, ent, s)
 
 	if t.Fraction == 1.0 {
 		return false
@@ -627,7 +628,7 @@ func expensiveCheckBottom(ent int, mins, maxs vec.Vec3) bool {
 	for _, p := range d {
 		start := vec.Vec3{p[0], p[1], level}
 		stop := vec.Vec3{p[0], p[1], below}
-		t := svMove(start, vec.Vec3{}, vec.Vec3{}, stop, MOVE_NOMONSTERS, ent)
+		t := svMove(start, vec.Vec3{}, vec.Vec3{}, stop, MOVE_NOMONSTERS, ent, s)
 
 		if t.Fraction != 1.0 && t.EndPos[2] > bottom {
 			bottom = t.EndPos[2]
