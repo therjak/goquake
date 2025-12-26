@@ -14,9 +14,6 @@ import (
 	"github.com/chewxy/math32"
 )
 
-type qphysics struct {
-}
-
 /*
 pushmove objects do not obey gravity, and do not interact with each other or
 trigger fields, but block normal movement and push normal objects when they
@@ -34,7 +31,7 @@ flying/floating monsters are SOLID_SLIDEBOX and MOVETYPE_FLY
 
 solid_edge items only clip against bsp models.
 */
-func (q *qphysics) pushMove(pusher int, movetime float32) error {
+func (s *Server) pushMove(pusher int, movetime float32) error {
 	pev := entvars.Get(pusher)
 	if pev.Velocity == [3]float32{} {
 		pev.LTime += movetime
@@ -60,8 +57,8 @@ func (q *qphysics) pushMove(pusher int, movetime float32) error {
 	movedEnts := []moved{}
 
 	// see if any solid entities are inside the final position
-	for c := 1; c < sv.numEdicts; c++ {
-		if sv.edicts[c].Free {
+	for c := 1; c < s.numEdicts; c++ {
+		if s.edicts[c].Free {
 			continue
 		}
 		cev := entvars.Get(c)
@@ -96,7 +93,7 @@ func (q *qphysics) pushMove(pusher int, movetime float32) error {
 
 		// try moving the contacted entity
 		pev.Solid = SOLID_NOT
-		if _, err := sv.pushEntity(c, move); err != nil {
+		if _, err := s.pushEntity(c, move); err != nil {
 			return err
 		}
 		pev.Solid = SOLID_BSP
@@ -149,7 +146,7 @@ func (q *qphysics) pushMove(pusher int, movetime float32) error {
 	return nil
 }
 
-func (q *qphysics) addGravity(ent int) {
+func (s *Server) addGravity(ent int) {
 	val, err := entvars.FieldValue(ent, "gravity")
 	if err != nil || val == 0 {
 		val = 1.0
@@ -157,7 +154,7 @@ func (q *qphysics) addGravity(ent int) {
 	entvars.Get(ent).Velocity[2] -= val * cvars.ServerGravity.Value() * float32(host.FrameTime())
 }
 
-func (q *qphysics) pusher(ent int, time float32) error {
+func (s *Server) pusher(ent int, time float32) error {
 	ev := entvars.Get(ent)
 	oldltime := float64(ev.LTime)
 	thinktime := float64(ev.NextThink)
@@ -175,7 +172,7 @@ func (q *qphysics) pusher(ent int, time float32) error {
 
 	if movetime != 0 {
 		// advances ent->v.ltime if not blocked
-		if err := q.pushMove(ent, movetime); err != nil {
+		if err := s.pushMove(ent, movetime); err != nil {
 			return err
 		}
 	}
@@ -198,7 +195,7 @@ func (q *qphysics) pusher(ent int, time float32) error {
 // Try fixing by pushing one pixel in each direction.
 //
 // This is a hack, but in the interest of good gameplay...
-func (q *qphysics) tryUnstick(ent int, oldvel vec.Vec3) (int, error) {
+func (s *Server) tryUnstick(ent int, oldvel vec.Vec3) (int, error) {
 	ev := entvars.Get(ent)
 	oldorg := ev.Origin
 
@@ -213,14 +210,14 @@ func (q *qphysics) tryUnstick(ent int, oldvel vec.Vec3) (int, error) {
 		{2, -2, 0},
 		{-2, -2, 0},
 	} {
-		if _, err := sv.pushEntity(ent, dir); err != nil {
+		if _, err := s.pushEntity(ent, dir); err != nil {
 			return 0, err
 		}
 		// retry the original move
 		ev.Velocity = oldvel
 		ev.Velocity[2] = 0 // TODO: why?
 		steptrace := bsp.Trace{}
-		clip, err := q.flyMove(ent, 0.1, &steptrace)
+		clip, err := s.flyMove(ent, 0.1, &steptrace)
 		if err != nil {
 			return 0, err
 		}
@@ -237,7 +234,7 @@ func (q *qphysics) tryUnstick(ent int, oldvel vec.Vec3) (int, error) {
 	return 7, nil
 }
 
-func (q *qphysics) wallFriction(ent int, planeNormal vec.Vec3) {
+func (s *Server) wallFriction(ent int, planeNormal vec.Vec3) {
 	const deg = math32.Pi * 2 / 360
 
 	ev := entvars.Get(ent)
@@ -261,7 +258,7 @@ func (q *qphysics) wallFriction(ent int, planeNormal vec.Vec3) {
 }
 
 // Only used by players
-func (q *qphysics) walkMove(ent int) error {
+func (s *Server) walkMove(ent int) error {
 	const STEPSIZE = 18
 	ev := entvars.Get(ent)
 
@@ -274,7 +271,7 @@ func (q *qphysics) walkMove(ent int) error {
 
 	time := float32(host.FrameTime())
 	steptrace := bsp.Trace{}
-	clip, err := q.flyMove(ent, time, &steptrace)
+	clip, err := s.flyMove(ent, time, &steptrace)
 	if err != nil {
 		return err
 	}
@@ -313,14 +310,14 @@ func (q *qphysics) walkMove(ent int) error {
 	downMove := vec.Vec3{0, 0, -STEPSIZE + oldVelocity[2]*time}
 
 	// move up
-	if _, err := sv.pushEntity(ent, upMove); err != nil { // FIXME: don't link?
+	if _, err := s.pushEntity(ent, upMove); err != nil { // FIXME: don't link?
 		return err
 	}
 
 	// move forward
 	ev.Velocity = oldVelocity
 	ev.Velocity[2] = 0
-	clip, err = q.flyMove(ent, time, &steptrace)
+	clip, err = s.flyMove(ent, time, &steptrace)
 	if err != nil {
 		return err
 	}
@@ -332,7 +329,7 @@ func (q *qphysics) walkMove(ent int) error {
 			math32.Abs(oldOrigin[0]-ev.Origin[0]) < 0.03125 {
 			// stepping up didn't make any progress
 			var err error
-			clip, err = q.tryUnstick(ent, oldVelocity)
+			clip, err = s.tryUnstick(ent, oldVelocity)
 			if err != nil {
 				return err
 			}
@@ -342,11 +339,11 @@ func (q *qphysics) walkMove(ent int) error {
 	// extra friction based on view angle
 	if clip&2 != 0 {
 		planeNormal := steptrace.Plane.Normal
-		q.wallFriction(ent, planeNormal)
+		s.wallFriction(ent, planeNormal)
 	}
 
 	// move down
-	downTrace, err := sv.pushEntity(ent, downMove) // FIXME: don't link?
+	downTrace, err := s.pushEntity(ent, downMove) // FIXME: don't link?
 	if err != nil {
 		return err
 	}
@@ -368,16 +365,16 @@ func (q *qphysics) walkMove(ent int) error {
 }
 
 // Non moving objects can only think
-func (q *qphysics) none(ent int) error {
-	if _, err := sv.runThink(ent); err != nil {
+func (s *Server) none(ent int) error {
+	if _, err := s.runThink(ent); err != nil {
 		return err
 	}
 	return nil
 }
 
 // A moving object that doesn't obey physics
-func (q *qphysics) noClip(ent int) error {
-	if ok, err := sv.runThink(ent); err != nil {
+func (s *Server) noClip(ent int) error {
+	if ok, err := s.runThink(ent); err != nil {
 		return err
 	} else if !ok {
 		return nil
@@ -400,7 +397,7 @@ func (q *qphysics) noClip(ent int) error {
 	return nil
 }
 
-func (q *qphysics) checkWaterTransition(ent int) error {
+func (s *Server) checkWaterTransition(ent int) error {
 	ev := entvars.Get(ent)
 
 	cont := pointContents(ev.Origin)
@@ -415,7 +412,7 @@ func (q *qphysics) checkWaterTransition(ent int) error {
 	if cont <= bsp.CONTENTS_WATER {
 		if ev.WaterType == bsp.CONTENTS_EMPTY {
 			// just crossed into water
-			if err := sv.StartSound(ent, 0, 255, "misc/h2ohit1.wav", 1); err != nil {
+			if err := s.StartSound(ent, 0, 255, "misc/h2ohit1.wav", 1); err != nil {
 				return err
 			}
 		}
@@ -426,7 +423,7 @@ func (q *qphysics) checkWaterTransition(ent int) error {
 
 	if ev.WaterType != bsp.CONTENTS_EMPTY {
 		// just crossed into water
-		if err := sv.StartSound(ent, 0, 255, "misc/h2ohit1.wav", 1); err != nil {
+		if err := s.StartSound(ent, 0, 255, "misc/h2ohit1.wav", 1); err != nil {
 			return err
 		}
 	}
@@ -436,8 +433,8 @@ func (q *qphysics) checkWaterTransition(ent int) error {
 }
 
 // Toss, bounce, and fly movement.  When onground, do nothing.
-func (q *qphysics) toss(ent int) error {
-	if ok, err := sv.runThink(ent); err != nil {
+func (s *Server) toss(ent int) error {
+	if ok, err := s.runThink(ent); err != nil {
 		return err
 	} else if !ok {
 		return nil
@@ -451,7 +448,7 @@ func (q *qphysics) toss(ent int) error {
 
 	if ev.MoveType != progs.MoveTypeFly &&
 		ev.MoveType != progs.MoveTypeFlyMissile {
-		q.addGravity(ent)
+		s.addGravity(ent)
 	}
 
 	time := float32(host.FrameTime())
@@ -461,7 +458,7 @@ func (q *qphysics) toss(ent int) error {
 
 	velocity := ev.Velocity
 	move := vec.Scale(time, velocity)
-	t, err := sv.pushEntity(ent, move)
+	t, err := s.pushEntity(ent, move)
 	if err != nil {
 		return err
 	}
@@ -469,7 +466,7 @@ func (q *qphysics) toss(ent int) error {
 	if t.Fraction == 1 {
 		return nil
 	}
-	if sv.edicts[ent].Free {
+	if s.edicts[ent].Free {
 		return nil
 	}
 
@@ -481,7 +478,7 @@ func (q *qphysics) toss(ent int) error {
 	}()
 
 	n := t.Plane.Normal
-	_, velocity = q.clipVelocity(velocity, n, backOff)
+	_, velocity = clipVelocity(velocity, n, backOff)
 	ev.Velocity = velocity
 
 	// stop if on ground
@@ -494,7 +491,7 @@ func (q *qphysics) toss(ent int) error {
 		}
 	}
 
-	if err := q.checkWaterTransition(ent); err != nil {
+	if err := s.checkWaterTransition(ent); err != nil {
 		return err
 	}
 	return nil
@@ -505,7 +502,7 @@ func (q *qphysics) toss(ent int) error {
 
 // This is also used for objects that have become still on the ground, but
 // will fall if the floor is pulled out from under them.
-func (q *qphysics) step(ent int) error {
+func (s *Server) step(ent int) error {
 	ev := entvars.Get(ent)
 
 	// freefall if not onground
@@ -513,9 +510,9 @@ func (q *qphysics) step(ent int) error {
 		hitSound := ev.Velocity[2] < cvars.ServerGravity.Value()*-0.1
 
 		time := float32(host.FrameTime())
-		q.addGravity(ent)
+		s.addGravity(ent)
 		CheckVelocity(ev)
-		if _, err := q.flyMove(ent, time, nil); err != nil {
+		if _, err := s.flyMove(ent, time, nil); err != nil {
 			return err
 		}
 		if err := vm.LinkEdict(ent, true); err != nil {
@@ -525,20 +522,20 @@ func (q *qphysics) step(ent int) error {
 		if int(ev.Flags)&FL_ONGROUND != 0 {
 			// just hit ground
 			if hitSound {
-				if err := sv.StartSound(ent, 0, 255, "demon/dland2.wav", 1); err != nil {
+				if err := s.StartSound(ent, 0, 255, "demon/dland2.wav", 1); err != nil {
 					return err
 				}
 			}
 		}
 	}
 
-	if ok, err := sv.runThink(ent); err != nil {
+	if ok, err := s.runThink(ent); err != nil {
 		return err
 	} else if !ok {
 		return nil
 	}
 
-	if err := q.checkWaterTransition(ent); err != nil {
+	if err := s.checkWaterTransition(ent); err != nil {
 		return err
 	}
 	return nil
@@ -546,7 +543,7 @@ func (q *qphysics) step(ent int) error {
 
 // This is a big hack to try and fix the rare case of getting stuck in the world
 // clipping hull.
-func (q *qphysics) checkStuck(ent int) error {
+func (s *Server) checkStuck(ent int) error {
 	ev := entvars.Get(ent)
 	if !testEntityPosition(ent) {
 		ev.OldOrigin = ev.Origin
@@ -591,7 +588,7 @@ func (q *qphysics) checkStuck(ent int) error {
 // 2 = wall / step
 // 4 = dead stop
 // If steptrace is not NULL, the trace of any vertical wall hit will be stored
-func (q *qphysics) flyMove(ent int, time float32, steptrace *bsp.Trace) (int, error) {
+func (s *Server) flyMove(ent int, time float32, steptrace *bsp.Trace) (int, error) {
 	const MAX_CLIP_PLANES = 5
 	planes := [MAX_CLIP_PLANES]vec.Vec3{}
 
@@ -653,10 +650,10 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *bsp.Trace) (int, er
 				*steptrace = t // save for player extrafriction
 			}
 		}
-		if err := sv.impact(ent, t.EntNumber); err != nil {
+		if err := s.impact(ent, t.EntNumber); err != nil {
 			return 0, err
 		}
-		if sv.edicts[ent].Free {
+		if s.edicts[ent].Free {
 			// removed by the impact function
 			break
 		}
@@ -677,7 +674,7 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *bsp.Trace) (int, er
 		i := 0
 		for i = 0; i < numplanes; i++ {
 			j := 0
-			_, new_velocity = q.clipVelocity(original_velocity, planes[i], 1)
+			_, new_velocity = clipVelocity(original_velocity, planes[i], 1)
 			for j = 0; j < numplanes; j++ {
 				if j != i {
 					if vec.Dot(new_velocity, planes[j]) < 0 {
@@ -713,7 +710,7 @@ func (q *qphysics) flyMove(ent int, time float32, steptrace *bsp.Trace) (int, er
 	return blocked, nil
 }
 
-func (q *qphysics) checkWater(ent int) bool {
+func (s *Server) checkWater(ent int) bool {
 	ev := entvars.Get(ent)
 	point := vec.Vec3{
 		ev.Origin[0],
@@ -745,7 +742,7 @@ func (q *qphysics) checkWater(ent int) bool {
 
 // Slide off of the impacting object
 // returns the blocked flags (1 = floor, 2 = step / wall) and clipped velocity
-func (q *qphysics) clipVelocity(in, normal vec.Vec3, overbounce float32) (int, vec.Vec3) {
+func clipVelocity(in, normal vec.Vec3, overbounce float32) (int, vec.Vec3) {
 	blocked := func() int {
 		switch {
 		case normal[2] > 0:
@@ -777,7 +774,7 @@ func (q *qphysics) clipVelocity(in, normal vec.Vec3, overbounce float32) (int, v
 }
 
 // Player character actions
-func (q *qphysics) playerActions(ent, num int, time float32) error {
+func (s *Server) playerActions(ent, num int, time float32) error {
 	if !sv_clients[num-1].active {
 		// unconnected slot
 		return nil
@@ -794,46 +791,46 @@ func (q *qphysics) playerActions(ent, num int, time float32) error {
 
 	switch int(ev.MoveType) {
 	case progs.MoveTypeNone:
-		if ok, err := sv.runThink(ent); err != nil {
+		if ok, err := s.runThink(ent); err != nil {
 			return err
 		} else if !ok {
 			return nil
 		}
 
 	case progs.MoveTypeWalk:
-		if ok, err := sv.runThink(ent); err != nil {
+		if ok, err := s.runThink(ent); err != nil {
 			return err
 		} else if !ok {
 			return nil
 		}
-		if !q.checkWater(ent) && int(ev.Flags)&FL_WATERJUMP == 0 {
-			q.addGravity(ent)
+		if !s.checkWater(ent) && int(ev.Flags)&FL_WATERJUMP == 0 {
+			s.addGravity(ent)
 		}
-		if err := q.checkStuck(ent); err != nil {
+		if err := s.checkStuck(ent); err != nil {
 			return err
 		}
-		if err := q.walkMove(ent); err != nil {
+		if err := s.walkMove(ent); err != nil {
 			return err
 		}
 
 	case progs.MoveTypeToss, progs.MoveTypeBounce, progs.MoveTypeGib:
-		if err := q.toss(ent); err != nil {
+		if err := s.toss(ent); err != nil {
 			return err
 		}
 
 	case progs.MoveTypeFly:
-		if ok, err := sv.runThink(ent); err != nil {
+		if ok, err := s.runThink(ent); err != nil {
 			return err
 		} else if !ok {
 			return nil
 		}
 		time := float32(host.FrameTime())
-		if _, err := q.flyMove(ent, time, nil); err != nil {
+		if _, err := s.flyMove(ent, time, nil); err != nil {
 			return err
 		}
 
 	case progs.MoveTypeNoClip:
-		if ok, err := sv.runThink(ent); err != nil {
+		if ok, err := s.runThink(ent); err != nil {
 			return err
 		} else if !ok {
 			return nil
@@ -856,10 +853,9 @@ func (q *qphysics) playerActions(ent, num int, time float32) error {
 	return vm.ExecuteProgram(progsdat.Globals.PlayerPostThink)
 }
 
-func RunPhysics(time float32) error {
-	q := qphysics{}
+func (s *Server) runPhysics() error {
 	// let the progs know that a new frame has started
-	progsdat.Globals.Time = time
+	progsdat.Globals.Time = s.time
 	progsdat.Globals.Self = 0
 	progsdat.Globals.Other = 0
 	if err := vm.ExecuteProgram(progsdat.Globals.PlayerPostThink); err != nil {
@@ -872,11 +868,11 @@ func RunPhysics(time float32) error {
 			// Only run physics on clients and the world
 			return svs.maxClients + 1
 		}
-		return sv.numEdicts
+		return s.numEdicts
 	}()
 
 	for i := 0; i < entityCap; i++ {
-		if sv.edicts[i].Free {
+		if s.edicts[i].Free {
 			continue
 		}
 		if progsdat.Globals.ForceRetouch != 0 {
@@ -886,26 +882,26 @@ func RunPhysics(time float32) error {
 			}
 		}
 		if i > 0 && i <= svs.maxClients {
-			if err := q.playerActions(i, i, time); err != nil {
+			if err := s.playerActions(i, i, s.time); err != nil {
 				return err
 			}
 		} else {
 			mt := entvars.Get(i).MoveType
 			switch mt {
 			case progs.MoveTypePush:
-				if err := q.pusher(i, time); err != nil {
+				if err := s.pusher(i, s.time); err != nil {
 					return err
 				}
 			case progs.MoveTypeNone:
-				if err := q.none(i); err != nil {
+				if err := s.none(i); err != nil {
 					return err
 				}
 			case progs.MoveTypeNoClip:
-				if err := q.noClip(i); err != nil {
+				if err := s.noClip(i); err != nil {
 					return err
 				}
 			case progs.MoveTypeStep:
-				if err := q.step(i); err != nil {
+				if err := s.step(i); err != nil {
 					return err
 				}
 			case progs.MoveTypeToss,
@@ -913,7 +909,7 @@ func RunPhysics(time float32) error {
 				progs.MoveTypeGib,
 				progs.MoveTypeFly,
 				progs.MoveTypeFlyMissile:
-				if err := q.toss(i); err != nil {
+				if err := s.toss(i); err != nil {
 					return err
 				}
 			default:
@@ -928,7 +924,7 @@ func RunPhysics(time float32) error {
 	}
 
 	if !freezeNonClients {
-		sv.time += float32(host.FrameTime())
+		s.time += float32(host.FrameTime())
 	}
 	return nil
 }

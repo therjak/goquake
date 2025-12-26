@@ -19,7 +19,6 @@ import (
 	"goquake/net"
 	"goquake/progs"
 	"goquake/protocol"
-	"goquake/protocol/server"
 	svc "goquake/protocol/server"
 	"goquake/protos"
 
@@ -141,7 +140,7 @@ func (s *Server) StartParticle(org, dir vec.Vec3, color, count int) {
 		Count:     int32(count),
 		Color:     int32(color),
 	}.Build()
-	server.WriteParticle(p, s.protocolFlags, &s.datagram)
+	svc.WriteParticle(p, s.protocolFlags, &s.datagram)
 }
 
 func (s *Server) SendDatagram(sc *SVClient) (bool, error) {
@@ -1043,11 +1042,11 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 
 	// run two frames to allow everything to settle
 	host.Reset()
-	if err := RunPhysics(s.time); err != nil {
+	if err := s.runPhysics(); err != nil {
 		s.active = false
 		return err
 	}
-	if err := RunPhysics(s.time); err != nil {
+	if err := s.runPhysics(); err != nil {
 		s.active = false
 		return err
 	}
