@@ -160,7 +160,7 @@ type virtualMachine struct {
 	trace      bool
 	prog       *progs.LoadedProg
 	argc       int
-	builtins   []func() error
+	builtins   []func(s *Server) error
 
 	// only to prevent recursion
 	changeLevelIssued bool
@@ -180,7 +180,7 @@ func NewVirtualMachine() *virtualMachine {
 		stack:      make([]stackElem, 0, maxStackDepth),
 		localStack: make([]int32, 0, maxLocalStack),
 	}
-	v.builtins = []func() error{
+	v.builtins = []func(s *Server) error{
 		v.fixme,
 		v.makeVectors,   // void(entity e) makevectors		= #1
 		v.setOrigin,     // void(entity e, vector o) setorigin	= #2
@@ -381,7 +381,7 @@ func (v *virtualMachine) leaveFunction() (int32, error) {
 func (v *virtualMachine) ExecuteProgram(fnum int32, s *Server) error {
 	if fnum == 0 || int(fnum) >= len(v.prog.Functions) {
 		if v.prog.Globals.Self != 0 {
-			sv.edictPrint(int(v.prog.Globals.Self))
+			s.edictPrint(int(v.prog.Globals.Self))
 		}
 		return fmt.Errorf("PR_ExecuteProgram: NULL function, %d", fnum)
 	}
@@ -585,7 +585,7 @@ func (v *virtualMachine) ExecuteProgram(fnum int32, s *Server) error {
 
 		case operatorADDRESS:
 			ed := OPAI()
-			if ed == 0 && sv.state == ServerStateActive {
+			if ed == 0 && s.state == ServerStateActive {
 				v.statement = currentStatement
 				slog.Error("assignment to world entity")
 				v.abort()
@@ -647,7 +647,7 @@ func (v *virtualMachine) ExecuteProgram(fnum int32, s *Server) error {
 					v.abort()
 					return errProgram
 				}
-				if err := v.builtins[i](); err != nil {
+				if err := v.builtins[i](s); err != nil {
 					return err
 				}
 			} else {

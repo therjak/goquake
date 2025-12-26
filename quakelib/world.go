@@ -34,10 +34,10 @@ var (
 )
 
 // called after the world model has been loaded, before linking any entities
-func clearWorld() {
+func (s *Server) clearWorld() {
 	edictToRing = make(map[int]*ring.Ring[int])
 	initBoxHull()
-	gArea = createAreaNode(0, sv.worldModel.Mins(), sv.worldModel.Maxs())
+	gArea = createAreaNode(0, s.worldModel.Mins(), s.worldModel.Maxs())
 }
 
 func createAreaNode(depth int, mins, maxs vec.Vec3) *areaNode {
@@ -139,7 +139,7 @@ func triggerEdicts(e int, a *areaNode) []int {
 	return ret
 }
 
-func (v *virtualMachine) touchLinks(e int, a *areaNode) error {
+func (v *virtualMachine) touchLinks(e int, a *areaNode, s *Server) error {
 	te := triggerEdicts(e, a)
 	ev := entvars.Get(e)
 
@@ -165,8 +165,8 @@ func (v *virtualMachine) touchLinks(e int, a *areaNode) error {
 
 		progsdat.Globals.Self = int32(touch)
 		progsdat.Globals.Other = int32(e)
-		progsdat.Globals.Time = sv.time
-		if err := v.ExecuteProgram(tv.Touch, &sv); err != nil {
+		progsdat.Globals.Time = s.time
+		if err := v.ExecuteProgram(tv.Touch, s); err != nil {
 			return err
 		}
 
@@ -180,12 +180,12 @@ func (v *virtualMachine) touchLinks(e int, a *areaNode) error {
 // or solid flags ent.v.modified
 // sets the related entvar.absmin and entvar.absmax
 // if touchTriggers calls prog functions for the intersected triggers
-func (v *virtualMachine) LinkEdict(e int, touchTriggers bool) error {
+func (v *virtualMachine) LinkEdict(e int, touchTriggers bool, s *Server) error {
 	v.UnlinkEdict(e)
 	if e == 0 {
 		return nil // don't add the world
 	}
-	ed := &sv.edicts[e]
+	ed := &s.edicts[e]
 	if ed.Free {
 		return nil
 	}
@@ -219,7 +219,7 @@ func (v *virtualMachine) LinkEdict(e int, touchTriggers bool) error {
 
 	ed.num_leafs = 0
 	if ev.ModelIndex != 0 {
-		findTouchedLeafs(e, sv.worldModel.Node, sv.worldModel)
+		findTouchedLeafs(e, s.worldModel.Node, s.worldModel)
 	}
 
 	if ev.Solid == SOLID_NOT {
@@ -249,7 +249,7 @@ func (v *virtualMachine) LinkEdict(e int, touchTriggers bool) error {
 	}
 
 	if touchTriggers {
-		if err := v.touchLinks(e, gArea); err != nil {
+		if err := v.touchLinks(e, gArea, s); err != nil {
 			return err
 		}
 	}
