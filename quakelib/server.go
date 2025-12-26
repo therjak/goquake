@@ -349,7 +349,7 @@ func (s *Server) connectClient(n int) error {
 	if s.loadGame {
 		newC.spawnParams = old.spawnParams
 	} else {
-		if err := vm.ExecuteProgram(progsdat.Globals.SetNewParms); err != nil {
+		if err := vm.ExecuteProgram(progsdat.Globals.SetNewParms, s); err != nil {
 			return err
 		}
 		newC.spawnParams = progsdat.Globals.Parm
@@ -406,7 +406,7 @@ func (s *Server) impact(e1, e2 int) error {
 	if ent1.Touch != 0 && ent1.Solid != SOLID_NOT {
 		progsdat.Globals.Self = int32(e1)
 		progsdat.Globals.Other = int32(e2)
-		if err := vm.ExecuteProgram(ent1.Touch); err != nil {
+		if err := vm.ExecuteProgram(ent1.Touch, s); err != nil {
 			return err
 		}
 	}
@@ -414,7 +414,7 @@ func (s *Server) impact(e1, e2 int) error {
 	if ent2.Touch != 0 && ent2.Solid != SOLID_NOT {
 		progsdat.Globals.Self = int32(e2)
 		progsdat.Globals.Other = int32(e1)
-		if err := vm.ExecuteProgram(ent2.Touch); err != nil {
+		if err := vm.ExecuteProgram(ent2.Touch, s); err != nil {
 			return err
 		}
 	}
@@ -626,7 +626,7 @@ func (s *Server) runThink(e int) (bool, error) {
 	progsdat.Globals.Time = thinktime
 	progsdat.Globals.Self = int32(e)
 	progsdat.Globals.Other = 0
-	if err := vm.ExecuteProgram(ev.Think); err != nil {
+	if err := vm.ExecuteProgram(ev.Think, s); err != nil {
 		return false, err
 	}
 
@@ -884,7 +884,7 @@ func (s *Server) saveSpawnparms() error {
 		}
 		// call the progs to get default spawn parms for the new client
 		progsdat.Globals.Self = int32(c.edictId)
-		if err := vm.ExecuteProgram(progsdat.Globals.SetChangeParms); err != nil {
+		if err := vm.ExecuteProgram(progsdat.Globals.SetChangeParms, s); err != nil {
 			return err
 		}
 		c.spawnParams = progsdat.Globals.Parm

@@ -197,7 +197,7 @@ func (sc *SVClient) Drop(crash bool) error {
 			// this will set the body to a dead frame, among other things
 			saveSelf := progsdat.Globals.Self
 			progsdat.Globals.Self = int32(sc.edictId)
-			if err := vm.ExecuteProgram(progsdat.Globals.ClientDisconnect); err != nil {
+			if err := vm.ExecuteProgram(progsdat.Globals.ClientDisconnect, &sv); err != nil {
 				return err
 			}
 			progsdat.Globals.Self = saveSelf
@@ -573,7 +573,7 @@ func (sc *SVClient) killCmd(time float32, a cbuf.Arguments) error {
 
 	progsdat.Globals.Time = time
 	progsdat.Globals.Self = int32(sc.edictId)
-	if err := vm.ExecuteProgram(progsdat.Globals.ClientKill); err != nil {
+	if err := vm.ExecuteProgram(progsdat.Globals.ClientKill, &sv); err != nil {
 		return err
 	}
 	return nil
@@ -719,13 +719,13 @@ func (sc *SVClient) spawnCmd(s *Server) error {
 		progsdat.Globals.Parm = sc.spawnParams
 		progsdat.Globals.Time = s.time
 		progsdat.Globals.Self = int32(sc.edictId)
-		if err := vm.ExecuteProgram(progsdat.Globals.ClientConnect); err != nil {
+		if err := vm.ExecuteProgram(progsdat.Globals.ClientConnect, &sv); err != nil {
 			return err
 		}
 		if time.Since(sc.ConnectTime()).Seconds() <= float64(s.time) {
 			log.Printf("%v entered the game\n", sc.name)
 		}
-		if err := vm.ExecuteProgram(progsdat.Globals.PutClientInServer); err != nil {
+		if err := vm.ExecuteProgram(progsdat.Globals.PutClientInServer, &sv); err != nil {
 			return err
 		}
 	}

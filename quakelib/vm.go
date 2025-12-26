@@ -378,7 +378,7 @@ func (v *virtualMachine) leaveFunction() (int32, error) {
 }
 
 // The interpretation main loop
-func (v *virtualMachine) ExecuteProgram(fnum int32) error {
+func (v *virtualMachine) ExecuteProgram(fnum int32, s *Server) error {
 	if fnum == 0 || int(fnum) >= len(v.prog.Functions) {
 		if v.prog.Globals.Self != 0 {
 			sv.edictPrint(int(v.prog.Globals.Self))

@@ -228,7 +228,7 @@ func (s *Server) loadEntities(data []*bsp.Entity, mapName string) error {
 		}
 
 		progsdat.Globals.Self = int32(eNr)
-		if err := vm.ExecuteProgram(int32(fidx)); err != nil {
+		if err := vm.ExecuteProgram(int32(fidx), &sv); err != nil {
 			return err
 		}
 	}

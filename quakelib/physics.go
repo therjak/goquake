@@ -128,7 +128,7 @@ func (s *Server) pushMove(pusher int, movetime float32) error {
 			if pev.Blocked != 0 {
 				progsdat.Globals.Self = int32(pusher)
 				progsdat.Globals.Other = int32(c)
-				if err := vm.ExecuteProgram(pev.Blocked); err != nil {
+				if err := vm.ExecuteProgram(pev.Blocked, s); err != nil {
 					return err
 				}
 			}
@@ -182,7 +182,7 @@ func (s *Server) pusher(ent int, time float32) error {
 		progsdat.Globals.Time = time
 		progsdat.Globals.Self = int32(ent)
 		progsdat.Globals.Other = 0
-		if err := vm.ExecuteProgram(ev.Think); err != nil {
+		if err := vm.ExecuteProgram(ev.Think, s); err != nil {
 			return err
 		}
 	}
@@ -782,7 +782,7 @@ func (s *Server) playerActions(ent, num int, time float32) error {
 
 	progsdat.Globals.Time = time
 	progsdat.Globals.Self = int32(ent)
-	if err := vm.ExecuteProgram(progsdat.Globals.PlayerPreThink); err != nil {
+	if err := vm.ExecuteProgram(progsdat.Globals.PlayerPreThink, s); err != nil {
 		return err
 	}
 
@@ -850,7 +850,7 @@ func (s *Server) playerActions(ent, num int, time float32) error {
 
 	progsdat.Globals.Time = time
 	progsdat.Globals.Self = int32(ent)
-	return vm.ExecuteProgram(progsdat.Globals.PlayerPostThink)
+	return vm.ExecuteProgram(progsdat.Globals.PlayerPostThink, s)
 }
 
 func (s *Server) runPhysics() error {
@@ -858,7 +858,7 @@ func (s *Server) runPhysics() error {
 	progsdat.Globals.Time = s.time
 	progsdat.Globals.Self = 0
 	progsdat.Globals.Other = 0
-	if err := vm.ExecuteProgram(progsdat.Globals.PlayerPostThink); err != nil {
+	if err := vm.ExecuteProgram(progsdat.Globals.PlayerPostThink, s); err != nil {
 		return err
 	}
 
