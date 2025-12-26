@@ -38,10 +38,10 @@ func (v *virtualMachine) monsterMoveStep(ent int, move vec.Vec3, relink bool, s 
 					neworg[2] += 8
 				}
 			}
-			trace := svMove(origin, mins, maxs, neworg, MOVE_NORMAL, ent)
+			trace := svMove(origin, mins, maxs, neworg, MOVE_NORMAL, ent, s)
 			if trace.Fraction == 1 {
 				endpos := trace.EndPos
-				if flags&FL_SWIM != 0 && pointContents(endpos) == bsp.CONTENTS_EMPTY {
+				if flags&FL_SWIM != 0 && pointContents(endpos, s.worldModel) == bsp.CONTENTS_EMPTY {
 					// swim monster left water
 					return false, nil
 				}
@@ -69,13 +69,13 @@ func (v *virtualMachine) monsterMoveStep(ent int, move vec.Vec3, relink bool, s 
 	neworg[2] += STEPSIZE
 	end := neworg
 	end[2] -= STEPSIZE * 2
-	trace := svMove(neworg, mins, maxs, end, MOVE_NORMAL, ent)
+	trace := svMove(neworg, mins, maxs, end, MOVE_NORMAL, ent, s)
 	if trace.AllSolid {
 		return false, nil
 	}
 	if trace.StartSolid {
 		neworg[2] -= STEPSIZE
-		trace = svMove(neworg, mins, maxs, end, MOVE_NORMAL, ent)
+		trace = svMove(neworg, mins, maxs, end, MOVE_NORMAL, ent, s)
 		if trace.AllSolid || trace.StartSolid {
 			return false, nil
 		}
@@ -100,7 +100,7 @@ func (v *virtualMachine) monsterMoveStep(ent int, move vec.Vec3, relink bool, s 
 	// check point traces down for dangling corners
 	ev.Origin = trace.EndPos
 
-	if !checkBottom(ent) {
+	if !checkBottom(ent, s) {
 		if flags&FL_PARTIALGROUND != 0 {
 			// entity had floor mostly pulled out from underneath it
 			// and is trying to correct
@@ -316,7 +316,7 @@ func (v *virtualMachine) monsterNewChaseDir(a, e int, dist float32, s *Server) e
 
 	// if a bridge was pulled out from underneath a monster, it may not have
 	// a valid standing position at all
-	if !checkBottom(a) {
+	if !checkBottom(a, s) {
 		actor.Flags = float32(int(actor.Flags) | FL_PARTIALGROUND)
 	}
 	return nil

@@ -672,7 +672,7 @@ func (v *virtualMachine) traceline(s *Server) error {
 		v2 = vec.Vec3{}
 	}
 
-	t := svMove(v1, vec.Vec3{}, vec.Vec3{}, v2, int(nomonsters), ent)
+	t := svMove(v1, vec.Vec3{}, vec.Vec3{}, v2, int(nomonsters), ent, s)
 
 	b2f := func(b bool) float32 {
 		if b {
@@ -1152,7 +1152,7 @@ func (v *virtualMachine) dropToFloor(s *Server) error {
 	end := vec.VFromA(ev.Origin)
 	end[2] -= 256
 
-	t := svMove(start, mins, maxs, end, MOVE_NORMAL, ent)
+	t := svMove(start, mins, maxs, end, MOVE_NORMAL, ent, s)
 
 	if t.Fraction == 1 || t.AllSolid {
 		v.prog.Globals.Returnf()[0] = 0
@@ -1218,7 +1218,7 @@ func (v *virtualMachine) ceil(s *Server) error {
 func (v *virtualMachine) checkBottom(s *Server) error {
 	entnum := int(v.prog.Globals.Parm0[0])
 	f := float32(0)
-	if checkBottom(entnum) {
+	if checkBottom(entnum, s) {
 		f = 1
 	}
 	v.prog.Globals.Returnf()[0] = f
@@ -1238,7 +1238,7 @@ func (v *virtualMachine) makeVectors(s *Server) error {
 
 func (v *virtualMachine) pointContents(s *Server) error {
 	ve := vec.VFromA(*v.prog.Globals.Parm0f())
-	pc := pointContents(ve)
+	pc := pointContents(ve, s.worldModel)
 	v.prog.Globals.Returnf()[0] = float32(pc)
 	return nil
 }
@@ -1272,7 +1272,7 @@ func (v *virtualMachine) aim(s *Server) error {
 	// try sending a trace straight
 	dir := vec.VFromA(v.prog.Globals.VForward)
 	end := vec.Add(start, vec.Scale(2048, dir))
-	tr := svMove(start, vec.Vec3{}, vec.Vec3{}, end, MOVE_NORMAL, ent)
+	tr := svMove(start, vec.Vec3{}, vec.Vec3{}, end, MOVE_NORMAL, ent, s)
 	if tr.EntPointer {
 		tev := entvars.Get(int(tr.EntNumber))
 		if tev.TakeDamage == DAMAGE_AIM &&
@@ -1312,7 +1312,7 @@ func (v *virtualMachine) aim(s *Server) error {
 			// to far to turn
 			continue
 		}
-		tr := svMove(start, vec.Vec3{}, vec.Vec3{}, end, MOVE_NORMAL, ent)
+		tr := svMove(start, vec.Vec3{}, vec.Vec3{}, end, MOVE_NORMAL, ent, s)
 		if tr.EntNumber == check {
 			// can shoot at this one
 			bestdist = dist

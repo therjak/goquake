@@ -256,7 +256,7 @@ func (s *Server) WriteClientdataToMessage(player int) {
 	}
 
 	// send the current viewpos offset from the view entity
-	SV_SetIdealPitch(player) // how much to loop up/down ideally
+	s.setIdealPitch(player) // how much to loop up/down ideally
 
 	// a fixangle might get lost in a dropped packet.  Oh well.
 	if e.FixAngle != 0 {
@@ -656,14 +656,14 @@ func (s *Server) pushEntity(e int, push vec.Vec3) (bsp.Trace, error) {
 
 	tr := func() bsp.Trace {
 		if ev.MoveType == progs.MoveTypeFlyMissile {
-			return svMove(origin, mins, maxs, end, MOVE_MISSILE, e)
+			return svMove(origin, mins, maxs, end, MOVE_MISSILE, e, s)
 		}
 		if ev.Solid == SOLID_TRIGGER || ev.Solid == SOLID_NOT {
 			// only clip against bmodels
-			return svMove(origin, mins, maxs, end, MOVE_NOMONSTERS, e)
+			return svMove(origin, mins, maxs, end, MOVE_NOMONSTERS, e, s)
 		}
 
-		return svMove(origin, mins, maxs, end, MOVE_NORMAL, e)
+		return svMove(origin, mins, maxs, end, MOVE_NORMAL, e, s)
 	}()
 
 	ev.Origin = tr.EndPos
@@ -680,7 +680,7 @@ func (s *Server) pushEntity(e int, push vec.Vec3) (bsp.Trace, error) {
 	return tr, nil
 }
 
-func SV_SetIdealPitch(player int) {
+func (s *Server) setIdealPitch(player int) {
 	const MAX_FORWARD = 6
 	z := [MAX_FORWARD]float32{}
 	ev := entvars.Get(player)
@@ -701,7 +701,7 @@ func SV_SetIdealPitch(player int) {
 		bottom := top
 		bottom[2] -= 160
 
-		tr := svMove(top, vec.Vec3{}, vec.Vec3{}, bottom, 1, player)
+		tr := svMove(top, vec.Vec3{}, vec.Vec3{}, bottom, 1, player, s)
 		if tr.AllSolid {
 			// looking at a wall, leave ideal the way is was
 			return
