@@ -667,7 +667,7 @@ func (s *Server) pushEntity(e int, push vec.Vec3) (bsp.Trace, error) {
 	}()
 
 	ev.Origin = tr.EndPos
-	if err := vm.LinkEdict(e, true); err != nil {
+	if err := vm.LinkEdict(e, true, s); err != nil {
 		return bsp.Trace{}, err
 	}
 
@@ -1010,7 +1010,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 		s.models = append(s.models, m)
 	}
 
-	clearWorld()
+	s.clearWorld()
 
 	// load the rest of the entities
 	entvars.Clear(0)
@@ -1163,7 +1163,7 @@ func (s *Server) loadGameEdicts(es []*protos.Edict) error {
 		}
 
 		vm.loadGameEntVars(i, e)
-		if err := vm.LinkEdict(i, false); err != nil {
+		if err := vm.LinkEdict(i, false, s); err != nil {
 			return err
 		}
 	}

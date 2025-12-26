@@ -46,7 +46,7 @@ func (s *Server) pushMove(pusher int, movetime float32) error {
 	// move the pusher to it's final position
 	pev.Origin = vec.Add(pev.Origin, move)
 	pev.LTime += movetime
-	if err := vm.LinkEdict(pusher, false); err != nil {
+	if err := vm.LinkEdict(pusher, false, s); err != nil {
 		return err
 	}
 
@@ -113,12 +113,12 @@ func (s *Server) pushMove(pusher int, movetime float32) error {
 				continue
 			}
 			cev.Origin = entOrigin
-			if err := vm.LinkEdict(c, true); err != nil {
+			if err := vm.LinkEdict(c, true, s); err != nil {
 				return err
 			}
 
 			pev.Origin = pushOrigin
-			if err := vm.LinkEdict(pusher, false); err != nil {
+			if err := vm.LinkEdict(pusher, false, s); err != nil {
 				return err
 			}
 			pev.LTime -= movetime
@@ -136,7 +136,7 @@ func (s *Server) pushMove(pusher int, movetime float32) error {
 			// move back any entities we already moved
 			for _, m := range movedEnts {
 				entvars.Get(m.ent).Origin = m.origin
-				if err := vm.LinkEdict(m.ent, false); err != nil {
+				if err := vm.LinkEdict(m.ent, false, s); err != nil {
 					return err
 				}
 			}
@@ -391,7 +391,7 @@ func (s *Server) noClip(ent int) error {
 	origin := ev.Origin
 	ev.Origin = vec.Add(origin, v)
 
-	if err := vm.LinkEdict(ent, false); err != nil {
+	if err := vm.LinkEdict(ent, false, s); err != nil {
 		return err
 	}
 	return nil
@@ -515,7 +515,7 @@ func (s *Server) step(ent int) error {
 		if _, err := s.flyMove(ent, time, nil); err != nil {
 			return err
 		}
-		if err := vm.LinkEdict(ent, true); err != nil {
+		if err := vm.LinkEdict(ent, true, s); err != nil {
 			return err
 		}
 
@@ -554,7 +554,7 @@ func (s *Server) checkStuck(ent int) error {
 	ev.Origin = ev.OldOrigin
 	if !testEntityPosition(ent) {
 		slog.Debug("Unstuck.") // debug
-		if err := vm.LinkEdict(ent, true); err != nil {
+		if err := vm.LinkEdict(ent, true, s); err != nil {
 			return err
 		}
 		return nil
@@ -568,7 +568,7 @@ func (s *Server) checkStuck(ent int) error {
 				ev.Origin[2] = org[2] + z
 				if !testEntityPosition(ent) {
 					slog.Debug("Unstuck.")
-					if err := vm.LinkEdict(ent, true); err != nil {
+					if err := vm.LinkEdict(ent, true, s); err != nil {
 						return err
 					}
 					return nil
@@ -844,7 +844,7 @@ func (s *Server) playerActions(ent, num int, time float32) error {
 		log.Fatalf("SV_Physics_client: bad movetype %v", ev.MoveType)
 	}
 
-	if err := vm.LinkEdict(ent, true); err != nil {
+	if err := vm.LinkEdict(ent, true, s); err != nil {
 		return err
 	}
 
@@ -877,7 +877,7 @@ func (s *Server) runPhysics() error {
 		}
 		if progsdat.Globals.ForceRetouch != 0 {
 			// force retouch even for stationary
-			if err := vm.LinkEdict(i, true); err != nil {
+			if err := vm.LinkEdict(i, true, s); err != nil {
 				return err
 			}
 		}

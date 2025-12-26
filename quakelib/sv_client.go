@@ -684,7 +684,7 @@ func (sc *SVClient) setPosCmd(a cbuf.Arguments) error {
 			args[2].Float32(),
 			args[3].Float32(),
 		}
-		if err := vm.LinkEdict(sc.edictId, false); err != nil {
+		if err := vm.LinkEdict(sc.edictId, false, &sv); err != nil {
 			return err
 		}
 		return nil
