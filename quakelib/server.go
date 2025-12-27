@@ -98,8 +98,7 @@ type Server struct {
 	soundPrecache []string
 	lightStyles   [64]string
 
-	name      string // map name
-	modelName string // maps/<name>.bsp, for model_precache[0]
+	name string // map name
 
 	// TODO(therjak): merge modelPrecache and models into a map[string]model.Model?
 	//                we also need an index based access for entvars
@@ -110,8 +109,8 @@ type Server struct {
 }
 
 var (
-	svs = ServerStatic{}
-	sv  = Server{
+	svs    = ServerStatic{}
+	svTODO = Server{
 		models: make([]model.Model, 1),
 	}
 	host_client int
@@ -932,6 +931,33 @@ func (s *Server) ResetServer() error {
 	return nil
 }
 
+func (s *Server) reset() {
+	s.active = false
+	s.paused = false
+	s.loadGame = false
+	s.time = 1.0
+	s.lastCheck = 0
+	s.lastCheckTime = 0
+	s.datagram.Reset()
+	s.reliableDatagram.Reset()
+	s.signon.Reset()
+	s.numEdicts = 0
+	s.maxEdicts = 0
+	s.edicts = s.edicts[:0]
+	s.protocol = 0
+	s.protocolFlags = 0
+	s.state = ServerStateLoading
+	s.soundPrecache = s.soundPrecache[:0]
+	s.soundPrecache = append(s.soundPrecache, string([]byte{0, 0, 0, 0, 0, 0, 0, 0}))
+	s.lightStyles = [64]string{}
+	s.name = ""
+	s.modelPrecache = s.modelPrecache[:0]
+	s.modelPrecache = append(s.modelPrecache, string([]byte{0, 0, 0, 0, 0, 0, 0, 0}))
+	s.models = s.models[:0]
+	s.models = append(s.models, nil)
+	s.worldModel = nil
+}
+
 // This is called at the start of each level
 func (s *Server) SpawnServer(mapName string, pcl int) error {
 	// let's not have any servers with no name
@@ -950,17 +976,12 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 
 	// set up the new server
 	s.freeEdicts()
-	sv = Server{
-		models:   make([]model.Model, 1),
-		name:     mapName,
-		protocol: pcl,
-	}
-	s = &sv
+	s.reset()
+	s.name = mapName
+	s.protocol = pcl
 
 	if s.protocol == protocol.RMQ {
 		s.protocolFlags = protocol.PRFL_INT32COORD | protocol.PRFL_SHORTANGLE
-	} else {
-		s.protocolFlags = 0
 	}
 
 	// load progs to get entity field count
@@ -985,26 +1006,16 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 		sv_clients[i].edictId = i + 1
 	}
 
-	s.state = ServerStateLoading
-	s.paused = false
-	s.time = 1.0
-	s.modelName = fmt.Sprintf("maps/%s.bsp", mapName)
+	modelName := fmt.Sprintf("maps/%s.bsp", mapName)
 
-	log.Printf("New world: %s", s.modelName)
-	s.worldModel = nil
+	log.Printf("New world: %s", modelName)
 	sv_models = make(map[string]model.Model)
-	s.modelPrecache = s.modelPrecache[:0]
-	s.soundPrecache = s.soundPrecache[:0]
-	s.models = append(s.models, nil)
-	s.models = s.models[:1]
-	mods, err := bsp.Load(s.modelName)
+	mods, err := bsp.Load(modelName)
 	if err != nil || len(mods) < 1 {
-		slog.Warn("Couldn't spawn server", slog.String("modelname", s.modelName))
+		slog.Warn("Couldn't spawn server", slog.String("modelname", modelName))
 		return nil
 	}
 	s.worldModel = mods[0]
-	s.modelPrecache = append(s.modelPrecache, string([]byte{0, 0, 0, 0, 0, 0, 0, 0}))
-	s.soundPrecache = append(s.soundPrecache, string([]byte{0, 0, 0, 0, 0, 0, 0, 0}))
 	for _, m := range mods {
 		s.modelPrecache = append(s.modelPrecache, m.Name())
 		s.models = append(s.models, m)
@@ -1016,7 +1027,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 	entvars.Clear(0)
 	s.edicts[0].Free = false
 	ev := entvars.Get(0)
-	ev.Model = progsdat.AddString(s.modelName)
+	ev.Model = progsdat.AddString(modelName)
 	ev.ModelIndex = 1 // world model
 	ev.Solid = SOLID_BSP
 	ev.MoveType = progs.MoveTypePush

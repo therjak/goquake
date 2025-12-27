@@ -65,11 +65,11 @@ func (sc *SVClient) saveCmd(a cbuf.Arguments) {
 		Comment:      saveGameComment(),
 		SpawnParams:  sc.spawnParams[:], //[]float32
 		CurrentSkill: int32(cvars.Skill.Value()),
-		MapName:      sv.name,
-		MapTime:      sv.time,
-		LightStyles:  sv.lightStyles[:],    //[]string
-		Globals:      vm.SaveGameGlobals(), // protos.Globals
-		Edicts:       sv.saveGameEdicts(),  // []protos.Edict
+		MapName:      svTODO.name,
+		MapTime:      svTODO.time,
+		LightStyles:  svTODO.lightStyles[:],   //[]string
+		Globals:      vm.SaveGameGlobals(),    // protos.Globals
+		Edicts:       svTODO.saveGameEdicts(), // []protos.Edict
 	}.Build()
 
 	out, err := proto.Marshal(data)

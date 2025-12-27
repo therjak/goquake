@@ -244,7 +244,7 @@ func hostShutdownServer() error {
 			return err
 		}
 	}
-	return sv.Shutdown()
+	return svTODO.Shutdown()
 }
 
 // Kicks a user off of the server
@@ -286,8 +286,8 @@ func hostMap(a cbuf.Arguments) error {
 	if len(args) == 0 {
 		// no map name given
 		if cmdl.Dedicated() {
-			if sv.Active() {
-				conlog.Printf("Current map: %s\n", sv.name)
+			if svTODO.Active() {
+				conlog.Printf("Current map: %s\n", svTODO.name)
 			} else {
 				conlog.Printf("Server not active\n")
 			}
@@ -321,7 +321,7 @@ func hostMap(a cbuf.Arguments) error {
 	mapName := args[0].String()
 	mapName = strings.TrimSuffix(mapName, ".bsp")
 
-	if err := sv.SpawnServer(mapName, sv_protocol); err != nil {
+	if err := svTODO.SpawnServer(mapName, sv_protocol); err != nil {
 		return err
 	}
 
@@ -342,7 +342,7 @@ func hostChangelevel(a cbuf.Arguments) error {
 		return nil
 	}
 
-	if cls.demoPlayback || !sv.Active() {
+	if cls.demoPlayback || !svTODO.Active() {
 		conlog.Printf("Only the server may changelevel\n")
 		return nil
 	}
@@ -350,7 +350,7 @@ func hostChangelevel(a cbuf.Arguments) error {
 	if _, err := filesystem.Stat(fmt.Sprintf("maps/%s.bsp", level)); err != nil {
 		return fmt.Errorf("cannot find map %s", level)
 	}
-	if err := sv.ChangeLevel(level, sv_protocol); err != nil {
+	if err := svTODO.ChangeLevel(level, sv_protocol); err != nil {
 		return err
 	}
 	if !cmdl.Dedicated() {
@@ -367,7 +367,7 @@ func hostRestart(a cbuf.Arguments) error {
 	if cls.demoPlayback {
 		return nil
 	}
-	if err := sv.ResetServer(); err != nil {
+	if err := svTODO.ResetServer(); err != nil {
 		return err
 	}
 	return nil
