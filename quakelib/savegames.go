@@ -80,7 +80,7 @@ func loadGame(a cbuf.Arguments) error {
 		return err
 	}
 
-	if err := sv.SpawnSaveGameServer(data, sv_protocol); err != nil {
+	if err := svTODO.SpawnSaveGameServer(data, sv_protocol); err != nil {
 		conlog.Printf("Couldn't load map\n")
 		return err
 	}

@@ -1158,7 +1158,7 @@ func (v *virtualMachine) dropToFloor(s *Server) error {
 		v.prog.Globals.Returnf()[0] = 0
 	} else {
 		ev.Origin = t.EndPos
-		if err := v.LinkEdict(ent, false, &sv); err != nil {
+		if err := v.LinkEdict(ent, false, s); err != nil {
 			return err
 		}
 		ev.Flags = float32(int(ev.Flags) | FL_ONGROUND)
