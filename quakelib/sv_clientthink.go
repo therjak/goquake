@@ -132,7 +132,7 @@ func (sc *SVClient) waterMove() {
 	ev.Velocity = vec.Add(velocity, vec.Scale(accelspeed, wishvel))
 }
 
-func (sc *SVClient) userFriction() {
+func (sc *SVClient) userFriction(s *Server) {
 	ev := entvars.Get(sc.edictId)
 	velocity := vec.VFromA(ev.Velocity)
 	speed2 := velocity[0]*velocity[0] + velocity[1]*velocity[1]
@@ -151,7 +151,7 @@ func (sc *SVClient) userFriction() {
 	stop := start
 	stop[2] -= 34
 
-	t := svMove(start, vec.Vec3{}, vec.Vec3{}, stop, 1, sc.edictId, &svTODO)
+	t := svMove(start, vec.Vec3{}, vec.Vec3{}, stop, 1, sc.edictId, s)
 
 	friction := cvars.ServerFriction.Value()
 	if t.Fraction == 1.0 {
@@ -175,7 +175,7 @@ func (sc *SVClient) userFriction() {
 	ev.Velocity = vec.Scale(newspeed, velocity)
 }
 
-func (sc *SVClient) airMove(time float32) {
+func (sc *SVClient) airMove(time float32, s *Server) {
 	ev := entvars.Get(sc.edictId)
 	forward, right, _ := vec.AngleVectors(vec.VFromA(ev.Angles))
 	fmove := float32(sc.cmd.forwardmove)
@@ -215,7 +215,7 @@ func (sc *SVClient) airMove(time float32) {
 	if ev.MoveType == progs.MoveTypeNoClip {
 		ev.Velocity = wishvel
 	} else if onground {
-		sc.userFriction()
+		sc.userFriction(s)
 		sc.accelerate(wishspeed, wishdir)
 	} else {
 		// not on ground, so little effect on velocity
@@ -249,7 +249,7 @@ func (sc *SVClient) waterJump(time float32) {
 
 // the move fields specify an intended velocity in pix/sec
 // the angle fields specify an exact angular motion in degrees
-func (sc *SVClient) Think(time float32) {
+func (sc *SVClient) Think(time float32, s *Server) {
 	ev := entvars.Get(sc.edictId)
 
 	if ev.MoveType == progs.MoveTypeNone {
@@ -285,6 +285,6 @@ func (sc *SVClient) Think(time float32) {
 	} else if ev.WaterLevel >= 2 && ev.MoveType != progs.MoveTypeNoClip {
 		sc.waterMove()
 	} else {
-		sc.airMove(time)
+		sc.airMove(time, s)
 	}
 }
