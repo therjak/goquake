@@ -174,9 +174,9 @@ func (sc *SVClient) SendMessage() int {
 	return sc.netConnection.SendMessage(sc.msg.Bytes())
 }
 
-func (sc *SVClient) SendNop() error {
+func (sc *SVClient) SendNop(s *Server) error {
 	if sc.netConnection.SendUnreliableMessage([]byte{svc.Nop}) == -1 {
-		if err := sc.Drop(true); err != nil {
+		if err := sc.Drop(true, s); err != nil {
 			return err
 		}
 	}
@@ -184,7 +184,7 @@ func (sc *SVClient) SendNop() error {
 	return nil
 }
 
-func (sc *SVClient) Drop(crash bool) error {
+func (sc *SVClient) Drop(crash bool, s *Server) error {
 	if !crash {
 		// send any final messages (don't check for errors)
 		if sc.CanSendMessage() {
@@ -197,7 +197,7 @@ func (sc *SVClient) Drop(crash bool) error {
 			// this will set the body to a dead frame, among other things
 			saveSelf := progsdat.Globals.Self
 			progsdat.Globals.Self = int32(sc.edictId)
-			if err := vm.ExecuteProgram(progsdat.Globals.ClientDisconnect, &svTODO); err != nil {
+			if err := vm.ExecuteProgram(progsdat.Globals.ClientDisconnect, s); err != nil {
 				return err
 			}
 			progsdat.Globals.Self = saveSelf
@@ -380,7 +380,7 @@ func (sc *SVClient) ReadClientMessage(s *Server) (bool, error) {
 				case "fly":
 					sc.flyCmd(a)
 				case "kill":
-					if err := sc.killCmd(s.time, a); err != nil {
+					if err := sc.killCmd(s.time, a, s); err != nil {
 						return false, err
 					}
 				case "noclip":
@@ -408,7 +408,7 @@ func (sc *SVClient) ReadClientMessage(s *Server) (bool, error) {
 				case "prespawn":
 					sc.preSpawnCmd(s.signon.Bytes())
 				case "setpos":
-					if err := sc.setPosCmd(a); err != nil {
+					if err := sc.setPosCmd(a, s); err != nil {
 						return false, err
 					}
 				case "spawn":
@@ -437,7 +437,7 @@ func (sc *SVClient) ReadClientMessage(s *Server) (bool, error) {
 				case "tell":
 					sc.tellCmd(a)
 				case "kick":
-					if err := sc.kickCmd(a); err != nil {
+					if err := sc.kickCmd(a, s); err != nil {
 						fmt.Printf("Drop error: %v", err)
 					}
 				case "name":
@@ -563,7 +563,7 @@ func (sc *SVClient) godCmd(a cbuf.Arguments) {
 	sc.Printf("godmode %v\n", qFormatI(f&flag))
 }
 
-func (sc *SVClient) killCmd(time float32, a cbuf.Arguments) error {
+func (sc *SVClient) killCmd(time float32, a cbuf.Arguments, s *Server) error {
 	ev := entvars.Get(sc.edictId)
 
 	if ev.Health <= 0 {
@@ -573,7 +573,7 @@ func (sc *SVClient) killCmd(time float32, a cbuf.Arguments) error {
 
 	progsdat.Globals.Time = time
 	progsdat.Globals.Self = int32(sc.edictId)
-	if err := vm.ExecuteProgram(progsdat.Globals.ClientKill, &svTODO); err != nil {
+	if err := vm.ExecuteProgram(progsdat.Globals.ClientKill, s); err != nil {
 		return err
 	}
 	return nil
@@ -657,7 +657,7 @@ func (sc *SVClient) preSpawnCmd(signon []byte) {
 	sc.sendSignon = true
 }
 
-func (sc *SVClient) setPosCmd(a cbuf.Arguments) error {
+func (sc *SVClient) setPosCmd(a cbuf.Arguments, s *Server) error {
 	if progsdat.Globals.DeathMatch != 0 {
 		return nil
 	}
@@ -684,7 +684,7 @@ func (sc *SVClient) setPosCmd(a cbuf.Arguments) error {
 			args[2].Float32(),
 			args[3].Float32(),
 		}
-		if err := vm.LinkEdict(sc.edictId, false, &svTODO); err != nil {
+		if err := vm.LinkEdict(sc.edictId, false, s); err != nil {
 			return err
 		}
 		return nil
@@ -719,13 +719,13 @@ func (sc *SVClient) spawnCmd(s *Server) error {
 		progsdat.Globals.Parm = sc.spawnParams
 		progsdat.Globals.Time = s.time
 		progsdat.Globals.Self = int32(sc.edictId)
-		if err := vm.ExecuteProgram(progsdat.Globals.ClientConnect, &svTODO); err != nil {
+		if err := vm.ExecuteProgram(progsdat.Globals.ClientConnect, s); err != nil {
 			return err
 		}
 		if time.Since(sc.ConnectTime()).Seconds() <= float64(s.time) {
 			log.Printf("%v entered the game\n", sc.name)
 		}
-		if err := vm.ExecuteProgram(progsdat.Globals.PutClientInServer, &svTODO); err != nil {
+		if err := vm.ExecuteProgram(progsdat.Globals.PutClientInServer, s); err != nil {
 			return err
 		}
 	}
@@ -1028,7 +1028,7 @@ func (sc *SVClient) tellCmd(a cbuf.Arguments) {
 }
 
 // Kicks a user off of the server
-func (sc *SVClient) kickCmd(a cbuf.Arguments) error {
+func (sc *SVClient) kickCmd(a cbuf.Arguments, s *Server) error {
 	args := a.Args()[1:]
 	if len(args) == 0 {
 		return nil
@@ -1076,7 +1076,7 @@ func (sc *SVClient) kickCmd(a cbuf.Arguments) error {
 	} else {
 		toKick.Printf("Kicked by %s\n", who)
 	}
-	if err := toKick.Drop(false); err != nil {
+	if err := toKick.Drop(false, s); err != nil {
 		return err
 	}
 	return nil
@@ -1161,7 +1161,7 @@ func (s *Server) runClients() error {
 			return err
 		}
 		if !ok {
-			if err := hc.Drop(false); err != nil {
+			if err := hc.Drop(false, s); err != nil {
 				return err
 			}
 			continue
@@ -1177,7 +1177,7 @@ func (s *Server) runClients() error {
 			// TODO(therjak): is this pause stuff really needed?
 			// always pause in single player if in console or menus
 			//if svs.maxClients > 1 || keyDestination == keys.Game {
-			hc.Think(s.time)
+			hc.Think(s.time, s)
 			//}
 		}
 	}
