@@ -51,22 +51,7 @@ func hostInit() {
 	}
 }
 
-func hostCallbackNotify(cv *cvar.Cvar) {
-	if !svTODO.Active() {
-		return
-	}
-	svTODO.BroadcastPrintf("\"%s\" changed to \"%s\"\n", cv.Name(), cv.String())
-}
-
 func init() {
-	cvars.ServerGravity.SetCallback(hostCallbackNotify)
-	cvars.ServerFriction.SetCallback(hostCallbackNotify)
-	cvars.ServerMaxSpeed.SetCallback(hostCallbackNotify)
-	cvars.TimeLimit.SetCallback(hostCallbackNotify)
-	cvars.FragLimit.SetCallback(hostCallbackNotify)
-	cvars.TeamPlay.SetCallback(hostCallbackNotify)
-	cvars.NoExit.SetCallback(hostCallbackNotify)
-
 	cvars.Coop.SetCallback(func(cv *cvar.Cvar) {
 		conlog.Printf("Changed coop: %v\n", cv.Bool())
 		if cv.Bool() {
