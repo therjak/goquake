@@ -28,6 +28,11 @@ func (c *Commands) Add(name string, f QFunc) error {
 	return nil
 }
 
+func (c *Commands) Set(name string, f QFunc) {
+	ln := strings.ToLower(name)
+	(*c)[ln] = f
+}
+
 func (c *Commands) Exists(cmdName string) bool {
 	name := strings.ToLower(cmdName)
 	_, ok := (*c)[name]
