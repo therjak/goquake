@@ -109,10 +109,8 @@ type Server struct {
 }
 
 var (
-	svs    = ServerStatic{}
-	svTODO = Server{
-		models: make([]model.Model, 1),
-	}
+	svs         = ServerStatic{}
+	svTODO      = NewServer()
 	host_client int
 	progsdat    *progs.LoadedProg
 )
@@ -121,6 +119,27 @@ var (
 	msgBuf       = net.Message{}
 	msgBufMaxLen = 0
 )
+
+func NewServer() *Server {
+	s := &Server{
+		models: make([]model.Model, 1),
+	}
+	cvars.ServerGravity.SetCallback(s.notifyCallback)
+	cvars.ServerFriction.SetCallback(s.notifyCallback)
+	cvars.ServerMaxSpeed.SetCallback(s.notifyCallback)
+	cvars.TimeLimit.SetCallback(s.notifyCallback)
+	cvars.FragLimit.SetCallback(s.notifyCallback)
+	cvars.TeamPlay.SetCallback(s.notifyCallback)
+	cvars.NoExit.SetCallback(s.notifyCallback)
+	return s
+}
+
+func (s *Server) notifyCallback(cv *cvar.Cvar) {
+	if !s.Active() {
+		return
+	}
+	s.BroadcastPrintf("\"%s\" changed to \"%s\"\n", cv.Name(), cv.String())
+}
 
 func (s *Server) Active() bool {
 	if s == nil {
