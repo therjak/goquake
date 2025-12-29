@@ -448,7 +448,7 @@ func (sc *SVClient) ReadClientMessage(s *Server) (bool, error) {
 					nn := sc.nameCmd(a)
 					svc.WriteUpdateName(nn, s.protocol, s.protocolFlags, &s.reliableDatagram)
 				case "save":
-					sc.saveCmd(a)
+					sc.saveCmd(a, s)
 				case "status":
 					sc.statusCmd(s.name)
 				case "say_team":
