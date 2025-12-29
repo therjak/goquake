@@ -30,7 +30,7 @@ func saveGameComment() string {
 	return fmt.Sprintf("%-22s kills:%3d/%3d", levelName, int(km), int(tm))
 }
 
-func (sc *SVClient) saveCmd(a cbuf.Arguments) {
+func (sc *SVClient) saveCmd(a cbuf.Arguments, s *Server) {
 	args := a.Args()
 	if len(args) != 2 {
 		return
@@ -65,11 +65,11 @@ func (sc *SVClient) saveCmd(a cbuf.Arguments) {
 		Comment:      saveGameComment(),
 		SpawnParams:  sc.spawnParams[:], //[]float32
 		CurrentSkill: int32(cvars.Skill.Value()),
-		MapName:      svTODO.name,
-		MapTime:      svTODO.time,
-		LightStyles:  svTODO.lightStyles[:],   //[]string
-		Globals:      vm.SaveGameGlobals(),    // protos.Globals
-		Edicts:       svTODO.saveGameEdicts(), // []protos.Edict
+		MapName:      s.name,
+		MapTime:      s.time,
+		LightStyles:  s.lightStyles[:],     //[]string
+		Globals:      vm.SaveGameGlobals(), // protos.Globals
+		Edicts:       s.saveGameEdicts(),   // []protos.Edict
 	}.Build()
 
 	out, err := proto.Marshal(data)
