@@ -27,7 +27,7 @@ var (
 	videoLocked      = false
 )
 
-func videoSetMode(width, height int32, fullscreen bool) {
+func videoSetMode(width, height int32, fullscreen bool) error {
 	temp := screen.disabled
 	screen.disabled = true
 
@@ -71,6 +71,7 @@ func videoSetMode(width, height int32, fullscreen bool) {
 
 	screen.RecalcViewRect()
 	videoChanged = true
+	return nil
 }
 
 type DisplayMode struct {
@@ -288,7 +289,9 @@ func vidRestart() error {
 		return nil
 	}
 
-	videoSetMode(width, height, fullscreen)
+	if err := videoSetMode(width, height, fullscreen); err != nil {
+		return err
+	}
 
 	syncVideoCvars()
 
@@ -458,7 +461,9 @@ func videoInit() error {
 	}
 	videoInitialized = true
 
-	videoSetMode(width, height, fullscreen)
+	if err := videoSetMode(width, height, fullscreen); err != nil {
+		return err
+	}
 
 	window.InitIcon()
 

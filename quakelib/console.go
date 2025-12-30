@@ -359,14 +359,14 @@ func (c *qconsole) Draw(lines int) {
 		}
 	}
 
-	c.DrawInput()
+	c.drawInput()
 	version := fmt.Sprintf("GoQuake %1.2f.%d", version.Base, version.Patch)
 	y += 8
 	x := (c.lineWidth - len(version) + 2) * 8
 	DrawStringWhite(x, y, version)
 }
 
-func (c *qconsole) DrawInput() {
+func (c *qconsole) drawInput() {
 	if keyDestination != keys.Console && !c.forceDuplication {
 		return
 	}
