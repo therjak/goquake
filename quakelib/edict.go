@@ -128,7 +128,7 @@ func (s *Server) updateEdictAlpha(ent int) {
 	s.edicts[ent].Alpha = entAlphaEncode(v)
 }
 
-func parse(ed int, data *bsp.Entity) {
+func (s *Server) parse(ed int, data *bsp.Entity) {
 	if ed != 0 {
 		entvars.Clear(ed)
 	}
@@ -191,7 +191,7 @@ func (s *Server) loadEntities(data []*bsp.Entity, mapName string) error {
 			}
 			eNr = n
 		}
-		parse(eNr, j)
+		s.parse(eNr, j)
 
 		ev := entvars.Get(eNr)
 

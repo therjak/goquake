@@ -168,7 +168,7 @@ func (s *Server) SendDatagram(sc *SVClient) (bool, error) {
 		b = append(b, s.datagram.Bytes()...)
 	}
 	if sc.netConnection.SendUnreliableMessage(b) == -1 {
-		if err := sc.Drop(true, s); err != nil {
+		if err := s.Drop(sc, true); err != nil {
 			return false, err
 		}
 		return false, nil
@@ -373,7 +373,7 @@ func (s *Server) connectClient(n int) error {
 		newC.spawnParams = progsdat.Globals.Parm
 	}
 	sv_clients[n] = newC
-	newC.SendServerinfo(s)
+	s.SendServerinfo(newC)
 	return nil
 }
 
@@ -578,7 +578,7 @@ func (s *Server) SendClientMessages() error {
 			// between signon stages
 			if !c.sendSignon {
 				if host.Time()-c.lastMessage > 5 {
-					if err := c.SendNop(s); err != nil {
+					if err := s.SendNop(c); err != nil {
 						return err
 					}
 				}
@@ -591,7 +591,7 @@ func (s *Server) SendClientMessages() error {
 		// on a very fucked up connection that backs up a lot, then
 		// changes level
 		if false { // GetClientOverflowed(i) {
-			if err := c.Drop(true, s); err != nil {
+			if err := s.Drop(c, true); err != nil {
 				return err
 			}
 			// SetClientOverflowed(i, false)
@@ -605,7 +605,7 @@ func (s *Server) SendClientMessages() error {
 
 			if c.SendMessage() == -1 {
 				// if the message couldn't send, kick off
-				if err := c.Drop(true, s); err != nil {
+				if err := s.Drop(c, true); err != nil {
 					return err
 				}
 			}
@@ -1094,7 +1094,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 	// send serverinfo to all connected clients
 	for i := 0; i < svs.maxClients; i++ {
 		if sv_clients[i].active {
-			sv_clients[i].SendServerinfo(s)
+			s.SendServerinfo(sv_clients[i])
 		}
 	}
 
@@ -1138,7 +1138,7 @@ func (s *Server) Shutdown() error {
 
 	for _, c := range sv_clients {
 		if c.active {
-			if err := c.Drop(false, s); err != nil {
+			if err := s.Drop(c, false); err != nil {
 				return nil
 			}
 		}

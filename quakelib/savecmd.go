@@ -5,32 +5,32 @@ package quakelib
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"path/filepath"
 	"strings"
 
 	"goquake/cbuf"
 	"goquake/cvars"
 	"goquake/filesystem"
+	"goquake/progs"
 	"goquake/protos"
 
 	"google.golang.org/protobuf/proto"
 )
 
-func saveGameComment() string {
-	levelName, err := progsdat.String(entvars.Get(0).Message)
+func saveGameComment(p *progs.LoadedProg) string {
+	levelName, err := p.String(entvars.Get(0).Message)
 	if err != nil {
 		levelName = ""
 	}
-	km := progsdat.Globals.KilledMonsters
-	tm := progsdat.Globals.TotalMonsters
+	km := p.Globals.KilledMonsters
+	tm := p.Globals.TotalMonsters
 	// somehow nobody can count?
 	// we should have 39 chars total available, why clip at 22 for the map?
-	log.Printf("%-22s kills:%3d/%3d", levelName, int(km), int(tm))
+	// log.Printf("%-22s kills:%3d/%3d", levelName, int(km), int(tm))
 	return fmt.Sprintf("%-22s kills:%3d/%3d", levelName, int(km), int(tm))
 }
 
-func (sc *SVClient) saveCmd(a cbuf.Arguments, s *Server) {
+func (s *Server) saveCmd(sc *SVClient, a cbuf.Arguments) {
 	args := a.Args()
 	if len(args) != 2 {
 		return
@@ -62,7 +62,7 @@ func (sc *SVClient) saveCmd(a cbuf.Arguments, s *Server) {
 	sc.Printf("Saving game to %s...\n", fullname)
 
 	data := protos.SaveGame_builder{
-		Comment:      saveGameComment(),
+		Comment:      saveGameComment(progsdat),
 		SpawnParams:  sc.spawnParams[:], //[]float32
 		CurrentSkill: int32(cvars.Skill.Value()),
 		MapName:      s.name,
