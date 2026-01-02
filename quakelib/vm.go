@@ -171,10 +171,6 @@ const (
 	maxLocalStack = 16384
 )
 
-var (
-	vm *virtualMachine
-)
-
 func NewVirtualMachine() *virtualMachine {
 	v := &virtualMachine{
 		stack:      make([]stackElem, 0, maxStackDepth),

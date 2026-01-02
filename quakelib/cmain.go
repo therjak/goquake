@@ -30,6 +30,7 @@ import (
 var (
 	sv_protocol     int
 	hostInitialized bool
+	svTODO          = NewServer()
 )
 
 func svProtocol(a cbuf.Arguments) error {
@@ -87,8 +88,6 @@ func CallCMain() error {
 
 	h := slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: programLevel})
 	slog.SetDefault(slog.New(h))
-
-	vm = NewVirtualMachine()
 
 	filesystemInit()
 	hostInit()

@@ -192,7 +192,7 @@ func (s *Server) Drop(sc *SVClient, crash bool) error {
 			// this will set the body to a dead frame, among other things
 			saveSelf := progsdat.Globals.Self
 			progsdat.Globals.Self = int32(sc.edictId)
-			if err := vm.ExecuteProgram(progsdat.Globals.ClientDisconnect, s); err != nil {
+			if err := s.vm.ExecuteProgram(progsdat.Globals.ClientDisconnect, s); err != nil {
 				return err
 			}
 			progsdat.Globals.Self = saveSelf
@@ -568,7 +568,7 @@ func (s *Server) killCmd(sc *SVClient, time float32, a cbuf.Arguments) error {
 
 	progsdat.Globals.Time = time
 	progsdat.Globals.Self = int32(sc.edictId)
-	if err := vm.ExecuteProgram(progsdat.Globals.ClientKill, s); err != nil {
+	if err := s.vm.ExecuteProgram(progsdat.Globals.ClientKill, s); err != nil {
 		return err
 	}
 	return nil
@@ -679,7 +679,7 @@ func (s *Server) setPosCmd(sc *SVClient, a cbuf.Arguments) error {
 			args[2].Float32(),
 			args[3].Float32(),
 		}
-		if err := vm.LinkEdict(sc.edictId, false, s); err != nil {
+		if err := s.vm.LinkEdict(sc.edictId, false, s); err != nil {
 			return err
 		}
 		return nil
@@ -714,13 +714,13 @@ func (s *Server) spawnCmd(sc *SVClient) error {
 		progsdat.Globals.Parm = sc.spawnParams
 		progsdat.Globals.Time = s.time
 		progsdat.Globals.Self = int32(sc.edictId)
-		if err := vm.ExecuteProgram(progsdat.Globals.ClientConnect, s); err != nil {
+		if err := s.vm.ExecuteProgram(progsdat.Globals.ClientConnect, s); err != nil {
 			return err
 		}
 		if time.Since(sc.ConnectTime()).Seconds() <= float64(s.time) {
 			log.Printf("%v entered the game\n", sc.name)
 		}
-		if err := vm.ExecuteProgram(progsdat.Globals.PutClientInServer, s); err != nil {
+		if err := s.vm.ExecuteProgram(progsdat.Globals.PutClientInServer, s); err != nil {
 			return err
 		}
 	}
@@ -1172,7 +1172,7 @@ func (s *Server) runClients() error {
 			// TODO(therjak): is this pause stuff really needed?
 			// always pause in single player if in console or menus
 			//if svs.maxClients > 1 || keyDestination == keys.Game {
-			hc.Think(s.time, s)
+			hc.Think(entvars.Get(hc.edictId), s.time, s)
 			//}
 		}
 	}

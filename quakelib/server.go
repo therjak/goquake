@@ -106,11 +106,12 @@ type Server struct {
 	modelPrecache []string
 	models        []model.Model
 	worldModel    *bsp.Model
+
+	vm *virtualMachine
 }
 
 var (
 	svs         = ServerStatic{}
-	svTODO      = NewServer()
 	host_client int
 	progsdat    *progs.LoadedProg
 )
@@ -123,6 +124,7 @@ var (
 func NewServer() *Server {
 	s := &Server{
 		models: make([]model.Model, 1),
+		vm:     NewVirtualMachine(),
 	}
 	cvars.ServerGravity.SetCallback(s.notifyCallback)
 	cvars.ServerFriction.SetCallback(s.notifyCallback)
@@ -367,7 +369,7 @@ func (s *Server) connectClient(n int) error {
 	if s.loadGame {
 		newC.spawnParams = old.spawnParams
 	} else {
-		if err := vm.ExecuteProgram(progsdat.Globals.SetNewParms, s); err != nil {
+		if err := s.vm.ExecuteProgram(progsdat.Globals.SetNewParms, s); err != nil {
 			return err
 		}
 		newC.spawnParams = progsdat.Globals.Parm
@@ -424,7 +426,7 @@ func (s *Server) impact(e1, e2 int) error {
 	if ent1.Touch != 0 && ent1.Solid != SOLID_NOT {
 		progsdat.Globals.Self = int32(e1)
 		progsdat.Globals.Other = int32(e2)
-		if err := vm.ExecuteProgram(ent1.Touch, s); err != nil {
+		if err := s.vm.ExecuteProgram(ent1.Touch, s); err != nil {
 			return err
 		}
 	}
@@ -432,7 +434,7 @@ func (s *Server) impact(e1, e2 int) error {
 	if ent2.Touch != 0 && ent2.Solid != SOLID_NOT {
 		progsdat.Globals.Self = int32(e2)
 		progsdat.Globals.Other = int32(e1)
-		if err := vm.ExecuteProgram(ent2.Touch, s); err != nil {
+		if err := s.vm.ExecuteProgram(ent2.Touch, s); err != nil {
 			return err
 		}
 	}
@@ -644,7 +646,7 @@ func (s *Server) runThink(e int) (bool, error) {
 	progsdat.Globals.Time = thinktime
 	progsdat.Globals.Self = int32(e)
 	progsdat.Globals.Other = 0
-	if err := vm.ExecuteProgram(ev.Think, s); err != nil {
+	if err := s.vm.ExecuteProgram(ev.Think, s); err != nil {
 		return false, err
 	}
 
@@ -685,7 +687,7 @@ func (s *Server) pushEntity(e int, push vec.Vec3) (bsp.Trace, error) {
 	}()
 
 	ev.Origin = tr.EndPos
-	if err := vm.LinkEdict(e, true, s); err != nil {
+	if err := s.vm.LinkEdict(e, true, s); err != nil {
 		return bsp.Trace{}, err
 	}
 
@@ -902,7 +904,7 @@ func (s *Server) saveSpawnparms() error {
 		}
 		// call the progs to get default spawn parms for the new client
 		progsdat.Globals.Self = int32(c.edictId)
-		if err := vm.ExecuteProgram(progsdat.Globals.SetChangeParms, s); err != nil {
+		if err := s.vm.ExecuteProgram(progsdat.Globals.SetChangeParms, s); err != nil {
 			return err
 		}
 		c.spawnParams = progsdat.Globals.Parm
@@ -929,7 +931,7 @@ func (s *Server) SpawnSaveGameServer(data *protos.SaveGame, pcl int) error {
 	s.paused = true
 	s.loadGame = true
 	copy(s.lightStyles[:], data.GetLightStyles())
-	vm.LoadGameGlobals(data.GetGlobals())
+	s.vm.LoadGameGlobals(data.GetGlobals())
 	if err := s.loadGameEdicts(data.GetEdicts()); err != nil {
 		return err
 	}
@@ -986,7 +988,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 
 	slog.Debug("SpawnServer", slog.String("mapname", mapName))
 	// now safe to issue another
-	vm.changeLevelIssued = false
+	s.vm.changeLevelIssued = false
 
 	// tell all connected clients that we are going to a new level
 	if s.Active() {
@@ -1010,7 +1012,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 		log.Fatalf("Failed to load progs.dat: %v", err)
 	}
 	progsdat = p
-	vm.prog = p
+	s.vm.prog = p
 
 	// allocate server memory
 	s.maxEdicts = int(cvars.MaxEdicts.Value())
@@ -1157,7 +1159,7 @@ func (s *Server) saveGameEdicts() []*protos.Edict {
 			eds = append(eds, &protos.Edict{})
 			continue
 		}
-		e := vm.saveGameEntVars(i)
+		e := s.vm.saveGameEntVars(i)
 
 		if /*!pr_alpha_supported &&*/ s.edicts[i].Alpha != 0 {
 			wa := s.edicts[i].Alpha
@@ -1192,8 +1194,8 @@ func (s *Server) loadGameEdicts(es []*protos.Edict) error {
 			Alpha: a,
 		}
 
-		vm.loadGameEntVars(i, e)
-		if err := vm.LinkEdict(i, false, s); err != nil {
+		s.vm.loadGameEntVars(i, e)
+		if err := s.vm.LinkEdict(i, false, s); err != nil {
 			return err
 		}
 	}

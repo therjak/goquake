@@ -46,7 +46,7 @@ func (s *Server) pushMove(pusher int, movetime float32) error {
 	// move the pusher to it's final position
 	pev.Origin = vec.Add(pev.Origin, move)
 	pev.LTime += movetime
-	if err := vm.LinkEdict(pusher, false, s); err != nil {
+	if err := s.vm.LinkEdict(pusher, false, s); err != nil {
 		return err
 	}
 
@@ -113,12 +113,12 @@ func (s *Server) pushMove(pusher int, movetime float32) error {
 				continue
 			}
 			cev.Origin = entOrigin
-			if err := vm.LinkEdict(c, true, s); err != nil {
+			if err := s.vm.LinkEdict(c, true, s); err != nil {
 				return err
 			}
 
 			pev.Origin = pushOrigin
-			if err := vm.LinkEdict(pusher, false, s); err != nil {
+			if err := s.vm.LinkEdict(pusher, false, s); err != nil {
 				return err
 			}
 			pev.LTime -= movetime
@@ -128,7 +128,7 @@ func (s *Server) pushMove(pusher int, movetime float32) error {
 			if pev.Blocked != 0 {
 				progsdat.Globals.Self = int32(pusher)
 				progsdat.Globals.Other = int32(c)
-				if err := vm.ExecuteProgram(pev.Blocked, s); err != nil {
+				if err := s.vm.ExecuteProgram(pev.Blocked, s); err != nil {
 					return err
 				}
 			}
@@ -136,7 +136,7 @@ func (s *Server) pushMove(pusher int, movetime float32) error {
 			// move back any entities we already moved
 			for _, m := range movedEnts {
 				entvars.Get(m.ent).Origin = m.origin
-				if err := vm.LinkEdict(m.ent, false, s); err != nil {
+				if err := s.vm.LinkEdict(m.ent, false, s); err != nil {
 					return err
 				}
 			}
@@ -182,7 +182,7 @@ func (s *Server) pusher(ent int, time float32) error {
 		progsdat.Globals.Time = time
 		progsdat.Globals.Self = int32(ent)
 		progsdat.Globals.Other = 0
-		if err := vm.ExecuteProgram(ev.Think, s); err != nil {
+		if err := s.vm.ExecuteProgram(ev.Think, s); err != nil {
 			return err
 		}
 	}
@@ -391,7 +391,7 @@ func (s *Server) noClip(ent int) error {
 	origin := ev.Origin
 	ev.Origin = vec.Add(origin, v)
 
-	if err := vm.LinkEdict(ent, false, s); err != nil {
+	if err := s.vm.LinkEdict(ent, false, s); err != nil {
 		return err
 	}
 	return nil
@@ -515,7 +515,7 @@ func (s *Server) step(ent int) error {
 		if _, err := s.flyMove(ent, time, nil); err != nil {
 			return err
 		}
-		if err := vm.LinkEdict(ent, true, s); err != nil {
+		if err := s.vm.LinkEdict(ent, true, s); err != nil {
 			return err
 		}
 
@@ -554,7 +554,7 @@ func (s *Server) checkStuck(ent int) error {
 	ev.Origin = ev.OldOrigin
 	if !testEntityPosition(ent, s) {
 		slog.Debug("Unstuck.") // debug
-		if err := vm.LinkEdict(ent, true, s); err != nil {
+		if err := s.vm.LinkEdict(ent, true, s); err != nil {
 			return err
 		}
 		return nil
@@ -568,7 +568,7 @@ func (s *Server) checkStuck(ent int) error {
 				ev.Origin[2] = org[2] + z
 				if !testEntityPosition(ent, s) {
 					slog.Debug("Unstuck.")
-					if err := vm.LinkEdict(ent, true, s); err != nil {
+					if err := s.vm.LinkEdict(ent, true, s); err != nil {
 						return err
 					}
 					return nil
@@ -782,7 +782,7 @@ func (s *Server) playerActions(ent, num int, time float32) error {
 
 	progsdat.Globals.Time = time
 	progsdat.Globals.Self = int32(ent)
-	if err := vm.ExecuteProgram(progsdat.Globals.PlayerPreThink, s); err != nil {
+	if err := s.vm.ExecuteProgram(progsdat.Globals.PlayerPreThink, s); err != nil {
 		return err
 	}
 
@@ -844,13 +844,13 @@ func (s *Server) playerActions(ent, num int, time float32) error {
 		log.Fatalf("SV_Physics_client: bad movetype %v", ev.MoveType)
 	}
 
-	if err := vm.LinkEdict(ent, true, s); err != nil {
+	if err := s.vm.LinkEdict(ent, true, s); err != nil {
 		return err
 	}
 
 	progsdat.Globals.Time = time
 	progsdat.Globals.Self = int32(ent)
-	return vm.ExecuteProgram(progsdat.Globals.PlayerPostThink, s)
+	return s.vm.ExecuteProgram(progsdat.Globals.PlayerPostThink, s)
 }
 
 func (s *Server) runPhysics() error {
@@ -858,7 +858,7 @@ func (s *Server) runPhysics() error {
 	progsdat.Globals.Time = s.time
 	progsdat.Globals.Self = 0
 	progsdat.Globals.Other = 0
-	if err := vm.ExecuteProgram(progsdat.Globals.PlayerPostThink, s); err != nil {
+	if err := s.vm.ExecuteProgram(progsdat.Globals.PlayerPostThink, s); err != nil {
 		return err
 	}
 
@@ -877,7 +877,7 @@ func (s *Server) runPhysics() error {
 		}
 		if progsdat.Globals.ForceRetouch != 0 {
 			// force retouch even for stationary
-			if err := vm.LinkEdict(i, true, s); err != nil {
+			if err := s.vm.LinkEdict(i, true, s); err != nil {
 				return err
 			}
 		}
