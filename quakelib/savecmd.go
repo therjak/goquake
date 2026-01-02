@@ -67,9 +67,9 @@ func (s *Server) saveCmd(sc *SVClient, a cbuf.Arguments) {
 		CurrentSkill: int32(cvars.Skill.Value()),
 		MapName:      s.name,
 		MapTime:      s.time,
-		LightStyles:  s.lightStyles[:],     //[]string
-		Globals:      vm.SaveGameGlobals(), // protos.Globals
-		Edicts:       s.saveGameEdicts(),   // []protos.Edict
+		LightStyles:  s.lightStyles[:],       //[]string
+		Globals:      s.vm.SaveGameGlobals(), // protos.Globals
+		Edicts:       s.saveGameEdicts(),     // []protos.Edict
 	}.Build()
 
 	out, err := proto.Marshal(data)

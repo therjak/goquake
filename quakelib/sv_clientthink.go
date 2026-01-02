@@ -10,8 +10,7 @@ import (
 	"github.com/chewxy/math32"
 )
 
-func (sc *SVClient) accelerate(wishspeed float32, wishdir vec.Vec3) {
-	ev := entvars.Get(sc.edictId)
+func accelerate(ev *progs.EntVars, wishspeed float32, wishdir vec.Vec3) {
 	velocity := vec.VFromA(ev.Velocity)
 	currentspeed := vec.Dot(velocity, wishdir)
 	addspeed := wishspeed - currentspeed
@@ -25,8 +24,7 @@ func (sc *SVClient) accelerate(wishspeed float32, wishdir vec.Vec3) {
 	ev.Velocity = vec.Add(velocity, vec.Scale(accelspeed, wishdir))
 }
 
-func (sc *SVClient) airAccelerate(wishspeed float32, wishveloc vec.Vec3) {
-	ev := entvars.Get(sc.edictId)
+func airAccelerate(ev *progs.EntVars, wishspeed float32, wishveloc vec.Vec3) {
 	velocity := vec.VFromA(ev.Velocity)
 
 	wishspd := wishveloc.Length()
@@ -48,8 +46,7 @@ func (sc *SVClient) airAccelerate(wishspeed float32, wishveloc vec.Vec3) {
 	ev.Velocity = vec.Add(velocity, vec.Scale(accelspeed, wishveloc))
 }
 
-func (sc *SVClient) noclipMove() {
-	ev := entvars.Get(sc.edictId)
+func (sc *SVClient) noclipMove(ev *progs.EntVars) {
 	vangle := vec.VFromA(ev.VAngle)
 	forward, right, _ := vec.AngleVectors(vangle)
 
@@ -72,8 +69,7 @@ func (sc *SVClient) noclipMove() {
 	ev.Velocity = velocity
 }
 
-func (sc *SVClient) waterMove() {
-	ev := entvars.Get(sc.edictId)
+func (sc *SVClient) waterMove(ev *progs.EntVars) {
 	// user intentions
 	vangle := vec.VFromA(ev.VAngle)
 	forward, right, _ := vec.AngleVectors(vangle)
@@ -132,8 +128,7 @@ func (sc *SVClient) waterMove() {
 	ev.Velocity = vec.Add(velocity, vec.Scale(accelspeed, wishvel))
 }
 
-func (sc *SVClient) userFriction(s *Server) {
-	ev := entvars.Get(sc.edictId)
+func (sc *SVClient) userFriction(ev *progs.EntVars, s *Server) {
 	velocity := vec.VFromA(ev.Velocity)
 	speed2 := velocity[0]*velocity[0] + velocity[1]*velocity[1]
 	if speed2 == 0 {
@@ -175,8 +170,7 @@ func (sc *SVClient) userFriction(s *Server) {
 	ev.Velocity = vec.Scale(newspeed, velocity)
 }
 
-func (sc *SVClient) airMove(time float32, s *Server) {
-	ev := entvars.Get(sc.edictId)
+func (sc *SVClient) airMove(ev *progs.EntVars, time float32, s *Server) {
 	forward, right, _ := vec.AngleVectors(vec.VFromA(ev.Angles))
 	fmove := float32(sc.cmd.forwardmove)
 	smove := float32(sc.cmd.sidemove)
@@ -215,16 +209,16 @@ func (sc *SVClient) airMove(time float32, s *Server) {
 	if ev.MoveType == progs.MoveTypeNoClip {
 		ev.Velocity = wishvel
 	} else if onground {
-		sc.userFriction(s)
-		sc.accelerate(wishspeed, wishdir)
+
+		sc.userFriction(ev, s)
+		accelerate(ev, wishspeed, wishdir)
 	} else {
 		// not on ground, so little effect on velocity
-		sc.airAccelerate(wishspeed, wishvel)
+		airAccelerate(ev, wishspeed, wishvel)
 	}
 }
 
-func (sc *SVClient) DropPunchAngle() {
-	ev := entvars.Get(sc.edictId)
+func dropPunchAngle(ev *progs.EntVars) {
 	pa := vec.VFromA(ev.PunchAngle)
 	len := pa.Length()
 	if len == 0 {
@@ -237,8 +231,7 @@ func (sc *SVClient) DropPunchAngle() {
 	ev.PunchAngle = vec.Scale(len2, pa)
 }
 
-func (sc *SVClient) waterJump(time float32) {
-	ev := entvars.Get(sc.edictId)
+func waterJump(ev *progs.EntVars, time float32) {
 	if time > ev.TeleportTime || ev.WaterLevel == 0 {
 		ev.Flags = float32(int(ev.Flags) &^ FL_WATERJUMP)
 		ev.TeleportTime = 0
@@ -249,13 +242,11 @@ func (sc *SVClient) waterJump(time float32) {
 
 // the move fields specify an intended velocity in pix/sec
 // the angle fields specify an exact angular motion in degrees
-func (sc *SVClient) Think(time float32, s *Server) {
-	ev := entvars.Get(sc.edictId)
-
+func (sc *SVClient) Think(ev *progs.EntVars, time float32, s *Server) {
 	if ev.MoveType == progs.MoveTypeNone {
 		return
 	}
-	sc.DropPunchAngle()
+	dropPunchAngle(ev)
 	if ev.Health <= 0 {
 		// if dead, behave differently
 		return
@@ -276,15 +267,15 @@ func (sc *SVClient) Think(time float32, s *Server) {
 	ev.Angles = angles
 
 	if int(ev.Flags)&FL_WATERJUMP != 0 {
-		sc.waterJump(time)
+		waterJump(ev, time)
 		return
 	}
 	// walk
 	if ev.MoveType == progs.MoveTypeNoClip && cvars.ServerAltNoClip.Bool() {
-		sc.noclipMove()
+		sc.noclipMove(ev)
 	} else if ev.WaterLevel >= 2 && ev.MoveType != progs.MoveTypeNoClip {
-		sc.waterMove()
+		sc.waterMove(ev)
 	} else {
-		sc.airMove(time, s)
+		sc.airMove(ev, time, s)
 	}
 }

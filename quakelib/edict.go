@@ -198,14 +198,14 @@ func (s *Server) loadEntities(data []*bsp.Entity, mapName string) error {
 		// remove things from different skill levels or deathmatch
 		if cvars.DeathMatch.Bool() {
 			if (int(ev.SpawnFlags) & SPAWNFLAG_NOT_DEATHMATCH) != 0 {
-				vm.edictFree(eNr, s)
+				s.vm.edictFree(eNr, s)
 				inhibit++
 				continue
 			}
 		} else if (currentSkill == 0 && int(ev.SpawnFlags)&SPAWNFLAG_NOT_EASY != 0) ||
 			(currentSkill == 1 && int(ev.SpawnFlags)&SPAWNFLAG_NOT_MEDIUM != 0) ||
 			(currentSkill >= 2 && int(ev.SpawnFlags)&SPAWNFLAG_NOT_HARD != 0) {
-			vm.edictFree(eNr, s)
+			s.vm.edictFree(eNr, s)
 			inhibit++
 			continue
 		}
@@ -213,7 +213,7 @@ func (s *Server) loadEntities(data []*bsp.Entity, mapName string) error {
 		if ev.ClassName == 0 {
 			slog.Warn("No classname", slog.String("map", mapName))
 			s.edictPrint(eNr)
-			vm.edictFree(eNr, s)
+			s.vm.edictFree(eNr, s)
 			continue
 		}
 
@@ -223,12 +223,12 @@ func (s *Server) loadEntities(data []*bsp.Entity, mapName string) error {
 		if err != nil {
 			slog.Warn("No spawn function", slog.String("map", mapName))
 			s.edictPrint(eNr)
-			vm.edictFree(eNr, s)
+			s.vm.edictFree(eNr, s)
 			continue
 		}
 
 		progsdat.Globals.Self = int32(eNr)
-		if err := vm.ExecuteProgram(int32(fidx), s); err != nil {
+		if err := s.vm.ExecuteProgram(int32(fidx), s); err != nil {
 			return err
 		}
 	}
