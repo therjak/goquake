@@ -133,10 +133,10 @@ func (m *beginGameMenuItem) Draw() {
 
 func (m *maxPlayersMenuItem) Update(a qAccept) {
 	if m.maxPlayers == 0 {
-		m.maxPlayers = svs.maxClients
+		m.maxPlayers = svTODO.MaxClients()
 	}
 	if m.maxPlayers < 2 {
-		m.maxPlayers = svs.maxClientsLimit
+		m.maxPlayers = svTODO.MaxClientsLimit()
 	}
 }
 
@@ -335,8 +335,8 @@ func (m *maxPlayersMenuItem) Left() {
 
 func (m *maxPlayersMenuItem) Right() {
 	localSound(lsMenu3)
-	if m.maxPlayers >= svs.maxClientsLimit {
-		m.maxPlayers = svs.maxClientsLimit
+	if m.maxPlayers >= svTODO.MaxClientsLimit() {
+		m.maxPlayers = svTODO.MaxClientsLimit()
 		return
 	}
 	m.maxPlayers += 1

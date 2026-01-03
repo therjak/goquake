@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+
 package quakelib
 
 import (
@@ -10,7 +11,6 @@ import (
 
 var (
 	tcpipAvailable = true // TODO: better start with false
-	listening      = false
 )
 
 func init() {
@@ -25,21 +25,14 @@ func listenCmd(a cbuf.Arguments) error {
 	case 1:
 		arg := args[0].Bool()
 		if arg {
-			listen()
+			svTODO.Listen()
 		} else {
-			unlisten()
+			svTODO.StopListen()
 		}
 	default:
-		conlog.Printf("listen is %t", listening)
+		conlog.Printf("listen is %t", svTODO.Listening())
 	}
 	return nil
-}
-
-func listen() {
-	net.Listen(svs.maxClients)
-}
-func unlisten() {
-	net.StopListen()
 }
 
 func portCmd(a cbuf.Arguments) error {
@@ -54,7 +47,7 @@ func portCmd(a cbuf.Arguments) error {
 			return nil
 		}
 		net.SetPort(arg)
-		if listening {
+		if svTODO.Listening() {
 			// Force a change to the new port
 			cbuf.AddText("listen false\n")
 			cbuf.AddText("listen true\n")
@@ -67,7 +60,7 @@ func maxPlayersCmd(a cbuf.Arguments) error {
 	args := a.Args()[1:]
 	switch c := len(args); c {
 	default:
-		conlog.Printf("maxplayers is %d", svs.maxClients)
+		conlog.Printf("maxplayers is %d", svTODO.MaxClients())
 	case 1:
 		if ServerActive() {
 			conlog.Printf("maxplayers can not be changed while a server is running")
@@ -77,17 +70,17 @@ func maxPlayersCmd(a cbuf.Arguments) error {
 		if arg < 1 {
 			arg = 1
 		}
-		if svs.maxClientsLimit < arg {
-			arg = svs.maxClientsLimit
+		if svTODO.MaxClientsLimit() < arg {
+			arg = svTODO.MaxClientsLimit()
 			conlog.Printf("maxplayers set to %d", arg)
 		}
-		if arg == 1 && listening {
+		if arg == 1 && svTODO.Listening() {
 			cbuf.AddText("listen false\n")
 		}
-		if arg > 1 && !listening {
+		if arg > 1 && !svTODO.Listening() {
 			cbuf.AddText("listen true\n")
 		}
-		svs.maxClients = arg
+		svTODO.SetMaxClients(arg)
 		if arg == 1 {
 			cvars.DeathMatch.SetByString("0")
 		} else if !cvars.Coop.Bool() {

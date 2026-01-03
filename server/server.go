@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package quakelib
+package server
 
 import (
 	"fmt"
@@ -63,14 +63,6 @@ type ServerStatic struct {
 	// only modified to anything but 0 inside qc. So no point in matching the
 	// flag intent but better to match the use as qc number which is a float.
 	serverFlags float32
-}
-
-func MaxClients() int {
-	return svs.maxClients
-}
-
-func MaxClientsLimit() int {
-	return svs.maxClientsLimit
 }
 
 type ServerState bool
@@ -149,6 +141,48 @@ func NewServer(cv *cvar.Cvars) *Server {
 	cvars.TeamPlay.SetCallback(s.notifyCallback)
 	cvars.NoExit.SetCallback(s.notifyCallback)
 	return s
+}
+
+func (s *Server) Map() string {
+	return s.name
+}
+
+func (s *Server) MaxClients() int {
+	return svs.maxClients
+}
+
+func (s *Server) MaxClientsLimit() int {
+	return svs.maxClientsLimit
+}
+
+func (s *Server) SetMaxClients(m int) {
+	svs.maxClients = m
+}
+
+func (s *Server) ActiveClients() int {
+	c := 0
+	for i := 0; i < svs.maxClients; i++ {
+		if sv_clients[i].active {
+			c++
+		}
+	}
+	return c
+}
+
+func (s *Server) ResetServerFlags() {
+	svs.serverFlags = 0
+}
+
+func (s *Server) Listen() {
+	net.Listen(svs.maxClients)
+}
+
+func (s *Server) Listening() bool {
+	return net.Listening()
+}
+
+func (s *Server) StopListen() {
+	net.StopListen()
 }
 
 func (s *Server) NewSeed(seed uint32) {
