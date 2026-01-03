@@ -250,7 +250,7 @@ func (v *virtualMachine) monsterNewChaseDir(a, e int, dist float32, s *Server) e
 		}
 	}
 	// try other directions
-	if sRand.Uint32n(2) == 0 ||
+	if s.rand.Uint32n(2) == 0 ||
 		// TODO: Abs(Trunc seems overkill
 		math32.Abs(math32.Trunc(deltay)) > math32.Abs(math32.Trunc(deltax)) {
 		tdir := d1
@@ -281,7 +281,7 @@ func (v *virtualMachine) monsterNewChaseDir(a, e int, dist float32, s *Server) e
 	}
 
 	// randomly determine direction of search
-	if sRand.Uint32n(2) == 0 {
+	if s.rand.Uint32n(2) == 0 {
 		for tdir := float32(0); tdir <= 315; tdir += 45 {
 			if tdir != turnaround {
 				if ok, err := v.monsterStepDirection(a, tdir, dist, s); err != nil {
@@ -353,7 +353,7 @@ func (v *virtualMachine) monsterMoveToGoal(s *Server) error {
 	}
 
 	// bump around...
-	if sRand.Uint32n(3) == 0 {
+	if s.rand.Uint32n(3) == 0 {
 		if err := v.monsterNewChaseDir(ent, goal, dist, s); err != nil {
 			return err
 		}

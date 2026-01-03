@@ -261,7 +261,7 @@ var (
 // Runs all active servers
 func executeFrame() {
 	// keep the random time dependent
-	sRand.NewSeed(uint32(time.Now().UnixNano()))
+	svTODO.NewSeed(uint32(time.Now().UnixNano()))
 
 	timeUp := gametime.Update{
 		TimeDemo:  cls.timeDemo,

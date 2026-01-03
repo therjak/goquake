@@ -536,7 +536,7 @@ func (v *virtualMachine) vecToAngles(s *Server) error {
 // TODO
 // Returns a number from 0 <= num < 1
 func (v *virtualMachine) random(s *Server) error {
-	v.prog.Globals.Returnf()[0] = sRand.Float32()
+	v.prog.Globals.Returnf()[0] = s.rand.Float32()
 	return nil
 }
 

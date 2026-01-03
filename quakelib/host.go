@@ -11,11 +11,6 @@ import (
 	"goquake/cvar"
 	"goquake/cvars"
 	"goquake/math"
-	"goquake/rand"
-)
-
-var (
-	sRand = rand.New(0)
 )
 
 func hostInit() {
