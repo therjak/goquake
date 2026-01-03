@@ -287,7 +287,7 @@ func hostMap(a cbuf.Arguments) error {
 		// no map name given
 		if cmdl.Dedicated() {
 			if svTODO.Active() {
-				conlog.Printf("Current map: %s\n", svTODO.name)
+				conlog.Printf("Current map: %s\n", svTODO.Map())
 			} else {
 				conlog.Printf("Server not active\n")
 			}
@@ -316,7 +316,7 @@ func hostMap(a cbuf.Arguments) error {
 	keyDestination = keys.Game // remove console or menu
 	screen.BeginLoadingPlaque()
 
-	svs.serverFlags = 0 // haven't completed an episode yet
+	svTODO.ResetServerFlags() // haven't completed an episode yet
 
 	mapName := args[0].String()
 	mapName = strings.TrimSuffix(mapName, ".bsp")

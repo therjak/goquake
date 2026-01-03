@@ -23,6 +23,7 @@ import (
 	"goquake/math/vec"
 	"goquake/net"
 	"goquake/protocol"
+	"goquake/server"
 	"goquake/wad"
 	"goquake/window"
 )
@@ -31,7 +32,7 @@ var (
 	sv_protocol     int
 	hostInitialized bool
 	commandVars     = cvars.New()
-	svTODO          = NewServer(commandVars)
+	svTODO          = server.NewServer(commandVars)
 )
 
 func svProtocol(a cbuf.Arguments) error {
@@ -91,7 +92,10 @@ func CallCMain() error {
 	slog.SetDefault(slog.New(h))
 
 	filesystemInit()
-	hostInit()
+	// TODO(therjak): this should get the cmdl passed in
+	//  this is probably also the correct place to create the svTODO instead of
+	//  above and call HostInit within NewServer
+	server.HostInit()
 	if err := wad.Load(); err != nil {
 		return err
 	}
@@ -103,7 +107,7 @@ func CallCMain() error {
 	}
 
 	net.SetPort(cmdl.Port())
-	clients := svs.maxClientsLimit
+	clients := svTODO.MaxClientsLimit()
 	if !cmdl.Dedicated() {
 		clients++
 	}
@@ -416,13 +420,7 @@ func (m *measure) endMeasureFunc() {
 	div := end.Sub(m.frameCountStartTime)
 	m.frameCount = 0
 
-	clientNum := 0
-	for i := 0; i < svs.maxClients; i++ {
-		if sv_clients[i].active {
-			clientNum++
-		}
-	}
-	conlog.Printf("serverprofile: %2d clients %v\n", clientNum, div.String())
+	conlog.Printf("serverprofile: %2d clients %v\n", svTODO.ActiveClients(), div.String())
 }
 
 // Writes key bindings and archived cvars to config.cfg

@@ -732,6 +732,10 @@ type listenRequest struct {
 	conn *net.UDPConn
 }
 
+func Listening() bool {
+	return listenConn != nil
+}
+
 func Listen(numMaxClients int) {
 	maxClients = numMaxClients
 	StopListen()

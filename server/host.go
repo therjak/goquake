@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package quakelib
+package server
 
 import (
 	"log"
@@ -13,7 +13,7 @@ import (
 	"goquake/math"
 )
 
-func hostInit() {
+func HostInit() {
 	// TODO: this is some random stuff and needs cleanup
 	svs.maxClients = 1
 	if cmdl.Dedicated() {
