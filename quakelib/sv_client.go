@@ -175,7 +175,7 @@ func (s *Server) SendNop(sc *SVClient) error {
 			return err
 		}
 	}
-	sc.lastMessage = host.Time()
+	sc.lastMessage = s.gametime.Time()
 	return nil
 }
 

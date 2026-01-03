@@ -151,7 +151,7 @@ func (s *Server) addGravity(ent int) {
 	if err != nil || val == 0 {
 		val = 1.0
 	}
-	entvars.Get(ent).Velocity[2] -= val * cvars.ServerGravity.Value() * float32(host.FrameTime())
+	entvars.Get(ent).Velocity[2] -= val * cvars.ServerGravity.Value() * float32(s.gametime.FrameTime())
 }
 
 func (s *Server) pusher(ent int, time float32) error {
@@ -160,14 +160,14 @@ func (s *Server) pusher(ent int, time float32) error {
 	thinktime := float64(ev.NextThink)
 
 	movetime := func() float32 {
-		if thinktime < oldltime+host.FrameTime() {
+		if thinktime < oldltime+s.gametime.FrameTime() {
 			t := thinktime - oldltime
 			if t < 0 {
 				return 0
 			}
 			return float32(t)
 		}
-		return float32(host.FrameTime())
+		return float32(s.gametime.FrameTime())
 	}()
 
 	if movetime != 0 {
@@ -269,7 +269,7 @@ func (s *Server) walkMove(ent int) error {
 	oldOrigin := ev.Origin
 	oldVelocity := ev.Velocity
 
-	time := float32(host.FrameTime())
+	time := float32(s.gametime.FrameTime())
 	steptrace := bsp.Trace{}
 	clip, err := s.flyMove(ent, time, &steptrace)
 	if err != nil {
@@ -379,7 +379,7 @@ func (s *Server) noClip(ent int) error {
 	} else if !ok {
 		return nil
 	}
-	time := float32(host.FrameTime())
+	time := float32(s.gametime.FrameTime())
 
 	ev := entvars.Get(ent)
 	av := vec.Vec3(ev.AVelocity)
@@ -451,7 +451,7 @@ func (s *Server) toss(ent int) error {
 		s.addGravity(ent)
 	}
 
-	time := float32(host.FrameTime())
+	time := float32(s.gametime.FrameTime())
 
 	av := vec.Scale(time, ev.AVelocity)
 	ev.Angles = vec.Add(ev.Angles, av)
@@ -509,7 +509,7 @@ func (s *Server) step(ent int) error {
 	if int(ev.Flags)&(FL_ONGROUND|FL_FLY|FL_SWIM) == 0 {
 		hitSound := ev.Velocity[2] < cvars.ServerGravity.Value()*-0.1
 
-		time := float32(host.FrameTime())
+		time := float32(s.gametime.FrameTime())
 		s.addGravity(ent)
 		CheckVelocity(ev)
 		if _, err := s.flyMove(ent, time, nil); err != nil {
@@ -824,7 +824,7 @@ func (s *Server) playerActions(ent, num int, time float32) error {
 		} else if !ok {
 			return nil
 		}
-		time := float32(host.FrameTime())
+		time := float32(s.gametime.FrameTime())
 		if _, err := s.flyMove(ent, time, nil); err != nil {
 			return err
 		}
@@ -835,7 +835,7 @@ func (s *Server) playerActions(ent, num int, time float32) error {
 		} else if !ok {
 			return nil
 		}
-		time := float32(host.FrameTime())
+		time := float32(s.gametime.FrameTime())
 		v := vec.Scale(time, ev.Velocity)
 		ev.Origin = vec.Add(ev.Origin, v)
 
@@ -924,7 +924,7 @@ func (s *Server) runPhysics() error {
 	}
 
 	if !freezeNonClients {
-		s.time += float32(host.FrameTime())
+		s.time += float32(s.gametime.FrameTime())
 	}
 	return nil
 }

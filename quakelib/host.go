@@ -10,13 +10,11 @@ import (
 	"goquake/conlog"
 	"goquake/cvar"
 	"goquake/cvars"
-	"goquake/gametime"
 	"goquake/math"
 	"goquake/rand"
 )
 
 var (
-	host  gametime.GameTime
 	sRand = rand.New(0)
 )
 
@@ -78,7 +76,7 @@ func init() {
 
 func (s *Server) ServerFrame() error {
 	// run the world state
-	progsdat.Globals.FrameTime = float32(host.FrameTime())
+	progsdat.Globals.FrameTime = float32(s.gametime.FrameTime())
 
 	// set the time and clear the general datagram
 	s.datagram.ClearMessage()

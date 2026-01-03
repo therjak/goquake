@@ -21,6 +21,7 @@ import (
 	"goquake/cvar"
 	"goquake/cvars"
 	"goquake/filesystem"
+	"goquake/gametime"
 	"goquake/input"
 	"goquake/keys"
 	"goquake/math"
@@ -64,6 +65,8 @@ var (
 
 	calcRefreshRectOldZ  = float32(0)
 	calcRefreshRectPunch vec.Vec3
+
+	host gametime.GameTime
 )
 
 func init() {

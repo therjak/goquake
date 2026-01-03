@@ -13,6 +13,7 @@ import (
 	cmdl "goquake/commandline"
 	"goquake/cvar"
 	"goquake/cvars"
+	"goquake/gametime"
 	"goquake/math"
 	"goquake/math/vec"
 	"goquake/model"
@@ -108,6 +109,8 @@ type Server struct {
 	worldModel    *bsp.Model
 
 	vm *virtualMachine
+
+	gametime gametime.GameTime
 }
 
 var (
@@ -141,6 +144,10 @@ func (s *Server) notifyCallback(cv *cvar.Cvar) {
 		return
 	}
 	s.BroadcastPrintf("\"%s\" changed to \"%s\"\n", cv.Name(), cv.String())
+}
+
+func (s *Server) UpdateTime(u gametime.Update) bool {
+	return s.gametime.UpdateTime(u)
 }
 
 func (s *Server) Active() bool {
@@ -579,7 +586,7 @@ func (s *Server) SendClientMessages() error {
 			// some other message data (name changes, etc) may accumulate
 			// between signon stages
 			if !c.sendSignon {
-				if host.Time()-c.lastMessage > 5 {
+				if s.gametime.Time()-c.lastMessage > 5 {
 					if err := s.SendNop(c); err != nil {
 						return err
 					}
@@ -612,7 +619,7 @@ func (s *Server) SendClientMessages() error {
 				}
 			}
 			c.msg.ClearMessage()
-			c.lastMessage = host.Time()
+			c.lastMessage = s.gametime.Time()
 			c.sendSignon = false
 		}
 	}
@@ -628,7 +635,7 @@ func (s *Server) SendClientMessages() error {
 // Returns false if the entity removed itself.
 func (s *Server) runThink(e int) (bool, error) {
 	thinktime := entvars.Get(e).NextThink
-	if thinktime <= 0 || thinktime > s.time+float32(host.FrameTime()) {
+	if thinktime <= 0 || thinktime > s.time+float32(s.gametime.FrameTime()) {
 		return true, nil
 	}
 
@@ -1073,7 +1080,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 	s.state = ServerStateActive
 
 	// run two frames to allow everything to settle
-	host.Reset()
+	s.gametime.Reset()
 	if err := s.runPhysics(); err != nil {
 		s.active = false
 		return err

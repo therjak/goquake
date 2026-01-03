@@ -10,21 +10,21 @@ import (
 	"github.com/chewxy/math32"
 )
 
-func accelerate(ev *progs.EntVars, wishspeed float32, wishdir vec.Vec3) {
+func accelerate(ev *progs.EntVars, wishspeed float32, wishdir vec.Vec3, frametime float32) {
 	velocity := vec.VFromA(ev.Velocity)
 	currentspeed := vec.Dot(velocity, wishdir)
 	addspeed := wishspeed - currentspeed
 	if addspeed <= 0 {
 		return
 	}
-	accelspeed := cvars.ServerAccelerate.Value() * float32(host.FrameTime()) * wishspeed
+	accelspeed := cvars.ServerAccelerate.Value() * frametime * wishspeed
 	if accelspeed > addspeed {
 		accelspeed = addspeed
 	}
 	ev.Velocity = vec.Add(velocity, vec.Scale(accelspeed, wishdir))
 }
 
-func airAccelerate(ev *progs.EntVars, wishspeed float32, wishveloc vec.Vec3) {
+func airAccelerate(ev *progs.EntVars, wishspeed float32, wishveloc vec.Vec3, frametime float32) {
 	velocity := vec.VFromA(ev.Velocity)
 
 	wishspd := wishveloc.Length()
@@ -39,7 +39,7 @@ func airAccelerate(ev *progs.EntVars, wishspeed float32, wishveloc vec.Vec3) {
 	if addspeed <= 0 {
 		return
 	}
-	accelspeed := cvars.ServerAccelerate.Value() * float32(host.FrameTime()) * wishspeed
+	accelspeed := cvars.ServerAccelerate.Value() * frametime * wishspeed
 	if accelspeed > addspeed {
 		accelspeed = addspeed
 	}
@@ -69,7 +69,7 @@ func (sc *SVClient) noclipMove(ev *progs.EntVars) {
 	ev.Velocity = velocity
 }
 
-func (sc *SVClient) waterMove(ev *progs.EntVars) {
+func (sc *SVClient) waterMove(ev *progs.EntVars, frametime float32) {
 	// user intentions
 	vangle := vec.VFromA(ev.VAngle)
 	forward, right, _ := vec.AngleVectors(vangle)
@@ -104,7 +104,7 @@ func (sc *SVClient) waterMove(ev *progs.EntVars) {
 	speed := velocity.Length()
 	newspeed := float32(0)
 	if speed != 0 {
-		newspeed = speed - float32(host.FrameTime())*speed*cvars.ServerFriction.Value()
+		newspeed = speed - frametime*speed*cvars.ServerFriction.Value()
 		if newspeed < 0 {
 			newspeed = 0
 		}
@@ -121,7 +121,7 @@ func (sc *SVClient) waterMove(ev *progs.EntVars) {
 	}
 
 	wishvel = wishvel.Normalize()
-	accelspeed := cvars.ServerAccelerate.Value() * wishspeed * float32(host.FrameTime())
+	accelspeed := cvars.ServerAccelerate.Value() * wishspeed * frametime
 	if accelspeed > addspeed {
 		accelspeed = addspeed
 	}
@@ -160,7 +160,7 @@ func (sc *SVClient) userFriction(ev *progs.EntVars, s *Server) {
 		}
 		return speed
 	}()
-	newspeed := speed - float32(host.FrameTime())*control*friction
+	newspeed := speed - float32(s.gametime.FrameTime())*control*friction
 
 	if newspeed <= 0 {
 		ev.Velocity = [3]float32{0, 0, 0}
@@ -211,20 +211,20 @@ func (sc *SVClient) airMove(ev *progs.EntVars, time float32, s *Server) {
 	} else if onground {
 
 		sc.userFriction(ev, s)
-		accelerate(ev, wishspeed, wishdir)
+		accelerate(ev, wishspeed, wishdir, float32(s.gametime.FrameTime()))
 	} else {
 		// not on ground, so little effect on velocity
-		airAccelerate(ev, wishspeed, wishvel)
+		airAccelerate(ev, wishspeed, wishvel, float32(s.gametime.FrameTime()))
 	}
 }
 
-func dropPunchAngle(ev *progs.EntVars) {
+func dropPunchAngle(ev *progs.EntVars, frametime float32) {
 	pa := vec.VFromA(ev.PunchAngle)
 	len := pa.Length()
 	if len == 0 {
 		len = 1
 	}
-	len2 := 1 - (10 * float32(host.FrameTime()) / len)
+	len2 := 1 - (10 * frametime / len)
 	if len2 < 0 {
 		len2 = 0
 	}
@@ -246,7 +246,7 @@ func (sc *SVClient) Think(ev *progs.EntVars, time float32, s *Server) {
 	if ev.MoveType == progs.MoveTypeNone {
 		return
 	}
-	dropPunchAngle(ev)
+	dropPunchAngle(ev, float32(s.gametime.FrameTime()))
 	if ev.Health <= 0 {
 		// if dead, behave differently
 		return
@@ -274,7 +274,7 @@ func (sc *SVClient) Think(ev *progs.EntVars, time float32, s *Server) {
 	if ev.MoveType == progs.MoveTypeNoClip && cvars.ServerAltNoClip.Bool() {
 		sc.noclipMove(ev)
 	} else if ev.WaterLevel >= 2 && ev.MoveType != progs.MoveTypeNoClip {
-		sc.waterMove(ev)
+		sc.waterMove(ev, float32(s.gametime.FrameTime()))
 	} else {
 		sc.airMove(ev, time, s)
 	}

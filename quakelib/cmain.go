@@ -263,14 +263,19 @@ func executeFrame() {
 	// keep the random time dependent
 	sRand.NewSeed(uint32(time.Now().UnixNano()))
 
-	// decide the simulation time
-	if !host.UpdateTime(gametime.Update{
+	timeUp := gametime.Update{
 		TimeDemo:  cls.timeDemo,
 		TimeScale: float64(cvars.HostTimeScale.Value()),
 		FrameRate: float64(cvars.HostFrameRate.Value()),
 		MaxFPS:    float64(cvars.HostMaxFps.Value()),
-	}) {
+	}
+	// decide the simulation time
+	if !host.UpdateTime(timeUp) {
 		return // don't run too fast, or packets will flood out
+	}
+	if !svTODO.UpdateTime(timeUp) {
+		// keep the server time in sync
+		return
 	}
 
 	// get new key events
