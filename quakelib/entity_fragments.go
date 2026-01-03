@@ -112,7 +112,7 @@ func (e *EntityFragmentAdder) splitOnNode(node bsp.Node) {
 		n.Temporary = newEFrag
 
 	case *bsp.MNode:
-		sides := boxOnPlaneSide(e.mins, e.maxs, n.Plane)
+		sides := n.Plane.BoxOnPlaneSide(e.mins, e.maxs)
 		if sides&1 != 0 {
 			e.splitOnNode(n.Children[0])
 		}
