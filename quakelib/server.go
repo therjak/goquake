@@ -22,6 +22,7 @@ import (
 	"goquake/protocol"
 	svc "goquake/protocol/server"
 	"goquake/protos"
+	"goquake/rand"
 
 	"github.com/chewxy/math32"
 	"google.golang.org/protobuf/proto"
@@ -111,6 +112,8 @@ type Server struct {
 	vm *virtualMachine
 
 	gametime gametime.GameTime
+
+	rand rand.Generator
 }
 
 var (
@@ -128,6 +131,7 @@ func NewServer() *Server {
 	s := &Server{
 		models: make([]model.Model, 1),
 		vm:     NewVirtualMachine(),
+		rand:   rand.New(0),
 	}
 	cvars.ServerGravity.SetCallback(s.notifyCallback)
 	cvars.ServerFriction.SetCallback(s.notifyCallback)
@@ -137,6 +141,10 @@ func NewServer() *Server {
 	cvars.TeamPlay.SetCallback(s.notifyCallback)
 	cvars.NoExit.SetCallback(s.notifyCallback)
 	return s
+}
+
+func (s *Server) NewSeed(seed uint32) {
+	s.rand.NewSeed(seed)
 }
 
 func (s *Server) notifyCallback(cv *cvar.Cvar) {
