@@ -16,9 +16,8 @@ import (
 )
 
 var (
-	commands    = cmd.New()
-	aliases     = alias.New()
-	commandVars = cvars.New()
+	commands = cmd.New()
+	aliases  = alias.New()
 )
 
 func must(err error) {

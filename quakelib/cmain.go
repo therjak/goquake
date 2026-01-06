@@ -30,7 +30,8 @@ import (
 var (
 	sv_protocol     int
 	hostInitialized bool
-	svTODO          = NewServer()
+	commandVars     = cvars.New()
+	svTODO          = NewServer(commandVars)
 )
 
 func svProtocol(a cbuf.Arguments) error {
