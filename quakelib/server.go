@@ -65,6 +65,14 @@ type ServerStatic struct {
 	serverFlags float32
 }
 
+func MaxClients() int {
+	return svs.maxClients
+}
+
+func MaxClientsLimit() int {
+	return svs.maxClientsLimit
+}
+
 type ServerState bool
 
 const (
