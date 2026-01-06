@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"strings"
 
+	"goquake/cvar"
 	"goquake/math/vec"
 	"goquake/progs"
 )
@@ -162,6 +163,8 @@ type virtualMachine struct {
 	argc       int
 	builtins   []func(s *Server) error
 
+	commandVars *cvar.Cvars
+
 	// only to prevent recursion
 	changeLevelIssued bool
 }
@@ -171,10 +174,11 @@ const (
 	maxLocalStack = 16384
 )
 
-func NewVirtualMachine() *virtualMachine {
+func NewVirtualMachine(cv *cvar.Cvars) *virtualMachine {
 	v := &virtualMachine{
-		stack:      make([]stackElem, 0, maxStackDepth),
-		localStack: make([]int32, 0, maxLocalStack),
+		stack:       make([]stackElem, 0, maxStackDepth),
+		localStack:  make([]int32, 0, maxLocalStack),
+		commandVars: cv,
 	}
 	v.builtins = []func(s *Server) error{
 		v.fixme,

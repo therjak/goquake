@@ -842,7 +842,7 @@ func (v *virtualMachine) cvar(s *Server) error {
 		return errProgram
 	}
 	f := func(n string) float32 {
-		if cv, ok := (*commandVars)[n]; ok {
+		if cv, ok := (*v.commandVars)[n]; ok {
 			return cv.Value()
 		}
 		return 0
@@ -864,7 +864,7 @@ func (v *virtualMachine) cvarSet(s *Server) error {
 		v.abort()
 		return errProgram
 	}
-	if cv, ok := (*commandVars)[name]; ok {
+	if cv, ok := (*v.commandVars)[name]; ok {
 		cv.SetByString(val)
 	} else {
 		slog.Warn("Cvar_Set: variable not found", slog.String("name", name))

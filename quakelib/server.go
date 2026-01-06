@@ -127,10 +127,10 @@ var (
 	msgBufMaxLen = 0
 )
 
-func NewServer() *Server {
+func NewServer(cv *cvar.Cvars) *Server {
 	s := &Server{
 		models: make([]model.Model, 1),
-		vm:     NewVirtualMachine(),
+		vm:     NewVirtualMachine(cv),
 		rand:   rand.New(0),
 	}
 	cvars.ServerGravity.SetCallback(s.notifyCallback)
