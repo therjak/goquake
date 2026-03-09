@@ -38,8 +38,8 @@ func makeNetNewMenu() *qNetNewMenu {
 		qNetConfigMenu{
 			text: "New Game",
 			items: []MenuItem{
-				&portMenuItem{qMenuItem{52, 72}, 0, ""},
-				&newGameOkMenuItem{qMenuItem{52, 92}, nil},
+				&portMenuItem{qMenuItem: qMenuItem{52, 72}, port: 0, portName: ""},
+				&newGameOkMenuItem{qMenuItem: qMenuItem{52, 92}, accepter: nil},
 			},
 		},
 	}
@@ -50,10 +50,10 @@ func makeNetJoinMenu() *qNetJoinMenu {
 		qNetConfigMenu{
 			text: "Join Game",
 			items: []MenuItem{
-				&portMenuItem{qMenuItem{52, 72}, 0, ""},
+				&portMenuItem{qMenuItem: qMenuItem{52, 72}, port: 0, portName: ""},
 				// Therjak: Removed server search. Net broadcast is not implemented.
 				// &joinGameSearchMenuItem{qMenuItem{52, 92}, nil},
-				&serverNameMenuItem{qMenuItem{52, 124}, "", nil},
+				&serverNameMenuItem{qMenuItem: qMenuItem{52, 124}, serverName: "", accepter: nil},
 			},
 		},
 	}
@@ -82,8 +82,8 @@ func makeNetJoinMenu() *qNetJoinMenu {
 	}
 */
 type newGameOkMenuItem struct {
-	qMenuItem
 	accepter qAccept
+	qMenuItem
 }
 
 func (m *newGameOkMenuItem) Draw() {
@@ -102,9 +102,9 @@ func (m *newGameOkMenuItem) Enter() {
 }
 
 type serverNameMenuItem struct {
-	qMenuItem
-	serverName string
 	accepter   qAccept
+	serverName string
+	qMenuItem
 }
 
 func (m *serverNameMenuItem) Draw() {
@@ -147,9 +147,9 @@ func (m *serverNameMenuItem) Enter() {
 }
 
 type portMenuItem struct {
-	qMenuItem
-	port     int
 	portName string
+	qMenuItem
+	port int
 }
 
 func (m *portMenuItem) Draw() {
@@ -191,9 +191,9 @@ func (m *portMenuItem) DrawCursor() {
 }
 
 type qNetConfigMenu struct {
-	selectedIndex int
-	items         []MenuItem
 	text          string
+	items         []MenuItem
+	selectedIndex int
 }
 
 type qNetNewMenu struct {

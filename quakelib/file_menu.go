@@ -3,8 +3,8 @@ package quakelib
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 
 	"goquake/cbuf"
@@ -46,26 +46,33 @@ var (
 )
 
 func makeFileMenu() qFileMenu {
-	return qFileMenu{0, makeFileMenuItems()}
+	return qFileMenu{
+		selectedIndex: 0,
+		items:         makeFileMenuItems(),
+	}
 }
 func makeFileMenuItems() [20]*fileMenuItem {
 	var items [20]*fileMenuItem
 	for i := 0; i < len(items); i++ {
 		f := fmt.Sprintf("s%d.sav", i)
-		items[i] = &fileMenuItem{qMenuItem{8, 32 + 8*i}, unusedSaveName, f, false}
+		items[i] = &fileMenuItem{
+			qMenuItem: qMenuItem{8, 32 + 8*i},
+			comment:   unusedSaveName,
+			filename:  f,
+			loadable:  false}
 	}
 	return items
 }
 
 type qFileMenu struct {
-	selectedIndex int
 	items         [20]*fileMenuItem
+	selectedIndex int
 }
 
 type fileMenuItem struct {
-	qMenuItem
 	comment  string // max 39 chars
 	filename string
+	qMenuItem
 	loadable bool
 }
 
@@ -104,7 +111,7 @@ func (m *qFileMenu) update() {
 		i.comment = unusedSaveName
 		n := filepath.Join(filesystem.GameDir(), i.filename)
 
-		in, err := ioutil.ReadFile(n)
+		in, err := os.ReadFile(n)
 		if err != nil {
 			continue
 		}

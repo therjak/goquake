@@ -33,10 +33,10 @@ var (
 )
 
 type qKeyInput struct {
+	blinkTime  time.Time
 	buf        []byte
 	cursorXPos int
 	insert     bool
-	blinkTime  time.Time
 }
 
 func (k *qKeyInput) Cursor() *QPic {
@@ -357,9 +357,9 @@ func updateKeyDest() {
 }
 
 type qInputGrab struct {
-	active   bool
 	lastKey  kc.KeyCode
 	lastChar rune
+	active   bool
 }
 
 var (

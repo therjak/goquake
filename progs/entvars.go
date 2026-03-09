@@ -11,12 +11,12 @@ import (
 
 // TODO: rename to Vars?
 type EntityVars struct {
+	g_entvars    unsafe.Pointer
+	progsdat     *LoadedProg
 	virtmem      []int32
+	entvars      [][]int32
 	entityFields int
 	maxEdicts    int
-	g_entvars    unsafe.Pointer
-	entvars      [][]int32
-	progsdat     *LoadedProg
 }
 
 // TODO: change to (*LoadedProg) AllocVars(numEdicts int) *Vars

@@ -82,21 +82,21 @@ func NewMapSelector() *mapSelector {
 func makeGameOptionsMenuItems() []MenuItem {
 	selector := NewMapSelector()
 	return []MenuItem{
-		&beginGameMenuItem{qMenuItem{144, 40}, nil},
-		&maxPlayersMenuItem{qMenuItem{144, 56}, 1},
+		&beginGameMenuItem{qMenuItem: qMenuItem{144, 40}, accepter: nil},
+		&maxPlayersMenuItem{qMenuItem: qMenuItem{144, 56}, maxPlayers: 1},
 		&gameTypeMenuItem{qMenuItem{144, 64}},
 		&teamPlayMenuItem{qMenuItem{144, 72}},
 		&skillMenuItem{qMenuItem{144, 80}},
 		&fragLimitMenuItem{qMenuItem{144, 88}},
 		&timeLimitMenuItem{qMenuItem{144, 96}},
-		&episodeMenuItem{qMenuItem{144, 112}, selector},
-		&levelMenuItem{qMenuItem{144, 120}, selector},
+		&episodeMenuItem{qMenuItem: qMenuItem{144, 112}, selector: selector},
+		&levelMenuItem{qMenuItem: qMenuItem{144, 120}, selector: selector},
 	}
 }
 
 type beginGameMenuItem struct {
-	qMenuItem
 	accepter qAccept
+	qMenuItem
 }
 type maxPlayersMenuItem struct {
 	qMenuItem
@@ -114,12 +114,12 @@ type skillMenuItem struct {
 type fragLimitMenuItem struct{ qMenuItem }
 type timeLimitMenuItem struct{ qMenuItem }
 type episodeMenuItem struct {
-	qMenuItem
 	selector *mapSelector
+	qMenuItem
 }
 type levelMenuItem struct {
-	qMenuItem
 	selector *mapSelector
+	qMenuItem
 }
 
 func (m *beginGameMenuItem) Update(a qAccept) {
@@ -249,8 +249,8 @@ func (m *levelMenuItem) Draw() {
 }
 
 type qGameOptionsMenu struct {
-	selectedIndex int
 	items         []MenuItem
+	selectedIndex int
 }
 
 func (m *qGameOptionsMenu) Update() {

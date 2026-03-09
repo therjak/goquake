@@ -12,11 +12,11 @@ import (
 )
 
 type beam struct {
-	entity  int32
 	model   model.Model
 	endTime float64
 	start   vec.Vec3
 	end     vec.Vec3
+	entity  int32
 }
 
 var (

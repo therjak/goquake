@@ -9,11 +9,11 @@ import (
 type channel [8]*playingSound
 
 type aSounds struct {
+	sounds map[int]channel
+	local  *playingSound
 	// entchannel 0-7
 	// 0 is ambient
 	ambient []*playingSound
-	sounds  map[int]channel
-	local   *playingSound
 }
 
 func newASounds() *aSounds {

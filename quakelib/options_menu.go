@@ -13,8 +13,8 @@ import (
 )
 
 type qOptionsMenu struct {
-	selectedIndex int
 	items         []MenuItem
+	selectedIndex int
 }
 
 func (m *qOptionsMenu) HandleKey(key kc.KeyCode) {

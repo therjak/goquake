@@ -14,19 +14,19 @@ import (
 )
 
 type prog struct {
-	CRC uint16
-	// The progs.dat expects an edict to have EdictSize 32bit values
-	EdictSize   int
 	Header      *Header
+	Globals     *GlobalVars
+	Strings     map[int32]string
 	Functions   []Function
 	Statements  []Statement
 	GlobalDefs  []Def
 	FieldDefs   []Def
-	Globals     *GlobalVars
 	RawGlobalsI []int32
 	RawGlobalsF []float32
-	Alpha       bool
-	Strings     map[int32]string
+	// The progs.dat expects an edict to have EdictSize 32bit values
+	EdictSize int
+	CRC       uint16
+	Alpha     bool
 }
 
 func loadProgs() (*prog, error) {

@@ -77,9 +77,9 @@ func RemoveEntityFragments(e *Entity) {
 
 type EntityFragmentAdder struct {
 	entity   *Entity
+	lastLink **entityFragment
 	mins     vec.Vec3
 	maxs     vec.Vec3
-	lastLink **entityFragment
 }
 
 func (e *EntityFragmentAdder) Do(world *bsp.Model) {

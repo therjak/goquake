@@ -378,10 +378,10 @@ func executeFrame() {
 }
 
 type measure struct {
+	frameCountStartTime time.Time
 	startMeasure        func()
 	endMeasure          func()
 	frameCount          int
-	frameCountStartTime time.Time
 }
 
 func newMeasure() *measure {

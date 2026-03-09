@@ -20,11 +20,11 @@ const (
 )
 
 type areaNode struct {
-	axis          int
-	dist          float32
 	children      [2]*areaNode
 	triggerEdicts *ring.Ring[int]
 	solidEdicts   *ring.Ring[int]
+	axis          int
+	dist          float32
 }
 
 var (

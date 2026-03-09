@@ -9,10 +9,10 @@ import (
 )
 
 type lightStyle struct {
-	average     int
-	peak        int
 	unprocessed string // only used for demo recording
 	lightMap    []int
+	average     int
+	peak        int
 }
 
 var (

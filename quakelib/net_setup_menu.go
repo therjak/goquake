@@ -26,10 +26,10 @@ var (
 )
 
 type qNetSetupMenu struct {
-	selectedIndex int
-	items         []MenuItem
 	hostname      string
 	playername    string
+	items         []MenuItem
+	selectedIndex int
 	topColor      int
 	bottomColor   int
 }

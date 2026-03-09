@@ -38,34 +38,37 @@ type movecmd struct {
 }
 
 type SVClient struct {
-	active     bool // false = client is free
-	spawned    bool // false = don't send datagrams
-	sendSignon bool // only valid before spawned
-	admin      bool
+	netConnection *net.Connection // communications handle
+
+	name string //[32];  // for printing to other people
+
+	// can be added to at any time, copied and clear once per frame
+	//  had max length of 64000
+	msg net.Message
 
 	// reliable messages must be sent periodically
 	lastMessage float64
 
-	netConnection *net.Connection // communications handle
-
-	cmd movecmd // movement
-
-	// can be added to at any time, copied and clear once per frame
-	//  had max length of 64000
-	msg     net.Message
-	edictId int    // == clientnum + 1
-	name    string //[32];  // for printing to other people
+	edictId int // == clientnum + 1
 	colors  int
 
-	pingTimes [16]float32
-	numPings  int // ping_times[num_pings%NUM_PING_TIMES]
-
-	// spawn params are carried from level to level
-	spawnParams [16]float32
+	numPings int // ping_times[num_pings%NUM_PING_TIMES]
 
 	// client known data for deltas
 	oldFrags int
 	id       int // Needed to communicate with the 'client' side
+
+	pingTimes [16]float32
+
+	// spawn params are carried from level to level
+	spawnParams [16]float32
+
+	cmd movecmd // movement
+
+	active     bool // false = client is free
+	spawned    bool // false = don't send datagrams
+	sendSignon bool // only valid before spawned
+	admin      bool
 
 	badRead bool
 }

@@ -38,24 +38,24 @@ type spic struct {
 }
 
 type qstatusbar struct {
-	// if >= vid.numpages, no update needed -- this needs rework
-	updates    int
-	showScores bool
-
-	// mapping from display order to server side of cl.scores
-	// cl.scores[sortByFrags[display element nr]]
-	sortByFrags []int
 
 	// all pictures
-	nums  [2][11]*QPic
-	colon *QPic
-	slash *QPic
-	items map[int]spic
+	nums [2][11]*QPic
+
+	faces [7][2]*QPic
 	ammo  [4]*QPic
-	armor [3]*QPic
 	sigil [4]*QPic
 
-	faces             [7][2]*QPic
+	armor [3]*QPic
+	rammo [3]*QPic
+
+	hitems [2]*QPic
+
+	rinvbar           [2]*QPic
+	ritems            [2]*QPic
+	colon             *QPic
+	slash             *QPic
+	items             map[int]spic
 	face_invis        *QPic
 	face_invuln       *QPic
 	face_invis_invuln *QPic
@@ -65,18 +65,21 @@ type qstatusbar struct {
 	ibar     *QPic
 	scorebar *QPic
 
-	hweapons [5]spic
-	hitems   [2]*QPic
-
-	rinvbar   [2]*QPic
 	rweapons  map[int]spic
-	ritems    [2]*QPic
 	rteambord *QPic
-	rammo     [3]*QPic
 
 	disc *QPic
 
-	scale float32
+	// mapping from display order to server side of cl.scores
+	// cl.scores[sortByFrags[display element nr]]
+	sortByFrags []int
+
+	hweapons [5]spic
+	// if >= vid.numpages, no update needed -- this needs rework
+	updates int
+
+	scale      float32
+	showScores bool
 }
 
 func init() {

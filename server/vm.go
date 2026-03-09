@@ -149,21 +149,23 @@ func (v *virtualMachine) varString(first int) string {
 }
 
 type stackElem struct {
-	statement int32
 	function  *progs.Function
+	statement int32
 }
 
 type virtualMachine struct {
-	xfunction  *progs.Function
-	stack      []stackElem
-	localStack []int32
-	statement  int32
-	trace      bool
-	prog       *progs.LoadedProg
-	argc       int
-	builtins   []func(s *Server) error
+	xfunction *progs.Function
+	prog      *progs.LoadedProg
 
 	commandVars *cvar.Cvars
+
+	stack      []stackElem
+	localStack []int32
+	builtins   []func(s *Server) error
+
+	argc      int
+	statement int32
+	trace     bool
 
 	// only to prevent recursion
 	changeLevelIssued bool

@@ -2,7 +2,7 @@
 package quakelib
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -64,7 +64,7 @@ func loadGame(a cbuf.Arguments) error {
 
 	conlog.Printf("Loading game from %s...\n", fullname)
 
-	in, err := ioutil.ReadFile(fullname)
+	in, err := os.ReadFile(fullname)
 	if err != nil {
 		conlog.Printf("ERROR: couldn't read file.\n")
 		return nil

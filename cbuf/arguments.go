@@ -53,10 +53,10 @@ func (a QArg) Bool() bool {
 }
 
 type Arguments struct {
-	// each arg on its own
-	args []QArg
 	// concat of args[1:]
 	full string
+	// each arg on its own
+	args []QArg
 }
 
 func (c *Arguments) Argv(i int) QArg {
@@ -148,8 +148,8 @@ const (
 const eof = -1
 
 type item struct {
-	typ itemType
 	val string
+	typ itemType
 }
 
 func (i item) String() string {
@@ -168,12 +168,12 @@ func (i item) String() string {
 type stateFn func(*lexer) stateFn
 
 type lexer struct {
+	items chan item
+	state stateFn
 	input string
 	start int
 	pos   int
 	width int
-	items chan item
-	state stateFn
 }
 
 func lex(input string) *lexer {
@@ -197,7 +197,7 @@ func (l *lexer) nextItem() item {
 }
 
 func (l *lexer) emit(t itemType) {
-	l.items <- item{t, l.input[l.start:l.pos]}
+	l.items <- item{typ: t, val: l.input[l.start:l.pos]}
 	l.start = l.pos
 }
 
@@ -242,8 +242,8 @@ func (l *lexer) acceptRun(valid string) {
 
 func (l *lexer) errorf(format string, args ...interface{}) stateFn {
 	l.items <- item{
-		itemError,
-		fmt.Sprintf(format, args...),
+		typ: itemError,
+		val: fmt.Sprintf(format, args...),
 	}
 	return nil
 }

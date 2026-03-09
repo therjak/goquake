@@ -4,7 +4,7 @@ package server
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -78,7 +78,7 @@ func (s *Server) saveCmd(sc *SVClient, a cbuf.Arguments) {
 		return
 	}
 
-	if err := ioutil.WriteFile(fullname, out, 0660); err != nil {
+	if err := os.WriteFile(fullname, out, 0660); err != nil {
 		sc.Printf("ERROR: couldn't write file.\n")
 		return
 	}

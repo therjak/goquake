@@ -102,34 +102,34 @@ type state struct {
 }
 
 type Entity struct {
-	ForceLink      bool
-	Baseline       state
-	MsgTime        float64
-	MsgOrigin      [2]vec.Vec3
-	Origin         vec.Vec3
-	MsgAngles      [2]vec.Vec3
-	Angles         vec.Vec3
 	Model          model.Model
 	Fragment       *entityFragment
+	Baseline       state
+	MsgTime        float64
 	Frame          int
-	SyncBase       float32
 	Effects        int
 	SkinNum        int
 	VisFrame       int
 	DLightFrame    int
-	DLightBits     int  // uint32?
-	Alpha          byte // TODO(therjak): use the converted float32
-	LerpFlags      byte
+	DLightBits     int // uint32?
 	LerpStart      float64
 	LerpTime       float64
 	LerpFinish     float64
 	PreviousPose   int
 	CurrentPose    int
 	MoveLerpStart  float64
+	MsgOrigin      [2]vec.Vec3
+	MsgAngles      [2]vec.Vec3
+	Origin         vec.Vec3
+	Angles         vec.Vec3
 	PreviousOrigin vec.Vec3
 	CurrentOrigin  vec.Vec3
 	PreviousAngles vec.Vec3
 	CurrentAngles  vec.Vec3
+	SyncBase       float32
+	ForceLink      bool
+	Alpha          byte // TODO(therjak): use the converted float32
+	LerpFlags      byte
 }
 
 func (c *Client) Entities(i int) *Entity {

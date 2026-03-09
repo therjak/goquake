@@ -3,7 +3,6 @@ package quakelib
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -28,21 +27,21 @@ const (
 )
 
 type qconsole struct {
+	times            [4]time.Time
+	lastCenter       string // just a temporary to prevent double print
 	text             []byte
 	origText         []string
 	backScroll       int // lines up from bottom to display
 	totalLines       int // total lines in console scrollback
 	current          int // where next message will be printed
 	x                int // offset in current line for next print
-	times            [4]time.Time
-	chatTeam         bool
 	width            int // pixels
 	height           int // pixels
 	lineWidth        int // characters
+	visibleLines     int // con_vislines
+	chatTeam         bool
 	initialized      bool
-	forceDuplication bool   // because no entities to refresh
-	lastCenter       string // just a temporary to prevent double print
-	visibleLines     int    // con_vislines
+	forceDuplication bool // because no entities to refresh
 }
 
 func (c *qconsole) Height() int {
@@ -205,7 +204,7 @@ func (c *qconsole) dump() {
 	for i := 0; i < len(b); i++ {
 		b[i] &= 0x7f
 	}
-	err = ioutil.WriteFile(fn, b, os.ModePerm)
+	err = os.WriteFile(fn, b, os.ModePerm)
 	if err != nil {
 		conlog.Printf("ERROR: couln't write file %s.\n", fn)
 		return

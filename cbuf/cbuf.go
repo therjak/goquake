@@ -13,11 +13,11 @@ var (
 type CommandBuffer struct {
 	// original: buffer of 8192 byte size
 	buf string
+
+	ex executors
 	// toogle to add a wait to Cbuf_Execute,
 	// causing the following commands to be executed one frame later
 	wait bool
-
-	ex executors
 }
 
 func (c *CommandBuffer) Execute() {
