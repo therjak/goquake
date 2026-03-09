@@ -22,8 +22,8 @@ var (
 )
 
 type qSinglePlayerMenu struct {
-	selectedIndex int
 	items         []MenuItem
+	selectedIndex int
 }
 
 func (m *qSinglePlayerMenu) Draw() {

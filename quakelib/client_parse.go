@@ -306,7 +306,7 @@ func (c *Client) ParseServerInfo(si *protos.ServerInfo) error {
 
 	var snds []qsnd.Sound
 	for i, s := range si.GetSoundPrecache() {
-		snds = append(snds, qsnd.Sound{i, s})
+		snds = append(snds, qsnd.Sound{ID: i, Name: s})
 	}
 	c.sound = snd.NewPrecache(snds...)
 

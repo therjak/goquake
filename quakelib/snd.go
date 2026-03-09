@@ -59,17 +59,17 @@ func soundInit(stop chan struct{}) {
 	snd = qsnd.InitSoundSystem(stop)
 	onVolumeChange(cvars.Volume)
 	defaultSounds = snd.NewPrecache(
-		qsnd.Sound{int(lsMenu1), "misc/menu1.wav"},
-		qsnd.Sound{int(lsMenu2), "misc/menu2.wav"},
-		qsnd.Sound{int(lsMenu3), "misc/menu3.wav"},
-		qsnd.Sound{int(lsTalk), "misc/talk.wav"},
-		qsnd.Sound{int(WizHit), "wizard/hit.wav"},
-		qsnd.Sound{int(KnightHit), "hknight/hit.wav"},
-		qsnd.Sound{int(Tink1), "weapons/tink1.wav"},
-		qsnd.Sound{int(Ric1), "weapons/ric1.wav"},
-		qsnd.Sound{int(Ric2), "weapons/ric2.wav"},
-		qsnd.Sound{int(Ric3), "weapons/ric3.wav"},
-		qsnd.Sound{int(RExp3), "weapons/r_exp3.wav"},
+		qsnd.Sound{ID: int(lsMenu1), Name: "misc/menu1.wav"},
+		qsnd.Sound{ID: int(lsMenu2), Name: "misc/menu2.wav"},
+		qsnd.Sound{ID: int(lsMenu3), Name: "misc/menu3.wav"},
+		qsnd.Sound{ID: int(lsTalk), Name: "misc/talk.wav"},
+		qsnd.Sound{ID: int(WizHit), Name: "wizard/hit.wav"},
+		qsnd.Sound{ID: int(KnightHit), Name: "hknight/hit.wav"},
+		qsnd.Sound{ID: int(Tink1), Name: "weapons/tink1.wav"},
+		qsnd.Sound{ID: int(Ric1), Name: "weapons/ric1.wav"},
+		qsnd.Sound{ID: int(Ric2), Name: "weapons/ric2.wav"},
+		qsnd.Sound{ID: int(Ric3), Name: "weapons/ric3.wav"},
+		qsnd.Sound{ID: int(RExp3), Name: "weapons/r_exp3.wav"},
 	)
 }
 

@@ -168,7 +168,6 @@ func InitSoundSystem(stop chan struct{}) *SndSys {
 
 type SndSys struct {
 	cache       map[uuid.UUID][]*pcmSound
-	listener    listener
 	shutdown    chan struct{}
 	block       chan bool
 	volume      chan float32
@@ -178,11 +177,12 @@ type SndSys struct {
 	start       chan Start
 	removeCache chan uuid.UUID
 	addCache    chan cacheRequest
+	listener    listener
 }
 
 type cacheRequest struct {
-	id   uuid.UUID
 	snds []Sound
+	id   uuid.UUID
 }
 
 type Stop struct {
@@ -202,8 +202,8 @@ type Start struct {
 }
 
 type Sound struct {
-	ID   int
 	Name string
+	ID   int
 }
 
 func (s *SndSys) run() {

@@ -39,9 +39,9 @@ type lump struct {
 }
 
 type QPic struct {
+	Data   []byte
 	Width  int
 	Height int
-	Data   []byte
 }
 
 func getWad() ([]byte, error) {

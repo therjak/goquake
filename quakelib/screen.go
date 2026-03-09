@@ -52,23 +52,21 @@ func (f *fpsAccumulator) Compute() float64 {
 }
 
 type qScreen struct {
-	disabled       bool
-	recalcViewRect bool
+	centerTime time.Time
 
-	centerString []string
-	centerTime   time.Time
-
-	loading bool
-	dialog  bool
-
-	turtlePic   *QPic
-	turtleCount int
+	turtlePic *QPic
 
 	netPic *QPic
 
-	vrect Rect
+	fps fpsAccumulator
+
+	centerString []string
 
 	modalMsg []string
+
+	vrect Rect
+
+	turtleCount int
 
 	// needs to match host.time type but should probably be changed to a real time value
 	disabledTime float64
@@ -79,12 +77,16 @@ type qScreen struct {
 
 	numPages int // double or tripple buffering
 
-	fps fpsAccumulator
-
 	tileClearUpdates int
 
 	width  int
 	height int
+
+	disabled       bool
+	recalcViewRect bool
+
+	loading bool
+	dialog  bool
 
 	initialized bool
 }

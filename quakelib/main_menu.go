@@ -32,8 +32,8 @@ var (
 )
 
 type qMainMenu struct {
-	selectedIndex int
 	items         []MenuItem
+	selectedIndex int
 }
 
 func (m *qMainMenu) Draw() {

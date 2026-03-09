@@ -35,18 +35,19 @@ var (
 )
 
 type qParticleDrawer struct {
-	vao        *glh.VertexArray
-	vbo        *glh.Buffer
-	prog       *glh.Program
+	textures [2]glh.Texture
+
+	texture glh.Texture
+	vao     *glh.VertexArray
+	vbo     *glh.Buffer
+	prog    *glh.Program
+
+	// to reduce the number of allocations
+	vertices   []float32
 	projection int32
 	modelview  int32
 
-	texture            glh.Texture
-	textures           [2]glh.Texture
 	textureScaleFactor float32
-
-	// to reduce the number of allocations
-	vertices []float32
 }
 
 func newParticleDrawProgram() (*glh.Program, error) {
@@ -168,12 +169,12 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 }
 
 type particle struct {
-	origin   vec.Vec3
 	color    int
-	velocity vec.Vec3
-	ramp     float32
 	dieTime  float64 // if dieTime < now => dead, needs to be server controlled
 	typ      particleType
+	origin   vec.Vec3
+	velocity vec.Vec3
+	ramp     float32
 	used     bool
 }
 

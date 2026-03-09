@@ -14,9 +14,9 @@ import (
 )
 
 type qView struct {
-	blendColor Color
 	projection *glh.Matrix
 	modelView  *glh.Matrix
+	blendColor Color
 }
 
 var (

@@ -10,6 +10,7 @@ import (
 )
 
 type playingSound struct {
+	sound      beep.Streamer
 	entchannel int // entchannel
 	// TODO:
 	// entchannel. 0 willingly overrides, 1-7 always overrides
@@ -20,13 +21,12 @@ type playingSound struct {
 	// 4 body
 	// 8 no phys add
 	entnum             int // entnum
-	distanceMultiplier float32
 	masterVolume       float64
-	origin             vec.Vec3
-	done               bool // if done it must no longer be updated
 	right              float64
 	left               float64
-	sound              beep.Streamer
+	origin             vec.Vec3
+	distanceMultiplier float32
+	done               bool // if done it must no longer be updated
 	paused             bool
 }
 

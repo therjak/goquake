@@ -22,19 +22,19 @@ import (
 )
 
 type glMode struct {
+	name      string
 	magfilter float32
 	minfilter float32
-	name      string
 }
 
 var (
 	glModes = [6]glMode{
-		{gl.NEAREST, gl.NEAREST, "GL_NEAREST"},
-		{gl.NEAREST, gl.NEAREST_MIPMAP_NEAREST, "GL_NEAREST_MIPMAP_NEAREST"},
-		{gl.NEAREST, gl.NEAREST_MIPMAP_LINEAR, "GL_NEAREST_MIPMAP_LINEAR"},
-		{gl.LINEAR, gl.LINEAR, "GL_LINEAR"},
-		{gl.LINEAR, gl.LINEAR_MIPMAP_NEAREST, "GL_LINEAR_MIPMAP_NEAREST"},
-		{gl.LINEAR, gl.LINEAR_MIPMAP_LINEAR, "GL_LINEAR_MIPMAP_LINEAR"},
+		{"GL_NEAREST", gl.NEAREST, gl.NEAREST},
+		{"GL_NEAREST_MIPMAP_NEAREST", gl.NEAREST, gl.NEAREST_MIPMAP_NEAREST},
+		{"GL_NEAREST_MIPMAP_LINEAR", gl.NEAREST, gl.NEAREST_MIPMAP_LINEAR},
+		{"GL_LINEAR", gl.LINEAR, gl.LINEAR},
+		{"GL_LINEAR_MIPMAP_NEAREST", gl.LINEAR, gl.LINEAR_MIPMAP_NEAREST},
+		{"GL_LINEAR_MIPMAP_LINEAR", gl.LINEAR, gl.LINEAR_MIPMAP_LINEAR},
 	}
 )
 
@@ -55,14 +55,13 @@ func init() {
 }
 
 type texMgr struct {
-	multiTextureEnabled bool
-	currentTarget       uint32
 	currentTexture      [3]*texture.Texture
-	glModeIndex         int // TODO(therjak): glmode_idx is still split between c and go
-
-	activeTextures map[*texture.Texture]bool
-	maxAnisotropy  float32
-	maxTextureSize int32
+	activeTextures      map[*texture.Texture]bool
+	glModeIndex         int
+	currentTarget       uint32
+	maxAnisotropy       float32
+	maxTextureSize      int32
+	multiTextureEnabled bool
 }
 
 const (

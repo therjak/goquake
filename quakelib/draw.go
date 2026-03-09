@@ -239,11 +239,11 @@ type box interface {
 }
 
 type Canvas struct {
-	canvas
-	sx      float32
-	sy      float32
 	screen  box
 	console box
+	canvas
+	sx float32
+	sy float32
 }
 
 var (
@@ -365,9 +365,9 @@ type Color struct {
 }
 
 type QPic struct {
+	Texture *texture.Texture
 	Width   int
 	Height  int
-	Texture *texture.Texture
 }
 
 func DrawCharacterWhite(x, y int, num int) {

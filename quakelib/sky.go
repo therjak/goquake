@@ -42,15 +42,15 @@ func skyCommand(a cbuf.Arguments) error {
 }
 
 type qSky struct {
-	boxName      string
 	solidTexture *texture.Texture
 	alphaTexture *texture.Texture
-	flat         Color
-	mins         [2][6]float32
-	maxs         [2][6]float32
-	fog          float32
 	simpleDrawer *qSimpleSkyDrawer
 	boxDrawer    *qSkyBoxDrawer
+	boxName      string
+	mins         [2][6]float32
+	maxs         [2][6]float32
+	flat         Color
+	fog          float32
 }
 
 var (
@@ -435,10 +435,10 @@ type qSimpleSkyDrawer struct {
 	vao        *glh.VertexArray
 	vbo        *glh.Buffer
 	prog       *glh.Program
+	vertices   []float32
 	projection int32
 	modelview  int32
 	color      int32
-	vertices   []float32
 }
 
 func newSimpleSkyDrawer() *qSimpleSkyDrawer {
@@ -595,11 +595,11 @@ type qSkyBoxDrawer struct {
 	vao        *glh.VertexArray
 	vbo        *glh.Buffer
 	prog       *glh.Program
+	texture    *texture.Texture
+	vertices   []float32
 	projection int32
 	modelview  int32
 	fogColor   int32
-	vertices   []float32
-	texture    *texture.Texture
 }
 
 func newSkyBoxProgram() (*glh.Program, error) {

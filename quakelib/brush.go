@@ -45,10 +45,12 @@ var (
 */
 
 type qBrushDrawer struct {
+	startTime     time.Time
 	vao           *glh.VertexArray
 	vbo           *glh.Buffer
 	ebo           *glh.Buffer
 	prog          *glh.Program
+	vbo_indices   []uint32
 	projection    int32
 	modelview     int32
 	tex           int32
@@ -62,8 +64,6 @@ type qBrushDrawer struct {
 	fogColor      int32
 	turb          int32
 	time          int32
-	vbo_indices   []uint32
-	startTime     time.Time
 }
 
 func newBrushDrawProgram() (*glh.Program, error) {

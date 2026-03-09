@@ -53,8 +53,8 @@ func makeKeysMenuItems() []*keysMenuItem {
 }
 
 type qKeysMenu struct {
-	selectedIndex int
 	items         []*keysMenuItem
+	selectedIndex int
 	grabbed       bool
 }
 

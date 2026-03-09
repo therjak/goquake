@@ -32,16 +32,18 @@ type EntityState struct {
 }
 
 type Edict struct {
-	Free bool
+	leafnums [MAX_ENT_LEAFS]int
+
+	Baseline EntityState
 
 	num_leafs int
-	leafnums  [MAX_ENT_LEAFS]int
 
-	Baseline     EntityState
+	FreeTime float32 // s.time when the object was freed
+	Free     bool
+
 	Alpha        byte // hack to support alpha since it's not part of entvars_t
 	SendInterval bool // send time until nextthink to client for better lerp timing
 
-	FreeTime float32 // s.time when the object was freed
 }
 
 var entvars *progs.EntityVars

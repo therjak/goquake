@@ -12,8 +12,8 @@ import (
 )
 
 type qVideoMenu struct {
-	selectedIndex int
 	items         []MenuItem
+	selectedIndex int
 }
 
 func (m *qVideoMenu) HandleKey(key kc.KeyCode) {

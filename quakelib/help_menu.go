@@ -24,8 +24,8 @@ var (
 )
 
 type qHelpMenu struct {
-	selectedIndex int
 	items         []MenuItem
+	selectedIndex int
 }
 
 type helpMenuItem struct {

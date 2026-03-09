@@ -13,8 +13,8 @@ import (
 )
 
 type QReader struct {
-	b []byte
 	r *bytes.Reader
+	b []byte
 }
 
 func NewQReader(data []byte) *QReader {

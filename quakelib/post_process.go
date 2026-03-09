@@ -9,6 +9,7 @@ import (
 )
 
 type postProcess struct {
+	texture  glh.Texture
 	vao      *glh.VertexArray
 	vbo      *glh.Buffer
 	ebo      *glh.Buffer
@@ -19,8 +20,6 @@ type postProcess struct {
 	// just used to check for changes as a change requires a new texture
 	width  int32
 	height int32
-
-	texture glh.Texture
 }
 
 var pprocess *postProcess

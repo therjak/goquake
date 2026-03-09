@@ -37,18 +37,18 @@ const (
 type CallbackFunc func(cv *Cvar)
 
 type Cvar struct {
-	archive    bool
-	notify     bool
-	serverinfo bool
-	rom        bool
-	user       bool
-	seta       bool
-	callback   CallbackFunc
-	name       string
+	callback CallbackFunc
+	name     string
 	// stringValue is the truth, value the derived one
 	stringValue  string
-	value        float32
 	defaultValue string
+	value        float32
+	archive      bool
+	notify       bool
+	serverinfo   bool
+	rom          bool
+	user         bool
+	seta         bool
 }
 
 func (cv *Cvar) Archive() bool {

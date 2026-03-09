@@ -73,47 +73,52 @@ const (
 )
 
 type Server struct {
-	// active is used by the client to check if the server is local
-	// needs to be changed to a client state which gets the state change by channel
-	active   bool
-	paused   bool
-	loadGame bool
+	worldModel *bsp.Model
 
-	time          float32
-	lastCheck     int
-	lastCheckTime float32
+	vm *virtualMachine
 
-	datagram         net.Message
-	reliableDatagram net.Message
-	signon           net.Message
+	lightStyles [64]string
 
-	numEdicts int
-	maxEdicts int
+	name string // map name
 
 	edicts []Edict
 
-	protocol      int
-	protocolFlags uint32
-
-	state ServerState // some actions are only valid during load
-
 	soundPrecache []string
-	lightStyles   [64]string
-
-	name string // map name
 
 	// TODO(therjak): merge modelPrecache and models into a map[string]model.Model?
 	//                we also need an index based access for entvars
 	//                the empty 0 element can probably be dropped
 	modelPrecache []string
 	models        []model.Model
-	worldModel    *bsp.Model
 
-	vm *virtualMachine
+	datagram         net.Message
+	reliableDatagram net.Message
+	signon           net.Message
 
 	gametime gametime.GameTime
 
+	lastCheck int
+
+	numEdicts int
+	maxEdicts int
+
+	protocol int
+
 	rand rand.Generator
+
+	time          float32
+	lastCheckTime float32
+
+	protocolFlags uint32
+
+	// active is used by the client to check if the server is local
+	// needs to be changed to a client state which gets the state change by channel
+	active   bool
+	paused   bool
+	loadGame bool
+
+	state ServerState // some actions are only valid during load
+
 }
 
 var (

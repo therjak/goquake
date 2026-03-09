@@ -32,12 +32,12 @@ const (
 type Connection struct {
 	connectTime  time.Time
 	con          net.Conn
-	addr         string
 	in           <-chan msg
 	out          chan<- msg
 	canWriteChan <-chan bool
-	canWrite     bool
+	addr         string
 	uuid         uuid.UUID
+	canWrite     bool
 }
 
 type msg struct {

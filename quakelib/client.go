@@ -144,22 +144,22 @@ func (c *Client) adjustAngles() {
 
 // this is persistent through an arbitrary number of server connections
 type ClientStatic struct {
-	state              clientConnected
-	demoNum            int
-	demoPlayback       bool
-	demoPaused         bool
-	demoSignon         [2]bytes.Buffer
-	timeDemo           bool
-	signon             int
+	demoWriter         io.WriteCloser
 	connection         *net.Connection
 	inMessage          *net.QReader
 	outProto           *protos.ClientMessage
+	demos              []string
+	demoData           []byte
+	demoSignon         [2]bytes.Buffer
+	demoNum            int
+	signon             int
 	timeDemoLastFrame  int
 	timeDemoStartFrame int
 	timeDemoStartTime  float64
-	demos              []string
-	demoWriter         io.WriteCloser
-	demoData           []byte
+	state              clientConnected
+	demoPlayback       bool
+	demoPaused         bool
+	timeDemo           bool
 	msgBadRead         bool
 }
 
@@ -171,16 +171,30 @@ type score struct {
 }
 
 type Client struct {
-	pitch          float32 // 0
-	yaw            float32 // 1
-	roll           float32 // 2
-	movemessages   int     // number of messages since connecting to skip the first couple
-	cmdForwardMove float32 // last command sent to the server
-	protocolFlags  uint32
-	protocol       int
-	viewentity     int //cl_entities[cl.viewentity] = player
-	onGround       bool
-	paused         bool // music paused
+	worldModel *bsp.Model
+
+	// the server sends first a name and afterwards just the index of the name
+	// the int represents the sfx num within snd. Result of Precache and sfx input of Start
+	// TODO: change the int to a sfx type
+	sound *qsnd.SoundPrecache
+
+	mapName        string
+	levelName      string
+	staticEntities []Entity
+	entities       []*Entity
+	dynamicLights  []DynamicLight
+	// model_precache
+	// viewent.model
+
+	modelPrecache []model.Model
+
+	scores      []score     // len() == maxClients
+	itemGetTime [32]float64 // for blinking
+
+	stats        ClientStats
+	movemessages int // number of messages since connecting to skip the first couple
+	protocol     int
+	viewentity   int //cl_entities[cl.viewentity] = player
 
 	messageTime      float64
 	messageTimeOld   float64
@@ -191,52 +205,41 @@ type Client struct {
 	lastReceivedMessageTime float64
 
 	// don't change view angle, full screen, etc
-	intermission   int
-	staticEntities []Entity
-	entities       []*Entity
-	dynamicLights  []DynamicLight
-	// model_precache
-	// viewent.model
-
-	//
-
-	mViewAngles     [2]vec.Vec3
-	mVelocity       [2]vec.Vec3 // update by server
-	velocity        vec.Vec3    // lerped from mvelocity
-	punchAngle      [2]vec.Vec3 // v_punchangle
-	idealPitch      float32
-	pitchVel        float32
-	drift           bool
-	driftMove       float32
-	lastStop        float64
-	viewHeight      float32
-	colorShifts     [4]Color
-	colorShiftsPrev [4]Color
-	dmgTime         float32
-	dmgRoll         float32
-	dmgPitch        float32
-
-	//
-
-	mapName       string
-	levelName     string
-	worldModel    *bsp.Model
-	modelPrecache []model.Model
+	intermission int
+	lastStop     float64
 
 	maxClients int
 	gameType   int
 
-	// the server sends first a name and afterwards just the index of the name
-	// the int represents the sfx num within snd. Result of Precache and sfx input of Start
-	// TODO: change the int to a sfx type
-	sound *qsnd.SoundPrecache
-
-	stats        ClientStats
-	items        uint32      // 32bit bit field
-	itemGetTime  [32]float64 // for blinking
 	faceAnimTime float64
 
-	scores []score // len() == maxClients
+	colorShifts     [4]Color
+	colorShiftsPrev [4]Color
+
+	//
+
+	mViewAngles    [2]vec.Vec3
+	mVelocity      [2]vec.Vec3 // update by server
+	punchAngle     [2]vec.Vec3 // v_punchangle
+	velocity       vec.Vec3    // lerped from mvelocity
+	pitch          float32     // 0
+	yaw            float32     // 1
+	roll           float32     // 2
+	cmdForwardMove float32     // last command sent to the server
+	protocolFlags  uint32
+	idealPitch     float32
+	pitchVel       float32
+	driftMove      float32
+	viewHeight     float32
+	dmgTime        float32
+	dmgRoll        float32
+	dmgPitch       float32
+
+	items    uint32 // 32bit bit field
+	onGround bool
+	paused   bool // music paused
+
+	drift bool
 }
 
 type ClientStats struct {

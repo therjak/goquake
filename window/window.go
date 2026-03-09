@@ -94,10 +94,10 @@ func findDisplayMode(width, height int32) *sdl.DisplayMode {
 }
 
 type Mode struct {
+	FSAA              int
 	Width             int32
 	Height            int32
 	Fullscreen        bool
-	FSAA              int
 	Borderless        bool
 	DesktopFullscreen bool
 }
