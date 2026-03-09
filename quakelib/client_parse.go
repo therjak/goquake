@@ -536,8 +536,8 @@ func (c *Client) parseStatic(pb *protos.Baseline) error {
 	ent.Origin = ent.Baseline.Origin
 	ent.Angles = ent.Baseline.Angles
 
-	adder := EntityFragmentAdder{entity: ent, world: c.worldModel}
-	adder.Do()
+	adder := EntityFragmentAdder{entity: ent}
+	adder.Do(c.worldModel)
 
 	return nil
 }

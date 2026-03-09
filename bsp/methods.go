@@ -31,15 +31,12 @@ func (m *Model) PointInLeaf(p vec.Vec3) (*MLeaf, error) {
 	}
 }
 
-func (m *Model) DecompressVis(in []byte) []byte {
+func (m *Model) decompressVis(in []byte) []byte {
 	row := (len(m.Leafs) + 6) / 8 // (len(Leafs) - 'leaf[0]' + 7)/8
 
 	if len(in) == 0 {
 		// no vis info, so make all visible
-		for i := 0; i < row; i++ {
-			decompressedVis[i] = 0xff
-		}
-		return decompressedVis[:row]
+		return bytes.Repeat([]byte{0xff}, row)
 	}
 
 	// 'in' is compressed and looks like
@@ -47,6 +44,7 @@ func (m *Model) DecompressVis(in []byte) []byte {
 	// and gets uncompressed to
 	// 700000500011	(7 5x0 5 3x0 1 1)
 
+	decompressedVis := make([]byte, row+10)
 	j := 0
 	for i := 0; i < len(in); i++ {
 		if in[i] != 0 {
@@ -62,31 +60,23 @@ func (m *Model) DecompressVis(in []byte) []byte {
 				decompressedVis[j] = 0
 				j++
 			}
-			if j >= row {
-				break
-			}
+		}
+		if j >= row {
+			break
 		}
 	}
 	return decompressedVis[:row] // should this be :j?
 }
 
-var (
-	NoVis           []byte
-	decompressedVis []byte
-	fatpvs          []byte
-)
-
-func init() {
-	NoVis = bytes.Repeat([]byte{0xff}, MaxMapLeafs/8)
-	decompressedVis = make([]byte, MaxMapLeafs/8)
-	fatpvs = make([]byte, MaxMapLeafs/8)
+func NoVis() []byte {
+	return bytes.Repeat([]byte{0xff}, MaxMapLeafs/8)
 }
 
 func (m *Model) LeafPVS(leaf *MLeaf) []byte {
 	if leaf == m.Leafs[0] { // Leaf 0 is a solid leaf
-		return NoVis
+		return NoVis()
 	}
-	return m.DecompressVis(leaf.CompressedVis)
+	return m.decompressVis(leaf.CompressedVis)
 }
 
 /*
@@ -126,10 +116,7 @@ func (m *Model) addToFatPVS(org vec.Vec3, n Node, fpvs *[]byte) {
 // given point.
 func (m *Model) FatPVS(org vec.Vec3) []byte {
 	fatbytes := (len(m.Leafs) + 6) / 8 // (len(Leafs) - 'leaf[0]' + 7)/8
-	pvs := fatpvs[:fatbytes]
-	for i := range pvs {
-		pvs[i] = 0
-	}
+	pvs := bytes.Repeat([]byte{0}, fatbytes)
 	m.addToFatPVS(org, m.Node, &pvs)
 	return pvs
 }

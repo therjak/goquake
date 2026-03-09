@@ -56,7 +56,7 @@ func MarkSurfaces(model *bsp.Model) {
 	if cvars.RNoVis.Bool() ||
 		viewLeaf.current.Contents() == bsp.CONTENTS_SOLID ||
 		viewLeaf.current.Contents() == bsp.CONTENTS_SKY {
-		markSurfacesVis = bsp.NoVis
+		markSurfacesVis = bsp.NoVis()
 	} else if nearWaterPortal {
 		markSurfacesVis = model.FatPVS(qRefreshRect.viewOrg)
 	} else {
@@ -80,6 +80,7 @@ func MarkSurfaces(model *bsp.Model) {
 		if markSurfacesVis[i>>3]&(1<<(i&7)) != 0 {
 			if cvars.ROldSkyLeaf.Bool() || leaf.Contents() != bsp.CONTENTS_SKY {
 				for _, ms := range leaf.MarkSurfaces {
+					// THERJAK: modifying model
 					// TODO: why is this needed? any option to not have the bsp know about this?
 					ms.VisFrame = renderer.visFrameCount
 				}

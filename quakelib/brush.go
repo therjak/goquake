@@ -115,6 +115,7 @@ func (d *qBrushDrawer) buildVertexBuffer(models []model.Model) {
 		switch w := m.(type) {
 		case *bsp.Model:
 			for _, s := range w.Surfaces {
+				// THERJAK: modifying model
 				// Why? We are changing the model again...
 				s.VboFirstVert = idx
 				idx += len(s.Polys.Verts)
@@ -403,6 +404,7 @@ func (r *qRenderer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *Entit
 	brushDrawer.drawTextureChains(mv, model, e, chain)
 }
 
+// FIXME: THERJAK not called
 func waterAlphaForSurface(s *bsp.Surface) float32 {
 	orWater := func(v float32) float32 {
 		if v > 0 {
