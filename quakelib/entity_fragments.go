@@ -30,8 +30,14 @@ var (
 func clearEntityFragments() {
 	freeEfrags = &efrags[0]
 	for i := 0; i < len(efrags)-2; i++ {
+		efrags[i].leaf = nil
+		efrags[i].leafNext = nil
+		efrags[i].entity = nil
 		efrags[i].entNext = &efrags[i+1]
 	}
+	efrags[len(efrags)-1].leaf = nil
+	efrags[len(efrags)-1].leafNext = nil
+	efrags[len(efrags)-1].entity = nil
 	efrags[len(efrags)-1].entNext = nil
 }
 
@@ -42,6 +48,7 @@ func RemoveEntityFragments(e *Entity) {
 	for ef != nil { // run though the entityFragments on the Entity
 		head := ef.leaf.Temporary.(*entityFragment)
 		if head == ef {
+			// THERJAK: modifying model
 			ef.leaf.Temporary = ef.leafNext
 		} else {
 			for { // run through the leafs of the entityFragment
@@ -70,13 +77,12 @@ func RemoveEntityFragments(e *Entity) {
 
 type EntityFragmentAdder struct {
 	entity   *Entity
-	world    *bsp.Model
 	mins     vec.Vec3
 	maxs     vec.Vec3
 	lastLink **entityFragment
 }
 
-func (e *EntityFragmentAdder) Do() {
+func (e *EntityFragmentAdder) Do(world *bsp.Model) {
 	m := e.entity.Model
 	if m == nil {
 		// noting to show so do not bother
@@ -85,7 +91,7 @@ func (e *EntityFragmentAdder) Do() {
 	e.lastLink = &e.entity.Fragment
 	e.mins = vec.Add(e.entity.Origin, m.Mins())
 	e.maxs = vec.Add(e.entity.Origin, m.Maxs())
-	e.splitOnNode(e.world.Node)
+	e.splitOnNode(world.Node)
 }
 
 func (e *EntityFragmentAdder) splitOnNode(node bsp.Node) {
