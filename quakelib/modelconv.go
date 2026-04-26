@@ -41,7 +41,11 @@ func loadModel(name string) (model.Model, error) {
 		return nil, err
 	}
 	for i, m := range mods {
-		models[m.Name()] = m
+		key := m.Name()
+		if strings.HasPrefix(key, "*") {
+			key = name + ":" + key
+		}
+		models[key] = m
 		setExtraFlags(m)
 		if i == 0 {
 			loadTextures(m)
