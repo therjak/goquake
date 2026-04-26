@@ -288,12 +288,16 @@ func (c *Client) ParseServerInfo(si *protos.ServerInfo) error {
 	c.mapName = strings.TrimSuffix(filepath.Base(mapName), filepath.Ext(mapName))
 
 	for _, mn := range si.GetModelPrecache() {
-		m, ok := models[mn]
+		lookupName := mn
+		if strings.HasPrefix(mn, "*") {
+			lookupName = mapName + ":" + mn
+		}
+		m, ok := models[lookupName]
 		if !ok {
 			if _, err := loadModel(mn); err != nil {
 				return fmt.Errorf("Model %s not found: %v", mn, err)
 			}
-			m, ok = models[mn]
+			m, ok = models[lookupName]
 			if !ok {
 				return fmt.Errorf("Model %s not found", mn)
 			}
