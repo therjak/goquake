@@ -337,50 +337,38 @@ func (s *qSky) DrawSkyLayers() {
 
 	gl.EnableVertexAttribArray(0)
 	defer gl.DisableVertexAttribArray(0)
-	gl.EnableVertexAttribArray(1)
-	defer gl.DisableVertexAttribArray(1)
-	gl.EnableVertexAttribArray(2)
-	defer gl.DisableVertexAttribArray(2)
-	gl.VertexAttribPointerWithOffset(0, 3, gl.FLOAT, false, 4*7, 0)   // pos
-	gl.VertexAttribPointerWithOffset(1, 2, gl.FLOAT, false, 4*7, 3*4) // solidTexPos
-	gl.VertexAttribPointerWithOffset(2, 2, gl.FLOAT, false, 4*7, 5*4) // alphaTexPos
+	gl.VertexAttribPointerWithOffset(0, 3, gl.FLOAT, false, 4*3, 0) // pos
 
 	view.projection.SetAsUniform(skyDrawer.projection)
 	view.modelView.SetAsUniform(skyDrawer.modelview)
 	gl.Uniform1i(skyDrawer.solidTex, 0)
 	gl.Uniform1i(skyDrawer.alphaTex, 1)
 
+	sc1 := math32.Mod(float32(cl.time)*8, 128)
+	sc2 := math32.Mod(float32(cl.time)*16, 128)
+
+	gl.Uniform3f(skyDrawer.viewOrg, qRefreshRect.viewOrg[0], qRefreshRect.viewOrg[1], qRefreshRect.viewOrg[2])
+	gl.Uniform1f(skyDrawer.sc1, sc1)
+	gl.Uniform1f(skyDrawer.sc2, sc2)
+
 	textureManager.BindUnit(s.solidTexture, gl.TEXTURE0)
 	defer textureManager.SelectTextureUnit(gl.TEXTURE0)
 	textureManager.BindUnit(s.alphaTexture, gl.TEXTURE1)
 
-	sc1 := math32.Mod(float32(cl.time)*8, 128)
-	sc2 := math32.Mod(float32(cl.time)*16, 128)
-	vertices := make([]float32, 0, 7*4)
+	vertices := make([]float32, 0, 3*4)
 
 	drawFace := func(mins, maxs [2]float32, vup, vright, v vec.Vec3) {
-		// Textures are 128x128
 		v = vec.Add(qRefreshRect.viewOrg, v)
 		p1 := v
 		p2 := vec.Add(v, vup)
 		p3 := vec.Add(p2, vright)
 		p4 := vec.Add(v, vright)
-		// TODO: s&t are still wrong for both tex
 		vertices = vertices[:0]
-		ap := func(p vec.Vec3) {
-			v := vec.Sub(p, qRefreshRect.viewOrg)
-			v[2] *= 3 // flatten the sphere
-			l := 6 * 63 * v.RLength()
-			s1 := (sc1 + v[0]*l) / 128
-			t1 := (sc1 + v[1]*l) / 128
-			s2 := (sc2 + v[0]*l) / 128
-			t2 := (sc2 + v[1]*l) / 128
-			vertices = append(vertices, p[0], p[1], p[2], s1, t1, s2, t2)
-		}
-		ap(p1)
-		ap(p2)
-		ap(p3)
-		ap(p4)
+		vertices = append(vertices,
+			p1[0], p1[1], p1[2],
+			p2[0], p2[1], p2[2],
+			p3[0], p3[1], p3[2],
+			p4[0], p4[1], p4[2])
 		skyDrawer.vbo.SetData(4*len(vertices), gl.Ptr(vertices))
 		gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
 	}
@@ -490,6 +478,9 @@ type qSkyDrawer struct {
 	modelview  int32
 	solidTex   int32
 	alphaTex   int32
+	viewOrg    int32
+	sc1        int32
+	sc2        int32
 }
 
 func newSkyDrawer() *qSkyDrawer {
@@ -512,6 +503,9 @@ func newSkyDrawer() *qSkyDrawer {
 	d.modelview = d.prog.GetUniformLocation("modelview")
 	d.solidTex = d.prog.GetUniformLocation("solid")
 	d.alphaTex = d.prog.GetUniformLocation("alpha")
+	d.viewOrg = d.prog.GetUniformLocation("viewOrg")
+	d.sc1 = d.prog.GetUniformLocation("sc1")
+	d.sc2 = d.prog.GetUniformLocation("sc2")
 	return d
 }
 
