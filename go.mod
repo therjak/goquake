@@ -1,7 +1,7 @@
 module goquake
 
 require (
-	github.com/chewxy/math32 v1.11.1
+	github.com/chewxy/math32 v1.11.2
 	github.com/ebitengine/oto/v3 v3.4.0
 	github.com/go-gl/gl v0.0.0-20231021071112-07e5d0ea2e71
 	github.com/google/uuid v1.6.0
