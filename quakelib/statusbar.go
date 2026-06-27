@@ -503,16 +503,16 @@ func (s *qstatusbar) drawInventory() {
 		val -= v * 100
 		p := v != 0
 		if p {
-			DrawCharacterWhite((6*pos+1)*8+2, 0, 18+v)
+			DrawCharacterWhite((6*pos+1)*8+2, 0, byte(18+v))
 		}
 		v = val / 10
 		val -= v * 10
 		p = p || v != 0
 		if p {
-			DrawCharacterWhite((6*pos+2)*8+2, 0, 18+v)
+			DrawCharacterWhite((6*pos+2)*8+2, 0, byte(18+v))
 		}
 		v = val
-		DrawCharacterWhite((6*pos+3)*8+2, 0, 18+v)
+		DrawCharacterWhite((6*pos+3)*8+2, 0, byte(18+v))
 	}
 	drawAmmo(cl.stats.shells, 0)
 	drawAmmo(cl.stats.nails, 1)

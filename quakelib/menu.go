@@ -18,10 +18,10 @@ func nextDemo() {
 	}
 }
 
-func blink() int {
+func blink() byte {
 	n := time.Now()
-	return ((n.Nanosecond() * 4) / 1e9) & 1
-	//return int(qtime.QTime().Seconds()*4) & 1
+	return byte((n.Nanosecond() >> 29) & 1)
+	// return int(qtime.QTime().Seconds()*4) & 1
 }
 
 func init() {
