@@ -508,7 +508,7 @@ func handleServerDisconnected(msg string) error {
 
 	if cmdl.Dedicated() {
 		// dedicated servers exit
-		QError("Host_EndGame: %s\n", msg)
+		QErrorf("Host_EndGame: %s\n", msg)
 	}
 
 	if cls.demoNum != -1 {

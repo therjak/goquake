@@ -31,7 +31,7 @@ func HostError(e error) {
 
 	if cmdl.Dedicated() {
 		// dedicated servers exit
-		QError("Host_Error: %s\n", s)
+		QErrorf("Host_Error: %s\n", s)
 	}
 
 	if err := cls.Disconnect(); err != nil {
