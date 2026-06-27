@@ -2,6 +2,7 @@
 package quakelib
 
 import (
+	"bytes"
 	"fmt"
 	"math"
 	"os"
@@ -60,7 +61,7 @@ type qScreen struct {
 
 	fps fpsAccumulator
 
-	centerString []string
+	centerString [][]byte
 
 	modalMsg []string
 
@@ -331,7 +332,7 @@ func (s *qScreen) drawCrosshair() {
 
 func (s *qScreen) CenterPrint(str string) {
 	s.centerTime = time.Now().Add(time.Second * 2) // scr_centertime
-	s.centerString = strings.Split(str, "\n")
+	s.centerString = bytes.Split([]byte(str), []byte{'\n'})
 }
 
 func (s *qScreen) drawCenterPrint() {
@@ -355,16 +356,15 @@ func (s *qScreen) drawCenterPrint() {
 		y -= 8
 	}
 
-	for _, t := range s.centerString {
-		runes := []rune(t)
-		x := (320 - (len(runes) * 8)) / 2
-		if remaining < len(runes) {
-			runes = runes[:remaining]
+	for _, bs := range s.centerString {
+		x := (320 - (len(bs) * 8)) / 2
+		if remaining < len(bs) {
+			bs = bs[:remaining]
 		}
-		l := len(runes)
+		l := len(bs)
 		remaining -= l
-		for _, r := range runes {
-			DrawCharacterWhite(x, y, int(r))
+		for _, b := range bs {
+			DrawCharacterWhite(x, y, b)
 			x += 8
 		}
 

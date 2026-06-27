@@ -354,7 +354,7 @@ func (c *qconsole) Draw(lines int) {
 		y += 8 // blank line
 		nx := 8
 		for i := 0; i < c.lineWidth; i++ {
-			DrawCharacterWhite(nx, y, int('^'))
+			DrawCharacterWhite(nx, y, '^')
 			nx += 8
 		}
 	}

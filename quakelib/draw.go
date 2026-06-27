@@ -357,7 +357,7 @@ func DrawCrosshair() {
 	// screen.vrect.width &^1,
 	// screen.vrect.height &^1)
 
-	// DrawCharacterWhite(-4, -4, '+')
+	DrawCharacterWhite(-4, -4, '+')
 }
 
 type Color struct {
@@ -370,26 +370,24 @@ type QPic struct {
 	Height  int
 }
 
-func DrawCharacterWhite(x, y int, num int) {
+func DrawCharacterWhite(x, y int, num byte) {
 	if y <= -8 {
 		// Off screen
 		return
 	}
-	num &= 255
 	if num == 32 {
 		return
 	}
-	qDrawer.DrawQuad(float32(x), float32(y), byte(num))
+	qDrawer.DrawQuad(float32(x), float32(y), num)
 }
 
-func DrawCharacterCopper(x, y int, num int) {
+func DrawCharacterCopper(x, y int, num byte) {
 	if y <= -8 {
 		// Off screen
 		return
 	}
 	num += 128
-	num &= 255
-	qDrawer.DrawQuad(float32(x), float32(y), byte(num))
+	qDrawer.DrawQuad(float32(x), float32(y), num)
 }
 
 func DrawPicture(x, y int, p *QPic) {
@@ -596,7 +594,7 @@ func GetPictureFromBytes(n string, w, h int, d []byte) *QPic {
 func DrawStringCopper(x, y int, t string) {
 	nx := x
 	for i := 0; i < len(t); i++ {
-		DrawCharacterCopper(nx, y, int(t[i]))
+		DrawCharacterCopper(nx, y, t[i])
 		nx += 8
 	}
 }
@@ -604,7 +602,7 @@ func DrawStringCopper(x, y int, t string) {
 func DrawStringWhite(x, y int, t string) {
 	nx := x
 	for i := 0; i < len(t); i++ {
-		DrawCharacterWhite(nx, y, int(t[i]))
+		DrawCharacterWhite(nx, y, t[i])
 		nx += 8
 	}
 }
