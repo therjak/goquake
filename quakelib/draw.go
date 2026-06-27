@@ -528,7 +528,7 @@ func GetCachedPicture(name string) *QPic {
 	}
 	p, err := loadPicFromFile(name)
 	if err != nil {
-		QError("GetCachedPicture: failed to load %s", name)
+		QErrorf("GetCachedPicture: failed to load %s", name)
 	}
 	cachePics[name] = p
 	return p

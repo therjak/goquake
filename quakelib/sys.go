@@ -12,7 +12,13 @@ func init() {
 }
 */
 
-func QError(format string, v ...interface{}) {
+func QError(format string) {
+	debug.PrintStack()
+	shutdown()
+	log.Fatal(format)
+}
+
+func QErrorf(format string, v ...interface{}) {
 	debug.PrintStack()
 	shutdown()
 	log.Fatalf(format, v...)
