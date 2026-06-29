@@ -93,7 +93,7 @@ func (s *Server) BroadcastPrintf(format string, v ...interface{}) {
 func (s *Server) BroadcastPrint(m string) {
 	for _, c := range sv_clients {
 		if c.active && c.spawned {
-			c.Printf(m)
+			c.Print(m)
 		}
 	}
 }
@@ -106,6 +106,9 @@ func HostClient() *SVClient {
 
 func (sc *SVClient) Printf(format string, v ...interface{}) {
 	sc.print(fmt.Sprintf(format, v...))
+}
+func (sc *SVClient) Print(txt string) {
+	sc.print(txt)
 }
 
 func (sc *SVClient) print(msg string) {
@@ -1021,7 +1024,7 @@ func (s *Server) tellCmd(sc *SVClient, a cbuf.Arguments) {
 			continue
 		}
 		// TODO: We check without case check. Are names unique ignoring the case?
-		ac.Printf(text)
+		ac.Print(text)
 	}
 }
 
@@ -1138,7 +1141,7 @@ func (s *Server) sayCmd(sc *SVClient, team bool, a cbuf.Arguments) {
 			entvars.Get(ac.edictId).Team != entvars.Get(sc.edictId).Team {
 			continue
 		}
-		ac.Printf(text)
+		ac.Print(text)
 	}
 	if cmdl.Dedicated() {
 		log.Print(text)
@@ -1185,10 +1188,10 @@ func (s *Server) runClients() error {
 // For debugging
 func (s *Server) edictPrint(ed int) {
 	if s.edicts[ed].Free {
-		fmt.Printf("FREE\n")
+		slog.Info("FREE")
 		return
 	}
-	fmt.Printf("\nEDICT %d:\n", ed)
+	logger := slog.With(slog.Int("EDICT", ed))
 	for i := 1; i < len(progsdat.FieldDefs); i++ {
 		d := progsdat.FieldDefs[i]
 		name, err := progsdat.String(d.SName)
@@ -1201,7 +1204,7 @@ func (s *Server) edictPrint(ed int) {
 			continue
 		}
 		// TODO: skip 0 values
-		fmt.Printf("%-15s %s\n", name, entvars.Sprint(ed, d))
+		logger.Info("", slog.String(name, entvars.Sprint(ed, d)))
 	}
 }
 

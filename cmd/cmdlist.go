@@ -39,18 +39,18 @@ func (c *Commands) printCmdList() QFunc {
 
 func (cl *cmdList) printFullCmdList() {
 	for _, c := range *cl {
-		conlog.SafePrintf("  %s\n", c)
+		conlog.Printf("  %s\n", c)
 	}
-	conlog.SafePrintf("%v commands\n", len(*cl))
+	conlog.Printf("%v commands\n", len(*cl))
 }
 
 func (cl *cmdList) printPartialCmdList(part string) {
 	count := 0
 	for _, c := range *cl {
 		if strings.HasPrefix(c, part) {
-			conlog.SafePrintf("  %s\n", c)
+			conlog.Printf("  %s\n", c)
 			count++
 		}
 	}
-	conlog.SafePrintf("%v commands beginning with \"%v\"\n", count, part)
+	conlog.Printf("%v commands beginning with \"%v\"\n", count, part)
 }

@@ -29,14 +29,14 @@ func (al *Aliases) alias() func(a cbuf.Arguments) error {
 
 func (al *Aliases) listAliases() {
 	if len(*al) == 0 {
-		conlog.SafePrintf("no alias commands found\n")
+		conlog.Printf("no alias commands found\n")
 		return
 	}
 	for k, v := range *al {
 		// each alias value ends with a '\n'
-		conlog.SafePrintf("  %s: %s", k, v)
+		conlog.Printf("  %s: %s", k, v)
 	}
-	conlog.SafePrintf("%v alias command(s)\n", len(*al))
+	conlog.Printf("%v alias command(s)\n", len(*al))
 }
 
 func (al *Aliases) printAlias(arg cbuf.QArg) {

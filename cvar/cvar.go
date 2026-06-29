@@ -334,7 +334,7 @@ func (c *Cvars) list() func(a cbuf.Arguments) error {
 
 func (c *Cvars) fullList() {
 	for _, v := range *c {
-		conlog.SafePrintf("%s%s %s \"%s\"\n",
+		conlog.Printf("%s%s %s \"%s\"\n",
 			func() string {
 				if v.Archive() {
 					return "*"
@@ -350,11 +350,11 @@ func (c *Cvars) fullList() {
 			v.Name(),
 			v.String())
 	}
-	conlog.SafePrintf("%v cvars\n", len(*c))
+	conlog.Printf("%v cvars\n", len(*c))
 }
 
 func (c *Cvars) partialList(p cbuf.QArg) {
-	conlog.Printf("TODO")
+	slog.Error("TODO")
 	// if beginning of name == p
 	// same as ListFull
 	// in length print add ("beginning with \"%s\"", p)

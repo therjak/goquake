@@ -3,6 +3,7 @@ package quakelib
 
 import (
 	"fmt"
+	"log/slog"
 	"strconv"
 	"time"
 
@@ -480,7 +481,7 @@ func videoInit() error {
 
 func checkVSync() {
 	if !glSwapControl {
-		conlog.Warning("vertical sync not supported (SDL_GL_SetSwapInterval failed)\n")
+		slog.Warn("vertical sync not supported (SDL_GL_SetSwapInterval failed)\n")
 		return
 	}
 	i, _ := sdl.GLGetSwapInterval()
@@ -488,27 +489,27 @@ func checkVSync() {
 	switch {
 	case i == -1:
 		glSwapControl = false
-		conlog.Warning("vertical sync not supported (SDL_GL_GetSwapInterval failed)\n")
+		slog.Warn("vertical sync not supported (SDL_GL_GetSwapInterval failed)")
 	case i == 0 && wantVSync, i == 1 && !wantVSync:
 		glSwapControl = false
-		conlog.Warning("vertical sync not supported (swap_control doesn't match vid_vsync)\n")
+		slog.Warn("vertical sync not supported (swap_control doesn't match vid_vsync)")
 	default:
-		conlog.Printf("FOUND: SDL_GL_SetSwapInterval\n")
+		slog.Info("FOUND: SDL_GL_SetSwapInterval")
 	}
 }
 
 func printGLInfo() {
 	vendor := gl.GoStr(gl.GetString(gl.VENDOR))
-	conlog.SafePrintf("GL_VENDOR: %s\n", vendor)
-
 	renderer := gl.GoStr(gl.GetString(gl.RENDERER))
-	conlog.SafePrintf("GL_RENDERER: %s\n", renderer)
-
 	version := gl.GoStr(gl.GetString(gl.VERSION))
-	conlog.SafePrintf("GL_VERSION: %s\n", version)
+
+	slog.Info("GLInfo",
+		slog.String("GL_VENDOR", vendor),
+		slog.String("GL_RENDERER", renderer),
+		slog.String("GL_VERSION", version))
 
 	if vendor == "Intel" {
-		conlog.Printf("Intel Display Adapter detected, enabling gl_clear\n")
+		slog.Info("Intel Display Adapter detected, enabling gl_clear")
 		cbuf.AddText("gl_clear 1\n") // queue to override config file setting
 	}
 }

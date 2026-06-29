@@ -39,7 +39,7 @@ func svProtocol(a cbuf.Arguments) error {
 	args := a.Args()[1:]
 	switch len(args) {
 	default:
-		conlog.SafePrintf("usage: sv_protocol <protocol>\n")
+		conlog.Printf("usage: sv_protocol <protocol>\n")
 	case 0:
 		conlog.Printf(`"sv_protocol" is "%v"`+"\n", sv_protocol)
 	case 1:
@@ -62,17 +62,18 @@ func init() {
 	addCommand("sv_protocol", svProtocol)
 }
 
+var protocolMap = map[int]string{
+	protocol.NetQuake:  "NetQuake",
+	protocol.FitzQuake: "FitzQuake",
+	protocol.RMQ:       "RMQ",
+	protocol.GoQuake:   "GoQuake",
+}
+
 func serverInit() error {
 	sv_protocol = cmdl.Protocol()
 	switch sv_protocol {
-	case protocol.NetQuake:
-		log.Printf("Server using protocol %v (NetQuake)\n", sv_protocol)
-	case protocol.FitzQuake:
-		log.Printf("Server using protocol %v (FitzQuake)\n", sv_protocol)
-	case protocol.RMQ:
-		log.Printf("Server using protocol %v (RMQ)\n", sv_protocol)
-	case protocol.GoQuake:
-		log.Printf("Server using protocol %v (GoQuake)\n", sv_protocol)
+	case protocol.NetQuake, protocol.FitzQuake, protocol.RMQ, protocol.GoQuake:
+		log.Printf("Server using protocol %v (%s)", sv_protocol, protocolMap[sv_protocol])
 	default:
 		return fmt.Errorf("Bad protocol version request %v. Accepted values: %v, %v, %v.",
 			sv_protocol, protocol.NetQuake, protocol.FitzQuake, protocol.RMQ)

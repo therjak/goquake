@@ -687,15 +687,6 @@ func (s *qstatusbar) soloScoreboard() {
 	secrets := fmt.Sprintf("Secrets: %d/%d", cl.stats.secrets, cl.stats.totalSecrets)
 	DrawStringWhite(312-len(secrets)*8, 12+24, secrets)
 
-	if !cmdl.Fitz() {
-		skill := fmt.Sprintf("skill %d", int(cvars.Skill.Value()+0.5))
-		DrawStringWhite(160-len(skill)*4, 12+24, skill)
-
-		currMap := fmt.Sprintf("%s (%s)", cl.levelName, cl.mapName)
-		s.DrawScrollString(0, 4+24, 320, currMap)
-		return
-	}
-
 	minutes := int(cl.time) / 60
 	seconds := int(cl.time) - 60*minutes
 	tens := seconds / 10
