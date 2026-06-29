@@ -1387,12 +1387,6 @@ func clientStartDemos(a cbuf.Arguments) error {
 
 	if !ServerActive() && cls.demoNum != -1 && !cls.demoPlayback {
 		cls.demoNum = 0
-		if !cmdl.Fitz() { // QuakeSpasm customization:
-			// go straight to menu, no CL_NextDemo
-			cls.demoNum = -1
-			cbuf.InsertText("menu_main\n")
-			return nil
-		}
 		if err := CL_NextDemo(); err != nil {
 			fmt.Printf("CL_NextDemo: %v", err)
 		}

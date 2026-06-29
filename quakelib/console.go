@@ -4,6 +4,7 @@ package quakelib
 import (
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"path"
 	"strings"
@@ -94,7 +95,7 @@ func (c *qconsole) CheckResize() {
 
 func consoleInit() {
 	console.lineWidth = 38
-	conlog.Printf("Console initialized.\n")
+	slog.Info("Console initialized")
 
 	console.initialized = true
 }
@@ -443,19 +444,8 @@ func conPrintf(format string, v ...interface{}) {
 	console.Print(s)
 }
 
-// do not use. use conlog.SafePrintf
-func conSafePrintf(format string, v ...interface{}) {
-	tmp := screen.disabled
-	screen.disabled = true
-	s := fmt.Sprintf(format, v...)
-	log.Print(s)
-	console.Print(s)
-	screen.disabled = tmp
-}
-
 func init() {
 	conlog.SetPrintf(conPrintf)
-	conlog.SetSafePrintf(conSafePrintf)
 }
 
 const (
@@ -466,7 +456,7 @@ const (
 func (c *qconsole) printBar() {
 	// TODO(therjak): we need a conlog.PrintBar
 	if c.lineWidth >= len(quakeBar) {
-		conlog.Printf(quakeBar)
+		c.Print(quakeBar)
 	} else {
 		var b strings.Builder
 		b.WriteByte('\x1d')
@@ -475,6 +465,6 @@ func (c *qconsole) printBar() {
 		}
 		b.WriteByte('\x1f')
 		b.WriteByte('\n')
-		conlog.Printf(b.String())
+		c.Print(b.String())
 	}
 }

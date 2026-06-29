@@ -234,10 +234,10 @@ func keyBindlist(a cbuf.Arguments) error {
 	for k, v := range keyBindings {
 		if v != "" {
 			count++
-			conlog.SafePrintf("  %s \"%s\"\n", kc.KeyToString(k), v)
+			conlog.Printf("  %s \"%s\"\n", kc.KeyToString(k), v)
 		}
 	}
-	conlog.SafePrintf("%d bindings\n", count)
+	conlog.Printf("%d bindings\n", count)
 	return nil
 }
 

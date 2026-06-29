@@ -52,15 +52,11 @@ func TestExecuteAlias(t *testing.T) {
 }
 
 func TestPrintAlias(t *testing.T) {
-	var pfout, spfout string
+	var pfout string
 	pf := func(s string, a ...any) {
 		pfout += fmt.Sprintf(s, a...)
 	}
-	spf := func(s string, a ...any) {
-		spfout += fmt.Sprintf(s, a...)
-	}
 	conlog.SetPrintf(pf)
-	conlog.SetSafePrintf(spf)
 	al := New()
 	cmds := cmd.New()
 	if err := al.Commands(cmds); err != nil {
@@ -74,12 +70,13 @@ func TestPrintAlias(t *testing.T) {
 
 	cb.AddText("alias hello world\n")
 	cb.Execute()
-	cb.AddText("alias\n")
+	cb.AddText("alias")
 	cb.Execute()
-	if spfout != "  hello: world\n1 alias command(s)\n" {
-		t.Errorf("%q", spfout)
+	if pfout != "  hello: world\n1 alias command(s)\n" {
+		t.Errorf("%q", pfout)
 	}
-	cb.AddText("alias hello\n")
+	pfout = ""
+	cb.AddText("alias hello")
 	cb.Execute()
 	if pfout != "  hello: world\n" {
 		t.Errorf("%q", pfout)

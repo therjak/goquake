@@ -40,7 +40,7 @@ var (
 
 func describeTextureModes(_ cbuf.Arguments) error {
 	for i, m := range glModes {
-		conlog.SafePrintf("   %2d: %s", i+1, m.name)
+		conlog.Printf("   %2d: %s", i+1, m.name)
 	}
 	conlog.Printf("%d modes\n", len(glModes))
 	return nil

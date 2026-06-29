@@ -2,7 +2,6 @@
 package quakelib
 
 import (
-	cmdl "goquake/commandline"
 	kc "goquake/keycode"
 	"goquake/keys"
 	"goquake/menu"
@@ -55,9 +54,6 @@ func (m *qMainMenu) HandleKey(key kc.KeyCode) {
 		keyDestination = keys.Game
 		qmenu.state = menu.None
 		cls.demoNum = menuSaveDemoNumber
-		if !cmdl.Fitz() {
-			return
-		}
 		if cls.demoNum != -1 && !cls.demoPlayback && cls.state != ca_connected {
 			nextDemo()
 		}

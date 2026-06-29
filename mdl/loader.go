@@ -273,7 +273,7 @@ func load(name string, buf io.ReadSeeker) (*Model, error) {
 		groupFrames := int32(1)
 		fs[i].interval = 0.1
 		if frameType != ALIAS_SINGLE {
-			slog.Debug("FrameType: %v, %s", frameType, name)
+			slog.Debug("Load", slog.Any("FrameType", frameType), slog.String("Name", name))
 			fg := aliasFrameGroup{}
 			if err := binary.Read(buf, binary.LittleEndian, &fg); err != nil {
 				slog.Warn("TODO: ERR")

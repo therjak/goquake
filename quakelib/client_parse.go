@@ -249,7 +249,8 @@ func (c *Client) ParseServerInfo(si *protos.ServerInfo) error {
 			protocol.PRFL_INT32COORD
 
 		if c.protocolFlags&^supportedflags != 0 {
-			conlog.Warning("PROTOCOL_RMQ protocolflags %d contains unsupported flags\n", c.protocolFlags)
+			slog.Warn("PROTOCOL_RMQ protocolflags contains unsupported flags", slog.Uint64("Flags", uint64(c.protocolFlags)))
+			conlog.Printf("PROTOCOL_RMQ protocolflags %d contains unsupported flags\n", c.protocolFlags)
 		}
 	}
 
