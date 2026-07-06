@@ -327,7 +327,7 @@ func (tm *texMgr) ReloadImage(t *texture.Texture) {
 	case texture.ColorTypeRGBA:
 		tm.loadRGBA(t, t.Data)
 	case texture.ColorTypeLightmap:
-		tm.loadLightMap(t)
+		tm.loadLightMap(t, gl.TEXTURE0)
 	}
 }
 
@@ -362,8 +362,8 @@ func (tm *texMgr) EnableMultiTexture() {
 	tm.multiTextureEnabled = true
 }
 
-func (tm *texMgr) SetFilterModes(t *texture.Texture) {
-	tm.BindUnit(t, gl.TEXTURE0)
+func (tm *texMgr) SetFilterModes(t *texture.Texture, target uint32) {
+	tm.BindUnit(t, target)
 	m := glModes[tm.glModeIndex]
 	switch {
 	case t.Flags(texture.TexPrefNearest):
@@ -414,7 +414,7 @@ func (tm *texMgr) textureModeCallback(cv *cvar.Cvar) {
 			}
 			for k, v := range tm.activeTextures {
 				if v {
-					tm.SetFilterModes(k)
+					tm.SetFilterModes(k, gl.TEXTURE0)
 				}
 			}
 			statusbar.MarkChanged()
@@ -509,14 +509,14 @@ func (tm *texMgr) loadRGBA(t *texture.Texture, data []byte) {
 		0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(data))
 
 	gl.GenerateMipmap(gl.TEXTURE_2D)
-	tm.SetFilterModes(t)
+	tm.SetFilterModes(t, gl.TEXTURE0)
 }
 
-func (tm *texMgr) loadLightMap(t *texture.Texture) {
-	tm.BindUnit(t, gl.TEXTURE0)
+func (tm *texMgr) loadLightMap(t *texture.Texture, target uint32) {
+	tm.BindUnit(t, target)
 	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, t.Width, t.Height,
 		0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(t.Data))
-	tm.SetFilterModes(t)
+	tm.SetFilterModes(t, target)
 }
 
 func (tm *texMgr) loadIndexed(t *texture.Texture, data []byte) {

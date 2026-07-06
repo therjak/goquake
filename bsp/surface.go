@@ -93,6 +93,26 @@ func (s *Surface) BuildLightMap(dynamicStyles LightStyles, frame int, lights []D
 	}
 }
 
+// NeedsLightmapUpdate returns true if the surface's lightmap texture needs to
+// be rebuilt this frame.  A rebuild is required when:
+//   - a dynamic light is influencing this surface (DLightFrame == current frame), or
+//   - any of the light-style scale values that contribute to this surface have
+//     changed since the last rebuild (CachedLight mismatch).
+func (s *Surface) NeedsLightmapUpdate(dynamicStyles LightStyles, frame int) bool {
+	if s.DLightFrame == frame {
+		return true
+	}
+	for m, style := range s.Styles {
+		if style == 0xff {
+			break
+		}
+		if s.CachedLight[m] != dynamicStyles[style] {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *Surface) addDynamicLights(lights []DynamicLight) {
 	smax := (s.extents[S] >> 4) + 1
 	tmax := (s.extents[T] >> 4) + 1

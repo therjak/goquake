@@ -220,7 +220,7 @@ func rebuildAllLightMaps() {
 				lights = append(lights, &cl.dynamicLights[i])
 			}
 			s.BuildLightMap(lightStyleValues, renderer.frameCount, lights, cvars.GlOverBright.Bool())
-			textureManager.loadLightMap(s.LightmapTexture)
+			textureManager.loadLightMap(s.LightmapTexture, gl.TEXTURE0)
 		}
 	}
 	/*
@@ -273,7 +273,7 @@ func (r *qRenderer) drawTextureChainsNoTexture(mv *glh.Matrix, model *bsp.Model,
 	}
 }
 
-func (d *qBrushDrawer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *Entity, chain int) {
+func (d *qBrushDrawer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *Entity, chain int, lights []bsp.DynamicLight) {
 	// Compare R_DrawTextureChains_GLSL, recent quakespasm
 	entalpha := float32(1)
 	if e != nil {
@@ -306,7 +306,7 @@ func (d *qBrushDrawer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *En
 	gl.Uniform1i(d.fullBrightTex, 2)
 	gl.Uniform1i(d.useFullBright, 0) // remove? gets overwritten below
 	var useOverBright int32
-	if cvars.GlOverBrightModels.Bool() {
+	if cvars.GlOverBright.Bool() {
 		useOverBright = 1
 	}
 	gl.Uniform1i(d.useOverBright, useOverBright)
@@ -358,9 +358,25 @@ func (d *qBrushDrawer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *En
 				lastLightmap = s.LightmapTexture
 			}
 
+			// Rebuild and re-upload the lightmap if dynamic lights or light
+			// style changes have made it stale. Skip tiled surfaces (water,
+			// sky) which have no lightmap.
+			if s.Flags&bsp.SurfaceDrawTiled == 0 && s.LightmapTexture != nil &&
+				s.NeedsLightmapUpdate(lightStyleValues, renderer.frameCount) {
+				// Flush any pending draws that use the old lightmap data first.
+				if len(d.vbo_indices) > 0 {
+					textureManager.BindUnit(lastLightmap, gl.TEXTURE1)
+					d.ebo.SetData(4*len(d.vbo_indices), gl.Ptr(d.vbo_indices))
+					gl.DrawElements(gl.TRIANGLES, int32(len(d.vbo_indices)), gl.UNSIGNED_INT, gl.PtrOffset(0))
+					d.vbo_indices = d.vbo_indices[:0]
+				}
+				s.BuildLightMap(lightStyleValues, renderer.frameCount, lights, cvars.GlOverBright.Bool())
+				textureManager.loadLightMap(s.LightmapTexture, gl.TEXTURE1)
+				lastLightmap = s.LightmapTexture
+			}
+
 			if lastLightmap != s.LightmapTexture {
 				if len(d.vbo_indices) > 0 {
-					// TODO: this handling of ebo needs improvement
 					d.ebo.SetData(4*len(d.vbo_indices), gl.Ptr(d.vbo_indices))
 					gl.DrawElements(gl.TRIANGLES, int32(len(d.vbo_indices)), gl.UNSIGNED_INT, gl.PtrOffset(0))
 					d.vbo_indices = d.vbo_indices[:0]
@@ -377,7 +393,6 @@ func (d *qBrushDrawer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *En
 			}
 		}
 		if len(d.vbo_indices) > 0 {
-			// TODO: this handling of ebo needs improvement
 			d.ebo.SetData(4*len(d.vbo_indices), gl.Ptr(d.vbo_indices))
 			gl.DrawElements(gl.TRIANGLES, int32(len(d.vbo_indices)), gl.UNSIGNED_INT, gl.PtrOffset(0))
 			d.vbo_indices = d.vbo_indices[:0]
@@ -396,12 +411,17 @@ func textureAnimation(t *bsp.Texture, frame int) *bsp.Texture {
 }
 
 func (r *qRenderer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *Entity, chain int) {
-	// TODO: shouldn't rebuildAllLightmaps already uploaded the lightmap?
-	// R_BuildLighmapChains(model,chain)
-	// R_UploadLightmaps()
+	// Build the current list of active dynamic lights to pass into the lightmap
+	// builder so each surface can incorporate them.
+	var lights []bsp.DynamicLight
+	for i := range cl.dynamicLights {
+		if cl.dynamicLights[i].dieTime >= cl.time && cl.dynamicLights[i].radius != 0 {
+			lights = append(lights, &cl.dynamicLights[i])
+		}
+	}
 
 	r.drawTextureChainsNoTexture(mv, model, e, chain)
-	brushDrawer.drawTextureChains(mv, model, e, chain)
+	brushDrawer.drawTextureChains(mv, model, e, chain, lights)
 }
 
 // FIXME: THERJAK not called

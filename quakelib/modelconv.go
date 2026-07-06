@@ -11,6 +11,8 @@ import (
 	"goquake/mdl"
 	"goquake/model"
 	"goquake/spr"
+
+	"github.com/go-gl/gl/v4.6-core/gl"
 )
 
 var (
@@ -122,7 +124,7 @@ func loadTextures(m model.Model) {
 		for _, s := range mt.Surfaces {
 			if s.LightmapTexture != nil {
 				textureManager.addActiveTexture(s.LightmapTexture)
-				textureManager.loadLightMap(s.LightmapTexture)
+				textureManager.loadLightMap(s.LightmapTexture, gl.TEXTURE0)
 			}
 		}
 	}

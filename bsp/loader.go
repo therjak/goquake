@@ -452,18 +452,8 @@ func calcSurfaceExtras(ss []*Surface, vs []*MVertex, es []*MEdge, ses []int32, l
 			}
 		} else {
 			s.createSurfaceLightmap()
-			// TODO:
-			// GL_BuildLightmaps {
-			//   GL_CreateSurfaceLightmap {
-			//     AllocBlock
-			//     R_BuildLightMap
-			//   }
-			//   R_BuildLightMap {
-			//     R_framecount
-			//     R_AddDynamicLights
-			//   }
-			// }
-			// -- it should also set s.lightS, s.lightT
+			smax := (s.extents[S] >> 4) + 1
+			tmax := (s.extents[T] >> 4) + 1
 			for i := range s.Polys.Verts {
 				v := &s.Polys.Verts[i]
 				// From BuildSurfaceDisplayList
@@ -471,8 +461,11 @@ func calcSurfaceExtras(ss []*Surface, vs []*MVertex, es []*MEdge, ses []int32, l
 				bt := (vec.Dot(v.Pos, tex.Vecs[T].Pos) + tex.Vecs[T].Offset)
 				v.S = bs / float32(tex.Texture.Width)
 				v.T = bt / float32(tex.Texture.Height)
-				v.LightMapS = (bs - float32(s.textureMins[S]) + 8 /*+ float32(s.lightS)*16*/) / (LightMapBlockWidth * 16)
-				v.LightMapT = (bt - float32(s.textureMins[T]) + 8 /*+ float32(s.lightT)*16*/) / (LightMapBlockHeight * 16)
+				// Lightmap UVs: offset into the per-surface lightmap texture.
+				// The texture is smax x tmax texels; each texel covers 16 world units.
+				// +8 centres the sample within its texel.
+				v.LightMapS = (bs - float32(s.textureMins[S]) + 8) / float32(smax*16)
+				v.LightMapT = (bt - float32(s.textureMins[T]) + 8) / float32(tmax*16)
 			}
 		}
 
