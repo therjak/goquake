@@ -68,6 +68,7 @@ func newParticleDrawer() (*qParticleDrawer, error) {
 
 	gl.PixelStorei(gl.UNPACK_ALIGNMENT, 1)
 
+	textureManager.SelectTextureUnit(gl.TEXTURE0)
 	d.textures[0] = glh.NewTexture2D()
 	d.textures[1] = glh.NewTexture2D()
 	d.textures[0].Bind()
@@ -159,6 +160,7 @@ func (d *qParticleDrawer) Draw(ps []particle) {
 	view.projection.SetAsUniform(d.projection)
 	view.modelView.SetAsUniform(d.modelview)
 
+	textureManager.SelectTextureUnit(gl.TEXTURE0)
 	d.texture.Bind()
 
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(numVert))

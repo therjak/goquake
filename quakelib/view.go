@@ -173,6 +173,5 @@ func (v *qView) polyBlend() {
 		return
 	}
 
-	textureManager.DisableMultiTexture()
 	qRecDrawer.Draw(0, 0, float32(screen.Width()), float32(screen.Height()), v.blendColor)
 }

@@ -64,6 +64,7 @@ func (p *postProcess) Draw(gamma, contrast float32) {
 	var viewport [4]int32
 	gl.GetIntegerv(gl.VIEWPORT, &viewport[0])
 
+	textureManager.SelectTextureUnit(gl.TEXTURE0)
 	if p.texture == nil || p.width != viewport[2] || p.height != viewport[3] {
 		p.texture = glh.NewTexture2D()
 		p.texture.Bind()
@@ -75,7 +76,6 @@ func (p *postProcess) Draw(gamma, contrast float32) {
 		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
 	}
 
-	textureManager.DisableMultiTexture()
 	p.texture.Bind()
 	gl.CopyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 0, 0, p.width, p.height)
 

@@ -346,22 +346,6 @@ func (tm *texMgr) deleteTexture(t *texture.Texture) {
 	}
 }
 
-func (tm *texMgr) DisableMultiTexture() {
-	// selects texture unit 0
-	if tm.multiTextureEnabled {
-		gl.Disable(gl.TEXTURE_2D)
-		tm.SelectTextureUnit(gl.TEXTURE0)
-		tm.multiTextureEnabled = false
-	}
-}
-
-func (tm *texMgr) EnableMultiTexture() {
-	// selects texture unit 1
-	tm.SelectTextureUnit(gl.TEXTURE1)
-	gl.Enable(gl.TEXTURE_2D)
-	tm.multiTextureEnabled = true
-}
-
 func (tm *texMgr) SetFilterModes(t *texture.Texture, target uint32) {
 	tm.BindUnit(t, target)
 	m := glModes[tm.glModeIndex]
