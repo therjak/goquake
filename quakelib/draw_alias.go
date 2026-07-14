@@ -256,6 +256,8 @@ func calcShadeVector(e *Entity) vec.Vec3 {
 }
 
 func drawAliasFrame(m *mdl.Model, ld *lerpData, tx, fb *texture.Texture, e *Entity, alpha float32, mv, p qUniform) {
+	defer textureManager.SelectTextureUnit(gl.TEXTURE0)
+
 	lightColor := cl.ColorForEntity(e)
 	shadeVec := calcShadeVector(e)
 
