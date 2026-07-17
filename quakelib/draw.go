@@ -202,20 +202,23 @@ func (d *drawer) DrawQuad(x, y float32, num byte) {
 }
 
 var (
-	qDrawer         *drawer
-	qRecDrawer      *recDrawer
-	consoleTexture  *texture.Texture
-	backtileTexture *texture.Texture
+	qDrawer          *drawer
+	qRecDrawer       *recDrawer
+	qTranslateDrawer *translateDrawer
+	consoleTexture   *texture.Texture
+	backtileTexture  *texture.Texture
 )
 
 func Draw_Delete() {
 	qDrawer = nil
 	qRecDrawer = nil
+	qTranslateDrawer = nil
 }
 
 func CreateUiDrawer() {
 	qDrawer = NewDrawer()
 	qRecDrawer = NewRecDrawer()
+	initTranslateDrawer()
 }
 
 func drawInit() error {
@@ -365,9 +368,13 @@ type Color struct {
 }
 
 type QPic struct {
-	Texture *texture.Texture
-	Width   int
-	Height  int
+	Texture      *texture.Texture
+	// IndexTexture holds the same image as a raw palette-index (GL_R8) texture
+	// used by DrawPictureTranslate for GPU-side colour remapping.
+	// It is nil for pictures that are never passed to DrawPictureTranslate.
+	IndexTexture *texture.Texture
+	Width        int
+	Height       int
 }
 
 func DrawCharacterWhite(x, y int, num byte) {
@@ -411,14 +418,18 @@ var (
 )
 
 func DrawPictureTranslate(x, y int, p *QPic, top, bottom int) {
+	if p.IndexTexture == nil {
+		// First use: load the raw-index texture from the cached raw pixel data.
+		// p.Texture.Data contains the original palette indices (one byte/texel).
+		p.IndexTexture = textureManager.LoadRawIndexTex(
+			p.Texture.Name()+"#idx", p.Width, p.Height, p.Texture.Data)
+	}
 	if top != drawTop || bottom != drawBottom {
 		drawTop = top
 		drawBottom = bottom
-		// TODO(therjak): do the mapping
-		textureManager.ReloadImage(p.Texture)
+		qTranslateDrawer.UpdateTranslation(top, bottom)
 	}
-
-	qDrawer.Draw(float32(x), float32(y), float32(p.Width), float32(p.Height), p.Texture)
+	qTranslateDrawer.Draw(float32(x), float32(y), float32(p.Width), float32(p.Height), p.IndexTexture)
 }
 
 func DrawConsoleBackground() {

@@ -145,6 +145,25 @@ func (tm *texMgr) loadIndexdTex(name string, w, h int, flags texture.TexPref, da
 	return t
 }
 
+// LoadRawIndexTex uploads a palette-index image as a GL_R8 2D texture without
+// any palette conversion.  The shader in translate.frag uses this together with
+// the palette and translation LUT textures to remap colours on the GPU.
+func (tm *texMgr) LoadRawIndexTex(name string, w, h int, data []byte) *texture.Texture {
+	flags := texture.TexPrefNearest | texture.TexPrefNoPicMip | texture.TexPrefPersist
+	t := texture.NewTexture(int32(w), int32(h), flags, name, texture.ColorTypeRaw, data)
+	tm.addActiveTexture(t)
+	tm.BindUnit(t, gl.TEXTURE0)
+	// Upload one byte per texel as a single red channel (GL_R8).
+	// In the shader, texture().r will be in [0, 1]; multiply by 255 to recover
+	// the palette index, or sample a 256-wide 1D texture at (index/255.0).
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.R8, int32(w), int32(h),
+		0, gl.RED, gl.UNSIGNED_BYTE, gl.Ptr(data))
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+	return t
+}
+
+
 func (tm *texMgr) LoadBacktile() (*texture.Texture, error) {
 	name := "backtile"
 	p := wad.GetPic(name)

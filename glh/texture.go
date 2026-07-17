@@ -56,3 +56,17 @@ func NewTextureCube() *textureCube {
 func (t *textureCube) Bind() {
 	gl.BindTexture(gl.TEXTURE_CUBE_MAP, t.id)
 }
+
+type texture1D struct {
+	texture
+}
+
+func NewTexture1D() *texture1D {
+	t := &texture1D{}
+	t.new()
+	return t
+}
+
+func (t *texture1D) Bind() {
+	gl.BindTexture(gl.TEXTURE_1D, t.id)
+}

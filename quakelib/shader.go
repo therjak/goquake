@@ -62,3 +62,6 @@ var vertexSourceSkybox string
 
 //go:embed shader/skybox.frag
 var fragmentSourceSkybox string
+
+//go:embed shader/translate.frag
+var fragmentSourceTranslate string

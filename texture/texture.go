@@ -30,6 +30,9 @@ const (
 	ColorTypeIndexed ColorType = iota
 	ColorTypeRGBA
 	ColorTypeLightmap
+	// ColorTypeRaw: one byte per texel stored as-is (palette indices).
+	// The texture is uploaded as GL_R8 / GL_RED without palette conversion.
+	ColorTypeRaw
 )
 
 type texType int
@@ -37,6 +40,7 @@ type texType int
 const (
 	texType2D texType = iota
 	texTypeCube
+	texType1D
 )
 
 type Texture struct {
@@ -82,11 +86,27 @@ func (t *Texture) Bind() {
 		switch t.tt {
 		case texTypeCube:
 			t.glID = glh.NewTextureCube()
-		case texType2D:
+		case texType1D:
+			t.glID = glh.NewTexture1D()
+		default: // texType2D
 			t.glID = glh.NewTexture2D()
 		}
 	}
 	t.glID.Bind()
+}
+
+// NewTexture1D creates a 1-dimensional texture (e.g. palette or LUT).
+func NewTexture1D(w int32, flags TexPref, name string, typ ColorType, data []byte) *Texture {
+	t := &Texture{
+		Width:  w,
+		Height: 1,
+		flags:  flags,
+		name:   name,
+		Typ:    typ,
+		Data:   data,
+		tt:     texType1D,
+	}
+	return t
 }
 
 func (t *Texture) Name() string {
