@@ -23,6 +23,7 @@ import (
 )
 
 func parseBaseline(pb *protos.Baseline, e *Entity) {
+	slog.Warn("parseBaseline", slog.Any("ColorMap", pb.GetColorMap()))
 	e.Baseline = state{
 		ModelIndex: int(pb.GetModelIndex()),
 		Frame:      int(pb.GetFrame()),
@@ -122,6 +123,9 @@ func (c *Client) ParseServerMessage(pb *protos.ServerMessage) (serverState, erro
 			c.scores[player].topColor = int((color & 0xf0) >> 4)
 			c.scores[player].bottomColor = int(color & 0x0f)
 			e := c.Entities(player + 1)
+			// Ensure the entity knows its player-slot colormap index so that
+			// translatePlayerSkin can look up the right score entry.
+			e.ColorMap = player + 1
 			translatePlayerSkin(e)
 		case protos.SCmd_Particle_case:
 			org := scmd.GetParticle().GetOrigin()
@@ -394,6 +398,8 @@ func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) error {
 	e.Frame = e.Baseline.Frame
 	oldSkinNum := e.SkinNum
 	e.SkinNum = e.Baseline.Skin
+	oldColorMap := e.ColorMap
+	e.ColorMap = e.Baseline.ColorMap
 	// shift known values for interpolation
 	e.MsgOrigin[1] = e.MsgOrigin[0]
 	e.MsgAngles[1] = e.MsgAngles[0]
@@ -415,9 +421,17 @@ func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) error {
 	if eu.HasSkin() {
 		e.SkinNum = int(eu.GetSkin())
 	}
+	if eu.HasColorMap() {
+		e.ColorMap = int(eu.GetColorMap())
+	}
 	if e.SkinNum != oldSkinNum {
 		if num > 0 && num <= c.maxClients {
 			createPlayerSkin(num, e)
+		}
+	} else if e.ColorMap != oldColorMap {
+		// Color changed but skin did not — just retranslate.
+		if num > 0 && num <= c.maxClients {
+			translatePlayerSkin(e)
 		}
 	}
 	e.Effects = int(eu.GetEffects())
