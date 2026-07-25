@@ -54,20 +54,38 @@ func printEntities(_ cbuf.Arguments) error {
 	return nil
 }
 
+// applyTranslation applies a 256-entry index remap table to a slice of raw
+// palette indices.  The result is a new slice of the same length.
+func applyTranslation(lut [256]uint8, src []byte) []byte {
+	dst := make([]byte, len(src))
+	for i, b := range src {
+		dst[i] = lut[b]
+	}
+	return dst
+}
+
 func translatePlayerSkin(e *Entity) {
 	if cvars.GlNoColors.Bool() {
 		return
 	}
-	// s := cl.scores[i]
 	t, ok := playerTextures[e]
 	if !ok || t == nil {
-		// There are R_TranslatePlayerSkin calls before we even loaded
-		// the player texture. So just ignore.
+		// There are translatePlayerSkin calls before we even loaded the player
+		// texture. Just ignore.
 		return
 	}
-	// TODO(therjak): do the remap from s.topColor & s.bottomColor
-	// we do have indexed colors for the texture
-	textureManager.ReloadImage(t)
+	// Player number is 1-based in ColorMap (0 means default colormap).
+	playerNum := e.ColorMap - 1
+	if playerNum < 0 || playerNum >= cl.maxClients {
+		return
+	}
+	s := &cl.scores[playerNum]
+	lut := buildTranslation(s.topColor, s.bottomColor)
+	// Apply the index remap to the raw palette-index pixel data, then
+	// re-upload through the normal indexed path (palette conversion + RGBA
+	// upload). This mirrors QuakeSpasm's TexMgr_ReloadImage approach.
+	translated := applyTranslation(lut, t.Data)
+	textureManager.loadIndexed(t, translated)
 }
 
 func createPlayerSkin(i int, e *Entity) {
@@ -87,6 +105,11 @@ func createPlayerSkin(i int, e *Entity) {
 	textureManager.addActiveTexture(t)
 	textureManager.loadIndexed(t, t.Data)
 	playerTextures[e] = t
+	// i is the entity number (1-based player slot). Ensure ColorMap is set
+	// before translatePlayerSkin so it can look up the right score entry.
+	if e.ColorMap == 0 {
+		e.ColorMap = i
+	}
 	translatePlayerSkin(e)
 }
 
@@ -130,6 +153,10 @@ type Entity struct {
 	ForceLink      bool
 	Alpha          byte // TODO(therjak): use the converted float32
 	LerpFlags      byte
+	// ColorMap is 0 for the default colormap (non-player entities) or
+	// 1..maxClients for a player entity whose skin should be remapped to
+	// that player's shirt/pants colours.
+	ColorMap int
 }
 
 func (c *Client) Entities(i int) *Entity {

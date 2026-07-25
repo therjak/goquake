@@ -232,7 +232,7 @@ func (r *qRenderer) DrawAliasModel(e *Entity, model *mdl.Model) {
 		fb = fbt[anim%len(fbt)]
 	}
 
-	if !cvars.GlNoColors.Bool() {
+	if !cvars.GlNoColors.Bool() && e.ColorMap != 0 {
 		if pt := playerTextures[e]; pt != nil {
 			tx = pt
 		}
