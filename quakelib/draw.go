@@ -412,11 +412,6 @@ func DrawPictureAlpha(x, y int, p *QPic, alpha float32) {
 	qDrawer.Draw(float32(x), float32(y), float32(p.Width), float32(p.Height), p.Texture)
 }
 
-var (
-	drawTop    = -2
-	drawBottom = -2
-)
-
 func DrawPictureTranslate(x, y int, p *QPic, top, bottom int) {
 	if p.IndexTexture == nil {
 		// First use: load the raw-index texture from the cached raw pixel data.
@@ -424,12 +419,7 @@ func DrawPictureTranslate(x, y int, p *QPic, top, bottom int) {
 		p.IndexTexture = textureManager.LoadRawIndexTex(
 			p.Texture.Name()+"#idx", p.Width, p.Height, p.Texture.Data)
 	}
-	if top != drawTop || bottom != drawBottom {
-		drawTop = top
-		drawBottom = bottom
-		qTranslateDrawer.UpdateTranslation(top, bottom)
-	}
-	qTranslateDrawer.Draw(float32(x), float32(y), float32(p.Width), float32(p.Height), p.IndexTexture)
+	qTranslateDrawer.Draw(float32(x), float32(y), float32(p.Width), float32(p.Height), p.IndexTexture, top, bottom)
 }
 
 func DrawConsoleBackground() {

@@ -35,22 +35,23 @@ type translateDrawer struct {
 	prog *glh.Program
 
 	// uniform locations
-	uIndexTex   int32
-	uPalette    int32
+	uIndexTex    int32
+	uPalette     int32
 	uTranslation int32
+	uTopColor    int32
+	uBottomColor int32
 
-	// shared 1D textures (created once, owned here)
-	paletteTex    *texture.Texture // 256-entry RGBA palette
-	translationTex *texture.Texture // 256-entry remap LUT
+	// shared textures (created once, owned here)
+	paletteTex     *texture.Texture // 256-entry RGBA palette (1D)
+	translationTex *texture.Texture // 256x16 static 2D remap LUT
 }
-
 
 // newTranslateDrawProgram compiles the shader pair for palette translation.
 func newTranslateDrawProgram() (*glh.Program, error) {
 	return glh.NewProgram(vertexTextureSource, fragmentSourceTranslate)
 }
 
-// NewTranslateDrawer allocates all GPU objects and uploads the palette once.
+// NewTranslateDrawer allocates all GPU objects and uploads the palette and 2D LUT once.
 func NewTranslateDrawer() (*translateDrawer, error) {
 	d := &translateDrawer{}
 
@@ -70,10 +71,10 @@ func NewTranslateDrawer() (*translateDrawer, error) {
 	d.uIndexTex    = d.prog.GetUniformLocation("indexTex")
 	d.uPalette     = d.prog.GetUniformLocation("palette")
 	d.uTranslation = d.prog.GetUniformLocation("translation")
+	d.uTopColor    = d.prog.GetUniformLocation("topColor")
+	d.uBottomColor = d.prog.GetUniformLocation("bottomColor")
 
 	// ---- palette 1D texture (uploaded once) --------------------------------
-	// palette.Table is [256*4]uint8 (RGBA). We upload it as a GL_TEXTURE_1D
-	// with internal format GL_RGBA8.
 	d.paletteTex = texture.NewTexture1D(256, texture.TexPrefNearest|texture.TexPrefNoPicMip,
 		"_translate_palette", texture.ColorTypeRGBA, nil)
 	d.paletteTex.Bind()
@@ -82,26 +83,49 @@ func NewTranslateDrawer() (*translateDrawer, error) {
 	gl.TexParameteri(gl.TEXTURE_1D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
 	gl.TexParameteri(gl.TEXTURE_1D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
 
-	// ---- translation LUT texture (updated per draw when colours change) -----
-	// Identity mapping to start with.
-	var lut [256]uint8
-	for i := range lut {
-		lut[i] = uint8(i)
+	// ---- translation 2D LUT texture (uploaded once for all 16 colors) -------
+	var lut [16 * 256]byte
+	for c := 0; c < 16; c++ {
+		row := c * 256
+		for i := 0; i < 256; i++ {
+			lut[row+i] = byte(i)
+		}
+		shirt := c * 16
+		if shirt < 128 {
+			for i := 0; i < 16; i++ {
+				lut[row+topColorStart+i] = byte(shirt + i)
+			}
+		} else {
+			for i := 0; i < 16; i++ {
+				lut[row+topColorStart+i] = byte(shirt + 15 - i)
+			}
+		}
+		pants := c * 16
+		if pants < 128 {
+			for i := 0; i < 16; i++ {
+				lut[row+bottomColorStart+i] = byte(pants + i)
+			}
+		} else {
+			for i := 0; i < 16; i++ {
+				lut[row+bottomColorStart+i] = byte(pants + 15 - i)
+			}
+		}
 	}
-	d.translationTex = texture.NewTexture1D(256, texture.TexPrefNearest|texture.TexPrefNoPicMip,
-		"_translate_lut", texture.ColorTypeRaw, nil)
+
+	d.translationTex = texture.NewTexture(256, 16, texture.TexPrefNearest|texture.TexPrefNoPicMip,
+		"_translate_lut_2d", texture.ColorTypeRaw, nil)
 	d.translationTex.Bind()
-	// GL_R8 stores one red channel (0..255 normalised to 0..1 in the shader).
-	gl.TexImage1D(gl.TEXTURE_1D, 0, gl.R8, 256, 0, gl.RED, gl.UNSIGNED_BYTE, gl.Ptr(&lut[0]))
-	gl.TexParameteri(gl.TEXTURE_1D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-	gl.TexParameteri(gl.TEXTURE_1D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
-	gl.TexParameteri(gl.TEXTURE_1D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.R8, 256, 16, 0, gl.RED, gl.UNSIGNED_BYTE, gl.Ptr(&lut[0]))
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 
 	return d, nil
 }
 
 // buildTranslation produces the 256-byte remap table for the given top/bottom
-// colour indices (0..13).  The logic mirrors the original C Quake code.
+// colour indices (0..13). The logic mirrors the original C Quake code.
 func buildTranslation(top, bottom int) [256]uint8 {
 	var t [256]uint8
 	for i := range t {
@@ -133,16 +157,9 @@ func buildTranslation(top, bottom int) [256]uint8 {
 	return t
 }
 
-// UpdateTranslation recomputes and re-uploads the translation LUT.
-func (d *translateDrawer) UpdateTranslation(top, bottom int) {
-	lut := buildTranslation(top, bottom)
-	d.translationTex.Bind()
-	gl.TexSubImage1D(gl.TEXTURE_1D, 0, 0, 256, gl.RED, gl.UNSIGNED_BYTE, gl.Ptr(&lut[0]))
-}
-
-// Draw renders the textured quad at (x, y) with the given index texture.
-// The palette and translation LUT are bound automatically.
-func (d *translateDrawer) Draw(x, y, w, h float32, t *texture.Texture) {
+// Draw renders the textured quad at (x, y) with the given index texture and top/bottom colors.
+// The palette and static 2D translation LUT are bound automatically.
+func (d *translateDrawer) Draw(x, y, w, h float32, t *texture.Texture, top, bottom int) {
 	sx, sy := qCanvas.Apply()
 	x1, x2 := x, x+w
 	y1, y2 := y+h, y
@@ -183,10 +200,13 @@ func (d *translateDrawer) Draw(x, y, w, h float32, t *texture.Texture) {
 	d.paletteTex.Bind()
 	gl.Uniform1i(d.uPalette, 1)
 
-	// TEXTURE2 = translation LUT
+	// TEXTURE2 = 2D translation LUT
 	gl.ActiveTexture(gl.TEXTURE2)
 	d.translationTex.Bind()
 	gl.Uniform1i(d.uTranslation, 2)
+
+	gl.Uniform1i(d.uTopColor, int32(top))
+	gl.Uniform1i(d.uBottomColor, int32(bottom))
 
 	gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
 
