@@ -23,7 +23,8 @@ void main() {
   if (UseTranslation) {
     float rawIndex = texture(Tex, glTexCoord).r;
     int uIdx = int(rawIndex * 255.0 + 0.5);
-    float choice = (uIdx >= 160 && uIdx <= 175) ? float(bottomColor) : float(topColor);
+    float choice = (uIdx >= 144 && uIdx <= 159) ? float(topColor) :
+                   (uIdx >= 160 && uIdx <= 175) ? float(bottomColor) : 0.0;
     vec2 lutCoord = vec2(rawIndex, (choice + 0.5) / 16.0);
     float remapped = texture(translation, lutCoord).r;
     texColor = texture(palette, remapped);

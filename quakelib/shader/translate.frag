@@ -18,7 +18,8 @@ void main() {
   int uIdx = int(rawIndex * 255.0 + 0.5);
 
   // Determine color selection (top for 144..159, bottom for 160..175)
-  float choice = (uIdx >= 160 && uIdx <= 175) ? float(bottomColor) : float(topColor);
+  float choice = (uIdx >= 144 && uIdx <= 159) ? float(topColor) :
+                 (uIdx >= 160 && uIdx <= 175) ? float(bottomColor) : 0.0;
   vec2 lutCoord = vec2(rawIndex, (choice + 0.5) / 16.0);
 
   // Look up the remapped index in the static 2D LUT
