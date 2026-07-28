@@ -370,7 +370,7 @@ type Color struct {
 }
 
 type QPic struct {
-	Texture      *texture.Texture
+	Texture *texture.Texture
 	// IndexTexture holds the same image as a raw palette-index (GL_R8) texture
 	// used by DrawPictureTranslate for GPU-side colour remapping.
 	// It is nil for pictures that are never passed to DrawPictureTranslate.

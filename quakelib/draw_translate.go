@@ -124,10 +124,10 @@ func NewTranslateDrawer() (*translateDrawer, error) {
 		return nil, err
 	}
 
-	d.uIndexTex    = d.prog.GetUniformLocation("indexTex")
-	d.uPalette     = d.prog.GetUniformLocation("palette")
+	d.uIndexTex = d.prog.GetUniformLocation("indexTex")
+	d.uPalette = d.prog.GetUniformLocation("palette")
 	d.uTranslation = d.prog.GetUniformLocation("translation")
-	d.uTopColor    = d.prog.GetUniformLocation("topColor")
+	d.uTopColor = d.prog.GetUniformLocation("topColor")
 	d.uBottomColor = d.prog.GetUniformLocation("bottomColor")
 
 	return d, nil
