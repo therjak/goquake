@@ -54,40 +54,6 @@ func printEntities(_ cbuf.Arguments) error {
 	return nil
 }
 
-// applyTranslation applies a 256-entry index remap table to a slice of raw
-// palette indices.  The result is a new slice of the same length.
-func applyTranslation(lut [256]uint8, src []byte) []byte {
-	dst := make([]byte, len(src))
-	for i, b := range src {
-		dst[i] = lut[b]
-	}
-	return dst
-}
-
-func translatePlayerSkin(e *Entity) {
-	if cvars.GlNoColors.Bool() {
-		return
-	}
-	t, ok := playerTextures[e]
-	if !ok || t == nil {
-		// There are translatePlayerSkin calls before we even loaded the player
-		// texture. Just ignore.
-		return
-	}
-	// Player number is 1-based in ColorMap (0 means default colormap).
-	playerNum := e.ColorMap - 1
-	if playerNum < 0 || playerNum >= cl.maxClients {
-		return
-	}
-	s := &cl.scores[playerNum]
-	lut := buildTranslation(s.topColor, s.bottomColor)
-	// Apply the index remap to the raw palette-index pixel data, then
-	// re-upload through the normal indexed path (palette conversion + RGBA
-	// upload). This mirrors QuakeSpasm's TexMgr_ReloadImage approach.
-	translated := applyTranslation(lut, t.Data)
-	textureManager.loadIndexed(t, translated)
-}
-
 func createPlayerSkin(i int, e *Entity) {
 	m, ok := e.Model.(*mdl.Model)
 	if !ok || m == nil {
@@ -98,19 +64,11 @@ func createPlayerSkin(i int, e *Entity) {
 		skinNum = 0
 	}
 	name := fmt.Sprintf("player_%d", i-1) // make it 0 based
-	// copy the texture with our new name
 	ot := m.Textures[skinNum][0]
-	flags := texture.TexPrefPad | texture.TexPrefOverwrite
-	t := texture.NewTexture(ot.Width, ot.Height, flags, name, ot.Typ, ot.Data)
-	textureManager.addActiveTexture(t)
-	textureManager.loadIndexed(t, t.Data)
-	playerTextures[e] = t
-	// i is the entity number (1-based player slot). Ensure ColorMap is set
-	// before translatePlayerSkin so it can look up the right score entry.
+	playerTextures[e] = textureManager.LoadRawIndexTex(name, int(ot.Width), int(ot.Height), ot.Data)
 	if e.ColorMap == 0 {
 		e.ColorMap = i
 	}
-	translatePlayerSkin(e)
 }
 
 type state struct {

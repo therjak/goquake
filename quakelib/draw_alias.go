@@ -22,19 +22,24 @@ func newAliasDrawProgram() (*glh.Program, error) {
 
 type qAliasDrawer struct {
 	// vbo and ebo are stored in mdl.Model
-	vao           *glh.VertexArray
-	prog          *glh.Program
-	projection    int32
-	modelview     int32
-	blend         int32
-	shadeVec      int32
-	lightColor    int32
-	tex           int32
-	fullBrightTex int32
-	useOverBright int32
-	useFullBright int32
-	fogDensity    int32
-	fogColor      int32
+	vao            *glh.VertexArray
+	prog           *glh.Program
+	projection     int32
+	modelview      int32
+	blend          int32
+	shadeVec       int32
+	lightColor     int32
+	tex            int32
+	fullBrightTex  int32
+	useOverBright  int32
+	useFullBright  int32
+	fogDensity     int32
+	fogColor       int32
+	palette        int32
+	translation    int32
+	useTranslation int32
+	topColor       int32
+	bottomColor    int32
 }
 
 func newAliasDrawer() (*qAliasDrawer, error) {
@@ -56,6 +61,11 @@ func newAliasDrawer() (*qAliasDrawer, error) {
 	d.useOverBright = d.prog.GetUniformLocation("UseOverbright")
 	d.fogDensity = d.prog.GetUniformLocation("FogDensity")
 	d.fogColor = d.prog.GetUniformLocation("FogColor")
+	d.palette = d.prog.GetUniformLocation("palette")
+	d.translation = d.prog.GetUniformLocation("translation")
+	d.useTranslation = d.prog.GetUniformLocation("UseTranslation")
+	d.topColor = d.prog.GetUniformLocation("topColor")
+	d.bottomColor = d.prog.GetUniformLocation("bottomColor")
 
 	return d, nil
 }
@@ -232,13 +242,23 @@ func (r *qRenderer) DrawAliasModel(e *Entity, model *mdl.Model) {
 		fb = fbt[anim%len(fbt)]
 	}
 
+	top := 0
+	bottom := 0
+	useTranslate := false
 	if !cvars.GlNoColors.Bool() && e.ColorMap != 0 {
 		if pt := playerTextures[e]; pt != nil {
 			tx = pt
+			playerNum := e.ColorMap - 1
+			if playerNum >= 0 && playerNum < cl.maxClients {
+				s := &cl.scores[playerNum]
+				top = s.topColor
+				bottom = s.bottomColor
+				useTranslate = true
+			}
 		}
 	}
 
-	drawAliasFrame(model, ld, tx, fb, e, alpha, modelview, view.projection)
+	drawAliasFrame(model, ld, tx, fb, e, alpha, modelview, view.projection, useTranslate, top, bottom)
 }
 
 type qUniform interface {
@@ -255,7 +275,7 @@ func calcShadeVector(e *Entity) vec.Vec3 {
 	return r
 }
 
-func drawAliasFrame(m *mdl.Model, ld *lerpData, tx, fb *texture.Texture, e *Entity, alpha float32, mv, p qUniform) {
+func drawAliasFrame(m *mdl.Model, ld *lerpData, tx, fb *texture.Texture, e *Entity, alpha float32, mv, p qUniform, useTranslate bool, top, bottom int) {
 	defer textureManager.SelectTextureUnit(gl.TEXTURE0)
 
 	lightColor := cl.ColorForEntity(e)
@@ -309,11 +329,25 @@ func drawAliasFrame(m *mdl.Model, ld *lerpData, tx, fb *texture.Texture, e *Enti
 	gl.Uniform1i(aliasDrawer.useOverBright, useOverBright)
 	gl.Uniform1f(aliasDrawer.fogDensity, fog.Density)
 	gl.Uniform4f(aliasDrawer.fogColor, fog.Color.R, fog.Color.G, fog.Color.B, 0)
+
+	initTranslationTextures()
+	gl.Uniform1i(aliasDrawer.palette, 2)
+	gl.Uniform1i(aliasDrawer.translation, 3)
+	var uTr int32
+	if useTranslate {
+		uTr = 1
+	}
+	gl.Uniform1i(aliasDrawer.useTranslation, uTr)
+	gl.Uniform1i(aliasDrawer.topColor, int32(top))
+	gl.Uniform1i(aliasDrawer.bottomColor, int32(bottom))
+
 	p.SetAsUniform(aliasDrawer.projection)
 	mv.SetAsUniform(aliasDrawer.modelview)
 
 	textureManager.BindUnit(tx, gl.TEXTURE0)
 	textureManager.BindUnit(fb, gl.TEXTURE1)
+	textureManager.BindUnit(paletteTex, gl.TEXTURE2)
+	textureManager.BindUnit(translationTex, gl.TEXTURE3)
 
 	gl.DrawElements(gl.TRIANGLES, int32(m.IndiceCount), gl.UNSIGNED_SHORT, gl.PtrOffset(0))
 }

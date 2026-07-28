@@ -124,9 +124,8 @@ func (c *Client) ParseServerMessage(pb *protos.ServerMessage) (serverState, erro
 			c.scores[player].bottomColor = int(color & 0x0f)
 			e := c.Entities(player + 1)
 			// Ensure the entity knows its player-slot colormap index so that
-			// translatePlayerSkin can look up the right score entry.
+			// we can look up the right score entry.
 			e.ColorMap = player + 1
-			translatePlayerSkin(e)
 		case protos.SCmd_Particle_case:
 			org := scmd.GetParticle().GetOrigin()
 			dir := scmd.GetParticle().GetDirection()
@@ -413,7 +412,7 @@ func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) error {
 		modNum = int(eu.GetModel())
 	}
 	if modNum >= model.MAX_MODELS {
-		return fmt.Errorf("CL_ParseModel: mad modnum")
+		return fmt.Errorf("CL_ParseModel: bad modnum")
 	}
 	if eu.HasFrame() {
 		e.Frame = int(eu.GetFrame())
@@ -430,9 +429,6 @@ func (c *Client) ParseEntityUpdate(eu *protos.EntityUpdate) error {
 		}
 	} else if e.ColorMap != oldColorMap {
 		// Color changed but skin did not — just retranslate.
-		if num > 0 && num <= c.maxClients {
-			translatePlayerSkin(e)
-		}
 	}
 	e.Effects = int(eu.GetEffects())
 	if eu.HasOriginX() {
