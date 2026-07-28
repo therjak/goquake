@@ -213,6 +213,8 @@ func Draw_Delete() {
 	qDrawer = nil
 	qRecDrawer = nil
 	qTranslateDrawer = nil
+	paletteTex = nil
+	translationTex = nil
 }
 
 func CreateUiDrawer() {

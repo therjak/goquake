@@ -27,57 +27,21 @@ const (
 	bottomColorStop  = 175
 )
 
-// translateDrawer holds the GPU resources for palette-translate drawing.
-type translateDrawer struct {
-	vao  *glh.VertexArray
-	vbo  *glh.Buffer
-	ebo  *glh.Buffer
-	prog *glh.Program
-
-	// uniform locations
-	uIndexTex    int32
-	uPalette     int32
-	uTranslation int32
-	uTopColor    int32
-	uBottomColor int32
-
-	// shared textures (created once, owned here)
+var (
+	// Shared textures for GPU palette translation.
 	paletteTex     *texture.Texture // 256-entry RGBA palette (1D)
-	translationTex *texture.Texture // 256x16 static 2D remap LUT
-}
+	translationTex *texture.Texture // 256x16 static 2D remap LUT (2D)
+)
 
-// newTranslateDrawProgram compiles the shader pair for palette translation.
-func newTranslateDrawProgram() (*glh.Program, error) {
-	return glh.NewProgram(vertexTextureSource, fragmentSourceTranslate)
-}
-
-// NewTranslateDrawer allocates all GPU objects and uploads the palette and 2D LUT once.
-func NewTranslateDrawer() (*translateDrawer, error) {
-	d := &translateDrawer{}
-
-	elements := []uint32{0, 1, 2, 2, 3, 0}
-	d.vao = glh.NewVertexArray()
-	d.vbo = glh.NewBuffer(glh.ArrayBuffer)
-	d.ebo = glh.NewBuffer(glh.ElementArrayBuffer)
-	d.ebo.Bind()
-	d.ebo.SetData(4*len(elements), gl.Ptr(elements))
-
-	var err error
-	d.prog, err = newTranslateDrawProgram()
-	if err != nil {
-		return nil, err
+func initTranslationTextures() {
+	if paletteTex != nil && translationTex != nil {
+		return
 	}
 
-	d.uIndexTex    = d.prog.GetUniformLocation("indexTex")
-	d.uPalette     = d.prog.GetUniformLocation("palette")
-	d.uTranslation = d.prog.GetUniformLocation("translation")
-	d.uTopColor    = d.prog.GetUniformLocation("topColor")
-	d.uBottomColor = d.prog.GetUniformLocation("bottomColor")
-
 	// ---- palette 1D texture (uploaded once) --------------------------------
-	d.paletteTex = texture.NewTexture1D(256, texture.TexPrefNearest|texture.TexPrefNoPicMip,
+	paletteTex = texture.NewTexture1D(256, texture.TexPrefNearest|texture.TexPrefNoPicMip,
 		"_translate_palette", texture.ColorTypeRGBA, nil)
-	d.paletteTex.Bind()
+	paletteTex.Bind()
 	gl.TexImage1D(gl.TEXTURE_1D, 0, gl.RGBA, 256, 0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(&palette.Table[0]))
 	gl.TexParameteri(gl.TEXTURE_1D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
 	gl.TexParameteri(gl.TEXTURE_1D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
@@ -112,14 +76,59 @@ func NewTranslateDrawer() (*translateDrawer, error) {
 		}
 	}
 
-	d.translationTex = texture.NewTexture(256, 16, texture.TexPrefNearest|texture.TexPrefNoPicMip,
+	translationTex = texture.NewTexture(256, 16, texture.TexPrefNearest|texture.TexPrefNoPicMip,
 		"_translate_lut_2d", texture.ColorTypeRaw, nil)
-	d.translationTex.Bind()
+	translationTex.Bind()
 	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.R8, 256, 16, 0, gl.RED, gl.UNSIGNED_BYTE, gl.Ptr(&lut[0]))
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+}
+
+// translateDrawer holds the GPU resources for palette-translate drawing.
+type translateDrawer struct {
+	vao  *glh.VertexArray
+	vbo  *glh.Buffer
+	ebo  *glh.Buffer
+	prog *glh.Program
+
+	// uniform locations
+	uIndexTex    int32
+	uPalette     int32
+	uTranslation int32
+	uTopColor    int32
+	uBottomColor int32
+}
+
+// newTranslateDrawProgram compiles the shader pair for palette translation.
+func newTranslateDrawProgram() (*glh.Program, error) {
+	return glh.NewProgram(vertexTextureSource, fragmentSourceTranslate)
+}
+
+// NewTranslateDrawer allocates all GPU objects and uploads the palette and 2D LUT once.
+func NewTranslateDrawer() (*translateDrawer, error) {
+	initTranslationTextures()
+	d := &translateDrawer{}
+
+	elements := []uint32{0, 1, 2, 2, 3, 0}
+	d.vao = glh.NewVertexArray()
+	d.vbo = glh.NewBuffer(glh.ArrayBuffer)
+	d.ebo = glh.NewBuffer(glh.ElementArrayBuffer)
+	d.ebo.Bind()
+	d.ebo.SetData(4*len(elements), gl.Ptr(elements))
+
+	var err error
+	d.prog, err = newTranslateDrawProgram()
+	if err != nil {
+		return nil, err
+	}
+
+	d.uIndexTex    = d.prog.GetUniformLocation("indexTex")
+	d.uPalette     = d.prog.GetUniformLocation("palette")
+	d.uTranslation = d.prog.GetUniformLocation("translation")
+	d.uTopColor    = d.prog.GetUniformLocation("topColor")
+	d.uBottomColor = d.prog.GetUniformLocation("bottomColor")
 
 	return d, nil
 }
@@ -197,12 +206,12 @@ func (d *translateDrawer) Draw(x, y, w, h float32, t *texture.Texture, top, bott
 
 	// TEXTURE1 = palette
 	gl.ActiveTexture(gl.TEXTURE1)
-	d.paletteTex.Bind()
+	paletteTex.Bind()
 	gl.Uniform1i(d.uPalette, 1)
 
 	// TEXTURE2 = 2D translation LUT
 	gl.ActiveTexture(gl.TEXTURE2)
-	d.translationTex.Bind()
+	translationTex.Bind()
 	gl.Uniform1i(d.uTranslation, 2)
 
 	gl.Uniform1i(d.uTopColor, int32(top))

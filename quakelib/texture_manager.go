@@ -55,7 +55,7 @@ func init() {
 }
 
 type texMgr struct {
-	currentTexture      [3]*texture.Texture
+	currentTexture      [16]*texture.Texture
 	activeTextures      map[*texture.Texture]bool
 	glModeIndex         int
 	currentTarget       uint32
@@ -261,14 +261,25 @@ func (tm *texMgr) Bind(t *texture.Texture) {
 	if t == nil {
 		t = nullTexture
 	}
-	if t != tm.currentTexture[tm.currentTarget-gl.TEXTURE0] {
-		tm.currentTexture[tm.currentTarget-gl.TEXTURE0] = t
+	idx := tm.currentTarget - gl.TEXTURE0
+	if idx < uint32(len(tm.currentTexture)) {
+		if t != tm.currentTexture[idx] {
+			tm.currentTexture[idx] = t
+			t.Bind()
+		}
+	} else {
 		t.Bind()
 	}
 }
 
 func (tm *texMgr) BindUnit(t *texture.Texture, target uint32) {
-	if t != tm.currentTexture[target-gl.TEXTURE0] {
+	idx := target - gl.TEXTURE0
+	if idx < uint32(len(tm.currentTexture)) {
+		if t != tm.currentTexture[idx] {
+			tm.SelectTextureUnit(target)
+			tm.Bind(t)
+		}
+	} else {
 		tm.SelectTextureUnit(target)
 		tm.Bind(t)
 	}
@@ -354,14 +365,10 @@ func (tm *texMgr) deleteTexture(t *texture.Texture) {
 	if t == nil {
 		return
 	}
-	if t == tm.currentTexture[0] {
-		tm.currentTexture[0] = nil
-	}
-	if t == tm.currentTexture[1] {
-		tm.currentTexture[1] = nil
-	}
-	if t == tm.currentTexture[2] {
-		tm.currentTexture[2] = nil
+	for i, ct := range tm.currentTexture {
+		if ct == t {
+			tm.currentTexture[i] = nil
+		}
 	}
 }
 
@@ -443,7 +450,9 @@ func (tm *texMgr) textureModeCallback(cv *cvar.Cvar) {
 }
 
 func (tm *texMgr) ClearBindings() {
-	tm.currentTexture = [3]*texture.Texture{nil, nil, nil}
+	for i := range tm.currentTexture {
+		tm.currentTexture[i] = nil
+	}
 }
 
 func (tm *texMgr) addActiveTexture(t *texture.Texture) {
