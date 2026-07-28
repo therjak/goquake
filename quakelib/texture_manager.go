@@ -163,7 +163,6 @@ func (tm *texMgr) LoadRawIndexTex(name string, w, h int, data []byte) *texture.T
 	return t
 }
 
-
 func (tm *texMgr) LoadBacktile() (*texture.Texture, error) {
 	name := "backtile"
 	p := wad.GetPic(name)
