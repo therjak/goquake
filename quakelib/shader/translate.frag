@@ -20,13 +20,16 @@ void main() {
   // Determine color selection (top for 144..159, bottom for 160..175)
   float choice = (uIdx >= 144 && uIdx <= 159) ? float(topColor) :
                  (uIdx >= 160 && uIdx <= 175) ? float(bottomColor) : 0.0;
-  vec2 lutCoord = vec2(rawIndex, (choice + 0.5) / 16.0);
+  float uCoord = (float(uIdx) + 0.5) / 256.0;
+  float vCoord = (choice + 0.5) / 16.0;
 
   // Look up the remapped index in the static 2D LUT
-  float remapped = texture(translation, lutCoord).r;
+  float remapped = texture(translation, vec2(uCoord, vCoord)).r;
+  int remIdx = int(remapped * 255.0 + 0.5);
+  float palCoord = (float(remIdx) + 0.5) / 256.0;
 
   // Fetch final RGBA color from palette
-  vec4 color = texture(palette, remapped);
+  vec4 color = texture(palette, palCoord);
 
   if (color.a < 0.666)
     discard;

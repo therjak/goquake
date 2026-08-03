@@ -21,6 +21,11 @@ import (
 
 // Quake palette colour ranges used for player customisation.
 const (
+	aliasTopColorStart    = 16
+	aliasTopColorStop     = 31
+	aliasBottomColorStart = 96
+	aliasBottomColorStop  = 111
+
 	topColorStart    = 144
 	topColorStop     = 159
 	bottomColorStart = 160
@@ -57,20 +62,24 @@ func initTranslationTextures() {
 		shirt := c * 16
 		if shirt < 128 {
 			for i := 0; i < 16; i++ {
+				lut[row+aliasTopColorStart+i] = byte(shirt + i)
 				lut[row+topColorStart+i] = byte(shirt + i)
 			}
 		} else {
 			for i := 0; i < 16; i++ {
+				lut[row+aliasTopColorStart+i] = byte(shirt + 15 - i)
 				lut[row+topColorStart+i] = byte(shirt + 15 - i)
 			}
 		}
 		pants := c * 16
 		if pants < 128 {
 			for i := 0; i < 16; i++ {
+				lut[row+aliasBottomColorStart+i] = byte(pants + i)
 				lut[row+bottomColorStart+i] = byte(pants + i)
 			}
 		} else {
 			for i := 0; i < 16; i++ {
+				lut[row+aliasBottomColorStart+i] = byte(pants + 15 - i)
 				lut[row+bottomColorStart+i] = byte(pants + 15 - i)
 			}
 		}
@@ -144,10 +153,12 @@ func buildTranslation(top, bottom int) [256]uint8 {
 	shirt := top * 16
 	if shirt < 128 {
 		for i := 0; i < 16; i++ {
+			t[aliasTopColorStart+i] = uint8(shirt + i)
 			t[topColorStart+i] = uint8(shirt + i)
 		}
 	} else {
 		for i := 0; i < 16; i++ {
+			t[aliasTopColorStart+i] = uint8(shirt + 15 - i)
 			t[topColorStart+i] = uint8(shirt + 15 - i)
 		}
 	}
@@ -155,10 +166,12 @@ func buildTranslation(top, bottom int) [256]uint8 {
 	pants := bottom * 16
 	if pants < 128 {
 		for i := 0; i < 16; i++ {
+			t[aliasBottomColorStart+i] = uint8(pants + i)
 			t[bottomColorStart+i] = uint8(pants + i)
 		}
 	} else {
 		for i := 0; i < 16; i++ {
+			t[aliasBottomColorStart+i] = uint8(pants + 15 - i)
 			t[bottomColorStart+i] = uint8(pants + 15 - i)
 		}
 	}
