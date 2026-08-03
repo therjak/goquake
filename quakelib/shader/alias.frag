@@ -23,11 +23,26 @@ void main() {
   if (UseTranslation) {
     float rawIndex = texture(Tex, glTexCoord).r;
     int uIdx = int(rawIndex * 255.0 + 0.5);
-    float choice = (uIdx >= 144 && uIdx <= 159) ? float(topColor) :
-                   (uIdx >= 160 && uIdx <= 175) ? float(bottomColor) : 0.0;
-    vec2 lutCoord = vec2(rawIndex, (choice + 0.5) / 16.0);
-    float remapped = texture(translation, lutCoord).r;
-    texColor = texture(palette, remapped);
+    float palCoord;
+    if (uIdx >= 16 && uIdx <= 31) {
+      // shirt (top) colour range – remap through LUT
+      float uCoord = (float(uIdx) + 0.5) / 256.0;
+      float vCoord = (float(topColor) + 0.5) / 16.0;
+      float remapped = texture(translation, vec2(uCoord, vCoord)).r;
+      int remIdx = int(remapped * 255.0 + 0.5);
+      palCoord = (float(remIdx) + 0.5) / 256.0;
+    } else if (uIdx >= 96 && uIdx <= 111) {
+      // pants (bottom) colour range – remap through LUT
+      float uCoord = (float(uIdx) + 0.5) / 256.0;
+      float vCoord = (float(bottomColor) + 0.5) / 16.0;
+      float remapped = texture(translation, vec2(uCoord, vCoord)).r;
+      int remIdx = int(remapped * 255.0 + 0.5);
+      palCoord = (float(remIdx) + 0.5) / 256.0;
+    } else {
+      // not a player-colour index – look up palette directly
+      palCoord = (float(uIdx) + 0.5) / 256.0;
+    }
+    texColor = texture(palette, palCoord);
   } else {
     texColor = texture(Tex, glTexCoord);
   }
