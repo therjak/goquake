@@ -192,12 +192,15 @@ type Texture struct {
 	AlphaSky      *texture.Texture
 	FlatSky       Color
 	TextureChains [2]*Surface
-	// AnimTotal int
-	// AnimMin int
-	// AnimMax int
-	// AnimNext *Texture
-	// AlternateAnims *Texture
+
+	AnimTotal      int
+	AnimMin        int
+	AnimMax        int
+	AnimNext       *Texture
+	AlternateAnims *Texture
+
 	// Offsets [4]uint32
+
 	Data []byte // raw texture data from the bsp
 }
 
