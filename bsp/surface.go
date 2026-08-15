@@ -38,6 +38,7 @@ type DynamicLight interface {
 }
 
 func (s *Surface) BuildLightMap(dynamicStyles LightStyles, frame int, lights []DynamicLight, overbright bool) {
+	s.CachedDLight = (s.DLightFrame == frame)
 	smax := (s.extents[S] >> 4) + 1
 	tmax := (s.extents[T] >> 4) + 1
 	size := smax * tmax
@@ -46,18 +47,23 @@ func (s *Surface) BuildLightMap(dynamicStyles LightStyles, frame int, lights []D
 		blockLights[b] = 0
 	}
 	if len(lightmap) != 0 {
+		offset := 0
 		for m, style := range s.Styles {
 			if style == 0xff {
 				break
 			}
 			scale := dynamicStyles[style]
 			s.CachedLight[m] = scale // 8.8 fraction
-			for i := 0; i < size*3; i++ {
-				blockLights[i] += uint32(lightmap[i]) * uint32(scale)
+			if offset+size*3 <= len(lightmap) {
+				samples := lightmap[offset : offset+size*3]
+				for i := 0; i < size*3; i++ {
+					blockLights[i] += uint32(samples[i]) * uint32(scale)
+				}
 			}
+			offset += size * 3
 		}
 	}
-	if s.DLightFrame == frame {
+	if s.CachedDLight {
 		s.addDynamicLights(lights)
 	}
 
@@ -96,10 +102,11 @@ func (s *Surface) BuildLightMap(dynamicStyles LightStyles, frame int, lights []D
 // NeedsLightmapUpdate returns true if the surface's lightmap texture needs to
 // be rebuilt this frame.  A rebuild is required when:
 //   - a dynamic light is influencing this surface (DLightFrame == current frame), or
+//   - a dynamic light influenced this surface previously (CachedDLight is true), or
 //   - any of the light-style scale values that contribute to this surface have
 //     changed since the last rebuild (CachedLight mismatch).
 func (s *Surface) NeedsLightmapUpdate(dynamicStyles LightStyles, frame int) bool {
-	if s.DLightFrame == frame {
+	if s.DLightFrame == frame || s.CachedDLight {
 		return true
 	}
 	for m, style := range s.Styles {
@@ -118,14 +125,14 @@ func (s *Surface) addDynamicLights(lights []DynamicLight) {
 	tmax := (s.extents[T] >> 4) + 1
 	tex := s.TexInfo
 	for i, l := range lights {
-		if len(s.DLightBits) >= i {
+		if i >= len(s.DLightBits) {
 			break
 		}
 		if !s.DLightBits[i] {
 			continue
 		}
 		rad := l.Radius()
-		dist := vec.Dot(l.Origin(), s.Plane.Normal) + s.Plane.Dist
+		dist := vec.Dot(l.Origin(), s.Plane.Normal) - s.Plane.Dist
 		rad -= math32.Abs(dist)
 		minLight := l.MinLight()
 		if rad < minLight {

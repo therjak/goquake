@@ -164,9 +164,9 @@ type Surface struct {
 	LightmapData    []byte           // from r_brush lightmaps
 	lightmapName    string
 	// MAXLIGHTMAPS == 4
-	Styles      [4]byte
-	CachedLight [4]int
-	// CachedDLight bool
+	Styles       [4]byte
+	CachedLight  [4]int
+	CachedDLight bool
 	LightSamples []byte
 	lightMapOfs  int32
 }

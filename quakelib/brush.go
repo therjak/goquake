@@ -414,13 +414,11 @@ func textureAnimation(t *bsp.Texture, frame int) *bsp.Texture {
 }
 
 func (r *qRenderer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *Entity, chain int) {
-	// Build the current list of active dynamic lights to pass into the lightmap
+	// Build the current list of dynamic lights to pass into the lightmap
 	// builder so each surface can incorporate them.
 	var lights []bsp.DynamicLight
 	for i := range cl.dynamicLights {
-		if cl.dynamicLights[i].dieTime >= cl.time && cl.dynamicLights[i].radius != 0 {
-			lights = append(lights, &cl.dynamicLights[i])
-		}
+		lights = append(lights, &cl.dynamicLights[i])
 	}
 
 	r.drawTextureChainsNoTexture(mv, model, e, chain)

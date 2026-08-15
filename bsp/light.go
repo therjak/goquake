@@ -67,37 +67,43 @@ func (m *Model) recursiveLight(s *LightStyles, node Node, start, end vec.Vec3, c
 			var c00, c01, c10, c11 color
 			dsfrac := ds & 15
 			dtfrac := dt & 15
-			ds >>= 4
-			dt >>= 4
-			es := surface.extents[S] >> 4
-			et := surface.extents[T] >> 4
-			lineLength := (es + 1) * 3
-			rowLength := et + 1
-			// We want to interpolate and on the far right/bottom we can not read
-			// the pixel right/below. While we read the pixel dsfrac/dtfrag will be
-			// zero, so the value has no effect.
-			p1 := dt*lineLength + ds*3
-			p2 := dt*lineLength + ((ds+1)%es)*3
-			p3 := ((dt+1)%et)*lineLength + ds*3
-			p4 := ((dt+1)%et)*lineLength + ((ds+1)%es)*3
-			lightMap := surface.LightSamples
-			mapStep := 0
+			s0 := ds >> 4
+			t0 := dt >> 4
+			smax := (surface.extents[S] >> 4) + 1
+			tmax := (surface.extents[T] >> 4) + 1
+
+			s1 := s0 + 1
+			if s1 >= smax {
+				s1 = s0
+			}
+			t1 := t0 + 1
+			if t1 >= tmax {
+				t1 = t0
+			}
+
+			p00 := (t0*smax + s0) * 3
+			p01 := (t0*smax + s1) * 3
+			p10 := (t1*smax + s0) * 3
+			p11 := (t1*smax + s1) * 3
+			mapSize := smax * tmax * 3
+
 			for maps := 0; maps < 4 && surface.Styles[maps] != 255; maps++ {
-				lightMap = lightMap[mapStep:]
-				scale := float32(s[surface.Styles[maps]]) / 256.0
-				c00.R += int(float32(lightMap[p1+0]) * scale)
-				c00.G += int(float32(lightMap[p1+1]) * scale)
-				c00.B += int(float32(lightMap[p1+2]) * scale)
-				c01.R += int(float32(lightMap[p2+0]) * scale)
-				c01.G += int(float32(lightMap[p2+1]) * scale)
-				c01.B += int(float32(lightMap[p2+2]) * scale)
-				c10.R += int(float32(lightMap[p3+0]) * scale)
-				c10.G += int(float32(lightMap[p3+1]) * scale)
-				c10.B += int(float32(lightMap[p3+2]) * scale)
-				c11.R += int(float32(lightMap[p4+0]) * scale)
-				c11.G += int(float32(lightMap[p4+1]) * scale)
-				c11.B += int(float32(lightMap[p4+2]) * scale)
-				mapStep = lineLength * rowLength
+				mapBase := maps * mapSize
+				if mapBase+mapSize <= len(surface.LightSamples) {
+					scale := float32(s[surface.Styles[maps]]) / 256.0
+					c00.R += int(float32(surface.LightSamples[mapBase+p00+0]) * scale)
+					c00.G += int(float32(surface.LightSamples[mapBase+p00+1]) * scale)
+					c00.B += int(float32(surface.LightSamples[mapBase+p00+2]) * scale)
+					c01.R += int(float32(surface.LightSamples[mapBase+p01+0]) * scale)
+					c01.G += int(float32(surface.LightSamples[mapBase+p01+1]) * scale)
+					c01.B += int(float32(surface.LightSamples[mapBase+p01+2]) * scale)
+					c10.R += int(float32(surface.LightSamples[mapBase+p10+0]) * scale)
+					c10.G += int(float32(surface.LightSamples[mapBase+p10+1]) * scale)
+					c10.B += int(float32(surface.LightSamples[mapBase+p10+2]) * scale)
+					c11.R += int(float32(surface.LightSamples[mapBase+p11+0]) * scale)
+					c11.G += int(float32(surface.LightSamples[mapBase+p11+1]) * scale)
+					c11.B += int(float32(surface.LightSamples[mapBase+p11+2]) * scale)
+				}
 			}
 			(*c)[0] += float32((((((((c11.R - c10.R) * dsfrac) >> 4) + c10.R) -
 				((((c01.R - c00.R) * dsfrac) >> 4) + c00.R)) * dtfrac) >> 4) +

@@ -63,7 +63,7 @@ func (c *Client) DecayLights() {
 	t := cl.time - cl.oldTime
 	for i := range c.dynamicLights {
 		dl := &c.dynamicLights[i]
-		if dl.dieTime < t || dl.radius == 0 {
+		if dl.dieTime < cl.time || dl.radius == 0 {
 			continue
 		}
 		dl.radius -= float32(t) * dl.decay
@@ -117,11 +117,16 @@ func markLight3(dl *DynamicLight, num int, node *bsp.MNode, dist float32) {
 		s := surf.LightImpactCenter(impact, bsp.S)
 		t := surf.LightImpactCenter(impact, bsp.T)
 		if s*s+t*t+dist*dist < maxDist {
+			if surf.DLightFrame != renderer.frameCount {
+				surf.DLightFrame = renderer.frameCount
+				for j := range surf.DLightBits {
+					surf.DLightBits[j] = false
+				}
+			}
 			for num >= len(surf.DLightBits) {
 				surf.DLightBits = append(surf.DLightBits, make([]bool, 8)...)
 			}
 			surf.DLightBits[num] = true
-			surf.DLightFrame = renderer.lightFrameCount
 		}
 	}
 	markLight(dl, num, node.Children[0])

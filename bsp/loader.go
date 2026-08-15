@@ -430,17 +430,21 @@ func calcSurfaceExtras(ss []*Surface, vs []*MVertex, es []*MEdge, ses []int32, l
 		}
 
 		if s.lightMapOfs != -1 {
-			s.LightSamples = lightData[3*s.lightMapOfs:]
 			size := 3 * ((s.extents[S] >> 4) + 1) * ((s.extents[T] >> 4) + 1)
-			switch {
-			case s.Styles[0] == 255:
+			numStyles := 0
+			for _, st := range s.Styles {
+				if st != 255 {
+					numStyles++
+				}
+			}
+			startOfs := int(3 * s.lightMapOfs)
+			totalBytes := size * numStyles
+			if numStyles == 0 || startOfs >= len(lightData) {
 				s.LightSamples = nil
-			case s.Styles[1] == 255:
-				s.LightSamples = s.LightSamples[:size]
-			case s.Styles[2] == 255:
-				s.LightSamples = s.LightSamples[:size*2]
-			case s.Styles[3] == 255:
-				s.LightSamples = s.LightSamples[:size*3]
+			} else if startOfs+totalBytes <= len(lightData) {
+				s.LightSamples = lightData[startOfs : startOfs+totalBytes]
+			} else {
+				s.LightSamples = lightData[startOfs:]
 			}
 		}
 
