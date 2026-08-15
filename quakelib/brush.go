@@ -402,6 +402,9 @@ func (d *qBrushDrawer) drawTextureChains(mv *glh.Matrix, model *bsp.Model, e *En
 }
 
 func textureAnimation(t *bsp.Texture, frame int) *bsp.Texture {
+	// TODO: load alternative bsp textures
+	//   see gl_model.c: ~606 'sequence the animation'
+	//
 	// R_TextureAnimation
 	// TODO: alternate_anims
 	// TODO: base anims

@@ -68,7 +68,9 @@ func (c *Client) updateTempEntities() {
 		}
 		// if coming from the player
 		if int(b.entity) == c.viewentity {
-			b.start = c.Entity().Origin
+			if ent := c.Entity(); ent != nil {
+				b.start = ent.Origin
+			}
 		}
 
 		var pitch, yaw float32
@@ -93,7 +95,10 @@ func (c *Client) updateTempEntities() {
 
 		origin := b.start
 		d := dist.Length()
-		sdist := vec.Scale(30, dist)
+		if d == 0 {
+			continue
+		}
+		step := vec.Scale(30/d, dist)
 		for d > 0 {
 			e := c.NewTempEntity()
 			if e == nil {
@@ -101,8 +106,8 @@ func (c *Client) updateTempEntities() {
 			}
 			e.Origin = origin
 			e.Model = b.model
-			e.Angles = vec.Vec3{pitch, yaw, math32.Mod(rg.Float32(), 360)}
-			origin.Add(sdist)
+			e.Angles = vec.Vec3{pitch, yaw, float32(rg.Uint32n(360))}
+			origin.Add(step)
 			d -= 30
 		}
 	}
