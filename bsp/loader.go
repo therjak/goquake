@@ -5,6 +5,7 @@ package bsp
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -828,9 +829,58 @@ func loadTextures(buf *io.SectionReader, modelName string) ([]*Texture, error) {
 	t[len(t)-1] = noTextureMip  // lightmapped surfs
 	t[len(t)-2] = noTextureMip2 // SURF_DRAWTILED surfs
 
-	// TODO(therjak): animations
+	if err := handleAnimations(t); err != nil {
+		return nil, err
+	}
 
 	return t, nil
+}
+
+// 1 - 10 for normal
+// -1 - -10 for alternate
+func index(c byte) (byte, error) {
+	switch {
+	case '0' <= c && c <= '9':
+		return c - '0' + 1, nil
+	case 'A' <= c && c <= 'J':
+		return 'A' - c - 1, nil
+	case 'a' <= c && c <= 'j':
+		return 'a' - c - 1, nil
+	default:
+		return 0, errors.New("Bad animation frame")
+	}
+}
+
+func handleAnimations(tx []*Texture) error {
+	type ani struct {
+		// we know textures have the index as the first char behind the '+'
+		// and we deal with 0-9 and A-J, so there can only be 10
+		na [10]*Texture // 0-9
+		aa [10]*Texture // A-J
+	}
+	tm := map[string]ani{}
+	for _, t := range tx {
+		if strings.HasPrefix(t.name, "+") {
+			idx, err := index(t.name[1])
+			if err != nil {
+				return fmt.Errorf("%s: %s", err, t.name)
+			}
+			a := tm[t.name[2:]]
+			if idx > 0 {
+				a.na[-idx-1] = t
+			} else {
+				a.aa[idx-1] = t
+			}
+			tm[t.name[2:]] = a
+		}
+	}
+
+	// AnimTotal
+	// AnimMin
+	// AnimMax
+	// AnimNext
+	// AlternateAnims
+	return nil
 }
 
 func loadEdgesV0(buf *io.SectionReader) ([]*MEdge, error) {
