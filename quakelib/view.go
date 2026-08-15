@@ -146,12 +146,13 @@ const (
 func (v *qView) renderScene() {
 	const alphaPass = true
 
+	renderer.frameCount++
+
 	// setup scene
 	if !cvars.GlFlashBlend.Bool() {
 		markLights(cl.worldModel.Node)
 	}
 	R_AnimateLight()
-	renderer.frameCount++
 
 	qCanvas.Set(CANVAS_SCENE)
 
