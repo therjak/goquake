@@ -710,7 +710,7 @@ func parseServerInfo(msg *net.QReader) (*protos.ServerInfo, error) {
 			protocol.NetQuake, protocol.FitzQuake, protocol.RMQ, protocol.GoQuake)
 	}
 
-	if si.GetProtocol() == protocol.RMQ {
+	if si.GetProtocol() == protocol.RMQ || si.GetProtocol() == protocol.GoQuake {
 		if flags, err := msg.ReadUint32(); err != nil {
 			return nil, err
 		} else {

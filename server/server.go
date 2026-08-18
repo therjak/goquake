@@ -1063,7 +1063,7 @@ func (s *Server) SpawnServer(mapName string, pcl int) error {
 	s.name = mapName
 	s.protocol = pcl
 
-	if s.protocol == protocol.RMQ {
+	if s.protocol == protocol.RMQ || s.protocol == protocol.GoQuake {
 		s.protocolFlags = protocol.PRFL_INT32COORD | protocol.PRFL_SHORTANGLE
 	}
 
