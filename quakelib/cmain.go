@@ -45,7 +45,7 @@ func svProtocol(a cbuf.Arguments) error {
 	case 1:
 		i := args[0].Int()
 		switch i {
-		case protocol.NetQuake, protocol.FitzQuake, protocol.RMQ:
+		case protocol.NetQuake, protocol.FitzQuake, protocol.RMQ, protocol.GoQuake:
 			sv_protocol = i
 			if svTODO.Active() {
 				conlog.Printf("changes will not take effect until the next level load.\n")

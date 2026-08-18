@@ -285,7 +285,7 @@ func (s *Server) SendServerinfo(sc *SVClient) {
 	m.WriteByte(int(svc.ServerInfo))
 	m.WriteLong(int(s.protocol))
 
-	if s.protocol == protocol.RMQ {
+	if s.protocol == protocol.RMQ || s.protocol == protocol.GoQuake {
 		m.WriteLong(int(s.protocolFlags))
 	}
 
