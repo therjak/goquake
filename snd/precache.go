@@ -13,6 +13,9 @@ type SoundPrecache struct {
 }
 
 func (sys *SndSys) NewPrecache(snds ...Sound) *SoundPrecache {
+	if sys == nil {
+		return nil
+	}
 	s := &SoundPrecache{
 		sys: sys,
 		id:  uuid.Must(uuid.NewV7()),
@@ -28,7 +31,7 @@ func (sys *SndSys) NewPrecache(snds ...Sound) *SoundPrecache {
 }
 
 func (sp *SoundPrecache) Start(entnum int, entchannel int, sfx int, sndOrigin vec.Vec3, fvol float32, attenuation float32) {
-	if sp.sys == nil {
+	if sp == nil || sp.sys == nil {
 		return
 	}
 	sp.sys.start <- Start{
@@ -44,7 +47,7 @@ func (sp *SoundPrecache) Start(entnum int, entchannel int, sfx int, sndOrigin ve
 }
 
 func (sp *SoundPrecache) StartAmbient(sfx int, sndOrigin vec.Vec3, fvol float32, attenuation float32) {
-	if sp.sys == nil {
+	if sp == nil || sp.sys == nil {
 		return
 	}
 	sp.sys.start <- Start{

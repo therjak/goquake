@@ -28,7 +28,7 @@ type soundsystem interface {
 }
 
 var (
-	snd           soundsystem
+	snd           soundsystem = (*qsnd.SndSys)(nil)
 	defaultSounds *qsnd.SoundPrecache
 )
 
