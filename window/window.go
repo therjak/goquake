@@ -81,7 +81,7 @@ func BPP() int {
 func findDisplayMode(width, height int32) *sdl.DisplayMode {
 	num, _ := sdl.GetNumDisplayModes(0)
 	current, _ := sdl.GetDesktopDisplayMode(0)
-	for i := 0; i < num; i++ {
+	for i := range num {
 		m, err := sdl.GetDisplayMode(0, i)
 		if err != nil {
 			continue

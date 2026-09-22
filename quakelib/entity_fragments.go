@@ -29,7 +29,7 @@ var (
 
 func clearEntityFragments() {
 	freeEfrags = &efrags[0]
-	for i := 0; i < len(efrags)-2; i++ {
+	for i := range len(efrags) - 2 {
 		efrags[i].leaf = nil
 		efrags[i].leafNext = nil
 		efrags[i].entity = nil

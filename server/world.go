@@ -377,7 +377,7 @@ func initBoxHull() {
 	boxHull.Planes = make([]*bsp.Plane, 6)
 	boxHull.FirstClipNode = 0
 	boxHull.LastClipNode = 5
-	for i := 0; i < 6; i++ {
+	for i := range 6 {
 		boxHull.ClipNodes[i] = &bsp.ClipNode{}
 		boxHull.Planes[i] = &bsp.Plane{}
 		boxHull.ClipNodes[i].Plane = boxHull.Planes[i]

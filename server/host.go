@@ -32,10 +32,7 @@ func HostInit() {
 		svs.maxClients = 16
 	}
 
-	svs.maxClientsLimit = svs.maxClients
-	if svs.maxClientsLimit < 4 {
-		svs.maxClientsLimit = 4
-	}
+	svs.maxClientsLimit = max(svs.maxClients, 4)
 	CreateSVClients()
 	if svs.maxClients > 1 {
 		cvars.DeathMatch.SetByString("1")

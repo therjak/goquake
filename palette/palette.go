@@ -18,7 +18,7 @@ var (
 
 func init() {
 	pi := 0
-	for i := 0; i < 256; i++ {
+	for i := range 256 {
 		rgba := texture.Palette[i]
 		Table[pi] = rgba.R
 		Table[pi+1] = rgba.G

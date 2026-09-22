@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	gmath "math"
 	"runtime"
+	"slices"
 	"strings"
 
 	"goquake/bsp"
@@ -1003,12 +1004,7 @@ func (v *virtualMachine) precacheSound(s *Server) error {
 	}
 
 	exist := func(st string) bool {
-		for _, e := range s.soundPrecache {
-			if e == st {
-				return true
-			}
-		}
-		return false
+		return slices.Contains(s.soundPrecache, st)
 	}
 	if exist(st) {
 		return nil
@@ -1039,12 +1035,7 @@ func (v *virtualMachine) precacheModel(s *Server) error {
 	}
 
 	exist := func(st string) bool {
-		for _, e := range s.modelPrecache {
-			if e == st {
-				return true
-			}
-		}
-		return false
+		return slices.Contains(s.modelPrecache, st)
 	}
 	if exist(st) {
 		return nil
@@ -1619,7 +1610,7 @@ func (v *virtualMachine) makeStatic(s *Server) error {
 
 	s.signon.WriteByte(int(ev.ColorMap))
 	s.signon.WriteByte(int(ev.Skin))
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		s.signon.WriteCoord(ev.Origin[i], s.protocolFlags)
 		s.signon.WriteAngle(ev.Angles[i], s.protocolFlags)
 	}
@@ -1644,7 +1635,7 @@ func (v *virtualMachine) setSpawnParms(s *Server) error {
 	// copy spawn parms out of the client_t
 	client := sv_clients[i-1]
 
-	for i := 0; i < NUM_SPAWN_PARMS; i++ {
+	for i := range NUM_SPAWN_PARMS {
 		v.prog.Globals.Parm[i] = client.spawnParams[i]
 	}
 	return nil

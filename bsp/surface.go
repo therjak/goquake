@@ -70,8 +70,8 @@ func (s *Surface) BuildLightMap(dynamicStyles LightStyles, frame int, lights []D
 	dst := 0
 	src := 0
 	var r, g, b uint32
-	for i := 0; i < tmax; i++ {
-		for j := 0; j < smax; j++ {
+	for range tmax {
+		for range smax {
 			if overbright {
 				r = blockLights[src] >> 8
 				src++
@@ -150,9 +150,9 @@ func (s *Surface) addDynamicLights(lights []DynamicLight) {
 		g := l.Color()[1] * 256
 		b := l.Color()[2] * 256
 		bidx := 0
-		for t := 0; t < tmax; t++ {
+		for t := range tmax {
 			td := math32.Abs(local[T] - float32(t*16))
-			for s := 0; s < smax; s++ {
+			for s := range smax {
 				sd := math32.Abs(local[S] - float32(s*16))
 				var dist float32
 				if sd > td {

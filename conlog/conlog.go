@@ -3,13 +3,13 @@
 package conlog
 
 var (
-	p func(string, ...interface{})
+	p func(string, ...any)
 )
 
-func SetPrintf(f func(string, ...interface{})) {
+func SetPrintf(f func(string, ...any)) {
 	p = f
 }
 
-func Printf(format string, v ...interface{}) {
+func Printf(format string, v ...any) {
 	p(format, v...)
 }

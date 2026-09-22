@@ -25,7 +25,7 @@ func (v *virtualMachine) monsterMoveStep(ent int, move vec.Vec3, relink bool, s 
 	// flying monsters don't step up
 	if flags&(FL_SWIM|FL_FLY) != 0 {
 		// try one move with vertical motion, then one without
-		for i := 0; i < 2; i++ {
+		for i := range 2 {
 			origin := vec.VFromA(ev.Origin)
 			neworg := vec.Add(origin, move)
 			enemy := int(ev.Enemy)
@@ -326,7 +326,7 @@ func monsterCloseEnough(e, g int, dist float32) bool {
 	eev := entvars.Get(e)
 	gev := entvars.Get(g)
 
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		if (gev.AbsMin[i] > eev.AbsMax[i]+dist) ||
 			(gev.AbsMax[i] < eev.AbsMin[i]-dist) {
 			return false

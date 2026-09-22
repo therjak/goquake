@@ -9,8 +9,6 @@ import (
 	"goquake/net"
 	"goquake/protocol"
 	"goquake/protos"
-
-	"google.golang.org/protobuf/proto"
 )
 
 var (
@@ -991,7 +989,7 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 				return nil, err
 			} else {
 				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
-					Time: proto.Float32(t),
+					Time: new(t),
 				}.Build()))
 			}
 		case ClientData:
@@ -1007,19 +1005,19 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 				return nil, err
 			} else {
 				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
-					Version: proto.Int32(int32(i)),
+					Version: new(int32(i)),
 				}.Build()))
 			}
 		case Disconnect:
 			sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
-				Disconnect: proto.Bool(true),
+				Disconnect: new(true),
 			}.Build()))
 		case Print:
 			if s, err := msg.ReadString(); err != nil {
 				return nil, err
 			} else {
 				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
-					Print: proto.String(s),
+					Print: new(s),
 				}.Build()))
 			}
 		case CenterPrint:
@@ -1027,7 +1025,7 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 				return nil, err
 			} else {
 				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
-					CenterPrint: proto.String(s),
+					CenterPrint: new(s),
 				}.Build()))
 			}
 		case StuffText:
@@ -1035,7 +1033,7 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 				return nil, err
 			} else {
 				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
-					StuffText: proto.String(s),
+					StuffText: new(s),
 				}.Build()))
 			}
 		case Damage:
@@ -1078,7 +1076,7 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 				return nil, err
 			} else {
 				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
-					SetViewEntity: proto.Int32(int32(ve)),
+					SetViewEntity: new(int32(ve)),
 				}.Build()))
 			}
 		case LightStyle:
@@ -1109,7 +1107,7 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 				return nil, err
 			} else {
 				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
-					StopSound: proto.Int32(int32(i)),
+					StopSound: new(int32(i)),
 				}.Build()))
 			}
 		case UpdateName:
@@ -1226,7 +1224,7 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 				return nil, err
 			} else {
 				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
-					SetPause: proto.Bool(i != 0),
+					SetPause: new(i != 0),
 				}.Build()))
 			}
 		case SignonNum:
@@ -1234,7 +1232,7 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 				return nil, err
 			} else {
 				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
-					SignonNum: proto.Int32(int32(i)),
+					SignonNum: new(int32(i)),
 				}.Build()))
 			}
 		case KilledMonster:
@@ -1303,7 +1301,7 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 				return nil, err
 			} else {
 				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
-					Finale: proto.String(s),
+					Finale: new(s),
 				}.Build()))
 			}
 		case Cutscene:
@@ -1311,7 +1309,7 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 				return nil, err
 			} else {
 				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
-					Cutscene: proto.String(s),
+					Cutscene: new(s),
 				}.Build()))
 			}
 		case SellScreen:
@@ -1323,7 +1321,7 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 				return nil, err
 			} else {
 				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
-					Skybox: proto.String(s),
+					Skybox: new(s),
 				}.Build()))
 			}
 		case BF:
@@ -1400,7 +1398,7 @@ func ParseServerMessage(msg *net.QReader, protocol int, protocolFlags uint32) (*
 				return nil, err
 			} else {
 				sm.SetCmds(append(sm.GetCmds(), protos.SCmd_builder{
-					Achievement: proto.String(s),
+					Achievement: new(s),
 				}.Build()))
 			}
 		}

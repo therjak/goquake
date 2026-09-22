@@ -297,10 +297,10 @@ func TestWriteAndParseParticle(t *testing.T) {
 func TestWriteAndParseParticleCount255(t *testing.T) {
 	msg := &net.Message{}
 	expected := protos.Particle_builder{
-		Origin: protos.Coord_builder{X: 0, Y: 0, Z: 0}.Build(),
+		Origin:    protos.Coord_builder{X: 0, Y: 0, Z: 0}.Build(),
 		Direction: protos.Coord_builder{X: 0, Y: 0, Z: 0}.Build(),
-		Count: 255,
-		Color: 1,
+		Count:     255,
+		Color:     1,
 	}.Build()
 
 	WriteParticle(expected, 0, msg)
@@ -424,22 +424,22 @@ func TestWriteAndParseClientData(t *testing.T) {
 			pcol:  protocol.NetQuake,
 			flags: 0,
 			cd: protos.ClientData_builder{
-				ViewHeight: proto.Int32(22),
-				IdealPitch: 12,
-				PunchAngle: protos.IntCoord_builder{X: 1, Y: 2, Z: 3}.Build(),
-				Velocity:   protos.IntCoord_builder{X: 10, Y: -20, Z: 30}.Build(),
-				Items:      0x12345678,
-				OnGround:   true,
-				InWater:    false,
-				WeaponFrame: 5,
-				Armor:       100,
-				Weapon:      1,
-				Health:      100,
-				Ammo:        25,
-				Shells:      50,
-				Nails:       75,
-				Rockets:     15,
-				Cells:       30,
+				ViewHeight:   proto.Int32(22),
+				IdealPitch:   12,
+				PunchAngle:   protos.IntCoord_builder{X: 1, Y: 2, Z: 3}.Build(),
+				Velocity:     protos.IntCoord_builder{X: 10, Y: -20, Z: 30}.Build(),
+				Items:        0x12345678,
+				OnGround:     true,
+				InWater:      false,
+				WeaponFrame:  5,
+				Armor:        100,
+				Weapon:       1,
+				Health:       100,
+				Ammo:         25,
+				Shells:       50,
+				Nails:        75,
+				Rockets:      15,
+				Cells:        30,
 				ActiveWeapon: 1,
 			}.Build(),
 		},
@@ -448,23 +448,23 @@ func TestWriteAndParseClientData(t *testing.T) {
 			pcol:  protocol.FitzQuake,
 			flags: 0,
 			cd: protos.ClientData_builder{
-				ViewHeight: proto.Int32(DEFAULT_VIEWHEIGHT),
-				IdealPitch: -5,
-				PunchAngle: protos.IntCoord_builder{X: 0, Y: 0, Z: 0}.Build(),
-				Velocity:   protos.IntCoord_builder{X: 100, Y: 120, Z: -50}.Build(),
-				Items:      0x87654321,
-				OnGround:   false,
-				InWater:    true,
-				WeaponFrame: 0x0205,
-				Armor:       0x0150,
-				Weapon:      0x0302,
-				WeaponAlpha: 180,
-				Health:      -10,
-				Ammo:        0x0120,
-				Shells:      0x0110,
-				Nails:       0x0130,
-				Rockets:     0x0105,
-				Cells:       0x0140,
+				ViewHeight:   proto.Int32(DEFAULT_VIEWHEIGHT),
+				IdealPitch:   -5,
+				PunchAngle:   protos.IntCoord_builder{X: 0, Y: 0, Z: 0}.Build(),
+				Velocity:     protos.IntCoord_builder{X: 100, Y: 120, Z: -50}.Build(),
+				Items:        0x87654321,
+				OnGround:     false,
+				InWater:      true,
+				WeaponFrame:  0x0205,
+				Armor:        0x0150,
+				Weapon:       0x0302,
+				WeaponAlpha:  180,
+				Health:       -10,
+				Ammo:         0x0120,
+				Shells:       0x0110,
+				Nails:        0x0130,
+				Rockets:      0x0105,
+				Cells:        0x0140,
 				ActiveWeapon: 7,
 			}.Build(),
 		},
@@ -582,7 +582,7 @@ func TestWriteAndParseEntityUpdate(t *testing.T) {
 			pcol:  protocol.FitzQuake,
 			flags: protocol.ANGLESHORT,
 			eu: protos.EntityUpdate_builder{
-				Entity:       512, // U_LONGENTITY
+				Entity:       512,                 // U_LONGENTITY
 				Model:        proto.Int32(0x0210), // U_MODEL2
 				Frame:        proto.Int32(0x0120), // U_FRAME2
 				ColorMap:     proto.Int32(5),
@@ -1001,7 +1001,7 @@ func TestParseBaseline1And2(t *testing.T) {
 		m.WriteByte(3)   // frame
 		m.WriteByte(1)   // colormap
 		m.WriteByte(0)   // skin
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			m.WriteCoord(float32(i*10), 0)
 			m.WriteAngle(float32(i*20), 0)
 		}
@@ -1037,9 +1037,9 @@ func TestParseBaseline1And2(t *testing.T) {
 		m.WriteByte(bits)
 		m.WriteShort(300) // 16-bit modelindex
 		m.WriteShort(500) // 16-bit frame
-		m.WriteByte(2)   // colormap
-		m.WriteByte(4)   // skin
-		for i := 0; i < 3; i++ {
+		m.WriteByte(2)    // colormap
+		m.WriteByte(4)    // skin
+		for i := range 3 {
 			m.WriteCoord(float32(i*15), 0)
 			m.WriteAngle(float32(i*30), 0)
 		}
@@ -1067,7 +1067,7 @@ func TestParseBaseline1And2(t *testing.T) {
 		m.WriteByte(0) // frame
 		m.WriteByte(0) // colormap
 		m.WriteByte(0) // skin
-		for i := 0; i < 3; i++ {
+		for range 3 {
 			m.WriteCoord(0, 0)
 			m.WriteAngle(0, 0)
 		}
@@ -1092,10 +1092,10 @@ func TestParseBaseline1And2(t *testing.T) {
 		m.WriteByte(SpawnStatic2)
 		m.WriteByte(EntityBaselineLargeModel)
 		m.WriteShort(400) // modelindex
-		m.WriteByte(5)   // frame (byte)
-		m.WriteByte(0)   // colormap
-		m.WriteByte(0)   // skin
-		for i := 0; i < 3; i++ {
+		m.WriteByte(5)    // frame (byte)
+		m.WriteByte(0)    // colormap
+		m.WriteByte(0)    // skin
+		for range 3 {
 			m.WriteCoord(0, 0)
 			m.WriteAngle(0, 0)
 		}

@@ -66,10 +66,7 @@ func maxPlayersCmd(a cbuf.Arguments) error {
 			conlog.Printf("maxplayers can not be changed while a server is running")
 			return nil
 		}
-		arg := args[0].Int()
-		if arg < 1 {
-			arg = 1
-		}
+		arg := max(args[0].Int(), 1)
 		if svTODO.MaxClientsLimit() < arg {
 			arg = svTODO.MaxClientsLimit()
 			conlog.Printf("maxplayers set to %d", arg)

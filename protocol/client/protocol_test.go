@@ -31,10 +31,10 @@ func TestGoQuakeProtocolRoundTrip(t *testing.T) {
 	original.SetCmds([]*protos.Cmd{
 		{}, // Nop
 		protos.Cmd_builder{
-			Disconnect: proto.Bool(true),
+			Disconnect: new(true),
 		}.Build(),
 		protos.Cmd_builder{
-			StringCmd: proto.String("status"),
+			StringCmd: new("status"),
 		}.Build(),
 		protos.Cmd_builder{
 			MoveCmd: usrCmd,
@@ -89,10 +89,10 @@ func TestNetQuakeProtocolRoundTrip(t *testing.T) {
 	msg.SetCmds([]*protos.Cmd{
 		{}, // Nop
 		protos.Cmd_builder{
-			Disconnect: proto.Bool(true),
+			Disconnect: new(true),
 		}.Build(),
 		protos.Cmd_builder{
-			StringCmd: proto.String("say hello"),
+			StringCmd: new("say hello"),
 		}.Build(),
 		protos.Cmd_builder{
 			MoveCmd: usrCmd,
@@ -139,7 +139,7 @@ func TestNetQuakeProtocolRoundTrip(t *testing.T) {
 		t.Errorf("MessageTime: got %v, want %v", mc.GetMessageTime(), 42.5)
 	}
 
-	const angleEps = 360.0 / 256.0 + 0.01
+	const angleEps = 360.0/256.0 + 0.01
 	if math.Abs(float64(mc.GetPitch()-90.0)) > angleEps {
 		t.Errorf("Pitch: got %v, want 90.0", mc.GetPitch())
 	}
@@ -235,7 +235,7 @@ func TestFitzQuakeProtocolRoundTrip(t *testing.T) {
 				t.Errorf("MessageTime: got %v, want 10.0", mc.GetMessageTime())
 			}
 
-			var eps float64 = 360.0 / 65536.0 + 0.001
+			var eps float64 = 360.0/65536.0 + 0.001
 			if tc.flags&ptcl.ANGLEFLOAT != 0 {
 				eps = 1e-4
 			}
@@ -315,10 +315,10 @@ func TestToBytesByteRepresentation(t *testing.T) {
 	msg.SetCmds([]*protos.Cmd{
 		{}, // Nop (1)
 		protos.Cmd_builder{
-			Disconnect: proto.Bool(true),
+			Disconnect: new(true),
 		}.Build(), // Disconnect (2)
 		protos.Cmd_builder{
-			StringCmd: proto.String("cmd"),
+			StringCmd: new("cmd"),
 		}.Build(), // StringCmd (4) + "cmd\0"
 	})
 

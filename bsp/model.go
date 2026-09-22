@@ -108,7 +108,7 @@ type MLeaf struct {
 	// NumMarkSurfaces   int == len(MarkSurfaces)
 	Key               int
 	AmbientSoundLevel [4]byte
-	Temporary         interface{}
+	Temporary         any
 }
 
 // TODO: rename Vertex

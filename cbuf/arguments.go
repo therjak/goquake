@@ -240,7 +240,7 @@ func (l *lexer) acceptRun(valid string) {
 	l.backup()
 }
 
-func (l *lexer) errorf(format string, args ...interface{}) stateFn {
+func (l *lexer) errorf(format string, args ...any) stateFn {
 	l.items <- item{
 		typ: itemError,
 		val: fmt.Sprintf(format, args...),

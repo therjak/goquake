@@ -158,7 +158,7 @@ func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
 		var delta vec.Vec3
 		// if the delta is large, assume a teleport and don't lerp
 		f := frac
-		for j := 0; j < 3; j++ {
+		for j := range 3 {
 			delta[j] = e.MsgOrigin[0][j] - e.MsgOrigin[1][j]
 			if delta[j] > 100 || delta[j] < -100 {
 				// assume a teleportation, not a motion
@@ -171,7 +171,7 @@ func (e *Entity) Relink(frac, bobjrotate float32, idx int) {
 			f = 1
 		}
 		// interpolate the origin and angles
-		for j := 0; j < 3; j++ {
+		for j := range 3 {
 			e.Origin[j] = e.MsgOrigin[1][j] + f*delta[j]
 
 			d := e.MsgAngles[0][j] - e.MsgAngles[1][j]

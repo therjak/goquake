@@ -53,7 +53,7 @@ func makeFileMenu() qFileMenu {
 }
 func makeFileMenuItems() [20]*fileMenuItem {
 	var items [20]*fileMenuItem
-	for i := 0; i < len(items); i++ {
+	for i := range len(items) {
 		f := fmt.Sprintf("s%d.sav", i)
 		items[i] = &fileMenuItem{
 			qMenuItem: qMenuItem{8, 32 + 8*i},

@@ -78,7 +78,7 @@ func (p *Pack) init() error {
 	}
 	filenum := h.Size / 64 // 64 is Sizeof(entry)
 	p.files = make(map[string]*qfile, filenum)
-	for i := int32(0); i < filenum; i++ {
+	for range filenum {
 		var e entry
 		if err := binary.Read(p.f, binary.LittleEndian, &e); err != nil {
 			return err

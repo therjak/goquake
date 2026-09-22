@@ -96,7 +96,7 @@ func drawCheckbox(x, y int, checked bool) {
 func drawSlider(x, y int, r float32) {
 	r = math.Clamp(0, r, 1)
 	DrawCharacterWhite(x-8, y, 128)
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		DrawCharacterWhite(x+i*8, y, 129)
 	}
 	DrawCharacterWhite(x+10*8, y, 130)
@@ -113,7 +113,7 @@ func drawTextbox(x, y, w, l int) {
 	for i := 0; i < w/2; i++ {
 		mx := x + 8 + 16*i
 		DrawPicture(mx, y, tm)
-		for n := 0; n < l; n++ {
+		for n := range l {
 			if n == 1 {
 				DrawPicture(mx, y+8*n, mm2)
 			} else {
@@ -128,7 +128,7 @@ func drawTextbox(x, y, w, l int) {
 	DrawPicture(fx, y, GetCachedPicture("gfx/box_tr.lmp"))
 	p1 := GetCachedPicture("gfx/box_ml.lmp")
 	p2 := GetCachedPicture("gfx/box_mr.lmp")
-	for i := 0; i < l; i++ {
+	for i := range l {
 		my := y + 8 + 8*i
 		DrawPicture(x, my, p1)
 		DrawPicture(fx, my, p2)

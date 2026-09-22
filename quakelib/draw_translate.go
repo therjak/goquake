@@ -54,31 +54,31 @@ func initTranslationTextures() {
 
 	// ---- translation 2D LUT texture (uploaded once for all 16 colors) -------
 	var lut [16 * 256]byte
-	for c := 0; c < 16; c++ {
+	for c := range 16 {
 		row := c * 256
-		for i := 0; i < 256; i++ {
+		for i := range 256 {
 			lut[row+i] = byte(i)
 		}
 		shirt := c * 16
 		if shirt < 128 {
-			for i := 0; i < 16; i++ {
+			for i := range 16 {
 				lut[row+aliasTopColorStart+i] = byte(shirt + i)
 				lut[row+topColorStart+i] = byte(shirt + i)
 			}
 		} else {
-			for i := 0; i < 16; i++ {
+			for i := range 16 {
 				lut[row+aliasTopColorStart+i] = byte(shirt + 15 - i)
 				lut[row+topColorStart+i] = byte(shirt + 15 - i)
 			}
 		}
 		pants := c * 16
 		if pants < 128 {
-			for i := 0; i < 16; i++ {
+			for i := range 16 {
 				lut[row+aliasBottomColorStart+i] = byte(pants + i)
 				lut[row+bottomColorStart+i] = byte(pants + i)
 			}
 		} else {
-			for i := 0; i < 16; i++ {
+			for i := range 16 {
 				lut[row+aliasBottomColorStart+i] = byte(pants + 15 - i)
 				lut[row+bottomColorStart+i] = byte(pants + 15 - i)
 			}
@@ -152,12 +152,12 @@ func buildTranslation(top, bottom int) [256]uint8 {
 
 	shirt := top * 16
 	if shirt < 128 {
-		for i := 0; i < 16; i++ {
+		for i := range 16 {
 			t[aliasTopColorStart+i] = uint8(shirt + i)
 			t[topColorStart+i] = uint8(shirt + i)
 		}
 	} else {
-		for i := 0; i < 16; i++ {
+		for i := range 16 {
 			t[aliasTopColorStart+i] = uint8(shirt + 15 - i)
 			t[topColorStart+i] = uint8(shirt + 15 - i)
 		}
@@ -165,12 +165,12 @@ func buildTranslation(top, bottom int) [256]uint8 {
 
 	pants := bottom * 16
 	if pants < 128 {
-		for i := 0; i < 16; i++ {
+		for i := range 16 {
 			t[aliasBottomColorStart+i] = uint8(pants + i)
 			t[bottomColorStart+i] = uint8(pants + i)
 		}
 	} else {
-		for i := 0; i < 16; i++ {
+		for i := range 16 {
 			t[aliasBottomColorStart+i] = uint8(pants + 15 - i)
 			t[bottomColorStart+i] = uint8(pants + 15 - i)
 		}

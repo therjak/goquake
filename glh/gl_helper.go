@@ -118,7 +118,7 @@ func (b *Buffer) SetData(size int, data unsafe.Pointer) {
 	gl.BufferData(b.target, size, data, gl.STATIC_DRAW)
 }
 
-func Ptr(data interface{}) unsafe.Pointer {
+func Ptr(data any) unsafe.Pointer {
 	return gl.Ptr(data)
 }
 
