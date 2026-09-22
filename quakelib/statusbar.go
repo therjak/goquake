@@ -119,7 +119,7 @@ func (s *qstatusbar) sortFrags() {
 }
 
 func (s *qstatusbar) LoadPictures() {
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		s.nums[0][i] = GetPictureFromWad(fmt.Sprintf("num_%d", i))
 		s.nums[1][i] = GetPictureFromWad(fmt.Sprintf("anum_%d", i))
 	}
@@ -713,10 +713,7 @@ func (s *qstatusbar) deathmatchOverlay() {
 		DrawFill(x, y, 40, 4, toPalette(score.topColor), 1)
 		DrawFill(x, y+4, 40, 4, toPalette(score.bottomColor), 1)
 
-		frags := score.frags
-		if frags > 999 {
-			frags = 999
-		}
+		frags := min(score.frags, 999)
 		DrawStringWhite(x+8, y, fmt.Sprintf("%3d", frags))
 
 		if f == cl.viewentity-1 {
@@ -831,10 +828,7 @@ func (s *qstatusbar) miniDeathmatchOverlay() {
 		DrawFill(x, y+1, 40, 4, toPalette(score.topColor), 1)
 		DrawFill(x, y+5, 40, 3, toPalette(score.bottomColor), 1)
 
-		frags := score.frags
-		if frags > 999 {
-			frags = 999
-		}
+		frags := min(score.frags, 999)
 		DrawStringWhite(x+8, y, fmt.Sprintf("%3d", frags))
 
 		if s.sortByFrags[i] == cl.viewentity-1 {

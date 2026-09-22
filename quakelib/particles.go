@@ -190,7 +190,7 @@ var (
 )
 
 func init() {
-	for i := 0; i < len(angleVelocities); i++ {
+	for i := range len(angleVelocities) {
 		angleVelocities[i] = vec.Vec3{
 			// orig has 0 - 2.55 but this gets multiplied by time and into sin/cos
 			// so there should be no point to do anything fancy
@@ -287,7 +287,7 @@ func particlesDeinit() {
 }
 
 func particlesAddEntity(origin vec.Vec3, now float64) {
-	for i := 0; i < 162; i++ {
+	for i := range 162 {
 		l := len(freeParticles)
 		if l == 0 {
 			return
@@ -402,7 +402,7 @@ func randVec(r int) vec.Vec3 {
 }
 
 func particlesAddExplosion(origin vec.Vec3, now float64) {
-	for i := 0; i < 1024; i++ {
+	for i := range 1024 {
 		l := len(freeParticles)
 		if l == 0 {
 			return
@@ -425,7 +425,7 @@ func particlesAddExplosion(origin vec.Vec3, now float64) {
 }
 
 func particlesAddExplosion2(origin vec.Vec3, colorStart, colorLength int, now float64) {
-	for i := 0; i < 512; i++ {
+	for i := range 512 {
 		l := len(freeParticles)
 		if l == 0 {
 			return
@@ -444,7 +444,7 @@ func particlesAddExplosion2(origin vec.Vec3, colorStart, colorLength int, now fl
 }
 
 func particlesAddBlobExplosion(origin vec.Vec3, now float64) {
-	for i := 0; i < 1024; i++ {
+	for i := range 1024 {
 		l := len(freeParticles)
 		if l == 0 {
 			return
@@ -469,7 +469,7 @@ func particlesAddBlobExplosion(origin vec.Vec3, now float64) {
 }
 
 func particlesRunEffect(origin, dir vec.Vec3, color, count int, now float64) {
-	for i := 0; i < count; i++ {
+	for i := range count {
 		l := len(freeParticles)
 		if l == 0 {
 			return

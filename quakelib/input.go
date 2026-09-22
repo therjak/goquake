@@ -34,7 +34,7 @@ func printTextInputEvent(e *sdl.TextInputEvent) {
 
 type mouseFilter struct{}
 
-func (mouseFilter) FilterEvent(e sdl.Event, userdata interface{}) bool {
+func (mouseFilter) FilterEvent(e sdl.Event, userdata any) bool {
 	switch e.GetType() {
 	case sdl.MOUSEMOTION:
 		return false

@@ -95,7 +95,7 @@ func FromBytes(data []byte, protocol int, flags uint32) (*protos.ClientMessage, 
 			pb.SetCmds(append(pb.GetCmds(), &protos.Cmd{}))
 		case Disconnect:
 			pb.SetCmds(append(pb.GetCmds(), protos.Cmd_builder{
-				Disconnect: proto.Bool(true),
+				Disconnect: new(true),
 			}.Build()))
 		case Move:
 			cmd := &protos.UsrCmd{}
@@ -159,7 +159,7 @@ func FromBytes(data []byte, protocol int, flags uint32) (*protos.ClientMessage, 
 				return nil, fmt.Errorf("SV_ReadClientMessage: badread %v\n", err)
 			}
 			pb.SetCmds(append(pb.GetCmds(), protos.Cmd_builder{
-				StringCmd: proto.String(s),
+				StringCmd: new(s),
 			}.Build()))
 		}
 	}

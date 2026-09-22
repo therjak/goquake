@@ -602,7 +602,7 @@ func (s *Server) flyMove(ent int, time float32, steptrace *bsp.Trace) (int, erro
 
 	time_left := time
 
-	for bumpcount := 0; bumpcount < numbumps; bumpcount++ {
+	for range numbumps {
 		if ev.Velocity == [3]float32{0, 0, 0} {
 			break
 		}
@@ -871,7 +871,7 @@ func (s *Server) runPhysics() error {
 		return s.numEdicts
 	}()
 
-	for i := 0; i < entityCap; i++ {
+	for i := range entityCap {
 		if s.edicts[i].Free {
 			continue
 		}

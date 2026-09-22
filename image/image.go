@@ -112,7 +112,7 @@ func loadTGA(name string) (*image.NRGBA, error) {
 		if header.PixelSize == 24 {
 			// RGB
 			cr := make([]uint8, width*3)
-			for y := 0; y < height; y++ {
+			for y := range height {
 				n, err := f.Read(cr)
 				if err != nil {
 					return nil, fmt.Errorf("Failed to read: %v", err)
@@ -120,7 +120,7 @@ func loadTGA(name string) (*image.NRGBA, error) {
 				if n != len(cr) {
 					return nil, fmt.Errorf("Not enough pixels")
 				}
-				for x := 0; x < width; x++ {
+				for x := range width {
 					p := x + width*y
 					nrgba.Pix[p*4+0] = cr[p*3+0]
 					nrgba.Pix[p*4+1] = cr[p*3+1]
@@ -132,7 +132,7 @@ func loadTGA(name string) (*image.NRGBA, error) {
 			// RGBA
 			// TODO: Optimize by just copy?
 			cr := make([]uint8, width*4)
-			for y := 0; y < height; y++ {
+			for y := range height {
 				n, err := f.Read(cr)
 				if err != nil {
 					return nil, fmt.Errorf("Failed to read: %v", err)
@@ -140,7 +140,7 @@ func loadTGA(name string) (*image.NRGBA, error) {
 				if n != len(cr) {
 					return nil, fmt.Errorf("Not enough pixels")
 				}
-				for x := 0; x < width; x++ {
+				for x := range width {
 					p := x + width*y
 					nrgba.Pix[p*4+0] = cr[p*4+0]
 					nrgba.Pix[p*4+1] = cr[p*4+1]

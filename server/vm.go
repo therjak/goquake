@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 	"strings"
 
 	"goquake/cvar"
@@ -304,8 +305,8 @@ func (v *virtualMachine) stackTrace() {
 		slog.Warn("<NO STACK>")
 		return
 	}
-	for i := len(v.stack) - 1; i >= 0; i-- {
-		v.printFunction(v.stack[i].function)
+	for _, v0 := range slices.Backward(v.stack) {
+		v.printFunction(v0.function)
 	}
 }
 
@@ -336,7 +337,7 @@ func (v *virtualMachine) enterFunction(f *progs.Function) (int32, error) {
 		v.abort()
 		return 0, errProgram
 	}
-	for i := int32(0); i < c; i++ {
+	for i := range c {
 		v.localStack = append(v.localStack, v.prog.RawGlobalsI[f.ParmStart+i])
 	}
 
@@ -367,7 +368,7 @@ func (v *virtualMachine) leaveFunction() (int32, error) {
 	}
 
 	nl := len(v.localStack) - c
-	for i := 0; i < c; i++ {
+	for i := range c {
 		v.prog.RawGlobalsI[int(v.xfunction.ParmStart)+i] = v.localStack[nl+i]
 	}
 	v.localStack = v.localStack[:nl]

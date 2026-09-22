@@ -15,8 +15,8 @@ type Entity struct {
 func NewEntity(p []byte) *Entity {
 	e := &Entity{properties: make(map[string]string), src: p}
 	// parse the entity line by line
-	lines := bytes.Split(p, []byte("\n"))
-	for _, l := range lines {
+	lines := bytes.SplitSeq(p, []byte("\n"))
+	for l := range lines {
 		// look for something of the form
 		// "key" "value"
 		q := bytes.IndexByte(l, '"')

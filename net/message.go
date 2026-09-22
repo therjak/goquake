@@ -21,7 +21,7 @@ func (m *Message) Len() int {
 	return m.buf.Len()
 }
 
-func (m *Message) Write(data interface{}) {
+func (m *Message) Write(data any) {
 	binary.Write(&m.buf, binary.LittleEndian, data)
 }
 

@@ -93,7 +93,7 @@ func updateAvailableDisplayModes() {
 	if err != nil {
 		return
 	}
-	for i := 0; i < num; i++ {
+	for i := range num {
 		mode, err := sdl.GetDisplayMode(display, i)
 		if err != nil {
 			continue

@@ -84,7 +84,7 @@ func TestBuildLightMap_MultiLightStyles(t *testing.T) {
 	// Style 1: torch light (first luxel 50, rest 0)
 	size := 2 * 2 * 3
 	lightSamples := make([]byte, size*2)
-	for i := 0; i < size; i++ {
+	for i := range size {
 		lightSamples[i] = 10
 	}
 	// Second layer: first pixel R=50, G=50, B=50
@@ -122,7 +122,7 @@ func TestLightAt_BoundaryConditions(t *testing.T) {
 	// Surface 16x16 extents -> 2x2 luxels = 12 bytes
 	size := 2 * 2 * 3
 	lightSamples := make([]byte, size)
-	for i := 0; i < size; i++ {
+	for i := range size {
 		lightSamples[i] = 128
 	}
 

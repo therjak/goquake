@@ -334,7 +334,7 @@ func (m *Model) setupBuffers(frames []frame) {
 	desc := make([]aliasmesh, 0, maxVerts)
 
 	for _, t := range m.triangles {
-		for j := 0; j < 3; j++ {
+		for j := range 3 {
 			idx := uint16(t.Indices[j])
 			tcoord := m.textureCoords[idx]
 			// Check for back side
@@ -426,7 +426,7 @@ func calcFrames(mod *Model, pheader *header, frames []frame) {
 
 	var radius float32
 	var yawRadius float32
-	for i := 0; i < len(frames); i++ {
+	for i := range frames {
 		f := &frames[i]
 		F := &mod.Frames[i]
 		F.Interval = f.interval

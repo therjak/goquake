@@ -21,7 +21,7 @@ var (
 )
 
 func clearLightStyles() {
-	for i := 0; i < len(lightStyles); i++ {
+	for i := range len(lightStyles) {
 		lightStyles[i] = lightStyle{
 			average: 13 * 22,
 			peak:    13 * 22,
@@ -62,7 +62,7 @@ func readLightStyle(idx int32, str string) error {
 
 func R_AnimateLight() {
 	idx := int(cl.time * 10)
-	for i := 0; i < bsp.MaxLightStyles; i++ {
+	for i := range bsp.MaxLightStyles {
 		s := &lightStyles[i]
 		if len(s.lightMap) == 0 {
 			lightStyleValues[i] = 256

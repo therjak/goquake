@@ -4,10 +4,10 @@ func AlphaEdgeFix(w, h int32, d []byte) {
 	alpha := func(p int32) byte {
 		return d[p+3]
 	}
-	for y := int32(0); y < h; y++ {
+	for y := range h {
 		prev := (y - 1 + h) % h
 		next := (y + 1) % h
-		for x := int32(0); x < w; x++ {
+		for x := range w {
 			pp := (x - 1 + w) % w
 			np := (x + 1) % w
 			prow := prev * w

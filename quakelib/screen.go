@@ -593,7 +593,7 @@ func fileExists(filename string) bool {
 func screenShot(_ cbuf.Arguments) error {
 	var pngName string
 	var fileName string
-	for i := 0; i < 10000; i++ {
+	for i := range 10000 {
 		pngName = fmt.Sprintf("spasm%04d.png", i)
 		fileName = filepath.Join(filesystem.GameDir(), pngName)
 		if !fileExists(fileName) {

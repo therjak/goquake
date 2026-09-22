@@ -72,7 +72,7 @@ func (q *QReader) ReadFloat32() (float32, error) {
 	return r, err
 }
 
-func (q *QReader) Read(data interface{}) error {
+func (q *QReader) Read(data any) error {
 	return binary.Read(q.r, binary.LittleEndian, data)
 }
 

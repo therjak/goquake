@@ -202,7 +202,7 @@ func (c *qconsole) dump() {
 	}
 	s := strings.Join(c.origText, "")
 	b := []byte(s)
-	for i := 0; i < len(b); i++ {
+	for i := range b {
 		b[i] &= 0x7f
 	}
 	err = os.WriteFile(fn, b, os.ModePerm)
@@ -236,7 +236,7 @@ var (
 	printRecursionProtection = false
 )
 
-func (c *qconsole) Printf(format string, v ...interface{}) {
+func (c *qconsole) Printf(format string, v ...any) {
 	c.Print(fmt.Sprintf(format, v...))
 }
 
@@ -266,16 +266,13 @@ const (
 )
 
 func (c *qconsole) centerPrint(txt string) {
-	w := 40
-	if w > c.lineWidth {
-		w = c.lineWidth
-	}
-	parts := strings.Split(txt, "\\n")
+	w := min(40, c.lineWidth)
+	parts := strings.SplitSeq(txt, "\\n")
 	// Split removes the '\n' so we can not forget to add it again.
 	// Its probably ok to use Split and create new strings afterwards
 	// as we add whitespace in most cases. The special case where we
 	// could avoid a new string should be rare.
-	for _, p := range parts {
+	for p := range parts {
 		l := len(p)
 		if l < w {
 			wl := (w - l) / 2
@@ -391,7 +388,7 @@ func (q *qconsole) print(txt string) {
 	case 2:
 		// make the string copper color
 		b := []byte(txt[1:])
-		for i := 0; i < len(b); i++ {
+		for i := range b {
 			if b[i] != '\n' {
 				b[i] = b[i] | 128
 			}
@@ -438,7 +435,7 @@ func (q *qconsole) print(txt string) {
 }
 
 // do not use. use conlog.Printf
-func conPrintf(format string, v ...interface{}) {
+func conPrintf(format string, v ...any) {
 	s := fmt.Sprintf(format, v...)
 	log.Print(s)
 	console.Print(s)

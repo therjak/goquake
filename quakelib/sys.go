@@ -18,7 +18,7 @@ func QError(format string) {
 	log.Fatal(format)
 }
 
-func QErrorf(format string, v ...interface{}) {
+func QErrorf(format string, v ...any) {
 	debug.PrintStack()
 	shutdown()
 	log.Fatalf(format, v...)

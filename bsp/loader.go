@@ -225,7 +225,7 @@ func buildPlanes(pls []*plane) []*Plane {
 			Type:   byte(pl.Type),
 			SignBits: func() byte {
 				r := 0
-				for i := uint8(0); i < 3; i++ {
+				for i := range uint8(3) {
 					if pl.Normal[i] < 0 {
 						r |= 1 << i
 					}
@@ -292,7 +292,7 @@ func loadTexInfo(buf *io.SectionReader, textures []*Texture) ([]*TexInfo, error)
 
 	missing := 0
 	var ti texInfo
-	for i := int64(0); i < count; i++ {
+	for i := range count {
 		err := binary.Read(buf, binary.LittleEndian, &ti)
 		if err != nil {
 			return nil, fmt.Errorf("loadTexInfo: %v", err)
@@ -376,7 +376,7 @@ func calcSurfaceExtras(ss []*Surface, vs []*MVertex, es []*MEdge, ses []int32, l
 			s.Polys.Verts = append(s.Polys.Verts, TexCoord{
 				Pos: v.Position,
 			})
-			for j := 0; j < 3; j++ {
+			for j := range 3 {
 				if s.Mins[j] > v.Position[j] {
 					s.Mins[j] = v.Position[j]
 				}
@@ -386,7 +386,7 @@ func calcSurfaceExtras(ss []*Surface, vs []*MVertex, es []*MEdge, ses []int32, l
 			}
 			// This should match a computation done with 80 bit precision to prevent
 			// 'corrupt' looking lightmaps
-			for j := 0; j < 2; j++ {
+			for j := range 2 {
 				val := float32(
 					float64(v.Position[0])*float64(tex.Vecs[j].Pos[0]) +
 						float64(v.Position[1])*float64(tex.Vecs[j].Pos[1]) +
@@ -845,7 +845,7 @@ func loadEdgesV0(buf *io.SectionReader) ([]*MEdge, error) {
 	count := size / dsedgeSize
 	t := make([]*MEdge, count)
 	var dedge dsedge
-	for i := int64(0); i < count; i++ {
+	for i := range count {
 		err := binary.Read(buf, binary.LittleEndian, &dedge)
 		if err != nil {
 			return nil, fmt.Errorf("loadEdgesV0: %v", err)
@@ -870,7 +870,7 @@ func loadEdgesV2(buf *io.SectionReader) ([]*MEdge, error) {
 	count := size / dledgeSize
 	t := make([]*MEdge, count)
 	var dedge dledge
-	for i := int64(0); i < count; i++ {
+	for i := range count {
 		err := binary.Read(buf, binary.LittleEndian, &dedge)
 		if err != nil {
 			return nil, fmt.Errorf("loadEdgesV2: %v", err)
@@ -895,7 +895,7 @@ func loadVertexes(buf *io.SectionReader) ([]*MVertex, error) {
 	count := size / dvertexSize
 	t := make([]*MVertex, count)
 	var dv dvertex
-	for i := int64(0); i < count; i++ {
+	for i := range count {
 		err := binary.Read(buf, binary.LittleEndian, &dv)
 		if err != nil {
 			return nil, fmt.Errorf("loadVertexes: %v", err)

@@ -54,7 +54,7 @@ func join(a []cbuf.QArg, sep string) string {
 		return a[0].String()
 	}
 	n := len(sep) * (len(a) - 1)
-	for i := 0; i < len(a); i++ {
+	for i := range a {
 		n += len(a[i].String())
 	}
 

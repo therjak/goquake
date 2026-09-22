@@ -14,8 +14,8 @@ func (t *Texture) loadSkyTexture(data []byte, textureName, modelName string) {
 	front := [128 * 128]byte{}
 	back := [128 * 128]byte{}
 	var r, g, b, count int
-	for i := 0; i < 128; i++ {
-		for j := 0; j < 128; j++ {
+	for i := range 128 {
+		for j := range 128 {
 			sidx := i*256 + j
 			didx := i*128 + j
 			p := data[sidx]

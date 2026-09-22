@@ -49,7 +49,7 @@ func (e *EntityVars) Free() {
 
 func (e *EntityVars) Clear(idx int) {
 	v := e.entvars[idx]
-	for i := 0; i < len(v); i++ {
+	for i := range v {
 		v[i] = 0
 	}
 }
@@ -108,7 +108,7 @@ func (e *EntityVars) SetRawI(idx, off int32, value int32) {
 func (e *EntityVars) getUnsafe(off int32) unsafe.Pointer {
 	// go 1.17:
 	// return unsafe.Add(g_entvars, off)
-	return unsafe.Pointer(uintptr(e.g_entvars) + uintptr(off))
+	return unsafe.Add(e.g_entvars, off)
 }
 
 func (e *EntityVars) Set0RawI(off int32, value int32) {

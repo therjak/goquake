@@ -76,7 +76,7 @@ func TestAdd(t *testing.T) {
 
 func testHistory() *History {
 	h := &History{}
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		h.Add(fmt.Sprintf("line%d", i))
 	}
 	return h

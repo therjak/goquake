@@ -38,7 +38,6 @@ import (
 	"goquake/stat"
 
 	"github.com/chewxy/math32"
-	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -345,7 +344,7 @@ func executeOnServer(a cbuf.Arguments) error {
 	args := a.Args()
 	if len(args) > 1 {
 		cls.outProto.SetCmds(append(cls.outProto.GetCmds(), protos.Cmd_builder{
-			StringCmd: proto.String(a.ArgumentString()),
+			StringCmd: new(a.ArgumentString()),
 		}.Build()))
 	}
 	return nil
@@ -361,7 +360,7 @@ func forwardToServer(a cbuf.Arguments) {
 		return
 	}
 	cls.outProto.SetCmds(append(cls.outProto.GetCmds(), protos.Cmd_builder{
-		StringCmd: proto.String(a.Full()),
+		StringCmd: new(a.Full()),
 	}.Build()))
 }
 
@@ -412,7 +411,7 @@ func (c *Client) ReadFromServer() (serverState, error) {
 		// the current computation could even result in values
 		// outside of [-180,180] but is consistend with orig
 		d := vec.Sub(c.mViewAngles[0], c.mViewAngles[1])
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			if d[i] > 180 {
 				d[i] -= 360
 			} else if d[i] < -180 {
@@ -506,7 +505,7 @@ func (c *ClientStatic) Disconnect() error {
 		slog.Debug("Sending clc_disconnect")
 
 		cls.outProto.SetCmds(append(cls.outProto.GetCmds()[:0], protos.Cmd_builder{
-			Disconnect: proto.Bool(true),
+			Disconnect: new(true),
 		}.Build()))
 		b, err := clc.ToBytes(cls.outProto, cl.protocol, cl.protocolFlags)
 		if err != nil {
@@ -595,26 +594,26 @@ func CL_SignonReply() {
 	switch cls.signon {
 	case 1:
 		cls.outProto.SetCmds(append(cls.outProto.GetCmds(), protos.Cmd_builder{
-			StringCmd: proto.String("prespawn"),
+			StringCmd: new("prespawn"),
 		}.Build()))
 
 	case 2:
 		color := int(cvars.ClientColor.Value())
 		cls.outProto.SetCmds(append(cls.outProto.GetCmds(),
 			protos.Cmd_builder{
-				StringCmd: proto.String(fmt.Sprintf("name \"%s\"", cvars.ClientName.String())),
+				StringCmd: new(fmt.Sprintf("name \"%s\"", cvars.ClientName.String())),
 			}.Build(),
 			protos.Cmd_builder{
-				StringCmd: proto.String(fmt.Sprintf("color %d %d", color>>4, color&15)),
+				StringCmd: new(fmt.Sprintf("color %d %d", color>>4, color&15)),
 			}.Build(),
 			protos.Cmd_builder{
-				StringCmd: proto.String("spawn"),
+				StringCmd: new("spawn"),
 			}.Build(),
 		))
 
 	case 3:
 		cls.outProto.SetCmds(append(cls.outProto.GetCmds(), protos.Cmd_builder{
-			StringCmd: proto.String("begin"),
+			StringCmd: new("begin"),
 		}.Build()))
 
 	case 4:
@@ -910,7 +909,7 @@ func (c *Client) calcBlend() Color {
 func (c *Client) updateBlend() {
 	c.calcPowerupColorShift()
 	changed := false
-	for i := 0; i < len(c.colorShifts); i++ {
+	for i := range len(c.colorShifts) {
 		if c.colorShifts[i] != c.colorShiftsPrev[i] {
 			changed = true
 			c.colorShiftsPrev[i] = c.colorShifts[i]
@@ -1176,7 +1175,7 @@ func (c *Client) calcRefreshRect() {
 		qRefreshRect.viewAngles.Add(c.punchAngle[0])
 	case 2:
 		// lerped kick
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			if calcRefreshRectPunch[i] != c.punchAngle[0][i] {
 				// speed determined by how far we need to lerp in 1/10th of a second
 				delta := (c.punchAngle[0][i] - c.punchAngle[1][i]) * float32(host.FrameTime()) * 10
@@ -1273,7 +1272,7 @@ func (c *Client) parseClientData(cdp *protos.ClientData) {
 		// set flash times
 		statusbar.MarkChanged()
 		d := c.items ^ items
-		for i := 0; i < 32; i++ {
+		for i := range 32 {
 			if d&(1<<i) != 0 {
 				//if (i & (1 << j)) && !(CL_HasItem(1 << j)) {
 				cl.itemGetTime[i] = cl.time

@@ -577,7 +577,7 @@ func merge3Pixel(p1, p2, p3 []byte) [4]byte {
 
 func downScaleWidth(width int32, height int32, data []byte) []byte {
 	ndata := make([]byte, len(data)/2)
-	for y := int32(0); y < height; y++ {
+	for y := range height {
 		for x := int32(0); x < width; x += 2 {
 			pp := (x - 1 + width) % width
 			np := (x + 1) % width
@@ -597,7 +597,7 @@ func downScaleHeight(width int32, height int32, data []byte) []byte {
 	for y := int32(0); y < height; y += 2 {
 		prev := (y - 1 + height) % height
 		next := (y + 1) % height
-		for x := int32(0); x < width; x++ {
+		for x := range width {
 			p := (x + prev*width) * 4
 			c := (x + y*width) * 4
 			n := (x + next*width) * 4

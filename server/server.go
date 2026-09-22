@@ -401,7 +401,7 @@ func (s *Server) WriteClientdataToMessage(player int) {
 	clientData.SetCells(int32(e.AmmoCells))
 
 	if cmdl.Quoth() || cmdl.Rogue() || cmdl.Hipnotic() {
-		for i := 0; i < 32; i++ {
+		for i := range 32 {
 			if int(e.Weapon)&(1<<uint(i)) != 0 {
 				clientData.SetActiveWeapon(int32(i))
 				break
@@ -508,7 +508,7 @@ func (s *Server) impact(e1, e2 int) error {
 
 func CheckVelocity(ent *progs.EntVars) {
 	maxVelocity := cvars.ServerMaxVelocity.Value()
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		if ent.Velocity[i] != ent.Velocity[i] {
 			s, _ := progsdat.String(ent.ClassName)
 			slog.Warn("Got a NaN velocity", slog.String("class", s))
@@ -607,7 +607,7 @@ func (s *Server) CreateBaseline() {
 
 		s.signon.WriteByte(int(e.Baseline.ColorMap))
 		s.signon.WriteByte(int(e.Baseline.Skin))
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			s.signon.WriteCoord(float32(e.Baseline.Origin[i]), s.protocolFlags)
 			s.signon.WriteAngle(float32(e.Baseline.Angles[i]), s.protocolFlags)
 		}
@@ -773,7 +773,7 @@ func (s *Server) setIdealPitch(player int) {
 	angleval := ev.Angles[1] * math32.Pi * 2 / 360 // YAW
 	sinval := math32.Sin(angleval)
 	cosval := math32.Cos(angleval)
-	for i := 0; i < MAX_FORWARD; i++ {
+	for i := range MAX_FORWARD {
 		a := (i + 3) * 12
 		top := vec.Vec3{
 			ev.Origin[0] + cosval*float32(a),

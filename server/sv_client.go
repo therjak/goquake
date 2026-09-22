@@ -86,7 +86,7 @@ func CreateSVClients() {
 	}
 }
 
-func (s *Server) BroadcastPrintf(format string, v ...interface{}) {
+func (s *Server) BroadcastPrintf(format string, v ...any) {
 	s.BroadcastPrint(fmt.Sprintf(format, v...))
 }
 
@@ -104,7 +104,7 @@ func HostClient() *SVClient {
 	return sv_clients[host_client]
 }
 
-func (sc *SVClient) Printf(format string, v ...interface{}) {
+func (sc *SVClient) Printf(format string, v ...any) {
 	sc.print(fmt.Sprintf(format, v...))
 }
 func (sc *SVClient) Print(txt string) {
