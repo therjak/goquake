@@ -500,8 +500,8 @@ func parseTempEntity(msg *net.QReader, protocolFlags uint32) (*protos.TempEntity
 			return nil, err
 		}
 		var color struct {
-			start byte
-			end   byte
+			Start byte
+			End   byte
 		}
 		if err = msg.Read(&color); err != nil {
 			return nil, err
@@ -509,8 +509,8 @@ func parseTempEntity(msg *net.QReader, protocolFlags uint32) (*protos.TempEntity
 		return protos.TempEntity_builder{
 			Explosion2: protos.Explosion2_builder{
 				Position:   pos,
-				StartColor: int32(color.start),
-				StopColor:  int32(color.end),
+				StartColor: int32(color.Start),
+				StopColor:  int32(color.End),
 			}.Build(),
 		}.Build(), nil
 	case TE_BEAM:
